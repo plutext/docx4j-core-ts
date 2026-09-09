@@ -1,0 +1,22 @@
+name: test
+on: { push: { branches: [main] }, pull_request: {} }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy: { fail-fast: false, matrix: { node: ["18", "20", "22"] } }
+    steps:
+      - uses: actions/checkout@v4
+      # @docx4j/jsonix 3.2.0 and @docx4j/generated-objects-ts are not on npm yet: use the sibling
+      # repositories. Once published, drop these steps and the --no-save installs; `npm install`
+      # alone then suffices.
+      - uses: actions/checkout@v4
+        with: { repository: plutext/jsonix, path: .runtime }
+      - uses: actions/checkout@v4
+        with: { repository: plutext/docx4j-generated-objects-ts, path: .objects }
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ matrix.node }}" }
+      # A directory dependency is symlinked, not built, so build the objects package first.
+      - run: cd .objects && npm install --no-audit --no-fund --no-save typescript@5.6.3 ../.runtime/nodejs/scripts && npm run build
+      - run: npm install --no-audit --no-fund --no-save typescript@5.6.3 ./.runtime/nodejs/scripts ./.objects
+      - run: npm run typecheck
+      - run: npm test

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2019",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2019", "dom"],
+    "types": [],
+    "skipLibCheck": false
+  },
+  "include": ["src/**/*.mts", "test/*.ts"]
+}

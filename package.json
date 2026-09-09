@@ -1,0 +1,58 @@
+{
+  "name": "@docx4j/core-ts",
+  "version": "0.1.0",
+  "description": "docx4j-core for TypeScript: Open Packaging (docx/pptx/xlsx zip and flat OPC), typed parts and relationships, style, numbering and font resolution over @docx4j/generated-objects-ts. Node, browsers, Word add-ins.",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "npm run build && node test/smoke.mjs",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "keywords": [
+    "docx4j",
+    "ooxml",
+    "openxml",
+    "office open xml",
+    "docx",
+    "pptx",
+    "xlsx",
+    "opc",
+    "wordprocessingml",
+    "office-js",
+    "word-addin",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutext/docx4j-core-ts.git"
+  },
+  "homepage": "https://github.com/plutext/docx4j-core-ts",
+  "bugs": {
+    "url": "https://github.com/plutext/docx4j-core-ts/issues"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@docx4j/generated-objects-ts": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
