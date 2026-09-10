@@ -1,6 +1,6 @@
 # CR-001: The engine: container interface, Open Packaging layer, typed parts, resolution utilities
 
-**Status:** Proposed 2026-09-09
+**Status:** Phase A implemented 2026-09-10 (both steps); Phases B and C proposed
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
 section 9.
@@ -316,12 +316,19 @@ touches zip tree-shakes it away.
 
 ## 9. What the runtime and the objects package need from this
 
-- **Runtime (jsonix-CR-003 candidate):** a marshaller option to declare a given set of namespace
-  prefixes on the root element whether or not they are used, for `mc:Ignorable`. Until then the
-  engine post-processes the marshalled DOM, which works and is slower.
-- **Objects facade:** nothing new; `getContext`, `unmarshalNode`, `marshalNode`,
-  `unmarshalPackage`, `deepCopy`, `unwrap`. If a synchronous context proves necessary for the
-  add-in case, the facade would export a `createContext(modules)` helper; not needed for this CR.
+- **Objects facade (done, objects CR-001, 2026-09-10):** the review on 2026-09-10 found that the
+  facade built its context without a namespace prefix table, so marshalled output carried
+  generated prefixes (`p1:Ignorable="w14"` with no `xmlns:w14`, `p2:space` bound to the `xml`
+  namespace), which Word rejects. The engine cannot pass the table itself: the context is built
+  by whoever calls `getContext` first. The facade now ships docx4j's table as its default
+  (`NAMESPACE_PREFIXES`), makes the relationships namespace the default namespace on a
+  `Relationships` root, and strips unused root declarations while keeping those named by
+  `mc:Ignorable`. This package therefore has no namespace handling of its own; `XmlPart`
+  marshals through `marshalNode`.
+- **Runtime (jsonix-CR-003 candidate):** declare-on-root as a marshaller option, so the facade's
+  stripping pass can go; `Jsonix.DOM` in the typings (this package and the facade both cast).
+- **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
+  `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 
 ## 10. Phasing and effort
 
@@ -334,18 +341,64 @@ touches zip tree-shakes it away.
 Phase A alone is useful (a typed docx round trip in Node and an add-in package round trip);
 each phase ships as a minor version.
 
-## 11. Open questions
+## 11. Open questions (decided 2026-09-10)
 
-1. `fflate` versus JSZip (section 3). Recommendation: `fflate`.
-2. Asynchronous `getContents()` plus synchronous `contents` (section 5.4), versus requiring a
-   built context before load so everything is synchronous. Recommendation: as specified; the
-   asynchrony is confined to first access and `unmarshalAll()` removes it for callers that prefer.
-3. MCE preprocessing on by default (section 5.6). Recommendation: on, as docx4j and Word.
-4. Hand-written `[Content_Types].xml` handling versus adding `opc-contentTypes.xsd` to the
-   objects generation. Recommendation: hand-written; two element types do not justify an objects
-   release.
-5. Whether `PropertyResolver` lives on `MainDocumentPart` (docx4j) or on the package. Recommendation:
-   both, the package delegating, since headers and footers resolve against the same styles.
-6. Exact departures from docx4j names where Java conventions read badly in TypeScript
-   (`GetCurrentNumberString`, `IncrementCounter`): use camelCase and note the mapping in the
-   class doc comment.
+1. `fflate` versus JSZip: **fflate**. Only `inflateSync`, `zipSync` are used; the zip container
+   parses the central directory itself so an entry inflates on first load.
+2. Asynchronous `getContents()` plus synchronous `contents`: **as specified**. `unmarshalAll()`
+   removes the asynchrony for callers that prefer.
+3. MCE preprocessing on by default: **on**. It turned out to be required, not merely
+   Word-like: the model types `mc:AlternateContent` only where a global element can follow, so a
+   `w:drawing` (a local element) inside `mc:Choice` cannot be unmarshalled at all. Every
+   Word-saved document with a shape hits this. With `mcePreprocess: false` such a part throws on
+   `getContents()`; the option exists for parts whose branches hold global elements only.
+4. Hand-written `[Content_Types].xml`: **hand-written** (`ContentTypeManager`).
+5. `PropertyResolver` on the part or the package: **both**, package delegating (Phase B).
+6. Name departures: camelCase, noted in the class doc comment. The departures made in Phase A
+   are listed in section 12.
+
+## 12. Phase A implementation notes (2026-09-10)
+
+Layout as section 7 (`src/opc`, `src/parts`, `src/packages`; `src/model` comes with Phase B);
+`exports` `.`, `./opc`, `./parts`, `./packages`. 22 tests under `test/*.test.mjs` on Node's
+runner: part names and content types; loading the docx, pptx and xlsx fixtures; byte-identical
+round trips of untouched parts; deep-equal round trips of re-marshalled parts; flat OPC out,
+through the objects package's `unmarshalPackage`, and back; a new package; adding, renaming and
+removing parts; MCE resolution; prefix and `mc:Ignorable` declarations on re-marshalled output.
+The Word acceptance checklist is `test/README.md`.
+
+Departures from the text above, and from docx4j, all deliberate:
+
+- `PartSink<R>` is generic in what `finish()` returns: `ZipPartSink` gives bytes,
+  `FlatOpcPartSink` a string, `MemoryPartSink` a `MemoryPartStore`; `OpcPackage.saveTo(sink)`
+  returns that. `put` takes the part's content type, which the flat OPC sink needs per part.
+- `FlatOpcPartStore` synthesises `[Content_Types].xml` from the per-part `pkg:contentType`
+  (a default for `rels`, an override for everything else), so the loader sees one container
+  shape. XML parts come back as re-serialised bytes, so a flat OPC load is not byte-identical
+  in the way a zip load is.
+- `CustomXmlDataStoragePart` extends `DefaultXmlPart` (both hold a DOM). `VMLPart` is a
+  `DefaultXmlPart`: docx4j's `org.docx4j.vml.root.Xml` wrapper has a synthetic namespace in the
+  generated model and does not match the unqualified `<xml>` root Word writes. Chart style,
+  chart colour style, chartEx and diagram drawing parts are DOM parts until typed.
+- `ImagePart` is one class; the image kind is the content type. `ChartPart` and `DrawingPart`
+  are docx4j's `Chart` and `Drawing`. The PresentationML and SpreadsheetML comments parts are
+  `PresentationCommentsPart` and `SpreadsheetCommentsPart`; docx4j's `Styles` and `CalcChain`
+  are `StylesPart` and `CalcChainPart`.
+- The facade's flat OPC `Part` type (`pkg:part`) is re-exported as `FlatOpcPart`; `Part` is the
+  part class, as in docx4j.
+- `AddPartBehaviour` is a string union. `RENAME_IF_NAME_EXISTS` appends docx4j's counter to the
+  proposed name (`image1.png` becomes `image12.png`), as docx4j does.
+- `externalResources` is not implemented: external targets (hyperlinks, linked images) stay in
+  the relationships and `getPart(rel)` returns undefined for them. Strict (`purl.oclc.org`)
+  packages are not converted on load. ZIP64 archives are rejected.
+- The MCE preprocessor's "understood" set is `UNDERSTOOD_NAMESPACES`, a hand-kept copy of the
+  generated modules' namespaces (the context does not expose them); `createMcePreprocessor`
+  takes another set. Unlike docx4j 3.3.8+, `mc:AlternateContent` inside `w:r` is resolved too
+  (question 3 says why).
+- `fflate` is imported statically by the zip container and `OpcPackage.load` reaches it, so an
+  add-in bundle carries it (about 8 KB); the sentence in section 7 about tree-shaking it away
+  does not hold. `fflate` 0.8.3's typings need TypeScript 5.7, hence `skipLibCheck` in the
+  typecheck configuration.
+- The relationship-source hook (`setRelationshipsPartFactory`) and the package registry
+  (`registerPackageClass`) exist to avoid ES module cycles between `Part`, `RelationshipsPart`,
+  `OpcPackage` and its subclasses; `packages/index.mts` registers the three Office kinds.

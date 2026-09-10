@@ -9,6 +9,22 @@
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
+    },
+    "./opc": {
+      "types": "./dist/opc/index.d.mts",
+      "import": "./dist/opc/index.mjs"
+    },
+    "./parts": {
+      "types": "./dist/parts/index.d.mts",
+      "import": "./dist/parts/index.mjs"
+    },
+    "./packages": {
+      "types": "./dist/packages/index.d.mts",
+      "import": "./dist/packages/index.mjs"
+    },
+    "./model": {
+      "types": "./dist/model/index.d.mts",
+      "import": "./dist/model/index.mjs"
     }
   },
   "files": [
@@ -20,7 +36,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "npm run build && node test/smoke.mjs",
+    "test": "npm run build && node --test test/",
     "prepublishOnly": "npm run typecheck && npm test"
   },
   "keywords": [
@@ -47,7 +63,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@docx4j/generated-objects-ts": "^0.1.0"
+    "@docx4j/generated-objects-ts": "^0.1.0",
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "typescript": "~5.6.3"
