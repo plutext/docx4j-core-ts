@@ -365,7 +365,10 @@ runner: part names and content types; loading the docx, pptx and xlsx fixtures; 
 round trips of untouched parts; deep-equal round trips of re-marshalled parts; flat OPC out,
 through the objects package's `unmarshalPackage`, and back; a new package; adding, renaming and
 removing parts; MCE resolution; prefix and `mc:Ignorable` declarations on re-marshalled output.
-The Word acceptance checklist is `test/README.md`.
+The Word acceptance checklist is `test/README.md`; it passed on 2026-09-10 in Word 2016 (untouched
+round trip, re-marshalled round trip with a content API edit, a created document, and the
+flat OPC opened as a `pkg:package` file), which confirms the prefix table, the `mc:Ignorable`
+declarations and the MCE resolution in Word itself.
 
 Departures from the text above, and from docx4j, all deliberate:
 

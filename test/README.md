@@ -12,6 +12,12 @@ OPC package (`pkg:package`) with `mc:AlternateContent` in a header.
 
 ## Word acceptance (manual)
 
+Last run: 2026-09-10, Word 2016, after CR-001 Phase A and CR-002 phases B and D. All four
+files below opened without a repair prompt: the untouched round trip, the round trip with the
+main part and a header re-marshalled and a paragraph added through the content API, a
+document created from nothing with a heading and a formatted span, and the flat OPC of the
+second opened as a `pkg:package` file.
+
 Saved output must open in Word without a repair prompt. After a change to marshalling,
 namespaces, content types or the zip writer, check by hand:
 
