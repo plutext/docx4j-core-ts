@@ -410,7 +410,157 @@ a JAXB `Binder`, which this runtime does not have. The typed tree has `walk` / `
 `PARENT`, and the agent surface has addresses; that covers the uses. If demand appears, the
 route is a DOM view over the typed tree, its own CR.
 
-### 3.7 What stays as it is
+### 3.7 Change tracking and find-and-replace (phase F; requested by CR-003 section 4.2)
+
+Office JS has `document.changeTrackingMode` (`Off` | `TrackAll` | `TrackMineOnly`),
+`Word.TrackedChange` (`type`: `Added` | `Deleted` | `Formatted` | `None`; `author`, `date`,
+`text`; `accept()`, `reject()`, `getRange()`) and `getTrackedChanges()` on body, paragraph
+and range. The same here:
+
+- `pkg.changeTrackingMode`, with `trackedChangeAuthor` and an optional fixed date (the
+  package's, since there is no signed-in user). When on, every mutation of the content API
+  writes Word's revision markup instead of editing in place: `insertText` wraps the new
+  run(s) in `w:ins`; a deletion moves the runs into `w:del` with `w:t` turned into
+  `w:delText`; a replacement is a `w:del` followed by a `w:ins`; `insertParagraph` marks the
+  new paragraph mark inserted (`w:pPr/w:rPr/w:ins`) and `delete()` marks it deleted;
+  `Font` and paragraph property writes keep the old properties in `w:rPrChange` /
+  `w:pPrChange`; row insertions and deletions go on `w:trPr`. Ids come from a per-package
+  counter above the highest in use; author and date from the settings.
+- The text model already reads the accepted view (`w:del` excluded, `w:ins` included), so
+  `text`, `search` and addresses see the document as it will be once accepted, which is
+  what a reviewer and an agent want; a `{ view: 'original' }` option on `text` and `search`
+  gives the other view when needed.
+- `TrackedChange` views over `w:ins`, `w:del`, `w:rPrChange`, `w:pPrChange` and the
+  paragraph-mark and row forms: `accept()` unwraps or removes, `reject()` restores;
+  `getTrackedChanges()` on `Body`, `Paragraph` and `Range`, and `acceptAll()` /
+  `rejectAll()` on `Body` (docx4j's accept-all in the Java `docx4j-mcp` is the
+  reference). The editor renders and lists them (CR-003 section 4.2).
+- `replaceText(find, replace, options?)` on `Body`, `Paragraph` and `Range`: `search`, then
+  `insertText(replace, 'Replace')` on each match from last to first, so offsets stay valid;
+  returns the count. Tracked when the mode is on. This is the verb agents and the UI's
+  Find and Replace call; the Office JS idiom remains available.
+
+### 3.8 Comments (phase G; requested by CR-003 section 3.3)
+
+Office JS has `Word.Comment` (`authorName`, `authorEmail`, `content`, `creationDate`,
+`resolved`, `replies`, `reply(text)`, `delete()`, `getRange()`), `Range.insertComment(text)`
+and `getComments()` on body, paragraph and range. The same here, over the four parts a
+current Word writes, all typed and loaded by CR-001 already:
+
+- `w:comments` (`CommentsPart`): the comment's id, author, initials, date and its content
+  paragraphs (the first opening with a `w:annotationRef` run in `CommentReference` style).
+- `w:commentRangeStart` / `End` in the body around the commented range, and a run holding
+  `w:commentReference` after it.
+- `w:commentsExtended` (`CommentsExtendedPart`, w15): per comment, keyed by the
+  `w14:paraId` of its first paragraph, the `w15:done` flag and `w15:paraIdParent` for a
+  reply, which is how threads are formed.
+- `w:commentsIds` (w16cid `durableId`) and `w:people` (authors' presence data), and, when
+  present, `w:commentsExtensible` (w16cex, a UTC date), kept in step.
+
+Operations: `getComments()` returns `Comment` views in document order, replies nested under
+their parent; `content` reads the comment's text (the same text model), and setting it
+replaces the paragraphs; `resolved` reads and writes `w15:done`; `reply(text)` adds a
+comment with the same range whose first paragraph's `paraId` is linked by `paraIdParent`;
+`delete()` removes the comment, its replies, the range markers, the reference run and the
+entries in the three side parts; `Range.insertComment(text)` allocates the next id and
+`paraId`, writes the markers and reference run, the comment with one paragraph in
+`CommentText` style, and the side-part entries, creating any of the four parts that are
+absent (with their relationships and content types, through `addTargetPart`). Author,
+initials and email come from package-level settings, the same as `trackedChangeAuthor`; an
+agent's comments carry its name. A comment's range may span paragraphs; `getRange()`
+returns a `Range` per paragraph it touches (extension: Office JS returns one range).
+
+### 3.9 Lists (phase H; requested by CR-003 section 3.4)
+
+Office JS has `Word.List` (`id`, `levelTypes`, `levelExists`, `getLevelParagraphs`,
+`setLevelNumbering`, `setLevelBullet`, `setLevelIndents`), `Word.ListItem` (`level`,
+`listString`, `siblingIndex`), and on `Paragraph`: `isListItem`, `list`, `listItem`,
+`startNewList()`, `attachToList(listId, level)`, `detachFromList()`. The same here over
+`w:numPr` and the numbering part:
+
+- `List` is a view over a `w:num` and the `w:abstractNum` it points to (through
+  `NumberingDefinitionsPart`), `id` being the `w:numId`; `levelTypes` reads each level's
+  `w:numFmt` as `Bullet` or `Number` (Office JS's two kinds); `setLevelNumbering` /
+  `setLevelBullet` / `setLevelIndents` write the level's `w:numFmt`, `w:lvlText`, `w:start`
+  and `w:ind`, copying the abstract definition first when other `w:num`s share it, so a
+  change stays local to this list.
+- `Paragraph.startNewList()` creates a `w:abstractNum` from docx4j's default definitions
+  (`NumberingDefinitionsPart.unmarshalDefaultNumbering`: a bullet set and a decimal set;
+  the resource is embedded here as `DEFAULT_STYLES_XML` is) and a `w:num` for it, adds the
+  numbering part and its relationship when the document has none, and sets the paragraph's
+  `w:numPr`; `attachToList(listId, level)` sets `w:numPr`; `detachFromList()` removes it;
+  `listItem.level` reads and writes `w:ilvl`. A restart is a new `w:num` on the same
+  abstract definition with a `w:lvlOverride` / `w:startOverride` for level 0.
+- `listItem.listString` (the rendered label) and `siblingIndex` need CR-001 Phase B's
+  `Emulator`; until then `listString` is `undefined` and the editor's list rendering waits
+  for Phase B, as CR-003 section 3.4 says.
+- A paragraph whose style carries `w:numPr` (a "List Number" style) is a list item through
+  the style; `isListItem` is true and `list` resolves through the style's `w:numPr` (Phase
+  B's `PropertyResolver` gives the effective `numPr`; before it, the direct one only).
+
+### 3.10 The `Word` shim and the source generators (phase I; requested by CR-003 section 3.5)
+
+Section 3.4 promises that the content API is a structural subset of `Word.*`. Phase I
+makes that executable: a `Word` object (`@docx4j/core-ts/office-js`) whose `Word.run(fn)`
+calls `fn` with a `context` over a package (`Word.run(pkg, fn)` here, since there is no
+host document), where:
+
+- `context.document.body` is the package's `Body`; `context.document.getSelection()` is a
+  `Range` the caller supplies (the editor's selection; none in Node); `context.document.
+  changeTrackingMode`, `properties` (core properties through `DocPropsCorePart`),
+  `getComments()`.
+- `load(...)` on any object is a no-op returning the object; `context.sync()` resolves the
+  pending results: `getOoxml()` and other asynchronous calls return `ClientResult`-shaped
+  objects whose `value` is filled when `sync()` resolves, as in Office JS.
+- Collections are arrays with an `items` property (the subset types already say
+  `ArrayLike & { items }`); `getFirst()`, `getFirstOrNullObject()` (with `isNullObject`)
+  are provided since add-in code uses them constantly.
+- The enums are objects of the string values the API accepts: `Word.InsertLocation`,
+  `Word.Alignment`, `Word.UnderlineType`, `Word.ChangeTrackingMode`, `Word.BreakType`,
+  `Word.ContentControlType`, `Word.SearchOptions` shape.
+- Every object handed out is a proxy: a member that the subset does not implement throws
+  `NotSupportedError` naming the member, so an add-in's unsupported call fails at the call
+  with a clear message rather than silently. A `Word.supported` set lists the implemented
+  members, generated from the subset declarations, for tools that want to check a script
+  before running it (CR-003's console).
+
+Use in Node: run an add-in's `Word.run` callbacks against a package in a test, with the
+saved docx as the assertion; this is a way to test add-in logic in CI without Word.
+
+Two generators, for reveal codes and for agents learning the API from examples:
+
+- `toSource(element)` in the objects package's `builders/wml` (its next CR): the factory
+  call that builds the element.
+- `toApiScript(element | Paragraph | Range)` here: the content-API calls that produce it
+  where verbs exist (`insertParagraph`, `style`, `font`, `insertTable`, `insertContentControl`,
+  ...), falling back to `insertXml` with the marshalled fragment for the rest; emitted as
+  TypeScript against `body`.
+
+### 3.11 Scripts and directionality (foundations; CR-003 section 3.7)
+
+The content API targets left-to-right text first and must not assume it. Commitments,
+with what phases B and D already do and what is still to be done:
+
+- Offsets in `Range`, `search`, addresses and `TextSegment` are UTF-16 code units, as in
+  Office JS; the split in `Paragraph.splitAt` must never fall inside a surrogate pair or
+  a grapheme cluster: **to do**, `Intl.Segmenter` (grapheme) to move the split to the
+  cluster boundary, with a test on an emoji sequence and on Devanagari.
+- `matchWholeWord` uses `(?<![\w])...(?![\w])`, which is ASCII-minded: **to do**,
+  `Intl.Segmenter` word boundaries when available (all current browsers and Node 16+),
+  the regex as the fallback; `matchCase: false` uses the `i` flag, which is Unicode
+  case-insensitive under the `u` flag: **to do**, add `u`.
+- The run mapping writes `w:bCs`, `w:iCs` and `w:szCs` with their Latin twins (done), so
+  complex-script text is formatted by the same calls; `Font` gains `nameBidi`,
+  `nameEastAsia` and `sizeBidi` (WordApiDesktop) with Phase B's font work: **later**.
+- `Paragraph.alignment` maps `start`/`end` as well as `left`/`right` (done); the indent
+  properties read `w:ind/@w:left` and `@w:right` and should also read the strict-form
+  `@w:start` and `@w:end` and write whichever the paragraph already uses: **to do**.
+- A `bidi` property on `Paragraph` (`w:bidi`) and `rtl` on `Font` (`w:rtl`), so the editor
+  can set direction without the tree: **to do**, small.
+- Nothing in the text model depends on direction: `w:bidi` and `w:rtl` are display, and
+  the logical order of runs is the document order, which is what the model keeps.
+
+### 3.12 What stays as it is
 
 - `contents` remains the typed tree and `content` arrays remain plain arrays. Nothing is
   wrapped in proxies; `Paragraph` and friends are light views holding a reference to the
@@ -444,6 +594,10 @@ route is a DOM view over the typed tree, its own CR.
 | C | `Table`, `TableCell`, `insertTable`, `insertInlinePictureFromBase64` (ImagePart + relationship + `wp:inline`), `insertOoxml` from a `pkg:package`, `ContentControl` | 4 days |
 | D | addresses (ordinal, paraId, text), `outline()`, `paragraphAt`; a note in `docx4j-mcp`'s CR | 2 days |
 | E | `CustomXmlPart` / `CustomXmlNode` with the `XPathEngine`, `XmlMapping`, typed `ContentControl` properties, `insertContentControl`; `applyBindings` / `updateFromContentControls` (docx4j `BindingHandler`) | 5 days |
+| I | The `Word` shim (3.10): `Word.run(pkg, fn)`, `load` / `sync`, collections with `items`, enums, proxies throwing `NotSupportedError`, `Word.supported`; `toApiScript`; usable in Node to test add-in code against a package | 4 days |
+| H | Lists (3.9): `List` and `ListItem` views, `startNewList` from docx4j's default definitions, `attachToList`, `detachFromList`, level, restart; labels from Phase B | 4 days |
+| G | Comments (3.8): `getComments()`, `Comment` views with `content`, `resolved`, `reply`, `delete`, `getRange`; `Range.insertComment`; the four comment parts created and kept in step | 4 days |
+| F | Change tracking (3.7): `changeTrackingMode` in Office JS's shape, every mutation writing `w:ins` / `w:del` / `w:rPrChange` / `w:pPrChange` / row revisions when on, `TrackedChange` views with `accept` / `reject`, `getTrackedChanges()`; `replaceText(find, replace, options)` as a verb, tracked or not; the text model's accepted view already excludes `w:del` | 5 days |
 
 ## 6. Open questions
 

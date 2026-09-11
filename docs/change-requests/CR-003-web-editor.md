@@ -74,7 +74,8 @@ direct formatting and references, as SuperDoc's import rule also insists (Append
 | `w:drawing` / `w:pict` inline | `image { sourceId, src: blobUrl, width, height }` atom | delete only (the relationship and part go with it on export when unreferenced) |
 | `w:hyperlink` | `link` mark `{ sourceId, href }` | text inside; the target in a later phase |
 | `w:footnoteReference` in a run + `w:footnote` in the footnotes part | `footnoteRef { sourceId, footnoteId }` inline atom; the footnote's paragraphs as a `footnote` block document of the same schema in a side fragment (3.2) | text of the footnote, insert, delete; endnotes the same |
-| `w:fldSimple`, `w:ins`, `w:del`, bookmarks, comments ranges, math, `w:altChunk`, unknown blocks | `opaque { sourceId, kind, snapshotHtml }` atom, block or inline | none; deletable as a whole |
+| `w:commentRangeStart` / `End` + `w:commentReference` + the comments parts | `comment { id }` mark on the commented text (one per paragraph the range touches); comment content as a small document per comment in a side fragment (3.3) | view, insert, reply, resolve, delete |
+| `w:fldSimple`, `w:ins`, `w:del`, bookmarks, math, `w:altChunk`, unknown blocks | `opaque { sourceId, kind, snapshotHtml }` atom, block or inline | none; deletable as a whole |
 | headers, footers | separate read-only ProseMirror views, same schema, `editable: false` | none |
 | `w:sectPr` (in a paragraph's `pPr`, or the body's last) | `paragraph.attrs.sectPr` (opaque JSON of the original, plus the editable fields) and `doc.attrs.finalSectPr` | page size, orientation, margins, section type; insert or remove a section break (3.1) |
 
@@ -161,6 +162,254 @@ Operations:
 Content controls inside footnotes work by the same schema but are not a target. Effort:
 three days for read and edit, two for insert and delete. E1 read, E2 the rest.
 
+### 3.3 Comments: view, insert, reply, delete
+
+In scope. Comments are the other half of review (4.2): a reviewer annotates, an agent
+explains what it changed and why, and both must survive into Word. The engine half is
+CR-002 phase G (`getComments()`, `Comment` with `content`, `resolved`, `reply`, `delete`,
+`Range.insertComment`, the four parts kept in step); the editor half:
+
+- **Projection.** The commented text carries a `comment { id }` mark per paragraph it
+  touches, so a range spanning paragraphs is several marks with one id; export writes one
+  `w:commentRangeStart` before the first and one `w:commentRangeEnd` plus the reference run
+  after the last. The comment's own paragraphs are a small document in a side `Y.Map` of
+  fragments keyed by id, as footnotes are (3.2), so a comment's text is edited with the
+  body's commands and co-edits like it.
+- **Display.** A margin column with a bubble per thread aligned to its anchor, the author's
+  colour on the anchored text, replies nested, resolved threads collapsed; a click selects
+  the range. Word Online's shape, which users know.
+- **Operations.** Select text and comment (or comment at the cursor, on the word); reply;
+  resolve and reopen; delete a comment or a thread; edit one's own comment text. Author
+  from the editor's user settings, or the agent's name for E4.
+- **Staging.** View in E1 (read-only bubbles, the cheapest useful thing); insert, reply,
+  resolve and delete in E4 with the review panel, since that is where the workflow needs
+  them; a document without comment parts gets them created on first insert.
+
+### 3.4 Formatting UI: runs, paragraphs, styles, lists, page breaks
+
+Not everything Word offers; the working set, each control a call on the content API so that
+the toolbar, the keyboard and an agent (4.2) do the same thing:
+
+| Control | Content API | Engine status |
+|---|---|---|
+| Style picker: paragraph and character styles by their `w:name`, the quick styles first (`isQFormat`), a preview in each entry rendered from Phase B's effective properties | `paragraph.style`, `range.font` with `style` (`w:rStyle`) | in place (CR-002 B) |
+| Font family (the document's fonts from the font table and theme, then a common list), size, bold, italic, underline; colour and highlight because they cost nothing | `range.font.name`, `size`, `bold`, `italic`, `underline`, `color`, `highlightColor`; runs split at the selection's edges | in place |
+| Alignment; indent increase and decrease (left indent by half an inch, as Word's buttons); first-line and hanging indent, space before and after, line spacing in a paragraph dialog | `paragraph.alignment`, `leftIndent`, `firstLineIndent`, `spaceBefore`, `spaceAfter`, `lineSpacing` | in place |
+| Bullets and numbering on and off, list level in and out, restart numbering, continue previous list | `paragraph.startNewList()`, `attachToList(listId, level)`, `detachFromList()`, `listItem.level`, `list.levelTypes` (Office JS `Word.List` and `Word.ListItem`) | **CR-002 phase H**, below; labels rendered by Phase B's `Emulator` |
+| Page break at the cursor (and section break, 3.1) | `paragraph.insertBreak('Page', 'After')`, `range.insertBreak`; `sectPr` attr for a section break | in place |
+| Clear formatting | `font` reset, `paragraph.style = 'Normal'` | in place |
+
+Keyboard: the Word set (Ctrl+B, I, U; Ctrl+Shift+comma and period for size; Ctrl+M and
+Ctrl+Shift+M for indent; Tab and Shift+Tab at the start of a list item for level; Ctrl+Enter
+for a page break; Ctrl+Alt+1 to 3 for headings). The toolbar reflects the selection's
+direct formatting today and its effective formatting once Phase B lands (a heading shows as
+bold in the toolbar because its style says so), which is the same provisional note as
+`Font` reads in CR-002 section 7.
+
+Lists are the one gap. The content API has no numbering verbs and the model's numbering part
+is not surfaced beyond `NumberingDefinitionsPart`; CR-002 phase H adds the Office JS list
+surface: a `List` view over a `w:num` (and its `w:abstractNum`), `Paragraph.startNewList()`
+creating a new definition from docx4j's default bullet or decimal definitions (the same
+resource `WordprocessingMLPackage.createPackage` will use for numbering, docx4j's
+`NumberingDefinitionsPart.unmarshalDefaultNumbering`), `attachToList`, `detachFromList`,
+`listItem.level` writing `w:numPr` `ilvl`, and restart through a new `w:num` with a
+`w:lvlOverride`. Rendering the labels ("1.", "a)", "•") is CR-001 Phase B's `Emulator`, so
+numbering UI is E2, after Phase B; everything else in this section is E1.
+
+### 3.5 Developer mode: reveal codes, a console, macros, and pasting Office JS
+
+The editor's second audience is developers working with this API, and the editor is the
+best place to learn it: the document is on screen, the selection is a range, and the tree
+behind it is one click away. Four features, all cheap because the engine already has the
+pieces.
+
+**Reveal codes.** A panel that follows the selection and shows, side by side:
+
+1. The Open XML of the selected element(s): the run(s) of a text selection, the paragraph,
+   the table, the content control, whatever the caret is in, with the ancestor chain as
+   breadcrumbs (`body > sdt (od:repeat) > tbl > tr > tc > p > r`). Marshalled from the tree
+   (`marshalString`), so it is what the file will contain, prefixes and all.
+2. The TypeScript that would build it with the factories: `el.p({ pPr: { pStyle: { val:
+   'Heading1' } }, content: [el.r({ rPr: { b: {} }, content: [el.t({ value: 'Hello' })] })] })`.
+   A generator over the tree (objects package, `builders/wml` `toSource(element)`: `el.<name>`
+   for the module's own elements, the scoped `create...` factories for foreign ones, literal
+   values, `TYPE_NAME` and `PARENT` omitted).
+3. The content-API calls that would produce the same thing where the API has verbs for it:
+   `const p = body.insertParagraph('Hello', 'End'); p.style = 'Heading1'; p.font.bold = true;`
+   with a fallback to `body.insertXml(...)` for what the verbs do not cover (this package,
+   `toApiScript(element)`). This is the "how would I write this" answer, and it is what an
+   agent reads to learn the API from an example.
+
+Edits made in the XML pane are applied through `insertXml` / `setXml` (with the MCE
+preprocessor and the schema check giving the error on a bad edit), so reveal codes is also
+a way to make a change the toolbar has no button for.
+
+**A console.** A Monaco editor pane (the package's `.d.mts` declarations loaded as extra
+libraries, so completion and type errors work against the real API) in which the user
+writes TypeScript against `pkg`, `body`, `el`, `wml` and the selection, and runs it. The
+TypeScript is stripped to JavaScript in the browser (Sucrase, about 100 KB, or esbuild-wasm)
+and executed as an ES module from a blob URL with those bindings passed in, inside one Yjs
+transaction so that the whole script is one undo step and one tracked-change batch, and
+with the change-tracking mode honoured. Errors map back to the source line. The script runs
+in the user's own page with the user's own document, the same trust as the browser's
+devtools; a hosted deployment that lets others' scripts run is an E3 policy question, not a
+mechanism question.
+
+**Macros.** A saved console script with a name is a macro: stored per user (browser
+storage) or, when the user asks, in the document itself as a custom XML part
+(`docx4j-editor/macros`), where Word ignores it and the editor offers it on the toolbar the
+next time the document opens. Together with the console this is a macro language for docx
+with a typed API, source-level completion and an undo step per run, which is what VBA gave
+Word and what add-ins took away. It is also the natural target for an agent: "write me a
+macro that ..." produces a script the user can read, run and keep.
+
+**Pasting Office JS.** Add-in code such as
+
+```ts
+await Word.run(async (context) => {
+  const paragraphs = context.document.body.paragraphs;
+  paragraphs.load('items/text,items/style');
+  await context.sync();
+  for (const p of paragraphs.items) if (p.style === 'Heading 1') p.insertText(' (reviewed)', 'End');
+  await context.sync();
+});
+```
+
+runs unchanged in the console, because the console provides a `Word` global: `Word.run`
+hands the script a `context` whose `document.body` is this package's `Body`, `load()` is a
+no-op (properties are already readable), `context.sync()` resolves the pending reads such
+as `getOoxml().value`, collections are arrays with `items`, and the enums
+(`Word.InsertLocation`, `Word.Alignment`, `Word.ChangeTrackingMode`, ...) are the string
+values the API already accepts. No package names are rewritten: the point of CR-002
+section 3.4 is that the API *is* a subset of `Word.*`, so the same source is valid on both
+sides. What the subset does not have is reported, not guessed at: before the run, a static
+pass over the script's member accesses against the subset's declarations highlights the
+lines that use members with no equivalent here (`body.insertFileFromBase64`, `getReviewedText`,
+`context.document.properties`); at run time, the shim's objects are proxies that throw a
+`NotSupported` error naming the member and the line for anything the static pass missed.
+The engine half is CR-002 phase I (the shim is a library, useful in Node for running an
+add-in's code against a package in a test), the editor half is the console integration and
+the highlighting.
+
+One caveat to state plainly: code that works here is not guaranteed to work in Word,
+because Office JS requires `load()` and `sync()` before a property is read and this
+package does not. The console can lint for that (a property read on a proxy with no
+preceding `load` of that property) and offer to insert the `load` calls, so that a script
+developed here is portable back to the add-in.
+
+**Asking for content.** The console's prompt box takes natural language as well as code:
+"insert a paragraph about XYZ after this one", "make this a two-column table of the items
+above", "write the definitions clause for a services agreement", "explain what this XML
+does". The request goes to a model with the context the console already has: the
+selection's XML and text, the outline, the styles in use with their names, and the API
+reference (the same declarations Monaco holds). The model is asked to answer in one of
+three fenced forms, and the console knows what to do with each:
+
+- **Content**, as a WML fragment (`wml` block) or plain text: rendered in a preview pane
+  through the same projection, over a scratch package carrying the document's styles so it
+  looks as it will in place; buttons **Insert at selection**, **Replace selection**, **Copy**
+  (as text, as XML, as factory source). Insert goes through `insertXml` in one Yjs
+  transaction, tracked when the mode is on, so it is one undo step and one reviewable
+  change.
+- **A script** (`ts` block): shown in the console editor, not run; the user reads it,
+  edits it if they like, and presses Run. Generated code never executes on its own.
+- **An explanation** (prose): shown in the pane; the "explain this" companion to reveal
+  codes, and the way a developer asks "how do I do X with this API" with the real
+  declarations in the model's context.
+
+Nothing happens to the document until the user presses a button, which is the difference
+from E4's agent, where the model calls tools on the live document as a peer. The two share
+the provider configuration (an API key of the user's, or an organisation's proxy, or the
+E4 companion process relaying to whatever the organisation runs), the context builders and
+the fenced-form contract, so the ask mode is E4's first half and ships before it. It is
+also the cheapest way to get LLM value into the editor: no tools, no tracking of an
+autonomous session, just a preview and an insert the user controls.
+
+Staging: reveal codes (XML and factory source) and the console in E1, since they cost
+days and they are how the team itself will debug the projection; the API-script generator,
+macros, the Office JS shim and the ask mode with a bring-your-own key in E2; the
+organisation-proxy and companion routes with E4.
+
+### 3.6 Perspectives
+
+The features above serve three different people, and a toolbar that shows all of them at
+once serves none well. The UI is organised into **perspectives** in Eclipse's sense: one
+document, one model, one selection; a perspective is a named arrangement of panels,
+toolbar, keyboard map and defaults, switched with one click or a shortcut, remembered per
+user and suggested from the document (a docx with OpenDoPE parts opens in Template; a docx
+with pending tracked changes or comments offers Review).
+
+| Perspective | For | Panels and toolbar | Defaults |
+|---|---|---|---|
+| **Edit** | writing and formatting | the formatting toolbar (3.4); comments in the margin (3.3); footnotes below (3.2); the ask box (3.5) as the one model feature; page boundaries from markers (Appendix D) | tracking off; content controls drawn lightly (Word's bounding boxes on hover); developer panels hidden |
+| **Review** | seeing what changed and deciding | the review panel: tracked changes by author and time with accept and reject, comments and replies, the agent's log when E4 has run; "show as accepted" and "original" toggles; a compare view against the last saved version (Yjs snapshot) | tracking on for the user's own edits; the agent's edits highlighted by author colour; formatting toolbar reduced |
+| **Template** | OpenDoPE authors | the content control tree (nesting, kinds, tags) with the properties panel (4); the custom XML parts as a tree with the XPath box and bind-by-drag (Word's XML Mapping pane, done properly); conditions, repeats and questions editors; sample data and the binding preview (`applyBindings`); row-level control commands on tables (4.1) | controls drawn with tags and coloured gutters; the ask box biased to template help ("make this row repeat over the line items") |
+| **Developer** | people working with the API, and the team | reveal codes with the XML, factory-source and API-script panes (3.5); the console with Monaco and the `Word` shim; macros; the outline as an address table (3.4 addresses); the part list of the package with each part's XML; the projection diagnostics (what is opaque and why) | tracking off; the console bound to `pkg`, `body`, `el`, `wml`, the selection and the current perspective's panel state |
+
+What the perspectives share is everything that matters: the projection, the commands (a
+command is one content-API call, registered once, bound to toolbar buttons, keys, the
+console and the MCP tools alike), the undo history, the change-tracking mode (a document
+setting, not a perspective setting, so switching perspectives never silently changes
+whether an edit is tracked), the selection, and the agent's peer session (E4), whose tool
+surface does not depend on the perspective, though the Template perspective's ask box
+supplies template-oriented context and the Developer perspective's console shows the
+agent's calls as they happen.
+
+Two rules keep it honest. A perspective **hides** panels and buttons, it never removes
+capabilities: any command remains available from the command palette (Ctrl+Shift+P) in
+every perspective, so that a Template author can bold a word without leaving Template.
+And a perspective is a **preset, not a mode**: the user can open any panel in any
+perspective, and the arrangement they end up with is what "their" version of that
+perspective becomes, with a reset to the default.
+
+Staging: Edit and Developer in E1 (Developer is how the team debugs the projection);
+Template in E2 with the content controls and custom XML work; Review in E4 with change
+tracking and comments editing.
+
+### 3.7 Scripts and directionality: LTR first, RTL and CJK in the foundations
+
+The first releases target left-to-right Latin text. The foundations must not assume it,
+because the places where an LTR assumption hides (the text model, search, run splitting,
+font selection, CSS direction) are the ones that cost the most to revisit. What the
+foundations commit to:
+
+- **Rendering is the browser's.** Bidirectional layout, CJK line breaking, IME composition
+  and vertical metrics come from the browser through `contenteditable`; the editor sets
+  `direction: rtl` from `w:bidi` on the paragraph and `unicode-bidi` from `w:rtl` on runs,
+  and nothing else. This is the one place where not owning the layout engine is a plain
+  advantage (SuperDoc's V2 right-to-left caret and tab-order issues, Appendix C, are the
+  cost of owning it).
+- **Fonts by script.** CR-001 Phase B's `RunFontSelector` chooses the font per character
+  range from `w:rFonts` (`ascii`, `hAnsi`, `cs`, `eastAsia`, the `hint`) and the Unicode
+  script of the text; the generated CSS carries a `font-family` per script span rather
+  than one per run. The `Font` view's `name` is the ASCII font today; `nameBidi` and
+  `nameEastAsia` (WordApiDesktop's names) follow with Phase B. The run mapping already
+  writes the complex-script twins (`w:bCs`, `w:iCs`, `w:szCs`) alongside `w:b`, `w:i`,
+  `w:sz`, so bold and size apply to Arabic and Hebrew text from day one; `sizeBidi` is a
+  later refinement.
+- **Offsets are UTF-16 code units** in the text model, the addresses and the API, as in
+  Office JS and in Java, never bytes and never code points; and a run is never split
+  inside a surrogate pair or a grapheme cluster (`Intl.Segmenter` with grapheme
+  granularity at the split point), so combining marks, emoji sequences and Indic clusters
+  survive formatting a span.
+- **Search is Unicode.** `matchCase` folds through locale-aware case mapping;
+  `matchWholeWord` uses `Intl.Segmenter` word boundaries rather than the ASCII `\b`, which
+  is wrong for CJK (no spaces) and for Arabic (joined letters); wildcards operate on code
+  points. Diacritic-insensitive and kashida-insensitive matching (Word's options) are later.
+- **Numbering** formats for CJK and Arabic (`chineseCounting`, `arabicAlpha`, ...) are
+  Phase B's `Emulator`, where docx4j already has them.
+- **The UI** is mirrored by CSS logical properties from the start (`margin-inline-start`,
+  not `margin-left`), so a right-to-left interface is a stylesheet direction switch, and
+  the toolbar's indent buttons mean "start" and "end" (`w:ind/@w:start`, `@w:end`, the
+  transitional `left`/`right` read as aliases).
+- **Out of scope** until asked for: vertical text (`w:textDirection`), East Asian layout
+  properties (`w:eastAsianLayout`), and Word's RTL table layouts (`w:bidiVisual`), which
+  round-trip untouched as everything else.
+
+Tests: the fixtures gain a Hebrew or Arabic document and a Japanese one from the docx4j
+corpus; the round-trip and projection tests run over them; a search test with a CJK phrase
+and a whole-word match on Arabic; a split-at-grapheme test with an emoji sequence.
+
 ## 4. Content controls and OpenDoPE
 
 The editor's reason to exist beyond text. Operations:
@@ -221,6 +470,58 @@ walk, assigning `groupId`s. Because a row-level control that existed in the file
 `sourceId`, an unchanged one is emitted as the original element, as everything else.
 
 The engine side of this is CR-002 phases C and E; the editor needs nothing beyond them.
+
+### 4.2 An agent driving the editor, and change tracking
+
+In scope, as a phase of its own (E4), because it is the workflow the product is for: an
+OpenDoPE author asks an LLM to draft, restructure or template a document and reviews the
+result. Two design points, one architectural and one about what the user sees.
+
+**The agent is a peer, not a plug-in.** Once E3 gives the editor a Yjs provider, anything
+that can speak Yjs is a collaborator, with presence and attribution. The agent connects
+that way: a small local companion process (`docx4j-editor-mcp`, Node) serves MCP over stdio
+or streamable HTTP to Claude Code, Claude Desktop or any MCP client, holds the same package
+as the browser through the same provider, and applies each tool call as one Yjs transaction.
+The user watches the document change in place, with the agent's cursor and colour, and can
+type at the same time. Nothing new is invented for it: the MCP tools are the content API
+(CR-002) in Office JS shapes plus the addresses and `outline()` of section 3.3, which is
+also why those exist. A no-editor variant (the same tools over a file on disk, `docx4j-mcp`
+style) is the same server without a provider.
+
+The tool surface, first cut (each maps to one content-API call, addresses as in 3.3):
+`outline`, `get_text(address?)`, `search(text, options)`, `replace_text(find, replace,
+options)`, `insert_paragraph(address, location, text, style?)`, `set_text(address, text)`,
+`delete(address)`, `insert_xml(address, location, wml)`, `format(address | range, font)`,
+`set_paragraph(address, { style, alignment, ... })`, `insert_table`, `insert_content_control(range
+| rows, kind, sdtPr)`, `remove_content_control(address, keepContent)`,
+`set_content_control(address, sdtPr)`, `bind(address, xpath, part)`, `get_tracked_changes`,
+`accept`/`reject(changeId | all)`, `save`. Every mutating tool returns what changed
+(addresses and a short diff of text), which is what the model needs to continue, and what
+the reviewer sees in the log panel.
+
+**Everything the agent does is a tracked change.** The editor keeps a change-tracking mode
+in the shape of Office JS (`document.changeTrackingMode`: `Off`, `TrackAll`, `TrackMineOnly`)
+and the agent's session runs with tracking on and the agent's name as author. Insertions are
+written as `w:ins` around the new runs, deletions as `w:del` with `w:delText`, inserted and
+deleted paragraph marks on `w:rPr` of the mark, format changes as `w:rPrChange` /
+`w:pPrChange` with the old properties, table row insertions and deletions on `w:trPr`. That
+is Word's own representation, so the reviewer can accept or reject in the editor **or in
+Word**, and a document handed on carries the review state. The editor renders tracked
+changes as Word does (author colour, underline for insertions, strikethrough for deletions,
+a change bar in the margin), with a review panel listing changes by author and time and
+accept / reject per change, per author or all, and a "show as accepted" toggle. This
+upgrades E1's "tracked changes are opaque" (decision 2): E1 still displays existing
+changes read-only; E4 makes them first-class, since it creates them.
+
+The engine half is CR-002 phase F (recorded there): `changeTrackingMode` on the package,
+`TrackedChange` views with `accept()` / `reject()` and `getTrackedChanges()` on `Body`,
+`Paragraph` and `Range`, every content-API mutation honouring the mode, and `replaceText`
+as a verb. The editor half is the rendering, the panel and the mode switch; the agent half
+is the companion process.
+
+Why tracked changes rather than Yjs snapshots for "what did the agent do": snapshots give
+a diff of the edit session and are kept for undo and history, but they do not leave the
+editor; a `w:ins` does. Both exist; the review surface is built on the tracked changes.
 
 ## 5. Approximating WYSIWYG
 
@@ -284,9 +585,10 @@ cross-browser, and this design inherits that.
 
 | Phase | Content | Effort |
 |---|---|---|
-| E1 | Drop a docx, project paragraphs and runs to ProseMirror in Yjs, render with generated CSS (Phase B for effective values), export, download; sections editable; footnote references shown and their text readable; images shown; headers and footers read-only; the 400-page load benchmark | 3 weeks |
-| E2 | Tables (needs CR-002 C), content controls with the properties panel, nesting and row-level controls (needs CR-002 E), OpenDoPE tags and the custom XML parts; footnotes and endnotes edited, inserted and deleted | 4 weeks |
-| E3 | Co-editing surfaced: a relay, presence, comments as a later opaque-to-editable promotion | 2 weeks |
+| E1 | The Edit and Developer perspectives (3.6); reveal codes and the console (3.5); drop a docx, project paragraphs and runs to ProseMirror in Yjs, render with generated CSS (Phase B for effective values), export, download; the formatting toolbar (styles, font, size, bold, italic, underline, alignment, indents, page breaks; 3.4); sections editable; footnote references shown and their text readable; comments shown read-only in the margin; images shown; headers and footers read-only; the 400-page load benchmark, reported not gating | 3 weeks |
+| E2 | The Template perspective (3.6); macros, the API-script generator, the Office JS shim and the ask-the-model mode (preview, insert, copy) in the console (3.5, CR-002 I); tables (needs CR-002 C), content controls with the properties panel, nesting and row-level controls (needs CR-002 E), OpenDoPE tags and the custom XML parts; footnotes and endnotes edited, inserted and deleted; bullets and numbering (needs CR-002 H and Phase B) | 4 weeks |
+| E3 | Co-editing surfaced: a relay, presence | 2 weeks |
+| E4 | The Review perspective (3.6); an agent as a peer: the `docx4j-editor-mcp` companion serving the content API as MCP tools over the same provider; change-tracking mode with Word's revision markup (CR-002 phase F), tracked-change rendering, the review panel with accept and reject; comments inserted, replied to, resolved and deleted (CR-002 phase G); find and replace in the UI | 4 weeks |
 
 ## 9. What the engine needs to provide (this repository)
 
@@ -309,7 +611,7 @@ The open questions of the first draft, decided as recommended:
 1. Two packages in one repository, `docx4j-editor`: `@docx4j/editor-model` (the projection,
    headless, testable in Node with jsdom; what an agent or a test uses) and the app.
 2. Tracked changes are opaque in E1 (insertions shown as ordinary text, deletions hidden),
-   with a banner; accept-all is a later one-liner.
+   with a banner; they become first-class in E4 (4.2), which creates them.
 3. E1 does not ship without Phase B: a document that looks wrong undermines trust in the
    round trip, which is the product.
 4. Sections are in scope (3.1). Row- and cell-level content controls use the attribute
@@ -317,6 +619,177 @@ The open questions of the first draft, decided as recommended:
 5. Footnotes and endnotes are in scope, read in E1 and edited, inserted and deleted in E2
    (3.2), because the template audience is largely legal and footnotes are frequent there;
    the footnotes part is unmarshalled on first display, never at load.
+6. Comments are in scope: viewed in E1, inserted, replied to, resolved and deleted in E4
+   (3.3), as the other half of review. Decided 2026-09-12.
+7. The formatting UI is the working set of 3.4: styles, font, size, bold, italic,
+   underline, alignment, indents, page breaks in E1; bullets and numbering in E2 over
+   CR-002 phase H and Phase B. Decided 2026-09-12.
+8. Developer mode is in scope (3.5): reveal codes with XML, factory source and API script;
+   a TypeScript console with completion from the package's declarations, one undo step
+   per run; saved scripts as macros; pasted Office JS run through a `Word` shim with
+   unsupported members highlighted; an ask mode in which a model proposes content or a
+   script that the user previews and applies, nothing executing or inserting on its own.
+   Decided 2026-09-12.
+9. The UI is organised as four perspectives, Edit, Review, Template and Developer (3.6),
+   presets over one model and one command set; a perspective hides, never removes, and the
+   tracking mode is a document setting independent of it. Decided 2026-09-12.
+10. The 400-page, 2-second load figure is an aspiration, not a requirement: the Developer
+   and Template perspectives are the product's purpose and are served either way; the
+   benchmark is measured and reported and never gates a release. Decided 2026-09-12.
+11. Left-to-right Latin text first; the foundations (3.7) carry RTL and CJK: browser
+   bidi and IME, fonts by script through Phase B, UTF-16 offsets with grapheme-safe
+   splitting, Unicode-aware search, logical CSS properties. Decided 2026-09-12.
+12. An edited document gets the editor's name and version in `docProps/app.xml`, unless
+   turned off in the options pane; nothing else Word-visible is written without being
+   asked (section 11, item 2). Decided 2026-09-12.
+13. Repository `docx4j-editor` with the model, UI and MCP packages; ProseMirror directly;
+   React for the application with the editing surface as a framework-free class and a web
+   component wrapper (section 11, item 10). Decided 2026-09-12.
+14. An LLM driving the editor through MCP is in scope as phase E4, with the agent joining
+   as a Yjs peer and every edit it makes written as a Word tracked change under its own
+   author name, so the user reviews in the editor or in Word (4.2). Decided 2026-09-12.
+
+## 11. Foundations to settle before E1
+
+Each of these would be baked in by E1's first weeks and is expensive to change afterwards.
+A recommendation for each; decisions go into section 10 as they are made.
+
+1. **Files: open, save, and the file Word may also have open.** Open is drag-and-drop or
+   a file picker; save is a download by default, and save-in-place through the File System
+   Access API where the browser has it (Chromium), with autosave to browser storage (the
+   Yjs update log, which is what survives a crash) and a visible dirty state. The editor
+   never writes the original file without asking, and before any save it runs the
+   **round-trip self-check**: export to bytes, reload, re-project, compare with the live
+   projection; a mismatch blocks the save with the reveal-codes diff and never overwrites.
+   A file Word has open is a last-writer-wins situation the editor cannot detect; it warns
+   when a file's modification time changed since it was opened. Recommendation: as above;
+   the self-check from E1's first day, since it is the fidelity guarantee made
+   operational.
+2. **What the editor writes into a document that Word will see.** Nothing, by default,
+   beyond the user's edits, with one exception: **when the document has been edited, the
+   editor writes its name and version to `docProps/app.xml` (`Application`, `AppVersion`)
+   as Word does, unless the user turns that off in the options pane** (decision, Jason,
+   2026-09-12). No `w14:paraId`s unless Re-paginate or the user asks, no macros or Yjs
+   state unless the user chooses "keep session in document", and the core properties'
+   `lastModifiedBy` and `modified` are left as they are (a later option, off by default,
+   could set them). A document opened and saved without edits round-trips byte for byte,
+   and E1's tests assert it; an edited one differs only in the edit and in `app.xml`.
+   docx4j's Java engine has the same switch (`docx4j.App.write`, off by default there);
+   here the default is on, because a document edited in the editor should say so.
+   **`AppVersion` must be of the form `XX.YYYY`, two digits, a dot, four digits** (Word
+   2010 x64 treats a document as corrupt on any other value, a `-SNAPSHOT` suffix
+   included; Jason, 2026-09-12). The editor therefore never writes its semver string:
+   `major.minor.patch` maps to `MM.mmpp` (`0.3.1` becomes `00.0301`; `1.12.4` becomes
+   `01.1204`), pre-release and build suffixes are dropped, minor and patch above 99 are
+   clamped, and the writer validates the result against `^\d{2}\.\d{4}$` and writes
+   nothing rather than an invalid value. Word's own values are of this form
+   (`16.0000`). The same rule applies to any tool of ours that writes `app.xml`, the
+   engine's `createPackage` included when it gains an `Application` default.
+3. **Undo.** One `Y.UndoManager` over the body fragment and the side maps, scoped to the
+   user's own origin, so a colleague's or the agent's concurrent edits are not undone by
+   the user's Ctrl+Z; a console run and an agent tool call are one undo step each. In a
+   tracked session, undo of an agent's tracked insertion removes it; reject does too but
+   leaves the audit trail, which is the reviewer's tool. Recommendation: as above.
+4. **Deployment shape.** A static site is the baseline: no server, everything in the
+   browser, the document never leaves the machine, which is also the privacy story. The
+   companion process (E4's MCP, Re-paginate through `docx4j-mcp`, a Yjs relay for E3) is
+   optional and local by default; an organisation can host the relay. Recommendation:
+   static-first, and every feature must say which of the two it needs.
+5. **Security posture for the console, macros and the model.** The console runs the user's
+   code in the user's page: the same trust as devtools, acceptable for a static site. A
+   macro stored in a document is code from wherever the document came from: it never runs
+   automatically, it is shown before its first run, and a hosted deployment can disable
+   document macros. The model provider receives document content: the ask box says so,
+   shows what is being sent (the context builder's output is inspectable in Developer),
+   and the key or proxy is the user's or the organisation's, never the editor's.
+   Recommendation: as above, written into the UI, not a policy page.
+6. **Paste.** Plain text and the editor's own clipboard (ProseMirror's) in E1. Paste from
+   Word arrives as HTML with `mso-` styles (browsers do not expose Word's OOXML clipboard
+   flavour): E2 converts paragraphs, headings by outline level, bold, italic, underline,
+   lists and simple tables, and drops the rest, stating so; docx4j's ImportXHTML is the
+   reference for what to keep. Paste of a WML fragment (from reveal codes, from another
+   instance) as XML is the developer route and is E1. Recommendation: as above.
+7. **Fonts in the browser.** The document's fonts are usually not installed. Phase B's
+   `IdentityPlusMapper` gives the metric-compatible substitutes as `font-family` stacks
+   (Carlito for Calibri, Liberation for Arial and Times). Fonts embedded in the document
+   (`ObfuscatedFontPart`) can be deobfuscated (the XOR with the GUID that docx4j
+   implements) and loaded with the `FontFace` API for the session, which is a real
+   fidelity win for branded templates. Recommendation: substitutes in E1, embedded fonts
+   in E2; the editor ships no fonts of its own.
+8. **Unsupported content is reported, not hidden.** A document with opaque blocks (tracked
+   moves, math, fields, altChunks, text boxes) shows a banner in Edit and Template
+   ("12 elements shown read-only") linking to the Developer perspective's diagnostics
+   that list them by kind and address. Recommendation: from E1; SuperDoc's V2 issue
+   tracker is what happens when a reader drops things silently.
+9. **Accessibility.** `contenteditable` gives screen readers the text; the editor adds
+   roles and names to its panels, keyboard access to everything (the perspectives' rule
+   that every command is in the palette), visible focus, and author colours that also
+   differ by pattern for tracked changes and comments. Recommendation: from E1 as a
+   review item per phase, not a later phase.
+10. **Repository, packages, framework.** Arrangements considered:
+
+    *Repositories.* (a) One repository `docx4j-editor` holding `@docx4j/editor-model`
+    (the projection and commands, headless), `@docx4j/editor` (the UI) and
+    `docx4j-editor-mcp` (E4's companion), depending on the published engine. (b) A
+    TypeScript monorepo of objects, engine and editor: atomic cross-package changes and one
+    CI, which this design session would have welcomed (four cross-repository CRs in two
+    days), but the objects package is generated output with its own regeneration flow tied
+    to the compiler, and the objects-versus-engine split deliberately mirrors docx4j's Java
+    modules; folding them together trades a stated design for convenience. (c) The editor
+    inside the engine's repository as a subpath: wrong, since ProseMirror, Yjs and Monaco
+    have no place in a package that Office add-ins bundle, and the release cadences differ.
+    (d) One repository per package: too fragmented for three packages that change
+    together. Recommendation: (a), with the editor packages versioned in lockstep with each
+    other and depending on engine minors; sibling checkouts as now until the engine is on
+    npm.
+
+    *Editor toolkit.* (a) ProseMirror directly (Appendix A). (b) Tiptap, a ProseMirror
+    wrapper with React and Vue bindings, an extension system and ready-made menus; its
+    collaboration extension is `y-prosemirror` underneath. It speeds up generic rich-text
+    UIs, but its schema conventions are HTML-shaped and would be fought at every docx
+    node (content controls as inline nodes with content, row-level attributes, the
+    `sourceId` discipline), and some of its extensions are paid. (c) Lexical or Slate:
+    Appendix A's reasons. Recommendation: (a); Tiptap's conveniences are for a different
+    document model.
+
+    *UI framework for the panels and perspectives.* (a) React with TypeScript and Vite:
+    the largest ecosystem, Monaco and ProseMirror integrate through thin wrappers, and it
+    is what most contributors know. (b) Vue: what SuperDoc's shell uses; comparable,
+    smaller pool. (c) Svelte: the least framework in the bundle and pleasant for panels,
+    smaller pool again. (d) Lit web components, or no framework: the editor embeds anywhere
+    (an Office add-in task pane, the docx4j site, another application) without dragging a
+    framework, which fits "complements Word" and the rule that state lives in Yjs and
+    ProseMirror; the cost is building tree views, dialogs and a command palette by hand
+    or from a component library, which is where React saves the most time.
+    Recommendation: **React for the application, and the editing surface as a
+    framework-free class (`DocxEditorView`: ProseMirror view, commands, Yjs binding,
+    reveal-codes data) with a thin web-component wrapper `<docx4j-editor>`**, so that the
+    surface embeds without React while the four perspectives' panels are built quickly in
+    it. The rule stands that no application state lives in React; a panel is a view over
+    the model, and the framework is replaceable at the panel layer.
+
+    *Versioning.* Semantic versioning; the editor packages in lockstep with each other,
+    depending on the engine by minor range.
+11. **Testing.** Three layers: the model package's projection round trips over every
+    fixture (export equals import for untouched documents; deep-equal after edits), run in
+    Node; component tests of the commands against the model; Playwright end-to-end runs of
+    the perspectives' main flows, with the Word acceptance checklist extended by the
+    editor's outputs. Recommendation: the first layer before any UI.
+12. **Licences of what is pulled in.** ProseMirror, prosemirror-tables, Yjs and its
+    providers, Monaco, Sucrase, fflate, xpath, Paged.js if used: all MIT; nothing AGPL or
+    GPL, and no fonts. Recommendation: a licence check in CI from E1, since Apache-2.0
+    throughout is a stated differentiator.
+
+### 11.1 Coordinates (decided 2026-09-12)
+
+| | |
+|---|---|
+| GitHub | `plutext/docx4j-editor-ts`, following `docx4j-core-ts` and `docx4j-generated-objects-ts`; the bare `docx4j-editor` stays free |
+| npm | `@docx4j/editor-model` (headless projection and commands), `@docx4j/editor` (the React application and `DocxEditorView` with the `<docx4j-editor>` web component), `@docx4j/editor-mcp` (the E4 companion; bin `docx4j-editor-mcp`, so `npx @docx4j/editor-mcp` runs it) |
+| Node | `>=20` for the editor repository (Vite, Playwright, Monaco tooling; `Intl.Segmenter` is present from 16); CI on 20 and 22; the engine stays `>=18` |
+| Web component tag | `docx4j-editor` |
+| `app.xml` | `Application` = `docx4j-editor`; `AppVersion` per item 2's `XX.YYYY` rule |
+| Custom XML namespace for optional session state and macros | `http://docx4java.org/editor/2026` |
 
 ## Appendix A. ProseMirror, for readers who have not used it
 
@@ -487,6 +960,36 @@ Not cited as drivers anywhere: ProseMirror's schema being unable to express OOXM
 engine and painter behind a hidden ProseMirror instance, and already virtualised to a few
 mounted pages). The slow part of V1 was measuring and paginating, which is a cost of
 pagination, not of ProseMirror.
+
+### What those drivers mean for this design
+
+1. **Load time is measured, not promised.** Reaching `onReady` for a 400-page document here
+   means unmarshalling `document.xml` (the runtime's unmarshaller over a very large DOM),
+   footnotes, styles and numbering; projecting to ProseMirror; building the Yjs document;
+   and ProseMirror's eager render of the whole body. Mitigations, in order of cost:
+   unmarshal the main part off the main thread in a worker (the tree is
+   structured-cloneable apart from `PARENT`, which `linkParents` restores); project and
+   render progressively, the first screens first, with lightweight placeholders for blocks
+   not yet in view; unmarshal footnotes, comments and headers only when viewed; and, if
+   needed, a virtualised view over the same ProseMirror state. The engine already loads
+   parts lazily and copies untouched ones byte for byte, so the cost is confined to what
+   is shown. A 400-page footnote-heavy fixture goes into `test/fixtures/` and a load
+   benchmark into the editor's CI, with SuperDoc's under-2-seconds as the aspiration.
+   **Decision (Jason, 2026-09-12): an aspiration, not a requirement.** The product's main
+   purposes, the Developer and Template perspectives, are served whether or not that number
+   is reached: templates are short, and developers work on fixtures. The benchmark guides
+   the mitigations and is reported; it never gates a release.
+2. **Bulk agent edits do not go through the editor.** An agent programs the content API
+   against the package directly (or joins as a peer, E4) and the editor re-projects the
+   result as one Yjs transaction, with snapshots before and after giving the reviewer a
+   diff and tracked changes giving Word one. One engine cost follows: `search` and
+   `insertText` recompute a paragraph's segments per call, fine for a person and quadratic
+   for thousands of edits on one paragraph; a per-paragraph index invalidated on write is
+   the fix, when a benchmark shows it.
+3. **One engine, browser and server, self-hosted** is what this engine is by construction.
+4. **Nothing in the stated drivers argues against ProseMirror as the view.** Pagination is
+   not in this product's scope and the input layer is not named as a problem; what remains
+   is point 1, which the benchmark measures.
 
 ### Known limitations of V2 (open issues, September 2026)
 
