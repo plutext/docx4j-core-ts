@@ -405,3 +405,54 @@ Departures from the text above, and from docx4j, all deliberate:
 - The relationship-source hook (`setRelationshipsPartFactory`) and the package registry
   (`registerPackageClass`) exist to avoid ES module cycles between `Part`, `RelationshipsPart`,
   `OpcPackage` and its subclasses; `packages/index.mts` registers the three Office kinds.
+
+## 13. Phase B execution plan (agreed 2026-09-13)
+
+Phase B is ported by Opus agents, orchestrated from a fresh session, against the **current**
+docx4j code on branch `VERSION_17_1_1` (head `325461031` on 2026-09-13; the harness records the
+hash it ran against in every golden file's header). That code is not the code section 6
+was written against: docx4j reworked all three areas this week, and those CRs are the
+reference now, above section 6 where they differ:
+
+- `../docx4j/docs/developer/change-requests/CR-014-list-numbering-model.md` (done
+  2026-09-12): `org.docx4j.model.listnumbering`, definitions separated from counter state,
+  a `LabelFormatter` registry, `w:lvlRestart`, probes P1 to P8 verified in Word.
+- `CR-015-property-resolution.md` (done 2026-09-12): `PropertyResolver` and
+  `StyleUtil.apply`, one property catalogue with merge rules, the resolution order, the
+  default paragraph style, no mutation or aliasing; five `styles-*` probes with goldens.
+- `CR-016-font-selection-and-mapping.md` (done 2026-09-13): `RunFontSelector` and the
+  `Mapper`s, one resolution, `w:cs` by value, the theme language, the character-range
+  dispatch as a function of the code point, the mapping order, embedded fonts; eight probes
+  with goldens and a mapper matrix.
+
+Each of those CRs carries a verification table of claims about Word with the golden that
+evidences each; the TypeScript port reproduces docx4j's behaviour as those CRs settled it,
+quirks included, and records in this CR's implementation notes any place it knowingly
+differs. Where docx4j's own tests and probe documents exercise a rule, they become this
+package's fixtures (copied with their provenance).
+
+Sequence, each step a separate agent run with a reviewable diff, nothing committed by the
+agent:
+
+1. **The harness first** (`test/java/`, a small Maven project against the docx4j checkout):
+   for every fixture and every paragraph, docx4j's effective `PPr` and `RPr` as canonical
+   XML (attributes sorted, docx4j's prefixes) and the numbering label, the resolved font
+   per run span; output committed under `test/golden/` with the docx4j commit in each
+   header. The TypeScript comparison unmarshals the golden XML and compares object trees,
+   never text. Option C of 2026-09-12: run by hand, plus a scheduled workflow that reruns it
+   against docx4j's head and opens a pull request on a difference. The harness's first
+   output is reviewed by a person before anything is measured against it.
+2. **`PropertyResolver` and `StyleUtil`** (section 6.1 as revised by CR-015).
+3. **`NumberingDefinitionsPart`'s definitions and the `Emulator`** (section 6.2 as revised
+   by CR-014).
+4. **`RunFontSelector` and `IdentityPlusMapper`** (section 6.3 as revised by CR-016; the
+   `BestMatchingMapper` over installed fonts stays a later CR).
+5. A review pass, line by line against the Java, on two files: the toggle-property overlay
+   in the resolver and the numbering counters. These are where parity failures hide when
+   the fixtures do not exercise a branch.
+
+Each agent's prompt carries: this CR (sections 6, 11, 12 and 13), the three docx4j CRs,
+`CLAUDE.md`, the Java paths as the reference, the rule that docx4j's quirks are reproduced
+and noted rather than corrected, and the rule that decisions and departures go into this
+CR's implementation notes. `Font` reads in the content API (CR-002 section 7) switch to
+effective values when step 2 lands; `Paragraph.alignment` loses its `'Unknown'`.
