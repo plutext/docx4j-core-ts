@@ -1,0 +1,60 @@
+name: Publish @docx4j/core-ts to NPM
+
+# Mirrors plutext/docx4j-generated-objects-ts's push-to-npm.yml (trusted publishing, no token): publishing
+# a tarball skips prepublishOnly, so typecheck and test (which builds dist/) run as steps; the release tag
+# must match package.json's version. See RELEASING.md.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write # required for trusted publishing's use of OIDC
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Manually update npm to 11.5.1 or later which is the required version for trusted publishing to work # this step can be removed after the ubuntu runner has the correct minimum version of npm installed
+        run: npm install -g npm@latest
+
+      - name: Install Project Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Check release tag matches the package version
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "tag: $TAG, version: $VERSION"
+          if [ "${TAG#v}" != "$VERSION" ]; then
+            echo "::error::release tag $TAG does not match version $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # test builds dist/ and runs node --test test/
+      - name: Typecheck and test
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Check the build left the tree clean
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then git status --short; echo "::error::working tree changed"; exit 1; fi
+
+      - name: Package Items
+        run: npm pack
+
+      - name: Publish to npm
+        run: npm publish --access public docx4j-core-ts-${{ steps.version.outputs.version }}.tgz

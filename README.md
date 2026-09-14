@@ -119,6 +119,8 @@ npm install                         # the dependencies from npm
 npm run typecheck && npm test       # test = build, then node --test test/
 ```
 
+Releases are published to npm from GitHub Actions; see `RELEASING.md`.
+
 ## Licence
 
 Apache-2.0, as docx4j. See NOTICE.

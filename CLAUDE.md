@@ -30,15 +30,22 @@ npm install         # fflate, typescript, @docx4j/generated-objects-ts and @docx
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
-npm test            # build, then node --test test/  (every test/*.test.mjs)
+npm test            # build, then the nodenext consumer check (test/nodenext), then node --test test/  (every test/*.test.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
 ```
 
 Dependencies come from npm. To try an unreleased change of the objects package, build it in
 `../docx4j-generated-objects-ts` and run `npm install --no-save ../docx4j-generated-objects-ts` here (a
 symlink; `npm install` restores the registry version), but never release against it. CI
-(`.github/workflows/test.yml`) runs `npm install`, typecheck and test on Node 18, 20, 22.
+(`.github/workflows/test.yml`) runs `npm install`, typecheck and test on Node 18, 20, 22. Releases publish to
+npm from `.github/workflows/push-to-npm.yml` on a GitHub release (trusted publishing, tag = `package.json`
+version); see `RELEASING.md`.
 Tests import from `../dist/`, so build before running them by hand.
+`test/nodenext/consumer.mts` (compile-only) imports each public entry point by the package's own name
+under `module`/`moduleResolution: nodenext`, as a Node ES module consumer does; the repository's
+tsconfigs use `bundler`, which accepts extensionless relative imports in the emitted declarations. Import
+with the `.mjs` extension in `src/`. Its `@ts-expect-error` lines go unused, and fail, if an entry
+point's types degrade to `any`.
 
 ## Architecture
 
