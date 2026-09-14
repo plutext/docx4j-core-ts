@@ -1,4 +1,3 @@
 node_modules
-package-lock.json
 # built from src/ by `npm run build`
 /dist

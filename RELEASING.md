@@ -26,9 +26,14 @@ The package ships `dist/` (built from `src/`), `README.md`, `LICENSE` and `NOTIC
 
 ## Dependencies
 
+`package-lock.json` is committed and CI (`test.yml`, `push-to-npm.yml`) installs with `npm ci`, so a release
+build uses exactly the tested versions. It does not reach consumers (npm does not publish it); they
+resolve `package.json`'s ranges. To pick up newer versions within those ranges, run `npm update`, then
+typecheck and test, and commit the lockfile.
+
 A release that needs a change in `@docx4j/generated-objects-ts` waits for that package's release: publish
 it first (its own `RELEASING.md`), then raise the range here (`npm install @docx4j/generated-objects-ts@^X.Y.Z`),
-typecheck, test, and commit `package.json`. `@docx4j/core-ts` is never published against
+typecheck, test, and commit `package.json` with the lockfile. `@docx4j/core-ts` is never published against
 an unreleased objects package.
 
 ## First release (0.1.0)
@@ -37,7 +42,7 @@ an unreleased objects package.
 clean `main` whose CI (`test.yml`) has passed:
 
 ```bash
-rm -rf node_modules dist && npm install
+rm -rf node_modules dist && npm ci
 npm run typecheck && npm test
 npm pack --dry-run                 # @docx4j/core-ts 0.1.0: dist/, README.md, LICENSE, NOTICE, package.json
 git tag -a 0.1.0 -m "Version 0.1.0"
@@ -60,8 +65,8 @@ because 0.1.0 is already published. Every later version follows "Steps".
 #    no tag or commit yet
 npm version 0.1.1 --no-git-tag-version
 
-# 3. From a clean node_modules, check against the registry dependencies and inspect the package
-rm -rf node_modules dist && npm install
+# 3. From a clean node_modules, check against the locked dependencies and inspect the package
+rm -rf node_modules dist && npm ci
 npm run typecheck && npm test
 npm pack --dry-run
 
@@ -75,7 +80,7 @@ git push origin main 0.1.1
    https://github.com/plutext/docx4j-core-ts/releases/new (choose the existing tag, title = the version,
    leave "Set as a pre-release" unticked, then **Publish release**; a saved draft does not publish).
 
-Publishing the release runs `push-to-npm.yml`, which installs, fails unless the release tag
+Publishing the release runs `push-to-npm.yml`, which installs with `npm ci`, fails unless the release tag
 equals `package.json`'s version, runs typecheck and test, checks the tree is unchanged, and runs `npm pack`
 and `npm publish` (with provenance, via OIDC).
 
