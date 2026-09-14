@@ -26,10 +26,7 @@ relationships lives here. This package re-exports the objects facade so both rea
 ## Commands
 
 ```
-# Until @docx4j/jsonix and @docx4j/generated-objects-ts are on npm, install them from sibling checkouts
-# (build the objects package first: a directory dependency is symlinked, not built)
-(cd ../docx4j-generated-objects-ts && npm install --no-save typescript@5.6.3 ../jsonix/nodejs/scripts && npm run build)
-npm install --no-save typescript@5.6.3 ../jsonix/nodejs/scripts ../docx4j-generated-objects-ts   # also fetches fflate
+npm install         # fflate, typescript, @docx4j/generated-objects-ts and @docx4j/jsonix from npm
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
@@ -37,9 +34,10 @@ npm test            # build, then node --test test/  (every test/*.test.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
 ```
 
-`node_modules/@docx4j/*` are symlinks to the sibling checkouts, so a change in the objects
-package is visible here after `npm run build` there; no reinstall. CI (`.github/workflows/test.yml`)
-does the same with the siblings checked out into `.runtime` and `.objects`, on Node 18, 20, 22.
+Dependencies come from npm. To try an unreleased change of the objects package, build it in
+`../docx4j-generated-objects-ts` and run `npm install --no-save ../docx4j-generated-objects-ts` here (a
+symlink; `npm install` restores the registry version), but never release against it. CI
+(`.github/workflows/test.yml`) runs `npm install`, typecheck and test on Node 18, 20, 22.
 Tests import from `../dist/`, so build before running them by hand.
 
 ## Architecture

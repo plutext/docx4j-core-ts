@@ -1,7 +1,4 @@
 node_modules
 package-lock.json
-# sibling checkouts used by CI until the packages are on npm
-/.runtime
-/.objects
 # built from src/ by `npm run build`
 /dist

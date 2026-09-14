@@ -114,12 +114,8 @@ as Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.
 
 ## Development
 
-Until the dependencies are on npm, install them from sibling checkouts (the objects package must be
-built first, since a directory dependency is symlinked, not built):
-
 ```
-(cd ../docx4j-generated-objects-ts && npm install --no-save typescript@5.6.3 ../jsonix/nodejs/scripts && npm run build)
-npm install --no-save typescript@5.6.3 ../jsonix/nodejs/scripts ../docx4j-generated-objects-ts
+npm install                         # the dependencies from npm
 npm run typecheck && npm test       # test = build, then node --test test/
 ```
 
