@@ -30,7 +30,8 @@ npm ci              # fflate, typescript, @docx4j/generated-objects-ts and @docx
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
-npm test            # build, then the nodenext consumer check (test/nodenext), then node --test test/  (every test/*.test.mjs)
+npm test            # build, then the nodenext consumer check (test/nodenext), then node --test test/*.test.mjs
+                    # (a shell glob: Node 22 does not accept a directory, and Node 18 would also run test/helpers.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
 ```
 

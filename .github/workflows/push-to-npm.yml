@@ -43,7 +43,7 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # test builds dist/ and runs node --test test/
+      # test builds dist/ and runs node --test test/*.test.mjs
       - name: Typecheck and test
         run: |
           npm run typecheck

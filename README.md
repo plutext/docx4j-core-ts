@@ -116,7 +116,7 @@ as Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.
 
 ```
 npm ci                              # the locked dependencies from npm
-npm run typecheck && npm test       # test = build, then node --test test/
+npm run typecheck && npm test       # test = build, then node --test test/*.test.mjs
 ```
 
 Releases are published to npm from GitHub Actions; see `RELEASING.md`.
