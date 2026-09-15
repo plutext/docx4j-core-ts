@@ -148,3 +148,20 @@ Phase B adds golden files from a Java harness under `test/java/`.
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
   `model/listnumbering/`, `fonts/`; `jaxb/mc-preprocessor.xslt` is the MCE reference. The
   schemas are `xsd/ROOT.xsd`.
+
+## Portfolio task registry
+
+This repository's change requests are indexed, with their dependencies on work in the other
+docx4j repositories, in `../docx4j-portfolio/tasks.yaml` (ids `<repo>/<CR>[.<phase>]`; this
+repository's key is `core-ts`).
+
+- When a CR's status changes (a phase lands; a CR is proposed, deferred or abandoned) or its
+  dependencies change, update the matching entry in `tasks.yaml` in the same session (`status`,
+  `depends_on`; add an entry for a new CR or phase).
+- Then run `python3 ../docx4j-portfolio/scripts/tasks.py check`. It reports `CHANGED` for each CR
+  whose Status line was edited; once the registry entry agrees, run `tasks.py accept` (and
+  `tasks.py graph` if dependencies changed).
+- Before starting a CR or phase, check `python3 ../docx4j-portfolio/scripts/tasks.py blocked`: it
+  may be waiting on work in another repository. In particular, CR-001 Phase B waits on further
+  XSL-FO fidelity work in `../docx4j` (portfolio rule, 2026-09-15), and the editor
+  (`../docx4j-ts-editor`) waits on phases here.
