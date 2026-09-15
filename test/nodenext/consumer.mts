@@ -8,11 +8,15 @@ import { PartName } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
 import * as model from '@docx4j/core-ts/model';
+import { Word, NotSupportedError, toApiScript } from '@docx4j/core-ts/office-js';
 
 export async function consume(): Promise<string> {
   const pkg: WordprocessingMLPackage = await WordprocessingMLPackage.createPackage();
   const name: PartName = PartName.of('/word/document.xml');
   void [Part, unwrap, defaultPartRegistry, model, pkg];
+  const script: string = await toApiScript(pkg.body);
+  await Word.run(pkg, (context) => context.document.body.insertParagraph(script, 'End'));
+  void NotSupportedError;
   return name.extension;
 }
 
@@ -28,3 +32,5 @@ export const parts: number = defaultPartRegistry;
 export const packages: number = WordprocessingMLPackage;
 // @ts-expect-error the model entry point is a module namespace, not a number
 export const modelNs: number = model;
+// @ts-expect-error Word is the shim object, not a number
+export const officeJs: number = Word;

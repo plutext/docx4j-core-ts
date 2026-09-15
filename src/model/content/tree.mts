@@ -105,12 +105,56 @@ export function runsOf(container: object): Element<wml.R>[] {
   return out;
 }
 
-/** The block-level children of a container: body, header, footer, cell, sdt content, table (rows), row (cells). */
+/**
+ * The block-level children of a container: body, header, footer, cell, sdt content, table (rows),
+ * row (cells). A content control of any kind (block, row, cell, run) answers with its
+ * `sdtContent`'s content, so that a traversal does not have to know the four types.
+ */
 export function childrenOf(value: object): Element[] | undefined {
   const v = value as { content?: Element[]; sdtContent?: { content?: Element[] } };
-  if ((v as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.SdtBlock') return v.sdtContent?.content;
+  if (v.sdtContent) return v.sdtContent.content;
   return Array.isArray(v.content) ? v.content : undefined;
 }
+
+/** An element with the array that holds it: what a view needs to edit it in place. */
+export interface Located<T = unknown> {
+  element: Element<T>;
+  container: Element[];
+}
+
+/** w:sdt and w:customXml at row level: they hold the rows of a table (docx4j CTSdtRow, CTCustomXmlRow). */
+const ROW_HOLDERS = new Set(['org_docx4j_wml.CTSdtRow', 'org_docx4j_wml.CTCustomXmlRow']);
+/** The same at cell level. */
+const CELL_HOLDERS = new Set(['org_docx4j_wml.CTSdtCell', 'org_docx4j_wml.CTCustomXmlCell']);
+
+/** The rows of a table, in order, descending into row-level content controls (an OpenDoPE repeat). */
+export function rowsOf(tbl: object): Located<wml.Tr>[] {
+  return located(childrenOf(tbl), 'org_docx4j_wml.Tr', ROW_HOLDERS) as Located<wml.Tr>[];
+}
+
+/** The cells of a row, in order, descending into cell-level content controls. */
+export function cellsOf(tr: object): Located<wml.Tc>[] {
+  return located(childrenOf(tr), 'org_docx4j_wml.Tc', CELL_HOLDERS) as Located<wml.Tc>[];
+}
+
+function located(items: Element[] | undefined, typeName: string, holders: Set<string>): Located[] {
+  const out: Located[] = [];
+  const visit = (list: Element[] | undefined): void => {
+    if (!list) return;
+    for (const element of list) {
+      const tn = typeNameOf(element);
+      if (tn === typeName) out.push({ element, container: list });
+      else if (tn !== undefined && holders.has(tn) && typeof element.value === 'object' && element.value !== null) visit(childrenOf(element.value));
+    }
+  };
+  visit(items);
+  return out;
+}
+
+/** Content controls: `w:sdt` at block, row, cell and run level, by TYPE_NAME. */
+export const SDT_TYPES = new Set([
+  'org_docx4j_wml.SdtBlock', 'org_docx4j_wml.SdtRun', 'org_docx4j_wml.CTSdtRow', 'org_docx4j_wml.CTSdtCell',
+]);
 
 /** True for what a body or cell may hold directly (the Body content union), by TYPE_NAME. */
 export const BLOCK_LEVEL_TYPES = new Set([
@@ -136,3 +180,7 @@ export function paragraphOf(runs: Element[], pPr?: wml.PPr): Element<wml.P> {
 }
 
 export { isElement as isTypedElement };
+
+// CR-002 phase G (comments) needs the two internals above: the run holders to walk to the
+// markers inside hyperlinks and insertions, and the per-item text to give a marker its offset.
+export { RUN_HOLDERS, itemText as itemTextOf };

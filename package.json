@@ -25,6 +25,10 @@
     "./model": {
       "types": "./dist/model/index.d.mts",
       "import": "./dist/model/index.mjs"
+    },
+    "./office-js": {
+      "types": "./dist/office-js/index.d.mts",
+      "import": "./dist/office-js/index.mjs"
     }
   },
   "files": [
@@ -34,8 +38,10 @@
     "NOTICE"
   ],
   "scripts": {
+    "generate": "node scripts/generate-supported.mjs",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
+    "pretest": "node scripts/generate-supported.mjs",
     "test": "npm run build && tsc -p test/nodenext/tsconfig.json && node --test test/*.test.mjs",
     "prepublishOnly": "npm run typecheck && npm test"
   },

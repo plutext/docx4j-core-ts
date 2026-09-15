@@ -2,12 +2,18 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf } from './tree.mjs';
-import { wml as parseFragment, r as textRun, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
+import { type Element, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, rowsOf, cellsOf } from './tree.mjs';
+import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf } from './tree.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
+import { Table } from './Table.mjs';
+import { ContentControl, collectControls } from './ContentControl.mjs';
+import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
+import { contentOf } from './ooxml.mjs';
 import type { SearchOptions } from './search.mjs';
+import { commentApi } from './comments.mjs';
+import type { Comment } from './Comment.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
 export type Address = string | { contains: string } | { paraId: string };
@@ -68,7 +74,7 @@ export class Body {
           const v = el.value;
           if (typeof v !== 'object' || v === null) continue;
           if (tn === 'org_docx4j_wml.Tbl') {
-            for (const row of childrenOf(v) ?? []) for (const cell of childrenOf(row.value as object) ?? []) visit(childrenOf(cell.value as object) ?? []);
+            for (const row of rowsOf(v)) for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
           } else {
             const children = childrenOf(v);
             if (children) visit(children);
@@ -80,9 +86,37 @@ export class Body {
     return out;
   }
 
-  /** The tables directly in this body (as elements; `Table` views are CR-002 Phase C). */
-  get tables(): BlockElement[] {
-    return this.content.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tbl').map((element) => ({ element, container: this.content }));
+  /** The tables directly in this body, as Office JS reports them (nested tables are a cell's). */
+  get tables(): Table[] {
+    return this.content.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tbl').map((element) => new Table(element as Element<wml.Tbl>, this.content, this));
+  }
+
+  /** Every content control in this body, in document order, nested ones included. */
+  get contentControls(): ContentControl[] {
+    const out: ContentControl[] = [];
+    collectControls(this.content, this, out);
+    return out;
+  }
+
+  /** Every inline picture in this body, in document order (Office JS Body.inlinePictures). */
+  get inlinePictures(): InlinePicture[] {
+    return this.paragraphs.flatMap((p) => p.inlinePictures);
+  }
+
+  /**
+   * A view over a container nested in this body (a cell, a content control), sharing this body's
+   * part and package. The address prefix is the container's own address, so that the addresses a
+   * nested body reports carry on from this one.
+   */
+  sub(container: { content?: Element[] }, prefix: string = this.prefix): Body {
+    return new Body(this.part, container, prefix, this.package_);
+  }
+
+  /** The view of a `w:p` somewhere in this body's tree; its container comes from PARENT. */
+  paragraphFor(p: wml.P): Paragraph | undefined {
+    const container = childrenOf(((p as { PARENT?: object }).PARENT ?? {}) as object);
+    const element = container?.find((e) => e.value === p) as Element<wml.P> | undefined;
+    return element && container ? new Paragraph(element, container, this) : undefined;
   }
 
   /** The text, a paragraph per line. */
@@ -105,6 +139,33 @@ export class Body {
     }
     if (location === 'Start') return paragraphs[0]!.insertText(text, 'Start');
     return paragraphs[paragraphs.length - 1]!.insertText(text, 'End');
+  }
+
+  /**
+   * A table of `rowCount` by `columnCount` cells at the start or end (Office JS insertTable);
+   * `values` fills it row by row. The columns are equal over the section's text width.
+   */
+  insertTable(rowCount: number, columnCount: number, location: 'Start' | 'End', values?: string[][]): Table {
+    if (rowCount < 1 || columnCount < 1) throw new Docx4JException(`A table needs at least one row and one column; got ${rowCount} by ${columnCount}`);
+    const rows = Array.from({ length: rowCount }, (_, r) => Array.from({ length: columnCount }, (_, c) => values?.[r]?.[c] ?? ''));
+    const width = writableWidthTwips(this.container as { sectPr?: wml.SectPr });
+    const element = tableOf(rows, width ? { width } : {}) as Element<wml.Tbl>;
+    this.insertElement(element as Element, location);
+    return new Table(element, this.content, this);
+  }
+
+  /**
+   * Adds the image as a part of this body's part, with a relationship, and shows it in a new
+   * paragraph at the start or the end (Office JS insertInlinePictureFromBase64). An image wider
+   * than the text area is scaled down, as docx4j's CxCy.scale does.
+   */
+  insertInlinePictureFromBase64(base64: string, location: 'Start' | 'End', options?: InlinePictureOptions): InlinePicture {
+    if (!this.part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
+    const { run, drawing } = addImage(this.part, base64, this.container, writableWidthEmu(this.container), options);
+    const paragraph = this.insertParagraph('', location);
+    paragraph.p.content!.push(run as never);
+    linkParents(run, paragraph.p);
+    return new InlinePicture(drawing, run, paragraph);
   }
 
   insertBreak(type: 'Page' | 'Line', location: 'Start' | 'End'): void {
@@ -148,8 +209,32 @@ export class Body {
 
   /** Inserts a WML fragment (one or more w:p / w:tbl / ... as inside document.xml); the standard prefixes are declared for it. */
   async insertXml(xml: string, location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
+    return this.insertContent(await contentOf(xml, { preprocess: this.preprocessor() }), location, target);
+  }
+
+  /**
+   * Word's `insertOoxml`: a flat OPC `pkg:package` string, whose body content is inserted with
+   * the parts it references (images, embedded objects) copied into this package under fresh
+   * names and relationship ids; styles and numbering are not merged (CR-002 open question 5).
+   * A bare `w:p` / `w:tbl` fragment is accepted too, as `insertXml` takes. Returns the views of
+   * what was inserted, as `insertXml` does, since a package may bring several blocks.
+   */
+  async insertOoxml(ooxml: string, location: 'Start' | 'End' | 'Replace' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
+    const elements = await contentOf(ooxml, { preprocess: this.preprocessor(), target: this.part });
+    if (location === 'Replace') {
+      this.clear();
+      return this.insertContent(elements, 'End');
+    }
+    return this.insertContent(elements, location, target);
+  }
+
+  /** The package's DOM preprocessor (the MCE one), for fragments and incoming packages. */
+  private preprocessor(): ((doc: Document) => void) | undefined {
     const preprocess = this.package_?.loadOptions.preprocessor;
-    const elements = await parseFragment(xml, { wrapper: 'body', preprocess: preprocess ? (doc) => preprocess(doc) : undefined });
+    return preprocess ? (doc: Document) => preprocess(doc) : undefined;
+  }
+
+  private insertContent(elements: Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): (Paragraph | BlockElement)[] {
     if (elements.length === 0) return [];
     this.insertElement(elements, location, target);
     return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
@@ -184,13 +269,14 @@ export class Body {
         : this.paragraphs.find((q) => q.text.includes(address.contains));
       return p ? { element: p.element, container: p.container } : undefined;
     }
-    const parts = address.split('/');
-    const prefix = parts[0]!;
-    if (prefix !== this.prefix && !(prefix === 'body' && this.prefix === 'body')) return undefined;
+    // The prefix may itself hold slashes: a cell's body is addressed 'body/4/0/1'.
+    if (!address.startsWith(this.prefix)) return undefined;
+    const tail = address.substring(this.prefix.length);
+    if (tail !== '' && !tail.startsWith('/')) return undefined;
     let current: object = this.container;
     let container: Element[] | undefined;
     let element: Element | undefined;
-    for (const seg of parts.slice(1)) {
+    for (const seg of tail === '' ? [] : tail.substring(1).split('/')) {
       container = childrenOf(current);
       const i = Number(seg);
       if (!container || !Number.isInteger(i) || i < 0 || i >= container.length) return undefined;
@@ -288,7 +374,7 @@ export class Body {
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (typeNameOf(el) === 'org_docx4j_wml.Tbl') {
-          for (const row of childrenOf(v) ?? []) for (const cell of childrenOf(row.value as object) ?? []) if (seek(cell.value as object)) return true;
+          for (const row of rowsOf(v)) for (const cell of cellsOf(row.element.value)) if (seek(cell.element.value)) return true;
         } else if (seek(v)) return true;
       }
       return false;
@@ -309,7 +395,7 @@ export class Body {
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (typeNameOf(el) === 'org_docx4j_wml.Tbl') {
-          for (const row of childrenOf(v) ?? []) for (const cell of childrenOf(row.value as object) ?? []) if (seek(cell.value as object)) return true;
+          for (const row of rowsOf(v)) for (const cell of cellsOf(row.element.value)) if (seek(cell.element.value)) return true;
         } else if (seek(v)) return true;
       }
       return false;
@@ -324,8 +410,8 @@ export class Body {
     for (let guard = 0; guard < 64; guard++) {
       let parent = (child as { PARENT?: object }).PARENT;
       if (!parent) return undefined;
-      // sdtContent is not a level of its own
-      if ((parent as { TYPE_NAME?: string }).TYPE_NAME?.endsWith('SdtContentBlock')) parent = (parent as { PARENT?: object }).PARENT;
+      // sdtContent is not a level of its own, at block, row, cell or run level
+      if (/SdtContent(Block|Row|Cell|Run)$/.test((parent as { TYPE_NAME?: string }).TYPE_NAME ?? '')) parent = (parent as { PARENT?: object }).PARENT;
       if (!parent) return undefined;
       const children = childrenOf(parent);
       if (!children) return undefined;
@@ -352,6 +438,25 @@ export class Body {
   private usesParaIds(): boolean {
     return this.paragraphs.some((q) => q.paraId !== undefined);
   }
+
+  // --- comments (CR-002 phase G) ---
+
+  /**
+   * The comments anchored in this body, in document order, with replies nested under their
+   * parent (only top-level comments are in the array). Asynchronous because it unmarshals the
+   * comment parts.
+   */
+  async getComments(): Promise<Comment[]> {
+    return commentApi().commentsOf(this);
+  }
+}
+
+/** The width of the text area in twips (page width less the margins), for a new table. */
+function writableWidthTwips(container: { sectPr?: wml.SectPr }): number | undefined {
+  const pgSz = container.sectPr?.pgSz;
+  if (!pgSz?.w) return undefined;
+  const width = pgSz.w - (container.sectPr?.pgMar?.left ?? 0) - (container.sectPr?.pgMar?.right ?? 0);
+  return width > 0 ? width : undefined;
 }
 
 function describe(el: Element): string {

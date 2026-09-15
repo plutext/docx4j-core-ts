@@ -1,15 +1,8 @@
 // DOM, text and base64 helpers over the runtime's DOM implementation. In Node the runtime brings
-// @xmldom/xmldom; in browsers it uses the native DOM. Jsonix.DOM is not in the runtime's typings
-// yet (a jsonix CR candidate), hence the cast here, kept to this one module.
+// @xmldom/xmldom; in browsers it uses the native DOM. Jsonix.DOM is typed since @docx4j/jsonix 3.2.1.
 import { Jsonix } from '@docx4j/generated-objects-ts';
 
-interface JsonixDom {
-  parse(text: string): Document;
-  serialize(node: Node): string;
-  createDocument(): Document;
-}
-
-const DOM = (Jsonix as unknown as { DOM: JsonixDom }).DOM;
+const DOM = Jsonix.DOM;
 
 /** The declaration docx4j writes on every XML part. */
 export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';

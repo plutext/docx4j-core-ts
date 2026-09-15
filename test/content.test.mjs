@@ -15,8 +15,10 @@ test('body: insertParagraph, text, paragraphs, docx4j aliases, round trip', asyn
   assert.equal(p1.style, 'Normal');
   const p0 = body.insertParagraph('Title', 'Start');
   p0.styleBuiltIn = 'Heading 1';
-  assert.equal(p0.style, 'Heading1');
-  assert.equal(p0.styleBuiltIn, 'Heading 1');
+  assert.equal(p0.styleId, 'Heading1');
+  assert.equal(p0.style, 'Heading 1');
+  assert.equal(p0.styleBuiltIn, 'Heading1');
+  assert.equal(p1.styleBuiltIn, 'Normal');
   body.addStyledParagraphOfText('Heading2', 'Sub');
   body.addParagraphOfText('Tab\there');
   assert.deepEqual(body.paragraphs.map((p) => p.text), ['Title', 'Hello World', 'Sub', 'Tab\there']);
@@ -27,7 +29,7 @@ test('body: insertParagraph, text, paragraphs, docx4j aliases, round trip', asyn
   assert.equal(p1.p.content[0].value.PARENT, p1.p);
   const back = await WordprocessingMLPackage.load(await pkg.save());
   const b2 = await back.getBody();
-  assert.deepEqual(b2.paragraphs.map((p) => [p.text, p.style]), [['Title', 'Heading1'], ['Hello World', 'Normal'], ['Sub', 'Heading2'], ['Tab\there', 'Normal']]);
+  assert.deepEqual(b2.paragraphs.map((p) => [p.text, p.styleId]), [['Title', 'Heading1'], ['Hello World', 'Normal'], ['Sub', 'Heading2'], ['Tab\there', 'Normal']]);
   assert.equal(b2.paragraphs[3].text, 'Tab\there');
 });
 
@@ -140,7 +142,7 @@ test('insertXml and insertElement: fragments, targets, validation, PARENT', asyn
   const inserted = await body.insertXml('<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>From XML</w:t></w:r></w:p><w:tbl><w:tblPr/><w:tblGrid/><w:tr><w:tc><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>', 'After', a);
   assert.equal(inserted.length, 2);
   assert.ok(inserted[0] instanceof Paragraph);
-  assert.equal(inserted[0].style, 'Heading1');
+  assert.equal(inserted[0].styleId, 'Heading1');
   assert.equal(inserted[0].p.PARENT, pkg.getMainDocumentPart().contents.body);
   assert.equal(body.tables.length, 1);
   assert.deepEqual(body.paragraphs.map((p) => p.text), ['A', 'From XML', 'cell']);
@@ -292,4 +294,34 @@ test('text inside a tracked insertion is read and searchable; deleted text is no
   assert.equal(p.p.content[1].value.customXmlOrSmartTagOrSdt[0].value.rPr.b !== undefined, true);
   hit.insertText('added', 'Replace');
   assert.equal(p.text, 'kept added');
+});
+
+test('style is the display name, styleBuiltIn the Word.Style value, styleId the id', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = pkg.body;
+  const p = body.insertParagraph('x', 'End');
+  // without the styles part unmarshalled: derived from the id
+  p.styleBuiltIn = 'Toc1';
+  assert.equal(p.styleId, 'TOC1', "Word's spelling of the id");
+  assert.equal(p.style, 'TOC 1');
+  assert.equal(p.styleBuiltIn, 'Toc1');
+  p.style = 'Comment Text';
+  assert.equal(p.styleId, 'CommentText');
+  assert.equal(p.styleBuiltIn, 'Other');
+  p.style = 'Heading 2';
+  assert.equal(p.styleId, 'Heading2');
+  p.style = 'Heading3';                           // an id is accepted too
+  assert.equal(p.style, 'Heading 3');
+  // with the styles part unmarshalled: names come from w:name, custom ones included
+  const styles = await pkg.getMainDocumentPart().styleDefinitionsPart.getContents();
+  styles.style.push({ type: 'paragraph', styleId: 'MyStyle', name: { val: 'My Style' }, basedOn: { val: 'Normal' } });
+  p.style = 'my style';
+  assert.equal(p.styleId, 'MyStyle');
+  assert.equal(p.style, 'My Style');
+  assert.equal(p.styleBuiltIn, 'Other');
+  p.style = 'heading 1';                          // the stored name of a built-in
+  assert.equal(p.styleId, 'Heading1');
+  assert.equal(p.style, 'Heading 1');
+  assert.throws(() => { p.styleBuiltIn = 'Other'; }, RangeError);
+  assert.equal(p.getRange().styleId, 'Heading1');
 });

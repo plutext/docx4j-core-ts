@@ -325,8 +325,13 @@ touches zip tree-shakes it away.
   `Relationships` root, and strips unused root declarations while keeping those named by
   `mc:Ignorable`. This package therefore has no namespace handling of its own; `XmlPart`
   marshals through `marshalNode`.
-- **Runtime (jsonix-CR-003 candidate):** declare-on-root as a marshaller option, so the facade's
-  stripping pass can go; `Jsonix.DOM` in the typings (this package and the facade both cast).
+- **Runtime (jsonix-CR-003):** `Jsonix.DOM` and `Context.namespacePrefixes` are typed since
+  `@docx4j/jsonix` 3.2.1 (2026-09-15, typings only); `src/xml/dom.mts` uses `Jsonix.DOM` directly
+  and its cast is gone. Declare-on-root as a marshaller option (`declareNamespaces`, per-marshal
+  prefixes, declaring only where first used), which would let the facade's stripping pass go, is
+  deferred to 3.3.0; it is revisited if Phase B's re-marshalling of large parts makes marshal
+  time matter. The dependency range moves to the objects release that requires 3.2.1 (planned
+  as 0.1.2) when it is published.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 

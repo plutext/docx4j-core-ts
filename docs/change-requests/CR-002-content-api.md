@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, E, F, G, H and I proposed. (Status corrected 2026-09-15; it had said phase A was proposed.)
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E, F and H proposed.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -102,8 +102,9 @@ interface Body {
 // Word.Paragraph (a subset)
 interface Paragraph {
   text: string;                               // read: runs joined (w:t, w:tab, w:br, w:sym); write: replaces the runs with one
-  style: string;                              // the style id; styleBuiltIn maps Word's names ('Heading 1') to ids ('Heading1')
-  styleBuiltIn: string;
+  style: string;                              // the display name ('Heading 1'), as Office JS; setting accepts a name or an id
+  styleBuiltIn: string;                       // the Word.Style value ('Heading1'), 'Other' when not built in, as Office JS
+  readonly styleId: string;                   // extension: w:pStyle (docx4j's name); also settable
   alignment: 'Left' | 'Centered' | 'Right' | 'Justified' | 'Unknown';
   readonly font: Font;                        // paragraph mark run properties; setting applies to every run
   leftIndent: number; firstLineIndent: number; spaceAfter: number; spaceBefore: number; lineSpacing: number;  // points, as Office JS
@@ -662,8 +663,9 @@ Departures and deferrals, all deliberate:
 - `Body.tables` returns elements; `Table` views are Phase C. `insertXml` returns the inserted
   views (paragraphs, or `{ element, container }`), not a `Range`, since a fragment may hold
   several blocks.
-- `styleBuiltIn` maps ids to names by inserting spaces (`Heading1` to `Heading 1`), which
-  covers Word's built-ins but is not a lookup of the styles part's `w:name`.
+- `styleBuiltIn` mapped ids to names by inserting spaces (`Heading1` to `Heading 1`), and `style`
+  was the id. **Corrected 2026-09-16** to Office JS's meaning (section 11): `style` is the display
+  name, `styleBuiltIn` the `Word.Style` value or `'Other'`, and the id is the `styleId` extension.
 - `outlineLevel` is `w:outlineLvl + 1`, 10 when absent.
 - Phase A landed in the objects package on 2026-09-10 (its CR-002, `builders/wml`), and the
   private copies here were replaced by imports the same day: `fragments.mts` and
@@ -678,3 +680,342 @@ Departures and deferrals, all deliberate:
   model here read `content` and silently dropped text inside tracked insertions; `runItemsOf`
   now reads by the model's names, and a test covers search and formatting inside a `w:ins`
   and the exclusion of `w:del`.
+
+## 8. Implementation notes: phase C (2026-09-15)
+
+`src/model/content/` gains `Table.mts` (`Table`, `TableRow`, `TableCell`, `cellOf`),
+`InlinePicture.mts` (the view, the image header readers, `addImage`, `drawingFor`) and
+`ContentControl.mts`, with `ooxml.mts` holding the `insertOoxml` machinery that `insertXml`
+now shares; all are exported from `.` and `./model`. Nine tests in `test/content-c.test.mjs`
+(`test/content.test.mjs` untouched), one new fixture, and `test/office-js-subset.ts` extended
+with `Table`, `TableRow`, `TableCell`, `InlinePicture` and `ContentControl`.
+
+What is in:
+
+- **Tables.** `Body.tables` now returns `Table` views (it returned elements in phase B);
+  `Body.insertTable(rowCount, columnCount, location, values?)` over the objects package's `tbl`
+  builder, with the grid sized to the section's text width. `Table`: `rowCount`, `rows`,
+  `values` (get and set), `style`, `styleBuiltIn`, `headerRowCount`, `getCell`, `addRows`,
+  `deleteRows`, `delete`, `element`, plus `columnWidths()`, `text` and `parentTableCell`.
+  `TableRow`: `rowIndex`, `cellCount`, `cells`, `values`, `isHeader`, `insertRows`, `delete`.
+  `TableCell`: `body` (a `Body` over the `w:tc`), `paragraphs`, `tables`, `text`, `value`,
+  `insertParagraph`, `insertText`, `rowIndex`, `cellIndex`, `parentRow`, `parentTable`,
+  `width` / `columnWidth`. `Paragraph.parentTableCell` is section 3.1's.
+- **Pictures.** `Body.insertInlinePictureFromBase64(base64, location, options?)` and the same on
+  `Paragraph` (with `'Replace'`): an `ImagePart` under `/word/media/imageN.<ext>`, a
+  relationship from the part the body belongs to (the main document part, or the header or
+  footer), and a `w:drawing`/`wp:inline` built exactly as docx4j's
+  `BinaryPartAbstractImage.createImageInline` writes it. `imageInfoOf` reads PNG (IHDR and
+  pHYs), JPEG (SOFn and the JFIF APP0 densities), GIF and BMP headers, which is what docx4j
+  gets from XML Graphics Commons' `ImageInfo`, with the same 96 dpi default; EMU is
+  `px / dpi * 914400`, and an image wider than the text area is scaled down as docx4j's
+  `CxCy.scale` does. `InlinePicture` has `width`, `height` (points), `altTextDescription`,
+  `altTextTitle`, `imageFormat`, `getBase64()` (and Office JS's name `getBase64ImageSrc()`),
+  `delete()`, `paragraph`, plus `relId`, `inline` and `imagePart()`. `Body.inlinePictures` and
+  `Paragraph.inlinePictures` are Office JS collections that phase C needed for its own tests.
+- **`insertOoxml`** on `Body`, `Paragraph` and `Range`. A flat OPC `pkg:package` is loaded with
+  CR-001's container, its body content taken, and every part that content references through
+  relationships copied into the target package under a free name with a fresh relationship id;
+  the `r:embed` / `r:id` / `r:link` references in the content are rewritten. A bare `w:p` /
+  `w:tbl` fragment is accepted as well, which is what `insertXml` takes: both go through
+  `contentOf()`.
+- **Content controls.** `ContentControl` over `w:sdt` in all four forms, with `form`, `type`,
+  `tag`, `title`, `id`, `text`, `paragraphs`, `tables`, `contentControls`, `insertText`,
+  `insertParagraph`, `search`, `getRange`, `delete(keepContent)`, `getXml` and `element`;
+  `Body.contentControls` and `Paragraph.contentControls` in document order, nested ones
+  included. `insertContentControl`, the typed kinds and `w:dataBinding` stay phase E.
+
+Departures and deferrals, all deliberate:
+
+- `insertOoxml` returns the inserted views, as `insertXml` does, not the single `Range` of
+  section 3.1: a package may bring several blocks (section 7 recorded the same for `insertXml`).
+  At paragraph and range level, a fragment of exactly one `w:p` has its runs merged into the
+  paragraph at `'Start'` / `'End'` (range: `'Before'` / `'After'` / `'Replace'`), which is what
+  Word's paste does; anything else is inserted as blocks before or after the paragraph.
+- `insertInlinePictureFromBase64` is **synchronous**, as Office JS's is: the `wp:inline` is
+  built from the generated factories (`factory/org_docx4j_dml`, `.../dml_picture`,
+  `.../dml_wordprocessingDrawing`, `el.drawing`, `el.pic`) rather than parsed from the XML
+  template docx4j uses, so nothing has to await the Jsonix context.
+- `InlinePicture.altTextTitle` reads and writes `wp:docPr/@title`, which **is not marshalled**:
+  docx4j's schema (ECMA-376 1st edition) has no `title` attribute on `CTNonVisualDrawingProps`,
+  so the model has no property for it. Word's own title survives an untouched part, being read
+  from the source bytes; a title set through this API does not. See the gaps below.
+- Styles and numbering are not merged by `insertOoxml` (open question 5, as recommended):
+  incoming content keeps its `w:pStyle` and `w:numPr` values, which resolve against the target's
+  styles, or dangle. Style merging is what docx4j's MergeDocx does and stays out of scope.
+- A copied part is carried as bytes (`ImagePart` for `image/*`, else `BinaryPart`), and its own
+  relationships are copied recursively **keeping their ids**, so nothing inside a copied part
+  (a chart's `c:chart`, say) has to be rewritten; only the inserted content's references change.
+  Part names follow docx4j's `getNewPartName`: `/word/media/imageN.<ext>`, N free for that
+  extension, so a package can hold `image1.gif` and `image1.png`, as docx4j's does.
+- References are rewritten by attribute name (`embed`, `link`, `id`, `href`, the diagram and
+  chart ones) **and** only when the incoming package really has a relationship of that id, so
+  numeric ids (`w:bookmarkStart/@w:id`, `wp:docPr/@id`) are never touched. The walker is local
+  (`visitReferences`) rather than the objects package's `walk` because it must also enter the
+  DOM nodes an `xs:any` property may hold (an SVG twin's `r:embed` in a `a:extLst`).
+- `Table.rows` and `TableRow.cells` descend into row- and cell-level content controls (an
+  OpenDoPE repeat wraps its `w:tr` in a `w:sdt`), so `rows` is what Word shows. `addRows` puts
+  new rows in the table's own content, never inside a repeat.
+- `headerRowCount` counts **leading** rows carrying `w:tblHeader`, as Word's own property does;
+  a `w:tblHeader` on a later row is left alone by the getter and cleared by the setter.
+- `Table.style`, `styleBuiltIn` and `styleId` follow `Paragraph`'s (corrected 2026-09-16, section
+  11); `insertTable` sets no style, so a new table is borderless until `styleBuiltIn = 'TableGrid'`
+  (the default styles part has that style).
+- `ContentControl.getRange()` is exact for a run-level control (the offsets its runs cover) and
+  is the first paragraph's range for the block, row and cell forms, because a `Range` here is
+  within one paragraph (section 7). `type` is `RichText` when `w:sdtPr` names no kind, as Word
+  reports it; `w:text` is `PlainText`. `form` falls back to what the content holds, since
+  objects CR-002 notes that a run-level `w:sdt` parsed at body level comes back as `SdtBlock`.
+  `appearance`, `color`, `cannotDelete`, `placeholderText` and the kind-specific properties are
+  phase E, along with `insertContentControl`. A row- or cell-level control refuses
+  `insertParagraph` at `'Start'` / `'End'` and `insertText(..., 'Replace')`, naming what it
+  holds, rather than putting a `w:p` next to a `w:tr`.
+- Three extensions to phase B's code, all additive: `Body.sub(container, prefix)` (a view over a
+  nested container: how a cell and a block content control get a body), `Body.paragraphFor(p)`
+  (the view of a `w:p` reached through PARENT), and `Body.elementAt` accepting a prefix that
+  itself holds slashes, so a cell's body is addressed `body/4/0/1` and its paragraphs
+  `body/4/0/1/0`, which is what `outline()` already emits.
+- A bug fixed on the way: `childrenOf` answered `sdtContent` for `SdtBlock` only, so paragraphs
+  inside a row- or cell-level control (an OpenDoPE repeat) were invisible to `Body.paragraphs`,
+  and `addressOf` gave up inside one. `childrenOf` now answers for every `w:sdt` kind, `pathOf`
+  skips all four `SdtContent*` levels, and `rowsOf` / `cellsOf` / `SDT_TYPES` / `Located` are
+  the shared traversal (`tree.mts`).
+- `ooxml.mts` imports `packages/WordprocessingMLPackage.mjs` **dynamically** inside the
+  function: `parts/wml` builds `Body` views, so a static import back would be the runtime cycle
+  CLAUDE.md forbids. `insertOoxml` is asynchronous anyway.
+
+Gaps found in the objects package (candidates for its own CRs, worked around here):
+
+1. **No `wp:docPr/@title`.** `org_docx4j_dml.CTNonVisualDrawingProps` has `descr` but no
+   `title`; docx4j's generated class has none either (its `xsd/` is the 1st edition), so
+   Office JS's `altTextTitle` cannot round trip. The fix is in the schemas or in an
+   `anyAttributes` escape on that type, not here.
+2. **No drawing or inline-picture constructor in `builders/wml`.** `drawingFor()` here is the
+   counterpart of docx4j's `createImageInline` and needs only the tree (the relationship id is
+   a string), so it belongs in the objects package next to `p`, `r` and `tbl`. It is written
+   over the generated factories, so moving it is a copy.
+3. **No row or cell builder.** `tbl(rows)` builds a whole table; `addRows` and `insertRows`
+   need one row of the table's widths, so `rowElement()` here calls `el.tr` / `el.tc` directly.
+   `tr(cells, opts)` and `tc(blocks, opts)` in `builders/wml` would cover it.
+4. `walk` does not enter DOM nodes held by `xs:any` properties. That is the documented
+   behaviour, not a defect, but anything that rewrites references has to know; a `walkAll` (or
+   an option) in the objects package would save the copy here.
+
+## 9. Implementation notes: phase G (2026-09-15)
+
+Comments, as section 3.8 specifies them. `src/model/content/Comment.mts` (the `Comment` view),
+`src/model/content/comments.mts` (the seam: the author identity, the marker traversal, the id and
+date helpers, and the two registries below) and `src/parts/wml/comments.mts` (the part half:
+loading and creating the four parts, the w16cex DOM, the two styles). `Body.getComments()`,
+`Paragraph.getComments()` / `insertComment()`, `Range.getComments()` / `insertComment()`,
+`WordprocessingMLPackage.author`. Eight tests in `test/comments.test.mjs`; `test/office-js-subset.ts`
+gains a `Comment` interface and the three `getComments` / two `insertComment` members, and
+`test/README.md` a manual Word check (6) and the `comments-two.docx` fixture.
+
+What is in: reading a document Word wrote (author, initials, email from `w:people`, date,
+content, `resolved` from `w15:done`, threads from `w15:paraIdParent`, the commented range as a
+`Range` per paragraph); `insertComment` on a range or a paragraph, which splits the runs at the
+boundaries, writes `w:commentRangeStart` / `End` and the reference run in the `CommentReference`
+style, the comment with its paragraphs in `CommentText` style opened by a `w:annotationRef` run
+and a fresh `w14:paraId`, and the `w15:commentsEx`, `w16cid:commentsIds`, `w:people` and (when
+present) `w16cex` entries; creating any of the four parts that is absent, with its relationship
+and content type through `addTargetPart`, and adding the two styles to the styles part;
+`reply` (a new comment whose markers nest inside its parent's, linked by `paraIdParent`);
+`resolved` as a read/write property; `delete()`, which removes the comment, its replies, every
+marker, the reference runs and every side-part entry; `content` get and set; `getComments()` on a
+body, a paragraph or a range, in document order with replies nested under their parent.
+
+Departures and deferrals, all deliberate:
+
+- **Asynchronous where Office JS is synchronous.** `getComments`, `insertComment`, `reply` and
+  `delete` return promises, because they unmarshal (or create) the comment parts; section 3's
+  rule is "only what marshals or unmarshals is asynchronous", and this is that. `resolved`,
+  `content`, `replies` and `getRange()` are plain, since by then the parts are loaded.
+- **One `Comment` type for comments and replies.** Office JS has `CommentReply` with a subset of
+  `Comment`'s members; here a reply is a `Comment` (it is one in the file), `reply()` returns a
+  `Comment` and `replies` is `Comment[]`. `parent` is an extension.
+- **`id` is the OOXML `w:id`, a number**, not Office JS's opaque string, because that is what
+  docx4j users and the markers work with. `paraId` (the w15/w16cid key), `initials`,
+  `paragraphs`, `commentBody` (a `Body` over the comment's own content) and `element` (the
+  `w:comment`; the model holds comments as values, not `{ name, value }` pairs) are extensions.
+- **`creationDate` is `Date | undefined`** (Office JS always has one); a comment without `w:date`
+  is legal and `comments-two.docx`-style documents exist.
+- `getRange()` returns a `Range` per paragraph, as section 3.8 allows. A comment whose markers
+  sit at block level (a range spanning whole tables) gets no range: only markers inside a
+  paragraph are mapped to offsets. An empty range gets a reference run only, which is all Word
+  requires (docx4j's `CommentsSample` says the same).
+- **Reads unmarshal three parts, writes five.** `getComments()` unmarshals `w:comments`,
+  `w15:commentsEx` and `w:people`, which is what the views read; `w16cid` and `w16cex` are only
+  touched when a comment is inserted, replied to or deleted. A document whose comments are not
+  read keeps all five byte for byte (a test). The styles part is only unmarshalled when its XML
+  does not already name both comment styles, so a document that has them keeps it byte for byte.
+- **No `w16cex` part is created**, only kept in step when the document has one: the objects
+  package has no module for that namespace (below), so it is edited as a DOM.
+- Comment **reactions** (`cr:`, Word 2020) and the `w16cid` "comments ids" of *replies to
+  replies* beyond what Word writes are out of scope, as are comments on headers and footers
+  (the API accepts them, but Word does not write them).
+- The author identity is `WordprocessingMLPackage.author: { name, initials?, email? }`, default
+  `{ name: 'docx4j' }`, read by the parts layer without importing the package (a structural
+  read, to keep the import graph acyclic). Phase F's tracked changes use the same setting;
+  `trackedChangeAuthor` in 3.7 should become `author` when it lands.
+- **Two registries keep the import graph one-directional** (CR-001's "no runtime import cycles"):
+  `setCommentPartsAccess` (the parts layer registers how to load and create the comment parts) and
+  `setCommentApi` (`Comment.mts` registers the two entry points `Body`, `Paragraph` and `Range`
+  call). `WordprocessingMLPackage` imports `src/parts/wml/comments.mts` for its registration, as
+  `packages/index.mts` imports the package classes for theirs.
+
+Objects-package gaps found (candidates for a CR there; none blocked this phase):
+
+1. **No `org_docx4j_w16cex` module.** `w16cex:commentsExtensible` (Word 2018: a durable id and a
+   UTC date per comment, and the anchor of comment reactions) is not generated, so the part loads
+   as a `DefaultXmlPart` and phase G edits its DOM. docx4j's Java has the same gap, so this is a
+   schema to add there first.
+2. **`mc:Ignorable` is missing from `w:comments`.** `Styles` and `w16cid:CTCommentsIds` carry an
+   `ignorable` property, `Comments`, `CTCommentsEx` and `CTPeople` do not, so a re-marshalled
+   comments part loses Word's `mc:Ignorable="w14 w15 ..."` while keeping the `w14:paraId`
+   attributes it covers. Modern Word understands w14 natively and opens the result; the manual
+   check in `test/README.md` is where a regression would show.
+3. **`w15:CTPerson.contact` is declared required** (`contact: string`) but Word omits it in every
+   `w:people` part seen. The generated factory's init is partial, so the property is simply left
+   out and the returned object's type claims a `contact` that is not there. Either the schema or
+   the binding should make it optional.
+
+## 10. Implementation notes: phase I (2026-09-15)
+
+`src/office-js/` behind a new subpath `@docx4j/core-ts/office-js` (`exports` `./office-js`, with
+`types` and `import` as the others; `test/nodenext/consumer.mts` imports it): `errors.mts`
+(`NotSupportedError`, `ItemNotFoundError`, `ValueNotLoadedError`), `enums.mts`, `proxy.mts`
+(`ClientResult`, the collections, `Wrapper`, `unwrap`, `nullObject`), `document.mts` (`Document`,
+`DocumentProperties`), `run.mts` (`RequestContext`, `run`), `extras.mts` (members the shim adds
+over a view), `fragment.mts`, `supported.mts` with the generated `supported.generated.mts`, and
+`toApiScript.mts`, which is also exported from `./model` (and so from `.`). The shim itself is
+**not** in `src/index.mts`: an add-in bundle that wants only the content API never pulls the
+proxies in. Nine tests in `test/office-js.test.mjs`; the README has a "Use in Node" section.
+
+What is in:
+
+- **`Word.run(pkg, fn, options?)`**, the package first since there is no host document. It
+  unmarshals the main document part (and, unless `unmarshalSideParts: false`, the core and
+  extended properties and the settings parts) before the callback, calls it with a proxied
+  `RequestContext`, and syncs once more at the end. `context.document.body` is the package's
+  `Body`; `getSelection()` returns `options.selection`; `properties` is `DocPropsCorePart` and
+  `DocPropsExtendedPart` in Office JS's vocabulary (`title`, `author` = `dc:creator`, `subject`,
+  `keywords`, `comments` = `dc:description`, `category`, `lastAuthor`, `revisionNumber`,
+  `creationDate`, `lastSaveTime`, `lastPrintDate`, `manager`, `company`, `applicationName`,
+  `template`, `security`), creating the part on write; `changeTrackingMode` reads and writes
+  `w:trackRevisions`, creating the settings part if absent (the tracking of edits is phase F);
+  `getComments()` calls `Body.getComments()` if it exists at run time (phase G) and otherwise
+  reports none.
+- **`load` / `track` / `untrack`** are no-ops returning the object, on every proxy and on the
+  collections and null objects, so an add-in's `load` lines stay. **`context.sync()`** resolves
+  what was asynchronous: `getOoxml`, `getXml`, `insertXml` (and phase C's `insertOoxml`) return
+  `ClientResult`-shaped objects whose `value` it fills. `Word.run` syncs once at the end, so a
+  callback that forgets to is still correct.
+- **Collections**: an array of wrapped views with `items`, `getFirst`, `getFirstOrNullObject`,
+  `getLast`, `getLastOrNullObject`, `getCount` and the no-ops, so `body.paragraphs.items[0]`,
+  `body.paragraphs[0]` and `[...body.paragraphs]` all work. A null object answers
+  `isNullObject: true` and throws `ItemNotFoundError` from every other member.
+- **Enums** as frozen objects: `InsertLocation`, `Alignment`, `UnderlineType`,
+  `ChangeTrackingMode`, `BreakType`, `ContentControlType`, `Style`, `ErrorCodes`, and
+  `SearchOptions` (the interface, plus `newObject()`).
+- **Proxies**: every object handed out is a `Proxy` over the view. A member the view has passes
+  through and its result is wrapped in turn (view, array of views, `ClientResult`); a member it
+  does not have throws `NotSupportedError` (`Word.Paragraph.getNextOrNullObject is not supported
+  by @docx4j/core-ts`, `code: 'NotImplemented'`), on reads, writes and calls. `unwrap(proxy)`
+  gives the view back, and `part` and `package_` are handed out unwrapped so that docx4j code
+  keeps working on them.
+- **`Word.supported`**: a `Set` of `Class.member` strings. `scripts/generate-supported.mjs` reads
+  `test/office-js-subset.ts` and writes `src/office-js/supported.generated.mts`; it is
+  data-driven (every `interface` in the file, whatever it is called), so phases C and G extend
+  the subset and re-run `npm run generate` with no change here. The generated file is committed,
+  so the build does not depend on the script; `npm test` regenerates it (`pretest`) and
+  `--check` fails when it is stale. `supported.mts` adds the shim's own surface (the context,
+  the document, the collection members and the `load` no-ops) to the generated half.
+- **`toApiScript(target, options?)`** over a `Body`, a `Paragraph`, a `Range`, a `w:p` / `w:tbl`
+  element or an array of them: `insertParagraph` with the text of a leading unformatted run,
+  then `style`, `alignment`, the indents and spacing in points and `outlineLevel`, then one
+  `insertText` per run with the `Range.font` assignments that differ from the previous run, and
+  `insertBreak` for `w:br`. It falls back to ``await body.insertXml(`...`, 'End')`` with the
+  marshalled fragment, preceded by a comment saying why, for anything else — and the decision is
+  taken before a line is emitted, so a paragraph comes out whole either way.
+
+Departures and deferrals, all deliberate:
+
+- **`Word.run` takes the package**, and `Word` is a plain object, not a namespace with the whole
+  Office JS surface. `Word.run(fn)` without a package cannot mean anything here.
+- **Calls act at once; `sync()` only resolves promises.** Office JS queues them. This is section
+  3.1's decision, and the observable difference is that a mutation is visible before the sync.
+- **`ClientResult` is awaitable** (`then` delegates to the underlying call), which Office JS's
+  is not. Without it `await body.insertXml(...)` — how the content API and `toApiScript`'s output
+  read — would not wait, and the insertions would land out of order. The Office JS idiom
+  (`const r = body.getOoxml(); await context.sync(); r.value`) works unchanged, and `value`
+  before the sync throws `ValueNotLoadedError`.
+- **`getOoxml()` is the shim's, not the views'** (section 7 left it out). On a `Body` it is
+  `OpcPackage.saveFlatOpc()`, which is exactly Word's whole-document `pkg:package`; on a
+  `Paragraph` or a `Range` it is the bare `w:p` fragment, because wrapping a fragment in a
+  package with the styles it needs is phase C's `insertOoxml` work. A `Range` also gains
+  `getXml()`, which marshals a copy of its paragraph trimmed to the span (`fragment.mts`).
+- **`document.properties` and `changeTrackingMode` read synchronously**, so `Word.run`
+  unmarshals `docProps/core.xml`, `docProps/app.xml` and `word/settings.xml` when they are
+  present, which marks them for re-marshalling even if the callback never reads them. Pass
+  `{ unmarshalSideParts: false }` to keep those parts byte for byte; reads then report nothing
+  and writes throw with that message. Everything else obeys CR-001's rule.
+- **`changeTrackingMode` is `'Off'` or `'TrackAll'`**: `w:trackRevisions` has no "mine only".
+  Writing `'TrackMineOnly'` sets `w:trackRevisions`, as Word does for a document it later filters
+  by author.
+- **`Word.Style` uses Office JS's values** (`'Heading1'`), which `styleBuiltIn`'s setter accepts;
+  at the time its getter still returned the spaced form (`'Heading 1'`, section 7). Corrected the
+  next day, section 11; `toApiScript` now emits `styleBuiltIn` for a built-in style and `style`
+  with the display name otherwise.
+- **`toApiScript` fidelity.** A `w:tab` is emitted as `insertText('\t')`, which writes a tab
+  character rather than a `w:tab` (the text model reads both as `\t`); `w:proofErr`,
+  `w:lastRenderedPageBreak`, `w:bookmarkStart` and `w:bookmarkEnd` are dropped; a `w:br` becomes
+  a run of its own. Everything else that a verb cannot express falls back to `insertXml`: any
+  `w:pPr` beyond `pStyle`, `jc` (left/center/right/both), `ind` (left/right/firstLine/hanging),
+  `spacing` and `outlineLvl` — the paragraph mark's `w:rPr` included; any `w:rPr` outside the
+  `Font` vocabulary, `w:rStyle` included, since `Font` has no `style` member; `w:spacing` with a
+  `w:lineRule` other than `exact`, because `lineSpacing` writes `exact`; and a run that drops a
+  direct size after one that set it, because `Font.size = 0` writes `<w:sz w:val="0"/>` rather
+  than removing it. A `Range` emits its runs only, without its paragraph's properties.
+  `insertTable` is emitted only when `Body.prototype.insertTable` exists (phase C) and the table
+  is a plain grid of single-paragraph text cells; until then a table is `insertXml`.
+- **The emitted script is content-API code, not shim code**: run it against a `Body` (or the
+  shim's proxied body, since `ClientResult` is awaitable) inside an async function, which is what
+  the test does with `new Function('body', 'return (async () => {' + script + '})()')`.
+
+For the objects package's next CR (`toSource` in `builders/wml`): what this one wants from it is
+the complement, not the same thing. `toApiScript` needs a way to say "this element is beyond the
+verbs, emit it as source": `toSource(element)` giving the `el.p({ ... })` / `p([r('x')])` calls
+would be a better fallback than a marshalled XML string for a reader, and the two generators
+should share the shape of their output (statements, a variable per element, stable names). The
+pieces it should expose: `toSource(element, { variable, factory: 'el' | 'sugar' })` returning
+statements; a predicate `isSugarExpressible(element)` so a caller can choose between `p('x')` and
+`el.p({...})`; and the run-formatting inverse of `applyRunOptions`, which `readRunOptions`
+already is, so that `r('x', { bold: true })` can be emitted instead of an `rPr` literal. With
+that, `toApiScript`'s fallback becomes `body.insertElement(<source>, 'End')` and the XML string
+is only for what neither can type.
+
+## 11. Correction: `style` and `styleBuiltIn` (2026-09-16)
+
+Section 3.1 had `style` as the style id and `styleBuiltIn` as the id with spaces inserted, and
+phases B, C and I implemented that. Office JS means the opposite: `style` is the style's display
+name (`'Heading 1'`, localised in Word) and `styleBuiltIn` a `Word.Style` value (`'Heading1'`,
+`'TableGrid'`), reading `'Other'` for a style that is not built in and refusing to be set to it.
+The section 3.4 promise is that a function written against the subset runs against both, so
+the values have to agree, not only the types; there was no reason for the departure beyond the
+tree holding the id. Fixed in `Paragraph`, `Range`, `Table` and `toApiScript`:
+
+- `style` reads the display name: the styles part's `w:name` when that part is unmarshalled
+  (nothing is unmarshalled for it), with Word's stored lower-case built-in names (`heading 1`,
+  `toc 1`, `annotation text`) mapped to the display names (`Heading 1`, `TOC 1`, `Comment Text`)
+  through docx4j's `KnownStyles.xml` list; otherwise derived from the id by inserting spaces,
+  which is exact for the built-ins because Word derives the id from the English name. Setting
+  accepts a display name, a stored name or, as an extension, an id; resolved against the styles
+  part when unmarshalled, else by removing spaces.
+- `styleBuiltIn` reads the `Word.Style` value for the id (`Toc1` for Word's `TOC1`) or `'Other'`;
+  setting takes a `Word.Style` value (leniently the spaced name too) and writes Word's id spelling;
+  `'Other'` throws `RangeError`. `BUILT_IN_STYLES` in `src/model/content/styles.mts` is the list,
+  and a test keeps `Word.Style` in `office-js/enums.mts` equal to it.
+- `styleId` is the docx4j-named extension for the id (`w:pStyle`, `w:tblStyle`) on `Paragraph`,
+  `Range` and `Table`, for code that thinks in ids; `outline()` keeps reporting ids.
+- `toApiScript` emits `styleBuiltIn = 'Heading1'` for a built-in and `style = '<name>'` otherwise.

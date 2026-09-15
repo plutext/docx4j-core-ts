@@ -12,11 +12,13 @@ the generated Office Open XML object model (the counterpart of `docx4j-generated
 the `@docx4j/jsonix` runtime. Design and scope live in `docs/change-requests/`; CR-001 is the
 engine and is the spec for everything below.
 
-**Status:** CR-001 Phase A (packaging, parts, packages, MCE) and CR-002 phases B and D (the
-content API: `Body`, `Paragraph`, `Range`, `Font`, search, addresses, `outline`) are
-implemented. Not yet: CR-001 Phase B (`PropertyResolver`, numbering, fonts) and C; CR-002 A
-(the objects package's `builders/wml`), C (tables, pictures, `insertOoxml`) and E (custom XML,
-XML mapping, content controls). Each CR's last sections record decisions and departures.
+**Status:** CR-001 Phase A (packaging, parts, packages, MCE) and CR-002 phases B, C, D, G and I
+(the content API: `Body`, `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`,
+`ContentControl`, `Comment`, search, `insertOoxml`, addresses, `outline`; the `Word` shim on
+`./office-js`) are implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet:
+CR-001 Phase B (`PropertyResolver`, numbering, fonts; blocked by the portfolio rule below) and C;
+CR-002 E (custom XML, XML mapping, typed content controls), F (change tracking) and H (lists).
+Each CR's last sections record decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -30,7 +32,7 @@ npm ci              # fflate, typescript, @docx4j/generated-objects-ts and @docx
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
-npm test            # build, then the nodenext consumer check (test/nodenext), then node --test test/*.test.mjs
+npm test            # pretest regenerates src/office-js/supported.generated.mts; then build, the nodenext consumer check (test/nodenext), node --test test/*.test.mjs
                     # (a shell glob: Node 22 does not accept a directory, and Node 18 would also run test/helpers.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
 ```
@@ -55,12 +57,16 @@ Names follow `org.docx4j.openpackaging` and friends, so the docx4j Java source i
 for behaviour. Layout and `exports` subpaths:
 
 ```
-src/xml/dom.mts   parse/serialize (Jsonix.DOM, cast: not in the runtime typings), text and base64 helpers
+src/xml/dom.mts   parse/serialize over Jsonix.DOM (typed since @docx4j/jsonix 3.2.1), text and base64 helpers
 src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink + Memory/Zip/FlatOpc, Load, Save, mce/, exceptions
 src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart (+CustomXmlDataStoragePart), RelationshipsPart,
                   Parts, Namespaces, PartRegistry; wml/ dml/ pml/ sml/ docProps/ customXml/ typed parts
 src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles, body, outline, paragraphAt), PresentationMLPackage, SpreadsheetMLPackage, registry
-src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, search; tree.mts is the paragraph text model (segmentsOf, runItemsOf, childrenOf); fragments, run mapping and traversal come from the objects package's builders/wml
+src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, search;
+                  ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
+                  tree.mts is the paragraph text model (segmentsOf, runItemsOf, childrenOf); fragments, run mapping and traversal come from the objects package's builders/wml
+src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
+                  supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change
 src/index.mts     re-exports all of the above plus the objects facade
 ```
 
@@ -116,8 +122,8 @@ Phase B adds golden files from a Java harness under `test/java/`.
 
 - ES modules only (`"type": "module"`, `.mts` sources built to `dist/*.mjs` with `.d.mts`). Unlike
   the objects package there are no UMD files here, so `"type": "module"` is fine.
-- Public paths are the `exports` map only (`.`, `./opc`, `./parts`, `./packages`). Keep them
-  stable; add subpaths deliberately.
+- Public paths are the `exports` map only (`.`, `./opc`, `./parts`, `./packages`, `./model`,
+  `./office-js`). Keep them stable; add subpaths deliberately.
 - Names follow docx4j (`OpcPackage`, `WordprocessingMLPackage`, `MainDocumentPart`,
   `RelationshipsPart`, `PropertyResolver`, `Emulator`) so docx4j Java code and documentation
   transfer; where Java conventions read badly in TypeScript use camelCase and note the mapping in

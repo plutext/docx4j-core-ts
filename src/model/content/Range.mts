@@ -1,8 +1,12 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Font } from './Font.mjs';
 import type { Paragraph } from './Paragraph.mjs';
-import type { Element } from './tree.mjs';
+import type { BlockElement } from './Body.mjs';
+import { type Element, typeNameOf } from './tree.mjs';
+import { contentOf } from './ooxml.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
+import { commentApi } from './comments.mjs';
+import type { Comment } from './Comment.mjs';
 
 /**
  * A subset of Office JS `Word.Range`: a span of text within one paragraph, [start, end) in the
@@ -23,7 +27,15 @@ export class Range {
     this.insertText(value, 'Replace');
   }
 
-  /** The paragraph's style (Office JS reports the range's paragraph style). */
+  /** The paragraph's style id (extension, as on Paragraph). */
+  get styleId(): string {
+    return this.paragraph.styleId;
+  }
+  set styleId(id: string) {
+    this.paragraph.styleId = id;
+  }
+
+  /** The paragraph's style name (Office JS reports the range's paragraph style). */
   get style(): string {
     return this.paragraph.style;
   }
@@ -69,6 +81,30 @@ export class Range {
     return this.paragraph.insertParagraph(text, location);
   }
 
+  /**
+   * Word's `insertOoxml` at range level: a flat OPC `pkg:package` (or a bare fragment). One
+   * incoming paragraph's runs go at the start or the end of the span, or in its place; anything
+   * else is inserted as blocks before or after the paragraph. Returns what was inserted, as
+   * `insertXml` does.
+   */
+  async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    const body = this.paragraph.parentBody;
+    const preprocess = body.package_?.loadOptions.preprocessor;
+    const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part });
+    if (elements.length === 0) return [];
+    const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? elements[0]!.value as { content?: Element[] } : undefined;
+    if (only) {
+      if (location === 'Replace') { this.delete(); this.paragraph.insertItemsAt(this.start, (only.content ?? [])); }
+      else this.paragraph.insertItemsAt(location === 'Before' ? this.start : this.end, (only.content ?? []));
+      return [this.paragraph];
+    }
+    body.insertElement(elements, location === 'Before' ? 'Before' : 'After', this.paragraph);
+    if (location === 'Replace') this.delete();
+    return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
+      ? body.paragraphFor(el.value as never) ?? { element: el, container: this.paragraph.container }
+      : { element: el, container: this.paragraph.container });
+  }
+
   /** Removes the span's text. */
   delete(): void {
     this.paragraph.splice(this.start, this.end, '');
@@ -89,5 +125,21 @@ export class Range {
   /** The span's text as it stands (extension; Office JS getOoxml wraps it in a package). */
   toString(): string {
     return this.text;
+  }
+
+  // --- comments (CR-002 phase G) ---
+
+  /** The comments this span touches, replies nested under their parent. */
+  async getComments(): Promise<Comment[]> {
+    return commentApi().commentsOf(this);
+  }
+
+  /**
+   * Comments the span: the markers and the reference run around it (runs are split at the
+   * boundaries, as `font` does), the comment itself and the side-part entries, creating any of
+   * the comment parts the document lacks. Asynchronous because it unmarshals those parts.
+   */
+  async insertComment(text: string): Promise<Comment> {
+    return commentApi().insertComment(this, text);
   }
 }

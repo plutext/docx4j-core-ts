@@ -12,6 +12,10 @@ import { DEFAULT_STYLES_XML } from '../parts/wml/defaultStyles.mjs';
 import { HeaderPart, FooterPart } from '../parts/wml/index.mjs';
 import type { Body, Address, Outline, OutlineParagraph, OutlineTable } from '../model/content/Body.mjs';
 import type { Paragraph } from '../model/content/Paragraph.mjs';
+import type { Author } from '../model/content/comments.mjs';
+// Registers the comment parts with the content API (CR-002 phase G); no cycle: the model half
+// never imports a part, as packages/registry.mts does for the package classes.
+import '../parts/wml/comments.mjs';
 
 /** The outline of a document: the body's paragraphs and tables, then each header's and footer's (loaded ones only). */
 export interface DocumentOutline extends Outline {
@@ -47,6 +51,13 @@ export interface CreatePackageOptions {
 /** A docx (docx4j WordprocessingMLPackage). */
 export class WordprocessingMLPackage extends OpcPackage {
   mainDocumentPart: MainDocumentPart | undefined;
+
+  /**
+   * Who this package's comments (CR-002 phase G) and, with phase F, its tracked changes are by.
+   * There is no signed-in user here, so the package carries the identity; the initials default to
+   * the first letter of each word of the name and the email, when given, is written to `w:people`.
+   */
+  author: Author = { name: 'docx4j' };
 
   static override async load(source: PackageSource, options?: LoadOptions): Promise<WordprocessingMLPackage> {
     const pkg = await OpcPackage.load(source, options);

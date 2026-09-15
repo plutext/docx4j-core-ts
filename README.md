@@ -39,11 +39,13 @@ const ooxml = await pkg.saveFlatOpc();              // pkg:package, for insertOo
 A part that is never touched is written back byte for byte; `getContents()` (or a view over
 it) marks a part for re-marshalling. `mc:AlternateContent` is resolved when a part is
 unmarshalled, as Word does on open (`{ mcePreprocess: false }` to keep it). Subpaths
-`@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately.
+`@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately, and
+`/office-js` the `Word` shim (below).
 
 ### The content API
 
-`Body`, `Paragraph`, `Range` and `Font` follow Office JS's `Word.*` shapes (a compile-time
+`Body`, `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture` and `ContentControl` follow
+Office JS's `Word.*` shapes (a compile-time
 check keeps them assignable to a subset of those types), so add-in code runs against a
 package with its `load` and `sync` lines removed. Hello World, from nothing to a `.docx`:
 
@@ -61,7 +63,7 @@ Editing what is there:
 ```ts
 const body = await pkg.getBody();
 const title = body.insertParagraph('Report', 'Start');
-title.styleBuiltIn = 'Heading 1';
+title.styleBuiltIn = 'Heading1';                       // Word.Style value; title.style reads 'Heading 1'
 title.alignment = 'Centered';
 const [hit] = body.search('quick brown fox');          // across runs
 hit.font.italic = true;                                // runs split at the boundaries
@@ -83,6 +85,28 @@ p?.insertParagraph('Inserted after the fourth block', 'After');
 Docx4j's names are there as aliases (`addParagraphOfText`, `addStyledParagraphOfText`,
 `addObject`, `getContent`), and the tree stays reachable: `paragraph.p` is the `P`,
 `body.content` the live array.
+
+### Comments
+
+`getComments()` on the body, a paragraph or a range, and `insertComment` on a range or a
+paragraph, over the four parts Word writes (`w:comments`, `w15:commentsEx`, `w16cid` and
+`w:people`, plus `w16cex` when the document has one); threads, `resolved` (`w15:done`) and
+`delete()` keep them all in step, and any of the parts the document lacks is created with its
+relationship, content type and the `CommentText` and `CommentReference` styles.
+
+```ts
+pkg.author = { name: 'Ada Lovelace', initials: 'AL', email: 'ada@example.com' };   // whose comments these are
+
+const [hit] = body.search('quick brown fox');
+const comment = await hit.insertComment('Is this the right idiom?');
+await comment.reply('Yes, Word writes it this way');
+comment.resolved = true;                       // w15:done
+
+for (const c of await body.getComments()) {    // document order, replies nested
+  console.log(c.authorName, c.creationDate, c.content, c.replies.length, c.getRange().map((r) => r.text));
+  if (c.resolved) await c.delete();            // the comment, its replies, the markers and every side entry
+}
+```
 
 ### XML in
 
@@ -107,6 +131,103 @@ import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 body.addObject(el.p({ content: [el.r({ content: [el.t({ value: 'Hello World' })] })] }));
 ```
 
+### Tables, pictures and content controls
+
+`Table`, `TableRow` and `TableCell` are Office JS shapes too; a cell is a `Body` of its own, so
+everything above works inside one:
+
+```ts
+const table = body.insertTable(3, 2, 'End', [['Item', 'Price'], ['apples', '$20']]);
+table.styleBuiltIn = 'TableGrid';           // Word.Style value; table.style is then 'Table Grid', table.styleId 'TableGrid'
+table.headerRowCount = 1;                   // w:tblHeader: the row repeats on every page
+table.getCell(1, 1).value = '$25';
+table.addRows('End', 1, [['pears', '$30']]);
+table.values;                               // [['Item', 'Price'], ['apples', '$25'], ['pears', '$30']]
+body.paragraphs[4].parentTableCell?.cellIndex;
+```
+
+A picture adds its own `ImagePart`, the relationship and a `w:drawing` sized from the image's
+pixels and resolution (96 dpi when the file declares none, as docx4j does), scaled down if it
+is wider than the text area:
+
+```ts
+const picture = body.insertInlinePictureFromBase64(pngBase64, 'End', { altTextDescription: 'The logo' });
+picture.width = 144;                        // points; the height follows the aspect ratio
+picture.imageFormat;                        // 'Png'
+await body.inlinePictures[0].getBase64();
+```
+
+`insertOoxml` takes what Word's does, a flat OPC `pkg:package` string: the body content comes
+over with the parts it references (images, embedded objects) copied in under fresh names and
+relationship ids. A bare fragment works too, as `insertXml`.
+
+```ts
+await body.insertOoxml(await other.saveFlatOpc(), 'End');       // or an add-in's getOoxml() string
+```
+
+Content controls (`w:sdt`) are read at block, row, cell and run level:
+
+```ts
+for (const control of body.contentControls) {
+  console.log(control.form, control.type, control.title, control.tag, control.text);
+}
+body.contentControls[0].insertText('Jane Doe', 'Replace');
+body.contentControls[1].delete(true);       // unwrap, keeping what it held
+```
+
+Custom XML parts, XML mapping, typed content controls and `insertContentControl` are phase E of
+[CR-002](docs/change-requests/CR-002-content-api.md); effective formatting (styles resolved, as
+Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.md) Phase B.
+
+### Use in Node: running add-in code against a package
+
+`@docx4j/core-ts/office-js` is a `Word` shim: `Word.run(pkg, fn)` gives the callback a
+`context` whose `document.body` is the package's body, `load()` is a no-op and `context.sync()`
+resolves what was asynchronous. An add-in's batch therefore runs unchanged in a test, in CI,
+or on a server, with the saved `.docx` as the assertion — and a member this package does not
+implement throws `NotSupportedError` naming it, rather than doing nothing.
+
+```ts
+import { WordprocessingMLPackage } from '@docx4j/core-ts';
+import { Word } from '@docx4j/core-ts/office-js';
+
+const pkg = await WordprocessingMLPackage.load(bytes);
+await Word.run(pkg, async (context) => {
+  const paragraphs = context.document.body.paragraphs;
+  paragraphs.load('text');
+  await context.sync();
+
+  paragraphs.items[0].styleBuiltIn = Word.Style.heading1;
+  for (const range of context.document.body.search('draft')) range.font.highlightColor = '#FFFF00';
+  context.document.properties.lastAuthor = 'an add-in';
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.trackAll;
+
+  const ooxml = context.document.body.getOoxml();   // a ClientResult, as in Office JS
+  await context.sync();
+  ooxml.value;                                      // the flat OPC package
+});
+await writeFile('edited.docx', await pkg.save());
+```
+
+`Word.supported` is the set of `Class.member` strings this package implements
+(`Word.supported.has('Body.insertParagraph')`), generated from the compile-time subset, so a
+tool can check a script before running it. The selection an add-in edits is passed in:
+`Word.run(pkg, fn, { selection })`.
+
+`toApiScript` goes the other way: given a paragraph, a range or an element, it emits the
+content-API calls that reproduce it, falling back to `insertXml` for what the verbs cannot say.
+
+```ts
+import { toApiScript } from '@docx4j/core-ts/model';
+
+await toApiScript(body.paragraphs[1]);
+// const p1 = body.insertParagraph('Chapter 1', 'End');
+// p1.styleBuiltIn = 'Heading1';
+// p1.alignment = 'Centered';
+// const r1 = p1.insertText(' (draft)', 'End');
+// r1.font.italic = true;
+```
+
 Tables, pictures, `insertOoxml` from a `pkg:package`, custom XML parts, XML mapping and typed
 content controls are the next phases of
 [CR-002](docs/change-requests/CR-002-content-api.md); effective formatting (styles resolved,
@@ -117,7 +238,11 @@ as Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.
 ```
 npm ci                              # the locked dependencies from npm
 npm run typecheck && npm test       # test = build, then node --test test/*.test.mjs
+npm run generate                    # src/office-js/supported.generated.mts from test/office-js-subset.ts
 ```
+
+`npm run generate` is committed output: the build does not depend on the script, but `npm test`
+regenerates it so that `Word.supported` stays in step with the Office JS subset.
 
 Releases are published to npm from GitHub Actions; see `RELEASING.md`.
 

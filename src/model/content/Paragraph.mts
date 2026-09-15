@@ -2,7 +2,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, W_NS, runOf, paragraphOf, type TextSegment } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, typeNameOf, W_NS, runOf, paragraphOf, type TextSegment } from './tree.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
   if (rPr) run.value.rPr = rPr;
@@ -11,7 +11,14 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
 import { Font } from './Font.mjs';
 import { Range } from './Range.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
-import type { Body } from './Body.mjs';
+import type { Body, BlockElement } from './Body.mjs';
+import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
+import { cellOf, type TableCell } from './Table.mjs';
+import { type ContentControl, collectRunControls } from './ContentControl.mjs';
+import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
+import { contentOf } from './ooxml.mjs';
+import { commentApi } from './comments.mjs';
+import type { Comment } from './Comment.mjs';
 
 /** Office JS Word.Alignment. */
 export type Alignment = 'Unknown' | 'Left' | 'Centered' | 'Right' | 'Justified';
@@ -55,21 +62,33 @@ export class Paragraph {
     linkParents(this.p.content, this.p);
   }
 
-  /** The style id (w:pStyle); 'Normal' when none is set. */
-  get style(): string {
+  /** The style id (w:pStyle; docx4j's name for it); 'Normal' when none is set. Extension: Office JS has `style` and `styleBuiltIn` only. */
+  get styleId(): string {
     return this.p.pPr?.pStyle?.val ?? 'Normal';
   }
-  set style(id: string) {
+  set styleId(id: string) {
     if (id === '' || id === 'Normal') { if (this.p.pPr) delete this.p.pPr.pStyle; return; }
     this.pPr().pStyle = { val: id };
   }
 
-  /** Word's display name of the style ('Heading 1'); mapped to and from ids by removing spaces. */
-  get styleBuiltIn(): string {
-    return this.style.replace(/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Za-z])(?=[0-9])/g, ' ');
+  /**
+   * The style's display name ('Heading 1', 'My Style'), as Office JS: from the styles part's
+   * `w:name` when that part is unmarshalled, else derived from the id. Setting accepts a display
+   * name, a stored name, or an id.
+   */
+  get style(): string {
+    return styleNameOf(this.parentBody.package_, this.styleId);
   }
-  set styleBuiltIn(name: string) {
-    this.style = name.replace(/\s+/g, '');
+  set style(name: string) {
+    this.styleId = styleIdOf(this.parentBody.package_, name);
+  }
+
+  /** The `Word.Style` value ('Heading1'), or 'Other' when the style is not a built-in one, as Office JS. */
+  get styleBuiltIn(): string {
+    return builtInOf(this.styleId);
+  }
+  set styleBuiltIn(value: string) {
+    this.styleId = idOfBuiltIn(value);
   }
 
   get alignment(): Alignment {
@@ -135,6 +154,33 @@ export class Paragraph {
     return runsOf(this.p);
   }
 
+  /** The cell this paragraph is in, or undefined when it is not in a table (Office JS). */
+  get parentTableCell(): TableCell | undefined {
+    return cellOf(this.p, this.parentBody);
+  }
+
+  /** The run-level content controls in this paragraph, in order, nested ones included. */
+  get contentControls(): ContentControl[] {
+    const out: ContentControl[] = [];
+    collectRunControls(this.p, this.parentBody, out);
+    return out;
+  }
+
+  /** The inline pictures in this paragraph, in order (Office JS Paragraph.inlinePictures). */
+  get inlinePictures(): InlinePicture[] {
+    const out: InlinePicture[] = [];
+    for (const run of runsOf(this.p)) {
+      for (const item of (run.value.content ?? []) as Element[]) {
+        if (item.name.localPart !== 'drawing') continue;
+        const inline = (item.value as wml.Drawing).anchorOrInline?.[0];
+        if (inline && (inline as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_dml_wordprocessingDrawing.Inline') {
+          out.push(new InlinePicture(item as Element<wml.Drawing>, run, this));
+        }
+      }
+    }
+    return out;
+  }
+
   /** Text inserted at the start, the end, or replacing the whole paragraph's text. */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
     const length = this.text.length;
@@ -163,6 +209,48 @@ export class Paragraph {
     const content = (this.p.content ??= []);
     if (location === 'Start') content.unshift(run as never); else content.push(run as never);
     linkParents(run, this.p);
+  }
+
+  /**
+   * Adds the image as a part of this paragraph's part, with a relationship, and shows it at the
+   * start or the end of this paragraph, or in place of its content (Office JS).
+   */
+  insertInlinePictureFromBase64(base64: string, location: 'Start' | 'End' | 'Replace', options?: InlinePictureOptions): InlinePicture {
+    const part = this.parentBody.part;
+    if (!part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
+    const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
+    const content = (this.p.content ??= []) as Element[];
+    if (location === 'Replace') content.length = 0;
+    if (location === 'Start') content.unshift(run as Element); else content.push(run as Element);
+    linkParents(run, this.p);
+    return new InlinePicture(drawing, run, this);
+  }
+
+  /**
+   * Word's `insertOoxml` at paragraph level: a flat OPC `pkg:package` (or a bare fragment). One
+   * incoming paragraph is merged into this one at 'Start' and 'End', as Word's paste does;
+   * anything else is inserted as blocks before or after. 'Replace' puts the content where this
+   * paragraph was and removes it.
+   */
+  async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    const preprocess = this.parentBody.package_?.loadOptions.preprocessor;
+    const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: this.parentBody.part });
+    if (elements.length === 0) return [];
+    const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? (elements[0]!.value as wml.P) : undefined;
+    if (only && (location === 'Start' || location === 'End')) {
+      this.insertItemsAt(location === 'Start' ? 0 : this.text.length, (only.content ?? []) as Element[]);
+      return [this];
+    }
+    if (location === 'Replace') {
+      const inserted = this.parentBody.insertElement(elements, 'Before', this);
+      void inserted;
+      this.delete();
+    } else {
+      this.parentBody.insertElement(elements, location === 'Start' ? 'Before' : location === 'End' ? 'After' : location, this);
+    }
+    return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
+      ? new Paragraph(el as Element<wml.P>, this.container, this.parentBody)
+      : { element: el, container: this.container });
   }
 
   /** Matches within this paragraph. */
@@ -281,6 +369,24 @@ export class Paragraph {
     return new Range(this, start, start + text.length);
   }
 
+  /**
+   * Inserts run-level items (runs, hyperlinks, content controls) at a text offset, splitting the
+   * run there when the offset falls inside one. PARENT is linked on what is inserted.
+   */
+  insertItemsAt(offset: number, items: Element[]): void {
+    if (items.length === 0) return;
+    this.splitAt(offset);
+    const segs = this.segments();
+    const after = segs.find((s) => s.start >= offset);
+    const before = [...segs].reverse().find((s) => s.end <= offset);
+    const neighbour = after ?? before;
+    const list = neighbour ? neighbour.runOwner : ((this.p.content ??= []) as Element[]);
+    const at = neighbour ? (after ? neighbour.runIndex : neighbour.runIndex + 1) : (offset === 0 ? 0 : list.length);
+    list.splice(at, 0, ...items);
+    const owner = (neighbour?.run as { PARENT?: object } | undefined)?.PARENT ?? this.p;
+    for (const item of items) linkParents(item, owner);
+  }
+
   /** Splits the run at a text offset so that [offset, ...) begins a run; returns nothing when the offset is already a boundary. */
   splitAt(offset: number): void {
     const seg = this.segments().find((s) => s.editable && s.start < offset && offset < s.end);
@@ -295,6 +401,18 @@ export class Paragraph {
     const second = runOf([textItem(tail), ...rest], seg.run.rPr ? deepCopy(seg.run.rPr) : undefined);
     seg.runOwner.splice(seg.runIndex + 1, 0, second);
     linkParents(second, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  }
+
+  // --- comments (CR-002 phase G) ---
+
+  /** The comments anchored in this paragraph, replies nested under their parent. */
+  async getComments(): Promise<Comment[]> {
+    return commentApi().commentsOf(this);
+  }
+
+  /** Comments the whole paragraph (sugar over `getRange().insertComment`). */
+  async insertComment(text: string): Promise<Comment> {
+    return commentApi().insertComment(this.getRange(), text);
   }
 
   private removeEmptyRuns(): void {
