@@ -330,8 +330,8 @@ touches zip tree-shakes it away.
   and its cast is gone. Declare-on-root as a marshaller option (`declareNamespaces`, per-marshal
   prefixes, declaring only where first used), which would let the facade's stripping pass go, is
   deferred to 3.3.0; it is revisited if Phase B's re-marshalling of large parts makes marshal
-  time matter. The dependency range moves to the objects release that requires 3.2.1 (planned
-  as 0.1.2) when it is published.
+  time matter. The dependency range is `^0.1.2` of the objects package (2026-09-16), which requires
+  3.2.1.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 

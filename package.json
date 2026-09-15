@@ -69,7 +69,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@docx4j/generated-objects-ts": "^0.1.1",
+    "@docx4j/generated-objects-ts": "^0.1.2",
     "fflate": "^0.8.2"
   },
   "devDependencies": {
