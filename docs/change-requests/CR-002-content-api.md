@@ -1,12 +1,14 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A proposed as objects CR-002; phases C and E proposed
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, E, F, G, H and I proposed. (Status corrected 2026-09-15; it had said phase A was proposed.)
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
 `addObject` / `getContent`, `XmlUtils.unmarshalString` and `W_NAMESPACE_DECLARATION`,
 `TraversalUtil`, `ClassFinder`, `TextUtils`, `org.docx4j.wml.ObjectFactory`; and the tool surface
 of `plutext/docx4j-mcp`.
+**Editor references:** "CR-003" below is the web editor design, which moved to
+`plutext/docx4j-ts-editor` as `docs/change-requests/ED-001-web-editor.md` with its section numbers unchanged.
 
 ## 1. Why
 
