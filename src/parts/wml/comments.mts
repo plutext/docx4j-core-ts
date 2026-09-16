@@ -11,18 +11,14 @@ import * as w16cidFactory from '@docx4j/generated-objects-ts/factory/org_docx4j_
 import { linkParents } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { Namespaces } from '../Namespaces.mjs';
-import { DefaultXmlPart } from '../DefaultXmlPart.mjs';
 import { MainDocumentPart, CommentsPart, CommentsExtendedPart, CommentsIdsPart, PeoplePart } from './index.mjs';
 import type { Body } from '../../model/content/Body.mjs';
 import {
-  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, setCommentPartsAccess, toUtcString,
+  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, setCommentPartsAccess, dateToCalendar,
   type Author, type CommentParts, type CommentsExtensible,
 } from '../../model/content/comments.mjs';
 // Loaded for its side effect: the Comment views register themselves with the content API.
 import '../../model/content/Comment.mjs';
-
-/** `w16cex` (Word 2018): the durable id and a UTC date per comment. Not in the object model. */
-const W16CEX = 'http://schemas.microsoft.com/office/word/2018/wordml/cex';
 
 /** The comment parts of one document. */
 class DocumentCommentParts implements CommentParts {
@@ -103,37 +99,22 @@ async function ensureCommentsIds(main: MainDocumentPart): Promise<w16cid.CTComme
   return part.contents;
 }
 
-/** The w16cex part as a DOM, when the document has one; none is created (the model does not type it). */
+/** The w16cex part, typed (objects 0.1.3), when the document has one; none is created. */
 async function loadExtensible(main: MainDocumentPart): Promise<CommentsExtensible | undefined> {
-  const rels = main.relationshipsPart;
-  const rel = rels?.getRelationshipByType(Namespaces.COMMENTS_EXTENSIBLE);
-  const part = rel && rels ? rels.getPart(rel) : undefined;
-  if (!(part instanceof DefaultXmlPart)) return undefined;
-  const document = await part.getDocument();
-  const root = document.documentElement;
-  if (!root) return undefined;
-  const entryOf = (durableId: string): Element | undefined => {
-    for (let node = root.firstChild; node; node = node.nextSibling) {
-      if (node.nodeType !== 1) continue;
-      const element = node as Element;
-      const id = element.getAttributeNS(W16CEX, 'durableId') ?? element.getAttribute('w16cex:durableId');
-      if (id && id.toLowerCase() === durableId.toLowerCase()) return element;
-    }
-    return undefined;
-  };
+  const part = main.commentsExtensiblePart;
+  if (!part) return undefined;
+  const contents = await part.getContents();
+  const entries = (contents.commentExtensible ??= []);
+  const indexOf = (durableId: string): number => entries.findIndex((e) => e.durableId?.toLowerCase() === durableId.toLowerCase());
   return {
     set(durableId: string, dateUtc: Date): void {
-      let entry = entryOf(durableId);
-      if (!entry) {
-        entry = document.createElementNS(W16CEX, 'w16cex:commentExtensible');
-        entry.setAttributeNS(W16CEX, 'w16cex:durableId', durableId);
-        root.appendChild(entry);
-      }
-      entry.setAttributeNS(W16CEX, 'w16cex:dateUtc', toUtcString(dateUtc));
+      const i = indexOf(durableId);
+      if (i >= 0) entries[i]!.dateUtc = dateToCalendar(dateUtc);
+      else entries.push({ durableId, dateUtc: dateToCalendar(dateUtc) });
     },
     remove(durableId: string): void {
-      const entry = entryOf(durableId);
-      if (entry) root.removeChild(entry);
+      const i = indexOf(durableId);
+      if (i >= 0) entries.splice(i, 1);
     },
   };
 }
@@ -201,4 +182,3 @@ setCommentPartsAccess({
   },
 });
 
-export { W16CEX };

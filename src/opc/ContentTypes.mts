@@ -28,6 +28,7 @@ export const ContentTypes = {
   WORDPROCESSINGML_COMMENTS: 'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml',
   WORDPROCESSINGML_COMMENTS_EXTENDED: 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml',
   WORDPROCESSINGML_COMMENTS_IDS: 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml',
+  WORDPROCESSINGML_COMMENTS_EXTENSIBLE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml',
   WORDPROCESSINGML_ENDNOTES: 'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml',
   WORDPROCESSINGML_FONTTABLE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml',
   WORDPROCESSINGML_FOOTER: 'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml',

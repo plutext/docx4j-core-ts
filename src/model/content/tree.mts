@@ -1,7 +1,7 @@
 // The text model of a paragraph and the block-level structure, over the objects package's
 // builders (walk, find, linkParents, textOf and the element helpers come from there).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { isElement, typeNameOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
+import { isElement, typeNameOf, runItemsOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
 export { isElement, typeNameOf, walk, find, linkParents, textOf, W_NS, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
@@ -75,19 +75,7 @@ function shows(view: TextView, kind: RevisionKind): boolean {
   return view === 'accepted' ? kind === 'ins' || kind === 'moveTo' : kind === 'del' || kind === 'moveFrom';
 }
 
-/**
- * The run-level items a holder keeps, by the model's own property names: `content` for most,
- * `customXmlOrSmartTagOrSdt` for w:ins and w:del, `accOrBarOrBox` for w:moveFrom and w:moveTo
- * (docx4j's names for the choice groups), `sdtContent.content` for a run-level content control.
- */
-export function runItemsOf(value: object): Element[] | undefined {
-  const v = value as { content?: Element[]; customXmlOrSmartTagOrSdt?: Element[]; accOrBarOrBox?: Element[]; sdtContent?: { content?: Element[] } };
-  if (Array.isArray(v.content)) return v.content;
-  if (Array.isArray(v.customXmlOrSmartTagOrSdt)) return v.customXmlOrSmartTagOrSdt;
-  if (Array.isArray(v.accOrBarOrBox)) return v.accOrBarOrBox;
-  if (v.sdtContent) return runItemsOf(v.sdtContent);
-  return undefined;
-}
+export { runItemsOf };
 
 function itemText(item: Element): string | undefined {
   const t = item.name.localPart;

@@ -72,10 +72,9 @@ namespaces, content types or the zip writer, check by hand:
    (`range.insertComment('...')`), reply to it and resolve it; in `fixtures/loadAndSave.docx`,
    comment a paragraph and delete Word's own comment. Saved and opened in Word: the review pane
    shows the comment, the reply under it in the same thread, the resolved thread greyed, the
-   author and initials from `pkg.author`, and the deleted comment gone. Note that a comments part
-   this package re-marshals loses the `mc:Ignorable` attribute of `w:comments` (the object model
-   does not carry it, CR-002 section 9), so this check is the one that would catch a repair prompt
-   from that.
+   author and initials from `pkg.author`, and the deleted comment gone. (Before objects 0.1.3 a
+   re-marshalled comments part lost `mc:Ignorable` on `w:comments`; it is kept now, CR-002
+   section 14.)
 9. Custom XML and the bindings (CR-002 phase E): `fixtures/invoice.docx` loaded,
    `await pkg.customXmlParts.load()`, then `insertText('Jane Doe', 'Replace')` on the customer-name
    control (`contentControls[0]`) and `await pkg.customXmlParts.updateFromContentControls()`, saved.

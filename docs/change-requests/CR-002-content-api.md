@@ -736,10 +736,9 @@ Departures and deferrals, all deliberate:
   built from the generated factories (`factory/org_docx4j_dml`, `.../dml_picture`,
   `.../dml_wordprocessingDrawing`, `el.drawing`, `el.pic`) rather than parsed from the XML
   template docx4j uses, so nothing has to await the Jsonix context.
-- `InlinePicture.altTextTitle` reads and writes `wp:docPr/@title`, which **is not marshalled**:
-  docx4j's schema (ECMA-376 1st edition) has no `title` attribute on `CTNonVisualDrawingProps`,
-  so the model has no property for it. Word's own title survives an untouched part, being read
-  from the source bytes; a title set through this API does not. See the gaps below.
+- `InlinePicture.altTextTitle` reads and writes `wp:docPr/@title`. Until objects 0.1.3 the
+  model had no `title` on `CTNonVisualDrawingProps` (ECMA-376 1st edition) and the attribute was
+  not marshalled; closed 2026-09-16 (section 14).
 - Styles and numbering are not merged by `insertOoxml` (open question 5, as recommended):
   incoming content keeps its `w:pStyle` and `w:numPr` values, which resolve against the target's
   styles, or dangle. Style merging is what docx4j's MergeDocx does and stays out of scope.
@@ -786,10 +785,8 @@ Departures and deferrals, all deliberate:
 
 Gaps found in the objects package (candidates for its own CRs, worked around here):
 
-1. **No `wp:docPr/@title`.** `org_docx4j_dml.CTNonVisualDrawingProps` has `descr` but no
-   `title`; docx4j's generated class has none either (its `xsd/` is the 1st edition), so
-   Office JS's `altTextTitle` cannot round trip. The fix is in the schemas or in an
-   `anyAttributes` escape on that type, not here.
+1. **No `wp:docPr/@title`** (closed in objects 0.1.3, section 14). `CTNonVisualDrawingProps`
+   had `descr` but no `title`, so `altTextTitle` could not round trip.
 2. **No drawing or inline-picture constructor in `builders/wml`.** `drawingFor()` here is the
    counterpart of docx4j's `createImageInline` and needs only the tree (the relationship id is
    a string), so it belongs in the objects package next to `p`, `r` and `tbl`. It is written
@@ -849,8 +846,8 @@ Departures and deferrals, all deliberate:
   touched when a comment is inserted, replied to or deleted. A document whose comments are not
   read keeps all five byte for byte (a test). The styles part is only unmarshalled when its XML
   does not already name both comment styles, so a document that has them keeps it byte for byte.
-- **No `w16cex` part is created**, only kept in step when the document has one: the objects
-  package has no module for that namespace (below), so it is edited as a DOM.
+- **No `w16cex` part is created**, only kept in step when the document has one. It was edited
+  as a DOM until objects 0.1.3 typed it; now `CommentsExtensiblePart` (section 14).
 - Comment **reactions** (`cr:`, Word 2020) and the `w16cid` "comments ids" of *replies to
   replies* beyond what Word writes are out of scope, as are comments on headers and footers
   (the API accepts them, but Word does not write them).
@@ -866,19 +863,13 @@ Departures and deferrals, all deliberate:
 
 Objects-package gaps found (candidates for a CR there; none blocked this phase):
 
-1. **No `org_docx4j_w16cex` module.** `w16cex:commentsExtensible` (Word 2018: a durable id and a
-   UTC date per comment, and the anchor of comment reactions) is not generated, so the part loads
-   as a `DefaultXmlPart` and phase G edits its DOM. docx4j's Java has the same gap, so this is a
-   schema to add there first.
-2. **`mc:Ignorable` is missing from `w:comments`.** `Styles` and `w16cid:CTCommentsIds` carry an
-   `ignorable` property, `Comments`, `CTCommentsEx` and `CTPeople` do not, so a re-marshalled
-   comments part loses Word's `mc:Ignorable="w14 w15 ..."` while keeping the `w14:paraId`
-   attributes it covers. Modern Word understands w14 natively and opens the result; the manual
-   check in `test/README.md` is where a regression would show.
-3. **`w15:CTPerson.contact` is declared required** (`contact: string`) but Word omits it in every
-   `w:people` part seen. The generated factory's init is partial, so the property is simply left
-   out and the returned object's type claims a `contact` that is not there. Either the schema or
-   the binding should make it optional.
+All three closed in objects 0.1.3 (2026-09-16, section 14):
+
+1. **No `org_docx4j_w16cex` module.** `w16cex:commentsExtensible` was not generated, so the part
+   loaded as a `DefaultXmlPart` and phase G edited its DOM. Now typed; `CommentsExtensiblePart`.
+2. **`mc:Ignorable` was missing from `w:comments`**, `CTCommentsEx` and `CTPeople`, so a
+   re-marshalled comments part lost Word's `mc:Ignorable="w14 w15 ..."`. Now kept (a test).
+3. **`w15:CTPerson.contact` was declared required** though Word omits it. Now optional.
 
 ## 10. Implementation notes: phase I (2026-09-15)
 
@@ -1160,17 +1151,16 @@ Objects-package gaps found (candidates for a CR there; none blocked this phase):
    control, so `insert.mts` writes the four `w:sdt` forms and their `w:sdtPr` over the generated
    factories here. `sdt(content, { kind, tag, title, id })` (and the `sdtPr` half) needs only the
    tree, so it belongs there next to `tbl`, as phase C said of `drawingFor`.
-2. **`SdtPr`'s properties are an untyped element list.** `rPrOrAliasOrLock` is a union of
-   `TypedNamedValue<...>`, so reading `w:tag` or `w14:checkbox` means a linear search by local name
-   and a cast (`findProperty` here). A generated accessor set for choice-group properties — or a
-   helper in `helpers/wml` — would remove a class of casts from this package.
-3. **`w14:checkbox`'s `checked` is `CTOnOff` with `val?: string`**, so `'1'`, `'true'` and `'on'`
-   are all possible and every reader has to accept the three; `BooleanDefaultTrue` elsewhere is a
-   real boolean. Harmonising the on/off types in the bindings would help.
-4. **No `xs:anyAttribute` escape on `DatastoreItem`.** Not needed here, but the `ds:` part is
-   attribute-qualified and the generated type carries only `itemID` and `schemaRefs`, so anything
-   Word adds to `ds:datastoreItem` in future would be dropped by a re-marshal. The properties part
-   is read from its DOM here for exactly that kind of reason.
+2. **`SdtPr`'s properties are a choice list.** `rPrOrAliasOrLock` is a union of
+   `TypedNamedValue<...>` typed element by element (it matches docx4j's own choice list, the objects
+   session notes), so reading `w:tag` or `w14:checkbox` means a search by local name and a cast
+   (`findProperty` here). Helpers in the objects package's CR-003 (`sdtProperty`, `sdtKindOf`)
+   will replace them; not a compiler change.
+3. **`w14:checkbox`'s `checked` was `CTOnOff` with `val?: string`** (closed in objects 0.1.3,
+   section 14: docx4j CR-018 retyped it to `xsd:boolean`, so `val` is a boolean and `w14:val="1"`
+   in a document unmarshals to `true`).
+4. **No `xs:anyAttribute` escape on `DatastoreItem`** (closed in objects 0.1.3: `otherAttributes`).
+   The properties part is still read from its DOM here, since nothing needs it typed.
 
 ## 13. Implementation notes: phase F (2026-09-16)
 
@@ -1316,13 +1306,38 @@ Objects-package gaps found (candidates for its own CR, worked around here):
   `rPrFromElements` in `tracking.mts` do it by name through `el/org_docx4j_wml`, in the
   schema's EG_RPrBase order. The w14 effects (`w14:glow`, `w14:shadow`, `w14:reflection`,
   `w14:textOutline`, `w14:textFill`, `w14:scene3D`, `w14:props3D`, `w14:ligatures`,
-  `w14:numForm`, `w14:numSpacing`, `w14:stylisticSets`, `w14:cntxtAlts`) have no wrapper in
-  the wml `el` module and are dropped from a recorded original. A pair of helpers in the
-  objects package (`rPrToElements` / `rPrFromElements`, covering the w14 names) would remove
-  the copy here.
+  `w14:numForm`, `w14:numSpacing`, `w14:stylisticSets`, `w14:cntxtAlts`) are dropped from a
+  recorded original by `rPrElements` here. Correction (2026-09-16): their scoped wrappers do
+  exist, in `factory/org_docx4j_wml` rather than `el`; the objects package's CR-003
+  (`rPrToElements` / `rPrFromElements`) covers them and replaces the copy here.
 - `runItemsOf` had to learn `accOrBarOrBox`, the name docx4j gives `w:moveFrom` and
-  `w:moveTo`'s run list (`RunTrackChange`), alongside `customXmlOrSmartTagOrSdt`. A
-  `runItemsOf` in `builders/wml` would belong there with `walk` and `textOf`.
+  `w:moveTo`'s run list (`RunTrackChange`), alongside `customXmlOrSmartTagOrSdt`. Closed in
+  objects 0.1.3: `builders/wml` exports a structural `runItemsOf` with the three names and the
+  run-level `sdtContent` case, and `tree.mts` re-exports it (section 14).
 - `deepCopy` of a `w:pPr` into `w:pPrChange` needs the copy's `TYPE_NAME` changed to
   `org_docx4j_wml.PPrBase`, or the marshaller writes `xsi:type="w:CT_PPr"` on it (valid but
   not what Word writes). A `deepCopyAs(value, typeName)` would say this plainly.
+
+## 14. Upgrade to objects 0.1.3 (2026-09-16)
+
+`@docx4j/generated-objects-ts` 0.1.3 closes five of the gaps sections 8, 9, 12 and 13 recorded,
+and this package now depends on `^0.1.3`:
+
+- `w14:CTOnOff/@val` is a boolean (docx4j CR-018): `kinds.mts`'s `isOn` and the two writes, and
+  `insert.mts`'s checkbox init, take booleans; `w14:val="1"` in a document unmarshals to `true`.
+- `org_docx4j_w16cex` exists: `CommentsExtensiblePart` (`/word/commentsExtensible.xml`, typed
+  `CTCommentsExtensible`, registered by content type, a `DocumentPart` shortcut) replaces the DOM
+  code in `parts/wml/comments.mts`; `dateUtc` is an `XmlCalendar`, written with `dateToCalendar`.
+  The marshalled attribute order is the model's (`dateUtc` before `durableId`), which Word does not
+  mind; the comments test asserts the typed form. Still no part is created when absent.
+- `mc:Ignorable` on `w:comments`, `w15:commentsEx` and `w:people` survives a re-marshal (a test;
+  `test/README.md` item 8 no longer warns about it).
+- `wp:docPr/@title` is typed, so `altTextTitle` round-trips; the cast is gone.
+- `runItemsOf` is imported from `builders/wml` (structural: the holder's list under `content`,
+  `customXmlOrSmartTagOrSdt`, `accOrBarOrBox` or `sdtContent`), and the local copy is gone.
+- `w15:CTPerson.contact` is optional and `DatastoreItem` has `otherAttributes`; nothing here
+  changed for either.
+
+Still open, now the objects package's CR-003 phase A in this order: `sdt`/`sdtPr`/`nextSdtId`/
+`sdtProperty`/`sdtKindOf`; `tr`/`tc` and `inlinePicture`; `rPrToElements`/`rPrFromElements` and
+`deepCopyAs`; `walkAll`. Phase B (`toSource`, `isSugarExpressible`) is unscheduled.

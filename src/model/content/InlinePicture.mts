@@ -324,16 +324,12 @@ export class InlinePicture {
     if (p) p.nvPicPr.cNvPr.descr = text;
   }
 
-  /**
-   * wp:docPr/@title. Departure: docx4j's schema (ECMA-376 1st edition) has no `title` attribute
-   * on wp:docPr, so this is kept on the object only and is **not** written out; see CR-002
-   * section 8. Word's own title survives untouched parts, being read from the source bytes.
-   */
+  /** wp:docPr/@title (typed since objects 0.1.3; before that the attribute was not marshalled, CR-002 section 8). */
   get altTextTitle(): string {
-    return (this.inline.docPr as { title?: string }).title ?? '';
+    return this.inline.docPr.title ?? '';
   }
   set altTextTitle(text: string) {
-    (this.inline.docPr as { title?: string }).title = text;
+    this.inline.docPr.title = text;
   }
 
   /** The kind of image, from the content type of the part the picture embeds. */

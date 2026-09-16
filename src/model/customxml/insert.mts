@@ -16,7 +16,7 @@ function kindElement(kind: ContentControlType): Element | undefined {
     case 'RichText': return el.richText({}) as Element;
     case 'Picture': return el.picture({}) as Element;
     case 'BuildingBlockGallery': return el.docPartObj({}) as Element;
-    case 'CheckBox': return w14el.checkbox({ checked: { val: '0' }, checkedState: { val: '2612', font: 'MS Gothic' }, uncheckedState: { val: '2610', font: 'MS Gothic' } }) as Element;
+    case 'CheckBox': return w14el.checkbox({ checked: { val: false }, checkedState: { val: '2612', font: 'MS Gothic' }, uncheckedState: { val: '2610', font: 'MS Gothic' } }) as Element;
     case 'ComboBox': return el.comboBox({}) as Element;
     case 'DropDownList': return el.dropDownList({}) as Element;
     case 'DatePicker': return el.date({ dateFormat: { val: 'd/MM/yyyy' }, storeMappedDataAs: { val: 'dateTime' } }) as Element;

@@ -64,7 +64,7 @@ src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart
 src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles, body, outline, paragraphAt), PresentationMLPackage, SpreadsheetMLPackage, registry
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
-                  tree.mts is the paragraph text model (segmentsOf, runItemsOf, childrenOf); fragments, run mapping and traversal come from the objects package's builders/wml
+                  tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it)

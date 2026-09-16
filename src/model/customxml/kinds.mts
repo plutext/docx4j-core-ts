@@ -19,8 +19,9 @@ export const UNCHECKED_SYMBOL = '☐';
 /** The font Word writes with them. */
 export const CHECKBOX_FONT = 'MS Gothic';
 
-function isOn(value: string | undefined): boolean {
-  return value === '1' || value === 'true' || value === 'on';
+/** `w14:CTOnOff/@val` is a boolean since objects 0.1.3 (docx4j CR-018); documents holding `w14:val="1"` unmarshal to true. */
+function isOn(value: boolean | undefined): boolean {
+  return value === true;
 }
 
 /** A hex character code ('2612') as its character; the string itself when it is not one. */
@@ -43,7 +44,7 @@ export class CheckboxContentControl {
     return isOn(this.checkbox.checked?.val);
   }
   set isChecked(value: boolean) {
-    (this.checkbox.checked ??= {}).val = value ? '1' : '0';
+    (this.checkbox.checked ??= {}).val = value;
     this.control.setCheckboxGlyph(value ? this.checkedSymbol : this.uncheckedSymbol);
   }
 

@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { WordprocessingMLPackage, Comment, Range, Paragraph } from '../dist/index.mjs';
+import { CommentsExtensiblePart } from '../dist/parts/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
 const CEX = 'http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible';
@@ -201,7 +202,9 @@ test('a comment in a document that has a w16cex part keeps it in step', async ()
   const cex = await main.relationshipsPart.getPart(rel).getXml();
   const durableId = main.commentsIdsPart.contents.commentId.find((e) => e.paraId === comment.paraId).durableId;
   assert.ok(cex.includes(`w16cex:durableId="${durableId}"`), 'a w16cex entry was added');
-  assert.match(cex, new RegExp(`w16cex:durableId="${durableId}" w16cex:dateUtc="\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z"`));
+  assert.match(cex, new RegExp(`<w16cex:commentExtensible w16cex:dateUtc="\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z" w16cex:durableId="${durableId}"/>`), 'typed part: attributes in the model\'s order');
+  assert.ok(cex.includes('mc:Ignorable="w14 w15'), 'the root keeps its mc:Ignorable (objects 0.1.3)');
+  assert.ok(main.commentsExtensiblePart instanceof CommentsExtensiblePart);
   await comment.delete();
   const after = await main.relationshipsPart.getPart(rel).getXml();
   assert.ok(!after.includes(`w16cex:durableId="${durableId}"`), 'and removed with the comment');

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   OpcPackage, WordprocessingMLPackage, PresentationMLPackage, SpreadsheetMLPackage,
   MainDocumentPart, StyleDefinitionsPart, HeaderPart, FooterPart, ImagePart, ChartPart, EmbeddedPackagePart,
-  DefaultXmlPart, CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, DocPropsCorePart, DocPropsExtendedPart,
+  DefaultXmlPart, CommentsExtensiblePart, CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, DocPropsCorePart, DocPropsExtendedPart,
   CommentsExtendedPart, PeoplePart, MainPresentationPart, SlidePart, WorkbookPart, WorksheetPart, SharedStringsPart,
   ZipPartStore, ContentTypes, Namespaces, Docx4JException,
 } from '../dist/index.mjs';
@@ -38,7 +38,8 @@ test('load a Word-saved docx: parts, classes, shortcuts', async () => {
   assert.ok(pkg.getPart('/word/embeddings/Microsoft_Excel_Worksheet.xlsx') instanceof EmbeddedPackagePart);
   // unknown relationship types keep their XML as a DOM part
   const ext = pkg.getPart('/word/commentsExtensible.xml');
-  assert.ok(ext instanceof DefaultXmlPart);
+  assert.ok(ext instanceof CommentsExtensiblePart, 'typed since objects 0.1.3');
+  assert.equal(pkg.getMainDocumentPart().commentsExtensiblePart, ext);
   assert.equal(ext.relationshipType, Namespaces.COMMENTS_EXTENSIBLE);
   assert.ok(pkg.getPart('/docMetadata/LabelInfo.xml') instanceof DefaultXmlPart);
   // custom XML by itemId

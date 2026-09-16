@@ -2,6 +2,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as w15 from '@docx4j/generated-objects-ts/modules/org_docx4j_w15';
 import type * as w16cid from '@docx4j/generated-objects-ts/modules/org_docx4j_w16cid';
+import type * as w16cex from '@docx4j/generated-objects-ts/modules/org_docx4j_w16cex';
 import type * as wne from '@docx4j/generated-objects-ts/modules/org_docx4j_com_microsoft_schemas_office_word_x2006_wordml';
 import { XmlPart } from '../XmlPart.mjs';
 import { Part } from '../Part.mjs';
@@ -29,6 +30,7 @@ function bodyOf(part: XmlPart<unknown>, container: { content?: unknown[] } | und
 const W = Namespaces.NS_WORD12;
 const W15 = 'http://schemas.microsoft.com/office/word/2012/wordml';
 const W16CID = 'http://schemas.microsoft.com/office/word/2016/wordml/cid';
+const W16CEX = 'http://schemas.microsoft.com/office/word/2018/wordml/cex';
 const WNE = 'http://schemas.microsoft.com/office/word/2006/wordml';
 
 /**
@@ -45,6 +47,7 @@ export abstract class DocumentPart<T> extends XmlPart<T> {
   commentsPart: CommentsPart | undefined;
   commentsExtendedPart: CommentsExtendedPart | undefined;
   commentsIdsPart: CommentsIdsPart | undefined;
+  commentsExtensiblePart: CommentsExtensiblePart | undefined;
   footnotesPart: FootnotesPart | undefined;
   endnotesPart: EndnotesPart | undefined;
   peoplePart: PeoplePart | undefined;
@@ -60,6 +63,7 @@ export abstract class DocumentPart<T> extends XmlPart<T> {
       case Namespaces.COMMENTS: this.commentsPart = part as CommentsPart; return true;
       case Namespaces.COMMENTS_EXTENDED: this.commentsExtendedPart = part as CommentsExtendedPart; return true;
       case Namespaces.COMMENTS_IDS: this.commentsIdsPart = part as CommentsIdsPart; return true;
+      case Namespaces.COMMENTS_EXTENSIBLE: this.commentsExtensiblePart = part as CommentsExtensiblePart; return true;
       case Namespaces.FOOTNOTES: this.footnotesPart = part as FootnotesPart; return true;
       case Namespaces.ENDNOTES: this.endnotesPart = part as EndnotesPart; return true;
       case Namespaces.OFFICE_2011_PEOPLE: this.peoplePart = part as PeoplePart; return true;
@@ -201,6 +205,13 @@ export class CommentsExtendedPart extends XmlPart<w15.CTCommentsEx> {
 export class CommentsIdsPart extends XmlPart<w16cid.CTCommentsIds> {
   constructor(partName: PartName | string = '/word/commentsIds.xml') {
     super(partName, ContentTypes.WORDPROCESSINGML_COMMENTS_IDS, Namespaces.COMMENTS_IDS, { namespaceURI: W16CID, localPart: 'commentsIds' });
+  }
+}
+
+/** `/word/commentsExtensible.xml` (w16cex, Word 2018): a durable id and a UTC date per comment. Typed since objects 0.1.3. */
+export class CommentsExtensiblePart extends XmlPart<w16cex.CTCommentsExtensible> {
+  constructor(partName: PartName | string = '/word/commentsExtensible.xml') {
+    super(partName, ContentTypes.WORDPROCESSINGML_COMMENTS_EXTENSIBLE, Namespaces.COMMENTS_EXTENSIBLE, { namespaceURI: W16CEX, localPart: 'commentsExtensible' });
   }
 }
 

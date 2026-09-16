@@ -40,9 +40,9 @@ export function initialsOf(author: Author): string {
 }
 
 /**
- * The `w16cex` part (`w16cex:commentsExtensible`, a UTC date per comment) as a DOM: the objects
- * package has no module for that namespace, so it is not typed (see the CR's section 9). Only
- * kept in step when the document already has the part; none is created.
+ * The `w16cex` part (`w16cex:commentsExtensible`, a UTC date per comment), typed since objects
+ * 0.1.3 (`CommentsExtensiblePart`). Only kept in step when the document already has the part;
+ * none is created.
  */
 export interface CommentsExtensible {
   /** Adds or updates the entry of a durable id. */
