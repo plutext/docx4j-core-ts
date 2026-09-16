@@ -6,15 +6,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import type * as wp from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_wordprocessingDrawing';
 import type * as pic from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_picture';
-import * as elWml from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
-import * as elPic from '@docx4j/generated-objects-ts/el/org_docx4j_dml_picture';
-import { createInline, createCTEffectExtent } from '@docx4j/generated-objects-ts/factory/org_docx4j_dml_wordprocessingDrawing';
-import { createPic, createCTPictureNonVisual } from '@docx4j/generated-objects-ts/factory/org_docx4j_dml_picture';
-import {
-  createCTPositiveSize2D, createCTNonVisualDrawingProps, createCTNonVisualGraphicFrameProperties, createCTGraphicalObjectFrameLocking,
-  createGraphic, createGraphicData, createCTBlip, createCTBlipFillProperties, createCTStretchInfoProperties, createCTRelativeRect,
-  createCTShapeProperties, createCTTransform2D, createCTPoint2D, createCTPresetGeometry2D, createCTGeomGuideList, createCTNonVisualPictureProperties,
-} from '@docx4j/generated-objects-ts/factory/org_docx4j_dml';
+import { inlinePicture } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentTypes, IMAGE_CONTENT_TYPES_BY_EXTENSION } from '../../opc/ContentTypes.mjs';
 import { base64Decode, base64Encode } from '../../xml/dom.mjs';
@@ -30,8 +22,6 @@ const EMU_PER_TWIP = 635;
 /** docx4j's ImageInfo default when a format carries no resolution. */
 const DEFAULT_DPI = 96;
 const EMU_PER_POINT = 12700;
-
-const PIC_NS = 'http://schemas.openxmlformats.org/drawingml/2006/picture';
 
 /** Office JS `Word.ImageFormat`, the subset Word writes into a docx. */
 export type ImageFormat = 'Unsupported' | 'Bmp' | 'Emf' | 'Gif' | 'Jpeg' | 'Png' | 'Svg' | 'Tiff' | 'Wmf';
@@ -168,37 +158,11 @@ export interface InlinePictureOptions {
   name?: string;
   /** wp:docPr/@descr, Office JS altTextDescription. */
   altTextDescription?: string;
+  /** wp:docPr/@title, Office JS altTextTitle; not written when absent. */
+  altTextTitle?: string;
   /** The width in points; the height follows the aspect ratio unless it is given too. */
   width?: number;
   height?: number;
-}
-
-/** A w:drawing holding one wp:inline for an image part, as docx4j createImageInline builds it. */
-export function drawingFor(relId: string, cx: number, cy: number, id: number, name: string, altText: string): Element<wml.Drawing> {
-  const extent = (): dml.CTPositiveSize2D => createCTPositiveSize2D({ cx, cy });
-  const picture: pic.Pic = createPic({
-    nvPicPr: createCTPictureNonVisual({
-      cNvPr: createCTNonVisualDrawingProps({ id, name, descr: altText }),
-      cNvPicPr: createCTNonVisualPictureProperties({}),
-    }),
-    blipFill: createCTBlipFillProperties({
-      blip: createCTBlip({ embed: relId }),
-      stretch: createCTStretchInfoProperties({ fillRect: createCTRelativeRect({}) }),
-    }),
-    spPr: createCTShapeProperties({
-      xfrm: createCTTransform2D({ off: createCTPoint2D({ x: 0, y: 0 }), ext: extent() }),
-      prstGeom: createCTPresetGeometry2D({ prst: 'rect', avLst: createCTGeomGuideList({}) }),
-    }),
-  });
-  const inline: wp.Inline = createInline({
-    distT: 0, distB: 0, distL: 0, distR: 0,
-    extent: extent(),
-    effectExtent: createCTEffectExtent({ l: 0, t: 0, r: 0, b: 0 }),
-    docPr: createCTNonVisualDrawingProps({ id, name, descr: altText }),
-    cNvGraphicFramePr: createCTNonVisualGraphicFrameProperties({ graphicFrameLocks: createCTGraphicalObjectFrameLocking({ noChangeAspect: true }) }),
-    graphic: createGraphic({ graphicData: createGraphicData({ uri: PIC_NS, any: [elPic.pic(picture)] }) }),
-  });
-  return elWml.drawing({ anchorOrInline: [inline] }) as Element<wml.Drawing>;
 }
 
 /** The run holding a new picture, plus the image part it added (the caller inserts the run). */
@@ -238,7 +202,11 @@ export function addImage(source: Part, base64: string, scope: object, maxCx: num
   }
   const id = nextDrawingId(scope);
   const name = options.name ?? `Picture ${id}`;
-  const drawing = drawingFor(rel.id, cx, cy, id, name, options.altTextDescription ?? '');
+  const drawing = inlinePicture(rel.id, {
+    cx, cy, id, name,
+    descr: options.altTextDescription ?? '',
+    ...(options.altTextTitle === undefined ? {} : { title: options.altTextTitle }),
+  }) as Element<wml.Drawing>;
   return { run: runOf([drawing]), drawing, imagePart, relId: rel.id };
 }
 

@@ -102,10 +102,12 @@ Key mechanics:
   and edit `w:t` values in place, split runs only when formatting a span, and link `PARENT`
   on everything inserted (`linkParents`). Font reads are direct formatting only until CR-001
   Phase B. `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
-  Fragments (`wml`), the element builders (`p`, `r`, `t`, `tbl`), the run mapping
-  (`applyRunOptions` / `readRunOptions`) and traversal (`walk`, `find`, `linkParents`,
-  `textOf`) are imported from `@docx4j/generated-objects-ts/builders/wml`; do not re-create
-  them here. Run holders (`w:ins`, `w:del`, `w:moveFrom`, `w:moveTo`) keep their runs under
+  Fragments (`wml`), the element builders (`p`, `r`, `t`, `tbl`, `tr`, `tc`, `sdt`, `sdtPr`,
+  `inlinePicture`), the run mapping (`applyRunOptions` / `readRunOptions`, `rPrToElements` /
+  `rPrFromElements`), the `w:sdt` accessors (`sdtProperty`, `sdtKindOf`, `nextSdtId`) and
+  traversal (`walk`, `walkAll`, `find`, `linkParents`, `textOf`) are imported from
+  `@docx4j/generated-objects-ts/builders/wml`, and `deepCopyAs` / `deepCopyAsSync` from the
+  facade (objects CR-003 phase A, in 0.1.4); do not re-create them here. Run holders (`w:ins`, `w:del`, `w:moveFrom`, `w:moveTo`) keep their runs under
   `customXmlOrSmartTagOrSdt`, not `content`: always go through `runItemsOf`.
   objects CR-002 specifies and move there when it lands.
 - **No runtime import cycles:** `Part` gets its relationships-part factory through

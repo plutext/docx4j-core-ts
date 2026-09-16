@@ -15,7 +15,8 @@ import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, type ContentControlType } from './ContentControl.mjs';
-import { sdtBlockFor, nextControlId, checkKind } from '../customxml/insert.mjs';
+import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { commentApi } from './comments.mjs';
@@ -508,13 +509,12 @@ export class Paragraph {
    * the body. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
-    checkKind(kind, 'Block');
     const at = this.index;
     if (at < 0) throw new Docx4JException('This paragraph is not in its container any more');
-    const sdt = sdtBlockFor([this.element as Element], kind, nextControlId(this.parentBody.container));
+    const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
     linkParents(sdt, (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container);
-    return new ContentControl(sdt, this.container, this.parentBody);
+    return new ContentControl(sdt as Element<wml.SdtBlock>, this.container, this.parentBody);
   }
 
   private removeEmptyRuns(): void {

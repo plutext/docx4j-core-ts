@@ -134,8 +134,26 @@ test('Font and paragraph properties keep the old ones in w:rPrChange and w:pPrCh
   assert.equal(xml.includes('xsi:type'), false, 'w:pPrChange/w:pPr is a CT_PPrBase, no xsi:type');
   // one w:pPrChange only: the first write keeps the original
   assert.equal(xml.match(/<w:pPrChange/g).length, 1);
+
   const kinds = pkg.body.getTrackedChanges().map((c) => [c.type, c.target.kind]);
   assert.deepEqual(kinds, [['Formatted', 'paragraphProperties'], ['Formatted', 'runProperties']]);
+});
+
+test('the original in w:pPrChange is a CT_PPrBase: no w:rPr, no w:sectPr, no xsi:type', async () => {
+  // objects 0.1.4's deepCopyAsSync types the copy as the base and drops what it does not declare
+  // (CR-002 section 15); before it, the three properties were deleted by hand.
+  const pkg = await tracked(['A paragraph']);
+  const inserted = pkg.body.insertParagraph('New paragraph', 'End');
+  assert.ok(inserted.p.pPr.rPr.ins, 'the mark of a tracked new paragraph is an insertion');
+  inserted.p.pPr.pStyle = { val: 'Heading1' };   // on the tree: the next tracked write records it
+  inserted.alignment = 'Centered';
+  const xml = await xmlOf(pkg);
+  const recorded = xml.match(/<w:pPrChange [^>]*>.*?<\/w:pPrChange>/g);
+  assert.equal(recorded.length, 1);
+  assert.match(recorded[0], /<w:pStyle w:val="Heading1"\/>/, 'the style it had is in the original');
+  assert.equal(recorded[0].includes('<w:rPr'), false, 'CT_PPrBase declares no w:rPr');
+  assert.equal(recorded[0].includes('<w:sectPr'), false, 'nor a w:sectPr');
+  assert.equal(xml.includes('xsi:type'), false, 'no xsi:type on w:pPrChange/w:pPr');
 });
 
 test('a formatting change records the properties that were there, and reject puts them back', async () => {

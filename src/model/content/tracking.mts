@@ -4,12 +4,13 @@
 // `w:pPr/w:rPr/w:del` for a paragraph mark, `w:rPrChange` and `w:pPrChange` for formatting,
 // `w:trPr/w:ins` and `w:trPr/w:del` for a table row.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { deepCopy } from '@docx4j/generated-objects-ts';
+import { deepCopy, deepCopyAsSync } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import {
   createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange,
-  createDelText, createRPr, createPPr, createParaRPr, createTrPr,
+  createDelText, createPPr, createParaRPr, createTrPr,
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
+import { rPrToElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf } from './tree.mjs';
 import type { Author } from './comments.mjs';
@@ -147,7 +148,7 @@ export class ChangeTracker {
   /** Records the run's properties as they are now in `w:rPrChange`, once (a later write keeps the first original). */
   recordRPrChange(rPr: wml.RPr): void {
     if (rPr.rPrChange) return;
-    const original = createCTRPrChangeRPr({ egrPrBase: rPrElements(rPr) });
+    const original = createCTRPrChangeRPr({ egrPrBase: rPrToElements(rPr) });
     rPr.rPrChange = createCTRPrChange({ ...this.markup(), rPr: original });
     linkParents(rPr.rPrChange, rPr);
   }
@@ -155,13 +156,11 @@ export class ChangeTracker {
   /** Records the paragraph's properties as they are now in `w:pPrChange`, once. */
   recordPPrChange(pPr: wml.PPr): void {
     if (pPr.pPrChange) return;
-    const original = deepCopy(pPr) as wml.PPr;
-    delete original.rPr;
-    delete original.sectPr;
-    delete original.pPrChange;
-    // w:pPrChange's child is a CT_PPrBase, so the copy must say so or the marshaller adds xsi:type
-    (original as wml.PPrBase).TYPE_NAME = 'org_docx4j_wml.PPrBase';
-    pPr.pPrChange = createCTPPrChange({ ...this.markup(), pPr: original as wml.PPrBase });
+    // w:pPrChange's child is a CT_PPrBase: `deepCopyAsSync` types the copy as the base and drops
+    // what CT_PPrBase does not declare (w:rPr, w:sectPr, w:pPrChange), so no xsi:type is marshalled.
+    // Synchronous: the part this runs on is unmarshalled, so the Jsonix context is built.
+    const original = deepCopyAsSync<wml.PPrBase>(pPr, 'org_docx4j_wml.PPrBase');
+    pPr.pPrChange = createCTPPrChange({ ...this.markup(), pPr: original });
     linkParents(pPr.pPrChange, pPr);
   }
 
@@ -308,42 +307,8 @@ function rename(run: wml.R, table: Record<string, string>, deleting: boolean): v
 }
 
 // --- w:rPr <-> w:rPrChange/w:rPr ---------------------------------------------------------
-
-/**
- * The EG_RPrBase order of the schema, which `w:rPrChange/w:rPr` (docx4j `CTRPrChange.RPr`) keeps
- * as an element list rather than as named properties. The w14 effects (`w14:glow` and friends)
- * have no wrapper in the wml `el` module and are dropped from the recorded original; they are a
- * candidate objects-package CR.
- */
-const RPR_ORDER = [
-  'rStyle', 'rFonts', 'b', 'bCs', 'i', 'iCs', 'caps', 'smallCaps', 'strike', 'dstrike', 'outline',
-  'shadow', 'emboss', 'imprint', 'noProof', 'snapToGrid', 'vanish', 'webHidden', 'color', 'spacing',
-  'w', 'kern', 'position', 'sz', 'szCs', 'highlight', 'u', 'effect', 'bdr', 'shd', 'fitText',
-  'vertAlign', 'rtl', 'cs', 'em', 'lang', 'eastAsianLayout', 'specVanish', 'oMath',
-] as const;
-
-const makeElement = el as unknown as Record<string, ((value: unknown) => Element) | undefined>;
-
-/** `w:rPr`'s named properties as the element list `w:rPrChange/w:rPr` wants, in schema order. */
-export function rPrElements(rPr: wml.RPr): wml.CTRPrChange.RPr['egrPrBase'] {
-  const out: Element[] = [];
-  const source = rPr as unknown as Record<string, unknown>;
-  for (const name of RPR_ORDER) {
-    const value = source[name];
-    if (value === undefined) continue;
-    const make = makeElement[name];
-    if (make) out.push(make(deepCopy(value)));
-  }
-  return out as wml.CTRPrChange.RPr['egrPrBase'];
-}
-
-/** The inverse: the element list back to named properties, for `reject()` of a formatting change. */
-export function rPrFromElements(original: wml.CTRPrChange.RPr | undefined): wml.RPr {
-  const rPr = createRPr();
-  const target = rPr as unknown as Record<string, unknown>;
-  for (const item of original?.egrPrBase ?? []) target[item.name.localPart] = deepCopy(item.value);
-  return rPr;
-}
+// The conversion itself is the builders' `rPrToElements` / `rPrFromElements` (objects CR-003
+// section 3.5, in 0.1.4): every EG_RPrBase member in schema order, the w14 effects included.
 
 /** Replaces a run's direct formatting with `original`, keeping nothing of what is there. */
 export function restoreRPr(holder: { rPr?: wml.RPr }, original: wml.RPr): void {

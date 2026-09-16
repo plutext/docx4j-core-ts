@@ -5,7 +5,7 @@
 // the content is inserted. Styles and numbering are not merged (CR-002 open question 5: that is
 // what docx4j's MergeDocx does). A bare `w:p` / `w:tbl` fragment is accepted too, which is what
 // `insertXml` takes; the two share this module.
-import { wml as parseFragment } from '@docx4j/generated-objects-ts/builders/wml';
+import { wml as parseFragment, walkAll } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import { ContentTypes } from '../../opc/ContentTypes.mjs';
@@ -182,44 +182,28 @@ export function rewriteRelationshipIds(value: unknown, map: Map<string, string>)
 }
 
 /**
- * Walks typed objects, element pairs, arrays and the DOM nodes an `any` property may hold,
- * offering every value that could be a relationship id to `rewrite`; a string it returns
- * replaces the value. The objects package's `walk` does not enter DOM nodes, hence this one.
+ * Offers every value that could be a relationship id to `rewrite`, in the typed tree and in the
+ * DOM an `xs:any` property holds (the builders' `walkAll`, objects CR-003 section 3.6); a string
+ * it returns replaces the value. Typed objects carry the id in one of `REL_ATTRIBUTES`, DOM
+ * elements in an attribute of the relationships namespace.
  */
-function visitReferences(value: unknown, rewrite: (id: string) => string | undefined, seen = new Set<object>()): void {
-  if (typeof value !== 'object' || value === null) return;
-  if (seen.has(value)) return;
-  seen.add(value);
-  if (Array.isArray(value)) {
-    for (const item of value) visitReferences(item, rewrite, seen);
-    return;
-  }
-  const node = value as { nodeType?: number; attributes?: ArrayLike<{ namespaceURI?: string | null; localName?: string | null; value: string }>; childNodes?: ArrayLike<unknown>; setAttributeNS?: unknown };
-  if (typeof node.nodeType === 'number') {
-    if (node.nodeType === 1 && node.attributes) {
-      for (let i = 0; i < node.attributes.length; i++) {
-        const attr = node.attributes[i]!;
-        if (attr.namespaceURI === R_NS && typeof attr.value === 'string') {
-          const next = rewrite(attr.value);
-          if (next !== undefined) attr.value = next;
-        }
+function visitReferences(value: unknown, rewrite: (id: string) => string | undefined): void {
+  walkAll(value, (object) => {
+    const record = object as Record<string, unknown>;
+    for (const key of REL_ATTRIBUTES) {
+      const item = record[key];
+      if (typeof item !== 'string') continue;
+      const next = rewrite(item);
+      if (next !== undefined) record[key] = next;
+    }
+  }, (node) => {
+    const attributes = node.attributes;
+    for (let i = 0; i < attributes.length; i++) {
+      const attr = attributes[i]!;
+      if (attr.namespaceURI === R_NS && typeof attr.value === 'string') {
+        const next = rewrite(attr.value);
+        if (next !== undefined) attr.value = next;
       }
     }
-    const children = node.childNodes;
-    if (children) for (let i = 0; i < children.length; i++) visitReferences(children[i], rewrite, seen);
-    return;
-  }
-  const record = value as Record<string, unknown>;
-  for (const key of Object.keys(record)) {
-    const item = record[key];
-    if (typeof item === 'string') {
-      if (REL_ATTRIBUTES.includes(key)) {
-        const next = rewrite(item);
-        if (next !== undefined) record[key] = next;
-      }
-      continue;
-    }
-    if (key === 'name' && item !== null && typeof item === 'object' && 'localPart' in (item as object)) continue;
-    visitReferences(item, rewrite, seen);
-  }
+  });
 }

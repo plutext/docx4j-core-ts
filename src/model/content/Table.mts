@@ -3,7 +3,7 @@
 // nothing cached, PARENT linked on everything inserted.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
-import { p as paragraphOfText } from '@docx4j/generated-objects-ts/builders/wml';
+import { tr as rowOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, typeNameOf, childrenOf, linkParents, textOf, rowsOf, cellsOf } from './tree.mjs';
 import type { Body } from './Body.mjs';
@@ -329,11 +329,9 @@ export class TableCell {
   }
 }
 
-/** A `w:tr` of empty cells of the given widths, one paragraph per cell (docx4j's table helpers). */
+/** A `w:tr` of cells of the given widths (twips), one paragraph per cell (the builders' `tr`/`tc`). */
 function rowElement(widths: number[], values?: string[]): Element<wml.Tr> {
-  return el.tr({
-    content: widths.map((w, i) => el.tc({ tcPr: { tcW: { w, type: 'dxa' } }, content: [paragraphOfText(values?.[i] ?? '')] })),
-  }) as Element<wml.Tr>;
+  return rowOf(widths.map((_, i) => values?.[i] ?? ''), { widths }) as Element<wml.Tr>;
 }
 
 /** The typed object whose content array this is, for PARENT links (the table, or a row-level control's content). */

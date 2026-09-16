@@ -3,10 +3,14 @@
 // the w:sdtPr is the state.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
+import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import type { CustomXmlPart, CustomXmlNode } from './CustomXmlPart.mjs';
 import { canonicalXPathOf } from './xpath.mjs';
+
+/** The Word 2012 (w15) namespace; not imported from `ContentControl`, which imports this module. */
+const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
 
 /** What `XmlMapping` needs of `pkg.customXmlParts`, so that this module does not import the package. */
 export interface CustomXmlPartLookup {
@@ -28,7 +32,10 @@ export class XmlMapping {
 
   /** The `w:dataBinding` value, or undefined when the control has none (extension). */
   get dataBinding(): wml.CTDataBinding | undefined {
-    const item = this.contentControl.findProperty('dataBinding');
+    const pr = this.contentControl.sdt.sdtPr;
+    // Word 2013 writes `w15:dataBinding` on a repeating section and on a rich-text control bound
+    // to a container; everywhere else the binding is `w:dataBinding`. Both are CT_DataBinding.
+    const item = sdtProperty(pr, 'dataBinding') ?? sdtProperty(pr, 'dataBinding', W15_NS);
     return item?.value as wml.CTDataBinding | undefined;
   }
 

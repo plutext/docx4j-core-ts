@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, ContentControl, CustomXmlPart, CustomXmlNode,
   CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, canonicalXPathOf, parsePrefixMappings, formatPrefixMappings,
+  sdtProperty,
 } from '../dist/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
@@ -353,11 +354,11 @@ test('typed content controls: the properties Office JS hangs off a control', asy
   assert.equal(control.cannotDelete, false);
   assert.equal(control.cannotEdit, false);
   control.cannotDelete = true;
-  assert.equal(control.findProperty('lock').value.val, 'sdtLocked');
+  assert.equal(sdtProperty(control.sdt.sdtPr, 'lock').value.val, 'sdtLocked');
   control.cannotEdit = true;
-  assert.equal(control.findProperty('lock').value.val, 'sdtContentLocked');
+  assert.equal(sdtProperty(control.sdt.sdtPr, 'lock').value.val, 'sdtContentLocked');
   control.cannotDelete = false;
-  assert.equal(control.findProperty('lock').value.val, 'contentLocked');
+  assert.equal(sdtProperty(control.sdt.sdtPr, 'lock').value.val, 'contentLocked');
   assert.equal(control.removeWhenEdited, false);
   control.removeWhenEdited = true;
   assert.equal(control.removeWhenEdited, true);

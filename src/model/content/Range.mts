@@ -5,7 +5,8 @@ import type { BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
-import { sdtRunFor, nextControlId, checkKind } from '../customxml/insert.mjs';
+import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
 import { commentApi } from './comments.mjs';
@@ -181,12 +182,12 @@ export class Range {
    * span gets an empty control at its position. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
-    checkKind(kind, 'Run');
     const paragraph = this.paragraph;
     const body = paragraph.parentBody;
-    const id = nextControlId(body.container);
+    // The control is built empty first: `sdt` refuses a kind that cannot be run-level (a repeating
+    // section), and that refusal must come before any run is split.
+    const sdt = sdtOf([], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(body)), form: 'run' }) as Element<wml.SdtRun>;
     if (this.start === this.end) {
-      const sdt = sdtRunFor([], kind, id);
       paragraph.insertItemsAt(this.start, [sdt as Element]);
       return new ContentControl(sdt, containerOf(sdt, paragraph), body);
     }
@@ -204,7 +205,7 @@ export class Range {
       if (!items.includes(element)) items.push(element);
     }
     const at = owner.indexOf(items[0]!);
-    const sdt = sdtRunFor(items, kind, id);
+    (sdt.value.sdtContent as { content?: Element[] }).content = items;
     owner.splice(at, items.length, sdt as Element);
     linkParents(sdt, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
     return new ContentControl(sdt, owner, body);

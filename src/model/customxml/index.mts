@@ -10,4 +10,4 @@ export {
   CHECKED_SYMBOL, UNCHECKED_SYMBOL, CHECKBOX_FONT,
 } from './kinds.mjs';
 export { applyBindingsTo, applyBindingTo, updateFromControls, updateFromControl, runsForValue, formatDate, PLACEHOLDER_STYLE, PLACEHOLDER_TEXT, type BindingResult } from './bindings.mjs';
-export { nextControlId, sdtPrFor, sdtBlockFor, sdtRunFor, checkKind, isRunLevel } from './insert.mjs';
+export { controlIdScope, sdtKindFor, isRunLevel } from './insert.mjs';

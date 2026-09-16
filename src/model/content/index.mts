@@ -7,7 +7,7 @@ export { Comment } from './Comment.mjs';
 export { type Author, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
 export { Font, type UnderlineType, type RPrHolder, type FontTracking } from './Font.mjs';
 export { Table, TableRow, TableCell, cellOf } from './Table.mjs';
-export { InlinePicture, imageInfoOf, naturalSizeEmu, drawingFor, addImage, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture } from './InlinePicture.mjs';
+export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';
 export { type SearchOptions, searchPattern } from './search.mjs';
@@ -16,9 +16,9 @@ export { segmentsOf, runsOf, runItemsOf, childrenOf, rowsOf, cellsOf, BLOCK_LEVE
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeTarget } from './TrackedChange.mjs';
 export {
   ChangeTracker, trackerOf, calendarOf, dateOf, copyRPr, markDeleted, markInserted,
-  toDeletedText, toRestoredText, rPrElements, rPrFromElements, restoreRPr, restorePPr,
+  toDeletedText, toRestoredText, restoreRPr, restorePPr,
   trackInsertedParagraph, trackInsertedTable, wrapNewRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
   type ChangeTrackingMode, type TrackingHost,
 } from './tracking.mjs';
 // The objects package's builders, re-exported so that one import serves the content API and the tree it works on.
-export { wml, wmlOne, p, r, t, br, tab, tbl, textOf, walk, find, linkParents, applyRunOptions, readRunOptions, UNDERLINE_TO_WML, isElement, typeNameOf, W_NS, type Element, type Wrapper, type WmlOptions, type Raw, type Interpolated, type RunOptions, type RunFormatting, type ParagraphOptions, type TableOptions } from '@docx4j/generated-objects-ts/builders/wml';
+export { wml, wmlOne, p, r, t, br, tab, tbl, tr, tc, sdt, sdtPr, nextSdtId, sdtProperty, sdtKindOf, inlinePicture, rPrToElements, rPrFromElements, textOf, walk, walkAll, find, linkParents, applyRunOptions, readRunOptions, UNDERLINE_TO_WML, isElement, typeNameOf, W_NS, type Element, type Wrapper, type WmlOptions, type Raw, type Interpolated, type RunOptions, type RunFormatting, type ParagraphOptions, type TableOptions, type CellOptions, type SdtKind, type SdtForm, type SdtOptions } from '@docx4j/generated-objects-ts/builders/wml';

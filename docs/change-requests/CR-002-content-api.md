@@ -787,14 +787,17 @@ Gaps found in the objects package (candidates for its own CRs, worked around her
 
 1. **No `wp:docPr/@title`** (closed in objects 0.1.3, section 14). `CTNonVisualDrawingProps`
    had `descr` but no `title`, so `altTextTitle` could not round trip.
-2. **No drawing or inline-picture constructor in `builders/wml`.** `drawingFor()` here is the
+2. **No drawing or inline-picture constructor in `builders/wml`** (closed in objects 0.1.4,
+   section 15: `inlinePicture(relId, options)`). `drawingFor()` here was the
    counterpart of docx4j's `createImageInline` and needs only the tree (the relationship id is
    a string), so it belongs in the objects package next to `p`, `r` and `tbl`. It is written
    over the generated factories, so moving it is a copy.
-3. **No row or cell builder.** `tbl(rows)` builds a whole table; `addRows` and `insertRows`
-   need one row of the table's widths, so `rowElement()` here calls `el.tr` / `el.tc` directly.
+3. **No row or cell builder** (closed in objects 0.1.4, section 15: `tr` and `tc`). `tbl(rows)`
+   builds a whole table; `addRows` and `insertRows`
+   need one row of the table's widths, so `rowElement()` here called `el.tr` / `el.tc` directly.
    `tr(cells, opts)` and `tc(blocks, opts)` in `builders/wml` would cover it.
-4. `walk` does not enter DOM nodes held by `xs:any` properties. That is the documented
+4. `walk` does not enter DOM nodes held by `xs:any` properties (closed in objects 0.1.4,
+   section 15: `walkAll`). That is the documented
    behaviour, not a defect, but anything that rewrites references has to know; a `walkAll` (or
    an option) in the objects package would save the copy here.
 
@@ -1147,15 +1150,17 @@ Departures and deferrals, all deliberate:
 
 Objects-package gaps found (candidates for a CR there; none blocked this phase):
 
-1. **No builder for `w:sdt`.** `builders/wml` has `p`, `r`, `t` and `tbl` but nothing for a content
-   control, so `insert.mts` writes the four `w:sdt` forms and their `w:sdtPr` over the generated
+1. **No builder for `w:sdt`** (closed in objects 0.1.4, section 15: `sdt`, `sdtPr`, `nextSdtId`).
+   `builders/wml` had `p`, `r`, `t` and `tbl` but nothing for a content
+   control, so `insert.mts` wrote the four `w:sdt` forms and their `w:sdtPr` over the generated
    factories here. `sdt(content, { kind, tag, title, id })` (and the `sdtPr` half) needs only the
    tree, so it belongs there next to `tbl`, as phase C said of `drawingFor`.
-2. **`SdtPr`'s properties are a choice list.** `rPrOrAliasOrLock` is a union of
+2. **`SdtPr`'s properties are a choice list** (closed in objects 0.1.4, section 15: `sdtProperty`
+   and `sdtKindOf`). `rPrOrAliasOrLock` is a union of
    `TypedNamedValue<...>` typed element by element (it matches docx4j's own choice list, the objects
    session notes), so reading `w:tag` or `w14:checkbox` means a search by local name and a cast
-   (`findProperty` here). Helpers in the objects package's CR-003 (`sdtProperty`, `sdtKindOf`)
-   will replace them; not a compiler change.
+   (`findProperty` here). The helpers of the objects package's CR-003 (`sdtProperty`, `sdtKindOf`)
+   replaced them; not a compiler change.
 3. **`w14:checkbox`'s `checked` was `CTOnOff` with `val?: string`** (closed in objects 0.1.3,
    section 14: docx4j CR-018 retyped it to `xsd:boolean`, so `val` is a boolean and `w14:val="1"`
    in a document unmarshals to `true`).
@@ -1309,14 +1314,16 @@ Objects-package gaps found (candidates for its own CR, worked around here):
   `w14:numForm`, `w14:numSpacing`, `w14:stylisticSets`, `w14:cntxtAlts`) are dropped from a
   recorded original by `rPrElements` here. Correction (2026-09-16): their scoped wrappers do
   exist, in `factory/org_docx4j_wml` rather than `el`; the objects package's CR-003
-  (`rPrToElements` / `rPrFromElements`) covers them and replaces the copy here.
+  (`rPrToElements` / `rPrFromElements`) covers them and has replaced the copy here: closed in
+  objects 0.1.4, section 15, the w14 effects included.
 - `runItemsOf` had to learn `accOrBarOrBox`, the name docx4j gives `w:moveFrom` and
   `w:moveTo`'s run list (`RunTrackChange`), alongside `customXmlOrSmartTagOrSdt`. Closed in
   objects 0.1.3: `builders/wml` exports a structural `runItemsOf` with the three names and the
   run-level `sdtContent` case, and `tree.mts` re-exports it (section 14).
 - `deepCopy` of a `w:pPr` into `w:pPrChange` needs the copy's `TYPE_NAME` changed to
   `org_docx4j_wml.PPrBase`, or the marshaller writes `xsi:type="w:CT_PPr"` on it (valid but
-  not what Word writes). A `deepCopyAs(value, typeName)` would say this plainly.
+  not what Word writes). A `deepCopyAs(value, typeName)` would say this plainly. Closed in
+  objects 0.1.4, section 15: `deepCopyAsSync(pPr, 'org_docx4j_wml.PPrBase')`.
 
 ## 14. Upgrade to objects 0.1.3 (2026-09-16)
 
@@ -1341,3 +1348,70 @@ and this package now depends on `^0.1.3`:
 Still open, now the objects package's CR-003 phase A in this order: `sdt`/`sdtPr`/`nextSdtId`/
 `sdtProperty`/`sdtKindOf`; `tr`/`tc` and `inlinePicture`; `rPrToElements`/`rPrFromElements` and
 `deepCopyAs`; `walkAll`. Phase B (`toSource`, `isSugarExpressible`) is unscheduled.
+
+## 15. Upgrade to objects 0.1.4 (2026-09-16)
+
+`@docx4j/generated-objects-ts` 0.1.4 is the objects package's CR-003 phase A: the builders that
+were written here first. This package now depends on `^0.1.4` and the seven copies are gone —
+`insert.mts` is 27 lines instead of 95, and nothing in `src/model/` builds a `w:sdt`, a `w:tr`,
+a `w:tc` or a `wp:inline` by hand any more:
+
+1. **`kindElement`, `sdtPrFor`, `sdtBlockFor`, `sdtRunFor`, `nextControlId`, `checkKind`**
+   (`customxml/insert.mts`) are `sdt(content, { kind, id, form })`, `sdtPr(options)` and
+   `nextSdtId(root)`. `Body`, `Paragraph` and `Range` pass `form` explicitly ('block', 'block',
+   'run'), so the builder's inference from the content never decides here. What is left in
+   `insert.mts` is what needs a part or a view: `sdtKindFor` (Office JS's `Unknown` has no kind
+   element, as `RichText` has none) and `controlIdScope`, which gives `nextSdtId` the **part's
+   whole contents** rather than the body container, so that a control inserted in a cell, a
+   header or another control still gets an id free in the part.
+2. **`findProperty` and `TYPE_BY_ELEMENT`** (`ContentControl.mts`) are `sdtProperty(sdtPr,
+   localPart, namespaceURI = W)` and `sdtKindOf(sdtPr)`; `XmlMapping.mts` and `bindings.mts`
+   call the builder too. `ContentControlType` is now `SdtKind | 'Unknown'`, the same union
+   spelled once.
+3. **`rowElement`'s element building** (`Table.mts`) is `tr(cells, { widths })` over `tc`; the
+   two-line adapter that turns `(widths, values)` into the builder's arguments stays, since
+   `addRows` and `insertRows` call it per row.
+4. **`drawingFor`** (`InlinePicture.mts`) is `inlinePicture(relId, { cx, cy, id, name, descr,
+   title })`, and the dml/pic factory imports with it.
+5. **`rPrElements` / `rPrFromElements`** (`tracking.mts`) are the builders' `rPrToElements` /
+   `rPrFromElements`; `TrackedChange.mts` imports the inverse from `builders/wml` and
+   `model/content/index.mts` re-exports both under the builders' names.
+6. **The `deepCopy` plus `TYPE_NAME` override in `recordPPrChange`** is
+   `deepCopyAsSync(pPr, 'org_docx4j_wml.PPrBase')`, which copies, types the copy as the base and
+   drops what `CT_PPrBase` does not declare, so the three `delete`s are gone as well.
+7. **`visitReferences`'s traversal** (`ooxml.mts`) is `walkAll(root, visitor, domVisitor)`. Only
+   the walking moved: the `REL_ATTRIBUTES` rule for typed objects, the relationships-namespace
+   rule for DOM attributes and the "only when the incoming package has that relationship id"
+   guard are unchanged.
+
+Observable changes:
+
+- **A repeating section in the run form throws the builder's message**: `Range.insertContentControl('RepeatingSection')`
+  now fails with `Error: A repeating section is a block-level control; wrap paragraphs or a table,
+  or pass form` instead of a `Docx4JException` saying "insert it on a body or a paragraph". No
+  test asserted the old text. `Range.insertContentControl` builds the empty control **before** it
+  splits any run, so the refusal still leaves the paragraph untouched.
+- **`ContentControl.findProperty` is gone** from the public surface (`sdtProperty(control.sdt.sdtPr, name)`
+  replaces it, and is re-exported from `.`, `./model`). Its namespace argument was optional and
+  matched any namespace; `sdtProperty` defaults to wml. That is a real difference in one place:
+  Word writes **`w15:dataBinding`** on a repeating section and on a rich-text control bound to a
+  container (three of the twenty bindings in `invoice2013.docx`), so `XmlMapping.dataBinding`
+  asks for both namespaces. The customxml test caught it.
+- **A recorded `w:rPrChange` now keeps the w14 run effects** (`w14:glow`, `w14:textFill`, the
+  other ten): the builders go through the scoped `createCTRPrChangeRPr*` wrappers, so the
+  section 13 note about dropped effects is history.
+- **`w:pPrChange/w:pPr` is asserted, not just described**: a new test in `tracking.test.mjs`
+  records a change on a paragraph whose `w:pPr` has a style and the inserted mark's `w:rPr`, and
+  asserts the original carries the `w:pStyle`, no `w:rPr`, no `w:sectPr` and no `xsi:type`.
+- **`InlinePictureOptions` gained `altTextTitle`**, which `addImage` passes to the builder's
+  `title` (`wp:docPr/@title`); it is not written when absent, as before. `descr` is still written
+  as `""` when no description is given, so existing output is byte for byte what it was.
+- Exports: `drawingFor` and `rPrElements` are no longer exported from `./model`; `nextControlId`,
+  `sdtPrFor`, `sdtBlockFor`, `sdtRunFor` and `checkKind` are no longer exported from the custom
+  XML index. In their place `./model` re-exports the builders `sdt`, `sdtPr`, `nextSdtId`,
+  `sdtProperty`, `sdtKindOf`, `tr`, `tc`, `inlinePicture`, `rPrToElements`, `rPrFromElements` and
+  `walkAll`, and `deepCopyAs` / `deepCopyAsSync` / `getContextSync` come through the facade
+  re-export in `src/index.mts`.
+
+Nothing was kept as a copy. CR-003 phase B (`toSource`, `isSugarExpressible`, for
+`toApiScript`'s XML fallback) is still unscheduled there.

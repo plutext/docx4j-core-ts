@@ -8,7 +8,8 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf } from './tree.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
-import { dateOf, toRestoredText, rPrFromElements, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
+import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
+import { dateOf, toRestoredText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';

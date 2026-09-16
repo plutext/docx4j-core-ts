@@ -18,6 +18,7 @@ import {
   RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
 } from '../customxml/kinds.mjs';
 import { runsForValue, updateFromControl, PLACEHOLDER_TEXT } from '../customxml/bindings.mjs';
+import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
 import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, SDT_TYPES } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -25,18 +26,11 @@ import { Range } from './Range.mjs';
 import { Table } from './Table.mjs';
 import type { SearchOptions } from './search.mjs';
 
-/** Office JS `Word.ContentControlType`, as Word reports it from w:sdtPr. */
-export type ContentControlType =
-  | 'Unknown' | 'RichText' | 'PlainText' | 'Picture' | 'BuildingBlockGallery' | 'CheckBox' | 'ComboBox'
-  | 'DropDownList' | 'DatePicker' | 'RepeatingSection' | 'RepeatingSectionItem' | 'Group' | 'Citation' | 'Bibliography' | 'Equation';
-
-/** The kind element in w:sdtPr to the type Word reports. */
-const TYPE_BY_ELEMENT: Readonly<Record<string, ContentControlType>> = {
-  text: 'PlainText', richText: 'RichText', picture: 'Picture', docPartObj: 'BuildingBlockGallery', docPartList: 'BuildingBlockGallery',
-  checkbox: 'CheckBox', comboBox: 'ComboBox', dropDownList: 'DropDownList', date: 'DatePicker',
-  repeatingSection: 'RepeatingSection', repeatingSectionItem: 'RepeatingSectionItem', group: 'Group',
-  citation: 'Citation', bibliography: 'Bibliography', equation: 'Equation',
-};
+/**
+ * Office JS `Word.ContentControlType`, as Word reports it from w:sdtPr: the builders' `SdtKind`
+ * (objects CR-003 section 3.1) and Office JS's `Unknown`, which no `w:sdtPr` produces.
+ */
+export type ContentControlType = SdtKind | 'Unknown';
 
 /** Which of the four w:sdt forms a control is. */
 export type ContentControlForm = 'Block' | 'Run' | 'Row' | 'Cell';
@@ -87,11 +81,7 @@ export class ContentControl {
 
   /** The type Word reports (w:sdtPr's kind element); RichText when none is given, as Word does. */
   get type(): ContentControlType {
-    for (const item of this.sdt.sdtPr?.rPrOrAliasOrLock ?? []) {
-      const type = TYPE_BY_ELEMENT[item.name.localPart];
-      if (type) return type;
-    }
-    return 'RichText';
+    return sdtKindOf(this.sdt.sdtPr);
   }
 
   /** w:tag. */
@@ -324,7 +314,7 @@ export class ContentControl {
 
   /** Office JS `appearance`: how Word draws the control (`w15:appearance`). */
   get appearance(): ContentControlAppearance {
-    const val = (this.findProperty('appearance', W15_NS)?.value as { val?: string } | undefined)?.val;
+    const val = (sdtProperty(this.sdt.sdtPr, 'appearance', W15_NS)?.value as { val?: string } | undefined)?.val;
     return val === 'tags' ? 'Tags' : val === 'hidden' ? 'Hidden' : 'BoundingBox';
   }
   set appearance(value: ContentControlAppearance) {
@@ -334,7 +324,7 @@ export class ContentControl {
 
   /** Office JS `color`: the control's colour as '#RRGGBB' (`w15:color`). */
   get color(): string {
-    const val = (this.findProperty('color')?.value as { val?: string } | undefined)?.val;
+    const val = (sdtProperty(this.sdt.sdtPr, 'color', W15_NS)?.value as { val?: string } | undefined)?.val;
     return val === undefined || val === 'auto' ? '' : `#${val.replace(/^#/, '')}`;
   }
   set color(value: string) {
@@ -362,7 +352,7 @@ export class ContentControl {
 
   /** Office JS `removeWhenEdited`: `w:temporary`, the control Word drops once it is filled in. */
   get removeWhenEdited(): boolean {
-    const item = this.findProperty('temporary');
+    const item = sdtProperty(this.sdt.sdtPr, 'temporary');
     return item !== undefined && (item.value as wml.BooleanDefaultTrue | undefined)?.val !== false;
   }
   set removeWhenEdited(value: boolean) {
@@ -372,49 +362,42 @@ export class ContentControl {
 
   /** The checkbox view, for a `w14:checkbox` control; undefined for every other kind, as Office JS. */
   get checkboxContentControl(): CheckboxContentControl | undefined {
-    const value = this.findProperty('checkbox', W14_NS)?.value as w14.CTSdtCheckbox | undefined;
+    const value = sdtProperty(this.sdt.sdtPr, 'checkbox', W14_NS)?.value as w14.CTSdtCheckbox | undefined;
     return value ? new CheckboxContentControl(this, value) : undefined;
   }
 
   /** The date view, for a `w:date` control. */
   get datePickerContentControl(): DatePickerContentControl | undefined {
-    const value = this.findProperty('date')?.value as wml.CTSdtDate | undefined;
+    const value = sdtProperty(this.sdt.sdtPr, 'date')?.value as wml.CTSdtDate | undefined;
     return value ? new DatePickerContentControl(value) : undefined;
   }
 
   /** The list view, for a `w:dropDownList` control. */
   get dropDownListContentControl(): ListContentControl | undefined {
-    const value = this.findProperty('dropDownList')?.value as wml.CTSdtDropDownList | undefined;
+    const value = sdtProperty(this.sdt.sdtPr, 'dropDownList')?.value as wml.CTSdtDropDownList | undefined;
     return value ? new ListContentControl(value) : undefined;
   }
 
   /** The list view, for a `w:comboBox` control. */
   get comboBoxContentControl(): ListContentControl | undefined {
-    const value = this.findProperty('comboBox')?.value as wml.CTSdtComboBox | undefined;
+    const value = sdtProperty(this.sdt.sdtPr, 'comboBox')?.value as wml.CTSdtComboBox | undefined;
     return value ? new ListContentControl(value) : undefined;
   }
 
   /** The picture view, for a `w:picture` control. */
   get pictureContentControl(): PictureContentControl | undefined {
-    return this.findProperty('picture') ? new PictureContentControl(this) : undefined;
+    return sdtProperty(this.sdt.sdtPr, 'picture') ? new PictureContentControl(this) : undefined;
   }
 
   /** The repeating-section view, for a `w15:repeatingSection` control. */
   get repeatingSectionContentControl(): RepeatingSectionContentControl | undefined {
-    const value = this.findProperty('repeatingSection', W15_NS)?.value as w15.CTSdtRepeatedSection | undefined;
+    const value = sdtProperty(this.sdt.sdtPr, 'repeatingSection', W15_NS)?.value as w15.CTSdtRepeatedSection | undefined;
     return value ? new RepeatingSectionContentControl(this, value) : undefined;
   }
 
   /** The group view, for a `w:group` control (Office JS: an object with no members of its own). */
   get groupContentControl(): GroupContentControl | undefined {
-    return this.findProperty('group') ? new GroupContentControl() : undefined;
-  }
-
-  /** The `w:sdtPr` child of that name (and namespace, when given), as an element pair (extension). */
-  findProperty(localPart: string, namespaceURI?: string): Element | undefined {
-    return this.sdt.sdtPr?.rPrOrAliasOrLock?.find(
-      (item) => item.name.localPart === localPart && (namespaceURI === undefined || item.name.namespaceURI === namespaceURI),
-    ) as Element | undefined;
+    return sdtProperty(this.sdt.sdtPr, 'group') ? new GroupContentControl() : undefined;
   }
 
   /** Adds or replaces a `w:sdtPr` child (extension). */
@@ -436,17 +419,17 @@ export class ContentControl {
 
   /** The run properties `w:sdtPr/w:rPr` a bound value is written with (docx4j does the same). */
   get runProperties(): wml.RPr | undefined {
-    return this.findProperty('rPr')?.value as wml.RPr | undefined;
+    return sdtProperty(this.sdt.sdtPr, 'rPr')?.value as wml.RPr | undefined;
   }
 
   /** Whether a plain-text control accepts several lines (`w:text/@w:multiLine`). */
   get isMultiLine(): boolean {
-    return (this.findProperty('text')?.value as wml.CTSdtText | undefined)?.multiLine === true;
+    return (sdtProperty(this.sdt.sdtPr, 'text')?.value as wml.CTSdtText | undefined)?.multiLine === true;
   }
 
   /** Whether the control is showing its placeholder rather than a value (`w:showingPlcHdr`). */
   get isShowingPlaceholder(): boolean {
-    const item = this.findProperty('showingPlcHdr');
+    const item = sdtProperty(this.sdt.sdtPr, 'showingPlcHdr');
     return item !== undefined && (item.value as wml.BooleanDefaultTrue | undefined)?.val !== false;
   }
   set isShowingPlaceholder(value: boolean) {
@@ -518,7 +501,7 @@ export class ContentControl {
   }
 
   private lockValue(): string | undefined {
-    return (this.findProperty('lock')?.value as wml.CTLock | undefined)?.val;
+    return (sdtProperty(this.sdt.sdtPr, 'lock')?.value as wml.CTLock | undefined)?.val;
   }
 
   private setLock(cannotDelete: boolean, cannotEdit: boolean): void {

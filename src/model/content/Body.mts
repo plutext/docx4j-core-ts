@@ -9,7 +9,8 @@ import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table } from './Table.mjs';
 import { ContentControl, collectControls, type ContentControlType } from './ContentControl.mjs';
-import { sdtBlockFor, nextControlId, checkKind } from '../customxml/insert.mjs';
+import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import type { SearchOptions } from './search.mjs';
@@ -567,13 +568,12 @@ export class Body {
    * body. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
-    checkKind(kind, 'Block');
     const content = [...this.content];
-    const sdt = sdtBlockFor(content, kind, nextControlId(this.container));
+    const sdt = sdtOf(content, { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this)), form: 'block' });
     this.content.length = 0;
     this.content.push(sdt as Element);
     linkParents(sdt, this.container);
-    return new ContentControl(sdt, this.content, this);
+    return new ContentControl(sdt as Element<wml.SdtBlock>, this.content, this);
   }
 }
 

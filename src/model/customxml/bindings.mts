@@ -11,6 +11,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
+import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 
@@ -139,7 +140,7 @@ export function applyBindingTo(control: ContentControl): boolean {
   // A picture binding carries base64 image data; docx4j replaces the a:blip embed. Deferred (section 12).
   if (control.type === 'Picture') return false;
   // Explicit rich text is bound from flat OPC or XHTML in docx4j; deferred, as it is there for this route.
-  if (control.findProperty('richText') !== undefined) return false;
+  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
 
   if (control.type === 'CheckBox') {
@@ -194,7 +195,7 @@ export function updateFromControl(control: ContentControl): boolean {
   const node = mapping.customXmlNode;
   if (!node) return false;
   if (control.type === 'Picture') return false;
-  if (control.findProperty('richText') !== undefined) return false;
+  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
   // A control showing its placeholder holds no value.
   if (control.isShowingPlaceholder) return false;
