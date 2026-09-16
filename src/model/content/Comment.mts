@@ -11,7 +11,7 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
-import { runOf, paragraphOf, typeNameOf, type Element } from './tree.mjs';
+import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
 import {
   COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, calendarToDate, commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
   dateToCalendar, initialsOf, isDone, markersOf, markersOfParagraph, nextCommentId, paraIdTaken, randomHexId, removeMarkers,
@@ -254,6 +254,19 @@ function parentOf(element: Element): object | undefined {
   return (element.value as { PARENT?: object }).PARENT;
 }
 
+/**
+ * Where a marker for this segment's run goes: beside the run, but outside the `w:ins` or `w:del`
+ * the run sits in, so that a comment made while change tracking is on is a comment and not an
+ * insertion of its own (CR-002 section 13). Accepting or rejecting the revision then leaves the
+ * comment where it is; the cost is that a comment on part of an insertion widens to the whole of
+ * it, which is what Word shows anyway once the insertion is accepted.
+ */
+function markerSite(seg: TextSegment, fallback: object, after: boolean): { owner: Element[]; index: number; parent: object } {
+  const item = seg.revision ? seg.revision.element : seg.runOwner[seg.runIndex]!;
+  const owner = seg.revision ? seg.revision.owner : seg.runOwner;
+  return { owner, index: owner.indexOf(item) + (after ? 1 : 0), parent: parentOf(item) ?? fallback };
+}
+
 /** Writes the markers of a new comment around a range, splitting runs at its boundaries as `Range.font` does. */
 function placeAround(range: Range, id: number): void {
   const paragraph = range.paragraph;
@@ -268,17 +281,15 @@ function placeAround(range: Range, id: number): void {
     const segments = paragraph.segments();
     const after = segments.find((s) => s.start >= range.start);
     const before = [...segments].reverse().find((s) => s.end <= range.start);
-    if (after) insertAt(after.runOwner, after.runIndex, [reference], parentOf(after.runOwner[after.runIndex]!) ?? paragraph.p);
-    else if (before) insertAt(before.runOwner, before.runIndex + 1, [reference], parentOf(before.runOwner[before.runIndex]!) ?? paragraph.p);
+    const site = after ? markerSite(after, paragraph.p, false) : before ? markerSite(before, paragraph.p, true) : undefined;
+    if (site) insertAt(site.owner, site.index, [reference], site.parent);
     else insertAt((paragraph.p.content ??= []) as Element[], paragraph.p.content!.length, [reference], paragraph.p);
     return;
   }
-  const first = covered[0]!;
-  const last = covered[covered.length - 1]!;
-  const firstRun = first.runOwner[first.runIndex]!;
-  const lastRun = last.runOwner[last.runIndex]!;
-  insertAt(last.runOwner, last.runOwner.indexOf(lastRun) + 1, [end, reference], parentOf(lastRun) ?? paragraph.p);
-  insertAt(first.runOwner, first.runOwner.indexOf(firstRun), [start], parentOf(firstRun) ?? paragraph.p);
+  const after = markerSite(covered[covered.length - 1]!, paragraph.p, true);
+  insertAt(after.owner, after.index, [end, reference], after.parent);
+  const before = markerSite(covered[0]!, paragraph.p, false);
+  insertAt(before.owner, before.index, [start], before.parent);
 }
 
 /** Writes the markers of a reply next to its parent's, as Word nests them. */

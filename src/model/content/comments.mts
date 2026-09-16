@@ -10,7 +10,7 @@ import type * as w16cid from '@docx4j/generated-objects-ts/modules/org_docx4j_w1
 import type { XmlCalendar } from '@docx4j/generated-objects-ts';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { typeNameOf, childrenOf, runItemsOf, itemTextOf, RUN_HOLDERS, type Element } from './tree.mjs';
+import { typeNameOf, childrenOf, runItemsOf, itemTextOf, revisionKindOf, RUN_HOLDERS, type Element } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
@@ -176,6 +176,11 @@ function collect(out: CommentMarker[], container: object | undefined, paragraph?
           });
         } else if (tn !== undefined && RUN_HOLDERS.has(tn)) {
           visitRuns(runItemsOf(el.value as object));
+        } else {
+          // the accepted view, which is what the offsets are in: a w:ins and a w:moveTo hold text
+          // and markers, a w:del and a w:moveFrom hold neither (CR-002 phase F)
+          const kind = revisionKindOf(el);
+          if (kind === 'ins' || kind === 'moveTo') visitRuns(runItemsOf(el.value as object));
         }
       }
     };

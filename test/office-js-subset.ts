@@ -2,12 +2,23 @@
 // so that a function written against the subset runs against a live document and a package
 // (CR-002 section 3.4). The interfaces are the Office JS members this package implements,
 // copied from @types/office-js with load/sync/context removed and arrays for collections.
-import type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, WordprocessingMLPackage } from '../src/index.mjs';
+import type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange, WordprocessingMLPackage } from '../src/index.mjs';
 
 namespace OfficeSubset {
   export type InsertLocation = 'Start' | 'End';
   export type ParagraphLocation = 'Before' | 'After';
   export interface SearchOptions { matchCase?: boolean; matchWholeWord?: boolean; matchWildcards?: boolean }
+  export type ChangeTrackingMode = 'Off' | 'TrackAll' | 'TrackMineOnly';
+  export type ChangeTrackingState = 'Unknown' | 'Added' | 'Deleted' | 'Formatted' | 'None';
+  export interface TrackedChange {
+    readonly author: string;
+    readonly date: Date | undefined;
+    readonly text: string;
+    readonly type: ChangeTrackingState;
+    accept(): void;
+    reject(): void;
+    getRange(): Range | undefined;
+  }
   export interface Font {
     bold: boolean; italic: boolean; underline: string; strikeThrough: boolean; subscript: boolean; superscript: boolean;
     name: string; size: number; color: string; highlightColor: string | null;
@@ -36,6 +47,7 @@ namespace OfficeSubset {
     getRange(location?: 'Whole' | 'Start' | 'End' | 'Content'): Range;
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
+    getTrackedChanges(): ArrayLike<TrackedChange>;
   }
   export interface Paragraph {
     text: string; style: string; styleBuiltIn: string; alignment: string;
@@ -49,6 +61,7 @@ namespace OfficeSubset {
     delete(): void;
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
+    getTrackedChanges(): ArrayLike<TrackedChange>;
   }
   export interface Body {
     readonly paragraphs: ArrayLike<Paragraph>;
@@ -59,6 +72,7 @@ namespace OfficeSubset {
     search(text: string, options?: SearchOptions): ArrayLike<Range>;
     clear(): void;
     getComments(): Promise<ArrayLike<Comment>>;
+    getTrackedChanges(): ArrayLike<TrackedChange>;
     // CR-002 phase C
     readonly tables: ArrayLike<Table>;
     readonly contentControls: ArrayLike<ContentControl>;
@@ -126,6 +140,122 @@ namespace OfficeSubset {
     search(text: string, options?: SearchOptions): ArrayLike<Range>;
     getRange(location?: 'Whole' | 'Start' | 'End' | 'Content'): Range;
     delete(keepContent: boolean): void;
+    // CR-002 phase E (WordApiDesktop 1.3): the XML mapping, the w:sdtPr properties and the kinds
+    readonly xmlMapping: XmlMapping;
+    placeholderText: string;
+    appearance: string;
+    color: string;
+    cannotDelete: boolean;
+    cannotEdit: boolean;
+    removeWhenEdited: boolean;
+    readonly checkboxContentControl: CheckboxContentControl | undefined;
+    readonly datePickerContentControl: DatePickerContentControl | undefined;
+    readonly dropDownListContentControl: ListContentControl | undefined;
+    readonly comboBoxContentControl: ListContentControl | undefined;
+    readonly pictureContentControl: PictureContentControl | undefined;
+    readonly repeatingSectionContentControl: RepeatingSectionContentControl | undefined;
+    readonly groupContentControl: object | undefined;
+  }
+
+  // CR-002 phase E: Word.CustomXmlPart, Word.CustomXmlNode and Word.XmlMapping.
+  export interface XmlMapping {
+    readonly isMapped: boolean;
+    readonly xpath: string;
+    readonly prefixMappings: string;
+    readonly customXmlPart: CustomXmlPart | undefined;
+    readonly customXmlNode: CustomXmlNode | undefined;
+    setMapping(xpath: string, prefixMappings?: string, part?: CustomXmlPart): boolean;
+    setMappingByNode(node: CustomXmlNode): boolean;
+    delete(): void;
+  }
+  export interface CustomXmlPart {
+    readonly id: string;
+    readonly namespaceUri: string;
+    readonly builtIn: boolean;
+    readonly documentElement: CustomXmlNode;
+    readonly namespaceManager: CustomXmlPrefixMappingCollection;
+    readonly schemaCollection: string[];
+    /** Office JS returns a ClientResult; a DOM part does not go through a marshaller here, so it is the string (CR-002 section 12). */
+    getXml(): string;
+    setXml(xml: string): void;
+    selectNodes(xpath: string, namespaceMappings?: string): ArrayLike<CustomXmlNode>;
+    selectSingleNode(xpath: string, namespaceMappings?: string): CustomXmlNode | undefined;
+    delete(): void;
+    // insertElement / updateElement / deleteElement and the three attribute methods are deliberately
+    // left out of the promise: Office JS's desktop-only forms put namespaceMappings second, and this
+    // package puts it last and optional, as CR-002 section 3.5 specifies (section 12).
+  }
+  export interface CustomXmlPrefixMappingCollection {
+    readonly items: ArrayLike<{ prefix: string; namespaceUri: string }>;
+    addNamespace(prefix: string, namespaceUri: string): void;
+    lookupNamespace(prefix: string): string;
+    lookupPrefix(namespaceUri: string): string;
+  }
+  export interface CustomXmlNode {
+    readonly baseName: string;
+    readonly namespaceUri: string;
+    readonly nodeType: string;
+    nodeValue: string;
+    text: string;
+    readonly xml: string;
+    readonly xpath: string;
+    readonly attributes: ArrayLike<CustomXmlNode>;
+    readonly childNodes: ArrayLike<CustomXmlNode>;
+    readonly parentNode: CustomXmlNode | undefined;
+    readonly firstChild: CustomXmlNode | undefined;
+    readonly lastChild: CustomXmlNode | undefined;
+    readonly nextSibling: CustomXmlNode | undefined;
+    readonly previousSibling: CustomXmlNode | undefined;
+    readonly ownerPart: CustomXmlPart;
+    hasChildNodes(): boolean;
+    selectNodes(xpath: string, namespaceMappings?: string): ArrayLike<CustomXmlNode>;
+    selectSingleNode(xpath: string, namespaceMappings?: string): CustomXmlNode | undefined;
+    insertNodeBefore(xml: string, nextSibling?: CustomXmlNode): CustomXmlNode;
+    removeChild(child: CustomXmlNode): void;
+    replaceChildNode(oldNode: CustomXmlNode, xml: string): CustomXmlNode;
+    delete(): void;
+  }
+  export interface CheckboxContentControl {
+    isChecked: boolean;
+  }
+  export interface DatePickerContentControl {
+    dateDisplayFormat: string;
+    dateDisplayLocale: string;
+    dateCalendarType: string;
+    dateStorageFormat: string;
+  }
+  export interface ContentControlListItem {
+    displayText: string;
+    value: string;
+    readonly index: number;
+    delete(): void;
+  }
+  export interface ListContentControl {
+    readonly listItems: ArrayLike<ContentControlListItem>;
+    addListItem(displayText: string, value?: string, index?: number): ContentControlListItem;
+    deleteAllListItems(): void;
+  }
+  export interface PictureContentControl {
+    readonly inlinePicture: InlinePicture | undefined;
+  }
+  export interface RepeatingSectionContentControl {
+    readonly items: ArrayLike<ContentControl>;
+    allowInsertDeleteSection: boolean;
+    sectionTitle: string;
+  }
+  export interface CustomXmlPartCollection {
+    readonly items: ArrayLike<CustomXmlPart>;
+    getByNamespace(namespaceUri: string): ArrayLike<CustomXmlPart>;
+    /** Office JS hands out a proxy that errors when there is none; here it is undefined. */
+    getItem(id: string): CustomXmlPart | undefined;
+    add(xml: string): CustomXmlPart;
+  }
+
+  /** Word.Document: the members the shim offers on `context.document` (CR-002 phases F and I). */
+  export interface Document {
+    changeTrackingMode: ChangeTrackingMode;
+    readonly body: Body;
+    getTrackedChanges(): ArrayLike<TrackedChange>;
   }
 }
 
@@ -134,6 +264,8 @@ const body: OfficeSubset.Body = pkg.body;
 const paragraph: OfficeSubset.Paragraph = body.insertParagraph('x', 'End');
 const range: OfficeSubset.Range = paragraph.insertText('y', 'End');
 const font: OfficeSubset.Font = range.font;
+const document_: OfficeSubset.Document = pkg;
+const change: OfficeSubset.TrackedChange | undefined = Array.from(body.getTrackedChanges())[0];
 
 const table: OfficeSubset.Table = body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
 const row: OfficeSubset.TableRow = table.rows[0]!;
@@ -169,5 +301,31 @@ async function resolveComments(b: OfficeSubset.Body): Promise<void> {
 }
 void resolveComments(pkg.body);
 
-export { body, paragraph, range, font, table, row, tableCell, cellBody, picture, contentControl, comment, shout, fill, resolveComments };
-export type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment };
+// CR-002 phase E: the custom XML model and the typed content controls
+declare const someCustomXmlPart: CustomXmlPart;
+const customXmlPart: OfficeSubset.CustomXmlPart = someCustomXmlPart;
+const customXmlNode: OfficeSubset.CustomXmlNode = someCustomXmlPart.documentElement;
+const namespaceManager: OfficeSubset.CustomXmlPrefixMappingCollection = someCustomXmlPart.namespaceManager;
+const xmlMapping: OfficeSubset.XmlMapping = someControl.xmlMapping;
+const customXmlParts: OfficeSubset.CustomXmlPartCollection = pkg.customXmlParts;
+const listContentControl: OfficeSubset.ListContentControl | undefined = someControl.dropDownListContentControl;
+
+// one written against the phase E members: it runs against a Word add-in's objects too
+function bindToFirstNode(control: OfficeSubset.ContentControl, part: OfficeSubset.CustomXmlPart): boolean {
+  const node = part.selectSingleNode('/*[1]/*[1]');
+  if (!node) return false;
+  return control.xmlMapping.setMappingByNode(node);
+}
+void bindToFirstNode(someControl, someCustomXmlPart);
+
+export { customXmlPart, customXmlNode, namespaceManager, xmlMapping, customXmlParts, listContentControl, bindToFirstNode };
+
+// and one that reviews, as an add-in would (CR-002 phase F)
+function review(d: OfficeSubset.Document): string[] {
+  d.changeTrackingMode = 'TrackAll';
+  return Array.from(d.body.getTrackedChanges()).map((c) => `${c.type} by ${c.author}: ${c.text}`);
+}
+review(pkg);
+
+export { body, paragraph, range, font, table, row, tableCell, cellBody, picture, contentControl, comment, document_, change, shout, fill, resolveComments, review };
+export type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange };

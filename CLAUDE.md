@@ -12,13 +12,13 @@ the generated Office Open XML object model (the counterpart of `docx4j-generated
 the `@docx4j/jsonix` runtime. Design and scope live in `docs/change-requests/`; CR-001 is the
 engine and is the spec for everything below.
 
-**Status:** CR-001 Phase A (packaging, parts, packages, MCE) and CR-002 phases B, C, D, G and I
+**Status:** CR-001 Phase A (packaging, parts, packages, MCE) and CR-002 phases B to G and I
 (the content API: `Body`, `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`,
-`ContentControl`, `Comment`, search, `insertOoxml`, addresses, `outline`; the `Word` shim on
+`ContentControl` with `XmlMapping` and the typed kinds, `Comment`, `TrackedChange`, custom XML
+parts with XPath, search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on
 `./office-js`) are implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet:
 CR-001 Phase B (`PropertyResolver`, numbering, fonts; blocked by the portfolio rule below) and C;
-CR-002 E (custom XML, XML mapping, typed content controls), F (change tracking) and H (lists).
-Each CR's last sections record decisions and departures.
+CR-002 H (lists; waits on CR-001 Phase B). Each CR's last sections record decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -28,7 +28,7 @@ relationships lives here. This package re-exports the objects facade so both rea
 ## Commands
 
 ```
-npm ci              # fflate, typescript, @docx4j/generated-objects-ts and @docx4j/jsonix, as locked in package-lock.json
+npm ci              # fflate, typescript, xpath (dev; an optional peer for consumers), @docx4j/generated-objects-ts and @docx4j/jsonix, as locked in package-lock.json
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
@@ -65,6 +65,9 @@ src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default st
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf, runItemsOf, childrenOf); fragments, run mapping and traversal come from the objects package's builders/wml
+src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
+                  XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
+src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
                   supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change
 src/index.mts     re-exports all of the above plus the objects facade

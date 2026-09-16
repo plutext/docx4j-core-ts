@@ -10,6 +10,7 @@ import type { Body } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
+import { type ChangeTracker, trackInsertedParagraph } from './tracking.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -112,22 +113,35 @@ export class Table {
     const at = location === 'Start' && first && first.container === container ? container.indexOf(first.element) : location === 'Start' ? 0 : container.length;
     container.splice(at, 0, ...added);
     for (const row of added) linkParents(row, this.tbl);
+    markRowsInserted(this.changeTracker, added);
     return added.map((element) => new TableRow(element, container, this));
   }
 
-  /** Removes `rowCount` rows from `rowIndex` (one by default), as Office JS. */
+  /**
+   * Removes `rowCount` rows from `rowIndex` (one by default), as Office JS. While the package
+   * tracks changes the rows stay and take a `w:trPr/w:del` instead (CR-002 phase F).
+   */
   deleteRows(rowIndex: number, rowCount = 1): void {
+    const tracker = this.changeTracker;
     const rows = rowsOf(this.tbl).slice(rowIndex, rowIndex + rowCount);
     for (const row of rows.reverse()) {
+      if (tracker) { tracker.markRowDeleted(row.element.value); continue; }
       const i = row.container.indexOf(row.element);
       if (i >= 0) row.container.splice(i, 1);
     }
   }
 
-  /** Removes the table from its container. */
+  /** Removes the table from its container; tracked, every row is marked deleted instead. */
   delete(): void {
+    const tracker = this.changeTracker;
+    if (tracker) { for (const row of rowsOf(this.tbl)) tracker.markRowDeleted(row.element.value); return; }
     const i = this.index;
     if (i >= 0) this.container.splice(i, 1);
+  }
+
+  /** The package's change tracker while `changeTrackingMode` is on (CR-002 phase F). */
+  get changeTracker(): ChangeTracker | undefined {
+    return this.parentBody.changeTracker;
   }
 
   /** The cell this table is nested in, if any (extension). */
@@ -214,11 +228,14 @@ export class TableRow {
     this.container.splice(at, 0, ...added);
     const owner = ownerOfArray(this.container, this.parentTable.tbl) ?? this.parentTable.tbl;
     for (const row of added) linkParents(row, owner);
+    markRowsInserted(this.parentTable.changeTracker, added);
     return added.map((element) => new TableRow(element, this.container, this.parentTable));
   }
 
-  /** Removes the row. */
+  /** Removes the row; tracked, it stays and takes a `w:trPr/w:del` (CR-002 phase F). */
   delete(): void {
+    const tracker = this.parentTable.changeTracker;
+    if (tracker) { tracker.markRowDeleted(this.tr); return; }
     const i = this.container.indexOf(this.element);
     if (i >= 0) this.container.splice(i, 1);
   }
@@ -372,4 +389,17 @@ function ancestorOf(value: object, typeName: string, depth: number): object | un
     current = (current as { PARENT?: object }).PARENT;
   }
   return undefined;
+}
+
+/** A new row is an insertion: `w:trPr/w:ins` on it and a `w:ins` around every run it holds. */
+function markRowsInserted(tracker: ChangeTracker | undefined, rows: Element<wml.Tr>[]): void {
+  if (!tracker) return;
+  for (const row of rows) {
+    tracker.markRowInserted(row.value);
+    for (const cell of cellsOf(row.value)) {
+      for (const block of childrenOf(cell.element.value) ?? []) {
+        if (typeNameOf(block) === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
+      }
+    }
+  }
 }

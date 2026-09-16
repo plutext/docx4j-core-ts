@@ -15,9 +15,15 @@ part named `document22.xml`), `header-no-rels.docx`, `hyperlink_dupe.docx`,
 `loadAndSave.pptx`, `loadAndSave.xlsx`, `invoice.docx` (from `OpenDoPE/`: content controls at
 block, row and cell level, with data bindings and a table, the fixture of the content-control
 tests), `comments-two.docx` (from `AlteredParts/`: two comments with no w15, w16cid or
-`w:people` parts, so the comment API must cope without them), and
+`w:people` parts, so the comment API must cope without them), `invoice2013.docx` (from
+`docx4j-samples-docx4j/sample-docs/databinding/`: the typed content controls, a `w14:checkbox`, a
+`w:date`, a `w:picture` and two `w15:repeatingSection`s, all data bound — the fixture of the
+phase E typed-kind tests; no document in the docx4j checkout has a `w:dropDownList`,
+`w:comboBox` or `w:group` control, so those are built by the API in `customxml.test.mjs`), and
 `mc-alternate-content-header.xml`, a Word 2010 flat OPC package (`pkg:package`) with
-`mc:AlternateContent` in a header.
+`mc:AlternateContent` in a header. `tracked-changes.docx` is docx4j's
+`docx4j-samples-docx4j/sample-docs/sample-docx.docx` (also Apache-2.0), a Word file with one
+`w:ins` and one `w:del` by "Jason Harrop", the fixture of `tracking.test.mjs`.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
@@ -70,6 +76,26 @@ namespaces, content types or the zip writer, check by hand:
    this package re-marshals loses the `mc:Ignorable` attribute of `w:comments` (the object model
    does not carry it, CR-002 section 9), so this check is the one that would catch a repair prompt
    from that.
+9. Custom XML and the bindings (CR-002 phase E): `fixtures/invoice.docx` loaded,
+   `await pkg.customXmlParts.load()`, then `insertText('Jane Doe', 'Replace')` on the customer-name
+   control (`contentControls[0]`) and `await pkg.customXmlParts.updateFromContentControls()`, saved.
+   Word must show **Jane Doe** on the document surface when it opens the file — this is the check
+   that item 7 could not pass: Word refreshes a bound control from the custom XML part on open, so
+   the value has to be in `customXml/item3.xml` as well as in `word/document.xml`. The three bound
+   controls, the repeat and the two conditions must survive. In the same file, check
+   `invoice2013.docx` with `applyBindings()` after a change to the custom XML: the checkbox, the
+   date and the repeating sections keep working in Word, and the picture control (which phase E
+   leaves alone) still shows its image.
+
+10. Tracked changes (CR-002 phase F): with `pkg.author` set and `pkg.changeTrackingMode =
+   'TrackAll'`, make one of each kind — insert text, delete text, replace a word, change a
+   run's formatting and a paragraph's style, add a paragraph, delete a paragraph, add a table
+   row and delete another — then save and open in Word. No repair prompt; Word must show every
+   change in the review pane under the author from `pkg.author`, with the date from
+   `pkg.trackedChangeDate`; Accept All must leave the document reading as `body.text` did, and
+   Reject All as `body.getText({ view: 'original' })` did. Check too that Word's own Accept All
+   and this package's `acceptAll()` agree on the same file, and that a comment inserted while
+   tracking is on is a comment only: no `w:ins` around its reference run or range markers.
 
 A small Node script for 1 to 3 is:
 
@@ -118,4 +144,17 @@ const body = await e.getBody();
 await body.paragraphs[0].insertComment('A new comment on the first paragraph');
 for (const existing of await body.getComments()) if (existing.authorName !== 'docx4j') await existing.delete();
 await writeFile('check8-b.docx', await e.save());
+
+// 9. custom XML and the bindings (needs the optional `xpath` package in Node)
+const f = await WordprocessingMLPackage.load(await readFile('test/fixtures/invoice.docx'));
+await f.customXmlParts.load();
+(await f.getBody()).contentControls[0].insertText('Jane Doe', 'Replace');
+await f.customXmlParts.updateFromContentControls();
+await writeFile('check9-a.docx', await f.save());    // Word shows Jane Doe, not Joe Bloggs
+
+const g = await WordprocessingMLPackage.load(await readFile('test/fixtures/invoice2013.docx'));
+await g.customXmlParts.load();
+g.customXmlParts.items[0].selectSingleNode('/invoice/customer/company').text = 'Acme Pty Ltd';
+await g.customXmlParts.applyBindings();
+await writeFile('check9-b.docx', await g.save());
 ```

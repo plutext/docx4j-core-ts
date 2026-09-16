@@ -1,11 +1,19 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { applyRunOptions, readRunOptions, type RunOptions, type RunFormatting, type UnderlineType } from '@docx4j/generated-objects-ts/builders/wml';
+import type { ChangeTracker } from './tracking.mjs';
 
 export type { UnderlineType };
 
 /** Something with run properties: a run, or the paragraph mark. */
 export interface RPrHolder {
   rPr?: wml.RPr;
+}
+
+/** What a `Font` needs to write a formatting revision (CR-002 phase F); undefined when tracking is off. */
+export interface FontTracking {
+  tracker: ChangeTracker;
+  /** The runs that are this author's own insertion: Word changes those in place, with no w:rPrChange. */
+  ownInsertions: ReadonlySet<object>;
 }
 
 /**
@@ -16,15 +24,22 @@ export interface RPrHolder {
  * which its `r(text, opts)` builder shares.
  */
 export class Font {
-  constructor(private readonly holders: () => RPrHolder[]) {}
+  constructor(
+    private readonly holders: () => RPrHolder[],
+    /** The change tracker and this author's own insertions, when the package is tracking changes. */
+    private readonly tracking?: () => FontTracking | undefined,
+  ) {}
 
   private read(): RunFormatting {
     return readRunOptions(this.holders()[0]?.rPr);
   }
 
   private apply(opts: RunOptions): void {
+    const tracking = this.tracking?.();
     for (const h of this.holders()) {
       h.rPr ??= { TYPE_NAME: 'org_docx4j_wml.RPr' };
+      // the properties as they are now become w:rPrChange, unless this run is our own insertion
+      if (tracking && !tracking.ownInsertions.has(h)) tracking.tracker.recordRPrChange(h.rPr);
       applyRunOptions(h.rPr, opts);
     }
   }

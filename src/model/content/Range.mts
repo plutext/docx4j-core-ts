@@ -2,11 +2,15 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Font } from './Font.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
-import { type Element, typeNameOf } from './tree.mjs';
+import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions } from './tree.mjs';
+import { Docx4JException } from '../../opc/exceptions.mjs';
+import { ContentControl, type ContentControlType } from './ContentControl.mjs';
+import { sdtRunFor, nextControlId, checkKind } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
+import type { TrackedChange } from './TrackedChange.mjs';
 
 /**
  * A subset of Office JS `Word.Range`: a span of text within one paragraph, [start, end) in the
@@ -43,6 +47,16 @@ export class Range {
     this.paragraph.style = id;
   }
 
+  /**
+   * The text in one of the two views (extension; `text` is the accepted one). `{ view: 'original' }`
+   * is offered on `Paragraph` and `Body`; on a `Range` it is the accepted-view span only, since a
+   * range's offsets are accepted-view offsets.
+   */
+  getText(options?: TextViewOptions): string {
+    if (options?.view === 'original') throw new Docx4JException("A Range's offsets are accepted-view offsets; read the original view on its Paragraph");
+    return this.text;
+  }
+
   /** Direct formatting of exactly this span: runs are split at the boundaries so that a write touches only the span. */
   get font(): Font {
     return new Font(() => {
@@ -50,7 +64,7 @@ export class Range {
       this.paragraph.splitAt(this.start);
       this.paragraph.splitAt(this.end);
       return this.runs.map((r) => r.value);
-    });
+    }, () => this.paragraph.fontTracking());
   }
 
   /** The runs the span covers (a run partly inside counts). */
@@ -116,6 +130,22 @@ export class Range {
     return findAll(this.text, searchPattern(text, options)).map(([s, e]) => new Range(this.paragraph, base + s, base + e));
   }
 
+  /** Replaces every match in this span, last first so the offsets stay valid; returns the count (CR-002 section 3.7). */
+  replaceText(find: string, replace: string, options?: SearchOptions): number {
+    const matches = this.search(find, options);
+    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    return matches.length;
+  }
+
+  /** The tracked changes this span covers, in document order (CR-002 phase F). */
+  getTrackedChanges(): TrackedChange[] {
+    return this.paragraph.getTrackedChanges().filter((change) => {
+      const range = change.getRange();
+      if (!range) return false;
+      return range.start <= this.end && range.end >= this.start;
+    });
+  }
+
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     if (location === 'Start') return new Range(this.paragraph, this.start, this.start);
     if (location === 'End') return new Range(this.paragraph, this.end, this.end);
@@ -142,4 +172,57 @@ export class Range {
   async insertComment(text: string): Promise<Comment> {
     return commentApi().insertComment(this, text);
   }
+
+  // --- content controls (CR-002 phase E) ---
+
+  /**
+   * Wraps the runs this span covers in a run-level content control (Office JS
+   * `Range.insertContentControl`), splitting the runs at the boundaries as `font` does. An empty
+   * span gets an empty control at its position. Returns the control.
+   */
+  insertContentControl(kind?: ContentControlType): ContentControl {
+    checkKind(kind, 'Run');
+    const paragraph = this.paragraph;
+    const body = paragraph.parentBody;
+    const id = nextControlId(body.container);
+    if (this.start === this.end) {
+      const sdt = sdtRunFor([], kind, id);
+      paragraph.insertItemsAt(this.start, [sdt as Element]);
+      return new ContentControl(sdt, containerOf(sdt, paragraph), body);
+    }
+    paragraph.splitAt(this.start);
+    paragraph.splitAt(this.end);
+    const segments = paragraph.segments().filter((s) => s.start >= this.start && s.end <= this.end);
+    if (segments.length === 0) throw new Docx4JException('This range covers no run');
+    const owner = segments[0]!.runOwner;
+    if (segments.some((s) => s.runOwner !== owner)) {
+      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
+    }
+    const items: Element[] = [];
+    for (const segment of segments) {
+      const element = owner[segment.runIndex] as Element;
+      if (!items.includes(element)) items.push(element);
+    }
+    const at = owner.indexOf(items[0]!);
+    const sdt = sdtRunFor(items, kind, id);
+    owner.splice(at, items.length, sdt as Element);
+    linkParents(sdt, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
+    return new ContentControl(sdt, owner, body);
+  }
+}
+
+/** The run-level array holding an element, after `insertItemsAt` put it somewhere in the paragraph. */
+function containerOf(element: Element, paragraph: Paragraph): Element[] {
+  const seek = (items: Element[] | undefined): Element[] | undefined => {
+    if (!items) return undefined;
+    if (items.includes(element)) return items;
+    for (const item of items) {
+      const value = item.value;
+      if (typeof value !== 'object' || value === null) continue;
+      const found = seek(runItemsOf(value));
+      if (found) return found;
+    }
+    return undefined;
+  };
+  return seek(runItemsOf(paragraph.p)) ?? ((paragraph.p.content ??= []) as Element[]);
 }

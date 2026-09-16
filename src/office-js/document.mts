@@ -8,9 +8,9 @@ import type * as extended from '@docx4j/generated-objects-ts/modules/org_docx4j_
 import * as elDc from '@docx4j/generated-objects-ts/el/org_docx4j_docProps_core_dc_elements';
 import { Docx4JException } from '../opc/exceptions.mjs';
 import type { WordprocessingMLPackage } from '../packages/WordprocessingMLPackage.mjs';
-import { DocumentSettingsPart } from '../parts/wml/index.mjs';
 import type { Body } from '../model/content/Body.mjs';
 import type { Range } from '../model/content/Range.mjs';
+import type { TrackedChange } from '../model/content/TrackedChange.mjs';
 import type { ChangeTrackingModeValue } from './enums.mjs';
 import { NotSupportedError } from './errors.mjs';
 
@@ -246,27 +246,27 @@ export class Document {
     return selection;
   }
 
-  /** w:trackRevisions in the settings part; the tracking of edits itself is CR-002 phase F. */
+  /**
+   * Office JS `document.changeTrackingMode`: the package's, which is `w:trackRevisions` in the
+   * settings part and, while it is on, makes every edit through the content API write revision
+   * markup (CR-002 phase F). The shim adds nothing of its own; `Word.run` has unmarshalled the
+   * settings part, so both directions are synchronous here.
+   */
   get changeTrackingMode(): ChangeTrackingModeValue {
-    const settings = this.package_.getMainDocumentPart().documentSettingsPart;
-    if (!settings?.isUnmarshalled) return 'Off';
-    const track = settings.contents.trackRevisions;
-    return track !== undefined && track.val !== false ? 'TrackAll' : 'Off';
+    return this.package_.changeTrackingMode;
   }
 
   set changeTrackingMode(mode: ChangeTrackingModeValue) {
-    const main = this.package_.getMainDocumentPart();
-    let settings = main.documentSettingsPart;
-    if (!settings) {
-      settings = new DocumentSettingsPart();
-      settings.setContents({});
-      main.addTargetPart(settings);
-    } else if (!settings.isUnmarshalled) {
+    const settings = this.package_.getMainDocumentPart().documentSettingsPart;
+    if (settings && !settings.isUnmarshalled) {
       throw new Docx4JException(`${settings.partName} is not unmarshalled; await its getContents() first (Word.run does that unless unmarshalSideParts is false)`);
     }
-    const contents = settings.contents;
-    if (mode === 'Off') delete contents.trackRevisions;
-    else contents.trackRevisions = {};
+    this.package_.changeTrackingMode = mode;
+  }
+
+  /** Office JS `document.getTrackedChanges()`: the body's, in document order (CR-002 phase F). */
+  getTrackedChanges(): TrackedChange[] {
+    return this.body.getTrackedChanges();
   }
 
   /**

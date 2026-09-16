@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E, F and H proposed.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H proposed (waits on CR-001 Phase B).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1019,3 +1019,310 @@ tree holding the id. Fixed in `Paragraph`, `Range`, `Table` and `toApiScript`:
 - `styleId` is the docx4j-named extension for the id (`w:pStyle`, `w:tblStyle`) on `Paragraph`,
   `Range` and `Table`, for code that thinks in ids; `outline()` keeps reporting ids.
 - `toApiScript` emits `styleBuiltIn = 'Heading1'` for a built-in and `style = '<name>'` otherwise.
+
+## 12. Implementation notes: phase E (2026-09-16)
+
+Custom XML, XML mapping and the typed content controls, as sections 3.5 and 3.6 specify them.
+A new directory `src/model/customxml/`, exported from `.` and `./model`: `xpath.mts` (the
+`XPathEngine` interface, the default engine, the prefix-mapping strings and the canonical XPath of
+a node), `CustomXmlPart.mts` (`CustomXmlPart`, `CustomXmlNode`,
+`CustomXmlPrefixMappingCollection`), `CustomXmlPartCollection.mts` (`pkg.customXmlParts`, `add`,
+`applyBindings`, `updateFromContentControls`), `XmlMapping.mts`, `kinds.mts` (the kind-specific
+views) and `insert.mts` (the `w:sdt` builder and the id allocator behind `insertContentControl`).
+`src/model/content/ContentControl.mts` gains the phase E members; `Body`, `Paragraph` and `Range`
+gain `insertContentControl`; `WordprocessingMLPackage` gains `customXmlParts` and `xpathEngine`;
+`DefaultXmlPart` gains `parseDocument` / `parsedDocument` / `markModified`. Eleven tests in
+`test/customxml.test.mjs`, one new fixture (`invoice2013.docx`), `test/office-js-subset.ts`
+extended with `CustomXmlPart`, `CustomXmlNode`, `XmlMapping`, the kind views, the collection and
+the new `ContentControl` members, and `test/README.md` a manual Word check (9).
+
+What is in:
+
+- **The XPath engine** (section 3.6). `XPathEngine` is `select`, `selectValue`, `ready()` and
+  `isReady`; `DefaultXPathEngine` uses `document.evaluate` when the runtime has it and otherwise
+  `import('xpath')`. `xpath` is an **optional peer dependency** (open question 7, as recommended)
+  and a devDependency here; the import specifier is a variable, so a bundler does not follow it and
+  a consumer without the package still type-checks.
+- **`pkg.customXmlParts`**: `load()`, `items`, `getByNamespace`, `getItem` (case-insensitive, with
+  or without braces), `add`, `applyBindings()`, `updateFromContentControls()`. `CustomXmlPart` has
+  `id`, `namespaceUri`, `builtIn`, `documentElement`, `namespaceManager`, `schemaCollection`,
+  `getXml`, `setXml`, `selectNodes`, `selectSingleNode`, the four element and attribute methods,
+  `delete()` and `part`; `CustomXmlNode` has the whole node model of section 3.5, including the
+  canonical `xpath` and both forms of `appendChildNode` (open question 8, as recommended).
+- **`XmlMapping`** on every content control, over `w:dataBinding`: `isMapped`, `xpath`,
+  `prefixMappings`, `storeItemID`, `customXmlPart`, `customXmlNode`, `setMapping`,
+  `setMappingByNode`, `delete`. `add()` follows docx4j's `AbstractMigrator.addPropertiesPart`:
+  `/customXml/itemN.xml` with `/customXml/itemPropsN.xml`, a brace-wrapped upper-case random UUID
+  as the `ds:itemID`, `ds:schemaRefs` from the document element's namespace, and the data part's
+  relationship **from the main document part** (Word silently drops a custom XML part the main part
+  does not relate to).
+- **The typed kinds**: `checkboxContentControl` (w14 `CTSdtCheckbox`), `datePickerContentControl`,
+  `dropDownListContentControl` and `comboBoxContentControl` (`listItems`, `addListItem`,
+  `deleteAllListItems`), `pictureContentControl`, `repeatingSectionContentControl` (w15
+  `CTSdtRepeatedSection`, with `insertItemAfter`), `groupContentControl`, plus `placeholderText`,
+  `appearance`, `color`, `cannotDelete`, `cannotEdit`, `removeWhenEdited` and the `findProperty` /
+  `putProperty` / `removeProperty` extensions they are built on.
+- **`insertContentControl(kind?)`** on `Body` (wraps the body's content), `Paragraph` (wraps the
+  paragraph) and `Range` (wraps the runs, splitting at the boundaries as `Range.font` does), with a
+  `w:id` free in the document and a `w:sdtPr` typed for the kind.
+
+The **asynchrony decision** (section 3's rule, "only what marshals or unmarshals is asynchronous"):
+loading the `xpath` package is asynchronous, so the engine is **warmed once** — `await
+pkg.customXmlParts.load()`, which parses every custom XML part's DOM and awaits
+`pkg.xpathEngine.ready()` — and everything after it is synchronous, as Office JS is. Before that,
+`items` (and so `getItem`, `getByNamespace`) throws `Custom XML part ... is not parsed yet: await
+pkg.customXmlParts.load() once`, and an engine call throws `The XPath engine is not ready yet`. In
+a browser or a Word add-in `document.evaluate` is native, so the engine is ready from the start and
+only the DOM parse needs the await. `applyBindings` and `updateFromContentControls` are
+asynchronous because they unmarshal the main document part (and the headers and footers).
+
+Departures and deferrals, all deliberate:
+
+- **A bound control's `insertText` writes through to the custom XML node.** The 2026-09-16 Word
+  acceptance run (check 7) found that replacing a bound control's text does not show, because Word
+  refreshes a bound control from the custom XML part when it opens the document. So
+  `ContentControl.insertText` now makes the same write as `updateFromContentControls()` when the
+  mapping resolves; when the XPath engine is not warm (nobody called `load()`) the write is skipped
+  silently and the explicit `updateFromContentControls()` is the fix. Nothing else in the content
+  API writes through: an edit made on the control's paragraph, or through `Range`, is a document
+  edit, and `updateFromContentControls()` is how it reaches the data.
+- **Containers are never bound.** docx4j binds anything that is not explicitly rich text, which for
+  a `w15:repeatingSection` would replace the repeat with one run. `applyBindings` and
+  `updateFromContentControls` skip `RepeatingSection`, `RepeatingSectionItem`, `Group` and
+  `BuildingBlockGallery`, and any control that holds a table or another control: their children
+  carry the values. Word's own repeat semantics (a section per node of a node set) are OpenDoPE's
+  `OpenDoPEHandler` work and are not in this phase.
+- **Pictures and explicit rich text are not bound** (either way). docx4j replaces the `a:blip`
+  embed from base64 image data, and writes a whole flat OPC package into a rich-text binding; both
+  are worth their own change request, and both are counted as `skipped` in the result rather than
+  failing.
+- **Dates are formatted, checkboxes and lists round trip by value.** `applyBindings` formats the
+  bound value with `w:dateFormat` in the `w:lid` locale (`formatDate`, the .NET vocabulary docx4j
+  maps to `SimpleDateFormat`) and sets `w:fullDate`; a checkbox gets `w14:checked` and Word's ☒/☐
+  glyph run in MS Gothic, taking the glyphs from `w14:checkedState` / `uncheckedState` when the
+  control has them (docx4j ignores those, an explicit TODO there); a list shows the `displayText`
+  of the entry whose `value` matches and records `w:lastValue`. The reverse writes `true`/`false`
+  for a checkbox, the entry's `value` for a list and the stored `w:fullDate` form for a date —
+  docx4j writes the rendered glyph and skips dates entirely, which loses the data's meaning.
+- **`applyBindings` keeps docx4j's shapes otherwise**: the value is trimmed; the run properties
+  come from `w:sdtPr/w:rPr`, not from the existing runs; an empty value gives docx4j's placeholder
+  run (`w:rStyle` `PlaceholderText`, "Click here to enter text.") and sets `w:showingPlcHdr`;
+  `xml:space="preserve"` only for a leading or trailing space; a multiline `w:text` control turns
+  newlines into `w:br` runs and a single-line one drops them. It differs in two places: the content
+  goes into the **first paragraph** of a block, row or cell control, keeping its `w:pPr` and the
+  rest of the structure, rather than reducing a `w:tr` or `w:tbl` to one cell as docx4j does; and
+  `w:placeholder` is **kept** (docx4j always removes it), since it names the glossary part Word
+  shows the placeholder from.
+- **Bindings are read from `w:dataBinding` only.** docx4j prefers the OpenDoPE XPaths part
+  (`od:xpath=x1` in `w:tag`, resolved through `/customXml/itemN.xml`); here the control's own
+  `w:dataBinding` is the mapping, which is what Word writes and what Office JS's `XmlMapping`
+  reports. The invoice fixture's three bindings resolve either way. OpenDoPE's conditions, repeats
+  and `od:Handler` are a separate piece of work.
+- **The three well-known docProps store item ids** (`{6C3C8BC8-...}` core, `{6668398D-...}` app,
+  `{55AF091B-...}` cover page) are not special-cased as docx4j does: a binding to them resolves
+  only if the package really has that custom XML part.
+- **`getXml()` is synchronous** and returns the string, where Office JS returns a `ClientResult`: a
+  custom XML part is a DOM here, so nothing is marshalled. The subset file declares it that way.
+- **The XPath-addressed mutators take `namespaceMappings` last** (`insertElement(xpath, xml,
+  namespaceMappings?, index?)`, `insertAttribute(xpath, name, value, namespaceMappings?)`), as
+  section 3.5 specifies, where Office JS's desktop-only forms put it second. They are therefore
+  left out of `test/office-js-subset.ts` (the section 3.4 promise), with a comment saying why;
+  everything else in the custom XML model is in it and asserted assignable.
+- **`CustomXmlPart.delete()` unlinks the mappings it can reach**: the controls of the parts that
+  are already unmarshalled. A document whose main part was never read keeps its `w:dataBinding`
+  elements, which then name a part that is gone — Word treats those as unbound.
+- **`placeholderText`** reads the control's own text while it is showing its placeholder and writes
+  by replacing the content and setting `w:showingPlcHdr`; it refuses when the control holds
+  content, so that a value is never lost. Word keeps the placeholder text in a glossary document
+  part (`w:placeholder/w:docPart`); creating glossary parts is not in this phase.
+- **Reading a custom XML part no longer costs its byte-for-byte round trip.** `DefaultXmlPart`
+  separates "parsed for reading" from "adopted as the part's content": `parseDocument()` parses,
+  `parsedDocument` is the synchronous accessor the views read, and `markModified()` (which every
+  mutation of a node view calls) is what makes the part re-marshal. `getDocument()` keeps its old
+  meaning — parse and adopt — so phase G's w16cex editing is unchanged. A test loads the invoice,
+  reads every custom XML part and asserts the four parts come back byte-identical.
+- **`insertContentControl` at range level refuses a span that crosses run holders** (a hyperlink, a
+  tracked insertion), naming the reason, rather than producing a `w:sdt` that spans a boundary Word
+  would reject; and `RepeatingSection` is refused at run level. A `Range` whose start equals its end
+  gets an empty control at that position.
+- **Nothing was added to the `Word` shim.** `context.document.customXmlParts` would mean editing
+  `src/office-js/document.mts`, which phase F is changing in parallel; the collection is reachable
+  as `unwrap(context.document).package_.customXmlParts` in the meantime, and wiring it is a small
+  follow-up.
+- **No fixture in the docx4j checkout has a drop-down, combo box or group control**, so those kinds
+  are exercised on documents this package builds (`insertContentControl` then the kind view);
+  `invoice2013.docx` covers the checkbox, the date, the picture and the two `w15` repeating
+  sections on a document Word wrote.
+
+Objects-package gaps found (candidates for a CR there; none blocked this phase):
+
+1. **No builder for `w:sdt`.** `builders/wml` has `p`, `r`, `t` and `tbl` but nothing for a content
+   control, so `insert.mts` writes the four `w:sdt` forms and their `w:sdtPr` over the generated
+   factories here. `sdt(content, { kind, tag, title, id })` (and the `sdtPr` half) needs only the
+   tree, so it belongs there next to `tbl`, as phase C said of `drawingFor`.
+2. **`SdtPr`'s properties are an untyped element list.** `rPrOrAliasOrLock` is a union of
+   `TypedNamedValue<...>`, so reading `w:tag` or `w14:checkbox` means a linear search by local name
+   and a cast (`findProperty` here). A generated accessor set for choice-group properties — or a
+   helper in `helpers/wml` — would remove a class of casts from this package.
+3. **`w14:checkbox`'s `checked` is `CTOnOff` with `val?: string`**, so `'1'`, `'true'` and `'on'`
+   are all possible and every reader has to accept the three; `BooleanDefaultTrue` elsewhere is a
+   real boolean. Harmonising the on/off types in the bindings would help.
+4. **No `xs:anyAttribute` escape on `DatastoreItem`.** Not needed here, but the `ds:` part is
+   attribute-qualified and the generated type carries only `itemID` and `schemaRefs`, so anything
+   Word adds to `ds:datastoreItem` in future would be dropped by a re-marshal. The properties part
+   is read from its DOM here for exactly that kind of reason.
+
+## 13. Implementation notes: phase F (2026-09-16)
+
+Change tracking and `replaceText` (section 3.7). New files
+`src/model/content/tracking.mts` (the `ChangeTracker`, the markup writers and the
+`w:rPr` / `w:rPrChange` conversions) and `src/model/content/TrackedChange.mts` (the views,
+accept and reject); the mutation paths of `Paragraph`, `Range`, `Font`, `Body` and
+`tree.mts` grew a tracked branch; `Table.mts`'s row mutations and `Comment.mts`'s marker
+placement were adapted; `WordprocessingMLPackage` gained `trackedChangeDate`,
+`changeTrackingMode`, `changeTracker` and `getTrackedChanges()`, and the shim's
+`document.changeTrackingMode` now delegates to the package. Twenty tests in
+`test/tracking.test.mjs`, one new fixture (`test/fixtures/tracked-changes.docx`), and
+`test/office-js-subset.ts` now also asserts `TrackedChange`, `getTrackedChanges()` on
+`Body`, `Paragraph`, `Range` and `Document`, and `changeTrackingMode` on `Document`
+(`npm run generate` has rewritten `supported.generated.mts` accordingly).
+
+What is in:
+
+- **`pkg.changeTrackingMode`** (`Off` | `TrackAll` | `TrackMineOnly`) over `w:trackRevisions`
+  in the settings part, which is created when the document has none. The revision author is
+  phase G's `pkg.author` (the `Author` of section 9; only its `name` reaches `w:author`), so a
+  comment and a revision made in one session carry one identity; `pkg.trackedChangeDate` is an
+  optional fixed date. `pkg.changeTracker` is the tracker every mutation asks its `Body` for,
+  and `pkg.getTrackedChanges()` is Office JS's `document.getTrackedChanges()` over the body.
+  The shim's `document.changeTrackingMode` (phase I) is now a delegation to the package, with
+  nothing of its own but the "settings part not unmarshalled" guard `Word.run` needs.
+- **Every mutation writes revision markup when the mode is on**, in the paragraph-level
+  primitives, so `Range`, `Body` and later phases inherit it: `Paragraph.splice` (behind
+  `insertText`, the `text` setter, `Range.insertText` and `Range.delete`) deletes as a
+  `w:del` and inserts as a `w:ins`; `Body.insertElement` (behind both `insertParagraph`s and
+  `insertXml`) marks an inserted paragraph's mark and wraps its runs, and marks every row and
+  paragraph of an inserted table; `Paragraph.delete()` moves the content into a `w:del` and
+  marks the mark deleted; `Font` and the paragraph property setters record `w:rPrChange` and
+  `w:pPrChange`; `Table.addRows`, `TableRow.insertRows`, `Table.deleteRows`, `TableRow.delete`
+  and `Table.delete` go through `ChangeTracker.markRowInserted` / `markRowDeleted`, which write
+  `w:trPr/w:ins` and `w:trPr/w:del` (a deleted row stays in the tree until the change is
+  accepted). `Table` and `ContentControl` needed no tracked branch of their own beyond the
+  rows: their text edits already run through `Paragraph.splice` and `Body.insertText`.
+- **Word's rules**, not just the markup: a run already inside a `w:ins` by the same author is
+  extended rather than nested in another one; deleting text that author had inserted takes it
+  back instead of nesting a `w:del`; a replacement writes the `w:del` first and the `w:ins`
+  after it; `w:t` becomes `w:delText` and `w:instrText` becomes `w:delInstrText`; runs are
+  split at the boundaries of the span, as `Range.font` already did, so that a partly deleted
+  run is not wholly deleted.
+- **`TrackedChange`** over `w:ins`, `w:del`, `w:moveFrom`, `w:moveTo`, `w:rPrChange`,
+  `w:pPrChange`, the two paragraph-mark forms and the two row forms: `type`, `author`,
+  `date`, `text`, `accept()`, `reject()`, `getRange()`, and `id`, `element` and `target` as
+  extensions. `getTrackedChanges()` on `Body`, `Paragraph` and `Range`; `acceptAll()` and
+  `rejectAll()` on `Body`. Accepting follows docx4j's
+  `org.docx4j.convert.out.common.preprocess.AcceptTrackedChanges`: a `w:ins` is unwrapped, a
+  `w:del` removed, a deleted paragraph mark joins its paragraph with the next (the joined
+  paragraph keeps the first one's content and `w14:paraId` and takes the second one's
+  properties), a deleted row removed.
+- **`{ view: 'original' }`** on `Body.getText()` and `Paragraph.getText()`: the tree with
+  `w:del` and `w:moveFrom` counted and `w:ins` and `w:moveTo` skipped. `segmentsOf` and
+  `runsOf` in `tree.mts` take the option, and a segment now reports the `w:ins` / `w:del` it
+  is inside (`TextSegment.revision`), which is what the tracked primitives work from.
+- **`replaceText(find, replace, options?)`** on `Body`, `Paragraph` and `Range`: `search`
+  then `insertText(replace, 'Replace')` from the last match to the first, returning the
+  count, tracked or not.
+
+Departures and deferrals, all deliberate:
+
+- **Revision ids and comment ids are separate spaces, deliberately.** Revision ids come from a
+  per-package counter one above the highest `w:id` on a `CTMarkup` in the parts already
+  unmarshalled — the one annotation id space of ECMA-376 17.13.5.4, which revisions, bookmarks,
+  comment range marks and permissions share. `w:comment/@w:id` is **excluded** from the scan
+  (`MARKUP_TYPES` in `tracking.mts` leaves `org_docx4j_wml.Comments.Comment` out), because it
+  is a different space: phase G keeps its own allocator (`nextCommentId` in `comments.mts`,
+  which counts `w:comment` ids and the markers in the body) and the two never have to agree.
+  They do share `pkg.author`.
+- **A comment is not a revision.** `Range.insertComment` writes its markers and its reference
+  run straight into the run arrays, never through `splice`, so it is not tracked as a text
+  insertion — which is what Word does too. `placeAround` in `Comment.mts` now also hoists the
+  markers out of a `w:ins` or `w:del` the anchor run sits in (`markerSite`), so that the
+  reference run is never itself inside an insertion and accepting or rejecting the revision
+  leaves the comment where it is. The cost is that a comment on part of an insertion widens to
+  the whole of it, which is what the document shows once the insertion is accepted anyway.
+- **`comments.mts`'s marker walk had to learn the revisions.** `RUN_HOLDERS` in `tree.mts` no
+  longer contains `RunIns` and `RunTrackChange` (they are the new `REVISION_HOLDERS`, which
+  `segmentsOf` treats by view), so the walk that finds comment markers and their offsets now
+  descends into a `w:ins` or `w:moveTo` explicitly — the accepted view, which is the view the
+  offsets are in.
+- **Deleting a content control is not tracked.** `ContentControl.delete()` removes the `w:sdt`
+  outright even while tracking is on: its content is not text, and Word records such a change
+  as the deletion of what the control held rather than of the control. Its `insertText`,
+  `insertParagraph` and `search` all run through the paragraph primitives and are tracked.
+- **`changeTrackingMode` reads and writes synchronously**, so on a loaded package whose
+  settings part has not been unmarshalled the getter reports `Off` until
+  `await pkg.getChangeTrackingMode()`, and the setter defers the `w:trackRevisions` write to
+  `saveTo` (it is applied there and then when the part is already unmarshalled, or absent).
+  This keeps the CR-001 rule that the settings part is unmarshalled only when the mode is
+  read or written. The async pair `getChangeTrackingMode()` / `setChangeTrackingMode()`
+  mirrors `body` / `getBody()`.
+- **`TrackMineOnly` is stored as `TrackAll`.** `w:trackRevisions` is a flag, so a file cannot
+  tell the two apart; a document that has it on reads back as `TrackAll`. The distinction
+  only matters once a second author edits the same package, which is Office JS's concern and
+  not this package's.
+- **An inserted paragraph carries its own mark.** Word, splitting a paragraph, marks the
+  *first* paragraph's mark as inserted and leaves the new paragraph the original mark;
+  `insertParagraph` marks the mark of the paragraph it added. The accepted and the rejected
+  document are the same either way, and the edit stays on the element that was added. The
+  one place it shows is rejecting an insertion at the end of a container, where there is no
+  paragraph after it to join with: `joinWithNext(paragraph, true)` then removes the paragraph
+  into the one before it instead.
+- **`Range.getText({ view: 'original' })` throws**, because a range's offsets are
+  accepted-view offsets; read the original view on the `Paragraph` or the `Body`. For the
+  same reason `search` has no `view` option: a `Range` it returned could not be edited.
+  A `Body`'s original view is text-level, not structural — a paragraph inserted whole still
+  contributes its (empty) line.
+- **`Body.text` still shows a paragraph whose mark is deleted** as its own line, since the
+  join only happens on accept. Word shows it the same way while the change is pending.
+- **A deleted row stays in the tree.** `Table.deleteRows`, `TableRow.delete` and
+  `Table.delete` mark rows rather than removing them while tracking is on, so `rowCount` and
+  `values` still report them until the change is accepted, exactly as Word shows them. That is
+  the one place where a tracked call's return value differs from the untracked one.
+- **`style` is set through `styleId`, and both record `w:pPrChange`.** The section 11
+  correction made `style` the display name over `styleId`; the tracking hook sits in the one
+  private `pPr()` accessor every paragraph-property setter goes through, so `style`,
+  `styleBuiltIn`, `styleId`, `alignment`, the indents, the spacing and `outlineLevel` all
+  record the original once, on the first write.
+- **`Body.clear()` marks everything deleted** while tracking is on (every row's `w:trPr` takes
+  a `w:del` and every paragraph is deleted), which is also what `insertText(text, 'Replace')`
+  does before adding its paragraph. Accepting that leaves the empty paragraph whose mark could
+  not join with a following one (the one before a table, say) — docx4j's
+  `AcceptTrackedChanges` leaves the same, since a mark only ever joins with the paragraph
+  after it.
+- **Editing deleted text is refused** by `ChangeTracker.assertEditable`, which throws naming
+  the author. In practice it is unreachable through the views, because the accepted text
+  model never surfaces a `w:del`; it guards the primitives for callers that build their own
+  segments. Deleting a paragraph whose mark is already deleted throws too.
+- **`acceptAll()` and `rejectAll()` are one pass in reverse document order**, not docx4j's
+  recursive rewrite: a paragraph join then never disturbs a change still to do. Unlike
+  docx4j's `AcceptTrackedChanges`, which is a conversion preprocessor and leaves formatting
+  revisions alone (the current properties are what the document shows), accepting here also
+  drops `w:rPrChange` and `w:pPrChange`, which is what accepting means for a document that
+  is saved again.
+
+Objects-package gaps found (candidates for its own CR, worked around here):
+
+- `w:rPrChange/w:rPr` is `CTRPrChange.RPr`, an untyped `egrPrBase` element list, while `w:rPr`
+  is `RPr` with named properties, and nothing converts between them. `rPrElements` and
+  `rPrFromElements` in `tracking.mts` do it by name through `el/org_docx4j_wml`, in the
+  schema's EG_RPrBase order. The w14 effects (`w14:glow`, `w14:shadow`, `w14:reflection`,
+  `w14:textOutline`, `w14:textFill`, `w14:scene3D`, `w14:props3D`, `w14:ligatures`,
+  `w14:numForm`, `w14:numSpacing`, `w14:stylisticSets`, `w14:cntxtAlts`) have no wrapper in
+  the wml `el` module and are dropped from a recorded original. A pair of helpers in the
+  objects package (`rPrToElements` / `rPrFromElements`, covering the w14 names) would remove
+  the copy here.
+- `runItemsOf` had to learn `accOrBarOrBox`, the name docx4j gives `w:moveFrom` and
+  `w:moveTo`'s run list (`RunTrackChange`), alongside `customXmlOrSmartTagOrSdt`. A
+  `runItemsOf` in `builders/wml` would belong there with `walk` and `textOf`.
+- `deepCopy` of a `w:pPr` into `w:pPrChange` needs the copy's `TYPE_NAME` changed to
+  `org_docx4j_wml.PPrBase`, or the marshaller writes `xsi:type="w:CT_PPr"` on it (valid but
+  not what Word writes). A `deepCopyAs(value, typeName)` would say this plainly.

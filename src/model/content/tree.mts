@@ -5,6 +5,29 @@ import { isElement, typeNameOf, type Element } from '@docx4j/generated-objects-t
 
 export { isElement, typeNameOf, walk, find, linkParents, textOf, W_NS, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
+/** The two views of a tracked document: as it will read once accepted, or as it read before the changes. */
+export type TextView = 'accepted' | 'original';
+
+export interface TextViewOptions {
+  /** 'accepted' (the default: w:ins included, w:del excluded) or 'original' (the other way). */
+  view?: TextView;
+}
+
+/** The four run-level revision holders (CR-002 phase F); their runs live under `customXmlOrSmartTagOrSdt`. */
+export type RevisionKind = 'ins' | 'del' | 'moveFrom' | 'moveTo';
+
+/** The run-level revision a run sits in. */
+export interface RevisionHolder {
+  kind: RevisionKind;
+  /** The `w:ins` / `w:del` / `w:moveFrom` / `w:moveTo` element pair. */
+  element: Element;
+  value: wml.CTTrackChange;
+  /** Its run items (the model's `customXmlOrSmartTagOrSdt`). */
+  items: Element[];
+  /** The array holding `element`. */
+  owner: Element[];
+}
+
 /** One text-bearing item of a run, with its position in the paragraph's text. */
 export interface TextSegment {
   /** The item: w:t, w:tab, w:br, ... */
@@ -22,24 +45,46 @@ export interface TextSegment {
   end: number;
   /** True for w:t: text that can be edited in place. */
   editable: boolean;
+  /**
+   * The nearest enclosing w:ins / w:del / w:moveFrom / w:moveTo, when the run is in one.
+   * A deletion of this run goes inside it (`runOwner` is already its item list); an insertion
+   * next to it goes beside it (`revision.owner`) unless the same author may extend it.
+   */
+  revision?: RevisionHolder;
 }
 
-/** Types whose value holds runs (directly or through sdtContent); w:del is not among them: deleted text is not the text. */
+/** Types whose value holds runs (directly or through sdtContent); the revision holders are separate. */
 const RUN_HOLDERS = new Set([
-  'org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.SdtRun', 'org_docx4j_wml.RunIns', 'org_docx4j_wml.CTSmartTagRun',
+  'org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.SdtRun', 'org_docx4j_wml.CTSmartTagRun',
   'org_docx4j_wml.CTCustomXmlRun', 'org_docx4j_wml.P.Dir', 'org_docx4j_wml.P.Bdo', 'org_docx4j_wml.CTSimpleField',
-  'org_docx4j_wml.RunTrackChange', 'org_docx4j_wml.CTSdtContentRun',
+  'org_docx4j_wml.CTSdtContentRun',
 ]);
+
+/** w:ins, w:del and the two w:move forms (w:moveFrom and w:moveTo share docx4j's RunTrackChange). */
+const REVISION_HOLDERS = new Set(['org_docx4j_wml.RunIns', 'org_docx4j_wml.RunDel', 'org_docx4j_wml.RunTrackChange']);
+
+/** The kind of a run-level revision element, by its name; undefined when it is not one. */
+export function revisionKindOf(el: Element): RevisionKind | undefined {
+  if (!REVISION_HOLDERS.has(typeNameOf(el) ?? '')) return undefined;
+  const name = el.name.localPart;
+  return name === 'ins' || name === 'del' || name === 'moveFrom' || name === 'moveTo' ? name : undefined;
+}
+
+/** True when this view shows the runs of a revision of that kind. */
+function shows(view: TextView, kind: RevisionKind): boolean {
+  return view === 'accepted' ? kind === 'ins' || kind === 'moveTo' : kind === 'del' || kind === 'moveFrom';
+}
 
 /**
  * The run-level items a holder keeps, by the model's own property names: `content` for most,
- * `customXmlOrSmartTagOrSdt` for w:ins, w:del, w:moveFrom and w:moveTo (docx4j's names for
- * the choice groups), `sdtContent.content` for a run-level content control.
+ * `customXmlOrSmartTagOrSdt` for w:ins and w:del, `accOrBarOrBox` for w:moveFrom and w:moveTo
+ * (docx4j's names for the choice groups), `sdtContent.content` for a run-level content control.
  */
 export function runItemsOf(value: object): Element[] | undefined {
-  const v = value as { content?: Element[]; customXmlOrSmartTagOrSdt?: Element[]; sdtContent?: { content?: Element[] } };
+  const v = value as { content?: Element[]; customXmlOrSmartTagOrSdt?: Element[]; accOrBarOrBox?: Element[]; sdtContent?: { content?: Element[] } };
   if (Array.isArray(v.content)) return v.content;
   if (Array.isArray(v.customXmlOrSmartTagOrSdt)) return v.customXmlOrSmartTagOrSdt;
+  if (Array.isArray(v.accOrBarOrBox)) return v.accOrBarOrBox;
   if (v.sdtContent) return runItemsOf(v.sdtContent);
   return undefined;
 }
@@ -48,7 +93,7 @@ function itemText(item: Element): string | undefined {
   const t = item.name.localPart;
   const v = item.value as Record<string, unknown>;
   switch (t) {
-    case 't': return String(v.value ?? '');
+    case 't': case 'delText': return String(v.value ?? '');
     case 'tab': return '\t';
     case 'br': return '\n';
     case 'cr': return '\n';
@@ -62,11 +107,16 @@ function itemText(item: Element): string | undefined {
   }
 }
 
-/** The text segments of a paragraph (or any run holder) in order. Deleted text (w:del) is skipped. */
-export function segmentsOf(container: object): TextSegment[] {
+/**
+ * The text segments of a paragraph (or any run holder) in order. The default view is the
+ * accepted one: the runs of a `w:ins` or `w:moveTo` count, those of a `w:del` or `w:moveFrom`
+ * do not. `{ view: 'original' }` is the other way round (CR-002 phase F).
+ */
+export function segmentsOf(container: object, options?: TextViewOptions): TextSegment[] {
+  const view = options?.view ?? 'accepted';
   const out: TextSegment[] = [];
   let pos = 0;
-  const visitRuns = (items: Element[] | undefined): void => {
+  const visitRuns = (items: Element[] | undefined, revision: RevisionHolder | undefined): void => {
     if (!items) return;
     for (let i = 0; i < items.length; i++) {
       const el = items[i]!;
@@ -78,26 +128,46 @@ export function segmentsOf(container: object): TextSegment[] {
           const item = content[j]!;
           const text = itemText(item);
           if (text === undefined) continue;
-          out.push({ item, owner: content, index: j, run, runOwner: items, runIndex: i, text, start: pos, end: pos + text.length, editable: item.name.localPart === 't' });
+          const seg: TextSegment = {
+            item, owner: content, index: j, run, runOwner: items, runIndex: i, text,
+            start: pos, end: pos + text.length, editable: item.name.localPart === 't',
+          };
+          if (revision) seg.revision = revision;
+          out.push(seg);
           pos += text.length;
         }
+        continue;
+      }
+      const kind = revisionKindOf(el);
+      if (kind !== undefined) {
+        if (!shows(view, kind)) continue;
+        const nested = runItemsOf(el.value as object);
+        if (nested) visitRuns(nested, { kind, element: el, value: el.value as wml.CTTrackChange, items: nested, owner: items });
       } else if (tn !== undefined && RUN_HOLDERS.has(tn)) {
-        visitRuns(runItemsOf(el.value as object));
+        visitRuns(runItemsOf(el.value as object), revision);
       }
     }
   };
-  visitRuns(runItemsOf(container));
+  visitRuns(runItemsOf(container), undefined);
   return out;
 }
 
+/** The text of a paragraph or container in one of the two views (`textOf` is the accepted one). */
+export function textOfView(container: object, options?: TextViewOptions): string {
+  return segmentsOf(container, options).map((s) => s.text).join('');
+}
+
 /** The runs of a paragraph, direct and nested in hyperlinks, content controls and insertions, in order. */
-export function runsOf(container: object): Element<wml.R>[] {
+export function runsOf(container: object, options?: TextViewOptions): Element<wml.R>[] {
+  const view = options?.view ?? 'accepted';
   const out: Element<wml.R>[] = [];
   const visit = (items: Element[] | undefined): void => {
     if (!items) return;
     for (const el of items) {
       const tn = typeNameOf(el);
-      if (tn === 'org_docx4j_wml.R') out.push(el as Element<wml.R>);
+      if (tn === 'org_docx4j_wml.R') { out.push(el as Element<wml.R>); continue; }
+      const kind = revisionKindOf(el);
+      if (kind !== undefined) { if (shows(view, kind)) visit(runItemsOf(el.value as object)); }
       else if (tn !== undefined && RUN_HOLDERS.has(tn)) visit(runItemsOf(el.value as object));
     }
   };

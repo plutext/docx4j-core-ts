@@ -4,9 +4,20 @@
 // need. Note (objects CR-002): a run-level w:sdt parsed at body level comes back as SdtBlock, so
 // the form is decided by what the content holds as well as by the type.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as w14 from '@docx4j/generated-objects-ts/modules/org_docx4j_w14';
+import type * as w15 from '@docx4j/generated-objects-ts/modules/org_docx4j_w15';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
+import * as w15el from '@docx4j/generated-objects-ts/el/org_docx4j_w15';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { marshalString } from '@docx4j/generated-objects-ts';
+import { marshalString, deepCopy } from '@docx4j/generated-objects-ts';
+// CR-002 phase E: the mapping and the typed kinds live in src/model/customxml/; they import
+// nothing from here at run time (types only), so this direction is the only one.
+import { XmlMapping, type CustomXmlPartLookup } from '../customxml/XmlMapping.mjs';
+import {
+  CheckboxContentControl, DatePickerContentControl, ListContentControl, PictureContentControl,
+  RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
+} from '../customxml/kinds.mjs';
+import { runsForValue, updateFromControl, PLACEHOLDER_TEXT } from '../customxml/bindings.mjs';
 import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, SDT_TYPES } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -29,6 +40,13 @@ const TYPE_BY_ELEMENT: Readonly<Record<string, ContentControlType>> = {
 
 /** Which of the four w:sdt forms a control is. */
 export type ContentControlForm = 'Block' | 'Run' | 'Row' | 'Cell';
+
+/** Office JS `Word.ContentControlAppearance` (w15:appearance). */
+export type ContentControlAppearance = 'BoundingBox' | 'Tags' | 'Hidden';
+
+/** The namespaces of the Word 2010 and 2012 content-control properties. */
+export const W14_NS = 'http://schemas.microsoft.com/office/word/2010/wordml';
+export const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
 
 /** A subset of Office JS `Word.ContentControl` over a `w:sdt`. A view, as Paragraph is. */
 export class ContentControl {
@@ -130,8 +148,20 @@ export class ContentControl {
     return out;
   }
 
-  /** Text at the start, the end, or replacing the control's text. */
+  /**
+   * Text at the start, the end, or replacing the control's text. On a **bound** control the value
+   * is written through to the custom XML node as well when the mapping resolves (CR-002 phase E):
+   * Word refreshes a bound control from the custom XML part when it opens the document, so an edit
+   * that only touched `w:sdtContent` would not show. When the XPath engine is not warm yet the
+   * write is left to `pkg.customXmlParts.updateFromContentControls()`.
+   */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
+    const range = this.insertTextInto(text, location);
+    this.syncBoundNode();
+    return range;
+  }
+
+  private insertTextInto(text: string, location: 'Start' | 'End' | 'Replace'): Range {
     const form = this.form;
     if ((form === 'Row' || form === 'Cell') && location === 'Replace') {
       throw new Docx4JException(`A ${form.toLowerCase()}-level content control holds ${form === 'Row' ? 'rows' : 'cells'}; replace the text of its cells instead`);
@@ -262,6 +292,244 @@ export class ContentControl {
     return { paragraph, start, end };
   }
 
+  // --- CR-002 phase E: the XML mapping, the typed kinds and the w:sdtPr properties ---
+
+  /** The control's data binding (Office JS `xmlMapping`), backed by `w:dataBinding`. */
+  get xmlMapping(): XmlMapping {
+    const pkg = this.parentBody.package_ as { customXmlParts?: CustomXmlPartLookup } | undefined;
+    return new XmlMapping(this, pkg?.customXmlParts);
+  }
+
+  /**
+   * The placeholder Word shows for an empty control: the control's own text while it is showing
+   * the placeholder (`w:showingPlcHdr`), else '' — Word keeps the text itself in a glossary
+   * document part, which this phase does not create (CR-002 section 12). Setting writes the text
+   * as the control's content and sets `w:showingPlcHdr`, which is refused when the control holds
+   * content of its own, so that a value is never lost.
+   */
+  get placeholderText(): string {
+    return this.isShowingPlaceholder ? this.text : '';
+  }
+  set placeholderText(text: string) {
+    if (!this.isShowingPlaceholder && this.text !== '') {
+      throw new Docx4JException('This content control holds content; clear it before setting its placeholder text');
+    }
+    this.setBoundContent(runsForValue('', this.runProperties, false), true);
+    if (text !== '' && text !== PLACEHOLDER_TEXT) {
+      const run = this.firstRunOfContent();
+      const t = run?.content?.[0] as { value?: wml.Text } | undefined;
+      if (t?.value) t.value.value = text;
+    }
+  }
+
+  /** Office JS `appearance`: how Word draws the control (`w15:appearance`). */
+  get appearance(): ContentControlAppearance {
+    const val = (this.findProperty('appearance', W15_NS)?.value as { val?: string } | undefined)?.val;
+    return val === 'tags' ? 'Tags' : val === 'hidden' ? 'Hidden' : 'BoundingBox';
+  }
+  set appearance(value: ContentControlAppearance) {
+    const val = value === 'Tags' ? 'tags' : value === 'Hidden' ? 'hidden' : 'boundingBox';
+    this.putProperty(w15el.appearance({ val }) as Element);
+  }
+
+  /** Office JS `color`: the control's colour as '#RRGGBB' (`w15:color`). */
+  get color(): string {
+    const val = (this.findProperty('color')?.value as { val?: string } | undefined)?.val;
+    return val === undefined || val === 'auto' ? '' : `#${val.replace(/^#/, '')}`;
+  }
+  set color(value: string) {
+    if (value === '') { this.removeProperty('color'); return; }
+    this.putProperty(w15el.color({ val: value.replace(/^#/, '').toUpperCase() }) as Element);
+  }
+
+  /** Office JS `cannotDelete`: `w:lock` sdtLocked or sdtContentLocked. */
+  get cannotDelete(): boolean {
+    const val = this.lockValue();
+    return val === 'sdtLocked' || val === 'sdtContentLocked';
+  }
+  set cannotDelete(value: boolean) {
+    this.setLock(value, this.cannotEdit);
+  }
+
+  /** Office JS `cannotEdit`: `w:lock` contentLocked or sdtContentLocked. */
+  get cannotEdit(): boolean {
+    const val = this.lockValue();
+    return val === 'contentLocked' || val === 'sdtContentLocked';
+  }
+  set cannotEdit(value: boolean) {
+    this.setLock(this.cannotDelete, value);
+  }
+
+  /** Office JS `removeWhenEdited`: `w:temporary`, the control Word drops once it is filled in. */
+  get removeWhenEdited(): boolean {
+    const item = this.findProperty('temporary');
+    return item !== undefined && (item.value as wml.BooleanDefaultTrue | undefined)?.val !== false;
+  }
+  set removeWhenEdited(value: boolean) {
+    if (!value) { this.removeProperty('temporary'); return; }
+    this.putProperty(el.temporary({ val: true }) as Element);
+  }
+
+  /** The checkbox view, for a `w14:checkbox` control; undefined for every other kind, as Office JS. */
+  get checkboxContentControl(): CheckboxContentControl | undefined {
+    const value = this.findProperty('checkbox', W14_NS)?.value as w14.CTSdtCheckbox | undefined;
+    return value ? new CheckboxContentControl(this, value) : undefined;
+  }
+
+  /** The date view, for a `w:date` control. */
+  get datePickerContentControl(): DatePickerContentControl | undefined {
+    const value = this.findProperty('date')?.value as wml.CTSdtDate | undefined;
+    return value ? new DatePickerContentControl(value) : undefined;
+  }
+
+  /** The list view, for a `w:dropDownList` control. */
+  get dropDownListContentControl(): ListContentControl | undefined {
+    const value = this.findProperty('dropDownList')?.value as wml.CTSdtDropDownList | undefined;
+    return value ? new ListContentControl(value) : undefined;
+  }
+
+  /** The list view, for a `w:comboBox` control. */
+  get comboBoxContentControl(): ListContentControl | undefined {
+    const value = this.findProperty('comboBox')?.value as wml.CTSdtComboBox | undefined;
+    return value ? new ListContentControl(value) : undefined;
+  }
+
+  /** The picture view, for a `w:picture` control. */
+  get pictureContentControl(): PictureContentControl | undefined {
+    return this.findProperty('picture') ? new PictureContentControl(this) : undefined;
+  }
+
+  /** The repeating-section view, for a `w15:repeatingSection` control. */
+  get repeatingSectionContentControl(): RepeatingSectionContentControl | undefined {
+    const value = this.findProperty('repeatingSection', W15_NS)?.value as w15.CTSdtRepeatedSection | undefined;
+    return value ? new RepeatingSectionContentControl(this, value) : undefined;
+  }
+
+  /** The group view, for a `w:group` control (Office JS: an object with no members of its own). */
+  get groupContentControl(): GroupContentControl | undefined {
+    return this.findProperty('group') ? new GroupContentControl() : undefined;
+  }
+
+  /** The `w:sdtPr` child of that name (and namespace, when given), as an element pair (extension). */
+  findProperty(localPart: string, namespaceURI?: string): Element | undefined {
+    return this.sdt.sdtPr?.rPrOrAliasOrLock?.find(
+      (item) => item.name.localPart === localPart && (namespaceURI === undefined || item.name.namespaceURI === namespaceURI),
+    ) as Element | undefined;
+  }
+
+  /** Adds or replaces a `w:sdtPr` child (extension). */
+  putProperty(element: Element): void {
+    const sdt = this.sdt as { sdtPr?: wml.SdtPr };
+    sdt.sdtPr ??= {};
+    const items = (sdt.sdtPr.rPrOrAliasOrLock ??= []);
+    const at = items.findIndex((i) => i.name.localPart === element.name.localPart && i.name.namespaceURI === element.name.namespaceURI);
+    if (at >= 0) items[at] = element as never; else items.push(element as never);
+  }
+
+  /** Removes a `w:sdtPr` child (extension). */
+  removeProperty(localPart: string, namespaceURI?: string): void {
+    const items = this.sdt.sdtPr?.rPrOrAliasOrLock;
+    if (!items) return;
+    const at = items.findIndex((i) => i.name.localPart === localPart && (namespaceURI === undefined || i.name.namespaceURI === namespaceURI));
+    if (at >= 0) items.splice(at, 1);
+  }
+
+  /** The run properties `w:sdtPr/w:rPr` a bound value is written with (docx4j does the same). */
+  get runProperties(): wml.RPr | undefined {
+    return this.findProperty('rPr')?.value as wml.RPr | undefined;
+  }
+
+  /** Whether a plain-text control accepts several lines (`w:text/@w:multiLine`). */
+  get isMultiLine(): boolean {
+    return (this.findProperty('text')?.value as wml.CTSdtText | undefined)?.multiLine === true;
+  }
+
+  /** Whether the control is showing its placeholder rather than a value (`w:showingPlcHdr`). */
+  get isShowingPlaceholder(): boolean {
+    const item = this.findProperty('showingPlcHdr');
+    return item !== undefined && (item.value as wml.BooleanDefaultTrue | undefined)?.val !== false;
+  }
+  set isShowingPlaceholder(value: boolean) {
+    if (!value) { this.removeProperty('showingPlcHdr'); return; }
+    this.putProperty(el.showingPlcHdr({ val: true }) as Element);
+  }
+
+  /**
+   * Replaces what the control shows with these runs (docx4j BindingHandler's applyBoundContent):
+   * into the first paragraph of a block, row or cell control, keeping its `w:pPr`, and in place of
+   * the runs of a run-level one.
+   */
+  setBoundContent(runs: Element[], showingPlaceholder = false): void {
+    const sdt = this.sdt;
+    sdt.sdtContent ??= {};
+    const content = ((sdt.sdtContent as { content?: Element[] }).content ??= []);
+    const first = content.find((e) => typeNameOf(e) !== undefined);
+    if (this.form === 'Run' || (first && typeNameOf(first) === 'org_docx4j_wml.R')) {
+      content.length = 0;
+      content.push(...runs);
+      linkParents(content, sdt.sdtContent as object);
+    } else {
+      const paragraph = this.paragraphs[0];
+      if (paragraph) {
+        paragraph.p.content = runs as wml.P['content'];
+        linkParents(paragraph.p.content, paragraph.p);
+      } else {
+        const p = paragraphElementOf(runs);
+        content.push(p);
+        linkParents(p, sdt.sdtContent as object);
+      }
+    }
+    this.isShowingPlaceholder = showingPlaceholder;
+  }
+
+  /** Shows a checkbox's glyph, as Word writes it: one run in the checkbox font (docx4j checkboxRun). */
+  setCheckboxGlyph(symbol: string): void {
+    const checkbox = this.checkboxContentControl;
+    this.setBoundContent([checkboxRun(symbol, checkbox?.font ?? CHECKBOX_FONT, this.runProperties)]);
+  }
+
+  /** A copy of this control right after it, as Word's repeating-section + button does (extension). */
+  insertCopyAfter(): ContentControl {
+    const at = this.container.indexOf(this.element as Element);
+    if (at < 0) throw new Docx4JException('This content control is not in its container any more');
+    const copy: Element = { name: this.element.name, value: deepCopy(this.element.value) as never };
+    this.container.splice(at + 1, 0, copy);
+    linkParents(copy, ownerOf(this.container, this.parentBody));
+    return new ContentControl(copy as Element<wml.SdtBlock>, this.container, this.parentBody);
+  }
+
+  /**
+   * Writes the control's text into the node it is bound to, when there is one and the XPath engine
+   * is warm. Silent when it is not: reading a custom XML part is `pkg.customXmlParts.load()`'s job,
+   * and `updateFromContentControls()` is the explicit form of this write.
+   */
+  private syncBoundNode(): void {
+    try {
+      if (this.xmlMapping.isMapped) updateFromControl(this);
+    } catch {
+      // the part is not parsed, or the engine is not ready: leave it to updateFromContentControls()
+    }
+  }
+
+  private firstRunOfContent(): wml.R | undefined {
+    const runs = this.form === 'Run' ? runItemsOf(this.sdt.sdtContent ?? {}) ?? [] : this.paragraphs[0]?.runs ?? [];
+    for (const item of runs) if (typeNameOf(item) === 'org_docx4j_wml.R') return item.value as wml.R;
+    return undefined;
+  }
+
+  private lockValue(): string | undefined {
+    return (this.findProperty('lock')?.value as wml.CTLock | undefined)?.val;
+  }
+
+  private setLock(cannotDelete: boolean, cannotEdit: boolean): void {
+    const val: wml.STLock | undefined = cannotDelete && cannotEdit ? 'sdtContentLocked'
+      : cannotDelete ? 'sdtLocked'
+      : cannotEdit ? 'contentLocked'
+      : undefined;
+    if (val === undefined) { this.removeProperty('lock'); return; }
+    this.putProperty(el.lock({ val }) as Element);
+  }
+
   /** The table a row-level or cell-level control belongs to. */
   private ancestorTable(): Table | undefined {
     let current: object | undefined = (this.element.value as { PARENT?: object }).PARENT;
@@ -351,6 +619,11 @@ export function collectRunControls(holder: object, body: Body, out: ContentContr
 
 function paragraphElement(text: string): Element {
   return el.p({ content: text === '' ? [] : [el.r({ content: [el.t({ value: text })] })] }) as Element;
+}
+
+/** A `w:p` holding these run-level items (CR-002 phase E: the bound content of an empty control). */
+function paragraphElementOf(runs: Element[]): Element {
+  return el.p({ content: runs as never }) as Element;
 }
 
 function ownerOf(container: Element[], body: Body): object {

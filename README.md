@@ -12,6 +12,7 @@ Status: the Open Packaging layer, the typed parts and the packages (Phase A of
 
 ```
 npm install @docx4j/core-ts
+npm install xpath        # optional, Node only: XPath over custom XML parts (browsers use document.evaluate)
 ```
 
 ```ts
@@ -85,6 +86,36 @@ p?.insertParagraph('Inserted after the fourth block', 'After');
 Docx4j's names are there as aliases (`addParagraphOfText`, `addStyledParagraphOfText`,
 `addObject`, `getContent`), and the tree stays reachable: `paragraph.p` is the `P`,
 `body.content` the live array.
+
+### Change tracking
+
+`pkg.changeTrackingMode` is Office JS's `document.changeTrackingMode`, backed by
+`w:trackRevisions` in the settings part. While it is on, every edit made through the content
+API writes Word's revision markup instead of changing the tree in place: an insertion becomes
+`w:ins`, a deletion `w:del` with `w:delText`, a replacement a `w:del` followed by a `w:ins`, a
+new paragraph's mark `w:pPr/w:rPr/w:ins`, a deleted one `w:pPr/w:rPr/w:del`, and a formatting
+change keeps what was there in `w:rPrChange` or `w:pPrChange`. The author is `pkg.author` and
+the date `pkg.trackedChangeDate` (now, unless you fix one).
+
+```ts
+pkg.author = { name: 'Ada Lovelace' };      // the same author phase G's comments use
+pkg.changeTrackingMode = 'TrackAll';           // await pkg.setChangeTrackingMode(...) on a loaded package
+body.search('quick brown fox')[0].insertText('slow red fox', 'Replace');
+body.replaceText('colour', 'color');           // returns the number replaced, tracked like any other edit
+
+body.text;                                     // the accepted view: w:ins in, w:del out
+body.getText({ view: 'original' });            // the other way round
+
+for (const change of body.getTrackedChanges()) {
+  change.type;        // 'Added' | 'Deleted' | 'Formatted'
+  change.author; change.date; change.text;
+  change.getRange();  // where it is
+}
+body.acceptAll();     // or rejectAll(), or accept()/reject() one at a time
+```
+
+`getTrackedChanges()` is also on `Paragraph` and `Range`. Text and searches read the accepted
+view throughout, so an agent sees the document as it will read once the changes are taken.
 
 ### Comments
 
@@ -175,9 +206,61 @@ body.contentControls[0].insertText('Jane Doe', 'Replace');
 body.contentControls[1].delete(true);       // unwrap, keeping what it held
 ```
 
-Custom XML parts, XML mapping, typed content controls and `insertContentControl` are phase E of
-[CR-002](docs/change-requests/CR-002-content-api.md); effective formatting (styles resolved, as
-Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.md) Phase B.
+Effective formatting (styles resolved, as Office JS reports it) comes with
+[CR-001](docs/change-requests/CR-001-engine.md) Phase B.
+
+### Custom XML and content controls
+
+`pkg.customXmlParts` is Office JS's `CustomXmlPartCollection` over the custom XML data storage
+parts, with XPath 1.0 over their DOM: `document.evaluate` in a browser or a Word add-in, the
+optional peer dependency [`xpath`](https://www.npmjs.com/package/xpath) in Node (`npm install
+xpath`; `pkg.xpathEngine` takes any other engine). One `await` warms it, and the node model is
+synchronous from then on:
+
+```ts
+const parts = await pkg.customXmlParts.load();        // parses the DOMs, warms the XPath engine
+const data = pkg.customXmlParts.getItem('{8B049945-9DFE-4726-9DE9-CF5691E53858}');
+data.selectSingleNode('/invoice/customer/name').text;         // 'Joe Bloggs'
+data.selectNodes('/invoice/items/item').map((n) => n.text);
+data.documentElement.appendChildNode('<note>paid</note>');
+```
+
+A content control's `xmlMapping` is its `w:dataBinding`, and the two directions are docx4j's,
+under docx4j's names:
+
+```ts
+const control = (await pkg.getBody()).contentControls[0];
+control.xmlMapping.isMapped;                          // true
+control.xmlMapping.xpath;                             // '/invoice[1]/customer[1]/name[1]'
+control.xmlMapping.customXmlNode.text;                // 'Joe Bloggs'
+
+await pkg.customXmlParts.applyBindings();             // docx4j BindingHandler: XML -> controls
+control.insertText('Jane Doe', 'Replace');            // writes through to the bound node as well
+await pkg.customXmlParts.updateFromContentControls(); // docx4j: controls -> XML
+```
+
+That last pair matters: Word refreshes a bound control from the custom XML part when it opens a
+document, so an edit that only touched `w:sdtContent` would not show.
+
+A new part comes with its properties part, a fresh `ds:itemID` and the relationship from the main
+document part (Word drops a custom XML part the main part does not relate to):
+
+```ts
+const part = pkg.customXmlParts.add('<greeting xmlns="http://example.com/g"><to>World</to></greeting>');
+control.xmlMapping.setMapping('/ns0:greeting[1]/ns0:to[1]', "xmlns:ns0='http://example.com/g'", part);
+control.xmlMapping.setMappingByNode(part.selectSingleNode('/ns0:greeting/ns0:to', "xmlns:ns0='http://example.com/g'"));
+```
+
+Controls are created by wrapping what is there, and the kind-specific views are Office JS's:
+
+```ts
+const control = paragraph.insertContentControl('CheckBox');   // also on body and range
+control.checkboxContentControl.isChecked = true;              // shows ☒, as Word does
+control.title = 'Applies';  control.appearance = 'Tags';  control.cannotDelete = true;
+
+const list = body.paragraphs[1].insertContentControl('DropDownList').dropDownListContentControl;
+list.addListItem('Apples', 'apples');
+```
 
 ### Use in Node: running add-in code against a package
 
@@ -228,8 +311,7 @@ await toApiScript(body.paragraphs[1]);
 // r1.font.italic = true;
 ```
 
-Tables, pictures, `insertOoxml` from a `pkg:package`, custom XML parts, XML mapping and typed
-content controls are the next phases of
+Custom XML parts, XML mapping, typed content controls and lists are the phases still to come of
 [CR-002](docs/change-requests/CR-002-content-api.md); effective formatting (styles resolved,
 as Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.md) Phase B.
 

@@ -2,23 +2,26 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, typeNameOf, W_NS, runOf, paragraphOf, type TextSegment } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, type TextSegment, type TextViewOptions } from './tree.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
   if (rPr) run.value.rPr = rPr;
   return run;
 }
-import { Font } from './Font.mjs';
+import { Font, type FontTracking } from './Font.mjs';
 import { Range } from './Range.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
-import { type ContentControl, collectRunControls } from './ContentControl.mjs';
+import { ContentControl, collectRunControls, type ContentControlType } from './ContentControl.mjs';
+import { sdtBlockFor, nextControlId, checkKind } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
+import { type ChangeTracker, copyRPr, markDeleted, toDeletedText } from './tracking.mjs';
+import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 
 /** Office JS Word.Alignment. */
 export type Alignment = 'Unknown' | 'Left' | 'Centered' | 'Right' | 'Justified';
@@ -57,9 +60,18 @@ export class Paragraph {
 
   /** Replaces the content with one run of the text, keeping the first run's formatting. */
   set text(value: string) {
+    if (this.changeTracker) { this.splice(0, this.text.length, value); return; }
     const rPr = runsOf(this.p)[0]?.value.rPr;
     this.p.content = [withRPr(textRun(value), rPr ? deepCopy(rPr) : undefined)] as wml.P['content'];
     linkParents(this.p.content, this.p);
+  }
+
+  /**
+   * The text in one of the two views (extension; `text` is the accepted one). `{ view: 'original' }`
+   * reads the document as it was before the tracked changes: `w:del` included, `w:ins` excluded.
+   */
+  getText(options?: TextViewOptions): string {
+    return options?.view === 'original' ? textOfView(this.p, options) : this.text;
   }
 
   /** The style id (w:pStyle; docx4j's name for it); 'Normal' when none is set. Extension: Office JS has `style` and `styleBuiltIn` only. */
@@ -67,8 +79,10 @@ export class Paragraph {
     return this.p.pPr?.pStyle?.val ?? 'Normal';
   }
   set styleId(id: string) {
-    if (id === '' || id === 'Normal') { if (this.p.pPr) delete this.p.pPr.pStyle; return; }
-    this.pPr().pStyle = { val: id };
+    // through pPr(), so that a tracked write records w:pPrChange first (CR-002 phase F)
+    const pPr = this.pPr();
+    if (id === '' || id === 'Normal') { delete pPr.pStyle; return; }
+    pPr.pStyle = { val: id };
   }
 
   /**
@@ -101,9 +115,10 @@ export class Paragraph {
     }
   }
   set alignment(v: Alignment) {
+    const pPr = this.pPr();
     const val: wml.JcEnumeration | undefined = v === 'Left' ? 'left' : v === 'Centered' ? 'center' : v === 'Right' ? 'right' : v === 'Justified' ? 'both' : undefined;
-    if (val === undefined) { if (this.p.pPr) delete this.p.pPr.jc; return; }
-    this.pPr().jc = { val };
+    if (val === undefined) { delete pPr.jc; return; }
+    pPr.jc = { val };
   }
 
   /** Indents and spacing in points, as Office JS; 0 when not set directly. */
@@ -134,11 +149,11 @@ export class Paragraph {
   set lineSpacing(pt: number) { const s = this.spacing(); s.line = Math.round(pt * TWIPS_PER_POINT); s.lineRule = 'exact'; }
   /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. */
   get outlineLevel(): number { const l = this.p.pPr?.outlineLvl?.val; return l === undefined ? 10 : l + 1; }
-  set outlineLevel(level: number) { if (level >= 10 || level < 1) { if (this.p.pPr) delete this.p.pPr.outlineLvl; } else this.pPr().outlineLvl = { val: level - 1 }; }
+  set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; }
 
   /** Direct formatting of the runs: reads the first run, writes all (extension: `Font` is over runs, not the paragraph mark). */
   get font(): Font {
-    return new Font(() => runsOf(this.p).map((r) => r.value));
+    return new Font(() => runsOf(this.p).map((r) => r.value), () => this.fontTracking());
   }
 
   /** w14:paraId, the stable address Word gives paragraphs. */
@@ -192,7 +207,7 @@ export class Paragraph {
   /** A new paragraph of the text before or after this one, with this paragraph's properties (as Word). */
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
     const pPr = this.p.pPr ? deepCopy(this.p.pPr) : undefined;
-    if (pPr) { delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; }
+    if (pPr) { delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; delete pPr.pPrChange; }
     const el = paragraphOf(text === '' ? [] : [textRun(text)], pPr);
     return this.parentBody.insertElement(el, location, this) as Paragraph;
   }
@@ -201,14 +216,19 @@ export class Paragraph {
     const brk = breakItem(type === 'Page' ? 'page' : undefined);
     if (location === 'Before' || location === 'After') {
       const p = this.insertParagraph('', location);
-      p.p.content!.push(runOf([brk]) as never);
-      linkParents(p.p.content, p.p);
+      const run = runOf([brk]);
+      const tracker = p.changeTracker;
+      const item = tracker ? tracker.ins([run]) : run;
+      p.p.content!.push(item as never);
+      linkParents(item, p.p);
       return;
     }
     const run = runOf([brk]);
+    const tracker = this.changeTracker;
+    const item = tracker ? tracker.ins([run]) : run;
     const content = (this.p.content ??= []);
-    if (location === 'Start') content.unshift(run as never); else content.push(run as never);
-    linkParents(run, this.p);
+    if (location === 'Start') content.unshift(item as never); else content.push(item as never);
+    linkParents(item, this.p);
   }
 
   /**
@@ -258,6 +278,22 @@ export class Paragraph {
     return findAll(this.text, searchPattern(text, options)).map(([s, e]) => new Range(this, s, e));
   }
 
+  /**
+   * Replaces every match of `find` with `replace`, last match first so that the offsets of the
+   * ones still to do stay valid (CR-002 section 3.7). Returns the number replaced; tracked when
+   * the package's `changeTrackingMode` is on.
+   */
+  replaceText(find: string, replace: string, options?: SearchOptions): number {
+    const matches = this.search(find, options);
+    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    return matches.length;
+  }
+
+  /** The tracked changes in this paragraph, in document order (CR-002 phase F). */
+  getTrackedChanges(): TrackedChange[] {
+    return trackedChangesOfParagraph(this);
+  }
+
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     const length = this.text.length;
     if (location === 'Start') return new Range(this, 0, 0);
@@ -265,10 +301,30 @@ export class Paragraph {
     return new Range(this, 0, length);
   }
 
-  /** Removes the paragraph from its container. */
+  /**
+   * Removes the paragraph from its container. While the package tracks changes, the content
+   * becomes a `w:del` and the mark is marked deleted (`w:pPr/w:rPr/w:del`) instead, unless the
+   * whole paragraph was this author's own insertion, which Word simply takes back.
+   */
   delete(): void {
+    const tracker = this.changeTracker;
+    if (tracker) { this.trackedDelete(tracker); return; }
     const i = this.index;
     if (i >= 0) this.container.splice(i, 1);
+  }
+
+  private trackedDelete(tracker: ChangeTracker): void {
+    if (markDeleted(this.p)) throw new Docx4JException('This paragraph is already marked deleted');
+    const length = this.text.length;
+    if (length > 0) this.deleteText(tracker, 0, length);
+    const rPr = this.p.pPr?.rPr;
+    const ownMark = rPr?.ins !== undefined && rPr.ins.author === tracker.author;
+    if (ownMark && (this.p.content ?? []).length === 0) {
+      const i = this.index;
+      if (i >= 0) this.container.splice(i, 1);
+      return;
+    }
+    tracker.markParagraphDeleted(this.p);
   }
 
   /** The paragraph as XML (extension; Office JS getOoxml wraps it in a package). */
@@ -285,8 +341,16 @@ export class Paragraph {
 
   // --- editing primitives, shared with Range ---
 
+  /**
+   * The paragraph's properties, created when absent. Every property setter goes through this
+   * one accessor, so this is where a tracked write records `w:pPrChange` with the properties as
+   * they stand before it.
+   */
   private pPr(): wml.PPr {
-    return (this.p.pPr ??= { TYPE_NAME: 'org_docx4j_wml.PPr' });
+    const pPr = (this.p.pPr ??= { TYPE_NAME: 'org_docx4j_wml.PPr' });
+    linkParents(pPr, this.p);
+    this.changeTracker?.recordPPrChange(pPr);
+    return pPr;
   }
   private ind(): wml.PPrBase.Ind {
     return (this.pPr().ind ??= {});
@@ -295,9 +359,23 @@ export class Paragraph {
     return (this.pPr().spacing ??= {});
   }
 
+  /** The package's change tracker while `changeTrackingMode` is on; undefined when it is off. */
+  get changeTracker(): ChangeTracker | undefined {
+    return this.parentBody.changeTracker;
+  }
+
+  /** What `Font` needs to write `w:rPrChange`: the tracker, and the runs that are our own insertion (`Range` shares it). */
+  fontTracking(): FontTracking | undefined {
+    const tracker = this.changeTracker;
+    if (!tracker) return undefined;
+    const ownInsertions = new Set<object>();
+    for (const seg of this.segments()) if (tracker.ownInsertion(seg.revision)) ownInsertions.add(seg.run);
+    return { tracker, ownInsertions };
+  }
+
   /** The text segments (w:t, w:tab, ...) with their offsets. */
-  segments(): TextSegment[] {
-    return segmentsOf(this.p);
+  segments(options?: TextViewOptions): TextSegment[] {
+    return segmentsOf(this.p, options);
   }
 
   /**
@@ -310,6 +388,13 @@ export class Paragraph {
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
+    const tracker = this.changeTracker;
+    if (tracker) {
+      // a replacement is the w:del first and the w:ins after it, as Word writes one
+      const deletions = end > start ? this.deleteText(tracker, start, end) : [];
+      if (text.length > 0) this.insertTracked(tracker, start, text, deletions[deletions.length - 1]);
+      return new Range(this, start, start + text.length);
+    }
     let segs = this.segments();
     let inserted = false;
     if (end > start) {
@@ -415,6 +500,23 @@ export class Paragraph {
     return commentApi().insertComment(this.getRange(), text);
   }
 
+  // --- content controls (CR-002 phase E) ---
+
+  /**
+   * Wraps this paragraph in a new block-level content control (Office JS
+   * `Paragraph.insertContentControl`), typed for the kind when one is given. The `w:id` is free in
+   * the body. Returns the control.
+   */
+  insertContentControl(kind?: ContentControlType): ContentControl {
+    checkKind(kind, 'Block');
+    const at = this.index;
+    if (at < 0) throw new Docx4JException('This paragraph is not in its container any more');
+    const sdt = sdtBlockFor([this.element as Element], kind, nextControlId(this.parentBody.container));
+    this.container.splice(at, 1, sdt as Element);
+    linkParents(sdt, (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container);
+    return new ContentControl(sdt, this.container, this.parentBody);
+  }
+
   private removeEmptyRuns(): void {
     const prune = (items: Element[]): void => {
       for (let i = items.length - 1; i >= 0; i--) {
@@ -424,12 +526,168 @@ export class Paragraph {
           if (!v.content || v.content.length === 0) items.splice(i, 1);
         } else if (v.TYPE_NAME !== 'org_docx4j_wml.P') {
           const nested = runItemsOf(v);
-          if (nested) prune(nested);
+          if (nested) {
+            prune(nested);
+            // a revision left with nothing in it goes too
+            if (nested.length === 0 && revisionKindOf(el) !== undefined) items.splice(i, 1);
+          }
         }
       }
     };
     prune(this.p.content ?? []);
   }
+
+  // --- tracked editing (CR-002 phase F) ---------------------------------------------------
+
+  /**
+   * The text in [start, end) becomes a deletion: the runs holding it are isolated, their `w:t`
+   * turned into `w:delText`, and each run of consecutive ones moved into one `w:del`. Text this
+   * author had inserted is simply removed, as Word does, rather than nested in a `w:del`.
+   * Returns the `w:del` elements it made, in document order.
+   */
+  private deleteText(tracker: ChangeTracker, start: number, end: number): Anchor[] {
+    const targets = this.isolate(start, end);
+    for (const seg of targets) tracker.assertEditable(seg.revision);
+    type Target = { run: Element; owner: Element[]; own: boolean; revision?: RevisionHolderOf };
+    const list: Target[] = [];
+    for (const seg of targets) {
+      const run = seg.runOwner[seg.runIndex]!;
+      if (list.length > 0 && list[list.length - 1]!.run === run) continue;
+      const target: Target = { run, owner: seg.runOwner, own: tracker.ownInsertion(seg.revision) };
+      if (seg.revision) target.revision = seg.revision;
+      list.push(target);
+    }
+    // groups of consecutive runs in the same array, so that one w:del holds them all
+    const groups: Target[][] = [];
+    for (const t of list) {
+      const last = groups[groups.length - 1];
+      const previous = last?.[last.length - 1];
+      if (last && previous && previous.own === t.own && previous.owner === t.owner
+        && t.owner.indexOf(t.run) === t.owner.indexOf(previous.run) + 1) last.push(t);
+      else groups.push([t]);
+    }
+    const made: Anchor[] = [];
+    for (let g = groups.length - 1; g >= 0; g--) {
+      const group = groups[g]!;
+      const owner = group[0]!.owner;
+      const at = owner.indexOf(group[0]!.run);
+      const runs = owner.splice(at, group.length);
+      if (group[0]!.own) {
+        // taking back our own insertion: the runs go, and an emptied w:ins with them
+        const revision = group[0]!.revision;
+        if (revision && revision.items.length === 0) {
+          const i = revision.owner.indexOf(revision.element);
+          if (i >= 0) revision.owner.splice(i, 1);
+        }
+        continue;
+      }
+      for (const run of runs) toDeletedText(run.value as wml.R);
+      const del = tracker.del(runs);
+      owner.splice(at, 0, del);
+      linkParents(del, (group[0]!.revision?.value ?? (group[0]!.run.value as { PARENT?: object }).PARENT ?? this.p) as object);
+      made.unshift({ owner, element: del, parent: (group[0]!.revision?.value ?? (del.value as { PARENT?: object }).PARENT ?? this.p) as object });
+    }
+    return made;
+  }
+
+  /**
+   * Text inserted at `at` as a `w:ins`. A run of this author's own that is already inside a
+   * `w:ins` is extended rather than nested in another one, as Word does. `anchor` is the `w:del`
+   * of a replacement, which the insertion must follow.
+   */
+  private insertTracked(tracker: ChangeTracker, at: number, text: string, anchor?: Anchor): void {
+    if (anchor) {
+      const rPr = copyRPr(runsOf(anchor.element.value as object, { view: 'original' })[0]?.value.rPr);
+      const ins = tracker.ins([runOf([textItem(text)], rPr)]);
+      anchor.owner.splice(anchor.owner.indexOf(anchor.element) + 1, 0, ins);
+      linkParents(ins, anchor.parent);
+      return;
+    }
+    this.splitAt(at);
+    const segs = this.segments();
+    const before = [...segs].reverse().find((s) => s.end <= at);
+    const after = segs.find((s) => s.start >= at);
+    for (const [seg, side] of [[before, 'after'], [after, 'before']] as const) {
+      if (!seg || !tracker.ownInsertion(seg.revision)) continue;
+      if (seg.editable) {
+        const t = seg.item.value as wml.Text;
+        t.value = side === 'after' ? seg.text + text : text + seg.text;
+        if (/^\s|\s$|\s\s/.test(t.value)) t.space = 'preserve';
+      } else {
+        const run = runOf([textItem(text)], copyRPr(seg.run.rPr));
+        seg.runOwner.splice(side === 'after' ? seg.runIndex + 1 : seg.runIndex, 0, run);
+        linkParents(run, seg.revision!.value);
+      }
+      return;
+    }
+    const neighbour = before ?? after;
+    tracker.assertEditable(neighbour?.revision);
+    const rPr = copyRPr(neighbour?.run.rPr ?? runsOf(this.p)[0]?.value.rPr);
+    const ins = tracker.ins([runOf([textItem(text)], rPr)]);
+    if (neighbour) {
+      const owner = neighbour.revision ? neighbour.revision.owner : neighbour.runOwner;
+      const item = neighbour.revision ? neighbour.revision.element : neighbour.runOwner[neighbour.runIndex]!;
+      const parent = (neighbour.revision ? neighbour.revision.value : neighbour.run) as { PARENT?: object };
+      owner.splice(owner.indexOf(item) + (neighbour === before ? 1 : 0), 0, ins);
+      linkParents(ins, parent.PARENT ?? this.p);
+    } else {
+      const content = (this.p.content ??= []);
+      if (at === 0) content.unshift(ins as never); else content.push(ins as never);
+      linkParents(ins, this.p);
+    }
+  }
+
+  /**
+   * Splits runs so that every run holding text in [start, end) holds nothing else, and returns
+   * the segments inside the span. `splitAt` does the `w:t` boundaries; this also moves the items
+   * of a run that straddles a boundary (a tab, a break, a drawing) out into runs of their own.
+   */
+  private isolate(start: number, end: number): TextSegment[] {
+    this.splitAt(start);
+    this.splitAt(end);
+    for (let guard = 0; guard < 10_000; guard++) {
+      const inside = this.segments().filter((s) => s.start >= start && s.end <= end && s.text.length > 0);
+      let split = false;
+      const seen = new Set<wml.R>();
+      for (const seg of inside) {
+        if (seen.has(seg.run)) continue;
+        seen.add(seg.run);
+        const ofRun = inside.filter((s) => s.run === seg.run);
+        const first = ofRun[0]!;
+        const last = ofRun[ofRun.length - 1]!;
+        if (first.index > 0) { this.splitRunBefore(first); split = true; break; }
+        if (last.index < last.owner.length - 1) { this.splitRunAfter(last); split = true; break; }
+      }
+      if (!split) return inside;
+    }
+    return this.segments().filter((s) => s.start >= start && s.end <= end && s.text.length > 0);
+  }
+
+  /** Moves the items before `seg` into a run of their own, in front of `seg`'s run. */
+  private splitRunBefore(seg: TextSegment): void {
+    const head = seg.owner.splice(0, seg.index);
+    const first = runOf(head, copyRPr(seg.run.rPr));
+    seg.runOwner.splice(seg.runIndex, 0, first);
+    linkParents(first, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  }
+
+  /** Moves the items after `seg` into a run of their own, behind `seg`'s run. */
+  private splitRunAfter(seg: TextSegment): void {
+    const tail = seg.owner.splice(seg.index + 1);
+    if (tail.length === 0) return;
+    const rest = runOf(tail, copyRPr(seg.run.rPr));
+    seg.runOwner.splice(seg.runIndex + 1, 0, rest);
+    linkParents(rest, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  }
+}
+
+type RevisionHolderOf = NonNullable<TextSegment['revision']>;
+
+/** Where a `w:ins` goes when it must follow the `w:del` of a replacement. */
+interface Anchor {
+  owner: Element[];
+  element: Element;
+  parent: object;
 }
 
 export { W_NS };

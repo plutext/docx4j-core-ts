@@ -2,18 +2,21 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, rowsOf, cellsOf } from './tree.mjs';
+import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf } from './tree.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table } from './Table.mjs';
-import { ContentControl, collectControls } from './ContentControl.mjs';
+import { ContentControl, collectControls, type ContentControlType } from './ContentControl.mjs';
+import { sdtBlockFor, nextControlId, checkKind } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import type { SearchOptions } from './search.mjs';
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
+import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
+import { type TrackedChange, trackedChangesOfRow } from './TrackedChange.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
 export type Address = string | { contains: string } | { paraId: string };
@@ -124,6 +127,20 @@ export class Body {
     return this.paragraphs.map((p) => p.text).join('\n');
   }
 
+  /**
+   * The text in one of the two views (extension; `text` is the accepted one).
+   * `{ view: 'original' }` reads the document as it was before the tracked changes.
+   */
+  getText(options?: TextViewOptions): string {
+    if (options?.view !== 'original') return this.text;
+    return this.paragraphs.map((p) => textOfView(p.p, options)).join('\n');
+  }
+
+  /** The package's change tracker while `changeTrackingMode` is on; undefined when it is off (CR-002 phase F). */
+  get changeTracker(): ChangeTracker | undefined {
+    return trackerOf(this.package_);
+  }
+
   insertParagraph(text: string, location: 'Start' | 'End'): Paragraph {
     const el = paragraphOf(text === '' ? [] : [textRun(text)]);
     return this.insertElement(el, location) as Paragraph;
@@ -170,8 +187,11 @@ export class Body {
 
   insertBreak(type: 'Page' | 'Line', location: 'Start' | 'End'): void {
     const p = this.insertParagraph('', location);
-    p.p.content!.push(runOf([breakItem(type === 'Page' ? 'page' : undefined)]) as never);
-    linkParents(p.p.content, p.p);
+    const run = runOf([breakItem(type === 'Page' ? 'page' : undefined)]);
+    const tracker = this.changeTracker;
+    const item = tracker ? tracker.ins([run]) : run;
+    p.p.content!.push(item as never);
+    linkParents(item, p.p);
   }
 
   /**
@@ -199,9 +219,16 @@ export class Body {
     }
     container.splice(index, 0, ...elements);
     const owner = this.ownerOf(container);
+    const tracker = this.changeTracker;
     for (const el of elements) {
       linkParents(el, owner);
-      if (typeNameOf(el) === 'org_docx4j_wml.P') this.assignParaId(el.value as wml.P);
+      const tn = typeNameOf(el);
+      if (tn === 'org_docx4j_wml.P') {
+        this.assignParaId(el.value as wml.P);
+        if (tracker) trackInsertedParagraph(tracker, el.value as wml.P);
+      } else if (tn === 'org_docx4j_wml.Tbl' && tracker) {
+        trackInsertedTable(tracker, el.value as wml.Tbl);
+      }
     }
     const first = elements[0]!;
     return typeNameOf(first) === 'org_docx4j_wml.P' ? new Paragraph(first as Element<wml.P>, container, this) : { element: first, container };
@@ -247,9 +274,91 @@ export class Body {
     return this.paragraphs.flatMap((p) => p.search(text, options));
   }
 
-  /** Removes everything (section properties stay). */
+  /**
+   * Replaces every match of `find` with `replace`, last match first so that the offsets of the
+   * ones still to do stay valid (CR-002 section 3.7). Returns the number replaced; tracked when
+   * the package's `changeTrackingMode` is on.
+   */
+  replaceText(find: string, replace: string, options?: SearchOptions): number {
+    const matches = this.search(find, options);
+    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    return matches.length;
+  }
+
+  /**
+   * Removes everything (section properties stay). While the package tracks changes, every
+   * paragraph is marked deleted and every row's `w:trPr` takes a `w:del` instead.
+   */
   clear(): void {
-    this.content.length = 0;
+    const tracker = this.changeTracker;
+    if (!tracker) { this.content.length = 0; return; }
+    for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
+    for (const p of this.paragraphs) p.delete();
+  }
+
+  // --- change tracking (CR-002 phase F) ---------------------------------------------------
+
+  /** Every tracked change in this body, in document order. */
+  getTrackedChanges(): TrackedChange[] {
+    const out: TrackedChange[] = [];
+    const visit = (items: Element[]): void => {
+      for (const el of items) {
+        const tn = typeNameOf(el);
+        if (tn === 'org_docx4j_wml.P') { out.push(...new Paragraph(el as Element<wml.P>, items, this).getTrackedChanges()); continue; }
+        const v = el.value;
+        if (typeof v !== 'object' || v === null) continue;
+        if (tn === 'org_docx4j_wml.Tbl') {
+          for (const row of rowsOf(v)) {
+            out.push(...trackedChangesOfRow(row.element, row.container));
+            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
+          }
+          continue;
+        }
+        const children = childrenOf(v);
+        if (children) visit(children);
+      }
+    };
+    visit(this.content);
+    return out;
+  }
+
+  /**
+   * Accepts every tracked change, last first so that a paragraph join never disturbs one still
+   * to do (docx4j `AcceptTrackedChanges` is the reference). Returns how many were accepted.
+   */
+  acceptAll(): number {
+    const changes = this.getTrackedChanges();
+    for (let i = changes.length - 1; i >= 0; i--) changes[i]!.accept();
+    return changes.length;
+  }
+
+  /** Rejects every tracked change, last first. Returns how many were rejected. */
+  rejectAll(): number {
+    const changes = this.getTrackedChanges();
+    for (let i = changes.length - 1; i >= 0; i--) changes[i]!.reject();
+    return changes.length;
+  }
+
+  /** Every `w:tr` in this body's tables, in document order (rows of nested tables included). */
+  private rowElements(): Element<wml.Tr>[] {
+    const out: Element<wml.Tr>[] = [];
+    const visit = (items: Element[]): void => {
+      for (const el of items) {
+        const v = el.value;
+        if (typeof v !== 'object' || v === null) continue;
+        if (typeNameOf(el) === 'org_docx4j_wml.Tbl') {
+          for (const row of rowsOf(v)) {
+            out.push(row.element);
+            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
+          }
+          continue;
+        }
+        const children = childrenOf(v);
+        if (children) visit(children);
+      }
+    };
+    visit(this.content);
+    return out;
   }
 
   /** The part's XML (extension; Office JS getOoxml wraps it in a package). */
@@ -448,6 +557,23 @@ export class Body {
    */
   async getComments(): Promise<Comment[]> {
     return commentApi().commentsOf(this);
+  }
+
+  // --- content controls (CR-002 phase E) ---
+
+  /**
+   * Wraps everything this body holds in a new content control (Office JS
+   * `Body.insertContentControl`), typed for the kind when one is given; the `w:id` is free in this
+   * body. Returns the control.
+   */
+  insertContentControl(kind?: ContentControlType): ContentControl {
+    checkKind(kind, 'Block');
+    const content = [...this.content];
+    const sdt = sdtBlockFor(content, kind, nextControlId(this.container));
+    this.content.length = 0;
+    this.content.push(sdt as Element);
+    linkParents(sdt, this.container);
+    return new ContentControl(sdt, this.content, this);
   }
 }
 

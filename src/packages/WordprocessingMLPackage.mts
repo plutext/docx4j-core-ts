@@ -13,6 +13,12 @@ import { HeaderPart, FooterPart } from '../parts/wml/index.mjs';
 import type { Body, Address, Outline, OutlineParagraph, OutlineTable } from '../model/content/Body.mjs';
 import type { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Author } from '../model/content/comments.mjs';
+import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
+import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
+import { ChangeTracker, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
+import type { TrackedChange } from '../model/content/TrackedChange.mjs';
+import { XmlPart } from '../parts/XmlPart.mjs';
+import type { PartSink } from '../opc/PartStore.mjs';
 // Registers the comment parts with the content API (CR-002 phase G); no cycle: the model half
 // never imports a part, as packages/registry.mts does for the package classes.
 import '../parts/wml/comments.mjs';
@@ -49,15 +55,21 @@ export interface CreatePackageOptions {
 }
 
 /** A docx (docx4j WordprocessingMLPackage). */
-export class WordprocessingMLPackage extends OpcPackage {
+export class WordprocessingMLPackage extends OpcPackage implements TrackingHost {
   mainDocumentPart: MainDocumentPart | undefined;
 
   /**
-   * Who this package's comments (CR-002 phase G) and, with phase F, its tracked changes are by.
+   * Who this package's comments (CR-002 phase G) and its tracked changes (phase F) are by.
    * There is no signed-in user here, so the package carries the identity; the initials default to
    * the first letter of each word of the name and the email, when given, is written to `w:people`.
    */
   author: Author = { name: 'docx4j' };
+  /** A fixed date for new revisions; undefined means the moment each one is written (CR-002 phase F). */
+  trackedChangeDate: Date | undefined;
+  private trackingMode: ChangeTrackingMode | undefined;
+  private tracker: ChangeTracker | undefined;
+  /** Set when `changeTrackingMode` was written but the settings part was not unmarshalled yet. */
+  private trackingPending = false;
 
   static override async load(source: PackageSource, options?: LoadOptions): Promise<WordprocessingMLPackage> {
     const pkg = await OpcPackage.load(source, options);
@@ -123,6 +135,94 @@ export class WordprocessingMLPackage extends OpcPackage {
     return this.getMainDocumentPart().getBody();
   }
 
+  // --- change tracking (CR-002 phase F, section 3.7) --------------------------------------
+
+  /**
+   * Office JS `document.changeTrackingMode`, backed by `w:trackRevisions` in the settings part.
+   * While it is not `Off`, every mutation of the content API writes Word's revision markup with
+   * `author` and `trackedChangeDate` instead of editing in place.
+   *
+   * Reading is synchronous, so it reports `Off` for a loaded package whose settings part has not
+   * been unmarshalled; `getChangeTrackingMode()` unmarshals it and is the one to await. Writing
+   * is synchronous too and is written through to the settings part on save when the part is not
+   * unmarshalled yet (`setChangeTrackingMode()` does it there and then).
+   */
+  get changeTrackingMode(): ChangeTrackingMode {
+    if (this.trackingMode !== undefined) return this.trackingMode;
+    const settings = this.mainDocumentPart?.documentSettingsPart;
+    if (settings?.isUnmarshalled) return (this.trackingMode = modeOf(settings.contents));
+    return 'Off';
+  }
+
+  set changeTrackingMode(mode: ChangeTrackingMode) {
+    this.trackingMode = mode;
+    this.tracker = undefined;
+    const settings = this.mainDocumentPart ? this.settingsPart() : undefined;
+    if (settings?.isUnmarshalled) { writeTrackRevisions(settings.contents, mode); this.trackingPending = false; }
+    else this.trackingPending = true;
+  }
+
+  /** The mode as the settings part has it, unmarshalling the part (docx4j's async counterpart of the getter). */
+  async getChangeTrackingMode(): Promise<ChangeTrackingMode> {
+    const settings = this.mainDocumentPart?.documentSettingsPart;
+    if (!settings) return this.trackingMode ?? 'Off';
+    return (this.trackingMode = modeOf(await settings.getContents()));
+  }
+
+  /** Writes `w:trackRevisions`, unmarshalling the settings part, or creating it when there is none. */
+  async setChangeTrackingMode(mode: ChangeTrackingMode): Promise<void> {
+    this.trackingMode = mode;
+    this.tracker = undefined;
+    this.trackingPending = false;
+    writeTrackRevisions(await this.settingsPart().getContents(), mode);
+  }
+
+  /** The settings part, created (with its relationship and content type) when the document has none. */
+  private settingsPart(): DocumentSettingsPart {
+    const main = this.getMainDocumentPart();
+    let settings = main.documentSettingsPart;
+    if (!settings) {
+      settings = new DocumentSettingsPart();
+      settings.setContents({});
+      main.addTargetPart(settings);
+    }
+    return settings;
+  }
+
+  /**
+   * Office JS `document.getTrackedChanges()`: every tracked change in the main document part,
+   * in document order (headers and footers have their own `Body`). The part must be
+   * unmarshalled, as `body` needs it to be.
+   */
+  getTrackedChanges(): TrackedChange[] {
+    return this.body.getTrackedChanges();
+  }
+
+  /** The tracker every content-API mutation asks for; undefined while the mode is `Off`. */
+  get changeTracker(): ChangeTracker | undefined {
+    const mode = this.changeTrackingMode;
+    if (mode === 'Off') return undefined;
+    if (!this.tracker || this.tracker.mode !== mode) this.tracker = new ChangeTracker(this, mode);
+    return this.tracker;
+  }
+
+  /** TrackingHost: the trees a new revision id must be above, which is every part already unmarshalled. */
+  markupRoots(): object[] {
+    const out: object[] = [];
+    for (const part of this.parts) {
+      if (part instanceof XmlPart && part.isUnmarshalled) {
+        const contents = part.contents;
+        if (typeof contents === 'object' && contents !== null) out.push(contents);
+      }
+    }
+    return out;
+  }
+
+  override async saveTo<R>(sink: PartSink<R>): Promise<R> {
+    if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
+    return super.saveTo(sink);
+  }
+
   /** The paragraph at an address anywhere in the document: 'body/3', 'header:rId5/0', a paraId, or a text match. */
   async paragraphAt(address: Address): Promise<Paragraph | undefined> {
     for (const body of await this.bodies(address)) {
@@ -162,9 +262,60 @@ export class WordprocessingMLPackage extends OpcPackage {
     return all;
   }
 
+  // --- custom XML (CR-002 phase E) ---
+
+  /**
+   * The XPath engine the custom XML views use (CR-002 section 3.6): `document.evaluate` in a
+   * browser or an add-in, the optional `xpath` package in Node. Settable, so a consumer with
+   * another DOM (or one who wants no dynamic import) plugs in its own. Warmed once by
+   * `customXmlParts.load()`; every node call is synchronous afterwards.
+   */
+  xpathEngine: XPathEngine = new DefaultXPathEngine();
+
+  /**
+   * Office JS `document.customXmlParts`: the custom XML data storage parts as views, with
+   * `add`, and docx4j's `applyBindings()` / `updateFromContentControls()` (CR-002 section 3.5).
+   */
+  get customXmlParts(): CustomXmlPartCollection {
+    const pkg = this;
+    return (this.customXmlPartCollection ??= new CustomXmlPartCollection({
+      // a getter, so that setting pkg.xpathEngine later is seen by the collection
+      get xpathEngine(): XPathEngine { return pkg.xpathEngine; },
+      customXmlDataStorageParts: this.customXmlDataStorageParts,
+      getBoundBodies: async () => {
+        const main = this.getMainDocumentPart();
+        const bodies = [await main.getBody()];
+        for (const part of [...main.headerParts, ...main.footerParts]) bodies.push(await part.getBody());
+        return bodies;
+      },
+      boundBodies: () => {
+        const main = this.mainDocumentPart;
+        if (!main?.isUnmarshalled) return [];
+        const bodies = [main.body];
+        for (const part of [...main.headerParts, ...main.footerParts]) if (part.isUnmarshalled) bodies.push(part.body);
+        return bodies;
+      },
+      customXmlRelationshipSource: () => this.getMainDocumentPart(),
+    }));
+  }
+  private customXmlPartCollection: CustomXmlPartCollection | undefined;
+
   protected override get progId(): string {
     return 'Word.Document';
   }
+}
+
+/**
+ * `w:trackRevisions` is a flag, so a file cannot distinguish `TrackAll` from `TrackMineOnly`;
+ * a document that has it on reads as `TrackAll`, and either value writes it.
+ */
+function modeOf(settings: wml.CTSettings): ChangeTrackingMode {
+  const flag = settings.trackRevisions;
+  return flag === undefined || flag.val === false ? 'Off' : 'TrackAll';
+}
+
+function writeTrackRevisions(settings: wml.CTSettings, mode: ChangeTrackingMode): void {
+  if (mode === 'Off') delete settings.trackRevisions; else settings.trackRevisions = {};
 }
 
 registerPackageClass(MAIN_CONTENT_TYPES, WordprocessingMLPackage);
