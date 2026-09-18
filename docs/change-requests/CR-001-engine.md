@@ -601,7 +601,10 @@ facade and compares as object trees, never as text):
 - `stories`: for the main document, each header and footer, footnotes, endnotes, comments: per
   block-level paragraph in document order (ordinal address, `w14:paraId` when present,
   `pStyle`): `effectivePPr`, `paragraphMarkRPr`, `numbering` (`numString`, `isBullet`,
-  `numFont`, `ind`, `ilvl`, `labelRPr`, `notNumbered` and its reason) with one
+  `numFont`, `ind`, `ilvl`, `labelRPr`, `notNumbered` and its reason, plus, at Python's
+  request of 2026-09-19, docx4j's `NumRef` (`numId`, `ilvl`, whether the `w:numPr` was direct
+  or came from the style) and the story's `NumberingState` after the paragraph (each counter's
+  value per abstract id and level, and which start overrides have been spent)) with one
   `NumberingState` per story as CR-014 defines them; per run: `effectiveRPr`, and
   `fontSpans` from `RunFontSelector.documentFontFor` per code point folded into spans
   (`documentFont`, `bold`, `italic`, `cs`, `rtl`, and the `IdentityPlusMapper` result with the
