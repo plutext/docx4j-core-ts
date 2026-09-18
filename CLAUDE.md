@@ -17,8 +17,8 @@ engine and is the spec for everything below.
 `ContentControl` with `XmlMapping` and the typed kinds, `Comment`, `TrackedChange`, custom XML
 parts with XPath, search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on
 `./office-js`) are implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet:
-CR-001 Phase B (`PropertyResolver`, numbering, fonts; blocked by the portfolio rule below) and C;
-CR-002 H (lists; waits on CR-001 Phase B). Each CR's last sections record decisions and departures.
+CR-001 Phase B (`PropertyResolver`, numbering, fonts; plan in CR-001 section 14, gate lifted
+2026-09-19) and C; CR-002 H (lists; waits on CR-001 Phase B). Each CR's last sections record decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -173,6 +173,6 @@ repository's key is `core-ts`).
   whose Status line was edited; once the registry entry agrees, run `tasks.py accept` (and
   `tasks.py graph` if dependencies changed).
 - Before starting a CR or phase, check `python3 ../docx4j-portfolio/scripts/tasks.py blocked`: it
-  may be waiting on work in another repository. In particular, CR-001 Phase B waits on further
-  XSL-FO fidelity work in `../docx4j` (portfolio rule, 2026-09-15), and the editor
-  (`../docx4j-ts-editor`) waits on phases here.
+  may be waiting on work in another repository. The portfolio rule of 2026-09-15 (XSL-FO fidelity
+  work in `../docx4j` before porting docx4j code) was lifted for CR-001 Phase B on 2026-09-19
+  (section 14.5); the editor (`../docx4j-ts-editor`) waits on phases here.

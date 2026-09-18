@@ -461,3 +461,206 @@ Each agent's prompt carries: this CR (sections 6, 11, 12 and 13), the three docx
 and noted rather than corrected, and the rule that decisions and departures go into this
 CR's implementation notes. `Font` reads in the content API (CR-002 section 7) switch to
 effective values when step 2 lands; `Paragraph.alignment` loses its `'Unknown'`.
+
+## 14. Phase B implementation plan (2026-09-19; refines section 13, nothing implemented)
+
+Section 13 fixed the approach: harness first, then a port against docx4j `VERSION_17_1_1` as
+its CRs 014, 015 and 016 settled it, Opus agents with reviewable diffs. This section turns it
+into files, APIs, steps and tests, and records what has moved since 2026-09-13. It does not lift
+the portfolio rule of 2026-09-15 that gates the work (`docx4j/fo-fidelity-next` first); it is
+ready to run the day that is lifted or narrowed.
+
+### 14.1 What changed since section 13
+
+- **docx4j moved.** `VERSION_17_1_1` is at `0077d749c` (2026-09-19). CR-015 gained a toggle-property
+  section on 2026-09-17 (ECMA-376 §17.7.3: twelve `w:rPr` booleans XOR across style levels,
+  `PropertyCatalogue.TOGGLES`, `StyleUtil.applyStyleLevel`); section 6.1's one-line description of
+  toggles is superseded by it. The harness pins the hash it ran against.
+- **Python ported the numbering counting core early** (docx4j-python CR-002 section 12.11,
+  2026-09-17), because its content API's lists phase needed labels: `definitions.py`,
+  `emulator.py`, `formats.py` (1,725 lines), six fixtures (`numbering-*.docx`,
+  `styles-numpr-ilvl-only.docx`) cut from docx4j's CR-014 and CR-015 probes, and every label equal
+  to Word's. It left for Phase B: resolution through the resolver (it walks `w:basedOn` itself
+  meanwhile), the exotic formats, `getInd`'s full form and `labelRPr`. Neither repository has
+  built the Java harness; the Python CR says "build it here and share" and this plan builds it
+  here, since the fixtures and the comparison test already have a home in `test/`. The Python
+  port's module split and its fixtures are reused, so the two ports stay comparable.
+- **The consumers now exist.** CR-002 phases B to G and I are implemented and wait on this phase
+  at four points: `Font` reads report direct formatting only (section 7 of CR-002),
+  `Paragraph.alignment` and the indents report direct values (`'Unknown'` when absent),
+  `toApiScript` emits direct formatting only, and phase H (lists) needs `listString`,
+  `siblingIndex` and style-derived list membership. The editor's E1 needs the resolver for CSS.
+- **The objects package is at 0.1.4** with `deepCopy`, `deepCopyAsSync`, `walk`, `walkAll` and the
+  `rPr` element-list helpers. Nothing else is needed from it for this phase; the property
+  catalogue is hand-written here as in Java (section 14.3).
+- **The Java toolchain is on this machine**: JDK 21, Maven 3.9, and `docx4j-core-17.1.1-SNAPSHOT`
+  built in `../docx4j/docx4j-core/target`, so the harness can run against the checkout without a
+  Maven Central release.
+
+### 14.2 Scope, file by file
+
+What is ported, into which module, and what is deliberately not. Line counts are the Java at
+`0077d749c`.
+
+**Property resolution** (`src/model/properties/`): docx4j `PropertyResolver.java` (927),
+`PropertyCatalogue.java` (411), and the catalogue-driven half of `StyleUtil.java` (the `apply`,
+`isEmpty`, `unset`, `hasDirectFormatting` family and the per-member merge rules; not its 73
+`areEqual` overloads, not `StyleTree`, `Node`, `Tree` and `BrokenStyleRemediator`, which serve
+the HTML and CSS export and are a later CR).
+
+- `catalogue.mts`: the tables CR-015 phase 1 introduced, one entry per schema member in schema
+  order, `(name, get, set, merge, isEmpty, isFormatting, copyOf)` for `RPr` and `ParaRPr` (one
+  table, generic accessors), `PPrBase`, `CTTblPrBase`, `TcPr`; `TOGGLES` named from the run
+  table. The leaf merge rules are copied one for one (`spacing` takes `lineRule` only when the
+  source states `line`; `lang`, `numPr`, `u`, `highlight` inherit per attribute; enums only when
+  stated; every carried leaf is a copy, by a per-type `copyOf`, never `deepCopy`).
+- `styleUtil.mts`: `apply`, `applyStyleLevel` (non-toggles by override, toggles by XOR),
+  `isEmpty`, `unset`, `hasDirectFormatting`, derived from the tables by iteration.
+- `PropertyResolver.mts`: the resolution order of CR-015 phase 2 verbatim
+  (`docDefaults ⊕ chain(styleOf(pPr)) ⊕ chain(rStyle) ⊕ direct`; `styleOf` falls back to the
+  `w:default` paragraph style; chains merged root-first and cached per style id, without document
+  defaults; heading outline level computed into the resolved `pPr`; the 10 pt default size on a
+  private copy of the defaults; missing-style lookups logged once; `ancestry(styleId)` with cycle
+  detection throwing `CyclicStylesException`). `getEffectiveTableStyle` reports whether the chain
+  reaches the default table style, and `WORD_DEFAULT_CELL_MARGIN_TWIPS` is the constant the
+  consumer applies, as CR-015 phase 4 decided. Table conditional formatting stays out
+  (`docx4j/table-conditions`).
+
+**List numbering** (`src/model/listnumbering/`): the whole package (3,156 lines, most of it the
+formatters), in the split Python used so the two ports read alike: `definitions.mts`
+(`LevelDefinition` merged from abstract and override, `AbstractListDefinition`, `ListDefinition`,
+`NumberingDefinitions` built once from the part with `w:numStyleLink` resolved as
+`initialiseMaps` does), `state.mts` (`NumberingState` per story with counters keyed by the
+referencing abstract id and level, the first-use flag a reset leaves, `NumberingStates` keyed by
+part with headers and footers folded together, a fresh state per text box), `formats.mts`
+(`LabelFormatter` registry with docx4j's fail-soft rule; all of docx4j's formatters, since none
+is over seventy lines: decimal, decimalZero, lowerLetter, upperLetter, lowerRoman, upperRoman,
+bullet, none, ordinal, cardinalText, ordinalText, hex, chicago, numberInDash,
+decimalEnclosedCircle, the two Chinese, hebrew1, and the alphabet formats), `Emulator.mts`
+(`getNumber(pkg, pPr, state?)`, `peek`, the `(pStyleVal, numId, ilvl)` form, `getInd`, one
+`resolve` through the resolver's effective `pPr` with `styleLinkedElsewhere`, `NumberingResult`
+with `numString`, `numFont`, `isBullet`, `ind`, `rPr`, `labelRPr`, `lvl`, `notNumbered`).
+`NumberingDefinitionsPart` gains `definitions`, `getEmulator()` and `state` (section 6.2).
+
+**Fonts** (`src/model/fonts/`): the selection and mapping core, not the rendering half.
+docx4j's `RunFontSelector.java` (2,548) is mostly FO output: element creation, kerning and
+ligature suffixes, character scaling, small caps, line metrics, the glyph-coverage pass over
+physical fonts. What section 6.3 promised and what a browser, an extractor or a measurer needs is
+the decision per character range, so the port takes lines 173 to 320 and 1,695 to 2,240 of it
+(about 700 lines): `documentFontsOf`, `defaultFontOf`, the theme lookup by `themeFontLang`,
+`resolvedSlots`, `complexScriptFont` (`w:cs` and `w:rtl` by value), `preambleRule`, `spanScript`
+(the code point to slot table, ported verbatim), `isEmoji` by code point, `symbolFontName` and
+the symbol segments, the `hint` rules, `LanguageTagToScriptMapping` (122), `CJKToEnglish` (41).
+Its result is `FontSpan[]` (`text`, `documentFont`, `bold`, `italic`, `complexScript`, `rtl`,
+`script`), plus `documentFontFor(pPr, rPr, codePoint)`. The mapper side: `Mapper.mts` (the
+precedence template of CR-016 phase 3: installed or embedded first, the mapper's own step,
+metrically compatible substitutes, the `altName` chain to its class, class-based substitutes from
+`w:family` and `w:panose1`, the unresolvable face), `IdentityPlusMapper.mts`, `PhysicalFont`
+as a name with its family and the source of the decision (no files, no FOP `EmbedFontInfo`),
+`substitutions.generated.mts` from `font-substitutes.xml` (494 lines, converted by a script
+under `scripts/`) and the no-bold-face family list from `fonts/microsoft`. `BestMatchingMapper`,
+glyph checks, embedded font metrics and `WordLineMetrics` stay a later CR, as section 6.3 says;
+the `Mapper` interface is what a consumer with `fontkit` plugs into. `MainDocumentPart.fontsInUse()`
+(the walk for names of CR-016 phase 4: all four slots on runs, marks, styles in use, headers,
+footers, notes, comments, text boxes, numbering levels, theme references resolved, `w:sym`
+fonts, the default) and `stylesInUse()`.
+
+**Wiring into what exists.** `WordprocessingMLPackage.getPropertyResolver()` (asynchronous,
+because it unmarshals the styles, numbering and theme parts once; `propertyResolver` synchronous
+afterwards, the pattern of `getBody()` / `body`), `refresh()` called by the content API's style
+mutations (`Comment`'s style creation, phase H's `startNewList`, `insertOoxml`). In CR-002:
+`Font` reads switch to effective values through `getEffectiveRPr(rPr, pPr)` with a
+`{ direct: true }` option keeping today's behaviour; `Paragraph.alignment`, the indents and
+spacing read effective values and `'Unknown'` goes; `toApiScript` stays on direct formatting
+(a script reproduces markup, not appearance) and says so; phase H is unblocked.
+
+### 14.3 The harness
+
+`test/java/`, a Maven project (`pom.xml`, one `Harness.java`, Java 21) depending on
+`org.docx4j:docx4j-core:17.1.1-SNAPSHOT` from the local repository, so it runs against the
+checkout at any commit; the commit hash, the date and the harness version go into every golden's
+header. Run by hand with `mvn -q exec:java -Dfixtures=../fixtures -Dout=../golden`.
+
+Input: every `.docx` under `test/fixtures/` plus the probe documents, copied in with provenance:
+the five `styles-*` and the fifteen `fonts-*` probes that `docx4j-layout-fidelity`'s `Corpus`
+generates (`Fidelity generate`, then copy from `target/corpus`), the six numbering fixtures
+Python already cut, and from `docx4j-core-tests`: `numbering_indentation*.docx`,
+`NumberingImplicitNumId.docx`, `article-section-*.docx`, `startOverride.docx`,
+`numbering-stories.docx`, `NumberingIndents.docx`, `Mac_OSX_Fonts.docx`,
+`fonts-modesOfApplication.docx`. The Word PDF goldens are not needed: the contract here is
+docx4j's answer, which the three CRs verified against Word.
+
+Output, one `test/golden/<fixture>.json` per document (JSON rather than the XML files section 8
+imagined, so that one file carries the mixed content; the property values inside it are XML
+strings marshalled by docx4j with its prefixes, which the TypeScript side unmarshals through the
+facade and compares as object trees, never as text):
+
+- header: docx4j commit, date, fixture name and size;
+- `styles`: for every style id in the part, `effectivePPr(styleId)` and `effectiveRPr(styleId)`;
+  `defaultParagraphStyleId`; the document defaults;
+- `stories`: for the main document, each header and footer, footnotes, endnotes, comments: per
+  block-level paragraph in document order (ordinal address, `w14:paraId` when present,
+  `pStyle`): `effectivePPr`, `paragraphMarkRPr`, `numbering` (`numString`, `isBullet`,
+  `numFont`, `ind`, `ilvl`, `labelRPr`, `notNumbered` and its reason) with one
+  `NumberingState` per story as CR-014 defines them; per run: `effectiveRPr`, and
+  `fontSpans` from `RunFontSelector.documentFontFor` per code point folded into spans
+  (`documentFont`, `bold`, `italic`, `cs`, `rtl`, and the `IdentityPlusMapper` result with the
+  document's font table);
+- `tables`: per table, `effectiveTableStyle` and whether the chain reaches the default.
+
+`test/parity.test.mjs` loads each golden, runs this package's resolver, emulator and selector
+over the same fixture, and deep-equals per paragraph with `plain()`; a failure prints the
+paragraph address and the first differing property. The first harness output is read by a
+person before anything is measured against it (section 13). Option C: `.github/workflows/parity.yml`
+on a weekly schedule checks out `plutext/docx4j` `VERSION_17_1_1`, builds `docx4j-core`
+(`mvn -q -pl docx4j-core -am -DskipTests -Dgpg.skip`), runs the harness into a temporary
+directory, and opens a pull request when a golden differs, with the docx4j commits since the
+recorded hash in its body. Python consumes the committed goldens by path or copy; its CR-002
+section 8 is amended to say the harness lives here.
+
+### 14.4 Steps
+
+Each step is one agent run in a worktree (the workflow of CR-002 phases C to I: symlinked
+`node_modules`, an integration branch, a squash into main uncommitted, file ownership per step),
+reviewed and committed before the next depends on it. Step 1 must precede everything; step 2
+precedes 3 and 4, which run in parallel; step 5 closes.
+
+| Step | Deliverable | Owns | Tests | Effort |
+|---|---|---|---|---|
+| 0 | Fixture inventory: the probe documents generated and copied with provenance into `test/fixtures/`; `test/README.md` lists them | `test/fixtures/`, `test/README.md` | none | 0.5 day |
+| 1 | The harness and the first goldens (14.3), the parity test skeleton that loads goldens and reports "not implemented" per area, the weekly workflow | `test/java/`, `test/golden/`, `test/parity.test.mjs`, `.github/workflows/parity.yml` | the goldens read by a person | 1 day |
+| 2 | Property resolution (14.2), `getPropertyResolver()`, the `Font` and `Paragraph` switch in CR-002 with the `direct` option, `CyclicStylesException` | `src/model/properties/`, `Font.mts`, the paragraph property getters, `WordprocessingMLPackage.mts` | parity on `effectivePPr`, `effectiveRPr`, `paragraphMarkRPr`, `styles`; a table-driven catalogue test as CR-015's `PropertyCatalogueTest`; the order test (its S1 to S15 cases); no-mutation (styles part byte-identical after resolving everything); the toggle cases of CR-015 | 2 days |
+| 3 | List numbering (14.2) on the resolver; `NumberingDefinitionsPart` accessors; the default numbering resource for phase H | `src/model/listnumbering/`, `NumberingDefinitionsPart` | parity on `numbering` per story; the formatter table test; `w:lvlRestart`, `startOverride`, stories, `isLgl`, `numStyleLink` from the docx4j tests; Python's six fixtures give the same labels | 1.5 days |
+| 4 | Fonts (14.2): selector core, `Mapper`, `IdentityPlusMapper`, the substitution data, `fontsInUse`, `stylesInUse` | `src/model/fonts/`, `scripts/generate-substitutions.mjs`, `MainDocumentPart` | parity on `fontSpans`; the CR-016 phase 1 and 2 unit cases (`cs` by value, theme language, no `rFonts`, the range dispatch per script, symbol fonts, emoji, `hint`), `MapperPrecedenceTest`, `AltNameChainTest`, `NoBoldFaceTest` ported | 2 days |
+| 5 | Line-by-line review of the toggle overlay and the numbering counters against the Java (section 13 step 5); implementation notes as section 15; CLAUDE.md, README, registry; CR-002's status line for the switched reads | docs | the whole suite; parity zero-difference | 0.5 day |
+
+Seven and a half days against section 10's six: the toggle rule, the harness's stories and font
+spans, and the formatter set account for the difference.
+
+### 14.5 Decisions to take before step 1 (all five decided by Jason 2026-09-19, as recommended)
+
+1. **The gate.** The portfolio rule blocks the port. The numbering core was ported to Python on
+   2026-09-17 under it, for the same reason phase H needs it here. Three options: wait for
+   `docx4j/fo-fidelity-next` to be scoped and done; lift the rule for this phase (its Java
+   sources were reworked and Word-verified within the last week, which is the state the rule
+   wants); or lift it for step 3 only, as Python did, and run steps 0 and 1 now since a harness
+   is not a port. The recommendation is the second: the three CRs are the settled reference and
+   the harness catches drift.
+2. **Golden format**: JSON with XML strings inside (14.3), not the XML files of section 8.
+   Recommended.
+3. **Where the harness lives**: here, Python consuming (14.3). Recommended; it reverses the
+   Python CR's sentence and needs a line there.
+4. **`Font` and `Paragraph` reads become effective by default**, with `{ direct: true }` for the
+   old behaviour, and `toApiScript` stays direct. This is what Office JS reports and what CR-002
+   section 7 promised; it changes the values existing callers see, so it is a minor-version note.
+5. **Fonts scope**: the selection core and `IdentityPlusMapper` only (14.2); the glyph-coverage
+   pass, `BestMatchingMapper` and metrics are a later CR with `fontkit`. As section 6.3, restated
+   against the Java as it now is.
+
+Decided 2026-09-19: the gate is lifted for this phase (`core-ts/CR-001.B` no longer depends on
+`docx4j/fo-fidelity-next` in the portfolio registry; the rule stands for other ports, Python's
+Phase B included until it is decided there); goldens are JSON with XML strings; the harness
+lives here and Python consumes the committed goldens (docx4j-python CR-002 section 8 to be
+amended in that repository); `Font` and `Paragraph` reads become effective by default with
+`{ direct: true }`, `toApiScript` stays direct; fonts are the selection core and
+`IdentityPlusMapper`. Step 0 can start.
