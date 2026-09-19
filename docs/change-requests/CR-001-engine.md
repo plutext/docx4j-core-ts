@@ -1542,3 +1542,20 @@ or keep both branches for a byte-faithful re-marshal). The rule docx4j recorded 
 if the model binds its whole content**, so any kept branch is verified in the producing
 application before the preprocessor's default changes. Nothing in WordprocessingML traversal or
 numbering moved; the goldens stand.
+
+**Objects regeneration for CR-021 (2026-09-19, objects commit `fc6d851` from docx4j `e864468a4`,
+unreleased; 0.1.5 proposed).** Shape changes for this package when it upgrades: `P.content` and
+the other run-content unions (`Hyperlink`, `P.Dir`, `P.Bdo`, `CTSimpleField`, `CTSmartTagRun`,
+`CTCustomXmlRun`, `CTSdtContentRun`) gain an `mc:AlternateContent` member (additive; an exhaustive
+narrowing needs a new arm); `NumPicBullet.alternateContent`; DrawingML's `CTTextParagraph` admits
+`a14` math; `Workbook.alternateContent` (SpreadsheetML) becomes optional, a compile error for any
+reader (none here). **The constraint on section 5.6**, measured in the objects package rather than
+assumed: `mc:Choice` and `mc:Fallback` map to an `anyElement` property generated with
+`allowDom: false`, so a kept branch unmarshals only when every child is a global element the
+context types (`wps:wsp`, `w:r`: yes; `w:tbl`, a local element, or any untyped namespace: the whole
+unmarshal throws). This package's default therefore stays resolve-on-load, which inlines the
+chosen branch's children where local elements are legal and never meets the throw. Keeping
+branches unresolved needs the compiler to generate `allowDom: true` for `xs:any` (unknown content
+as DOM, as the flat OPC part's `xmlData` already is); filed as a jsonix-schema-compiler item at
+this package's request, prerequisite for any change of the 5.6 default, no priority asked. The
+objects package's `textOf` now follows docx4j's `McSelection` through `mcBranchOf`.
