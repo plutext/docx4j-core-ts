@@ -772,6 +772,24 @@ gains the same three theme resources and the same default so that a document cre
 library resolves alike (a Phase A departure to close in step 4, recorded in section 12 then). The goldens
 are regenerated at the merge, from the commit range the docx4j session sends.
 
+**docx4j CR-021 phase 1 (2026-09-19, docx4j `c9612931c`, for the harness and step 3).** docx4j's
+`TraversalUtil` now visits one branch of each `mc:AlternateContent` (`McMode.READ`, the default;
+`ALL` for mutators), chosen by `org.docx4j.jaxb.McSelection`: the first `mc:Choice` whose
+`Requires` prefixes are all named in the property `docx4j.jaxb.mc.preferChoice`, else the
+`mc:Fallback`. The property's default is empty, so docx4j's default reads the Fallback (the VML
+branch of a text box), where this package's DOM preprocessor (section 5.6) takes the first
+`mc:Choice` whose prefixes are in `UNDERSTOOD_NAMESPACES`, which is what Word draws. The two
+branches differ in real documents (docx4j's own probes `mc-textbox-branches-*` show it). Decision:
+this package keeps the Choice (it types the drawing content, and it is what Word renders), and
+the harness sets `docx4j.jaxb.mc.preferChoice` to the prefixes of `UNDERSTOOD_NAMESPACES` so
+docx4j walks the same branch; the harness's own branch selection (14.6, version 2) is then
+replaced by `McSelection` at the next regeneration, and the goldens should not change. Word facts
+recorded there for step 3: a text box is its own numbering story (already the rule here); an
+untouched Fallback survives re-save verbatim, so a Fallback's `w:numId` may name a `w:num` that
+no longer exists, and a dangling `numId` must resolve as not numbered rather than throw. Phase 2
+(schema: `mc:AlternateContent` admitted in `EG_PContent` and `CT_NumPicBullet`) is a later
+objects-package regeneration.
+
 **`w:numId` 0 (for step 3; from docx4j-python, 2026-09-19).** docx4j's `Emulator.resolve` does not
 special-case a direct `w:numPr` whose `w:numId` is 0 (ECMA-376: numbering turned off): `numRefFor`
 answers `numId "0"`, `notNumbered false`, and `getNumber` then finds no list 0 and returns an empty
