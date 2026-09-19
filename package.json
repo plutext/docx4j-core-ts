@@ -26,6 +26,10 @@
       "types": "./dist/model/index.d.mts",
       "import": "./dist/model/index.mjs"
     },
+    "./node": {
+      "types": "./dist/node/index.d.mts",
+      "import": "./dist/node/index.mjs"
+    },
     "./office-js": {
       "types": "./dist/office-js/index.d.mts",
       "import": "./dist/office-js/index.mjs"
@@ -41,7 +45,8 @@
     "generate": "node scripts/generate-supported.mjs",
     "build": "tsc -p tsconfig.build.json",
     "generate:fonts": "node scripts/generate-substitutions.mjs",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && npm run typecheck:examples",
+    "typecheck:examples": "tsc -p examples/office-addin/tsconfig.json",
     "pretest": "node scripts/generate-supported.mjs",
     "test": "npm run build && tsc -p test/nodenext/tsconfig.json && node --test test/*.test.mjs",
     "prepublishOnly": "npm run typecheck && npm test"

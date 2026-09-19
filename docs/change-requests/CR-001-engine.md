@@ -2,7 +2,7 @@
 
 **Status:** Phase A implemented 2026-09-10 (both steps); Phase B implemented 2026-09-19 (plan in
 section 14, notes in section 15; parity with docx4j VERSION_17_1_1 7fba7a150 on 45 goldens);
-Phase C proposed
+Phase C implemented 2026-09-19 (section 16)
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
 section 9.
@@ -353,7 +353,7 @@ touches zip tree-shakes it away.
 |---|---|---|---|
 | A | `opc/`, `parts/` core, `packages/`, WML typed parts, registry, load/save for zip and flat OPC, MCE preprocessing, round-trip tests | 5 days | implemented 2026-09-10 |
 | B | `PropertyResolver` and `StyleUtil`; numbering `Emulator`; `RunFontSelector` and `IdentityPlusMapper`; parity harness and golden files | 6 days | 7.5 days as re-planned in 14.4 (steps 0 to 5, none of which recorded its own); implemented 2026-09-19 |
-| C | PML and SML packages with main parts; `DirectoryPartStore`; docs and examples (Node, add-in) | 3 days | proposed |
+| C | PML and SML packages with main parts; `DirectoryPartStore`; docs and examples (Node, add-in) | 3 days | implemented 2026-09-19 (notes in section 16; `createPackage()` for both, `clone()`, the `./node` subpath, four guides and six examples) |
 
 Phase A alone is useful (a typed docx round trip in Node and an add-in package round trip);
 each phase ships as a minor version.
@@ -1566,3 +1566,201 @@ binds (`w:tbl` is bound there through an `@XmlRootElement`, not here; a compiler
 nowhere while nothing needs it). Section 5.6's default becomes a decision to revisit when a
 consumer needs a byte-faithful re-marshal of both branches. The objects package's `textOf` follows
 docx4j's `McSelection` through `mcBranchOf`.
+
+## 16. Phase C implementation notes (2026-09-19)
+
+Phase C is the CR's last: the PresentationML and SpreadsheetML packages get `createPackage()` and
+the shortcuts docx4j has, the unzipped-directory container arrives as a Node-only subpath,
+`OpcPackage.clone()` lands, and the package grows guides and runnable examples. 428 tests (411
+before), `npm run typecheck` clean, no new runtime dependency.
+
+### 16.1 `PresentationMLPackage.createPackage()`
+
+Ported from docx4j `PresentationMLPackage.createPackage(SlideSizesWellKnown, boolean)`,
+`MainPresentationPart`, `SlideMasterPart`, `SlideLayoutPart` and `SlidePart` at
+`VERSION_17_1_1` `a58cf10b8`. A created presentation is eleven zip entries:
+
+```
+[Content_Types].xml   _rels/.rels
+ppt/presentation.xml + _rels          ppt/slideMasters/slideMaster1.xml + _rels
+ppt/slideLayouts/slideLayout1.xml + _rels   ppt/theme/theme1.xml
+ppt/slides/slide1.xml + _rels
+```
+
+Relationships exactly as docx4j builds them: the presentation relates the master, the theme and
+each slide; the master relates the layout and the theme; the layout relates the master back; the
+slide relates the layout. PowerPoint's own files do relate the theme from the presentation part as
+well as from the master, so docx4j's "add it in 2 places" is right, not a quirk.
+
+- **The slide is ours.** docx4j's `createPackage` has its slide creation commented out, so its
+  presentation has an empty `p:sldIdLst`. Phase C adds one empty slide on the layout, because a
+  deck with no slides is not what a caller asking for a presentation means, and
+  `MainPresentationPart.addSlide` / `addSlideIdListEntry` are ported anyway.
+- **The theme is ours too.** docx4j reads one fixed
+  `org/docx4j/openpackaging/parts/PresentationML/theme.xml`; here the presentation uses the same
+  embedded Office themes a new `.docx` gets (`src/model/fonts/themes.generated.mts`), selected by
+  `pkg.fonts.defaultTheme` — `PresentationMLPackage` gains the `fonts` setting
+  `WordprocessingMLPackage` has. One theme resource for both formats, and a created deck's fonts
+  then match a created document's.
+- **`presProps`, `viewProps`, `tableStyles`, `docProps`: not written.** docx4j writes none of
+  them and they are optional; PowerPoint supplies its own. The *shortcuts* for them exist
+  (`presentationPropertiesPart`, `viewPropertiesPart`, `tableStylesPart`, `commentAuthorsPart`,
+  `notesMasterPart`) and are set on load, as docx4j's `setPartShortcut` does for the three it has.
+- **The template markup is `src/parts/pml/defaults.mts`**, the way `defaultStyles.mts` is: the
+  master, layout and slide are docx4j's `COMMON_SLIDE_DATA` and `COLOR_MAPPING` written out as
+  whole parts, with a header naming the docx4j commit and the Java files. They are set with
+  `setXml`, so a created layout or slide nobody touches is written byte for byte as it is there;
+  the master is unmarshalled during creation because `addSlideLayoutIdListEntry` has to append to
+  `p:sldLayoutIdLst`, exactly as docx4j marshals its own tree.
+- **Ids** follow docx4j: `p:sldId/@id` random in 256 to 2147483647, `p:sldLayoutId/@id` and
+  `p:sldMasterId/@id` random above 2147483648 (ECMA-376 4.8.17, 4.8.18, 4.8.20), exported as
+  `nextSlideId()` and `nextSlideLayoutOrMasterId()`. Random means a created package is not
+  byte-reproducible; docx4j is the same and the tests assert ranges, not values.
+- **Slide sizes** are docx4j's `SlideSizesWellKnown` as a string union, with docx4j's EMU table
+  (`createSlideSize(size, landscape)`); `B4JIS` is in the enumeration and has no size in docx4j,
+  which throws, and so does this. The default is docx4j's: `A4`, landscape — not PowerPoint's own
+  16:9, so that a package created here and one created by docx4j are the same package.
+- **`slideParts`, `slideMasterParts`, `slideLayoutParts`** read the id lists when the owning part
+  is unmarshalled (docx4j's `getSlideParts()`, which requires it) and fall back to relationship
+  order when it is not, so a synchronous getter never throws on a freshly loaded package; the
+  asynchronous `getSlideParts()` unmarshals first. `MainPresentationPart.addSlide(part, index?,
+  layout?)` renames the part when the name is taken, as docx4j does, and
+  `PresentationMLPackage.addSlide()` picks the next free `/ppt/slides/slideN.xml` instead of
+  docx4j's counter-appending rename (`slide1.xml` would become `slide11.xml`).
+
+### 16.2 `SpreadsheetMLPackage.createPackage()` and the workbook's `mc:AlternateContent`
+
+`createPackage()` is docx4j's, part for part: `/xl/workbook.xml` with one
+`bookViews/workbookView` (docx4j adds it because without it Excel 2010 could crash on print) and
+an empty `sheets`. `createWorksheetPart(name, index?, { partName, sheetId })` is docx4j's
+`createWorksheetPart(PartName, String, long)` with the part name and the sheet id defaulted (the
+first free `/xl/worksheets/sheetN.xml`, the next free id) and an `index` that inserts the tab
+rather than appending. Five zip entries for a one-sheet workbook. `worksheetParts` is in `sheets`
+order — the tab order — when the workbook is unmarshalled; `sharedStringsPart`, `stylesPart`,
+`calcChainPart`, `themePart` and a worksheet's `drawingPart`, `commentsPart`, `tableParts`,
+`workbookPart` are the shortcuts.
+
+**The workbook `mc:AlternateContent` finding (docx4j CR-021).** Measured on
+`test/fixtures/loadAndSave.xlsx`, and pinned by a test in `test/create.test.mjs`: Excel writes
+
+```xml
+<mc:AlternateContent><mc:Choice Requires="x15">
+  <x15ac:absPath url="/Users/bcronk/Downloads/" .../>
+</mc:Choice></mc:AlternateContent>
+```
+
+at the top of `xl/workbook.xml` — **a single Choice, no Fallback**. `x15` is
+`http://schemas.microsoft.com/office/spreadsheetml/2010/11/main`, which is not in
+`UNDERSTOOD_NAMESPACES`, so section 5.6's rule finds no understood Choice and no Fallback. The
+preprocessor's answer in that case is to **drop the `mc:AlternateContent` entirely**, which is
+what ECMA-376 Part 3 10.2.1 prescribes (the element is removed; with no selected branch, nothing
+replaces it) and what Excel itself does with a Choice it does not understand. Consequences:
+
+- a workbook nobody unmarshals round-trips **byte for byte** (asserted);
+- a workbook that *is* unmarshalled comes back without the element, so a re-marshalled
+  `xl/workbook.xml` has no `x15ac:absPath`. The lost content is the author's local folder, which
+  Excel rewrites on its next save, so nothing of the document is lost; the general rule stands
+  that unmarshalling a part costs its untaken MCE branches.
+- **`Workbook.alternateContent` is declared required** in `@docx4j/generated-objects-ts` 0.1.4
+  (`alternateContent: AlternateContent;`) and is absent on every workbook loaded here, so the
+  declaration lies for a reader. The CR-021 regeneration (section 15.4, objects 0.1.5 proposed)
+  makes it optional, which fixes it; nothing here reads the member, and `createPackage` builds
+  the workbook through the generated factory (`createWorkbook`, whose `init` is a `Partial`), so
+  the required member never had to be supplied. **For the coordinating session: this is one more
+  reason to land objects 0.1.5.**
+
+### 16.3 `DirectoryPartStore`, `DirectoryPartSink` and the `./node` subpath
+
+docx4j's `io3.stores.UnzippedPartStore`, in `src/opc/DirectoryPartStore.mts`:
+`DirectoryPartStore.open(dir)` scans the directory once (a `PartStore` lists its names
+synchronously, which a `readdir` per call cannot do) and maps a part name to a file path, with
+`size()` from the file; `new DirectoryPartSink(dir)` writes one file per part, creating
+directories, `[Content_Types].xml` first, and refuses a part name that climbs out of the
+directory (docx4j's "Zip Slip" check). `finish()` resolves to the directory path. Nothing already
+in the directory is removed.
+
+**Fidelity, measured**: zip → directory → zip reproduces every part byte for byte except the
+relationships parts and `[Content_Types].xml`, which every save writes afresh — a plain zip → zip
+round trip of the same fixture differs in exactly the same four `.rels` and no other part. So the
+directory container costs nothing.
+
+**The `./node` subpath.** It is the one module in the package that imports `node:` builtins, so it
+is exported only from a new `./node` entry point (`src/node/index.mts`), never from `.`, `./opc`,
+`./parts`, `./packages`, `./model` or `./office-js`. A browser or add-in bundle therefore never
+sees `node:fs`, needs no polyfill and no `browser` field — which is the property the add-in guide
+can promise. The rule is now in `CLAUDE.md`'s Public paths.
+
+Two consequences worth recording:
+
+- **No `@types/node`.** The repository's tsconfigs have `"types": []` and `lib` es2019 + dom
+  because everything else is platform-neutral; rather than add a types-only dependency for one
+  module, the handful of Node functions used are declared in `src/node/node-builtins.d.mts`
+  (`readFile`, `readdir`, `stat`, `mkdir`, `writeFile`, `join`, `dirname`, `sep`). It is not
+  emitted, and the public declarations of `./node` name no Node type, so a consumer with or
+  without `@types/node` sees no conflict. If more of Node is ever needed here, the honest move is
+  the dependency.
+- `test/nodenext/consumer.mts` imports `./node` like the other subpaths, so the entry point is
+  checked under `moduleResolution: nodenext` as well.
+
+### 16.4 `OpcPackage.clone()`
+
+docx4j's: **save and reload**, into a `MemoryPartSink` rather than a zip so nothing is deflated.
+Chosen over a part-by-part copy because it is the copy whose cost matches what was touched — a
+part nobody unmarshalled is copied as the bytes it was loaded with and never parsed, an
+unmarshalled part is marshalled once and comes back as its own tree, unmarshalled again on
+demand — and because a part-by-part copy would have to be lazy in the same way, with `deepCopy`
+on every unmarshalled tree, and would not be simpler. The clone's `sourcePartStore` is the memory
+store, so it no longer depends on the original's container; its load options are the original's;
+and it is of the same class, because `OpcPackage.load` picks the class from the main part's
+content type (a mismatch throws rather than returning the wrong class).
+
+Settings that are not in the package travel by a `protected copyPackageSettingsTo(target)` hook:
+`author`, `trackedChangeDate`, `fonts.defaultTheme` and `xpathEngine` for WordprocessingML,
+`fonts.defaultTheme` for PresentationML. docx4j carries only its `name`, which has no counterpart
+here. `clone()` is asynchronous, as everything that marshals here is; docx4j's is synchronous.
+
+### 16.5 Docs and examples
+
+`docs/guides/`: `getting-started-node.md` (install, load, the content API, effective reads, the
+parts underneath, the parity promise), `office-addin.md` (flat OPC in and out, the `./office-js`
+shim for testing add-in code in Node, the bundling rules above), `presentationml-spreadsheetml.md`
+(what the two packages give, and what they do not: no content API), `parity.md` (what the goldens
+are and how a consumer runs the harness against a newer docx4j). Linked from `README.md`, whose
+status paragraph now says the CR is complete and whose add-in section defers the bundling detail
+to the guide.
+
+`examples/node/`: `hello.mjs`, `report.mjs`, `pptx.mjs`, `xlsx.mjs`, `directory.mjs`, each run as
+`node examples/node/<name>.mjs [file]` against the built `dist/` with a comment saying what the
+published import is. `examples/office-addin/`: `manifest.xml`, `taskpane.html`, `taskpane.ts`,
+`edit.mjs` (the edit itself, written against a `Word.Body` and so runnable on either side),
+`edit.d.mts`, `office.d.ts` (the few Office globals used, so `@types/office-js` is not a
+dependency of this repository), `run-in-node.mjs` and a `README.md` with the sideload steps and
+the esbuild command. `tsconfig.json` there is run by a new `npm run typecheck:examples`, which
+`npm run typecheck` chains.
+
+`test/examples.test.mjs` runs every example in a child process against `test/fixtures/` and
+asserts exit 0 and an expected line of output, so an example cannot rot; the add-in's Node half is
+one of them. Acceptance checks **12** (a created pptx opens in PowerPoint) and **13** (a created
+xlsx opens in Excel) are added to `test/README.md` with a script, and are outstanding, as check 3
+still is.
+
+### 16.6 What stays out
+
+Deliberately not in this CR, and not in this package yet (docx4j-python's CR-002 12.9 lists the
+same set):
+
+- **External resources.** External relationship targets (hyperlinks, linked images) stay in the
+  relationships and `getPart(rel)` is undefined for them; `OpcPackage.externalResources` of
+  section 5.5 is not implemented (section 12 already recorded this).
+- **Digital signatures**, encryption, VBA, and the strict (`purl.oclc.org`) conversion on load.
+- **`DrawingPropsIdTracker`** and the `docPr`/`cNvPr` id uniqueness docx4j maintains when parts
+  are combined; `insertOoxml` does not renumber drawing ids.
+- **PresentationML and SpreadsheetML beyond the parts**: `ResolvedLayout`, `ShapeWrapper` and the
+  placeholder resolution, notes and handout creation, cell values as values, formulas, the shared
+  strings table as an index.
+- **`BestMatchingMapper`** over installed or embedded fonts, glyph coverage and font metrics
+  (section 6.3 and 14.2 already said so); the `Mapper` interface is the seam.
+- **Table conditional formatting** in `getEffectiveTableStyle` (`docx4j/table-conditions`).
+- **ZIP64** archives, which the zip container rejects.
+
+**Decided 2026-09-19 (Jason):** `docs/` and `examples/` stay GitHub-only; the npm package ships `dist`, the README (which links the guides), LICENSE and NOTICE, as `package.json`'s `files` already says.

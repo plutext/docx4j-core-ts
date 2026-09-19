@@ -334,6 +334,15 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return out;
   }
 
+  /** A clone carries the identity, the tracking date, the theme setting and the XPath engine. */
+  protected override copyPackageSettingsTo(target: OpcPackage): void {
+    if (!(target instanceof WordprocessingMLPackage)) return;
+    target.author = { ...this.author };
+    target.trackedChangeDate = this.trackedChangeDate;
+    target.fonts.defaultTheme = this.fonts.defaultTheme;
+    target.xpathEngine = this.xpathEngine;
+  }
+
   override async saveTo<R>(sink: PartSink<R>): Promise<R> {
     if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
     return super.saveTo(sink);

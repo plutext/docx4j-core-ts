@@ -32,10 +32,12 @@ relationships lives here. This package re-exports the objects facade so both rea
 npm ci              # fflate, typescript, xpath (dev; an optional peer for consumers), @docx4j/generated-objects-ts and @docx4j/jsonix, as locked in package-lock.json
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
-npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
+npm run typecheck   # tsc --strict over src/ and test/*.ts, then typecheck:examples (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
+npm run typecheck:examples   # examples/office-addin's own tsconfig (the Office globals are a local .d.ts, not @types/office-js)
 npm test            # pretest regenerates src/office-js/supported.generated.mts; then build, the nodenext consumer check (test/nodenext), node --test test/*.test.mjs
                     # (a shell glob: Node 22 does not accept a directory, and Node 18 would also run test/helpers.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
+node examples/node/report.mjs test/fixtures/loadAndSave.docx   # the examples run against dist/
 
 npm run generate:fonts   # src/model/fonts/*.generated.mts from ../docx4j's font tables and themes; committed output
 ```
@@ -124,8 +126,10 @@ Key mechanics:
 
 ## Tests
 
-`test/*.test.mjs` on Node's runner, against `dist/` (`content.test.mjs` covers the content API); helpers in `test/helpers.mjs` (`plain()`
-strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
+`test/*.test.mjs` on Node's runner, against `dist/` (`content.test.mjs` covers the content API,
+`create.test.mjs` the created docx, pptx and xlsx, `directory.test.mjs` the `./node` container and
+`clone()`, `examples.test.mjs` runs every example in a child process and asserts a line of its
+output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance
 checklist. The contract: untouched parts byte-identical after a round trip, re-marshalled parts
 deep-equal after reload, flat OPC through the objects package's `unmarshalPackage` and back.
@@ -143,7 +147,10 @@ when an answer moves. Parity is zero differences.
 - ES modules only (`"type": "module"`, `.mts` sources built to `dist/*.mjs` with `.d.mts`). Unlike
   the objects package there are no UMD files here, so `"type": "module"` is fine.
 - Public paths are the `exports` map only (`.`, `./opc`, `./parts`, `./packages`, `./model`,
-  `./office-js`). Keep them stable; add subpaths deliberately.
+  `./office-js`, `./node`). Keep them stable; add subpaths deliberately. **`./node` is the only
+  one that may import a `node:` builtin** (`DirectoryPartStore`); nothing else under `src/` may,
+  so a browser or add-in bundle never sees one. There is no `@types/node`: what that module uses
+  is declared in `src/node/node-builtins.d.mts`.
 - Names follow docx4j (`OpcPackage`, `WordprocessingMLPackage`, `MainDocumentPart`,
   `RelationshipsPart`, `PropertyResolver`, `Emulator`) so docx4j Java code and documentation
   transfer; where Java conventions read badly in TypeScript use camelCase and note the mapping in

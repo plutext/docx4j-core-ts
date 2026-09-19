@@ -1,7 +1,7 @@
 import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx4j_relationships';
 import { PartName } from '../opc/PartName.mjs';
 import { ContentTypeManager } from '../opc/ContentTypeManager.mjs';
-import type { PartStore, PartSink } from '../opc/PartStore.mjs';
+import { MemoryPartSink, type PartStore, type PartSink } from '../opc/PartStore.mjs';
 import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
@@ -115,6 +115,36 @@ export class OpcPackage implements RelationshipSource {
       this.addTargetPart(part);
     }
     return this.docPropsExtendedPart!;
+  }
+
+  /**
+   * A deep copy of the package, of the same class (docx4j `OpcPackage.clone()`).
+   *
+   * Made the way docx4j makes it, **through save and reload** — into a `MemoryPartStore` rather
+   * than a zip, so nothing is deflated — because that is the copy whose cost matches what was
+   * touched: a part nobody unmarshalled is copied as the bytes it was loaded with, byte for byte,
+   * and never parsed; an unmarshalled part is marshalled once and comes back in the clone as its
+   * own tree, unmarshalled again on demand, sharing nothing with this package's. (The alternative,
+   * a part-by-part copy with `deepCopy` on every unmarshalled tree, would have to unmarshal
+   * lazily anyway and would not be simpler.)
+   *
+   * The clone's `sourcePartStore` is that memory store, so it no longer depends on this package's
+   * container; the load options are this package's. Settings that are not in the package
+   * (`author`, `fonts`, tracking) are carried across by the subclasses.
+   */
+  async clone(): Promise<this> {
+    const store = await this.saveTo(new MemoryPartSink());
+    const copy = await OpcPackage.load(store, this.loadOptions);
+    if (copy.constructor !== this.constructor) {
+      throw new Docx4JException(`Cloning ${this.constructor.name} produced ${copy.constructor.name}`);
+    }
+    this.copyPackageSettingsTo(copy);
+    return copy as this;
+  }
+
+  /** Carries the settings that are not in the package itself into a clone; subclasses add theirs. */
+  protected copyPackageSettingsTo(_target: OpcPackage): void {
+    // OpcPackage itself has none
   }
 
   /** The package as a zip. */

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { OpcPackage, WordprocessingMLPackage, ImagePart, HeaderPart, ZipPartStore, ContentTypes, Namespaces, PartName, XML_DECLARATION } from '../dist/index.mjs';
+import { OpcPackage, WordprocessingMLPackage, PresentationMLPackage, SpreadsheetMLPackage, ImagePart, HeaderPart, SlideLayoutPart, ZipPartStore, ContentTypes, Namespaces, PartName, XML_DECLARATION, createSlideSize } from '../dist/index.mjs';
 import { fixture, bytesEqual, plain } from './helpers.mjs';
 
 test('createPackage: a new docx saves and reloads', async () => {
@@ -101,4 +101,135 @@ test('removePart removes the part, its relationship and its own targets', async 
   assert.equal(back.getPart('/word/charts/chart1.xml'), undefined);
   assert.equal(back.parts.size, pkg.parts.size);
   assert.deepEqual(plain(back.getMainDocumentPart().relationshipsPart.list), plain(main.relationshipsPart.list));
+});
+
+test('PresentationMLPackage.createPackage: a new pptx saves and reloads', async () => {
+  const pkg = await PresentationMLPackage.createPackage({ slideSize: 'SCREEN16x9' });
+  const pp = pkg.getMainPresentationPart();
+  assert.equal(pp.partName.name, '/ppt/presentation.xml');
+  assert.equal(pkg.slideMasterParts.length, 1);
+  assert.equal(pkg.slideLayoutParts.length, 1);
+  assert.equal(pkg.slideParts.length, 1);
+  assert.ok(pkg.themePart);
+  assert.equal(pp.contents.sldSz.cx, 9144000);
+  assert.equal(pp.contents.sldSz.cy, 5143500);
+  assert.equal(pp.contents.sldSz.type, 'screen16x9');
+  assert.equal(pp.contents.notesSz.cx, 6858000);
+
+  const bytes = await pkg.save();
+  const store = new ZipPartStore(bytes);
+  // docx4j's part set (PresentationMLPackage.createPackage) plus the one slide
+  assert.deepEqual(new Set(store.partNames()), new Set([
+    '[Content_Types].xml', '_rels/.rels',
+    'ppt/presentation.xml', 'ppt/_rels/presentation.xml.rels',
+    'ppt/slideMasters/slideMaster1.xml', 'ppt/slideMasters/_rels/slideMaster1.xml.rels',
+    'ppt/slideLayouts/slideLayout1.xml', 'ppt/slideLayouts/_rels/slideLayout1.xml.rels',
+    'ppt/theme/theme1.xml',
+    'ppt/slides/slide1.xml', 'ppt/slides/_rels/slide1.xml.rels',
+  ]));
+  const ct = new TextDecoder().decode(store.loadSync('[Content_Types].xml'));
+  for (const [name, type] of [
+    ['/ppt/presentation.xml', ContentTypes.PRESENTATIONML_MAIN],
+    ['/ppt/slideMasters/slideMaster1.xml', ContentTypes.PRESENTATIONML_SLIDE_MASTER],
+    ['/ppt/slideLayouts/slideLayout1.xml', ContentTypes.PRESENTATIONML_SLIDE_LAYOUT],
+    ['/ppt/slides/slide1.xml', ContentTypes.PRESENTATIONML_SLIDE],
+    ['/ppt/theme/theme1.xml', ContentTypes.OFFICEDOCUMENT_THEME],
+  ]) assert.ok(ct.includes(`PartName="${name}" ContentType="${type}"`), name);
+
+  const back = await PresentationMLPackage.load(bytes);
+  const slides = await back.getSlideParts();
+  assert.equal(slides.length, 1);
+  assert.equal(slides[0].partName.name, '/ppt/slides/slide1.xml');
+  // the slide is on the layout, the layout on the master, and both master and presentation on the theme
+  assert.ok(slides[0].slideLayoutPart instanceof SlideLayoutPart);
+  const master = back.slideMasterParts[0];
+  assert.equal(master.slideLayoutParts.length, 1);
+  assert.equal(slides[0].slideLayoutPart.slideMasterPart, master);
+  assert.ok(master.themePart);
+  assert.equal(back.themePart, master.themePart, 'one theme part, related from both');
+  // the sldIdLst and sldMasterIdLst entries point at those relationships
+  const presentation = await back.getMainPresentationPart().getContents();
+  assert.equal(presentation.sldIdLst.sldId.length, 1);
+  assert.ok(presentation.sldIdLst.sldId[0].id >= 256 && presentation.sldIdLst.sldId[0].id <= 2147483647);
+  assert.ok(presentation.sldMasterIdLst.sldMasterId[0].id > 2147483648);
+  const sld = await slides[0].getContents();
+  assert.equal(sld.cSld.spTree.nvGrpSpPr.cNvPr.id, 1);
+  // a second slide
+  const added = await back.addSlide();
+  assert.equal(added.partName.name, '/ppt/slides/slide2.xml');
+  assert.equal(back.slideParts.length, 2);
+  const again = await PresentationMLPackage.load(await back.save());
+  assert.equal((await again.getSlideParts()).length, 2);
+});
+
+test('createSlideSize: docx4j\'s well-known sizes, portrait swapping the two', () => {
+  assert.deepEqual({ ...createSlideSize('SCREEN4x3') }, { TYPE_NAME: 'org_pptx4j_pml.Presentation.SldSz', cx: 9144000, cy: 6858000, type: 'screen4x3' });
+  assert.deepEqual({ ...createSlideSize('A4', false) }, { TYPE_NAME: 'org_pptx4j_pml.Presentation.SldSz', cx: 6858000, cy: 9906000, type: 'A4' });
+  assert.throws(() => createSlideSize('B4JIS'), /No support for slide size B4JIS/);
+});
+
+test('SpreadsheetMLPackage.createPackage: a new xlsx saves and reloads', async () => {
+  const pkg = await SpreadsheetMLPackage.createPackage();
+  const wb = pkg.getWorkbookPart();
+  assert.equal(wb.partName.name, '/xl/workbook.xml');
+  // docx4j adds the one bookViews/workbookView, without which Excel 2010 could crash on print
+  assert.equal(wb.contents.bookViews.workbookView.length, 1);
+  const sheet = pkg.createWorksheetPart('Sheet1');
+  assert.equal(sheet.partName.name, '/xl/worksheets/sheet1.xml');
+  assert.deepEqual(plain(sheet.contents.sheetData), {});
+  const entry = wb.contents.sheets.sheet[0];
+  assert.equal(entry.name, 'Sheet1');
+  assert.equal(entry.sheetId, 1);
+  assert.equal(entry.id, sheet.sourceRelationship.id);
+
+  const bytes = await pkg.save();
+  const store = new ZipPartStore(bytes);
+  assert.deepEqual(new Set(store.partNames()), new Set([
+    '[Content_Types].xml', '_rels/.rels',
+    'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/worksheets/sheet1.xml',
+  ]));
+  const ct = new TextDecoder().decode(store.loadSync('[Content_Types].xml'));
+  assert.ok(ct.includes(`PartName="/xl/workbook.xml" ContentType="${ContentTypes.SPREADSHEETML_WORKBOOK}"`));
+  assert.ok(ct.includes(`PartName="/xl/worksheets/sheet1.xml" ContentType="${ContentTypes.SPREADSHEETML_WORKSHEET}"`));
+  assert.ok(new TextDecoder().decode(store.loadSync('xl/worksheets/sheet1.xml')).includes('<sheetData/>'));
+
+  const back = await SpreadsheetMLPackage.load(bytes);
+  const sheets = await back.getWorksheetParts();
+  assert.equal(sheets.length, 1);
+  assert.equal(sheets[0].partName.name, '/xl/worksheets/sheet1.xml');
+  assert.equal(sheets[0].workbookPart, back.getWorkbookPart());
+  assert.equal(back.getWorkbookPart().getWorksheet(0), sheets[0]);
+  // a second sheet, and one inserted first
+  const second = back.createWorksheetPart('Data');
+  assert.equal(second.partName.name, '/xl/worksheets/sheet2.xml');
+  back.createWorksheetPart('Cover', 0);
+  assert.deepEqual(back.getWorkbookPart().contents.sheets.sheet.map((s) => s.name), ['Cover', 'Sheet1', 'Data']);
+  assert.deepEqual(back.worksheetParts.map((p) => p.partName.name), ['/xl/worksheets/sheet3.xml', '/xl/worksheets/sheet1.xml', '/xl/worksheets/sheet2.xml']);
+  const again = await SpreadsheetMLPackage.load(await back.save());
+  assert.deepEqual((await again.getWorksheetParts()).map((p) => p.partName.name), ['/xl/worksheets/sheet3.xml', '/xl/worksheets/sheet1.xml', '/xl/worksheets/sheet2.xml']);
+});
+
+test('the xlsx fixture workbook: Excel\'s x15 absPath mc:AlternateContent has no Fallback', async () => {
+  // docx4j CR-021's finding, pinned here: Excel writes
+  //   <mc:AlternateContent><mc:Choice Requires="x15"><x15ac:absPath url="..."/></mc:Choice></mc:AlternateContent>
+  // with no mc:Fallback. x15 is not a namespace the object model has a module for, so the
+  // preprocessor of CR-001 section 5.6 finds no understood Choice and no Fallback, and drops the
+  // element (ECMA-376 Part 3 10.2.1). The untouched part still round-trips byte for byte.
+  const bytes = await fixture('loadAndSave.xlsx');
+  const source = new ZipPartStore(bytes);
+  const raw = new TextDecoder().decode(source.loadSync('xl/workbook.xml'));
+  assert.ok(raw.includes('<mc:Choice Requires="x15">') && raw.includes('absPath'));
+  assert.ok(!raw.includes('mc:Fallback'));
+
+  const pkg = await SpreadsheetMLPackage.load(bytes);
+  const workbook = await pkg.getWorkbookPart().getContents();
+  assert.equal(workbook.alternateContent, undefined, 'the unresolvable Choice is dropped');
+  assert.equal(workbook.sheets.sheet.length, 1);
+  assert.equal(workbook.ignorable, 'x15 xr xr6 xr10 xr2');
+  const marshalled = new TextDecoder().decode(await pkg.getWorkbookPart().getBytes());
+  assert.ok(!marshalled.includes('absPath'), 'a re-marshalled workbook loses it, as Word and Excel do on open');
+
+  const untouched = await SpreadsheetMLPackage.load(bytes);
+  const saved = new ZipPartStore(await untouched.save());
+  assert.ok(bytesEqual(source.loadSync('xl/workbook.xml'), saved.loadSync('xl/workbook.xml')));
 });

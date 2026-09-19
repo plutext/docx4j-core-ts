@@ -6,13 +6,14 @@ and font resolution, over the Office Open XML object model of
 [`@docx4j/generated-objects-ts`](https://github.com/plutext/docx4j-generated-objects-ts). Node,
 browsers and Word add-ins.
 
-Status: the Open Packaging layer, the typed parts and the packages (Phase A of
-[CR-001](docs/change-requests/CR-001-engine.md)) are implemented, and so is all of Phase B —
-`PropertyResolver`, list numbering, so a paragraph can be asked for the label Word would paint,
-and font selection, so a run's font resolves through the theme; paragraph and run reads report
-the formatting that actually applies. Every answer is held to docx4j's own on 45 documents
-(`test/golden/`, made by the Java harness in `test/java/`): the resolver, the emulator and the
-selector agree with docx4j `VERSION_17_1_1` exactly.
+Status: [CR-001](docs/change-requests/CR-001-engine.md), the engine, is **complete**. The Open
+Packaging layer, the typed parts and the packages (Phase A); `PropertyResolver`, list numbering,
+so a paragraph can be asked for the label Word would paint, and font selection, so a run's font
+resolves through the theme, with paragraph and run reads reporting the formatting that actually
+applies (Phase B); the pptx and xlsx packages with `createPackage()`, the unzipped-directory
+container, `clone()`, and the guides and examples below (Phase C). Every resolution answer is
+held to docx4j's own on 45 documents (`test/golden/`, made by the Java harness in `test/java/`):
+the resolver, the emulator and the selector agree with docx4j `VERSION_17_1_1` exactly.
 
 ```
 npm install @docx4j/core-ts
@@ -44,8 +45,23 @@ const ooxml = await pkg.saveFlatOpc();              // pkg:package, for insertOo
 A part that is never touched is written back byte for byte; `getContents()` (or a view over
 it) marks a part for re-marshalling. `mc:AlternateContent` is resolved when a part is
 unmarshalled, as Word does on open (`{ mcePreprocess: false }` to keep it). Subpaths
-`@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately, and
-`/office-js` the `Word` shim (below).
+`@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately,
+`/office-js` the `Word` shim (below), and `/node` the one Node-only piece (the unzipped-directory
+container; nothing else in the package imports a `node:` builtin, so a browser or add-in bundle
+never sees one).
+
+### Guides
+
+| | |
+|---|---|
+| [Getting started in Node](docs/guides/getting-started-node.md) | install, load, the content API, save |
+| [In a Word add-in](docs/guides/office-addin.md) | flat OPC in and out, testing add-in code in Node, bundling |
+| [pptx and xlsx](docs/guides/presentationml-spreadsheetml.md) | what the PresentationML and SpreadsheetML packages give |
+| [Parity with docx4j](docs/guides/parity.md) | what the goldens are, and running the harness against a newer docx4j |
+
+Runnable code: [`examples/node/`](examples/node) (create, report, pptx, xlsx, an unzipped
+directory) and [`examples/office-addin/`](examples/office-addin) (a sideloadable Word task pane
+whose edit also runs in Node). `test/examples.test.mjs` runs them all, so they cannot rot.
 
 ### The content API
 
@@ -408,6 +424,27 @@ The default registry is the faces docx4j's four font jars carry, which is the en
 parity goldens were made in. Reading font files (`PhysicalFonts.discover`, glyph coverage, font
 metrics) is a later CR; the `Mapper` interface is what a consumer with `fontkit` plugs into.
 
+### pptx and xlsx
+
+The Open Packaging layer is one layer for all three formats: a `.pptx` and an `.xlsx` load, round
+-trip byte for byte and save exactly as a `.docx` does, with their parts typed by the same object
+model. What they do not have is the content API, which is WordprocessingML.
+
+```ts
+import { PresentationMLPackage, SpreadsheetMLPackage } from '@docx4j/core-ts';
+
+const deck = await PresentationMLPackage.createPackage({ slideSize: 'SCREEN16x9' });
+await deck.addSlide();
+deck.slideParts;                              // in p:sldIdLst order; .slideMasterParts, .slideLayoutParts
+
+const book = await SpreadsheetMLPackage.createPackage();
+const sheet = book.createWorksheetPart('Sales');   // the tab, its r:id and the worksheet part
+book.worksheetParts;                          // in `sheets` order; .sharedStringsPart, .stylesPart
+```
+
+Both follow docx4j's part set, so the files open in PowerPoint and Excel; the detail is in
+[docs/guides/presentationml-spreadsheetml.md](docs/guides/presentationml-spreadsheetml.md).
+
 ### Use in Node: running add-in code against a package
 
 `@docx4j/core-ts/office-js` is a `Word` shim: `Word.run(pkg, fn)` gives the callback a
@@ -457,8 +494,8 @@ await toApiScript(body.paragraphs[1]);
 // r1.font.italic = true;
 ```
 
-Custom XML parts, XML mapping, typed content controls and lists are the phases still to come of
-[CR-002](docs/change-requests/CR-002-content-api.md). A generated script reproduces the
+The bundling rules for an add-in, and a complete sideloadable example, are in
+[docs/guides/office-addin.md](docs/guides/office-addin.md). A generated script reproduces the
 document's *markup*, so it emits direct formatting only, not the effective values the reads
 report (CR-001 Phase B step 2).
 
@@ -467,6 +504,7 @@ report (CR-001 Phase B step 2).
 ```
 npm ci                              # the locked dependencies from npm
 npm run typecheck && npm test       # test = build, then node --test test/*.test.mjs
+npm run typecheck:examples          # examples/office-addin (also run by npm run typecheck)
 npm run generate                    # src/office-js/supported.generated.mts from test/office-js-subset.ts
 npm run generate:fonts              # src/model/fonts/*.generated.mts from a docx4j checkout
 ```

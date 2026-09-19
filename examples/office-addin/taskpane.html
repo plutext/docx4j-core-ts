@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>docx4j core-ts</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script type="module" src="./taskpane.js"></script>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 16px; }
+      h1 { font-size: 16px; margin: 0 0 12px; }
+      button { display: block; width: 100%; margin: 0 0 8px; padding: 8px; font: inherit; }
+      #status { margin-top: 12px; color: #555; }
+    </style>
+  </head>
+  <body>
+    <h1>docx4j for TypeScript</h1>
+    <button id="edit-selection">Edit the selection</button>
+    <button id="edit-sample">Run the same edit without Word</button>
+    <p id="status">Loading…</p>
+  </body>
+</html>

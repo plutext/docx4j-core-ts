@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A minimal Word taskpane add-in manifest. Replace the Id with a GUID of your own
+  (`node -e "console.log(crypto.randomUUID())"`) and the https://localhost:3000 URLs with wherever
+  you serve taskpane.html from; see README.md for the sideload steps.
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>6d1a2f6e-6d6a-4f2e-9b6f-3f4b1a2c5d90</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>docx4j</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="docx4j core-ts" />
+  <Description DefaultValue="Edits the selection with @docx4j/core-ts, inside the add-in." />
+  <IconUrl DefaultValue="https://localhost:3000/icon-32.png" />
+  <SupportUrl DefaultValue="https://github.com/plutext/docx4j-core-ts" />
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document" />
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.3">
+      <Set Name="WordApi" MinVersion="1.3" />
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:3000/taskpane.html" />
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="Title" />
+            <Description resid="Description" />
+            <LearnMoreUrl resid="Support.Url" />
+          </GetStarted>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="Docx4jGroup">
+                <Label resid="Group.Label" />
+                <Icon><bt:Image size="32" resid="Icon.32" /></Icon>
+                <Control xsi:type="Button" id="Docx4jTaskpaneButton">
+                  <Label resid="Button.Label" />
+                  <Supertip>
+                    <Title resid="Button.Label" />
+                    <Description resid="Description" />
+                  </Supertip>
+                  <Icon><bt:Image size="32" resid="Icon.32" /></Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Docx4jTaskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.32" DefaultValue="https://localhost:3000/icon-32.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html" />
+        <bt:Url id="Support.Url" DefaultValue="https://github.com/plutext/docx4j-core-ts" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Title" DefaultValue="docx4j core-ts" />
+        <bt:String id="Group.Label" DefaultValue="docx4j" />
+        <bt:String id="Button.Label" DefaultValue="Open docx4j" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="Description" DefaultValue="Edits the selection with @docx4j/core-ts, inside the add-in." />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

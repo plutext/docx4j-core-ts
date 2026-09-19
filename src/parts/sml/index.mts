@@ -6,6 +6,7 @@ import { Part } from '../Part.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import { ContentTypes } from '../../opc/ContentTypes.mjs';
 import { Namespaces } from '../Namespaces.mjs';
+import { Xlsx4jException } from '../../opc/exceptions.mjs';
 import { ThemePart } from '../dml/index.mjs';
 
 const S = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
@@ -27,17 +28,72 @@ export class WorkbookPart extends XmlPart<sml.Workbook> {
       default: return false;
     }
   }
-  /** Worksheet parts in relationship order (the sheet order is in `contents.sheets`). */
+  /**
+   * The worksheets, in `sheets` order (the order Excel shows the tabs in) once the workbook is
+   * unmarshalled; before that, in relationship order.
+   */
   get worksheetParts(): WorksheetPart[] {
     const rp = this.relationshipsPart;
     if (!rp) return [];
+    if (this.isUnmarshalled) {
+      const sheets = this.contents.sheets?.sheet;
+      if (sheets) {
+        const out: WorksheetPart[] = [];
+        for (const sheet of sheets) {
+          const part = rp.getPart(sheet.id);
+          if (part instanceof WorksheetPart) out.push(part);
+        }
+        return out;
+      }
+    }
     return rp.getRelationshipsByType(Namespaces.SPREADSHEETML_WORKSHEET).map((r) => rp.getPart(r)).filter((p): p is WorksheetPart => p instanceof WorksheetPart);
+  }
+
+  /** The worksheets in `sheets` order, unmarshalling the workbook first. */
+  async getWorksheetParts(): Promise<WorksheetPart[]> {
+    await this.getContents();
+    return this.worksheetParts;
+  }
+
+  /** The worksheet at an index of `sheets` (docx4j `WorkbookPart.getWorksheet(int)`). */
+  getWorksheet(index: number): WorksheetPart {
+    const sheets = this.worksheetParts;
+    const sheet = sheets[index];
+    if (!sheet) throw new Xlsx4jException(`No sheet at index ${index}. (There are ${sheets.length} sheets) `);
+    return sheet;
+  }
+
+  /** docx4j `WorkbookPart.isDate1904()`. */
+  get isDate1904(): boolean {
+    return this.contents.workbookPr?.date1904 === true;
   }
 }
 
 export class WorksheetPart extends XmlPart<sml.Worksheet> {
+  /** The sheet's drawing part (docx4j's `Drawing`), set from the `drawing` relationship. */
+  drawingPart: Part | undefined;
+  /** The sheet's legacy comments part. */
+  commentsPart: SpreadsheetCommentsPart | undefined;
   constructor(partName: PartName | string) {
     super(partName, ContentTypes.SPREADSHEETML_WORKSHEET, Namespaces.SPREADSHEETML_WORKSHEET, { namespaceURI: S, localPart: 'worksheet' });
+  }
+  override setPartShortcut(part: Part, relationshipType: string): boolean {
+    switch (relationshipType) {
+      case Namespaces.SPREADSHEETML_DRAWING: this.drawingPart = part; return true;
+      case Namespaces.SPREADSHEETML_COMMENTS: this.commentsPart = part as SpreadsheetCommentsPart; return true;
+      default: return false;
+    }
+  }
+  /** The sheet's table parts (`xl/tables/tableN.xml`), in relationship order. */
+  get tableParts(): TablePart[] {
+    const rp = this.relationshipsPart;
+    if (!rp) return [];
+    return rp.getRelationshipsByType(Namespaces.SPREADSHEETML_TABLE).map((r) => rp.getPart(r)).filter((p): p is TablePart => p instanceof TablePart);
+  }
+  /** The workbook this sheet belongs to, through its source relationship. */
+  get workbookPart(): WorkbookPart | undefined {
+    const owner = this.owningRelationshipPart?.sourceP;
+    return owner instanceof WorkbookPart ? owner : undefined;
   }
 }
 

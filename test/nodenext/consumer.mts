@@ -7,13 +7,14 @@ import { Part, unwrap } from '@docx4j/core-ts';
 import { PartName } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
+import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
 import * as model from '@docx4j/core-ts/model';
 import { Word, NotSupportedError, toApiScript } from '@docx4j/core-ts/office-js';
 
 export async function consume(): Promise<string> {
   const pkg: WordprocessingMLPackage = await WordprocessingMLPackage.createPackage();
   const name: PartName = PartName.of('/word/document.xml');
-  void [Part, unwrap, defaultPartRegistry, model, pkg];
+  void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink];
   const script: string = await toApiScript(pkg.body);
   await Word.run(pkg, (context) => context.document.body.insertParagraph(script, 'End'));
   void NotSupportedError;
@@ -34,3 +35,5 @@ export const packages: number = WordprocessingMLPackage;
 export const modelNs: number = model;
 // @ts-expect-error Word is the shim object, not a number
 export const officeJs: number = Word;
+// @ts-expect-error DirectoryPartStore is a class, not a number
+export const nodeOnly: number = DirectoryPartStore;

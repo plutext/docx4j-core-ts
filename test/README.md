@@ -84,6 +84,8 @@ what the check is for; writing through the binding is CR-002 phase E (`XmlMappin
 Outstanding: **check 3**, since CR-001 Phase B step 4 gave `createPackage()` a theme part
 (nine zip entries instead of eight) and the default theme setting. It has not been opened in
 Word since; the three `defaultTheme` values are the thing to look at (Design > Fonts).
+**Checks 12 and 13** are outstanding too: CR-001 Phase C added them, and a created pptx and xlsx
+have not yet been opened in PowerPoint and Excel.
 
 Previous run: 2026-09-10, Word 2016, after CR-001 Phase A and CR-002 phases B and D. All four
 files below opened without a repair prompt: the untouched round trip, the round trip with the
@@ -158,6 +160,20 @@ namespaces, content types or the zip writer, check by hand:
    `list.setLevelBullet(0, 'Square')` on a list that shares its `w:abstractNum` with a restart:
    only the edited list may change in Word.
 
+12. A created presentation (CR-001 Phase C): `PresentationMLPackage.createPackage()`, saved and
+   opened in PowerPoint. No repair prompt; one slide, blank, in the Slides pane, at the slide size
+   asked for (View > Slide Master shows the one master with its one layout, and Design > Variants >
+   Fonts the theme `defaultTheme` names). Check `createPackage({ slideSize: 'SCREEN16x9' })` and
+   `{ slideSize: 'A4', landscape: false }`, and a second slide from `addSlide()`.
+
+13. A created workbook (CR-001 Phase C): `SpreadsheetMLPackage.createPackage()` with
+   `createWorksheetPart('Sales')` and a few rows written into `sheetData`, saved and opened in
+   Excel. No repair prompt; one tab named Sales with the values in A1 down. Check a second sheet
+   and one inserted first (`createWorksheetPart('Cover', 0)`): Excel must show the tabs in
+   `sheets` order, Cover first. Also round-trip the two fixtures (check 5) after unmarshalling
+   their main parts, to see a re-marshalled `ppt/presentation.xml` and `xl/workbook.xml` open
+   (the workbook loses Excel's `x15ac:absPath`, which is expected: CR-001 section 16).
+
 A small Node script for 1 to 3 is:
 
 ```js
@@ -228,4 +244,38 @@ await g.customXmlParts.load();
 g.customXmlParts.items[0].selectSingleNode('/invoice/customer/company').text = 'Acme Pty Ltd';
 await g.customXmlParts.applyBindings();
 await writeFile('check9-b.docx', await g.save());
+```
+
+And one for 12 and 13 (the pptx and xlsx of CR-001 Phase C):
+
+```js
+import { writeFile, readFile } from 'node:fs/promises';
+import { PresentationMLPackage, SpreadsheetMLPackage } from './dist/index.mjs';
+import { createRow, createCell } from '@docx4j/generated-objects-ts/factory/org_xlsx4j_sml';
+
+// 12. a created presentation, at two slide sizes, the second with a second slide
+for (const [name, options] of [['16x9', { slideSize: 'SCREEN16x9' }], ['a4-portrait', { slideSize: 'A4', landscape: false }]]) {
+  const deck = await PresentationMLPackage.createPackage(options);
+  if (name === '16x9') await deck.addSlide();
+  await writeFile(`check12-${name}.pptx`, await deck.save());
+}
+
+// 13. a created workbook: three tabs, Cover inserted first, values in the first
+const book = await SpreadsheetMLPackage.createPackage();
+const sheet = book.createWorksheetPart('Sales');
+book.createWorksheetPart('Notes');
+book.createWorksheetPart('Cover', 0);
+sheet.contents.sheetData.row = [['Q1', '100'], ['Q2', '120']].map(([label, value], i) => createRow({
+  r: i + 1,
+  c: [createCell({ r: `A${i + 1}`, t: 'inlineStr', is: { t: label } }), createCell({ r: `B${i + 1}`, v: value })],
+}));
+await writeFile('check13.xlsx', await book.save());
+
+// 13 (continued): the two fixtures re-marshalled
+const deck = await PresentationMLPackage.load(await readFile('test/fixtures/loadAndSave.pptx'));
+await deck.getMainPresentationPart().getContents();
+await writeFile('check13-remarshalled.pptx', await deck.save());
+const wb = await SpreadsheetMLPackage.load(await readFile('test/fixtures/loadAndSave.xlsx'));
+await wb.getWorkbookPart().getContents();
+await writeFile('check13-remarshalled.xlsx', await wb.save());
 ```

@@ -42,6 +42,22 @@ export class PropertyResolverNotCreatedException extends Docx4JException {
   }
 }
 
+/** pptx4j Pptx4jException: a presentation's own structure (the slide list, a missing master). */
+export class Pptx4jException extends Docx4JException {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'Pptx4jException';
+  }
+}
+
+/** xlsx4j Xlsx4jException: a workbook's own structure (the sheet list). */
+export class Xlsx4jException extends Docx4JException {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'Xlsx4jException';
+  }
+}
+
 /** docx4j PartUnrecognisedException: no part class for a content type (the registry falls back before this is thrown). */
 export class PartUnrecognisedException extends Docx4JException {
   constructor(message: string) {
