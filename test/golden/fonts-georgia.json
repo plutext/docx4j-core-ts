@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "2",
-    "docx4jCommit": "d5809a1d8ab47324b8a14483d4c818f3b741a030",
+    "docx4jCommit": "01d661547d26ca7b16c86860082e82fc8462dc3d",
     "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "8e2d22dace4cc601",
-    "date": "2026-09-19T00:34:22Z",
+    "docx4jCoreJarSha256": "d0bd889c3a135e27",
+    "date": "2026-09-19T01:07:43Z",
     "fixture": "fonts-georgia.docx",
     "fixtureBytes": 7003,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",

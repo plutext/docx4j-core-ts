@@ -779,6 +779,8 @@ result, so the paragraph is unnumbered in effect but the `NumRef` says otherwise
 `numbering-label-ilvl0.json` shows it. Python answers `notNumbered` with reason "numbering turned
 off" inside its resolve, because its `isListItem` and `detachFromList` are written over that. The
 TypeScript port takes Python's reading (the two ports must agree, and CR-002 phase H has the same
-two callers), asserts around that one field in the parity test with a comment naming this
-paragraph, and it is reported to docx4j as a candidate fix to `numRefFor`; if docx4j changes, the
-goldens regenerate and the exception goes.
+two callers). Reported to docx4j and fixed the same day (`01d661547`: `numRefFor` answers
+`notNumbered` with the reason "the paragraph's w:numId 0 turns numbering off", or the style's
+when the 0 comes from the chain, and `getNumber` returns null); the goldens were regenerated
+from that commit, and only `numbering-label-ilvl0.json`'s two such paragraphs changed (their
+`numbering` is now null). No exception is needed in either port.

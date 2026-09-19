@@ -14,8 +14,8 @@ Read that first; this file is the review guide.
 
 | | |
 |---|---|
-| docx4j | branch `VERSION_17_1_1`, commit `d5809a1d8ab47324b8a14483d4c818f3b741a030` — the merge of CR-001 batch 49 (2026-09-19) |
-| docx4j-core jar | `docx4j-core-17.1.1-SNAPSHOT.jar`, SHA-256 `8e2d22dace4cc601…` |
+| docx4j | branch `VERSION_17_1_1`, commit `01d661547d26ca7b16c86860082e82fc8462dc3d` (2026-09-19; after the batch 49 merge `d5809a1d8` and the `w:numId` 0 fix) |
+| docx4j-core jar | `docx4j-core-17.1.1-SNAPSHOT.jar`, SHA-256 `d0bd889c3a135e27…` |
 | harness version | 2 (the public parity accessors; version 1 used reflection) |
 | fixtures | the 8 `.docx` in `test/fixtures/` and the 37 in `test/fixtures/parity/` (see `test/README.md` for their provenance) |
 | fonts | docx4j's symbol, croscore, crosextra and theme2023 jars alone; the machine's own fonts are not discovered |
