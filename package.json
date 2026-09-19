@@ -40,6 +40,7 @@
   "scripts": {
     "generate": "node scripts/generate-supported.mjs",
     "build": "tsc -p tsconfig.build.json",
+    "generate:fonts": "node scripts/generate-substitutions.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "pretest": "node scripts/generate-supported.mjs",
     "test": "npm run build && tsc -p test/nodenext/tsconfig.json && node --test test/*.test.mjs",

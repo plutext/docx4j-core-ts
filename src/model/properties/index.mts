@@ -11,7 +11,6 @@ export {
   unsetCatalogue, copyLeaf,
 } from './catalogue.mjs';
 export * from './styleUtil.mjs';
-export { NumberingLevels, type StyleLookup } from './numberingInd.mjs';
 export {
   PropertyResolver, headingLevelByName, WORD_DEFAULT_CELL_MARGIN_TWIPS, type ResolverSource,
 } from './PropertyResolver.mjs';

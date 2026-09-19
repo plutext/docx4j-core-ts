@@ -332,6 +332,16 @@ touches zip tree-shakes it away.
   deferred to 3.3.0; it is revisited if Phase B's re-marshalling of large parts makes marshal
   time matter. The dependency range is `^0.1.2` of the objects package (2026-09-16), which requires
   3.2.1.
+- **Runtime (jsonix CR candidate, found by Phase B step 4 on 2026-09-19):** `@xmldom/xmldom`
+  0.9.12, the DOM the runtime injects in Node, applies XML 1.1's end-of-line normalisation to an
+  XML 1.0 document: a raw U+0085 (NEL) or U+2028 (LINE SEPARATOR) in text content is parsed as
+  U+000A (a bare U+000D and CRLF become U+000A too, which XML 1.0 does prescribe; a character
+  reference `&#x85;` survives). Xerces keeps both, so docx4j's goldens hold them and the parity
+  test normalises around the one occurrence (`tracked-changes.docx`). The consequence outside
+  tests is that a part containing either character loses it on unmarshal, so a re-marshalled part
+  is not what Word wrote. Browsers' `DOMParser` is correct. The fix belongs in the runtime: an
+  upstream xmldom fix with the version pinned, or `Jsonix.DOM.parse` escaping the two characters
+  as references when the declaration is 1.0. Sent to the jsonix session on 2026-09-19.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 
@@ -968,3 +978,367 @@ observations for a later CR there, neither blocking: `Jsonix.Util.deepCopy` allo
 per call, which is why leaf copies here are a local `copyLeaf`; and the mapping model's
 `getTypeInfoByName(...).properties` (used by the catalogue-completeness test) is not in the
 runtime's typings, as `Jsonix.DOM` was not.
+
+### 15.2 Step 3: list numbering (2026-09-19)
+
+`src/model/listnumbering/` (`definitions.mts`, `state.mts`, `formats.mts`, `Emulator.mts`,
+`index.mts`), the `NumberingDefinitionsPart` accessors, `src/parts/wml/defaultNumbering.mts`,
+`WordprocessingMLPackage.refresh()` / `getNumberingEmulator()` / `numberingDefinitionsPart`,
+the numbering comparison in `test/parity.test.mjs` and `test/numbering.test.mjs` are in. Ported
+against docx4j `VERSION_17_1_1` at `01d661547` (the commit the goldens carry): `Emulator.java`
+(645), `ListNumberingDefinition.java` (558), `ListLevel.java` (591),
+`AbstractListNumberingDefinition.java` (223), `NumberingState.java`, `NumberingStates.java`,
+`NumberFormatter.java` and every `NumberFormat*`, and the `initialiseMaps` / `getInd` /
+`getIndFromLvl` / `resolveLinkedAbstractNum` / `getLinkedStyleId` / `getEmulator` /
+`unmarshalDefaultNumbering` half of `NumberingDefinitionsPart.java`. **Parity is zero
+differences** on all 45 goldens: 183 numbered paragraphs across 21 documents and every story
+kind, each compared on `numString`, `isBullet`, `numFont`, `ilvl`, `numId`, all five `NumRef`
+members, the whole `stateAfter` (every counter's value, `encounteredAlready` and `resetPending`,
+and the spent start overrides), and `ind`, `indResolved`, `lvl` and `labelRPr` as object trees.
+
+**What is in.**
+
+- `definitions.mts`: `LevelDefinition` (one `w:lvl`, the abstract level with the instance's
+  `w:lvlOverride/w:lvl` over it), `AbstractListDefinition`, `ListDefinition` (the counter walk
+  and the `w:lvlText` expansion, `w:isLgl` included) and `NumberingDefinitions` - docx4j's
+  `initialiseMaps`, its two passes, `w:numStyleLink` resolved through the numbering style, and
+  `getInd` / `indOf` / `getLinkedStyleId`. `NumberingDefinitions implements NumberingIndents`,
+  which is the interface step 2 left as the seam.
+- `state.mts`: `Counter` (`value`, `encounteredAlready`, `resetPending`), `NumberingState`
+  (counters keyed by the **referencing** `w:abstractNumId` and level, `startOverridesApplied`
+  keyed `numId/ilvl`, `counter`, `reset`, `isEmpty`, `copy`, and the two read-only views the
+  parity harness records), and `NumberingStates` (`main()`, `forPart(part)` with every header
+  and footer in one story, `newStory()` for a text box).
+- `formats.mts`: the registry keyed by `w:numFmt` and every formatter docx4j ships - decimal,
+  decimalHalfWidth, decimalZero, lowerLetter and upperLetter with Word's repeated letter past z,
+  lowerRoman, upperRoman, bullet, none, ordinal, cardinalText, ordinalText, hex, chicago,
+  numberInDash, decimalFullWidth (and `2`), thaiNumbers, hindiNumbers, russianLower/Upper,
+  arabicAlpha, thaiLetters, hebrew1, the two Chinese counting sets, decimalEnclosedCircle (and
+  its Chinese alias) - with `register`, `formatterFor` and the fail-soft `formatValue`.
+- `Emulator.mts`: `NumRef`, `NumberingResult`, the one `resolve`, `styleLinkedElsewhere`,
+  `numRefFor`, `getNumber`, `getNumberOf`, `peek` and `getInd` as instance methods, and docx4j's
+  static forms over a package (`Emulator.getNumber`, `.peek`, `.numRefFor`, `.getInd`, `.of`).
+- `NumberingDefinitionsPart`: `definitions`, `getDefinitions()`, `abstractListDefinitions`,
+  `instanceListDefinitions`, `getInd(numPr)`, `getIndOf(numId, ilvl)`, `getLinkedStyleId`,
+  `getEmulator([reset])`, `numberingState`, `unmarshalDefaultNumbering()` and
+  `refreshDefinitions()`.
+
+**Departures from the Java, and why.**
+
+1. **`resolveLinkedAbstractNum` does not write into the tree.** docx4j copies the linked
+   definition's `w:lvl` list into the referencing `w:abstractNum` object as well as into its
+   `AbstractListNumberingDefinition`. Here that would cost a document with a `w:numStyleLink`
+   its byte-for-byte round trip of `word/numbering.xml` the moment anything asked for a label.
+   The definitions carry the levels; nothing else needs the tree to carry them.
+2. **Only the door is asynchronous.** docx4j's statics are synchronous because JAXB is. Here
+   the definitions come from `readContents()`, so the part's `getDefinitions()` and the
+   package's `getNumberingEmulator()` are `async`; everything after that -
+   `emulator.getNumber(pPr, state)`, `Emulator.getNumber(pkg, ...)`, `peek`, `numRefFor` - is
+   synchronous, as the `PropertyResolver` is after `getPropertyResolver()`.
+3. **The two `getNumber` overloads are told apart by shape.** docx4j has
+   `getNumber(pkg, pPr, state)` and
+   `getNumber(pkg, pStyleVal, numId, levelId, directNumPr, state)`; the TypeScript overload
+   dispatches on "a `string` second argument, or more than three arguments", so
+   `Emulator.getNumber(pkg, undefined, '80', '0')` is the style form and
+   `Emulator.getNumber(pkg, pPr, state)` the `w:pPr` one. The instance methods are
+   `getNumber(pPr, state?)` and `getNumberOf(pStyleVal, numId, ilvl, direct?, state?)`, the
+   split docx4j-python made for the same reason.
+4. **`getNumber` returns `undefined` where docx4j returns an *empty* `ResultTriple`.** For a
+   `w:numId` with no definition, or a level that does not exist, docx4j returns a triple whose
+   every member is null; here the result carries `notNumbered: true` and a `reason` instead, so
+   a caller is not handed an object whose label is silently absent. No golden reaches that
+   branch (every `numbering` the goldens record has a `numString`), so parity does not depend on
+   the choice; CR-002 phase H does. This is also where the CR-021 phase 1 note of section 14.6
+   lands: a **dangling `w:numId`** - the one an untouched `mc:Fallback` can keep pointing at
+   after the `w:num` it named has gone - resolves as not numbered, with `Couldn't find list N`
+   logged once, and throws nothing.
+5. **The definitions are built by the `PropertyResolver` and shared with the part.** Step 2's
+   paragraph merge already needs `NumberingDefinitionsPart.getInd` per layer, so the resolver
+   builds a `NumberingDefinitions` in `init()`; `NumberingDefinitionsPart.definitions` hands out
+   that same object, and builds its own only when the part has been unmarshalled and edited
+   since the resolver read it, or when there is no resolver at all. One set of definitions, one
+   `getInd`, and `refresh()` rebuilds both.
+6. **`WordprocessingMLPackage.refresh()` is new**, and is docx4j's `getPropertyResolver(true)`:
+   `refreshPropertyResolver()` re-reads the parts the resolver already knows about and cannot
+   find a styles or numbering part *added* since - which is exactly what docx4j's
+   `StyleLinkedLevelTest` and `DefaultStyleNumberedTest` do.
+7. **A malformed `w:lvlText` does not throw.** docx4j's expansion loop calls `Integer.parseInt`
+   on the character after a `%` (a `NumberFormatException` for anything but a digit) and
+   dereferences the level it names (a `NullPointerException` when Word's referential-integrity
+   bugs leave it missing). Here a non-digit is written out literally and a missing level
+   contributes nothing; a trailing `%` is dropped, which is what docx4j's loop does.
+   `LevelExists`'s own comment says such documents exist, so tolerating them is the point.
+8. **`NumberingStates.forPart` keys on the part's content type**, not on its class, so that
+   `state.mts` imports no part and `parts/wml` can import it. The rule is docx4j's: every header
+   and footer in one story, the footnotes, endnotes and comments parts each their own,
+   everything else the main story.
+
+**Quirks reproduced deliberately.**
+
+- **`w:isLgl`, `w:pStyle`, `w:suff`, `w:lvlJc` and `w:lvlPicBulletId` are read off *one*
+  `w:lvl`** - the `w:lvlOverride/w:lvl` where the instance has one, the abstract level
+  otherwise - while `w:start`, `w:lvlRestart`, `w:lvlText`, `w:numFmt` and the level font are
+  merged attribute by attribute. That is not a uniform rule: docx4j's `setOverrides` merges the
+  five, and `getCurrentNumberString` reads `w:isLgl` off the controlling element, so an override
+  level stating no `w:isLgl` turns legal numbering **off** for a level whose abstract definition
+  has it. Reproduced (`LevelDefinition.controllingLvl`). docx4j-python merged `isLgl` like the
+  other five when this was written and aligned to docx4j's reading the same day (its CR-003
+  section 18.10), as it did the trailing-`%` rule of item 7 below; no fixture has either case,
+  and a Word-checked probe in docx4j's harness (an abstract level with `w:isLgl` and an
+  override level without it) would settle which reading is Word's, both ports following.
+- **A `w:num`'s first use at a level is recorded in `startOverridesApplied` whether or not it
+  carries a `w:startOverride`.** docx4j sets the flag inside the branch that takes the start
+  value, which fires on a fresh counter too; the goldens show `["70/0"]` for a `w:num` with no
+  override at all. Reproduced, and the parity test compares the set.
+- **Every level of an abstract list gets a counter on the list's first use**, not only the level
+  used: incrementing level 0 resets each deeper level that restarts after it, and a reset
+  creates the counter. So `numbering-stories`' first label leaves three counters standing, two
+  of them `resetPending` at their start value. Reproduced; this is `w:lvlRestart`'s doing
+  (CR-014 phase 2), not an initialisation pass.
+- **A `w:startOverride` beside an override `w:lvl` that states its own `w:start`.** docx4j
+  applies the `w:startOverride` first and `setOverrides` after, so the `w:lvl`'s `w:start` wins
+  the value while `hasStartOverride` stays set and the *first use of that `w:num`* still resets
+  the shared counter. Reproduced in `ListDefinition`'s constructor, with the ordering commented.
+- **`getInd` prefers the level's own `w:ind` to its linked `w:pStyle`'s** (docx4j 17.1.0,
+  measured; CR-014 claim 7 and probe P5), and follows `w:basedOn` from that style when the level
+  states none (17.1.1). Both halves are `ListNumberIndTest`'s seven cases, ported.
+- **`w:numFmt="bullet"` formats as `"*"`.** Reachable only through a `w:lvlText` that asks for a
+  bullet level's counter; docx4j's own TODO says the bullet handling overlaps with this.
+
+**Goldens questioned: none.** Every recorded value is reproduced; nothing is left failing.
+
+**What step 2's `numberingInd.mts` became.** It is deleted. `NumberingLevels` was the indent
+walk alone - the instance definitions, `w:lvlOverride`, `w:numStyleLink`'s second pass and
+`getIndFromLvl` - done narrowly so that `effectivePPr` could be measured. `NumberingDefinitions`
+is the same walk inside the real model and implements the same `NumberingIndents` interface, so
+`PropertyResolver` changed in two lines (the import and the field) and `effectivePPr` parity is
+unchanged. `styleUtil.mts` keeps `NumberingIndents` as the seam, which keeps it free of any
+numbering import.
+
+**Tests.** `test/numbering.test.mjs` (26): the formatter table and the fail-soft rules
+(`LabelFormatterTest`); `NumberingRestartTest`'s P8 walk and its `restartsAfter` table;
+`NumberingStoriesTest`'s P7 stories, `peek` and `reset`; `StartOverrideTest` and `IsLglTest`
+over the `[expect]...[/expect]` documents; `ListNumberIndTest`'s seven flat OPC cases;
+`StyleLinkedLevelTest`'s seven; `DefaultStyleNumberedTest`'s three; `numRefFor` for no numbering
+part, no `w:pPr` and `w:numId` 0 both ways; `unmarshalDefaultNumbering`; and a document whose
+numbering is only *read* saving `word/numbering.xml` byte for byte. `test/fixtures/ind/` is the
+one fixture directory added (docx4j's `ListNumberIndTest` inputs, copied unchanged).
+`NumberingConcurrencyTest` is not ported: JavaScript has one thread per realm, and what that
+test proves - that two traversals with their own `NumberingState` do not interleave - is what
+the parity test's per-story states exercise on every fixture.
+
+### 15.3 Step 4: fonts (2026-09-19)
+
+`src/model/fonts/` (`RunFontSelector.mts`, `ThemeFonts.mts`, `Mapper.mts`,
+`IdentityPlusMapper.mts`, `PhysicalFont.mts`, `registry.mts`, `FontFallback.mts`,
+`scripts.mts`, `LanguageTagToScriptMapping.mts`, `CJKToEnglish.mts`, `defaultTheme.mts`,
+`fontsInUse.mts`, `lookup.mts`, `index.mts` and three generated modules),
+`MainDocumentPart.getRunFontSelector()` / `getFontMapper()` / `fontsInUse()` /
+`getStylesInUse()`, `WordprocessingMLPackage.fonts` and `createPackage`'s theme part,
+`Font.name`, `scripts/generate-substitutions.mjs`, and the comparisons in
+`test/parity.test.mjs` and `test/fonts.test.mjs` are in. Ported against docx4j
+`VERSION_17_1_1` as CR-016 settled it (the goldens are from `01d661547`; the generated data
+names the commit the generator last ran against). **Parity is zero differences** on all 45
+goldens: 1,112 font spans, `fontsInUse` and `stylesInUse` as sorted lists, the default font
+and theme part, and 42 distinct `IdentityPlusMapper` decisions.
+
+**What is in.**
+
+- `RunFontSelector.mts`: `documentFontsOf(rFonts)`, `defaultFontOf(rFonts)` / `defaultFont`,
+  `themeFont(type)`, `resolvedSlots`, `complexScriptFont` (`w:cs` and `w:rtl` by value through
+  `isOn`), `preambleRule`, `asciiFontName`, `fontFor` (the [MS-OI29500] 17.3.2.26 table,
+  copied branch for branch), `spanScript`, `isEmoji`, `symbolFontName`, `runLocale`,
+  `documentFontFor(pPr, rPr, cp, rPrIsEffective?)` and `spans(pPr, rPr, text, opts)` yielding
+  `FontSpan[]` (`text`, `documentFont`, `bold`, `italic`, `cs`, `rtl`, `script`). One
+  resolution, as CR-016 phase 1 decided: the selector resolves the run's effective `w:rPr`
+  through the `PropertyResolver` unless the caller passes `{ rPrIsEffective: true }`.
+- `ThemeFonts.mts`: `themeFontOf(theme, type, themeFontLang)`, docx4j's
+  `ThemePart.getFont(STTheme, CTLanguage)` over an `a:fontScheme` rather than a part, since the
+  selector, font discovery and the content API all resolve references and none of them should
+  have to hold a `ThemePart`.
+- `Mapper.mts`: the one precedence of CR-016 phase 3 as `populateFontMappings` plus the shared
+  passes (`installedOrEmbedded`, `addMetricallyCompatibleSubstitutes`, `addAltNameSubstitutes`
+  with the chain and its cycle guard, `addClassBasedSubstitutes`, `addMapperSubstitutes` as the
+  empty hook, `addWordDefaultSubstitutes`, `addNoBoldFaceAliases`), `populate()` running them
+  in `setFontMapper`'s order, `isKnownFamily`, `hasBoldFace`, `wordDefaultFor`,
+  `registerLineMetricsAlias` / `lineMetricsFamily`, and `FontDecision` (`source`, `via`,
+  `widthError`, `physicalFont`), which is what the goldens record.
+- `IdentityPlusMapper.mts`: `resolveDocumentFont` alone - the name variants in the order
+  regular, bold, italic, bold italic.
+- `FontFallback.mts`: `classOf`, `substitutionClass`, `classFromName`, `isCondensed`,
+  `leftToTheDocumentDefault`, `selectByClass`, and the coverage-group predicates `spanScript`
+  needs (`isSymbol`, `isEmoji`, `isEastAsianForm`, `coverageGroupOf`).
+- `fontsInUse.mts`: CR-016 phase 4's names walk over the body, headers, footers, notes and
+  comments - the four slots of every `w:rFonts` on runs, paragraph marks and `w:sdtPr`, `w:sym`,
+  the styles in use with their `w:basedOn` chains and `w:tblStylePr` run properties, the
+  numbering levels, the document defaults and the default font - and the styles-in-use half of
+  the same traversal.
+- `defaultTheme.mts` and the three theme resources; see below.
+
+**What of the Java is deliberately not ported, and why.** docx4j's `RunFontSelector` is 2,572
+lines, of which this takes about 700: the decision per character. Left out, with the reason
+each is a later CR (section 14.2, decision 5 of 14.5):
+
+1. **Everything that makes XSL-FO**: `createElement` / `setAttribute` / `symbolSetAttribute`,
+   the `RunFontCharacterVisitor` and the three output modes, `finish()`'s post-processes -
+   `kernSpaces`, `characterScaling`, `noLigatures`, `smallCaps`, `applyLineHeight`,
+   `markWidthFactor` - and `getCssProperty`. The port's answer is a `FontSpan[]`; how a span is
+   represented is the consumer's.
+2. **The glyph-coverage pass** (`glyphFallback`, `FontFallback.selectCovering` / `covers` /
+   `needsCoverage`, `GlyphCheck`, `GlyphAdvances`, `TextMeasurer`) and with it
+   `BestMatchingMapper`'s panose matching: all of it reads a font file's cmap and metrics, which
+   needs `fontkit`. `addMapperSubstitutes` is the empty hook docx4j's base class has, so the
+   later CR adds a mapper rather than changing this one.
+3. **`WordLineMetrics` and `WidthFactors`**: line boxes and advance corrections are measurement,
+   not selection. `registerLineMetricsAlias` / `lineMetricsFamily` are kept, because the
+   `w:altName` and Word-default passes are written over them and a consumer that does measure
+   needs to know whose metrics Word used, but nothing here reads a metric.
+4. **`arabicNumbering` and `capsAndSoftHyphens`**: both rewrite the run's *text* before the
+   dispatch (Arabic-Indic digit shaping; `w:caps` / `w:smallCaps`). They belong with an output
+   pathway - the caller passes the text it means to draw - and neither changes which font a
+   character gets.
+5. **`symbolRun`'s Unicode replacement** (`SymbolMapper`, `translateUnicode2SingleByte`,
+   `symbolSegments`): the selector answers "Symbol" or "Wingdings" for such a run, which is the
+   document font and what the golden records; turning a private-use code point into the
+   replacement character a substitute face can draw is output, and it needs the symbol jar's
+   glyph tables.
+6. **`registerUsedFont`, `ownFont`, `warnedOnce`, the FOP configuration**: no FOP here.
+
+**Departures from the Java, and why.**
+
+1. **A `FontRegistry` is a parameter, not a static map.** docx4j's `PhysicalFonts` discovers the
+   machine's fonts once, in the `Mapper` static initialiser, by walking font directories and its
+   own jars. None of that is portable - a browser cannot enumerate fonts, an add-in has no file
+   system, Node needs `fontkit` to read a name table - so a `Mapper` is constructed over a
+   `FontRegistry` the caller supplies (`get(name)` and `all()`, case-insensitive and stripping
+   the twin suffixes, as `PhysicalFonts.get` does). `DEFAULT_FONT_REGISTRY` is the 43 faces
+   docx4j's four font jars carry, read off `PhysicalFonts.getPhysicalFonts()` with system
+   discovery off - the environment CR-016 phase 0c measured and the goldens record - so a
+   mapping computed here reproduces a golden on any machine. `PhysicalFonts.discover` over
+   installed fonts is a later CR, as section 6.3 says.
+2. **`PhysicalFont` is a name, a family and the no-bold-face flag**, with no `EmbedFontInfo`,
+   no panose, no file URI and no `Typeface`. `getFamilyName`'s triplet walk becomes the family
+   the registry was told, falling back to the name with its suffixes stripped.
+3. **`spans()` folds by font alone**, which is what `documentFontFor` per code point answers and
+   what the harness records. docx4j's rendering walk additionally cuts a span where the
+   *script* changes between two non-shared characters, so that the coverage pass can substitute
+   a Greek stretch as a sibling span rather than nesting it inside the Latin one (measured:
+   nesting cost a corpus document a page). That cut serves the coverage pass, which is not
+   ported; `spanScript` is exported and each span reports its script, so a renderer can apply it.
+4. **`U+2190-U+2BFF` answers the hAnsi font.** docx4j asks whether the hAnsi font has the glyph
+   and names Segoe UI Symbol where it has that face. Both are glyph checks; without them the
+   branch answers hAnsi, which is also docx4j's answer in the goldens' font environment (Segoe
+   UI Symbol is not among the jars' faces), so parity holds and the divergence shows only on a
+   machine that has that face.
+5. **The emoji font is an option, not a property.** `docx4j.fonts.RunFontSelector.EmojiFont` is
+   `RunFontSelectorSource.emojiFont`; unset by default, as docx4j's property is.
+6. **`BestMatchingMapper`, `FontReport`, `FontsAnalysis.usage`, `MetricsOnlyFonts` and
+   `FontEnvironment` are not ported** (no callers here, and each needs font files).
+7. **The `Mapper`'s per-script choices are not recorded.** `FontDecision` here carries `source`,
+   `via`, `widthError` and `physicalFont` - what a golden records - and not
+   `recordScriptChoice` / `recordSymbolFace` / `getBoldFace` / `getLineBox` / `getWidthFactor`,
+   all of which are the conversion's report of what the coverage pass and the metrics did.
+8. **Asynchronous accessors.** `getRunFontSelector()` and `getFontMapper()` are `async` because
+   they read the theme, settings, styles, numbering and font table parts;
+   `runFontSelector` / `runFontSelectorOrUndefined` are the synchronous accessors afterwards,
+   the pattern `getPropertyResolver()` set in step 2. Every one of those parts is read with
+   `readContents()`, so resolving a document's fonts costs it no byte of its round trip
+   (`test/roundtrip.test.mjs` proves it: after `getFontMapper()` only the main document part is
+   unmarshalled).
+9. **`Character.UnicodeScript.of(cp).name()` is `scripts.mts`**, a memoised sweep of
+   `\p{Script=...}` regular expressions over the Unicode script long aliases. A script this
+   engine's Unicode version does not know is dropped when its pattern fails to compile, so a
+   newer script answers `UNKNOWN` on an older Node as it would on an older JDK.
+
+**Quirks reproduced deliberately.**
+
+- **`w:cs w:val="0"` turns an inherited complex-script flag off, and `w:rtl` alone on Latin text
+  still takes the cs font.** Both are `isOn`, the `ST_OnOff` value; docx4j tested the elements'
+  presence until 17.1.1.
+- **A theme reference beats the explicit attribute beside it**, at every level: `resolvedSlots`
+  takes `themeFont(ref) ?? explicit`, and where the package has no theme part the reference
+  resolves to the Office theme's Latin face - so the explicit name is never used (Word's own
+  answer, probe `fonts-missing-slots` (b)).
+- **A theme reference the theme *part* cannot answer gives Calibri in the document default
+  only** (`defaultFontOf`'s third branch), where the same reference on a run resolves to nothing
+  and the explicit attribute stands. Asymmetric, and docx4j's.
+- **An `a:font` entry whose `typeface` is empty answers the empty string**, where a script the
+  list does not carry falls back to the collection's own `a:latin`. `ThemePart.getFont`'s map
+  lookup distinguishes the two and this does too.
+- **A run with no `w:rFonts` at all gets the default font in the ascii and hAnsi slots only**,
+  never the eastAsia slot: a Times New Roman there would fire the preamble rule and set the
+  whole run in one span.
+- **`w:cs=""` (LibreOffice writes it in docDefaults) is read as no complex-script font**, but
+  only in `resolvedSlots`; `complexScriptFont` returns it as it is, as docx4j's does.
+- **`isKnownFamily` asks `substitutionClass`, not `classOf`**: a name that merely ends in "Sans"
+  is *not* a known family, so the Word-default pass acts on it - the two disagreed until
+  docx4j 17.1.1 and a corporate face fell between them, drawn in the document default's serif
+  throughout.
+- **`addNoBoldFaceAliases` skips a Word-defaulted font**: a font Word itself could not find is
+  substituted whole, its real bold included ("EnBW DIN Pro Light" is Calibri Bold in Word).
+
+**Goldens questioned: none.** One comparison normalises the golden before matching it, and it
+is not a font difference: `@xmldom/xmldom` applies XML 1.1's line-ending normalisation to an
+XML 1.0 document, so a `U+0085` (NEL) inside a `w:t` arrives here as `U+000A` where Xerces keeps
+it (XML 1.0 section 2.11 normalises only `#xD` and `#xD#xA`). One fixture has one such character
+(`tracked-changes.docx`, "and here it continues"), and the span it falls in is otherwise
+identical - same font, same flags. `asParsed()` in `test/parity.test.mjs` names the cause. This
+is a defect of the XML layer, not of this step: a *re-marshalled* part would lose the character,
+so it belongs in a runtime or objects CR (see the last paragraph).
+
+**The `defaultTheme` setting, and `createPackage`'s theme part (section 14.6, the Phase A
+departure closed).** docx4j's `docx4j.fonts.defaultTheme` is one JVM-wide property; this package
+has no properties file, and a browser or an add-in may hold several packages at once, so the
+setting is per package: `pkg.fonts.defaultTheme` (a `FontSettings` object on the package),
+`'2023'` | `'2013'` | `'2007'`, defaulting to the process-wide `defaultThemeSetting()`, which
+is `'2023'`. `createPackage({ defaultTheme })` sets it and then adds a `ThemePart` from that
+theme's bundled resource, as docx4j's `addDefaultThemePart` does, so a package created by either
+library resolves its `minorHAnsi` defaults to the same face. The three resources are embedded as
+`themes.generated.mts` (docx4j's `theme-2023.xml`, `theme-2013.xml`, `theme-2007.xml`), beside
+`defaultStyles.mts`. A created package therefore has nine zip entries rather than eight
+(`test/create.test.mjs` and the acceptance note in `test/README.md` say so), and a *loaded*
+package with no theme part still resolves its references from the setting, which is where the
+golden `fonts-missing-slots` gets its Aptos.
+
+**The generated data** (`scripts/generate-substitutions.mjs`, `npm run generate:fonts`, output
+committed): `substitutions.generated.mts` from `font-substitutes.xml`'s `<substitutes>` rows
+(30 document fonts) and `FontSubstitutions.xml` (419 OpenOffice VCL entries: the font classes
+and candidate lists `FontFallback` reads); `families.generated.mts` from `MicrosoftFonts.xml`
+(137 families, 41 with a bold face of their own - which is what `hasBoldFace` answers on, and
+the no-bold-face list) and `word-line-metrics.properties` (512 family names, 46 flagged East
+Asian - `isKnownFamily` and the alt-name pass's East Asian hop; no metric is read);
+`themes.generated.mts`. Each header names the docx4j commit the generator ran against. The
+table's `<scriptSubstitutes>` and `<widthFactors>` blocks are deliberately not generated: they
+serve the coverage and width passes, which this CR does not port.
+
+**`Font.name` (step 2's one remaining direct read, closed).** `Font` gains a fourth supplier,
+the resolved ASCII font name, which `Paragraph.getFont()` and `Range.getFont()` fill with
+`RunFontSelector.asciiFontName` of the effective `w:rPr` - `w:rFonts/@w:ascii`, or the face
+`w:asciiTheme` names, else `w:hAnsi`, else the document default. So a run whose face comes from
+the theme now reads "Aptos" (or "Calibri") rather than `''`, and one that names no font anywhere
+reads the document default rather than `''`. `getFont({ direct: true }).name` is unchanged, and
+so is the read where the package's selector has not been built yet. The lookup is structural
+(`runFontSelectorOf`), as `Body.propertyResolver` is, so the content API keeps no import of a
+part class.
+
+**Tests.** `test/fonts.test.mjs` (23): the CR-016 phase 1 and 2 cases
+(`RunFontSelectorCsValueTest`, `RunFontSelectorThemeLangTest` with Estonian and the default
+font's theme language, `RunFontSelectorNoRFontsTest`, the theme reference with no theme part,
+the range table of `RunFontSelectorDispatchTest` including the Latin-1 exceptions and the Indic
+ranges, the Latin-1 range reset, span joining, the preamble rule, the symbol fonts and emoji),
+`LanguageTagToScriptMappingTest`, `MapperPrecedenceTest` in five parts (installed over embedded,
+the embedded form, the face order, the altName chain and its cycle, Word's default and the
+guessed-class case), `NoBoldFaceTest` with the Word-defaulted exception,
+`MetricallyCompatibleSubstituteTest`, `ClassBasedSubstituteTest`, `FontsInUseTest` with
+`getStylesInUse`, the themeless default for all three values, and `createPackage`'s theme part
+for all three. `test/parity.test.mjs` adds a second per-golden test (font spans, `fontsInUse`,
+`stylesInUse`, the default font, the theme part and the mapping), and `test/roundtrip.test.mjs`
+the byte-identity check. Suite: 323 tests, 322 pass, 0 fail, 1 `todo` (step 3).
+
+**For the objects package and the runtime: one thing, not blocking.** `@xmldom/xmldom`
+normalises `U+0085` and `U+2028` to `U+000A` in an XML 1.0 document, which is XML 1.1's rule
+(XML 1.0 section 2.11 normalises only `#xD` and `#xD#xA`). Character data therefore differs from
+Java's, and a re-marshalled part loses the character. Found through the font spans of
+`tracked-changes.docx`; it belongs to `src/xml/dom.mts` or the runtime, not here. Everything
+else this step needed - `walk`, `readContents`, the generated declarations, the facade - was
+already there.

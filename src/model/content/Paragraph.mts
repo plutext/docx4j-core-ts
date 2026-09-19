@@ -9,6 +9,7 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
   return run;
 }
 import { Font, type FontTracking } from './Font.mjs';
+import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
@@ -226,7 +227,8 @@ export class Paragraph {
     const holders = (): wml.R[] => runsOf(this.p).map((r) => r.value);
     if (options?.direct === true) return new Font(holders, () => this.fontTracking());
     return new Font(holders, () => this.fontTracking(),
-      (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr));
+      (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr),
+      (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr));
   }
 
   /** w14:paraId, the stable address Word gives paragraphs. */

@@ -6,9 +6,13 @@ import { ContentTypes } from '../opc/ContentTypes.mjs';
 import { Docx4JException } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import type { Part } from '../parts/Part.mjs';
-import { MainDocumentPart, StyleDefinitionsPart, DocumentSettingsPart } from '../parts/wml/index.mjs';
+import { MainDocumentPart, StyleDefinitionsPart, DocumentSettingsPart, type NumberingDefinitionsPart } from '../parts/wml/index.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart } from '../parts/docProps/index.mjs';
 import { DEFAULT_STYLES_XML } from '../parts/wml/defaultStyles.mjs';
+import { ThemePart } from '../parts/dml/index.mjs';
+import {
+  newFontSettings, themeOfSettings, type FontSettings, type DefaultThemeValue,
+} from '../model/fonts/defaultTheme.mjs';
 import { HeaderPart, FooterPart } from '../parts/wml/index.mjs';
 import type { Body, Address, Outline, OutlineParagraph, OutlineTable } from '../model/content/Body.mjs';
 import type { Paragraph } from '../model/content/Paragraph.mjs';
@@ -17,6 +21,7 @@ import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollect
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
 import { ChangeTracker, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
+import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
 import type { TrackedChange } from '../model/content/TrackedChange.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
@@ -54,6 +59,10 @@ const PAGE_SIZES: Record<PageSizePaper, [w: number, h: number, code: number]> = 
 export interface CreatePackageOptions {
   pageSize?: PageSizePaper;
   landscape?: boolean;
+  /** Which Office theme the new package's theme part carries, and which its font references
+   *  resolve against: `'2023'` (the default, Word 365's Aptos Display / Aptos), `'2013'`
+   *  (Calibri Light / Calibri) or `'2007'` (Cambria / Calibri). Sets `pkg.fonts.defaultTheme`. */
+  defaultTheme?: DefaultThemeValue;
 }
 
 /** A docx (docx4j WordprocessingMLPackage). */
@@ -73,6 +82,18 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   /** Set when `changeTrackingMode` was written but the settings part was not unmarshalled yet. */
   private trackingPending = false;
 
+  /**
+   * The package's font settings (CR-001 Phase B step 4), docx4j's `docx4j.fonts.*` properties
+   * scoped to one package: `defaultTheme` says which Office theme a font reference resolves
+   * against where the package has **no theme part**, and which theme part `createPackage()`
+   * gives a new one. `'2023'` (Word 365's Aptos Display / Aptos) by default; `'2013'` is
+   * Calibri Light / Calibri and `'2007'` Cambria / Calibri.
+   *
+   * Set it before the first `getRunFontSelector()` or `createPackage()`; afterwards call
+   * `mainDocumentPart.refreshFonts()`.
+   */
+  readonly fonts: FontSettings = newFontSettings();
+
   static override async load(source: PackageSource, options?: LoadOptions): Promise<WordprocessingMLPackage> {
     const pkg = await OpcPackage.load(source, options);
     if (!(pkg instanceof WordprocessingMLPackage)) {
@@ -87,6 +108,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    */
   static async createPackage(options: CreatePackageOptions = {}): Promise<WordprocessingMLPackage> {
     const pkg = new WordprocessingMLPackage();
+    if (options.defaultTheme !== undefined) pkg.fonts.defaultTheme = options.defaultTheme;
     const [pw, ph, code] = PAGE_SIZES[options.pageSize ?? 'A4'];
     const landscape = options.landscape === true;
     const pgSz: wml.SectPr.PgSz = { w: landscape ? ph : pw, h: landscape ? pw : ph, code };
@@ -111,6 +133,17 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     const app = new DocPropsExtendedPart();
     app.setContents({});
     pkg.addTargetPart(app);
+
+    /* The theme part (/word/theme/theme1.xml), as Word puts one in every document it creates
+     * and as docx4j's createPackage has done since 17.1.1 (CR-001 section 14.6): without it,
+     * the default styles' docDefaults - which reference the theme fonts
+     * (w:rFonts w:asciiTheme="minorHAnsi" ...) - had nothing to resolve against, and every
+     * consumer had to guess the Office theme's faces for itself. Which theme it is, is
+     * `pkg.fonts.defaultTheme`; the same setting answers a themeless package's references. */
+    const theme = new ThemePart();
+    theme.setXml(themeOfSettings(pkg.fonts).xml);
+    main.addTargetPart(theme);
+
     // so that `pkg.body`'s effective reads work without a further await: the default styles are
     // XML bytes, so this is the one place the resolver has to be built before the caller asks
     await pkg.getPropertyResolver();
@@ -181,6 +214,41 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   /** Tells the resolver, when there is one, that the styles part has changed. */
   refreshPropertyResolver(): void {
     this.resolver?.refresh();
+    this.mainDocumentPart?.numberingDefinitionsPart?.refreshDefinitions();
+  }
+
+  /**
+   * Builds the resolver and the numbering definitions again, over the parts the package holds
+   * **now**: what docx4j's `getPropertyResolver(true)` does, and what a styles or numbering part
+   * *added* after the first resolver was built needs (`refreshPropertyResolver()` re-reads the
+   * parts the resolver already knows about, but cannot find new ones).
+   */
+  async refresh(): Promise<PropertyResolver> {
+    this.resolver = undefined;
+    this.resolverPending = undefined;
+    this.mainDocumentPart?.numberingDefinitionsPart?.refreshDefinitions();
+    return this.getPropertyResolver();
+  }
+
+  // --- list numbering (CR-001 Phase B step 3) --------------------------------------------
+
+  /** `/word/numbering.xml`, or undefined. docx4j `MainDocumentPart.getNumberingDefinitionsPart()`. */
+  get numberingDefinitionsPart(): NumberingDefinitionsPart | undefined {
+    return this.mainDocumentPart?.numberingDefinitionsPart;
+  }
+
+  /**
+   * The numbering emulator over this package's numbering part, with its definitions read
+   * (docx4j `NumberingDefinitionsPart.getEmulator()`), or undefined where there is no numbering
+   * part. Asynchronous because reading the part is; `numberingDefinitionsPart.getEmulator()` is
+   * the synchronous accessor afterwards.
+   */
+  async getNumberingEmulator(): Promise<Emulator | undefined> {
+    const part = this.numberingDefinitionsPart;
+    if (part === undefined) return undefined;
+    await this.getPropertyResolver();
+    await part.getDefinitions();
+    return part.getEmulator();
   }
 
   // --- change tracking (CR-002 phase F, section 3.7) --------------------------------------

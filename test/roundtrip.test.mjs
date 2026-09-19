@@ -47,6 +47,26 @@ test('round trip: untouched pptx and xlsx', async () => {
   await checkRoundTrip('loadAndSave.xlsx');
 });
 
+test('round trip: resolving fonts reads the theme, settings and font table without touching them', async () => {
+  // CR-001 Phase B step 4: the selector and the mapper read those parts with readContents(),
+  // as the PropertyResolver reads the styles part, so a document whose fonts a caller merely
+  // asked about still saves byte for byte.  Only the main document part is unmarshalled, by
+  // the names walk.
+  for (const name of ['invoice.docx', 'HelloWordOnline.docx']) {
+    await checkRoundTrip(name, async (pkg) => {
+      const main = pkg.getMainDocumentPart();
+      const mapper = await main.getFontMapper();
+      assert.ok(mapper.size > 0, `${name}: nothing mapped`);
+      assert.ok((await main.fontsInUse()).size > 0, `${name}: no fonts in use`);
+      assert.ok(main.themePart, `${name} has a theme part`);
+      assert.equal(main.themePart.isUnmarshalled, false, 'the theme part stays untouched');
+      assert.equal(main.fontTablePart.isUnmarshalled, false, 'the font table stays untouched');
+      assert.equal(main.styleDefinitionsPart.isUnmarshalled, false, 'the styles part stays untouched');
+      return [main.partName.name];
+    });
+  }
+});
+
 test('round trip: an unmarshalled part is re-marshalled and deep-equal after reload', async () => {
   const { pkg, reloaded } = await checkRoundTrip('loadAndSave.docx', async (pkg) => {
     await pkg.getMainDocumentPart().getContents();

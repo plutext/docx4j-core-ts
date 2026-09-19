@@ -8,8 +8,9 @@ browsers and Word add-ins.
 
 Status: the Open Packaging layer, the typed parts and the packages (Phase A of
 [CR-001](docs/change-requests/CR-001-engine.md)) are implemented, and so is `PropertyResolver`
-(Phase B step 2), so paragraph and run reads report the formatting that actually applies. List
-numbering and font selection (Phase B steps 3 and 4) are next.
+(Phase B step 2), list numbering (step 3), so a paragraph can be asked for the label Word would
+paint, and font selection (step 4), so a run's font resolves through the theme; paragraph and run
+reads report the formatting that actually applies. The Phase B review (step 5) is next.
 
 ```
 npm install @docx4j/core-ts
@@ -87,6 +88,35 @@ p?.insertParagraph('Inserted after the fourth block', 'After');
 Docx4j's names are there as aliases (`addParagraphOfText`, `addStyledParagraphOfText`,
 `addObject`, `getContent`), and the tree stays reachable: `paragraph.p` is the `P`,
 `body.content` the live array.
+
+### List numbering
+
+`Emulator` is docx4j's list-numbering emulator: the label Word would paint in front of a
+paragraph, given its `w:pPr`. Counters live in a `NumberingState`, one per **story** — Word
+numbers the body, the headers and footers together, each notes part and each text box from their
+own counters — so a caller walks a story in document order with the state for it.
+
+```ts
+import { WordprocessingMLPackage, Emulator, NumberingStates } from '@docx4j/core-ts';
+
+const pkg = await WordprocessingMLPackage.load(bytes);
+const emulator = await pkg.getNumberingEmulator();   // undefined when the document has no lists
+const states = new NumberingStates();
+const main = pkg.getMainDocumentPart();
+const state = states.forPart(main);                  // states.forPart(headerPart), states.newStory(), ...
+
+for (const paragraph of (await main.getBody()).paragraphs) {
+  const label = emulator?.getNumber(paragraph.p.pPr, state);
+  if (label) console.log(label.numString, label.isBullet, label.indResolved?.left);
+}
+
+Emulator.peek(pkg, pPr, state);        // the same answer, without taking the number
+Emulator.numRefFor(pkg, pPr);          // which list and level, or why Word numbers nothing
+pkg.numberingDefinitionsPart.getIndOf('3', '0');   // the indent that level contributes
+```
+
+Reading labels does not unmarshal `word/numbering.xml`, so a document you only read still saves
+byte for byte. After editing the numbering or styles parts, `await pkg.refresh()`.
 
 ### Change tracking
 
@@ -274,6 +304,65 @@ control.title = 'Applies';  control.appearance = 'Tags';  control.cannotDelete =
 const list = body.paragraphs[1].insertContentControl('DropDownList').dropDownListContentControl;
 list.addListItem('Apples', 'apples');
 ```
+
+### Fonts
+
+Two questions, kept apart as they are in docx4j: which **document** font formats each character
+of a run, and which physical face draws that name.
+
+`RunFontSelector` answers the first. It resolves the run's effective properties, resolves every
+theme reference (`w:asciiTheme` and friends) through the theme part for the document's
+`w:themeFontLang`, and then walks the text through the [MS-OI29500] 17.3.2.26 character-range
+table, folding the answer into spans:
+
+```ts
+const main = pkg.getMainDocumentPart();
+const selector = await main.getRunFontSelector();
+
+selector.spans(paragraph.pPr, run.rPr, 'Hello 日本 שלום');
+// [ { text: 'Hello ', documentFont: 'Calibri', bold: false, italic: false,
+//     cs: false, rtl: false, script: 'LATIN' },
+//   { text: '日本',   documentFont: 'MS Gothic', ..., script: 'CJK' },
+//   { text: ' ',      documentFont: 'Calibri',  ..., script: null },
+//   { text: 'שלום',   documentFont: 'Calibri',  ..., script: 'HEBREW' } ]
+
+selector.documentFontFor(paragraph.pPr, run.rPr, 0x1F600);   // one code point
+selector.asciiFontName(effectiveRPr);                        // what `font.name` reports
+selector.defaultFont;                                        // the document's default face
+```
+
+`w:cs` and `w:rtl` are read **by value** (`<w:cs w:val="0"/>` turns an inherited complex-script
+flag off), the symbol fonts are matched case-insensitively, and the space between two East Asian
+words takes the ascii font — each of those verified against Word, in docx4j's CR-016.
+
+A package with **no theme part** is read as coming from a particular version of Word:
+`pkg.fonts.defaultTheme` is `'2023'` (Word 365: Aptos Display / Aptos), `'2013'` (Calibri Light /
+Calibri) or `'2007'` (Cambria / Calibri). `createPackage()` gives a new package that theme's
+theme part, as Word does, so a document created here and one created by docx4j resolve alike.
+
+`Mapper` answers the second question, over a `FontRegistry` the caller supplies — the names the
+consumer can actually draw with. `IdentityPlusMapper` takes the font itself where the registry
+has it, then the document's embedded form, a variant of the name, docx4j's measured substitute
+table (`font-substitutes.xml`: Arial to Arimo, Calibri to Carlito, Cambria to Caladea, Aptos to
+Akasia), the document's own `w:altName` chain, a face of the same class, and finally what Word
+itself draws a font it cannot find:
+
+```ts
+const mapper = await main.getFontMapper();       // IdentityPlusMapper over DEFAULT_FONT_REGISTRY
+mapper.get('Calibri');                           // PhysicalFont { name: 'Carlito Regular', familyName: 'Carlito' }
+mapper.getDecision('Calibri');                   // { source: 'METRIC_CLONE', via: null, widthError: '0.07% ...' }
+
+await main.fontsInUse();                         // every name the document could ask for
+await main.getStylesInUse();                     // the style ids used directly
+
+// your own font environment
+const mine = new IdentityPlusMapper(new SimpleFontRegistry(faces.map((f) => new PhysicalFont(f.fullName, f.family))));
+await main.getFontMapper(mine);
+```
+
+The default registry is the faces docx4j's four font jars carry, which is the environment the
+parity goldens were made in. Reading font files (`PhysicalFonts.discover`, glyph coverage, font
+metrics) is a later CR; the `Mapper` interface is what a consumer with `fontkit` plugs into.
 
 ### Use in Node: running add-in code against a package
 

@@ -28,9 +28,11 @@ export interface FontTracking {
  * the objects package's one name-to-`w:rPr` mapping (`builders/wml` applyRunOptions /
  * readRunOptions), which its `r(text, opts)` builder shares.
  *
- * One read is not yet effective: `name` is `w:rFonts/@w:ascii` of the resolved properties, so
- * a run whose font comes from the theme (`w:asciiTheme`) still reads ''. Resolving a theme
- * reference to a face is `RunFontSelector`, CR-001 Phase B step 4.
+ * `name` is effective too since step 4: it is `RunFontSelector.asciiFontName` of the resolved
+ * properties, so a run whose font comes from the theme (`w:asciiTheme`) reads the face the
+ * theme names, and one that names no font anywhere reads the document default rather than ''.
+ * `getFont({ direct: true }).name` is still `w:rFonts/@w:ascii` of the run itself, and a
+ * package whose selector has not been built yet falls back to that.
  */
 export class Font {
   constructor(
@@ -39,11 +41,19 @@ export class Font {
     private readonly tracking?: () => FontTracking | undefined,
     /** The effective `w:rPr` of the first run in scope; absent for a direct-formatting view. */
     private readonly effective?: (rPr: wml.RPr | undefined) => wml.RPr | undefined,
+    /** The document font of that effective `w:rPr` with its theme reference resolved
+     *  (`RunFontSelector.asciiFontName`); absent for a direct-formatting view, and undefined
+     *  where the package has no selector yet. */
+    private readonly asciiFontName?: (rPr: wml.RPr | undefined) => string | undefined,
   ) {}
 
-  private read(): RunFormatting {
+  private effectiveRPr(): wml.RPr | undefined {
     const direct = this.holders()[0]?.rPr;
-    return readRunOptions(this.effective ? this.effective(direct) : direct);
+    return this.effective ? this.effective(direct) : direct;
+  }
+
+  private read(): RunFormatting {
+    return readRunOptions(this.effectiveRPr());
   }
 
   private apply(opts: RunOptions): void {
@@ -70,8 +80,19 @@ export class Font {
   set subscript(v: boolean) { this.apply({ subscript: v }); }
   get superscript(): boolean { return this.read().superscript; }
   set superscript(v: boolean) { this.apply({ superscript: v }); }
-  /** The ASCII font name (w:rFonts/@w:ascii); '' when the effective font comes from the theme. */
-  get name(): string { return this.read().name; }
+  /**
+   * The document font formatting this run's Latin text: `w:rFonts/@w:ascii` of the effective
+   * properties, the face `w:asciiTheme` names, else `w:hAnsi`, else the document default
+   * (docx4j `RunFontSelector.asciiFontName`). '' only in a direct-formatting view with no
+   * `w:ascii`, or where the package's `RunFontSelector` has not been built yet.
+   */
+  get name(): string {
+    if (this.asciiFontName !== undefined) {
+      const resolved = this.asciiFontName(this.effectiveRPr());
+      if (resolved !== undefined) return resolved;
+    }
+    return this.read().name;
+  }
   set name(v: string) { this.apply({ name: v }); }
   /** Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz. */
   get size(): number { return this.read().size; }

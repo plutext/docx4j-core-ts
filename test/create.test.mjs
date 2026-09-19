@@ -9,13 +9,15 @@ test('createPackage: a new docx saves and reloads', async () => {
   assert.equal(main.partName.name, '/word/document.xml');
   assert.ok(main.styleDefinitionsPart);
   assert.ok(main.documentSettingsPart);
+  // the theme part, as Word puts one in every document it creates (CR-001 section 14.6)
+  assert.ok(main.themePart);
   assert.ok(pkg.docPropsCorePart && pkg.docPropsExtendedPart);
   main.contents.body.content.push({ name: { namespaceURI: Namespaces.NS_WORD12, localPart: 'p' }, value: { TYPE_NAME: 'org_docx4j_wml.P', content: [{ name: { namespaceURI: Namespaces.NS_WORD12, localPart: 'r' }, value: { TYPE_NAME: 'org_docx4j_wml.R', content: [{ name: { namespaceURI: Namespaces.NS_WORD12, localPart: 't' }, value: { TYPE_NAME: 'org_docx4j_wml.Text', value: 'Hello, core-ts' } }] } }] } });
   const bytes = await pkg.save();
   const store = new ZipPartStore(bytes);
   const names = [...store.partNames()];
   assert.equal(names[0], '[Content_Types].xml');
-  assert.deepEqual(new Set(names), new Set(['[Content_Types].xml', '_rels/.rels', 'word/document.xml', 'word/_rels/document.xml.rels', 'word/styles.xml', 'word/settings.xml', 'docProps/core.xml', 'docProps/app.xml']));
+  assert.deepEqual(new Set(names), new Set(['[Content_Types].xml', '_rels/.rels', 'word/document.xml', 'word/_rels/document.xml.rels', 'word/styles.xml', 'word/settings.xml', 'word/theme/theme1.xml', 'docProps/core.xml', 'docProps/app.xml']));
   const ct = new TextDecoder().decode(store.loadSync('[Content_Types].xml'));
   assert.ok(ct.includes(`PartName="/word/document.xml" ContentType="${ContentTypes.WORDPROCESSINGML_DOCUMENT}"`));
   assert.ok(ct.includes(`PartName="/word/styles.xml"`));
@@ -32,6 +34,7 @@ test('createPackage: a new docx saves and reloads', async () => {
   const rels = back.getMainDocumentPart().relationshipsPart;
   assert.equal(rels.getRelationshipByType(Namespaces.STYLES).target, 'styles.xml');
   assert.equal(rels.getRelationshipByType(Namespaces.SETTINGS).target, 'settings.xml');
+  assert.equal(rels.getRelationshipByType(Namespaces.THEME).target, 'theme/theme1.xml');
   assert.equal(back.relationshipsPart.getRelationshipByType(Namespaces.DOCUMENT).target, 'word/document.xml');
   assert.equal(back.relationshipsPart.getRelationshipByType(Namespaces.PROPERTIES_CORE).target, 'docProps/core.xml');
 });

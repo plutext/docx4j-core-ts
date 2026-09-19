@@ -52,6 +52,16 @@ All are docx4j's, Apache-2.0, from `VERSION_17_1_1` at `0077d749c`:
   (the probe corpus has a `numbering-stories.docx` of its own).
 - From `docx4j-samples-docx4j/sample-docs/`: `fonts-modesOfApplication.docx`.
 
+## Numbering indent fixtures (`fixtures/ind/`, CR-001 Phase B step 3)
+
+The seven flat OPC documents of docx4j's `ListNumberIndTest`, copied unchanged from
+`docx4j-core-tests/src/test/java/org/docx4j/model/listnumbering/ind/` at `VERSION_17_1_1`
+(Apache-2.0): `abstract_style_with`, `abstract_style_without`, `abstract_nostyle_ppr`,
+`abstract_nostyle_noppr`, `override_nostyle_ppr`, `abstract_style_ind_only` and
+`abstract_style_basedon`. Each is one `w:num` 1 whose level 0 states its indent, or its linked
+`w:pStyle` does, or neither; `numbering.test.mjs` asserts the `w:ind/@w:left`
+`NumberingDefinitionsPart.getIndOf('1', '0')` answers (2880, 12, 13, none, 23, 11, 31).
+
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 
 What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written
@@ -83,7 +93,11 @@ namespaces, content types or the zip writer, check by hand:
 2. Re-marshalled main part: as 1, but `await pkg.getMainDocumentPart().getContents()` before
    saving. Word must accept the `mc:Ignorable` prefixes and the `xml:space` attributes.
 3. New document: `WordprocessingMLPackage.createPackage()` with a paragraph added, saved, opened.
-   Styles pane shows Normal and Heading 1 to 4.
+   Styles pane shows Normal and Heading 1 to 4. Since CR-001 Phase B step 4 the package also
+   carries a theme part (`word/theme/theme1.xml`, nine parts in the zip instead of eight), so
+   Design > Fonts must show the Office theme - Aptos Display / Aptos by default, and Calibri
+   Light / Calibri or Cambria / Calibri for `createPackage({ defaultTheme: '2013' | '2007' })` -
+   and the body text must be set in the theme's body face rather than Word's fallback.
 4. Flat OPC: `saveFlatOpc()` output pasted through `insertOoxml()` in a Word add-in (or saved as
    `.xml` and opened in Word, which reads `pkg:package` files directly).
 5. pptx and xlsx: round trips of the two fixtures open in PowerPoint and Excel.

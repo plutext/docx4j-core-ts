@@ -13,7 +13,11 @@
 //     style id and the document defaults; for every paragraph of every story,
 //     `getEffectivePPr(pPr)` and `getEffectiveParagraphMarkRPr(pPr)`, and for every run
 //     `getEffectiveRPr(rPr, pPr)`; for every table `getEffectiveTableStyle(tblPr)` and
-//     `reachesDefaultTableStyle(tblPr)`.  Steps 3 and 4 add numbering and fonts.
+//     `reachesDefaultTableStyle(tblPr)`.  Step 3 added numbering: per paragraph of every story,
+//     in document order and with one `NumberingState` per story as the harness had them, the
+//     `Emulator`'s `numString`, `isBullet`, `numFont`, `ilvl`, `numId`, its `NumRef` and the
+//     whole state after the paragraph, plus `ind`, `indResolved`, `lvl` and `labelRPr` as object
+//     trees.  Step 4 adds fonts.
 //
 // **How a value is compared.**  Our object is marshalled to XML through the objects facade,
 // and then *both* strings are unmarshalled, so both sides took the same path: attribute order,
@@ -28,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
   parseXml, unmarshalNode, marshalString, WordprocessingMLPackage,
-  HeaderPart, FooterPart,
+  HeaderPart, FooterPart, Emulator, NumberingStates,
 } from '../dist/index.mjs';
 import { fixturesDir, plain } from './helpers.mjs';
 
@@ -274,6 +278,24 @@ async function compareBatch(kind, items, report) {
       `<w:p xmlns:w="${W}">${comparable.map((i) => `<w:r>${i.golden}</w:r>`).join('')}</w:p>`,
       (v) => v.content.map((e) => e.value.rPr),
     );
+  } else if (kind === 'ind') {
+    ourValues = await roundTrip(
+      { name: { namespaceURI: W, localPart: 'document' }, value: { TYPE_NAME: 'org_docx4j_wml.Document', body: { TYPE_NAME: 'org_docx4j_wml.Body', content: comparable.map((i) => P_ELEMENT({ TYPE_NAME: 'org_docx4j_wml.PPr', ind: i.ours })) } } },
+      (v) => v.body.content.map((e) => e.value.pPr?.ind),
+    );
+    goldenValues = await unmarshalWrapped(
+      `<w:document xmlns:w="${W}"><w:body>${comparable.map((i) => `<w:p><w:pPr>${i.golden}</w:pPr></w:p>`).join('')}</w:body></w:document>`,
+      (v) => v.body.content.map((e) => e.value.pPr?.ind),
+    );
+  } else if (kind === 'lvl') {
+    ourValues = await roundTrip(
+      { name: { namespaceURI: W, localPart: 'numbering' }, value: { TYPE_NAME: 'org_docx4j_wml.Numbering', abstractNum: [{ TYPE_NAME: 'org_docx4j_wml.Numbering.AbstractNum', abstractNumId: 0, lvl: comparable.map((i) => i.ours) }] } },
+      (v) => v.abstractNum[0].lvl,
+    );
+    goldenValues = await unmarshalWrapped(
+      `<w:numbering xmlns:w="${W}"><w:abstractNum w:abstractNumId="0">${comparable.map((i) => i.golden).join('')}</w:abstractNum></w:numbering>`,
+      (v) => v.abstractNum[0].lvl,
+    );
   } else {
     ourValues = await roundTrip(
       { name: { namespaceURI: W, localPart: 'styles' }, value: { TYPE_NAME: 'org_docx4j_wml.Styles', style: comparable.map((i) => i.ours) } },
@@ -418,7 +440,241 @@ for (const name of names) {
   });
 }
 
-// The comparisons still waiting on the step of CR-001 Phase B that writes the code they drive.
-test.todo('numbering: Emulator numString, isBullet, ind, lvl, labelRPr, numRef and stateAfter equal the golden per story (step 3)');
-test.todo('fontSpans: RunFontSelector.documentFontFor folds each run into the golden spans (step 4)');
-test.todo('fonts: fontsInUse(), stylesInUse() and the IdentityPlusMapper decisions equal the golden (step 4)');
+// ---------------------------------------------------------------- numbering (step 3)
+
+/**
+ * The paragraphs of a story in document order, each with the `NumberingState` it counts in.
+ * The harness's `Walk`, verbatim: a text box's paragraphs stay in this story's list (they are in
+ * the part, in document order) but count in a story of their own, which is docx4j's rule
+ * (CR-014 probe P7, applied by `AbstractWmlConversionContext.enterTextBox`), so the containing
+ * story runs past them untouched.
+ *
+ * `w:txbxContent` is where the new story starts here.  The harness enters it one node earlier -
+ * at the `wp:inline`, the `wps:wsp` or the VML `v:textbox` - but every one of those holds its
+ * paragraphs inside a single `w:txbxContent`, so the state the paragraphs see is the same.
+ */
+function walkNumbering(root, state, newStory, emit) {
+  const walk = (value, current) => {
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item, current);
+      return;
+    }
+    if (typeof value !== 'object' || value === null) return;
+    if (isElement(value)) { walk(value.value, current); return; }
+    let inner = current;
+    if (value.TYPE_NAME === 'org_docx4j_wml.P') emit(value, current);
+    else if (value.TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') inner = newStory();
+    for (const key of Object.keys(value)) {
+      if (key === 'PARENT' || key === 'TYPE_NAME') continue;
+      walk(value[key], inner);
+    }
+  };
+  walk(root, state);
+}
+
+/**
+ * The part each story the harness records belongs to, so that `NumberingStates.forPart` gives
+ * the same state it gave: every header and footer share one, the footnotes, endnotes and
+ * comments parts have their own, and the body is the main story.
+ */
+function storyPartOf(pkg, story) {
+  const main = pkg.getMainDocumentPart();
+  if (story === 'footnotes') return main.footnotesPart;
+  if (story === 'endnotes') return main.endnotesPart;
+  if (story === 'comments') return main.commentsPart;
+  if (story.startsWith('header:')) return main.headerParts.find((p) => p.sourceRelationship?.id === story.slice('header:'.length));
+  if (story.startsWith('footer:')) return main.footerParts.find((p) => p.sourceRelationship?.id === story.slice('footer:'.length));
+  return main;
+}
+
+/** Our `NumberingState` in the shape the harness records it: sorted, values as strings. */
+function stateJson(state) {
+  const counters = {};
+  for (const key of [...state.counters.keys()].sort()) {
+    const counter = state.counters.get(key);
+    counters[key] = {
+      value: String(counter.value),
+      encounteredAlready: counter.encounteredAlready,
+      resetPending: counter.resetPending,
+    };
+  }
+  return { counters, startOverridesApplied: [...state.startOverridesApplied].sort() };
+}
+
+for (const name of names) {
+  test(`parity ${name}: numbering equals docx4j per story`, async () => {
+    const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
+    const path = await fixturePath(golden.header.fixture);
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)));
+    await pkg.getPropertyResolver();
+    const emulator = await pkg.getNumberingEmulator();
+
+    const differences = [];
+    const report = (message) => differences.push(`${golden.header.fixture} ${message}`);
+    const indItems = [];
+    const lvlItems = [];
+    const rPrItems = [];
+
+    const stories = await storiesOf(pkg, golden);
+    const states = new NumberingStates();
+    for (const [story, recorded] of Object.entries(golden.stories)) {
+      const found = [];
+      walkNumbering(stories.get(story), states.forPart(storyPartOf(pkg, story)), () => states.newStory(), (p, state) => {
+        // numRefFor takes no number and touches no state, as the harness asks it first
+        const numRef = Emulator.numRefFor(pkg, p.pPr);
+        const result = emulator?.getNumber(p.pPr, state);
+        // the state as it stands *after this paragraph*, which is what the harness records
+        found.push({ p, numRef, result, stateAfter: stateJson(state) });
+      });
+      if (found.length !== recorded.paragraphs.length) {
+        report(`${story}: ${found.length} paragraphs, the golden has ${recorded.paragraphs.length}`);
+        continue;
+      }
+      for (let i = 0; i < found.length; i++) {
+        const where = `${story}/${recorded.paragraphs[i].index}`;
+        const expected = recorded.paragraphs[i].numbering;
+        const { numRef, result, stateAfter } = found[i];
+        if (expected === null || expected === undefined) {
+          if (result !== undefined) report(`${where}: we number it ${JSON.stringify(result.numString)}, docx4j does not`);
+          continue;
+        }
+        if (result === undefined) {
+          report(`${where}: docx4j numbers it ${JSON.stringify(expected.numString)}, we do not (${numRef})`);
+          continue;
+        }
+        const scalars = [
+          ['numString', result.numString ?? null, expected.numString],
+          ['isBullet', result.isBullet, expected.isBullet],
+          ['numFont', result.numFont ?? null, expected.numFont],
+          ['ilvl', result.ilvl ?? null, expected.ilvl],
+          ['numId', result.numId ?? null, expected.numId],
+          ['numRef.numId', numRef.numId ?? null, expected.numRef.numId],
+          ['numRef.ilvl', numRef.ilvl ?? null, expected.numRef.ilvl],
+          ['numRef.direct', numRef.direct, expected.numRef.direct],
+          ['numRef.notNumbered', numRef.notNumbered, expected.numRef.notNumbered],
+          ['numRef.reason', numRef.reason ?? null, expected.numRef.reason],
+        ];
+        for (const [label, ours, theirs] of scalars) {
+          if (ours !== theirs) report(`${where} ${label}: ${JSON.stringify(ours)} != ${JSON.stringify(theirs)}`);
+        }
+        const stateDifference = firstDifference(stateAfter, expected.stateAfter);
+        if (stateDifference) report(`${where} stateAfter: ${stateDifference}`);
+
+        indItems.push({ label: `${where} ind`, ours: result.ind, golden: expected.ind });
+        indItems.push({ label: `${where} indResolved`, ours: result.indResolved, golden: expected.indResolved });
+        lvlItems.push({ label: `${where} lvl`, ours: result.lvl, golden: expected.lvl });
+        rPrItems.push({ label: `${where} labelRPr`, ours: result.labelRPr, golden: expected.labelRPr });
+      }
+    }
+
+    await compareBatch('ind', indItems, report);
+    await compareBatch('lvl', lvlItems, report);
+    await compareBatch('rPr', rPrItems, report);
+
+    assert.deepEqual(differences, [], differences.join('\n'));
+  });
+}
+
+// ------------------------------------------------------------------------- fonts (step 4)
+
+/**
+ * A run's text as the harness's `textOf` collects it: `w:t` and `w:delText` (a deleted run's
+ * text is still text), nothing of a nested paragraph - a text box's, which belongs to that
+ * paragraph.
+ */
+function textOfRun(r) {
+  let text = '';
+  let first = true;
+  visit(r, (value) => {
+    if (value.TYPE_NAME === 'org_docx4j_wml.P' && !first) return false;
+    first = false;
+    if (value.TYPE_NAME === 'org_docx4j_wml.Text' || value.TYPE_NAME === 'org_docx4j_wml.DelText') {
+      if (typeof value.value === 'string') text += value.value;
+      return false;
+    }
+    return true;
+  });
+  return text;
+}
+
+/**
+ * The golden's text as *this package's* XML parser would have read it.
+ *
+ * `@xmldom/xmldom` applies XML 1.1's line-ending normalisation to an XML 1.0 document, so
+ * U+0085 (NEL) and U+2028 (LINE SEPARATOR) inside a `w:t` arrive as U+000A; Xerces, which the
+ * harness runs on, keeps them (XML 1.0 normalises only #xD and #xD#xA).  One fixture has one
+ * such character (`tracked-changes.docx`, "and here it continues").  Nothing to do with
+ * font selection - the span is the same span and the same font - so the comparison normalises
+ * the golden rather than recording a font difference; the parser divergence is CR-001 section
+ * 15.3's note for the XML layer.
+ */
+function asParsed(text) {
+  return text.replace(/\u0085|\u2028/g, '\n');
+}
+
+for (const name of names) {
+  test(`parity ${name}: font spans, fonts in use and the mapping equal docx4j`, async () => {
+    const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
+    const path = await fixturePath(golden.header.fixture);
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)));
+    const resolver = await pkg.getPropertyResolver();
+    const main = pkg.getMainDocumentPart();
+    const selector = await main.getRunFontSelector();
+
+    const differences = [];
+    const report = (message) => differences.push(`${golden.header.fixture} ${message}`);
+
+    // --- the spans: our answer per code point, folded, against docx4j's
+    const stories = await storiesOf(pkg, golden);
+    for (const [story, recorded] of Object.entries(golden.stories)) {
+      const paragraphs = paragraphsOf(stories.get(story));
+      if (paragraphs.length !== recorded.paragraphs.length) continue; // reported by the step-2 test
+      for (let i = 0; i < paragraphs.length; i++) {
+        const p = paragraphs[i];
+        const expected = recorded.paragraphs[i];
+        const runs = runsOfParagraph(p);
+        if (runs.length !== expected.runs.length) continue;
+        for (let r = 0; r < runs.length; r++) {
+          const effective = resolver.getEffectiveRPr(runs[r].rPr, p.pPr);
+          const ours = selector.spans(p.pPr, effective, textOfRun(runs[r]), { rPrIsEffective: true })
+            .map(({ text, documentFont, bold, italic, cs, rtl }) => ({ text, documentFont, bold, italic, cs, rtl }));
+          const theirs = (expected.runs[r].fontSpans ?? [])
+            .map((s) => ({ ...s, text: asParsed(s.text) }));
+          const difference = firstDifference(ours, theirs);
+          if (difference) report(`${story}/${expected.index} run ${r} fontSpans: ${difference}`);
+        }
+      }
+    }
+
+    // --- the names the document uses, the styles in use, and the default font
+    const fontsInUse = [...await main.fontsInUse()].sort();
+    const difference = firstDifference(fontsInUse, [...golden.fonts.fontsInUse].sort());
+    if (difference) report(`fontsInUse: ${difference}`);
+    const stylesInUse = [...await main.getStylesInUse()].sort();
+    const styleDifference = firstDifference(stylesInUse, [...golden.fonts.stylesInUse].sort());
+    if (styleDifference) report(`stylesInUse: ${styleDifference}`);
+    if (selector.defaultFont !== golden.fonts.defaultFont) {
+      report(`defaultFont: ${selector.defaultFont} != ${golden.fonts.defaultFont}`);
+    }
+    const themePart = main.themePart?.partName?.name ?? null;
+    if (themePart !== golden.fonts.themePart) {
+      report(`themePart: ${themePart} != ${golden.fonts.themePart}`);
+    }
+
+    // --- the IdentityPlusMapper's decision per document font, over the default registry (the
+    //     docx4j font jars: the environment the goldens were made in)
+    const mapper = await main.getFontMapper();
+    for (const [font, expected] of Object.entries(golden.fonts.mapping)) {
+      const decision = mapper.getDecision(font);
+      const ours = {
+        source: decision?.source ?? null,
+        via: decision?.via ?? null,
+        physicalFont: decision?.physicalFont?.name ?? null,
+      };
+      const d = firstDifference(ours, expected);
+      if (d) report(`mapping ${font}: ${d}`);
+    }
+
+    assert.deepEqual(differences, [], differences.join('\n'));
+  });
+}

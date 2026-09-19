@@ -25,10 +25,10 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { log } from './log.mjs';
-import { NumberingLevels } from './numberingInd.mjs';
+import { NumberingDefinitions } from '../listnumbering/definitions.mjs';
 import {
   applyPPrBase, applyRPr, applyStyle, applyStyleLevel, applyTblPr,
-  hasDirectFormattingPPr, hasDirectFormattingRPr, isCyclic, type NumberingIndents,
+  hasDirectFormattingPPr, hasDirectFormattingRPr, isCyclic,
 } from './styleUtil.mjs';
 
 /** The parts the resolver reads. Structural, so this module imports no part class. */
@@ -95,7 +95,7 @@ export class PropertyResolver {
   /** Missing styles are logged once each per resolver. */
   private readonly missingLogged = new Set<string>();
 
-  private numberingLevels: NumberingIndents | undefined;
+  private numberingDefinitions: NumberingDefinitions | undefined;
 
   defaultParagraphStyleId: string | undefined;
   private defaultCharacterStyleId: string | undefined;
@@ -182,9 +182,9 @@ export class PropertyResolver {
       this.documentDefaultRPr.sz = { TYPE_NAME: 'org_docx4j_wml.HpsMeasure', val: 20 };
     }
 
-    this.numberingLevels = this.source.numbering === undefined
+    this.numberingDefinitions = this.source.numbering === undefined
       ? undefined
-      : new NumberingLevels(this.source.numbering, (styleId) => this.getLiveStyle(styleId));
+      : new NumberingDefinitions(this.source.numbering, (styleId) => this.getLiveStyle(styleId));
   }
 
   /** (Re)read the styles part into `liveStyles`. A style with no id is skipped. */
@@ -256,6 +256,17 @@ export class PropertyResolver {
   /** The style with this id, or undefined (docx4j `getStyle`). */
   getStyle(styleId: string | undefined): wml.Style | undefined {
     return this.getLiveStyle(styleId);
+  }
+
+  /**
+   * The list definitions of the numbering part this resolver read (CR-001 Phase B step 3), or
+   * undefined where the package has none. The resolver builds them because the paragraph merge
+   * folds a numbering level's `w:ind` into every layer (`NumberingDefinitionsPart.getInd`);
+   * `NumberingDefinitionsPart.definitions` hands out this same object, so the counting and the
+   * indents read one set of definitions.
+   */
+  getNumberingDefinitions(): NumberingDefinitions | undefined {
+    return this.numberingDefinitions;
   }
 
   // ------------------------------------------------------------------ the chains
@@ -341,7 +352,7 @@ export class PropertyResolver {
 
   private applyPPrLayer(source: wml.PPr | undefined, destination: wml.PPr): void {
     if (source === undefined) return;
-    applyPPrBase(source, destination, this.numberingLevels);
+    applyPPrBase(source, destination, this.numberingDefinitions);
     destination.rPr = applyRPr<wml.ParaRPr>(source.rPr, destination.rPr,
       () => ({ TYPE_NAME: 'org_docx4j_wml.ParaRPr' }));
   }

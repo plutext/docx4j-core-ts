@@ -1,5 +1,6 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Font } from './Font.mjs';
+import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions } from './tree.mjs';
@@ -77,7 +78,8 @@ export class Range {
     };
     if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking());
     return new Font(holders, () => this.paragraph.fontTracking(),
-      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr));
+      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr),
+      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr));
   }
 
   /** The runs the span covers (a run partly inside counts). */
