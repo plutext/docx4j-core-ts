@@ -279,3 +279,60 @@ const wb = await SpreadsheetMLPackage.load(await readFile('test/fixtures/loadAnd
 await wb.getWorkbookPart().getContents();
 await writeFile('check13-remarshalled.xlsx', await wb.save());
 ```
+
+And one for 10 and 11 (run from the repository root after `npm run build`):
+
+```js
+import { writeFile } from 'node:fs/promises';
+import { WordprocessingMLPackage } from './dist/index.mjs';
+const OUT = '.';
+
+// 10. tracked changes: every kind, under one author
+const t = await WordprocessingMLPackage.createPackage();
+t.author = { name: 'Acceptance Tester', initials: 'AT' };
+const p1 = t.body.insertParagraph('The quick brown fox jumps over the lazy dog.', 'End');
+const p2 = t.body.insertParagraph('A second paragraph that will be deleted.', 'End');
+const p3 = t.body.insertParagraph('A third paragraph whose formatting changes.', 'End');
+const table = t.body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
+t.changeTrackingMode = 'TrackAll';
+p1.search('brown fox')[0].insertText('red hen', 'Replace');      // w:del + w:ins
+p1.insertText(' Inserted at the end.', 'End');                    // w:ins
+p2.delete();                                                       // paragraph mark and content deleted
+p3.getRange().font.bold = true;                                    // w:rPrChange
+p3.alignment = 'Centered';                                         // w:pPrChange
+p3.insertParagraph('A new tracked paragraph.', 'After');           // inserted paragraph mark
+table.addRows('End', 1, [['e', 'f']]);                              // w:trPr/w:ins
+table.deleteRows(0, 1);                                            // w:trPr/w:del
+await p1.search('lazy dog')[0].insertComment('A comment made while tracking is on: no w:ins around it.');
+console.log('tracked changes:', t.body.getTrackedChanges().map((c) => c.type).join(', '));
+await writeFile(`${OUT}/check10.docx`, await t.save());
+
+// 11. lists: numbered, a nested level, a restart, a bulleted list
+const l = await WordprocessingMLPackage.createPackage();
+const a = l.body.insertParagraph('First item', 'End');
+const list = await a.startNewList();
+const b = l.body.insertParagraph('Second item', 'End'); b.attachToList(list.id, 0);
+const c = l.body.insertParagraph('Nested under the second', 'End'); c.attachToList(list.id, 1);
+const d = l.body.insertParagraph('Third item', 'End'); d.attachToList(list.id, 0);
+l.body.insertParagraph('Some text between the lists.', 'End');
+const restarted = list.restart();
+const e = l.body.insertParagraph('Restarts at one', 'End'); e.attachToList(restarted.id, 0);
+const f = l.body.insertParagraph('And continues at two', 'End'); f.attachToList(restarted.id, 0);
+const g = l.body.insertParagraph('A bullet', 'End');
+const bullets = await g.startNewList({ bullet: true });
+const h = l.body.insertParagraph('Another bullet', 'End'); h.attachToList(bullets.id, 0);
+console.log('labels:', [...l.body.listLabels().values()].map((x) => x.listString).join(' | '));
+await writeFile(`${OUT}/check11.docx`, await l.save());
+
+// 11b. two lists sharing one w:abstractNum (a restart); editing one must leave the other alone
+const m = await WordprocessingMLPackage.createPackage();
+const m1 = m.body.insertParagraph('Original list, item one', 'End');
+const orig = await m1.startNewList();
+const m2 = m.body.insertParagraph('Original list, item two', 'End'); m2.attachToList(orig.id, 0);
+const again = orig.restart();
+const m3 = m.body.insertParagraph('Restarted list, item one (edited to upper roman)', 'End'); m3.attachToList(again.id, 0);
+const m4 = m.body.insertParagraph('Restarted list, item two', 'End'); m4.attachToList(again.id, 0);
+again.setLevelNumbering(0, 'UpperRoman');                          // copies the shared abstract first
+console.log('shared-abstract edit:', [...m.body.listLabels().values()].map((x) => x.listString).join(' | '));
+await writeFile(`${OUT}/check11-b.docx`, await m.save());
+```
