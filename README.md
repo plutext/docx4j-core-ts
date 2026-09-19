@@ -7,8 +7,9 @@ and font resolution, over the Office Open XML object model of
 browsers and Word add-ins.
 
 Status: the Open Packaging layer, the typed parts and the packages (Phase A of
-[CR-001](docs/change-requests/CR-001-engine.md)) are implemented; the resolution utilities
-(`PropertyResolver`, list numbering, fonts: Phase B) are next.
+[CR-001](docs/change-requests/CR-001-engine.md)) are implemented, and so is `PropertyResolver`
+(Phase B step 2), so paragraph and run reads report the formatting that actually applies. List
+numbering and font selection (Phase B steps 3 and 4) are next.
 
 ```
 npm install @docx4j/core-ts
@@ -206,8 +207,20 @@ body.contentControls[0].insertText('Jane Doe', 'Replace');
 body.contentControls[1].delete(true);       // unwrap, keeping what it held
 ```
 
-Effective formatting (styles resolved, as Office JS reports it) comes with
-[CR-001](docs/change-requests/CR-001-engine.md) Phase B.
+`Font` and `Paragraph` reads report **effective** formatting - the document defaults, the style
+chain and the numbering level resolved, as Office JS reports it - through docx4j's
+`PropertyResolver` (CR-001 Phase B step 2). Writes are always direct formatting, and
+`paragraph.getFont({ direct: true })`, `range.getFont({ direct: true })` and
+`paragraph.formatting({ direct: true })` read the direct values.
+
+```ts
+const p = (await pkg.getBody()).paragraphs[0];
+p.font.size;                                 // 14: the style's w:sz, not the run's
+p.getFont({ direct: true }).size;             // 0: the run states none
+p.alignment;                                 // 'Left' when nothing states a w:jc, as Word lays it out
+p.formatting({ direct: true }).alignment;     // 'Unknown'
+p.effectivePPr;                               // docx4j's resolved w:pPr, for anything the view does not cover
+```
 
 ### Custom XML and content controls
 
@@ -312,8 +325,9 @@ await toApiScript(body.paragraphs[1]);
 ```
 
 Custom XML parts, XML mapping, typed content controls and lists are the phases still to come of
-[CR-002](docs/change-requests/CR-002-content-api.md); effective formatting (styles resolved,
-as Office JS reports it) comes with [CR-001](docs/change-requests/CR-001-engine.md) Phase B.
+[CR-002](docs/change-requests/CR-002-content-api.md). A generated script reproduces the
+document's *markup*, so it emits direct formatting only, not the effective values the reads
+report (CR-001 Phase B step 2).
 
 ## Development
 

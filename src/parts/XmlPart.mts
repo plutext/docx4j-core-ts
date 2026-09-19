@@ -66,6 +66,24 @@ export class XmlPart<T = unknown> extends Part {
     return this.element.value;
   }
 
+  /**
+   * The contents as a **private tree**, without marking the part unmarshalled - so a part read
+   * this way is still written back from its source bytes, byte for byte. The live tree is
+   * returned when the part is already unmarshalled, since then the part is re-marshalled
+   * anyway and a second copy would only go stale.
+   *
+   * This is what a reader that must not cost a part its round trip uses: `PropertyResolver`
+   * reads the styles and numbering parts of a document nobody has otherwise touched.
+   */
+  async readContents(): Promise<T> {
+    if (this.element !== undefined) return this.element.value;
+    const bytes = this.bytes ?? (await this.loadSourceBytes());
+    if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
+    const doc = parseXml(decodeXmlText(bytes));
+    this.preprocessor?.(doc, this as XmlPart<unknown>);
+    return (await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc)).value;
+  }
+
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */
   setContents(value: T, rootName?: RootName): void {
     const name = rootName ?? this.element?.name ?? this.rootName;

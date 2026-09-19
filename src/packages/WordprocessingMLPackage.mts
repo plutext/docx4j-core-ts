@@ -16,6 +16,8 @@ import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
 import { ChangeTracker, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
+import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
+import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
 import type { TrackedChange } from '../model/content/TrackedChange.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
 import type { PartSink } from '../opc/PartStore.mjs';
@@ -109,6 +111,9 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     const app = new DocPropsExtendedPart();
     app.setContents({});
     pkg.addTargetPart(app);
+    // so that `pkg.body`'s effective reads work without a further await: the default styles are
+    // XML bytes, so this is the one place the resolver has to be built before the caller asks
+    await pkg.getPropertyResolver();
     return pkg;
   }
 
@@ -133,6 +138,49 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
 
   async getBody(): Promise<Body> {
     return this.getMainDocumentPart().getBody();
+  }
+
+  // --- property resolution (CR-001 Phase B step 2) ----------------------------------------
+
+  private resolver: PropertyResolver | undefined;
+  private resolverPending: Promise<PropertyResolver> | undefined;
+
+  /**
+   * docx4j `MainDocumentPart.getPropertyResolver()`: the resolver of effective paragraph, run,
+   * paragraph-mark and table properties, built once and kept for the life of the package.
+   *
+   * Asynchronous because it unmarshals the styles and numbering parts; `propertyResolver` is
+   * the synchronous accessor afterwards. A style *added* to the styles part later is found; a
+   * style *modified* or *removed* needs `refresh()`.
+   */
+  async getPropertyResolver(): Promise<PropertyResolver> {
+    if (this.resolver) return this.resolver;
+    this.resolverPending ??= PropertyResolver.create(this).then((resolver) => {
+      this.resolver = resolver;
+      this.resolverPending = undefined;
+      return resolver;
+    });
+    return this.resolverPending;
+  }
+
+  /**
+   * The resolver, which must already have been created: building it unmarshals parts, which
+   * cannot be done synchronously. Throws `PropertyResolverNotCreatedException` naming
+   * `getPropertyResolver()` otherwise.
+   */
+  get propertyResolver(): PropertyResolver {
+    if (!this.resolver) throw new PropertyResolverNotCreatedException();
+    return this.resolver;
+  }
+
+  /** The resolver if it has been created, without throwing (what a read with a fallback wants). */
+  get propertyResolverOrUndefined(): PropertyResolver | undefined {
+    return this.resolver;
+  }
+
+  /** Tells the resolver, when there is one, that the styles part has changed. */
+  refreshPropertyResolver(): void {
+    this.resolver?.refresh();
   }
 
   // --- change tracking (CR-002 phase F, section 3.7) --------------------------------------

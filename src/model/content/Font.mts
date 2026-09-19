@@ -17,21 +17,33 @@ export interface FontTracking {
 }
 
 /**
- * A subset of Office JS `Word.Font`, over the direct run properties (w:rPr) of one or more
- * runs. Reads report the first run's direct formatting (effective formatting through styles
- * is CR-001 Phase B); writes apply to every run in scope. Both go through the objects
- * package's one name-to-w:rPr mapping (`builders/wml` applyRunOptions / readRunOptions),
- * which its `r(text, opts)` builder shares.
+ * A subset of Office JS `Word.Font` over the run properties (`w:rPr`) of one or more runs.
+ *
+ * **Reads report effective formatting** (CR-001 Phase B step 2): the first run in scope
+ * resolved through the document defaults, the paragraph style and the character style, which
+ * is what Office JS reports. Pass an `effective` supplier for that; without one the view falls
+ * back to direct formatting, which is what `getFont({ direct: true })` asks for.
+ *
+ * **Writes are always direct**, and apply to every run in scope. Both directions go through
+ * the objects package's one name-to-`w:rPr` mapping (`builders/wml` applyRunOptions /
+ * readRunOptions), which its `r(text, opts)` builder shares.
+ *
+ * One read is not yet effective: `name` is `w:rFonts/@w:ascii` of the resolved properties, so
+ * a run whose font comes from the theme (`w:asciiTheme`) still reads ''. Resolving a theme
+ * reference to a face is `RunFontSelector`, CR-001 Phase B step 4.
  */
 export class Font {
   constructor(
     private readonly holders: () => RPrHolder[],
     /** The change tracker and this author's own insertions, when the package is tracking changes. */
     private readonly tracking?: () => FontTracking | undefined,
+    /** The effective `w:rPr` of the first run in scope; absent for a direct-formatting view. */
+    private readonly effective?: (rPr: wml.RPr | undefined) => wml.RPr | undefined,
   ) {}
 
   private read(): RunFormatting {
-    return readRunOptions(this.holders()[0]?.rPr);
+    const direct = this.holders()[0]?.rPr;
+    return readRunOptions(this.effective ? this.effective(direct) : direct);
   }
 
   private apply(opts: RunOptions): void {
@@ -58,10 +70,10 @@ export class Font {
   set subscript(v: boolean) { this.apply({ subscript: v }); }
   get superscript(): boolean { return this.read().superscript; }
   set superscript(v: boolean) { this.apply({ superscript: v }); }
-  /** The ASCII font name (w:rFonts/@w:ascii); '' when not set directly. */
+  /** The ASCII font name (w:rFonts/@w:ascii); '' when the effective font comes from the theme. */
   get name(): string { return this.read().name; }
   set name(v: string) { this.apply({ name: v }); }
-  /** Size in points (w:sz is half-points); 0 when not set directly. */
+  /** Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz. */
   get size(): number { return this.read().size; }
   set size(v: number) { this.apply({ size: v }); }
   /** '#RRGGBB', or the raw value ('auto', a theme colour name) when it is not a hex triple; '' when not set. */

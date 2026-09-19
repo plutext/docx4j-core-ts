@@ -784,3 +784,154 @@ two callers). Reported to docx4j and fixed the same day (`01d661547`: `numRefFor
 when the 0 comes from the chain, and `getNumber` returns null); the goldens were regenerated
 from that commit, and only `numbering-label-ilvl0.json`'s two such paragraphs changed (their
 `numbering` is now null). No exception is needed in either port.
+
+## 15. Phase B implementation notes
+
+### 15.1 Step 2: property resolution (2026-09-19)
+
+`src/model/properties/` (`catalogue.mts`, `styleUtil.mts`, `PropertyResolver.mts`,
+`numberingInd.mts`, `log.mts`, `index.mts`), `WordprocessingMLPackage.getPropertyResolver()`,
+the `Font` and `Paragraph` switch of decision 4 in section 14.5, the comparisons in
+`test/parity.test.mjs` and `test/properties.test.mjs` are in. Ported against docx4j
+`VERSION_17_1_1` at `01d661547` (the commit the goldens carry): `PropertyResolver.java` (942),
+`PropertyCatalogue.java` (411) and the `apply` / `applyStyleLevel` / `isEmpty` / `unset` /
+`hasDirectFormatting` half of `StyleUtil.java`. **Parity is zero differences** on all 45
+goldens, over 1,647 `w:pPr` and 2,760 `w:rPr` comparisons and the 8 table styles.
+
+**What is in.**
+
+- `catalogue.mts`: `RUN` (52 members of `w:rPr` and `w:pPr/w:rPr` through one set of
+  accessors, since the two generated interfaces have the same member names), `PARAGRAPH` (34
+  of `PPrBase`), `TABLE` (17 of `CTTblPrBase`) and `CELL` (13 of `TcPr`), each entry
+  `(name, isFormatting, countsEmpty, get, set, merge, isEmpty, copyOf)` in schema order;
+  `TOGGLE_NAMES` / `TOGGLES`; every leaf merge rule of `StyleUtil`, copied one for one
+  (`w:spacing` takes `w:lineRule` only beside a `w:line` the source states; `w:lang`, `w:numPr`,
+  `w:u`, `w:highlight`, `w:tblpPr`, `w:framePr`, `w:shd`, `w:bdr`, `w:color` per attribute;
+  `w:ind`'s firstLine/hanging as one property; `w:tabs` cumulative with `clear` removing;
+  enums only when stated). A carried leaf is always a copy, by a per-entry `copyOf`
+  (`copyLeaf`, a small structural clone that drops `PARENT`), never the facade's `deepCopy`.
+- `styleUtil.mts`: `applyRPr`, `applyPPrBase`, `applyPPr`, `applyTblPr`, `applyTcPr`,
+  `applyTrPr`, `applyTblStylePrList`, `applyStyle`, `applyStyleLevel`, `applyToggles`,
+  `toggle`, the `isEmpty*` family, `unsetRPr` / `unsetPPrBase`, `hasDirectFormattingRPr` /
+  `hasDirectFormattingPPr`, `isCyclic`. Not ported: the `areEqual` family, `StyleTree`,
+  `Node`, `Tree`, `BrokenStyleRemediator` (docx4j's HTML/CSS export; a later CR).
+- `PropertyResolver.mts`: the resolution order of CR-015 phase 2 verbatim, `getChainPPr` /
+  `getChainRPr` cached per style id without document defaults, `ancestry`, the heading outline
+  level by `w:name` computed into the resolved `w:pPr`, the 10 pt default on a private copy of
+  the document defaults, missing styles logged once per id, `getEffectiveTableStyle` /
+  `reachesDefaultTableStyle` / `WORD_DEFAULT_CELL_MARGIN_TWIPS`, `refresh()`,
+  `headingLevelByName`, `getLvlFromHeadingStyle`, `getStyle`, `activateStyle`.
+  Table conditional formatting stays out (docx4j's `table-conditions` CR).
+
+**Departures from the Java, and why.**
+
+1. **`CyclicStylesException` throws only when asked**, as docx4j does: its `isCyclic` reads
+   `docx4j.openpackaging.exceptions.CyclicStylesException.throw`, false by default, and
+   otherwise stops the walk and resolves with as much of the hierarchy as it has. Here that
+   property is the function `throwOnCyclicStyles(true)`. Section 6.1's "cycle detection throws"
+   is the property's `true` branch, not the default.
+2. **`activateStyle(styleId)` cannot activate a style this package does not hold.** docx4j
+   reads `KnownStyles.xml` from its jar; there is no such resource here yet, so the string form
+   answers `true` for a style already live and `false` (logged) otherwise. `activateStyle(style)`
+   with a `w:style` object works as docx4j's does, recursively for `w:basedOn` and `w:link`.
+   A `KnownStyles.xml` equivalent belongs with the content API's style creation, not here.
+3. **The deprecated overloads are not ported**: the four-flag `getEffectiveRPr(styleId, ...)`
+   and `getEffectiveRPrUsingPStyleRPr`, which CR-015 phase 5 deprecated and which exist only
+   for callers older than the fix. `getEffectiveRPr(styleId)` and `getChainRPr(styleId)` are
+   what they were kept for.
+4. **`ImmutablePropertyResolver` is not ported** (deprecated, no caller).
+5. **Concurrency is not a concern here.** CR-015 phase 3 made the caches `ConcurrentHashMap`s;
+   JavaScript has one thread per realm, so `Map` is the same thing. What that phase also
+   removed - the mutations - is removed here, and the no-mutation test is ported.
+6. **The resolver reads the styles and numbering parts with a new `XmlPart.readContents()`**,
+   which unmarshals into a *private* tree without marking the part unmarshalled. Without it,
+   building a resolver would cost every document its byte-for-byte round trip of
+   `word/styles.xml` and `word/numbering.xml`, since this package re-marshals any part that was
+   unmarshalled (CLAUDE.md, "untouched parts round-trip byte for byte") - and `getBody()` now
+   builds one. When something else unmarshals the part (the comment styles, a caller's
+   `getContents()`), `refresh()` switches to that live tree, so a change made through the part
+   is seen and the private copy is dropped. `activateStyle(style)` throws while the styles part
+   is not unmarshalled, since it would otherwise write into the private copy.
+7. **`NumberingLevels` (`numberingInd.mts`) is step 3's work done narrowly.** The paragraph
+   merge folds in the numbering level's `w:ind` per layer (`StyleUtil.apply(PPrBase, PPrBase,
+   NumberingDefinitionsPart)`), so parity on `effectivePPr` is impossible without
+   `NumberingDefinitionsPart.getInd`. What is ported is that walk alone - the instance
+   definitions, `w:lvlOverride`, `w:numStyleLink`'s second pass, and `getIndFromLvl`'s rule
+   that the level's own `w:ind` comes before the linked `w:pStyle`'s - read off the Java.
+   Step 3 replaces it with the real `definitions.mts` and moves `getInd` onto
+   `NumberingDefinitionsPart`.
+8. **Three flags on catalogue entries record docx4j quirks rather than hiding them**:
+   `countsEmpty: false` for `w:bidiVisual` (applied by `apply(CTTblPrBase)` but not counted by
+   `isEmpty(CTTblPrBase)`), and both that and a "keep the destination" merge for
+   `w:tblCaption` and `w:tblDescription`, which docx4j's hand-written pair neither counts nor
+   carries. Likewise `w:start`/`w:end` on `w:tblCellMar` and `w:tl2Br`-less `w:tcBorders`
+   members follow the Java's lists, not the schema's.
+
+**Quirks reproduced deliberately.**
+
+- **`w:framePr` gains an explicit `w:anchorLock`.** docx4j reads it through `isAnchorLock()`,
+  which answers `true` when the attribute is absent, and then applies that answer, so any
+  merged `w:framePr` carries `w:anchorLock="true"` even when no layer stated it. The same
+  reading makes `isEmpty(CTFramePr)` treat an explicit `w:anchorLock="0"` as the only
+  attribute that makes a frame non-empty on its own. Reproduced; the catalogue test allows for
+  it by name.
+- **A `w:rFonts` that states only a `w:hint`, or nothing at all, still creates the element** in
+  the destination (docx4j's `apply(RFonts)` comment cites `RunFontSelectorChinese2Test`); a
+  *null* source leaves the destination alone, which is the CR-015 phase 1 fix.
+- **`isEmpty(SectPr)` is "anything non-null is non-empty"**, which is all `isEmptyPPr` uses it
+  for; `w:sectPr` is not merged (CR-015 phase 4).
+- **`getEffectivePPr(styleId)` of a *character* style** answers the document defaults plus that
+  style's (empty) paragraph chain, not `undefined`: the golden records it for every style in
+  the part and we match it.
+- **`getEffectiveRPr(styleId)` of a missing style is `undefined`**, where
+  `getEffectivePPr(styleId)` of a missing style is the default paragraph style's.
+
+**Goldens questioned: none.** Every recorded value is reproduced. Nothing was left failing.
+
+**The content API switch (section 14.5 decision 4).** `Font` reads go through
+`getEffectiveRPr(rPr, pPr)` of the first run in scope; writes are unchanged and still direct.
+`Paragraph.alignment`, `leftIndent`, `rightIndent`, `firstLineIndent`, `spaceBefore`,
+`spaceAfter`, `lineSpacing` and `outlineLevel` read `getEffectivePPr(pPr)`. The `direct`
+option's final shape:
+
+| read | effective | direct |
+|---|---|---|
+| a run's font | `paragraph.font`, `range.font` | `paragraph.getFont({ direct: true })`, `range.getFont({ direct: true })` |
+| a paragraph's properties | the eight getters, `paragraph.formatting()` | `paragraph.formatting({ direct: true })` |
+| the resolved objects themselves | `paragraph.effectivePPr`, `paragraph.effectiveParagraphMarkRPr` | `paragraph.p.pPr` |
+
+`Alignment` loses `'Unknown'`: an absent `w:jc` after resolution reads `'Left'`, as Word lays
+it out and as Office JS answers. `'Unknown'` remains in `AlignmentOrUnknown`, which is what the
+direct read returns and what the setter accepts (where it removes the element). `Font.name` is
+the one read that is not yet fully effective: it is `w:rFonts/@w:ascii` of the resolved
+properties, so a run whose face comes from the theme still reads `''` until step 4's
+`RunFontSelector`. `toApiScript` keeps reading the tree directly and says so at
+`paragraphProperties`: a script reproduces markup, not appearance, and emitting effective
+values would write a style's alignment, indents and size onto every paragraph and run of the
+generated document.
+
+`Body.propertyResolver` throws `PropertyResolverNotCreatedException` - naming
+`getPropertyResolver()` and the `{ direct: true }` option - when the body has no package or the
+package has not built a resolver. `MainDocumentPart.getBody()`, `HeaderPart.getBody()` and
+`FooterPart.getBody()` build one (structurally, through `part.package`, so no import cycle),
+and `createPackage()` awaits one before returning, since its styles part is set as XML and a
+synchronous build is not possible. `ensureCommentStyles` calls `refreshPropertyResolver()`
+after adding a style; `insertOoxml` does not merge styles (CR-002 open question 5) and needs no
+refresh.
+
+**Tests.** `test/properties.test.mjs` (32): catalogue completeness against the runtime's own
+mapping model for all five types, the table-driven per-member case for all four tables, the
+merge rules, the toggle cases of CR-015's 2026-09-17 section and its golden, the resolution
+order (docx4j's `PropertyResolverOrderTest` in full), cycles, headings, `refresh()`,
+no mutation (the styles part marshalled before and after resolving everything, byte-equal), the
+table-style probe and the wiring. `test/parity.test.mjs` compares every recorded property of
+all 45 goldens by marshalling our object through the facade and unmarshalling *both* strings,
+one batch per kind per fixture, so neither prefixes nor attribute order nor `TYPE_NAME` can
+differ. Suite: 256 tests, 253 pass, 0 fail, 3 `todo` (steps 3 and 4).
+
+**For the objects package and the runtime: nothing.** The facade's `deepCopy`, `marshalString`,
+`unmarshalNode` and the generated factories covered everything this step needed. Two
+observations for a later CR there, neither blocking: `Jsonix.Util.deepCopy` allocates a `Map`
+per call, which is why leaf copies here are a local `copyLeaf`; and the mapping model's
+`getTypeInfoByName(...).properties` (used by the catalogue-completeness test) is not in the
+runtime's typings, as `Jsonix.DOM` was not.

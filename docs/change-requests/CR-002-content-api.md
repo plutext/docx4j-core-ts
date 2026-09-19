@@ -1415,3 +1415,46 @@ Observable changes:
 
 Nothing was kept as a copy. CR-003 phase B (`toSource`, `isSugarExpressible`, for
 `toApiScript`'s XML fallback) is still unscheduled there.
+
+## 16. Effective formatting (CR-001 Phase B step 2, 2026-09-19)
+
+`PropertyResolver` landed (CR-001 section 15.1), so the reads section 7 said report direct
+formatting now report the formatting that actually applies - the document defaults, the style
+chain and the numbering level resolved - which is what Office JS reports and what section 7
+promised. Writes are unchanged: they are always direct formatting on the element itself.
+
+Which reads changed meaning:
+
+- **`Font`**: `bold`, `italic`, `underline`, `strikeThrough`, `doubleStrikeThrough`,
+  `subscript`, `superscript`, `name`, `size`, `color`, `highlightColor`, on
+  `paragraph.font` and `range.font`. `size` is now never 0 for a loaded document (the document
+  defaults always state one, and docx4j's 10 pt stands in where they do not); `name` is still
+  `''` for a run whose face comes from the theme, until CR-001 Phase B step 4 resolves theme
+  references.
+- **`Paragraph`**: `alignment`, `leftIndent`, `rightIndent`, `firstLineIndent`, `spaceBefore`,
+  `spaceAfter`, `lineSpacing`, `outlineLevel`. A paragraph in a heading style now reports that
+  style's `outlineLevel` and spacing rather than 10 and 0.
+- **`Alignment` loses `'Unknown'`**: an absent `w:jc` resolves to `'Left'`, as Word lays it out.
+  The setter still accepts `'Unknown'` (it removes the element) and the direct read still
+  returns it; the union for both is `AlignmentOrUnknown`.
+
+How to get the direct values, unchanged from what these reads used to answer:
+
+```ts
+paragraph.getFont({ direct: true }).size;          // 0 when the run states no w:sz
+range.getFont({ direct: true }).bold;
+paragraph.formatting({ direct: true });            // the eight paragraph properties, direct
+paragraph.formatting();                            // ... and effective, in one call
+paragraph.effectivePPr;                            // the resolved w:pPr itself
+paragraph.effectiveParagraphMarkRPr;               // the mark's resolved w:rPr
+```
+
+`toApiScript` still reads the tree directly (a script reproduces markup, not appearance), and
+says so at `paragraphProperties`.
+
+A read needs the package's resolver, which is built by `await pkg.getPropertyResolver()` and by
+`getBody()`, `paragraphAt()` and `outline()`, which await it; `createPackage()` builds one
+before it returns. A `Body` with no package, or one whose package has not built a resolver,
+throws `PropertyResolverNotCreatedException` naming `getPropertyResolver()` rather than
+silently falling back to direct formatting. This changes the values existing callers see, so it
+is a minor-version note.

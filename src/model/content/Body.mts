@@ -1,5 +1,6 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { Docx4JException } from '../../opc/exceptions.mjs';
+import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/exceptions.mjs';
+import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
 import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf } from './tree.mjs';
@@ -61,6 +62,20 @@ export class Body {
     readonly prefix: string = 'body',
     readonly package_?: OpcPackage,
   ) {}
+
+  /**
+   * The package's `PropertyResolver`, which every effective-formatting read goes through
+   * (CR-001 Phase B step 2). Throws `PropertyResolverNotCreatedException` when this body has
+   * no package, or the package has not built one yet: building it unmarshals the styles part,
+   * which cannot be done synchronously, so `await pkg.getPropertyResolver()` (or `getBody()`,
+   * which does it) first - or read direct formatting with `{ direct: true }`.
+   */
+  get propertyResolver(): PropertyResolver {
+    const pkg = this.package_ as { propertyResolverOrUndefined?: PropertyResolver } | undefined;
+    const resolver = pkg?.propertyResolverOrUndefined;
+    if (!resolver) throw new PropertyResolverNotCreatedException();
+    return resolver;
+  }
 
   /** The live content array (docx4j getContent()); block-level elements only, sectPr excluded. */
   get content(): Element[] {

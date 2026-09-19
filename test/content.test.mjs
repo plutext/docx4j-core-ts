@@ -67,7 +67,10 @@ test('paragraph: insertText, insertParagraph, delete, alignment, indents, outlin
   assert.equal(before.outlineLevel, 10);
   before.text = 'set text';
   assert.equal(before.text, 'set text');
-  assert.equal(before.alignment, 'Unknown');
+  // CR-001 Phase B step 2: reads are effective, and an absent w:jc resolves to Left as in Word
+  assert.equal(before.alignment, 'Left');
+  assert.equal(before.formatting({ direct: true }).alignment, 'Unknown', 'the direct read still says nothing is stated');
+  assert.equal(after.formatting({ direct: true }).alignment, 'Centered');
 });
 
 test('font: reads direct formatting, writes to runs, splits runs for a range', async () => {

@@ -1,5 +1,8 @@
-// src/model: the content API now; PropertyResolver, list numbering and fonts with CR-001 Phase B.
+// src/model: the content API and property resolution; list numbering and fonts follow with the
+// rest of CR-001 Phase B.
 export * from './content/index.mjs';
+// CR-001 Phase B step 2: PropertyResolver, the property catalogue and StyleUtil.
+export * from './properties/index.mjs';
 // CR-002 phase E: custom XML parts, XML mapping, the XPath engine, the typed content controls.
 export * from './customxml/index.mjs';
 // The source generator of CR-002 phase I: the content-API calls that reproduce a paragraph, a

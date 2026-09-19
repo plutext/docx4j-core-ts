@@ -48,7 +48,7 @@ test('Word.run: an add-in callback against a created package, saved and reloaded
 
   const back = await WordprocessingMLPackage.load(await pkg.save());
   const body = await back.getBody();
-  assert.deepEqual(body.paragraphs.map((p) => [p.text, p.style, p.alignment]), [['Title', 'Heading 1', 'Centered'], ['Hello World', 'Normal', 'Unknown']]);
+  assert.deepEqual(body.paragraphs.map((p) => [p.text, p.style, p.alignment]), [['Title', 'Heading 1', 'Centered'], ['Hello World', 'Normal', 'Left']]);
   assert.equal(body.paragraphs[1].runs.filter((r) => r.value.rPr?.b).length, 1, 'the searched word is bold');
   const core = await back.docPropsCorePart.getContents();
   assert.equal(core.title.value.content[0], 'Phase I');

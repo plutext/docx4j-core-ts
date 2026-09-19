@@ -187,7 +187,14 @@ class Emitter {
     });
   }
 
-  /** The paragraph members that carry `w:pPr`; throws when it holds anything else. */
+  /**
+   * The paragraph members that carry `w:pPr`; throws when it holds anything else.
+   *
+   * Reads the tree directly, not the property resolver: a script reproduces *markup*, not
+   * appearance, so it must set what the document states and nothing more. Emitting effective
+   * values would write a style's alignment, indents and size onto every paragraph and run of
+   * the generated document (CR-001 Phase B step 2; the same holds for `runFormat` below).
+   */
   private paragraphProperties(p: wml.P): [string, string][] {
     const pPr = p.pPr;
     if (!pPr) return [];

@@ -1,6 +1,6 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { Font } from './Font.mjs';
-import type { Paragraph } from './Paragraph.mjs';
+import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
@@ -58,14 +58,26 @@ export class Range {
     return this.text;
   }
 
-  /** Direct formatting of exactly this span: runs are split at the boundaries so that a write touches only the span. */
+  /**
+   * The formatting of exactly this span: reads the first run's *effective* properties, writes
+   * direct formatting, splitting the runs at the boundaries so that a write touches only the
+   * span.
+   */
   get font(): Font {
-    return new Font(() => {
+    return this.getFont();
+  }
+
+  /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
+  getFont(options?: FormattingOptions): Font {
+    const holders = (): wml.R[] => {
       if (this.start === this.end) return [];
       this.paragraph.splitAt(this.start);
       this.paragraph.splitAt(this.end);
       return this.runs.map((r) => r.value);
-    }, () => this.paragraph.fontTracking());
+    };
+    if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking());
+    return new Font(holders, () => this.paragraph.fontTracking(),
+      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr));
   }
 
   /** The runs the span covers (a run partly inside counts). */

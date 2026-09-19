@@ -24,8 +24,38 @@ import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, copyRPr, markDeleted, toDeletedText } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 
-/** Office JS Word.Alignment. */
-export type Alignment = 'Unknown' | 'Left' | 'Centered' | 'Right' | 'Justified';
+/**
+ * Office JS `Word.Alignment`, as an *effective* read reports it: an absent `w:jc` resolves to
+ * `'Left'`, which is what Word does and what Office JS answers. `'Unknown'` is what a direct
+ * read (`formatting({ direct: true })`) says for "no `w:jc` here", and is accepted by the
+ * setter, where it removes the element (CR-001 Phase B step 2 decision 4).
+ */
+export type Alignment = 'Left' | 'Centered' | 'Right' | 'Justified';
+
+/** {@link Alignment} plus the direct reads' "nothing stated" and the setter's "remove it". */
+export type AlignmentOrUnknown = Alignment | 'Unknown';
+
+/** Whether a read reports direct formatting instead of the effective value. */
+export interface FormattingOptions {
+  /**
+   * `true` reads the direct formatting only - the `w:pPr` or `w:rPr` on the element itself -
+   * as this package did before CR-001 Phase B. The default is the effective value, resolved
+   * through the document defaults and the style chain, which is what Office JS reports.
+   */
+  direct?: boolean;
+}
+
+/** Office JS's paragraph formatting properties, read in one call (extension). */
+export interface ParagraphFormatting {
+  alignment: AlignmentOrUnknown;
+  leftIndent: number;
+  rightIndent: number;
+  firstLineIndent: number;
+  spaceBefore: number;
+  spaceAfter: number;
+  lineSpacing: number;
+  outlineLevel: number;
+}
 
 const TWIPS_PER_POINT = 20;
 
@@ -106,55 +136,97 @@ export class Paragraph {
     this.styleId = idOfBuiltIn(value);
   }
 
-  get alignment(): Alignment {
-    switch (this.p.pPr?.jc?.val) {
-      case 'left': case 'start': return 'Left';
-      case 'center': return 'Centered';
-      case 'right': case 'end': return 'Right';
-      case 'both': case 'distribute': return 'Justified';
-      default: return 'Unknown';
-    }
+  /**
+   * The paragraph properties which actually apply: the document defaults, the style chain and
+   * the numbering level, then this paragraph's own `w:pPr` (docx4j
+   * `PropertyResolver.getEffectivePPr`). A live, possibly cached object: copy it before
+   * changing it. Needs the package's resolver; see `Body.propertyResolver`.
+   */
+  get effectivePPr(): wml.PPr {
+    return this.parentBody.propertyResolver.getEffectivePPr(this.p.pPr);
   }
-  set alignment(v: Alignment) {
+
+  /** The paragraph mark's effective run properties (docx4j `getEffectiveParagraphMarkRPr`). */
+  get effectiveParagraphMarkRPr(): wml.RPr {
+    return this.parentBody.propertyResolver.getEffectiveParagraphMarkRPr(this.p.pPr);
+  }
+
+  /** The `w:pPr` a formatting read works from: the resolved one, or this paragraph's own. */
+  private readPPr(options?: FormattingOptions): wml.PPr | undefined {
+    return options?.direct === true ? this.p.pPr : this.effectivePPr;
+  }
+
+  /**
+   * Office JS's paragraph formatting in one call, and the way to ask for direct formatting:
+   * `formatting({ direct: true })` is what the individual getters reported before CR-001
+   * Phase B step 2 (an absent property reads 0, 10 or `'Unknown'`).
+   */
+  formatting(options?: FormattingOptions): ParagraphFormatting {
+    const pPr = this.readPPr(options);
+    const effective = options?.direct !== true;
+    return {
+      alignment: alignmentOf(pPr, effective),
+      leftIndent: (pPr?.ind?.left ?? 0) / TWIPS_PER_POINT,
+      rightIndent: (pPr?.ind?.right ?? 0) / TWIPS_PER_POINT,
+      firstLineIndent: firstLineIndentOf(pPr),
+      spaceBefore: (pPr?.spacing?.before ?? 0) / TWIPS_PER_POINT,
+      spaceAfter: (pPr?.spacing?.after ?? 0) / TWIPS_PER_POINT,
+      lineSpacing: lineSpacingOf(pPr),
+      outlineLevel: outlineLevelOf(pPr),
+    };
+  }
+
+  /** The effective alignment; an absent `w:jc` after resolution is `'Left'`, as Office JS. */
+  get alignment(): Alignment {
+    return alignmentOf(this.effectivePPr, true) as Alignment;
+  }
+  set alignment(v: AlignmentOrUnknown) {
     const pPr = this.pPr();
     const val: wml.JcEnumeration | undefined = v === 'Left' ? 'left' : v === 'Centered' ? 'center' : v === 'Right' ? 'right' : v === 'Justified' ? 'both' : undefined;
     if (val === undefined) { delete pPr.jc; return; }
     pPr.jc = { val };
   }
 
-  /** Indents and spacing in points, as Office JS; 0 when not set directly. */
-  get leftIndent(): number { return (this.p.pPr?.ind?.left ?? 0) / TWIPS_PER_POINT; }
+  /** Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). */
+  get leftIndent(): number { return (this.effectivePPr.ind?.left ?? 0) / TWIPS_PER_POINT; }
   set leftIndent(pt: number) { this.ind().left = Math.round(pt * TWIPS_PER_POINT); }
-  get rightIndent(): number { return (this.p.pPr?.ind?.right ?? 0) / TWIPS_PER_POINT; }
+  get rightIndent(): number { return (this.effectivePPr.ind?.right ?? 0) / TWIPS_PER_POINT; }
   set rightIndent(pt: number) { this.ind().right = Math.round(pt * TWIPS_PER_POINT); }
   /** First-line indent; negative for a hanging indent, as Office JS. */
   get firstLineIndent(): number {
-    const ind = this.p.pPr?.ind;
-    if (ind?.hanging !== undefined) return -ind.hanging / TWIPS_PER_POINT;
-    return (ind?.firstLine ?? 0) / TWIPS_PER_POINT;
+    return firstLineIndentOf(this.effectivePPr);
   }
   set firstLineIndent(pt: number) {
     const ind = this.ind();
     if (pt < 0) { ind.hanging = Math.round(-pt * TWIPS_PER_POINT); delete ind.firstLine; } else { ind.firstLine = Math.round(pt * TWIPS_PER_POINT); delete ind.hanging; }
   }
-  get spaceBefore(): number { return (this.p.pPr?.spacing?.before ?? 0) / TWIPS_PER_POINT; }
+  get spaceBefore(): number { return (this.effectivePPr.spacing?.before ?? 0) / TWIPS_PER_POINT; }
   set spaceBefore(pt: number) { this.spacing().before = Math.round(pt * TWIPS_PER_POINT); }
-  get spaceAfter(): number { return (this.p.pPr?.spacing?.after ?? 0) / TWIPS_PER_POINT; }
+  get spaceAfter(): number { return (this.effectivePPr.spacing?.after ?? 0) / TWIPS_PER_POINT; }
   set spaceAfter(pt: number) { this.spacing().after = Math.round(pt * TWIPS_PER_POINT); }
   /** Line spacing in points: w:line/240 lines of 12pt when the rule is auto, else w:line twips; 0 when not set. */
   get lineSpacing(): number {
-    const s = this.p.pPr?.spacing;
-    if (s?.line === undefined) return 0;
-    return s.lineRule === undefined || s.lineRule === 'auto' ? (s.line / 240) * 12 : s.line / TWIPS_PER_POINT;
+    return lineSpacingOf(this.effectivePPr);
   }
   set lineSpacing(pt: number) { const s = this.spacing(); s.line = Math.round(pt * TWIPS_PER_POINT); s.lineRule = 'exact'; }
-  /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. */
-  get outlineLevel(): number { const l = this.p.pPr?.outlineLvl?.val; return l === undefined ? 10 : l + 1; }
+  /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. A heading style supplies it. */
+  get outlineLevel(): number { return outlineLevelOf(this.effectivePPr); }
   set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; }
 
-  /** Direct formatting of the runs: reads the first run, writes all (extension: `Font` is over runs, not the paragraph mark). */
+  /**
+   * The runs' formatting: reads the first run's *effective* properties, writes direct
+   * formatting to all (extension: `Font` is over runs, not the paragraph mark).
+   */
   get font(): Font {
-    return new Font(() => runsOf(this.p).map((r) => r.value), () => this.fontTracking());
+    return this.getFont();
+  }
+
+  /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
+  getFont(options?: FormattingOptions): Font {
+    const holders = (): wml.R[] => runsOf(this.p).map((r) => r.value);
+    if (options?.direct === true) return new Font(holders, () => this.fontTracking());
+    return new Font(holders, () => this.fontTracking(),
+      (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr));
   }
 
   /** w14:paraId, the stable address Word gives paragraphs. */
@@ -691,3 +763,34 @@ interface Anchor {
 }
 
 export { W_NS };
+
+// --- reading one w:pPr, direct or resolved -----------------------------------------------
+
+function alignmentOf(pPr: wml.PPr | undefined, effective: boolean): AlignmentOrUnknown {
+  switch (pPr?.jc?.val) {
+    case 'left': case 'start': return 'Left';
+    case 'center': return 'Centered';
+    case 'right': case 'end': return 'Right';
+    case 'both': case 'distribute': return 'Justified';
+    // Word lays a paragraph with no w:jc out left-aligned, so that is the effective value
+    default: return effective ? 'Left' : 'Unknown';
+  }
+}
+
+function firstLineIndentOf(pPr: wml.PPr | undefined): number {
+  const ind = pPr?.ind;
+  if (ind?.hanging !== undefined) return -ind.hanging / TWIPS_PER_POINT;
+  return (ind?.firstLine ?? 0) / TWIPS_PER_POINT;
+}
+
+function lineSpacingOf(pPr: wml.PPr | undefined): number {
+  const spacing = pPr?.spacing;
+  if (spacing?.line === undefined) return 0;
+  return spacing.lineRule === undefined || spacing.lineRule === 'auto'
+    ? (spacing.line / 240) * 12 : spacing.line / TWIPS_PER_POINT;
+}
+
+function outlineLevelOf(pPr: wml.PPr | undefined): number {
+  const level = pPr?.outlineLvl?.val;
+  return level === undefined ? 10 : level + 1;
+}

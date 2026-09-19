@@ -133,9 +133,12 @@ async function ensureCommentStyles(main: MainDocumentPart): Promise<void> {
   }
   const styles = await part.getContents();
   const list = (styles.style ??= []);
+  // the styles part is about to change: the property resolver caches resolved styles
+  const pkg = main.package as { refreshPropertyResolver?: () => void } | undefined;
   const add = (style: wml.Style): void => {
     list.push(style);
     linkParents(style, styles);
+    pkg?.refreshPropertyResolver?.();
   };
   if (!list.some((s) => s.styleId === COMMENT_TEXT_STYLE)) {
     add(wmlFactory.createStyle({

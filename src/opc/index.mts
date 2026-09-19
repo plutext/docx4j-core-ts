@@ -9,5 +9,5 @@ export { loadPackage, type LoadOptions } from './Load.mjs';
 export { savePackage } from './Save.mjs';
 export { mcePreprocess, createMcePreprocessor, resolveAlternateContent, MCE_NS, type McePreprocessOptions } from './mce/preprocessor.mjs';
 export { UNDERSTOOD_NAMESPACES } from './mce/understood.mjs';
-export { Docx4JException, InvalidFormatException, PartUnrecognisedException } from './exceptions.mjs';
+export { Docx4JException, InvalidFormatException, PartUnrecognisedException, CyclicStylesException, PropertyResolverNotCreatedException } from './exceptions.mjs';
 export { parseXml, serializeXml, serializeXmlPart, createDocument, encodeText, decodeXmlText, stripXmlDeclaration, base64Encode, base64Decode, childElements, XML_DECLARATION } from '../xml/dom.mjs';

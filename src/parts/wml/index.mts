@@ -16,6 +16,16 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 
 const bodies = new WeakMap<object, Body>();
 
+/**
+ * Builds the package's `PropertyResolver` if it has one to build, so that the effective reads
+ * of a `Body` obtained asynchronously work (CR-001 Phase B step 2). Structural, not by import:
+ * a static import of `WordprocessingMLPackage` here would be a runtime cycle.
+ */
+async function ensurePropertyResolver(part: Part): Promise<void> {
+  const pkg = part.package as { getPropertyResolver?: () => Promise<unknown> } | undefined;
+  await pkg?.getPropertyResolver?.();
+}
+
 /** The Body view of a part's block-level container, one per container object. */
 function bodyOf(part: XmlPart<unknown>, container: { content?: unknown[] } | undefined, prefix: string): Body {
   if (!container) throw new Docx4JException(`${part.partName} has no content yet; await getContents() first, or set contents`);
@@ -109,6 +119,7 @@ export class MainDocumentPart extends DocumentPart<wml.Document> {
 
   async getBody(): Promise<Body> {
     await this.getContents();
+    await ensurePropertyResolver(this);
     return this.body;
   }
 }
@@ -160,6 +171,7 @@ export class HeaderPart extends XmlPart<wml.Hdr> {
   }
   async getBody(): Promise<Body> {
     await this.getContents();
+    await ensurePropertyResolver(this);
     return this.body;
   }
 }
@@ -174,6 +186,7 @@ export class FooterPart extends XmlPart<wml.Ftr> {
   }
   async getBody(): Promise<Body> {
     await this.getContents();
+    await ensurePropertyResolver(this);
     return this.body;
   }
 }
