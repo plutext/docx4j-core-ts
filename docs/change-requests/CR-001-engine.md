@@ -1555,7 +1555,12 @@ assumed: `mc:Choice` and `mc:Fallback` map to an `anyElement` property generated
 context types (`wps:wsp`, `w:r`: yes; `w:tbl`, a local element, or any untyped namespace: the whole
 unmarshal throws). This package's default therefore stays resolve-on-load, which inlines the
 chosen branch's children where local elements are legal and never meets the throw. Keeping
-branches unresolved needs the compiler to generate `allowDom: true` for `xs:any` (unknown content
-as DOM, as the flat OPC part's `xmlData` already is); filed as a jsonix-schema-compiler item at
-this package's request, prerequisite for any change of the 5.6 default, no priority asked. The
-objects package's `textOf` now follows docx4j's `McSelection` through `mcBranchOf`.
+branches unresolved needs the two wildcards to admit DOM: the objects session traced
+`allowDom: false` to docx4j's `xsd/mce/markup-compatibility-2006-MINIMAL.xsd`, where `mc:Choice`
+and `mc:Fallback` declare `processContents="strict"` (the compiler reflects it faithfully; the flat
+OPC part's `xmlData` is `skip`, and `a14`'s `CT_TextMath.any` is `lax`, which is the behaviour
+wanted: typed when known, DOM otherwise). So the prerequisite for any change of the 5.6 default is
+docx4j changing those two wildcards to `lax` and the objects package regenerating; no compiler
+change. Proposed to the docx4j session by the objects session on 2026-09-19 (it likely changes the
+Java model too, their call against the CR-021 phase 2 tests). The objects package's `textOf` now
+follows docx4j's `McSelection` through `mcBranchOf`.
