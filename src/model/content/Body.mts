@@ -19,6 +19,7 @@ import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
 import { type TrackedChange, trackedChangesOfRow } from './TrackedChange.mjs';
+import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
 export type Address = string | { contains: string } | { paraId: string };
@@ -120,6 +121,26 @@ export class Body {
   /** Every inline picture in this body, in document order (Office JS Body.inlinePictures). */
   get inlinePictures(): InlinePicture[] {
     return this.paragraphs.flatMap((p) => p.inlinePictures);
+  }
+
+  /**
+   * Office JS `body.lists`: every `w:num` a paragraph of this body names, in the order they are
+   * first used (CR-002 phase H). Empty where the document has no numbering part, or where
+   * nothing has read it yet (`await pkg.getBody()` builds the resolver, which does).
+   */
+  get lists(): List[] {
+    return listsOf(this);
+  }
+
+  /**
+   * Every numbered paragraph of this body's **story** with its label, level, list and sibling
+   * index, in one walk (extension). `listItem.listString` walks the story per read, which is
+   * what Word's counting needs; this is the way to ask for all of them at once.
+   *
+   * Keyed by the `w:p` itself: `labels.get(paragraph.p)?.listString`.
+   */
+  listLabels(): Map<wml.P, ListLabel> {
+    return listLabelsOf(this);
   }
 
   /**

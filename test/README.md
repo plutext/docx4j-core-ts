@@ -147,6 +147,17 @@ namespaces, content types or the zip writer, check by hand:
    and this package's `acceptAll()` agree on the same file, and that a comment inserted while
    tracking is on is a comment only: no `w:ins` around its reference run or range markers.
 
+11. Lists (CR-002 phase H): in a package from `createPackage()`, `await p.startNewList()` on the
+   first paragraph, `attachToList(list.id)` on the next few with `listItem.level = 1` on two of
+   them, `p.restartList()` on a later one, and a second list from
+   `startNewList({ bullet: true })`. Saved and opened in Word, the labels must be the ones
+   `listItem.listString` reported: 1. a. b. 2. for the nested run, the restarted list beginning
+   at 1. again while Word still treats it as the same list (Home > Multilevel List shows one
+   definition, and Continue Numbering on the restarted item joins them), and the bulleted list
+   showing Word's solid bullet in Symbol. Check `list.setLevelNumbering(0, 'UpperRoman')` and
+   `list.setLevelBullet(0, 'Square')` on a list that shares its `w:abstractNum` with a restart:
+   only the edited list may change in Word.
+
 A small Node script for 1 to 3 is:
 
 ```js

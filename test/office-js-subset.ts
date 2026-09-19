@@ -2,7 +2,7 @@
 // so that a function written against the subset runs against a live document and a package
 // (CR-002 section 3.4). The interfaces are the Office JS members this package implements,
 // copied from @types/office-js with load/sync/context removed and arrays for collections.
-import type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange, WordprocessingMLPackage } from '../src/index.mjs';
+import type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange, List, ListItem, WordprocessingMLPackage } from '../src/index.mjs';
 
 namespace OfficeSubset {
   export type InsertLocation = 'Start' | 'End';
@@ -62,6 +62,16 @@ namespace OfficeSubset {
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
     getTrackedChanges(): ArrayLike<TrackedChange>;
+    // CR-002 phase H
+    readonly isListItem: boolean;
+    readonly list: List;
+    readonly listItem: ListItem;
+    readonly listOrNullObject: List;
+    readonly listItemOrNullObject: ListItem;
+    /** Office JS's is synchronous; here the default definitions are XML to unmarshal (section 17). */
+    startNewList(): Promise<List>;
+    attachToList(listId: number, level: number): List;
+    detachFromList(): void;
   }
   export interface Body {
     readonly paragraphs: ArrayLike<Paragraph>;
@@ -79,6 +89,36 @@ namespace OfficeSubset {
     readonly inlinePictures: ArrayLike<InlinePicture>;
     insertTable(rowCount: number, columnCount: number, location: InsertLocation, values?: string[][]): Table;
     insertInlinePictureFromBase64(base64EncodedImage: string, location: InsertLocation): InlinePicture;
+    // CR-002 phase H
+    readonly lists: ArrayLike<List>;
+  }
+
+  // CR-002 phase H: Word.List and Word.ListItem.
+  export type ListLevelType = 'Bullet' | 'Number' | 'Picture';
+  export type ListNumbering = 'None' | 'Arabic' | 'UpperRoman' | 'LowerRoman' | 'UpperLetter' | 'LowerLetter';
+  export type ListBullet = 'Custom' | 'Solid' | 'Hollow' | 'Square' | 'Diamonds' | 'Arrow' | 'Checkmark';
+  export interface List {
+    readonly id: number;
+    readonly levelExistences: boolean[];
+    readonly levelTypes: ListLevelType[];
+    readonly paragraphs: ArrayLike<Paragraph>;
+    getLevelFont(level: number): Font;
+    getLevelParagraphs(level: number): ArrayLike<Paragraph>;
+    /** Office JS returns a ClientResult; nothing is marshalled here, so it is the string. */
+    getLevelString(level: number): string;
+    insertParagraph(paragraphText: string, insertLocation: InsertLocation): Paragraph;
+    setLevelAlignment(level: number, alignment: string): void;
+    setLevelBullet(level: number, listBullet: ListBullet, charCode?: number, fontName?: string): void;
+    setLevelIndents(level: number, textIndent: number, bulletNumberPictureIndent: number): void;
+    setLevelNumbering(level: number, listNumbering: ListNumbering, formatString?: (string | number)[]): void;
+    setLevelStartingNumber(level: number, startingNumber: number): void;
+  }
+  export interface ListItem {
+    level: number;
+    readonly listString: string;
+    readonly siblingIndex: number;
+    getAncestor(parentOnly?: boolean): Paragraph;
+    getDescendants(directChildrenOnly?: boolean): ArrayLike<Paragraph>;
   }
 
   // CR-002 phase C: Word.Table, Word.TableRow, Word.TableCell, Word.InlinePicture, Word.ContentControl.
@@ -276,6 +316,10 @@ declare const someControl: ContentControl;
 const contentControl: OfficeSubset.ContentControl = someControl;
 declare const commentView: Comment;
 const comment: OfficeSubset.Comment = commentView;
+declare const listView: List;
+declare const listItemView: ListItem;
+const list: OfficeSubset.List = listView;
+const listItem: OfficeSubset.ListItem = listItemView;
 
 // a function written against the subset
 function shout(b: OfficeSubset.Body): void {
@@ -320,6 +364,23 @@ void bindToFirstNode(someControl, someCustomXmlPart);
 
 export { customXmlPart, customXmlNode, namespaceManager, xmlMapping, customXmlParts, listContentControl, bindToFirstNode };
 
+// CR-002 phase H: one written against the list members, which runs in an add-in too
+async function outlineList(b: OfficeSubset.Body): Promise<string[]> {
+  const out: string[] = [];
+  for (const p of Array.from(b.paragraphs)) {
+    if (!p.isListItem) continue;
+    const item = p.listItem;
+    out.push(`${'  '.repeat(item.level)}${item.listString} ${p.text}`);
+  }
+  const first = Array.from(b.paragraphs)[0]!;
+  const made = await first.startNewList();
+  made.setLevelNumbering(0, 'UpperRoman');
+  made.setLevelIndents(0, 36, 18);
+  Array.from(b.lists).forEach((l) => out.push(String(l.id) + ' ' + l.levelTypes[0]));
+  return out;
+}
+void outlineList(pkg.body);
+
 // and one that reviews, as an add-in would (CR-002 phase F)
 function review(d: OfficeSubset.Document): string[] {
   d.changeTrackingMode = 'TrackAll';
@@ -327,5 +388,5 @@ function review(d: OfficeSubset.Document): string[] {
 }
 review(pkg);
 
-export { body, paragraph, range, font, table, row, tableCell, cellBody, picture, contentControl, comment, document_, change, shout, fill, resolveComments, review };
-export type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange };
+export { body, paragraph, range, font, table, row, tableCell, cellBody, picture, contentControl, comment, list, listItem, document_, change, shout, fill, resolveComments, review, outlineList };
+export type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePicture, ContentControl, Comment, CustomXmlPart, CustomXmlNode, XmlMapping, TrackedChange, List, ListItem };

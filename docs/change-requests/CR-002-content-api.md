@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B); phase H proposed (unblocked 2026-09-19, CR-001 Phase B having landed).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1460,3 +1460,141 @@ before it returns. A `Body` with no package, or one whose package has not built 
 throws `PropertyResolverNotCreatedException` naming `getPropertyResolver()` rather than
 silently falling back to direct formatting. This changes the values existing callers see, so it
 is a minor-version note.
+
+## 17. Implementation notes: phase H (2026-09-19)
+
+Lists (section 3.9). `src/model/content/List.mts` (`List`, `ListItem` and the functions
+`Paragraph` and `Body` call), the members `isListItem`, `list`, `listItem`,
+`listOrNullObject`, `listItemOrNullObject`, `startNewList`, `attachToList`, `detachFromList`
+and `restartList` on `Paragraph`, `lists` and `listLabels()` on `Body`,
+`NumberingDefinitionsPart.makeLive()`, the three enums in the shim, the subset interfaces and
+`test/lists.test.mjs` (16 tests) are in. **The labels are docx4j's**: for every paragraph of
+every story of all 45 parity goldens - 618 paragraphs, 183 of them numbered -
+`paragraph.listItem?.listString` is the `numString` docx4j recorded and `listItem.level` its
+`ilvl`, with zero differences.
+
+**What is in.**
+
+- `List` is a view over a `w:numId` and the body it was found through; it resolves the `w:num`
+  and the `w:abstractNum` through the numbering part's definitions on every call, so nothing
+  goes stale. `id`, `levelExistences`, `levelTypes` (`Bullet` / `Number` / `Picture`, from
+  `w:numFmt` and `w:lvlPicBulletId`), `levelExists(level)`, `getLevelString`, `getLevelFont`,
+  `getLevelParagraphs`, `paragraphs`, `insertParagraph`, `setLevelNumbering`, `setLevelBullet`,
+  `setLevelIndents`, `setLevelAlignment`, `setLevelStartingNumber`, `restart()`, `separate()`,
+  and `element` / `abstractElement` / `definition` / `level(n)` as the extensions on to the tree.
+- `ListItem` is a view over a paragraph: `level` (read and write), `listString`, `siblingIndex`,
+  `getAncestor(parentOnly?)`, `getDescendants(directChildrenOnly?)`, `list`, `paragraph`.
+- `isListItem` is `Emulator.numRefFor` (CR-001 section 15.2), so a "List Number" style counts,
+  a `w:numId` of 0 does not, and neither does a dangling `w:numId` - all three tested.
+- Reads never unmarshal `word/numbering.xml`: they go through the definitions the
+  `PropertyResolver` built from a private read. A document whose lists are only read still
+  saves the numbering part byte for byte (tested on `numbering-lvlrestart.docx`).
+
+**Departures, and why.**
+
+1. **`startNewList()` is asynchronous** where Office JS's is synchronous. It copies its
+   `w:abstractNum` from docx4j's default definitions, which are XML that has to be unmarshalled
+   (and a document with no numbering part gets one, whose default contents are unmarshalled
+   too). The subset declares `startNewList(): Promise<List>`, which is the convention section
+   3.4 already uses for the calls that marshal; `await p.startNewList()` compiles against a Word
+   add-in's objects as well. Every other list verb is synchronous, as Office JS has them.
+2. **The first write promotes the definitions' tree**, rather than unmarshalling the part a
+   second time: `NumberingDefinitionsPart.makeLive()` makes the tree the definitions were built
+   over the part's live contents (`setContents`). Unmarshalling afresh would give a second tree
+   and leave every `List` view pointing at the first. The part is then re-marshalled on save,
+   which is the price of a write and only of a write.
+3. **`separate()` is the copy-on-shared rule, and it is public.** A `setLevel*` call copies the
+   `w:abstractNum` when another `w:num` names it, gives the copy a fresh `w:abstractNumId` and
+   `w:nsid`, drops its `w:styleLink` (which maps a numbering style to one definition), and
+   repoints this `w:num` at it. Offering it as a verb lets a caller do the split once before a
+   run of writes, and lets `getLevelFont` say what it does.
+4. **`getLevelFont(level)` separates first**, so reading it costs the numbering part its
+   byte-for-byte round trip. `Font` is a read *and* write view over one `w:rPr`, and the
+   supplier it takes cannot tell the two apart; Office JS pairs `getLevelFont` with
+   `resetLevelFont`, so it is a write accessor. A read that costs nothing is
+   `list.level(n).labelRPr` (or `.rPr`) on the definition.
+5. **The restart verb is `List.restart()`**, with `Paragraph.restartList()` as the sugar that
+   also attaches the paragraph. `startNewList({ restartFrom })` was the alternative; a restart
+   is not a new list (it is the same `w:abstractNum`, which is what makes Word continue the
+   numbering), so naming it `startNewList` would have said the wrong thing. It writes a
+   `w:lvlOverride` with a `w:startOverride` for **level 0** only: `incrementCounter` resets the
+   deeper levels whenever level 0 is used, so one override is enough.
+6. **`listString` costs a walk of the story per read.** Word's numbering is a running count, so
+   a label cannot be read off the paragraph: the label is `Emulator.getNumber` counted in a
+   fresh `NumberingState` walked over the paragraph's story in document order - the rule of
+   CR-001 section 15.2, with headers and footers sharing one state and a `w:txbxContent`
+   starting its own. `Body.listLabels()` does that walk once and returns a
+   `Map<P, ListLabel>` (`listString`, `level`, `numId`, `siblingIndex`, `isBullet`) for every
+   numbered paragraph of the story, which is what a caller that wants them all should use.
+   The walk is `test/parity.test.mjs`'s `walkNumbering`, which is the Java harness's own.
+7. **A header or footer that has not been unmarshalled contributes nothing to the count.**
+   The story a footer counts in is shared with every header (and every other footer), and a
+   synchronous read cannot unmarshal them. So a footer's label is the number it would have if it
+   were the only part read, unless the headers have been read first (`await part.getBody()` on
+   each). The golden cross-check reads every story first, which is why it agrees with docx4j
+   there; nothing else is affected, since the main story is one part.
+8. **`attachToList`, `detachFromList` and `listItem.level` do not refresh the resolver.** They
+   write `w:pPr`, not the numbering part, so there is nothing to rebuild; only the writes that
+   touch `word/numbering.xml` (`setLevel*`, `separate`, `restart`, `startNewList`) call
+   `refreshPropertyResolver()`. All of them go through `Paragraph.pPr()` / `Paragraph.numPr()`,
+   which is where a tracked write records `w:pPrChange` - `pPr()` stopped being private for
+   that, and a tracked `attachToList` is tested.
+9. **`detachFromList` writes `w:numId` 0 when the style still numbers the paragraph.** Removing
+   the paragraph's own `w:numPr` would leave a "List Number" paragraph numbered; ECMA-376
+   17.9.18's `w:numId` 0 is how Word switches an inherited list off, and is what
+   `Emulator.resolve` reads.
+10. **`getLevelString` returns the string** where Office JS returns a `ClientResult`: nothing is
+    marshalled to answer it (the same reasoning as `CustomXmlPart.getXml`, section 12).
+    `levelExistences` is Office JS's array; `levelExists(level)` is the extension beside it.
+11. **The null objects are local.** `listOrNullObject` / `listItemOrNullObject` build the same
+    proxy `src/office-js/proxy.mts` does for `getFirstOrNullObject`, with the same
+    `code: 'ItemNotFound'`, rather than importing it: the content API must not pull the shim's
+    proxies into a bundle that only wants the views.
+12. **`setLevelBullet`'s six presets** are the characters and faces Word's bullet library uses:
+    Symbol F0B7 (solid), Courier New `o` (hollow), and Wingdings F0A7, F076, F0D8 and F0FC
+    (square, diamonds, arrow, checkmark). `Custom` takes `charCode` and `fontName`; the font is
+    written to the level's `w:rPr/w:rFonts` (ascii, hAnsi and `w:hint="default"`), as Word does.
+13. **`setLevelNumbering`'s `formatString`** is Office JS's array of strings and numbers, where
+    a number is a 0-based level whose counter goes there: `['(', 0, ')']` is `w:lvlText`
+    `"(%1)"`. Without one the level numbers itself with a trailing full stop (`"%<n>."`).
+14. **A `w:lvlOverride/w:lvl` for the level being written is removed**, since it would mask the
+    abstract level the write goes to; a `w:startOverride` beside it stays (that is the restart).
+    `setLevelStartingNumber` removes the level's `w:startOverride` too, for the same reason.
+
+**The shim.** `Word.ListLevelType`, `Word.ListNumbering` and `Word.ListBullet` are in
+`src/office-js/enums.mts` and on the `Word` object. Nothing else was needed: `List` and
+`ListItem` are classes, so the wrapper proxies them by name like every other view, `body.lists`
+and the four paragraph members pass through, and `COLLECTION_ITEM_CLASS` gained
+`getLevelParagraphs` and `getDescendants` so that an empty one still names `Paragraph`. The
+null objects are plain objects with a `Proxy`, which `isView` leaves alone, so
+`isNullObject` reads through the shim as it does directly. `supported.generated.mts` is
+regenerated (230 members).
+
+**`toApiScript`.** A direct `w:numPr` is now `p1.attachToList(3, 0);` (and `detachFromList()`
+for a `w:numId` of 0) instead of the `insertXml` fallback - the emitter's property pairs gained
+a call form. It names the `w:numId` exactly as the existing style assignment names a style id:
+both assume the target document defines it. `startNewList()` is **not** emitted: it is
+asynchronous, and choosing between the decimal and the bullet set would need the numbering
+part, which `toApiScript` does not have (it takes elements as readily as views).
+
+**Objects-package gaps: none.** Everything is built with `factory/org_docx4j_wml`
+(`createNumberingNum`, `createNumberingNumAbstractNumId`, `createNumberingNumLvlOverride`,
+`createNumberingNumLvlOverrideStartOverride`, `createLvl`, `createNumFmt`, `createLvlLvlText`,
+`createLvlStart`, `createJc`, `createPPrBaseInd`, `createCTLongHexNumber`,
+`createPPrBaseNumPrNumId`, `createPPrBaseNumPrIlvl`) and `deepCopy` / `unmarshalNode` from the
+facade; `linkParents` comes from `builders/wml`. One small thing for the objects package's own
+CR when it next opens: `deepCopy` of a `w:abstractNum` is the only place here that needs a
+fragment copy of a non-global element, and it works.
+
+**Tests.** `test/lists.test.mjs`: `startNewList` (the part and its relationship created, both
+default sets present, 1. 2. 3., and the same after a round trip), the bullet set, `attachToList`
+and `level` (1. a. b. 2.), `detachFromList` and the two null objects, `restart` (1. 2. 1. 2.,
+the shared `w:abstractNum` and the `w:startOverride`), `setLevelNumbering` /
+`setLevelStartingNumber` / `setLevelIndents` / `setLevelAlignment`, `setLevelBullet` including
+`Custom`, the copy-on-shared-abstract rule (two lists on one abstract, one edited, the other
+unchanged), `siblingIndex`, `getAncestor` / `getDescendants`, `List.insertParagraph`,
+`isListItem` through a "List Number" style with the `w:numId` 0 and dangling-id cases, a tracked
+`attachToList`, the byte-for-byte round trip of a read-only document, and the golden
+cross-check. Two existing tests were updated: `office-js.test.mjs` used `paragraph.listItem` as
+its example of an unsupported member (it is supported now) and expected the `insertXml`
+fallback for `w:numPr` (a `w:framePr` paragraph is the fallback example instead).

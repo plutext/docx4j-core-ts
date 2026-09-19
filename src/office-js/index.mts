@@ -21,16 +21,20 @@ import { NotSupportedError, ItemNotFoundError, ValueNotLoadedError } from './err
 import { toApiScript, type ApiScriptOptions, type ApiScriptTarget } from './toApiScript.mjs';
 import {
   InsertLocation, Alignment, UnderlineType, ChangeTrackingMode, BreakType, ContentControlType, Style, ErrorCodes, SearchOptions,
+  ListLevelType, ListNumbering, ListBullet,
   type InsertLocationValue, type ChangeTrackingModeValue, type BreakTypeValue, type ContentControlTypeValue, type StyleValue,
   type AlignmentValue, type UnderlineTypeValue,
+  type ListLevelTypeValue, type ListNumberingValue, type ListBulletValue,
 } from './enums.mjs';
 
 export { run, RequestContext, Document, DocumentProperties, ClientResult, unwrap, nullObject, Wrapper, toApiScript, supported, SUBSET_MEMBERS };
 export { NotSupportedError, ItemNotFoundError, ValueNotLoadedError };
 export { InsertLocation, Alignment, UnderlineType, ChangeTrackingMode, BreakType, ContentControlType, Style, ErrorCodes, SearchOptions };
+export { ListLevelType, ListNumbering, ListBullet };
 export type {
   RunOptions, TrackedObjects, Collection, PendingSink, ApiScriptOptions, ApiScriptTarget,
   InsertLocationValue, ChangeTrackingModeValue, BreakTypeValue, ContentControlTypeValue, StyleValue, AlignmentValue, UnderlineTypeValue,
+  ListLevelTypeValue, ListNumberingValue, ListBulletValue,
 };
 
 /**
@@ -47,6 +51,9 @@ export const Word = Object.freeze({
   ChangeTrackingMode,
   BreakType,
   ContentControlType,
+  ListLevelType,
+  ListNumbering,
+  ListBullet,
   Style,
   ErrorCodes,
   SearchOptions,

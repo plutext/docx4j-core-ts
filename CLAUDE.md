@@ -14,13 +14,12 @@ engine and is the spec for everything below.
 
 **Status:** CR-001 Phase A (packaging, parts, packages, MCE), CR-001 Phase B (`PropertyResolver`,
 list numbering `Emulator`, `RunFontSelector` and `IdentityPlusMapper`, held to docx4j's own
-answers by 45 parity goldens) and CR-002 phases B to G and I
-(the content API: `Body`, `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`,
-`ContentControl` with `XmlMapping` and the typed kinds, `Comment`, `TrackedChange`, custom XML
-parts with XPath, search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on
-`./office-js`) are implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet:
-CR-001 Phase C; CR-002 H (lists), which Phase B unblocked. Each CR's last sections record
-decisions and departures.
+answers by 45 parity goldens) and CR-002 phases B to I, the whole content API (`Body`,
+`Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
+the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
+search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
+implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet: CR-001 Phase C.
+Each CR's last sections record decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -69,7 +68,7 @@ src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default st
 src/model/properties/ PropertyResolver, the property catalogue (one entry per schema member) and the catalogue-driven half of StyleUtil (apply, applyStyleLevel and the toggle XOR, isEmpty, unset, hasDirectFormatting)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
-src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, search;
+src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),

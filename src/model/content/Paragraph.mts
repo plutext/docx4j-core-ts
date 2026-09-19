@@ -24,6 +24,11 @@ import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, copyRPr, markDeleted, toDeletedText } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
+import {
+  type List, type ListItem, type StartListOptions,
+  isListItem, listOf, listOrNullObjectOf, listItemOf, listItemOrNullObjectOf,
+  startNewList, attachToList, detachFromList,
+} from './List.mjs';
 
 /**
  * Office JS `Word.Alignment`, as an *effective* read reports it: an absent `w:jc` resolves to
@@ -420,12 +425,27 @@ export class Paragraph {
    * The paragraph's properties, created when absent. Every property setter goes through this
    * one accessor, so this is where a tracked write records `w:pPrChange` with the properties as
    * they stand before it.
+   *
+   * @internal public so that the list views (CR-002 phase H) write `w:numPr` the same way.
    */
-  private pPr(): wml.PPr {
+  pPr(): wml.PPr {
     const pPr = (this.p.pPr ??= { TYPE_NAME: 'org_docx4j_wml.PPr' });
     linkParents(pPr, this.p);
     this.changeTracker?.recordPPrChange(pPr);
     return pPr;
+  }
+
+  /**
+   * The paragraph's `w:numPr`, created when absent, through {@link pPr} so that a tracked
+   * write records `w:pPrChange` first.
+   *
+   * @internal what the list views write through (CR-002 phase H).
+   */
+  numPr(): wml.PPrBase.NumPr {
+    const pPr = this.pPr();
+    const numPr = (pPr.numPr ??= { TYPE_NAME: 'org_docx4j_wml.PPrBase.NumPr' });
+    linkParents(numPr, pPr);
+    return numPr;
   }
   private ind(): wml.PPrBase.Ind {
     return (this.pPr().ind ??= {});
@@ -561,6 +581,72 @@ export class Paragraph {
     const second = runOf([textItem(tail), ...rest], seg.run.rPr ? deepCopy(seg.run.rPr) : undefined);
     seg.runOwner.splice(seg.runIndex + 1, 0, second);
     linkParents(second, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  }
+
+  // --- lists (CR-002 phase H) ---
+
+  /**
+   * Office JS `paragraph.isListItem`: whether Word paints a label in front of this paragraph.
+   * The effective `w:numPr` decides it (docx4j `Emulator.numRefFor`), so a "List Number" style
+   * counts; a `w:numId` of 0, a `w:numId` naming no `w:num`, and a level linked to another
+   * paragraph style do not.
+   */
+  get isListItem(): boolean {
+    return isListItem(this);
+  }
+
+  /** Office JS `paragraph.list`: the list this paragraph is in; throws when it is not in one. */
+  get list(): List {
+    return listOf(this);
+  }
+
+  /** Office JS `paragraph.listOrNullObject`: the list, or a null object (`isNullObject` true). */
+  get listOrNullObject(): List {
+    return listOrNullObjectOf(this);
+  }
+
+  /** Office JS `paragraph.listItem`: this paragraph's place in its list; throws when it has none. */
+  get listItem(): ListItem {
+    return listItemOf(this);
+  }
+
+  /** Office JS `paragraph.listItemOrNullObject`. */
+  get listItemOrNullObject(): ListItem {
+    return listItemOrNullObjectOf(this);
+  }
+
+  /**
+   * Office JS `paragraph.startNewList()`: a new list definition (docx4j's default decimal set,
+   * or its bullet set with `{ bullet: true }`) with this paragraph as its first item, adding
+   * the numbering part and its relationship when the document has none.
+   *
+   * Asynchronous where Office JS's is synchronous, since the default definitions are XML to be
+   * unmarshalled (CR-002 section 17).
+   */
+  startNewList(options?: StartListOptions): Promise<List> {
+    return startNewList(this, options);
+  }
+
+  /** Office JS `paragraph.attachToList(listId, level)`: this paragraph joins that list. */
+  attachToList(listId: number | string, level = 0): List {
+    return attachToList(this, listId, level);
+  }
+
+  /** Office JS `paragraph.detachFromList()`: this paragraph leaves its list. */
+  detachFromList(): void {
+    detachFromList(this);
+  }
+
+  /**
+   * The same list, starting again at this paragraph: a new `w:num` over the same
+   * `w:abstractNum` with a `w:startOverride` (extension; `List.restart()` is the verb).
+   */
+  restartList(): List {
+    const list = this.list;
+    const level = this.listItem.level;
+    const restarted = list.restart();
+    this.attachToList(restarted.id, level);
+    return restarted;
   }
 
   // --- comments (CR-002 phase G) ---

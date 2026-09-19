@@ -12,7 +12,7 @@ const UNIVERSAL_MEMBERS = ['load', 'track', 'untrack', 'isNullObject', 'toJSON']
 const COLLECTION_MEMBERS = ['items', 'getFirst', 'getFirstOrNullObject', 'getLast', 'getLastOrNullObject', 'getCount', 'length', ...UNIVERSAL_MEMBERS];
 
 /** The classes a collection is of; phases C, E and G fill in the ones whose views are not here yet. */
-const COLLECTION_CLASSES = ['Paragraph', 'Range', 'Table', 'TableRow', 'TableCell', 'ContentControl', 'Comment', 'InlinePicture', 'List', 'Field', 'TrackedChange', 'CustomXmlPart'];
+const COLLECTION_CLASSES = ['Paragraph', 'Range', 'Table', 'TableRow', 'TableCell', 'ContentControl', 'Comment', 'InlinePicture', 'List', 'ListItem', 'Field', 'TrackedChange', 'CustomXmlPart'];
 
 /** The shim's own members: the context, the document and what it adds over the views. */
 const SHIM_MEMBERS = [
@@ -30,6 +30,11 @@ const SHIM_MEMBERS = [
   'Paragraph.getOoxml', 'Paragraph.getXml', 'Paragraph.paraId', 'Paragraph.runs', 'Paragraph.element', 'Paragraph.p',
   'Paragraph.parentBody', 'Paragraph.index', 'Paragraph.splitAt', 'Paragraph.segments',
   'Range.getOoxml', 'Range.getXml', 'Range.runs', 'Range.paragraph', 'Range.paragraphs', 'Range.start', 'Range.end',
+  // lists (CR-002 phase H): the extensions beside the Office JS members the subset declares
+  'Body.listLabels', 'Paragraph.restartList', 'Paragraph.numPr', 'Paragraph.pPr',
+  'List.numId', 'List.definition', 'List.element', 'List.abstractElement', 'List.level',
+  'List.levelExists', 'List.separate', 'List.restart', 'List.body',
+  'ListItem.list', 'ListItem.paragraph',
 ];
 
 function build(): Set<string> {

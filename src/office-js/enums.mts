@@ -70,6 +70,37 @@ export const BreakType = Object.freeze({
 } as const);
 export type BreakTypeValue = (typeof BreakType)[keyof typeof BreakType];
 
+/** Word.ListLevelType: what a list level paints in front of its paragraphs (CR-002 phase H). */
+export const ListLevelType = Object.freeze({
+  bullet: 'Bullet',
+  number: 'Number',
+  picture: 'Picture',
+} as const);
+export type ListLevelTypeValue = (typeof ListLevelType)[keyof typeof ListLevelType];
+
+/** Word.ListNumbering: the number formats `list.setLevelNumbering` takes. */
+export const ListNumbering = Object.freeze({
+  none: 'None',
+  arabic: 'Arabic',
+  upperRoman: 'UpperRoman',
+  lowerRoman: 'LowerRoman',
+  upperLetter: 'UpperLetter',
+  lowerLetter: 'LowerLetter',
+} as const);
+export type ListNumberingValue = (typeof ListNumbering)[keyof typeof ListNumbering];
+
+/** Word.ListBullet: the bullets `list.setLevelBullet` takes. */
+export const ListBullet = Object.freeze({
+  custom: 'Custom',
+  solid: 'Solid',
+  hollow: 'Hollow',
+  square: 'Square',
+  diamonds: 'Diamonds',
+  arrow: 'Arrow',
+  checkmark: 'Checkmark',
+} as const);
+export type ListBulletValue = (typeof ListBullet)[keyof typeof ListBullet];
+
 /** Word.ContentControlType: the kinds w:sdtPr types (CR-002 section 3.5; the views are phase C/E). */
 export const ContentControlType = Object.freeze({
   unknown: 'Unknown',

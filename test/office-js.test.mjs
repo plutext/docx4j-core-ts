@@ -116,7 +116,7 @@ test('proxies: an unsupported member names the class and the member', async () =
       return true;
     });
     assert.throws(() => context.document.body.insertHtml('<p>x</p>', 'End'), /Word\.Body\.insertHtml is not supported/);
-    assert.throws(() => { paragraph.listItem = 1; }, /Word\.Paragraph\.listItem is not supported/);
+    assert.throws(() => { paragraph.listOrNullObjectOrSomething = 1; }, /Word\.Paragraph\.listOrNullObjectOrSomething is not supported/);
     assert.throws(() => context.application, /Word\.RequestContext\.application is not supported/);
     // getSelection has nothing to return in Node unless the caller supplies one
     assert.throws(() => context.document.getSelection(), /Word\.Document\.getSelection is not supported[\s\S]*selection/);
@@ -205,11 +205,19 @@ test('toApiScript: paragraphs, formatting and the insertXml fallback', async () 
     "r1.font.color = '#FF0000';",
   ].join('\n'));
 
-  // what no verb expresses falls back to insertXml with the marshalled fragment
+  // a direct w:numPr is attachToList, which names the w:numId as the style assignment names a
+  // style id - both assume the target document defines it (CR-002 phase H)
   await body.insertXml('<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>list item</w:t></w:r></w:p>', 'End');
-  const fallback = await toApiScript(body.paragraphs[3]);
-  assert.match(fallback, /^\/\/ paragraph properties \(numPr\): as XML\nawait body\.insertXml\(`<w:p /);
-  assert.match(fallback, /w:numId w:val="1"/);
+  assert.equal(await toApiScript(body.paragraphs[3]), [
+    "const p1 = body.insertParagraph('list item', 'End');",
+    'p1.attachToList(1, 0);',
+  ].join('\n'));
+
+  // what no verb expresses falls back to insertXml with the marshalled fragment
+  await body.insertXml('<w:p><w:pPr><w:framePr w:w="2000"/></w:pPr><w:r><w:t>framed</w:t></w:r></w:p>', 'End');
+  const fallback = await toApiScript(body.paragraphs[4]);
+  assert.match(fallback, /^\/\/ paragraph properties \(framePr\): as XML\nawait body\.insertXml\(`<w:p /);
+  assert.match(fallback, /w:framePr/);
 
   // the variable is the caller's
   assert.equal(await toApiScript(body.paragraphs[0], { variable: 'cell' }), "cell.insertParagraph('Hello World', 'End');");

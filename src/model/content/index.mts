@@ -4,6 +4,11 @@ export { Paragraph, type Alignment } from './Paragraph.mjs';
 export { Range } from './Range.mjs';
 export { BUILT_IN_STYLES, builtInOf, idOfBuiltIn, displayNameOf, styleNameOf, styleIdOf, type BuiltInStyle } from './styles.mjs';
 export { Comment } from './Comment.mjs';
+// lists (CR-002 phase H)
+export {
+  List, ListItem, ListItemNotFoundError, listsOf, listLabelsOf, numberingEmulatorOf, levelOf,
+  type ListLevelType, type ListNumbering, type ListBullet, type StartListOptions, type ListLabel,
+} from './List.mjs';
 export { type Author, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
 export { Font, type UnderlineType, type RPrHolder, type FontTracking } from './Font.mjs';
 export { Table, TableRow, TableCell, cellOf } from './Table.mjs';

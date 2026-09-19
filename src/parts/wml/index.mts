@@ -403,6 +403,29 @@ export class NumberingDefinitionsPart extends XmlPart<wml.Numbering> {
     return this.getContents();
   }
 
+  /**
+   * Makes the tree the definitions were built over this part's **live** contents, so that an
+   * edit to a `w:num` or a `w:lvl` is marshalled on save (CR-002 phase H).
+   *
+   * The definitions are read privately (`readContents()`), which keeps a document whose labels
+   * are only read byte for byte; a write has to give that up. Promoting the tree that is
+   * already in hand - rather than unmarshalling the part a second time - is what keeps the
+   * `List` views valid across the change: they hold objects of that very tree.
+   *
+   * Synchronous, since the tree has been read; the part must have been read
+   * (`getDefinitions()`, or the package's `getPropertyResolver()`) or unmarshalled first.
+   */
+  makeLive(): wml.Numbering {
+    if (this.isUnmarshalled) return this.contents;
+    const tree = this.definitions.numbering;
+    if (tree === undefined) {
+      throw new Docx4JException(`${this.partName} has not been read yet; await getDefinitions() first`);
+    }
+    this.setContents(tree);
+    this.privateTree = undefined;
+    return tree;
+  }
+
   /** Forgets the definitions and the emulator: the tree has changed under us. */
   refreshDefinitions(): void {
     this.privateTree = undefined;

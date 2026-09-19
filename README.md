@@ -120,6 +120,48 @@ pkg.numberingDefinitionsPart.getIndOf('3', '0');   // the indent that level cont
 Reading labels does not unmarshal `word/numbering.xml`, so a document you only read still saves
 byte for byte. After editing the numbering or styles parts, `await pkg.refresh()`.
 
+### Lists
+
+`Word.List` and `Word.ListItem` over the same numbering, so an add-in's list code runs here
+unchanged. A paragraph knows whether Word numbers it — through its own `w:numPr` or through a
+numbered style — which list it is in and what label it shows.
+
+```ts
+const body = await pkg.getBody();
+
+for (const p of body.paragraphs) {
+  if (p.isListItem) console.log(p.listItem.listString, p.listItem.level, p.text);
+}
+
+body.lists;                     // every list a paragraph of this body names, in order of first use
+body.listLabels();              // Map<P, { listString, level, numId, siblingIndex, isBullet }>, in one walk
+```
+
+`listItem.listString` is the label Word paints, counted by walking the paragraph's story from
+its start — Word's numbering is a running count, so that walk is the answer. Use
+`body.listLabels()` when you want every label at once.
+
+Making and changing lists:
+
+```ts
+const list = await p.startNewList();            // { bullet: true } for the bullet set
+p2.attachToList(list.id, 1);                    // join it, at level 1
+p2.listItem.level = 2;                          // or move it
+p3.detachFromList();
+
+list.setLevelNumbering(0, 'UpperRoman', ['(', 0, ')']);   // w:numFmt and w:lvlText "(%1)"
+list.setLevelBullet(1, 'Square');
+list.setLevelIndents(0, 36, 18);                // points, as Office JS
+list.setLevelStartingNumber(0, 5);
+
+const again = p4.restartList();                 // the same list, numbering again from its start
+```
+
+A level writer changes the `w:abstractNum`, so it copies that definition first when another
+`w:num` shares it — the change stays local to this list. `startNewList()` is asynchronous here
+(Office JS's is not): it copies its definition from docx4j's default `numbering.xml` and adds
+the numbering part when the document has none.
+
 ### Change tracking
 
 `pkg.changeTrackingMode` is Office JS's `document.changeTrackingMode`, backed by

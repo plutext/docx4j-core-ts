@@ -30,7 +30,10 @@ export type ApiScriptTarget = Body | Paragraph | Range | Element | Element[];
 const TWIPS_PER_POINT = 20;
 
 /** Paragraph properties the verbs express; anything else sends the paragraph to `insertXml`. */
-const PPR_KEYS = new Set(['TYPE_NAME', 'PARENT', 'pStyle', 'jc', 'ind', 'spacing', 'outlineLvl']);
+const PPR_KEYS = new Set(['TYPE_NAME', 'PARENT', 'pStyle', 'jc', 'ind', 'spacing', 'outlineLvl', 'numPr']);
+const NUMPR_KEYS = new Set(['TYPE_NAME', 'PARENT', 'numId', 'ilvl']);
+/** The `member` of a property pair that is a **call**, not an assignment (`attachToList`). */
+const CALL = '()';
 const IND_KEYS = new Set(['TYPE_NAME', 'PARENT', 'left', 'right', 'firstLine', 'hanging']);
 const SPACING_KEYS = new Set(['TYPE_NAME', 'PARENT', 'before', 'after', 'line', 'lineRule']);
 /** Run properties the `Font` members express (the objects package's applyRunOptions vocabulary). */
@@ -170,7 +173,7 @@ class Emitter {
     }
     const name = `p${++this.paragraphs}`;
     this.line(`const ${name} = ${this.variable}.insertParagraph(${quote(plainFirst ? first.text : '')}, '${this.location}');`);
-    for (const [member, value] of properties) this.line(`${name}.${member} = ${value};`);
+    for (const [member, value] of properties) this.line(member === CALL ? `${name}.${value};` : `${name}.${member} = ${value};`);
     pieces.slice(plainFirst ? 1 : 0).forEach((piece, i) => {
       if (piece.kind === 'break') {
         this.line(`${name}.insertBreak('${piece.breakType}', 'End');`);
@@ -229,6 +232,17 @@ class Emitter {
     }
     const outlineLvl = pPr.outlineLvl?.val;
     if (outlineLvl !== undefined) out.push(['outlineLevel', num(outlineLvl + 1)]);
+    const numPr = pPr.numPr;
+    if (numPr) {
+      // A direct `w:numPr` is `attachToList(numId, ilvl)`, which names the `w:numId` as the
+      // style assignment above names the style id: both assume the target document defines it.
+      // `startNewList()` is not emitted - it is asynchronous and would need the numbering part
+      // to know whether the list is a bullet one (CR-002 section 17).
+      if (!within(numPr, NUMPR_KEYS)) throw new Unexpressible(`w:numPr (${keysOf(numPr).filter((k) => !NUMPR_KEYS.has(k)).join(', ')})`);
+      const numId = numPr.numId?.val;
+      if (numId === undefined) throw new Unexpressible('w:numPr with no w:numId');
+      out.push([CALL, numId === 0 ? 'detachFromList()' : `attachToList(${numId}, ${numPr.ilvl?.val ?? 0})`]);
+    }
     return out;
   }
 

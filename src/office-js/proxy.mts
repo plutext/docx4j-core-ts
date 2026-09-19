@@ -92,6 +92,8 @@ const COLLECTION_ITEM_CLASS: Readonly<Record<string, string>> = {
   contentControls: 'ContentControl',
   inlinePictures: 'InlinePicture',
   lists: 'List',
+  getLevelParagraphs: 'Paragraph',
+  getDescendants: 'Paragraph',
   fields: 'Field',
   search: 'Range',
   getComments: 'Comment',
