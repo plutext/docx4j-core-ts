@@ -771,3 +771,14 @@ behaviour must therefore be a loaded document, never a created one), and `create
 gains the same three theme resources and the same default so that a document created by either
 library resolves alike (a Phase A departure to close in step 4, recorded in section 12 then). The goldens
 are regenerated at the merge, from the commit range the docx4j session sends.
+
+**`w:numId` 0 (for step 3; from docx4j-python, 2026-09-19).** docx4j's `Emulator.resolve` does not
+special-case a direct `w:numPr` whose `w:numId` is 0 (ECMA-376: numbering turned off): `numRefFor`
+answers `numId "0"`, `notNumbered false`, and `getNumber` then finds no list 0 and returns an empty
+result, so the paragraph is unnumbered in effect but the `NumRef` says otherwise.
+`numbering-label-ilvl0.json` shows it. Python answers `notNumbered` with reason "numbering turned
+off" inside its resolve, because its `isListItem` and `detachFromList` are written over that. The
+TypeScript port takes Python's reading (the two ports must agree, and CR-002 phase H has the same
+two callers), asserts around that one field in the parity test with a comment naming this
+paragraph, and it is reported to docx4j as a candidate fix to `numRefFor`; if docx4j changes, the
+goldens regenerate and the exception goes.
