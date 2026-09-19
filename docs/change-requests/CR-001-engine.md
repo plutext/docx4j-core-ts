@@ -1531,3 +1531,14 @@ closed); `npm run typecheck` clean. `test/numbering.test.mjs` is 28.
 
 **For the objects package and the runtime: nothing new.** The U+0085 defect above is the one
 open item, already sent.
+
+**CR-021 phases 2 and 3 (docx4j `1ca86c3c3`, `e64780db2`, `e864468a4`, 2026-09-19; for the section 5.6
+decision and Phase C).** docx4j's schema now admits `mc:AlternateContent` in `w:p`, `w:numPicBullet`
+and the PresentationML places, `a:p`'s run list admits `a14:m`, and `a14:m` holds its math as a lax
+wildcard; all reach this package through an objects-package regeneration. When it lands, section
+5.6's DOM preprocessor becomes a choice (resolve on load, as the content API and the editor want;
+or keep both branches for a byte-faithful re-marshal). The rule docx4j recorded in CR-021 §8.6 item
+10, from a PowerPoint check that caught a lossy kept branch: **a kept `mc:Choice` is lossless only
+if the model binds its whole content**, so any kept branch is verified in the producing
+application before the preprocessor's default changes. Nothing in WordprocessingML traversal or
+numbering moved; the goldens stand.
