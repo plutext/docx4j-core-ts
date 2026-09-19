@@ -15,8 +15,9 @@
  * Determinism (the goldens are committed and diffed weekly against docx4j's head):
  *  - physical font discovery is turned off, so the IdentityPlusMapper's decisions do not
  *    depend on what is installed on the machine that ran the harness (see FONT_NOTE);
- *  - an mc:AlternateContent is resolved to its first mc:Choice, as the TypeScript side
- *    resolves it on the DOM before unmarshalling (see childrenOf);
+ *  - an mc:AlternateContent is resolved by docx4j's own McSelection, with
+ *    docx4j.jaxb.mc.preferChoice set to the prefixes this package understands, so docx4j
+ *    walks the branch the TypeScript side resolves on the DOM (see MC_PREFER_CHOICE);
  *  - the only date is in the header, and the weekly workflow ignores it.
  */
 package org.docx4j.parity;
@@ -43,6 +44,7 @@ import org.docx4j.Docx4jProperties;
 import org.docx4j.TraversalUtil;
 import org.docx4j.XmlUtils;
 import org.docx4j.jaxb.Context;
+import org.docx4j.jaxb.McSelection;
 import org.docx4j.model.PropertyResolver;
 import org.docx4j.model.listnumbering.Emulator;
 import org.docx4j.model.listnumbering.ListLevel;
@@ -84,8 +86,32 @@ public class Harness {
 
 	/** Raise when the shape of a golden changes; the parity test reads it.  Version 1
 	 *  reached NumRef, the numbering counters and the table style chain by reflection;
-	 *  docx4j 17.1.1 (CR-001 batch 49) made all four public and version 2 calls them. */
-	static final String HARNESS_VERSION = "2";
+	 *  docx4j 17.1.1 (CR-001 batch 49) made all four public and version 2 calls them.
+	 *  Version 3 drops the harness's own mc:AlternateContent branch selection for
+	 *  docx4j's (CR-021 phase 1: TraversalUtil in McMode.READ over McSelection). */
+	static final String HARNESS_VERSION = "3";
+
+	/**
+	 * The {@code mc:Choice/@Requires} prefixes docx4j is told it understands
+	 * ({@code docx4j.jaxb.mc.preferChoice}, docx4j CR-021 phase 1): the prefixes of this
+	 * package's {@code UNDERSTOOD_NAMESPACES} ({@code src/opc/mce/understood.mts}) through
+	 * the objects package's {@code NAMESPACE_PREFIXES} table.  The TypeScript side takes the
+	 * first {@code mc:Choice} whose {@code Requires} namespaces are all in that set, so
+	 * naming the same prefixes here is what makes the two walk the same branch - a text box
+	 * once, from its {@code wps} Choice, which is what Word draws.
+	 *
+	 * <p>The property is read on every selection, so it must be set before any walk.  Nine
+	 * of the understood namespaces have no prefix in that table (MathML, InkML, the two
+	 * Excel mains, the three encryption ones) and SpreadsheetML's binding there is the
+	 * default namespace; none of them is nameable here, so a {@code Requires} naming one
+	 * would diverge.  No fixture has one.</p>
+	 */
+	static final String MC_PREFER_CHOICE =
+			"a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac "
+			+ "c173 cdr cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m "
+			+ "mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop "
+			+ "properties psez pslz psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp "
+			+ "wne wp wp14 wp15 wpc wpg wps xdr xdr14 xvml";
 
 	static final String W = Namespaces.NS_WORD12;
 
@@ -115,6 +141,10 @@ public class Harness {
 		Docx4jProperties.setProperty("docx4j.fonts.discoverJarFonts.enabled", "true");
 		System.setProperty("docx4j.fonts.fontcache",
 				Files.createTempDirectory("docx4j-parity-fontcache").toString());
+
+		// Before any walk: McSelection reads this property on every mc:AlternateContent, and
+		// TraversalUtil's default McMode.READ then gives up the one branch docx4j draws.
+		Docx4jProperties.setProperty(McSelection.PROPERTY, MC_PREFER_CHOICE);
 
 		File fixtures = new File(required("fixtures"));
 		File out = new File(required("out"));
@@ -223,6 +253,7 @@ public class Harness {
 		header.put("fixture", file.getName());
 		header.put("fixtureBytes", Files.size(file.toPath()));
 		header.put("mapping", FONT_NOTE);
+		header.put("mcPreferChoice", MC_PREFER_CHOICE);
 		header.put("notes", new ArrayList<Object>(notes));
 		return header;
 	}
@@ -466,29 +497,20 @@ public class Harness {
 	}
 
 	/**
-	 * The children to walk: TraversalUtil's, except that an {@code mc:AlternateContent}
-	 * gives up its first {@code mc:Choice}, or its {@code mc:Fallback} where it has no
-	 * choice.
+	 * The children to walk: {@link TraversalUtil}'s, in its default {@link
+	 * org.docx4j.jaxb.McMode#READ} - so an {@code mc:AlternateContent} gives up the one
+	 * branch docx4j draws, {@link McSelection#selectedBranch}, and the walk descends into
+	 * that {@code mc:Choice} or {@code mc:Fallback} on the next turn.
 	 *
-	 * <p>TraversalUtil walks the choices <em>and</em> the fallback, which would put a
-	 * text box's paragraphs in a golden twice (once as {@code wps:wsp}, once as the VML
-	 * copy).  docx4j's own mc-preprocessor is no help: it keeps an
-	 * {@code mc:AlternateContent} whose parent is a {@code w:r} - which is where Word
-	 * puts a text box - and elsewhere prefers the fallback.  The TypeScript side resolves
-	 * every {@code mc:AlternateContent} on the DOM before unmarshalling, taking the first
-	 * {@code mc:Choice} whose {@code Requires} namespaces it knows (which includes
-	 * {@code wps}) and the fallback otherwise, so this is the rule that makes the two
-	 * walks the same document.  A choice requiring something neither side knows would
-	 * diverge; no fixture has one, and the port would have to resolve prefixes to
-	 * namespaces (which the unmarshalled {@code Requires} no longer carries) to do
-	 * better.</p>
+	 * <p>Which branch that is comes from {@link #MC_PREFER_CHOICE}, set in {@code main}:
+	 * the first {@code mc:Choice} whose {@code Requires} prefixes this package understands,
+	 * else the {@code mc:Fallback}.  So a text box appears once, from its {@code wps}
+	 * Choice, which is what Word draws and what the TypeScript side resolves on the DOM
+	 * before unmarshalling.  Before docx4j CR-021 phase 1 a walk saw the choices
+	 * <em>and</em> the fallback, which put a text box's paragraphs in a golden twice, and
+	 * harness versions 1 and 2 took the first Choice themselves.</p>
 	 */
 	private static List<Object> childrenOf(Object o) {
-		if (o instanceof org.docx4j.mce.AlternateContent) {
-			org.docx4j.mce.AlternateContent ac = (org.docx4j.mce.AlternateContent) o;
-			if (!ac.getChoice().isEmpty()) return ac.getChoice().get(0).getAny();
-			return ac.getFallback() == null ? null : ac.getFallback().getAny();
-		}
 		return TraversalUtil.getChildrenImpl(o);
 	}
 

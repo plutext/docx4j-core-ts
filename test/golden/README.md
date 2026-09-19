@@ -3,20 +3,23 @@
 One JSON file per `.docx` fixture, recording what **docx4j** answers for it: the effective
 paragraph, run and table properties from `PropertyResolver`, the list label and counters from
 `Emulator`, and the document font of every character from `RunFontSelector`. They are the
-contract `@docx4j/core-ts` meets in CR-001 Phase B — steps 2, 3 and 4 make the TypeScript
+contract `@docx4j/core-ts` meets in CR-001 Phase B — steps 2, 3 and 4 made the TypeScript
 resolver, emulator and selector produce the same answers, and `test/parity.test.mjs` compares.
+**Every recorded answer is reproduced**: zero differences on all 45, over the effective
+properties, the style resolutions, the table styles, the labels and counters, and the font
+spans.
 
 Produced by [`../java/`](../java/README.md), which documents the shape of a golden field by
-field, the font environment they are made in, and the three things it reaches by reflection.
+field, the font environment they are made in, and the four accessors it asks docx4j for.
 Read that first; this file is the review guide.
 
 ## Provenance
 
 | | |
 |---|---|
-| docx4j | branch `VERSION_17_1_1`, commit `01d661547d26ca7b16c86860082e82fc8462dc3d` (2026-09-19; after the batch 49 merge `d5809a1d8` and the `w:numId` 0 fix) |
-| docx4j-core jar | `docx4j-core-17.1.1-SNAPSHOT.jar`, SHA-256 `d0bd889c3a135e27…` |
-| harness version | 2 (the public parity accessors; version 1 used reflection) |
+| docx4j | branch `VERSION_17_1_1`, commit `7fba7a1507fc01fdd7f4dc2f79cdbd6988c044f7` (2026-09-19; after the batch 49 merge `d5809a1d8`, the three `w:numId` fixes and CR-021 phase 1) |
+| docx4j-core jar | `docx4j-core-17.1.1-SNAPSHOT.jar`, SHA-256 `1c2e2e42a2f50e70…` (a jar is not reproducible: an identical rebuild gives a new hash, which is why the weekly diff ignores this line) |
+| harness version | 3 (docx4j's own `McSelection` chooses the `mc:AlternateContent` branch; version 2 chose it, version 1 also used reflection for the parity accessors) |
 | fixtures | the 8 `.docx` in `test/fixtures/` and the 37 in `test/fixtures/parity/` (see `test/README.md` for their provenance) |
 | fonts | docx4j's symbol, croscore, crosextra and theme2023 jars alone; the machine's own fonts are not discovered |
 
@@ -31,7 +34,8 @@ mvn -q -o compile exec:java -Dfixtures=../fixtures -Dout=../golden -Ddocx4j.comm
 
 About three seconds. Two runs differ only in the header's `date`; that was checked by running
 twice into two directories and diffing, and again across two different builds of
-`docx4j-core` — every answer identical, only `docx4jCoreJarSha256` moved.
+`docx4j-core` — every answer identical, only `docx4jCoreJarSha256` moved. Checked again at
+harness version 3 (2026-09-19).
 `.github/workflows/parity.yml` does the same weekly against docx4j's head and opens a pull
 request when an answer changes.
 
@@ -121,7 +125,7 @@ to. Things worth a look, and things found while producing them:
   table style both get Word's built-in Normal Table (`w:tblInd` 0, cell margins 108/0/108/0)
   and `reachesDefaultTableStyle: true`; a table whose chain does not reach it gets no cell
   margin at all and `false`. There is no docx4j API for that flag — the harness recomputes it
-  from the style chain (see the harness README's reflection table).
+  from the style chain (see the harness README's table of what it asks docx4j for).
 - **Deleted text is kept.** `tracked-changes.json` records the run inside `w:del` with
   `deleted: true` and its text (" A deletion"), rather than dropping it: `w:delText` is its
   own class in the object model, not a `w:t`, and a port that forgot it would silently lose
@@ -140,7 +144,9 @@ to. Things worth a look, and things found while producing them:
   face it cannot find (Probe B → Calibri → Carlito), a face of the same class
   (Liberation Serif → Tinos), and `UNMAPPED` where nothing stands in (Malgun Gothic). That
   covers every pass of CR-016 phase 3's precedence template, which is what step 4 ports.
-- **`mc:AlternateContent`.** Resolved to its first `mc:Choice`, so a text box appears once
-  rather than twice (the wps choice and its VML fallback). docx4j's own consumers make the
-  same choice; docx4j's mc-preprocessor does not, and would give the fallback. See the harness
-  README.
+- **`mc:AlternateContent`.** Resolved by docx4j's own `McSelection` (CR-021 phase 1) with
+  `docx4j.jaxb.mc.preferChoice` set to the prefixes this package understands, so a text box
+  appears once, from its `wps` Choice, rather than twice with its VML fallback. That is what
+  Word draws, and what the TypeScript side resolves on the DOM before unmarshalling. docx4j's
+  own default (the property empty) would give the fallback, and so would its mc-preprocessor.
+  See the harness README, which lists the eighty-four prefixes.

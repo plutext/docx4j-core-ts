@@ -1,6 +1,8 @@
 # CR-001: The engine: container interface, Open Packaging layer, typed parts, resolution utilities
 
-**Status:** Phase A implemented 2026-09-10 (both steps); Phases B and C proposed
+**Status:** Phase A implemented 2026-09-10 (both steps); Phase B implemented 2026-09-19 (plan in
+section 14, notes in section 15; parity with docx4j VERSION_17_1_1 7fba7a150 on 45 goldens);
+Phase C proposed
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
 section 9.
@@ -347,11 +349,11 @@ touches zip tree-shakes it away.
 
 ## 10. Phasing and effort
 
-| Phase | Content | Effort |
-|---|---|---|
-| A | `opc/`, `parts/` core, `packages/`, WML typed parts, registry, load/save for zip and flat OPC, MCE preprocessing, round-trip tests | 5 days |
-| B | `PropertyResolver` and `StyleUtil`; numbering `Emulator`; `RunFontSelector` and `IdentityPlusMapper`; parity harness and golden files | 6 days |
-| C | PML and SML packages with main parts; `DirectoryPartStore`; docs and examples (Node, add-in) | 3 days |
+| Phase | Content | Effort | Actual |
+|---|---|---|---|
+| A | `opc/`, `parts/` core, `packages/`, WML typed parts, registry, load/save for zip and flat OPC, MCE preprocessing, round-trip tests | 5 days | implemented 2026-09-10 |
+| B | `PropertyResolver` and `StyleUtil`; numbering `Emulator`; `RunFontSelector` and `IdentityPlusMapper`; parity harness and golden files | 6 days | 7.5 days as re-planned in 14.4 (steps 0 to 5, none of which recorded its own); implemented 2026-09-19 |
+| C | PML and SML packages with main parts; `DirectoryPartStore`; docs and examples (Node, add-in) | 3 days | proposed |
 
 Phase A alone is useful (a typed docx round trip in Node and an add-in package round trip);
 each phase ships as a minor version.
@@ -1044,14 +1046,17 @@ and the spent start overrides), and `ind`, `indResolved`, `lvl` and `labelRPr` a
    `getNumber(pPr, state?)` and `getNumberOf(pStyleVal, numId, ilvl, direct?, state?)`, the
    split docx4j-python made for the same reason.
 4. **`getNumber` returns `undefined` where docx4j returns an *empty* `ResultTriple`.** For a
-   `w:numId` with no definition, or a level that does not exist, docx4j returns a triple whose
-   every member is null; here the result carries `notNumbered: true` and a `reason` instead, so
+   `w:numId` with no definition, or a level that does not exist, docx4j returned a triple whose
+   every member was null; here the result carries `notNumbered: true` and a `reason` instead, so
    a caller is not handed an object whose label is silently absent. No golden reaches that
    branch (every `numbering` the goldens record has a `numString`), so parity does not depend on
    the choice; CR-002 phase H does. This is also where the CR-021 phase 1 note of section 14.6
    lands: a **dangling `w:numId`** - the one an untouched `mc:Fallback` can keep pointing at
-   after the `w:num` it named has gone - resolves as not numbered, with `Couldn't find list N`
-   logged once, and throws nothing.
+   after the `w:num` it named has gone - resolves as not numbered and throws nothing.
+   *Superseded in step 5:* docx4j closed the gap itself at `d34852bdd` and `7fba7a150`, so both
+   cases are now answered by `resolve` with docx4j's own reasons ("no w:num for numId N ...",
+   "no w:lvl L in w:num N ..."), `getNumber` returns null there as it does here, and the empty
+   result is unreachable through `resolve` in either library. See section 15.4.
 5. **The definitions are built by the `PropertyResolver` and shared with the part.** Step 2's
    paragraph merge already needs `NumberingDefinitionsPart.getInd` per layer, so the resolver
    builds a `NumberingDefinitions` in `init()`; `NumberingDefinitionsPart.definitions` hands out
@@ -1342,3 +1347,187 @@ Java's, and a re-marshalled part loses the character. Found through the font spa
 `tracked-changes.docx`; it belongs to `src/xml/dom.mts` or the runtime, not here. Everything
 else this step needed - `walk`, `readContents`, the generated declarations, the facade - was
 already there.
+
+### 15.4 Step 5: review, regeneration and close-out (2026-09-19)
+
+The review of section 13 step 5, the regeneration of all 45 goldens from docx4j's current head,
+the reason-string alignment, and the documents. Phase B is implemented.
+
+**Harness version 3, and the regeneration.** docx4j `VERSION_17_1_1` at `7fba7a150`, built
+`-pl docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-{symbol,croscore,crosextra,theme2023}
+-am -DskipTests -Dgpg.skip install`; `docx4j-core-17.1.1-SNAPSHOT.jar` SHA-256
+`1c2e2e42a2f50e701e7193a6356fa6c9f535edec45d88db91f9815e56db92cb9`. The branch had already
+moved past that commit while this step ran (`1ca86c3c3`, CR-021 phase 2, the schema change), so
+the build was made from a read-only `git archive` export of `7fba7a150` into a scratch directory
+rather than from the checkout - the rule that nothing in `../docx4j` is touched, kept literally.
+
+**A harness build must not share `~/.m2` with another session**, which this step learned the
+hard way: `17.1.1-SNAPSHOT` is one coordinate, the install of it here and the docx4j session's
+own install of `1ca86c3c3` overwrote each other within the same minute, and a determinism check
+that straddled the two compared goldens made from two different jars. (They agreed, which says
+something reassuring about CR-021 phase 2, but it was not the check being run.) The rule, now in
+`test/java/README.md` and in the workflow's comment: when the docx4j checkout or the machine is
+shared, give the docx4j build *and* the harness run a repository of their own with
+`-Dmaven.repo.local=<dir>`, the same directory for both and no `-o` on its first use. The
+scheduled workflow has one by construction. The goldens committed here are from the build made
+before that clash, whose jar the headers name (`1c2e2e42a2f50e70`), verified by two runs against
+it; nothing was rebuilt afterwards.
+
+The harness change is what the CR-021 phase 1 paragraph of section 14.6 said it would be. Its
+own `mc:AlternateContent` branch selection is gone; `childrenOf` is `TraversalUtil.getChildrenImpl`
+in its default `McMode.READ`, which gives up the one branch `McSelection` selects, and `main`
+sets `docx4j.jaxb.mc.preferChoice` before any walk to the prefixes of this package's
+`UNDERSTOOD_NAMESPACES`, mapped through the objects package's `NAMESPACE_PREFIXES`:
+
+```
+a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c173 cdr
+cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p
+p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz
+psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp wne wp wp14 wp15 wpc wpg wps
+xdr xdr14 xvml
+```
+
+Eighty-four prefixes, recorded in every golden's header as `mcPreferChoice` and documented in
+`test/java/README.md`. Nine understood namespaces have no entry in that table (MathML, InkML,
+the two Excel mains, the three encryption ones) and SpreadsheetML's entry is the default
+namespace, so none is nameable; a `Requires` naming one would diverge and no fixture has one.
+`v` is in the list, where docx4j's own javadoc advises against it: the rule here is parity with
+this package's preprocessor, not docx4j's rendering advice. The property is set through
+`Docx4jProperties`, which wins over anything the environment supplies, so the weekly workflow
+makes the same choice without setting anything of its own - one copy of the list, which is why
+`.github/workflows/parity.yml` gained a comment rather than a duplicate of it. `HARNESS_VERSION`
+is `"3"`.
+
+**The regeneration: no difference anywhere but the header.** All 45 goldens compare equal, field
+for field, to the committed version-2 set once the header is removed - no paragraph set moved
+(the text boxes still appear once, from the `mc:Choice`, now by docx4j's rule rather than the
+harness's), no effective property, no label, no counter, no table flag, no font span. The only
+`numRef.reason` strings a regeneration could have moved are the two new ones, and they arise
+only where a paragraph hits a dangling `w:numId` or a missing level, which no golden reaches -
+`numbering` is null for an unnumbered paragraph, so the reason is not recorded at all there. The
+headers changed in four fields and gained one: `harnessVersion` 2 to 3, `docx4jCommit`
+`01d661547` to `7fba7a150`, `docx4jCoreJarSha256` `d0bd889c3a135e27` to `1c2e2e42a2f50e70`,
+`date`, and the new `mcPreferChoice`. Determinism re-checked at version 3: two runs into two
+directories, against the same jar, differ only in `date`.
+
+**Reason strings.** `numRefFor`'s reasons are docx4j's at `7fba7a150` verbatim, in its check
+order (no pPr / no numbering part / no resolver, the style chain, `w:numId` 0, no `w:num`, the
+`ilvl` default to 0, no `w:lvl`, style-linked-elsewhere, then numbered). The port was missing
+the two checks docx4j added at `d34852bdd` and `7fba7a150` - a `w:numId` naming no `w:num`, and
+a `w:num` whose definition has no `w:lvl` for the level - which it had been answering later, as
+an empty result from the counting half with reasons of its own (`Couldn't find list N`).
+`Emulator.resolve` now makes both, in docx4j's order and with its strings, including the
+parenthesised source suffix that `sourceSuffix(direct, styleId)` writes: "(the paragraph's own)"
+or "(from style 'X')". `number()`'s empty-result branch is consequently unreachable through
+`resolve` and says so. The parity comparison of `numRef.reason` in `test/parity.test.mjs` is
+exact equality and always was - no prefix matching was ever there, and there is none now.
+`test/numbering.test.mjs` gained docx4j's `ParityAccessorsTest` cases with its exact strings:
+`numIdZeroTurnsNumberingOff`, `danglingNumIdIsNotNumberedAndSaysWhy` and
+`missingLevelIsNotNumberedAndSaysWhy` over a package whose Normal is numbered, plus the same
+two with the `w:numPr` coming from a style so that the "(from style 'X')" half is covered, and
+an assertion that none of the five touched a counter.
+
+**Review 1: the toggle-property overlay.** `styleUtil.mts` (`applyStyleLevel`, `applyToggles`,
+`toggle`) and `catalogue.mts` (`TOGGLE_NAMES`, `TOGGLES`) against `StyleUtil.applyStyleLevel` /
+`applyToggles` / `toggle` and `PropertyCatalogue`'s static block, with every call site in
+`PropertyResolver`.
+
+| # | Rule | Java | Port | Agree |
+|---|---|---|---|---|
+| 1 | The twelve toggles in §17.7.3's order (`b bCs caps emboss i iCs imprint outline shadow smallCaps strike vanish`); `w:dstrike`, `w:noProof`, `w:snapToGrid`, `w:webHidden`, `w:rtl`, `w:cs`, `w:specVanish`, `w:oMath` are Boolean but not toggles | `PropertyCatalogue` static block, `TOGGLE_NAMES` | `catalogue.mts` `TOGGLE_NAMES` | yes |
+| 2 | `TOGGLES` is those names looked up in the run table; construction fails if one is missing | same (and checks the member's type is `BooleanDefaultTrue`) | `catalogue.mts` `TOGGLES` (throws on a missing name; no runtime type check, which TypeScript has no equivalent of - the catalogue-completeness test covers it) | yes |
+| 3 | `applyStyleLevel`: a null source or destination is a no-op | `StyleUtil` 2044 | `styleUtil.mts` 139 | yes |
+| 4 | it applies the non-toggles by ordinary override, excepting the toggle names | `PropertyCatalogue.apply(RUN, …, TOGGLE_NAMES)` | `applyCatalogue(RUN, …, TOGGLE_NAMES)` | yes |
+| 5 | it does **not** call `skipRun`, so a source with nothing to say still goes through the toggles | `StyleUtil` 2044-2049 | `styleUtil.mts` 139-144 | yes |
+| 6 | `applyToggles` writes only the twelve; a null destination is a no-op | `StyleUtil` 2063 | `styleUtil.mts` 150 | yes |
+| 7 | writing null clears the member | `Property.set(destination, null)` | `prop().set` deletes the key | yes |
+| 8 | `toggle`: a silent upper level is no boundary - the lower value stands and the document-defaults-true rule does not arise | `if (upper == null) return lower;` | `if (upper === undefined) return lower;` | yes |
+| 9 | `toggle`: the document defaults are a base value, never an XOR term - where they say true and the upper level states the property, a *copy* of the defaults' value wins | `apply(documentDefault, lower)`, which is `XmlUtils.deepCopy(documentDefault)` | `copyLeaf(documentDefault)` | yes |
+| 10 | `toggle`: an explicit false XORs like any other value - false XOR lower = lower; with nothing beneath, the level's own false stands rather than the property going absent | `if (!upper.isVal()) return lower != null ? lower : upper;` | `if (!isTrue(upper)) return lower !== undefined ? lower : upper;` | yes |
+| 11 | `toggle`: an explicit true inverts, into a new element that always states `w:val` | `out.setVal(!(lower != null && lower.isVal()))` | `out.val = !isTrue(lower)` | yes |
+| 12 | `BooleanDefaultTrue`: an absent `w:val` is true | `isVal()` | `isTrue(v)`: `v.val !== false` | yes |
+| 13 | The only level boundary the resolver applies is paragraph style to character style | `applyCharacterStyleAndDirect`, the sole `applyStyleLevel` call | `PropertyResolver.mts` `applyCharacterStyleAndDirect`, sole call | yes |
+| 14 | Document defaults are the **base**, applied with `applyRPr`, not a level | `getEffectiveRPr(RPr, PPr)` | same | yes |
+| 15 | A style's `w:basedOn` chain is one level, merged root-first with `applyRPr`, cached per style id without the defaults | `chainRPr` | `getChainRPr` | yes |
+| 16 | Direct formatting is not a level: applied as it stands with `applyRPr`, gated on `hasDirectRPrFormatting` | `applyCharacterStyleAndDirect` | same | yes |
+| 17 | A character style that does not exist is logged once and contributes no level | `getLiveStyle(runStyleId) == null` | same | yes |
+| 18 | `getEffectiveParagraphMarkRPr` has no level boundary: `w:pPr/w:rPr` goes through `applyRPr` | `PropertyResolver` 456 | same | yes |
+| 19 | `getEffectiveRPr(styleId)` has no level boundary either | `PropertyResolver` 521 | `effectiveRPrOfStyle` | yes |
+| 20 | Table styles are not a level: there is no `applyStyleLevel` for them (table conditional formatting is docx4j's `table-conditions` CR) | no such call | no such call | yes |
+
+**No disagreement.** One cosmetic difference, not behaviour: docx4j logs a warning when a
+`w:pStyle` carries no `w:val` before falling back to the default paragraph style, where the port
+falls back silently.
+
+**Review 2: the numbering counters.** `state.mts` (`Counter`, `NumberingState`,
+`NumberingStates`) and the counter half of `definitions.mts` against `NumberingState.java`,
+`ListLevel` (`Counter`, `counter`, `incrementCounter`, `resetCounter`, `restartsAfter`,
+`setStartValue`), `ListNumberingDefinition.incrementCounter` and its `w:lvlOverride` pass, and
+`NumberingStates.java`.
+
+| # | Rule | Java | Port | Agree |
+|---|---|---|---|---|
+| 1 | A counter is `value`, `encounteredAlready`, `resetPending`; `copy()` carries all three | `ListLevel.Counter` | `state.mts` `Counter` | yes |
+| 2 | Counters are keyed by the **referencing** `w:abstractNumId` and the level, and created on first use at the level's start value (0 where none) | `NumberingState.counter` | `NumberingState.counter` | yes |
+| 3 | Spent start overrides are keyed `<numId>/<ilvl>` | `startOverridesApplied` | same | yes |
+| 4 | `reset()` clears both, `isEmpty` is both empty, `copy()` is independent | `NumberingState` | same | yes |
+| 5 | `counters()` / `startOverridesApplied()` are read-only views **of the live maps** | unmodifiable wrappers | `ReadonlyMap` / `ReadonlySet` over the live maps | yes |
+| 6 | `ListLevel.incrementCounter`: the counter takes the level's start value when the level has not been encountered **or** when this `w:num`'s `w:startOverride` has not been spent in this story | `ListLevel` 386 | `definitions.mts` 224 | yes |
+| 7 | That branch sets `encounteredAlready`, clears `resetPending` and marks the override applied - for any `w:num` with an owner, whether or not it carries an override (which is why the goldens show `["70/0"]` for a `w:num` with none) | `ListLevel` 392-396 | same | yes |
+| 8 | A pending reset consumes itself and does **not** increment | `ListLevel` 398-401 | same | yes |
+| 9 | Otherwise increment by one | `counter.increment()` | same | yes |
+| 10 | `resetCounter` puts the counter at start + 1 and sets `resetPending`, so a deeper label reads "2.1.1" and not "2.0.1" (probe P8) | `ListLevel` 427 | `definitions.mts` 247 | yes |
+| 11 | `restartsAfter`: no `w:lvlRestart` means any shallower level restarts; `0` means none does; `n` means ilvl 0..n-1 do | `ListLevel` 458 | `definitions.mts` 258 | yes |
+| 12 | The list walk: where this level is unencountered, walk shallower levels down from `levelInt - 1`, stopping at the first that is missing or already encountered, incrementing each | `ListNumberingDefinition` 314 | `definitions.mts` 426 | yes |
+| 13 | Then increment this level | same | same | yes |
+| 14 | Then reset every deeper level that `restartsAfter(levelInt)` - which creates its counter, so a list's first use leaves a counter standing for every level, most of them `resetPending` at their start | `ListNumberingDefinition` 337 | `definitions.mts` 443 | yes |
+| 15 | `w:startOverride` is applied at construction as `setStartValue(val - 1)`, which also raises `hasStartOverride`; an override `w:lvl`'s own `w:start` is applied after it, so it wins the value while the flag stands and the `w:num`'s first use still resets the shared counter | `ListNumberingDefinition` 239, then `setOverrides` | `ListDefinition`'s constructor, with the ordering commented | yes |
+| 16 | `NumberingStates`: one main state; one shared by every header and footer; one per footnotes, endnotes and comments part; `newStory()` for a text box | `NumberingStates` (by part class) | `state.mts` (by content type: the recorded departure, same rule) | yes |
+| 17 | A level the definition does not have | `getLevel` would dereference null; unreachable, since `resolve` checks `levelExists` first | returns early, and `resolve` checks `levelExists` too (departure 7, fail-soft) | yes |
+
+**No disagreement.** Two differences of kind rather than of behaviour, both already recorded:
+counters are `number` here where Java uses `BigInteger` (no fixture, and no format this CR
+ports, reaches 2^53), and `NumberingStates.forPart` keys on the part's content type rather than
+its class so that `state.mts` imports no part.
+
+**What Phase B leaves open.**
+
+- **`BestMatchingMapper` and the glyph-coverage pass** (with `GlyphCheck`, `GlyphAdvances`,
+  `TextMeasurer`, `WordLineMetrics`, `WidthFactors`, panose matching, `PhysicalFonts.discover`):
+  everything that reads a font file. A later CR with `fontkit`; `addMapperSubstitutes` is the
+  empty hook it plugs into, and `FontRegistry` the seam (section 15.3, departures 1 and 6).
+- **Table conditional formatting** (`w:tblStylePr` per `w:cnfStyle`): docx4j's own
+  `table-conditions` CR has not landed, so neither side has it (section 15.1).
+- **`activateStyle(styleId)` without a `KnownStyles.xml`**: the string form can only activate a
+  style the package already holds (section 15.1, departure 2). The resource equivalent belongs
+  with the content API's style creation.
+- **The jsonix U+0085 defect**: `@xmldom/xmldom` applies XML 1.1's end-of-line normalisation to
+  an XML 1.0 document, so a raw U+0085 or U+2028 in character data becomes U+000A on unmarshal
+  and a re-marshalled part loses it. One parity comparison normalises around the single
+  occurrence in `tracked-changes.docx`. Sent to the jsonix session on 2026-09-19; section 9 has
+  the detail. It is an XML-layer defect, not a Phase B one, and it is the only place a golden is
+  touched before it is matched.
+- **The CR-021 phase 2 regeneration.** docx4j committed phase 2 (`1ca86c3c3`) while this step
+  ran: the schema admits `mc:AlternateContent` in `EG_PContent` and `CT_NumPicBullet`, so load
+  can keep both branches instead of resolving the element to one. That needs an objects-package
+  regeneration before this package can follow, and until then section 5.6's DOM preprocessor
+  stays as it is. The goldens are deliberately pinned at `7fba7a150`, before it. The weekly
+  workflow will raise it as a pull request if docx4j's answers move; the two probes
+  `mc-textbox-branches-*` are the fixtures to add when they do.
+
+**Everything else the phase leaves.** `test/README.md`'s parity-golden section names harness
+version 3 and the commit; its acceptance checklist records that **check 3 is outstanding** -
+`createPackage()` gained a theme part in step 4 (nine zip entries instead of eight) and has not
+been opened in Word since - and its script for checks 1 to 3 now creates a document for each of
+the three `defaultTheme` values. `README.md`'s status paragraph says Phase B is in and names
+the goldens; its Development section gains `npm run generate:fonts` and the harness. No script
+was needed beyond `generate:fonts`, which exists. `npm run generate` produces no diff.
+`npm run generate:fonts` reproduces all three generated modules byte for byte except the
+docx4j commit in each header, which follows `../docx4j`'s HEAD - now past the pinned commit, so
+the regenerated headers were reverted and the modules still name `7fba7a150`.
+
+**Tests.** 395 tests, 395 pass, 0 fail, 0 `todo` (step 4 left one, which step 3's landing
+closed); `npm run typecheck` clean. `test/numbering.test.mjs` is 28.
+
+**For the objects package and the runtime: nothing new.** The U+0085 defect above is the one
+open item, already sent.

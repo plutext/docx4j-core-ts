@@ -657,6 +657,66 @@ test('numRefFor: a package with no numbering part, a missing pPr, and w:numId 0'
   assert.equal(String(resolved), 'numId 20 ilvl 0 (from style)');
 });
 
+/**
+ * docx4j `ParityAccessorsTest`'s three "and says why" cases, with its strings verbatim
+ * (docx4j `VERSION_17_1_1` at `7fba7a150`): a `w:numId` 0, a `w:numId` naming no `w:num`, and
+ * a level the `w:num`'s definition does not have.  All three are `notNumbered` with a reason
+ * naming where the `w:numPr` came from, and `getNumber` answers nothing.  No golden reaches
+ * the last two - a `w:numId` left dangling by Word's own re-save of an untouched
+ * `mc:Fallback` (docx4j CR-021 §8.5) is exactly the case fixtures do not hold - so these are
+ * the only guard on those strings.
+ */
+test('ParityAccessorsTest: numId 0, a dangling numId and a missing level say why', async () => {
+  const pkg = await packageWithNumberedNormal();   // Normal carries w:numId 1, nine levels
+
+  // numIdZeroTurnsNumberingOff: ECMA-376 17.9.18, and Normal's numbering does not come back
+  const zero = await pPrOf('<w:pPr><w:numPr><w:numId w:val="0"/></w:numPr></w:pPr>');
+  const zeroRef = Emulator.numRefFor(pkg, zero);
+  assert.equal(zeroRef.notNumbered, true);
+  assert.equal(zeroRef.reason, "the paragraph's w:numId 0 turns numbering off");
+  assert.equal(Emulator.getNumber(pkg, zero), undefined);
+
+  // danglingNumIdIsNotNumberedAndSaysWhy
+  const dangling = await pPrOf('<w:pPr><w:numPr><w:numId w:val="99"/></w:numPr></w:pPr>');
+  const danglingRef = Emulator.numRefFor(pkg, dangling);
+  assert.equal(danglingRef.notNumbered, true);
+  assert.equal(danglingRef.reason, "no w:num for numId 99 (the paragraph's own)");
+  assert.equal(danglingRef.numId, undefined);
+  assert.equal(Emulator.getNumber(pkg, dangling), undefined);
+
+  // missingLevelIsNotNumberedAndSaysWhy
+  const deep = await pPrOf('<w:pPr><w:numPr><w:numId w:val="1"/><w:ilvl w:val="42"/></w:numPr></w:pPr>');
+  const deepRef = Emulator.numRefFor(pkg, deep);
+  assert.equal(deepRef.notNumbered, true);
+  assert.equal(deepRef.reason, "no w:lvl 42 in w:num 1 (the paragraph's own)");
+  assert.equal(Emulator.getNumber(pkg, deep), undefined);
+
+  // nothing was counted on the way: all three answer before any counter is touched
+  assert.equal(pkg.numberingDefinitionsPart.numberingState.isEmpty, true);
+});
+
+/** The same two, with the `w:numPr` coming from the paragraph's style: "(from style 'X')". */
+test('ParityAccessorsTest: a dangling numId and a missing level from a style name it', async () => {
+  const styled = await packageWith(
+    '<w:abstractNum w:abstractNumId="7"><w:lvl w:ilvl="0"><w:start w:val="1"/>'
+    + '<w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl></w:abstractNum>'
+    + '<w:num w:numId="7"><w:abstractNumId w:val="7"/></w:num>',
+    [
+      '<w:style w:type="paragraph" w:styleId="Gone"><w:name w:val="Gone"/><w:basedOn w:val="Normal"/>'
+      + '<w:pPr><w:numPr><w:numId w:val="99"/></w:numPr></w:pPr></w:style>',
+      '<w:style w:type="paragraph" w:styleId="TooDeep"><w:name w:val="TooDeep"/><w:basedOn w:val="Normal"/>'
+      + '<w:pPr><w:numPr><w:numId w:val="7"/><w:ilvl w:val="3"/></w:numPr></w:pPr></w:style>',
+    ]);
+
+  const gone = Emulator.numRefFor(styled, await pPrOf('<w:pPr><w:pStyle w:val="Gone"/></w:pPr>'));
+  assert.equal(gone.notNumbered, true);
+  assert.equal(gone.reason, "no w:num for numId 99 (from style 'Gone')");
+
+  const tooDeep = Emulator.numRefFor(styled, await pPrOf('<w:pPr><w:pStyle w:val="TooDeep"/></w:pPr>'));
+  assert.equal(tooDeep.notNumbered, true);
+  assert.equal(tooDeep.reason, "no w:lvl 3 in w:num 7 (from style 'TooDeep')");
+});
+
 // ---------------------------------------------------------------- the round trip
 
 test('a document whose numbering is only read is still saved byte for byte', async () => {

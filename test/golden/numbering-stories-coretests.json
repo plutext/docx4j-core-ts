@@ -1,13 +1,14 @@
 {
   "header": {
-    "harnessVersion": "2",
-    "docx4jCommit": "01d661547d26ca7b16c86860082e82fc8462dc3d",
+    "harnessVersion": "3",
+    "docx4jCommit": "7fba7a1507fc01fdd7f4dc2f79cdbd6988c044f7",
     "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "d0bd889c3a135e27",
-    "date": "2026-09-19T01:07:44Z",
+    "docx4jCoreJarSha256": "1c2e2e42a2f50e70",
+    "date": "2026-09-19T03:20:31Z",
     "fixture": "numbering-stories-coretests.docx",
     "fixtureBytes": 16455,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c173 cdr cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp wne wp wp14 wp15 wpc wpg wps xdr xdr14 xvml",
     "notes": []
   },
   "styles": {

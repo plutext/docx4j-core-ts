@@ -256,9 +256,23 @@ export class Emulator {
       return NumRef.not(`${direct ? "the paragraph's" : `style '${styleId}'s`} w:numId 0 turns numbering off`);
     }
 
+    const definition = this.definitions.list(list);
+    if (definition === undefined) {
+      // A w:numId naming no w:num - Word's own re-save leaves one behind in an untouched
+      // mc:Fallback after renumbering (docx4j CR-021 §8.5) - is not numbered, and says so
+      // here rather than as an empty result from getNumber (docx4j d34852bdd).
+      return NumRef.not(`no w:num for numId ${list}${sourceSuffix(direct, styleId)}`);
+    }
+
     if (level === undefined) {
       log.warn('No level id?! Default to 0.');
       level = '0';
+    }
+
+    if (!definition.levelExists(level)) {
+      // The w:num exists but its definition has no w:lvl for this ilvl: not numbered, with
+      // the reason here rather than an empty result from getNumber (docx4j 7fba7a150).
+      return NumRef.not(`no w:lvl ${level} in w:num ${list}${sourceSuffix(direct, styleId)}`);
     }
 
     if (!direct && this.styleLinkedElsewhere(list, level, styleId)) {
@@ -311,8 +325,8 @@ export class Emulator {
     const list = this.definitions.list(ref.numId);
     const levelId = ref.ilvl ?? '0';
     if (list === undefined || !list.levelExists(levelId)) {
-      // Word has been seen to write a w:num whose abstract definition is missing, or which
-      // lacks the level; docx4j logs and returns an empty ResultTriple
+      // Unreachable through `resolve`, which answers both cases with a `notNumbered` NumRef
+      // since docx4j d34852bdd / 7fba7a150; kept for a caller that builds a NumRef itself.
       const reason = list === undefined
         ? `Couldn't find list ${ref.numId}`
         : `Couldn't find level ${levelId} in list ${ref.numId}`;
@@ -422,6 +436,14 @@ export class Emulator {
     return `Emulator(${this.definitions.instanceListDefinitions.size} lists, `
       + `${this.definitions.abstractListDefinitions.size} definitions)`;
   }
+}
+
+/**
+ * Where the `w:numPr` a reason is about came from, as docx4j words it: the paragraph's own
+ * direct formatting, or the style that contributed it.
+ */
+function sourceSuffix(direct: boolean, styleId: string | undefined): string {
+  return direct ? " (the paragraph's own)" : ` (from style '${styleId}')`;
 }
 
 /** The paragraph style and the two `w:numPr` values a `w:pPr` states, each as a string. */

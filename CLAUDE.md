@@ -12,13 +12,15 @@ the generated Office Open XML object model (the counterpart of `docx4j-generated
 the `@docx4j/jsonix` runtime. Design and scope live in `docs/change-requests/`; CR-001 is the
 engine and is the spec for everything below.
 
-**Status:** CR-001 Phase A (packaging, parts, packages, MCE) and CR-002 phases B to G and I
+**Status:** CR-001 Phase A (packaging, parts, packages, MCE), CR-001 Phase B (`PropertyResolver`,
+list numbering `Emulator`, `RunFontSelector` and `IdentityPlusMapper`, held to docx4j's own
+answers by 45 parity goldens) and CR-002 phases B to G and I
 (the content API: `Body`, `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`,
 `ContentControl` with `XmlMapping` and the typed kinds, `Comment`, `TrackedChange`, custom XML
 parts with XPath, search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on
 `./office-js`) are implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet:
-CR-001 Phase B (`PropertyResolver`, numbering, fonts; plan in CR-001 section 14, gate lifted
-2026-09-19) and C; CR-002 H (lists; waits on CR-001 Phase B). Each CR's last sections record decisions and departures.
+CR-001 Phase C; CR-002 H (lists), which Phase B unblocked. Each CR's last sections record
+decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -35,6 +37,8 @@ npm run typecheck   # tsc --strict over src/ and test/*.ts (skipLibCheck: fflate
 npm test            # pretest regenerates src/office-js/supported.generated.mts; then build, the nodenext consumer check (test/nodenext), node --test test/*.test.mjs
                     # (a shell glob: Node 22 does not accept a directory, and Node 18 would also run test/helpers.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
+
+npm run generate:fonts   # src/model/fonts/*.generated.mts from ../docx4j's font tables and themes; committed output
 ```
 
 Dependencies come from npm; `package-lock.json` is committed, and `npm update` then a lockfile commit
@@ -61,7 +65,10 @@ src/xml/dom.mts   parse/serialize over Jsonix.DOM (typed since @docx4j/jsonix 3.
 src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink + Memory/Zip/FlatOpc, Load, Save, mce/, exceptions
 src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart (+CustomXmlDataStoragePart), RelationshipsPart,
                   Parts, Namespaces, PartRegistry; wml/ dml/ pml/ sml/ docProps/ customXml/ typed parts
-src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles, body, outline, paragraphAt), PresentationMLPackage, SpreadsheetMLPackage, registry
+src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles and theme, body, outline, paragraphAt, getPropertyResolver/getNumberingEmulator/refresh), PresentationMLPackage, SpreadsheetMLPackage, registry
+src/model/properties/ PropertyResolver, the property catalogue (one entry per schema member) and the catalogue-driven half of StyleUtil (apply, applyStyleLevel and the toggle XOR, isEmpty, unset, hasDirectFormatting)
+src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
+src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml
@@ -100,8 +107,10 @@ Key mechanics:
   the element and the array containing it; nothing is cached but the `Body` per container
   (a WeakMap in `parts/wml`). Text edits work on the paragraph's text segments (`segmentsOf`)
   and edit `w:t` values in place, split runs only when formatting a span, and link `PARENT`
-  on everything inserted (`linkParents`). Font reads are direct formatting only until CR-001
-  Phase B. `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
+  on everything inserted (`linkParents`). `Font` and `Paragraph` reads report **effective**
+  formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
+  `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
+  direct. `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
   Fragments (`wml`), the element builders (`p`, `r`, `t`, `tbl`, `tr`, `tc`, `sdt`, `sdtPr`,
   `inlinePicture`), the run mapping (`applyRunOptions` / `readRunOptions`, `rPrToElements` /
   `rPrFromElements`), the `w:sdt` accessors (`sdtProperty`, `sdtKindOf`, `nextSdtId`) and
@@ -121,7 +130,14 @@ strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from doc
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance
 checklist. The contract: untouched parts byte-identical after a round trip, re-marshalled parts
 deep-equal after reload, flat OPC through the objects package's `unmarshalPackage` and back.
-Phase B adds golden files from a Java harness under `test/java/`.
+`test/golden/` holds 45 JSON goldens - what **docx4j itself** answers for each fixture
+(effective properties, style resolutions, table styles, list labels and counters, the document
+font of every character), written by the Maven harness in `test/java/` and compared by
+`test/parity.test.mjs`, which unmarshals both sides and deep-equals object trees, never text.
+Regenerate by hand (build docx4j, then `mvn -q -o compile exec:java -Dfixtures=../fixtures
+-Dout=../golden -Ddocx4j.commit=<hash>` in `test/java`; each README says more);
+`.github/workflows/parity.yml` does it weekly against docx4j's head and opens a pull request
+when an answer moves. Parity is zero differences.
 
 ## Rules
 
@@ -133,7 +149,10 @@ Phase B adds golden files from a Java harness under `test/java/`.
   `RelationshipsPart`, `PropertyResolver`, `Emulator`) so docx4j Java code and documentation
   transfer; where Java conventions read badly in TypeScript use camelCase and note the mapping in
   the class doc comment. Document deliberate departures in the CR that introduces them
-  (CR-001 section 12 has Phase A's).
+  (CR-001 section 12 has Phase A's, sections 15.1 to 15.4 Phase B's).
+- The parity goldens are docx4j's answers, not ours: a difference is investigated, and fixed in
+  the port unless the Java is plainly wrong, in which case it is reported to docx4j and the
+  golden stays.
 - Never edit `../docx4j-generated-objects-ts/modules/`; it is generated. A gap in the objects
   facade is fixed there (its own CR and release), then the dependency range is raised here.
   Runtime gaps go to `../jsonix` the same way (CR-001 section 9 lists the known ones).
@@ -157,8 +176,11 @@ Phase B adds golden files from a Java harness under `test/java/`.
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
-  `model/listnumbering/`, `fonts/`; `jaxb/mc-preprocessor.xslt` is the MCE reference. The
-  schemas are `xsd/ROOT.xsd`.
+  `model/listnumbering/`, `model/styles/` (`StyleUtil`, `PropertyCatalogue`), `fonts/`;
+  `jaxb/McSelection.java` and `McMode.java` are the `mc:AlternateContent` reference (CR-021),
+  `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
+  ported against `7fba7a150`, which is what the goldens record; build docx4j from that commit
+  before regenerating them, and never modify that checkout.
 
 ## Portfolio task registry
 

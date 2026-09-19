@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H proposed (waits on CR-001 Phase B).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B); phase H proposed (unblocked 2026-09-19, CR-001 Phase B having landed).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -495,8 +495,10 @@ Office JS has `Word.List` (`id`, `levelTypes`, `levelExists`, `getLevelParagraph
   `listItem.level` reads and writes `w:ilvl`. A restart is a new `w:num` on the same
   abstract definition with a `w:lvlOverride` / `w:startOverride` for level 0.
 - `listItem.listString` (the rendered label) and `siblingIndex` need CR-001 Phase B's
-  `Emulator`; until then `listString` is `undefined` and the editor's list rendering waits
-  for Phase B, as CR-003 section 3.4 says.
+  `Emulator`. **Phase B landed on 2026-09-19** (`Emulator`, `NumberingState`, `NumberingStates`,
+  `pkg.getNumberingEmulator()`), so phase H is unblocked: `listString` is the label
+  `emulator.getNumber(p.pPr, state)` answers, counted in the state of the paragraph's story,
+  and the editor's list rendering (CR-003 section 3.4) no longer waits.
 - A paragraph whose style carries `w:numPr` (a "List Number" style) is a list item through
   the style; `isListItem` is true and `list` resolves through the style's `w:numPr` (Phase
   B's `PropertyResolver` gives the effective `numPr`; before it, the direct one only).

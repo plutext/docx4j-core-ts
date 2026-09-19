@@ -65,10 +65,12 @@ The seven flat OPC documents of docx4j's `ListNumberIndTest`, copied unchanged f
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 
 What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written
-by the Java harness in `java/` and read by `parity.test.mjs`. `golden/README.md` is the review
-guide (counts per golden, and what was found producing them); `java/README.md` says how to
-build docx4j, run the harness and read a golden. `.github/workflows/parity.yml` reruns it
-weekly against docx4j's head and opens a pull request when an answer changes.
+by the Java harness in `java/` and read by `parity.test.mjs`. 45 goldens, harness version 3,
+from docx4j `VERSION_17_1_1` at `7fba7a150`; the resolver, the emulator and the selector
+reproduce every recorded answer. `golden/README.md` is the review guide (counts per golden, and
+what was found producing them); `java/README.md` says how to build docx4j, run the harness and
+read a golden. `.github/workflows/parity.yml` reruns it weekly against docx4j's head and opens
+a pull request when an answer changes.
 
 ## Word acceptance (manual)
 
@@ -78,6 +80,10 @@ replacement, on the document surface: the control is bound to a custom XML part,
 re-reads a bound control from the XML part on open, so the replaced `w:sdtContent` is
 overwritten by the stale binding. The control, its title and its binding survived, which is
 what the check is for; writing through the binding is CR-002 phase E (`XmlMapping`).
+
+Outstanding: **check 3**, since CR-001 Phase B step 4 gave `createPackage()` a theme part
+(nine zip entries instead of eight) and the default theme setting. It has not been opened in
+Word since; the three `defaultTheme` values are the thing to look at (Design > Fonts).
 
 Previous run: 2026-09-10, Word 2016, after CR-001 Phase A and CR-002 phases B and D. All four
 files below opened without a repair prompt: the untouched round trip, the round trip with the
@@ -146,9 +152,19 @@ A small Node script for 1 to 3 is:
 ```js
 import { writeFile, readFile } from 'node:fs/promises';
 import { WordprocessingMLPackage } from '@docx4j/core-ts';
+
+// 1 and 2: the round trip, with the main part re-marshalled
 const pkg = await WordprocessingMLPackage.load(await readFile('test/fixtures/loadAndSave.docx'));
 await pkg.getMainDocumentPart().getContents();
 await writeFile('out.docx', await pkg.save());
+
+// 3: a created document, with the theme part CR-001 Phase B step 4 added
+for (const theme of ['2023', '2013', '2007']) {
+  const fresh = await WordprocessingMLPackage.createPackage({ pageSize: 'A4', defaultTheme: theme });
+  fresh.body.insertParagraph('Hello World', 'End').styleBuiltIn = 'Heading1';
+  fresh.body.insertParagraph('Body text in the theme face.', 'End');
+  await writeFile(`check3-${theme}.docx`, await fresh.save());   // nine zip entries, not eight
+}
 ```
 
 And one for 6 to 8 (run from the repository root after `npm run build`; `logo.png` is any PNG):
