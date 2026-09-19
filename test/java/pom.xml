@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CR-001 Phase B step 1: the Java parity harness.
+
+  Reads every .docx fixture of @docx4j/core-ts and writes one golden JSON per fixture
+  recording what docx4j's PropertyResolver, Emulator and RunFontSelector answer, so that
+  the TypeScript port can be measured against docx4j itself.  See README.md.
+
+  Not part of the npm package and not built by `npm test`; run by hand (and weekly by
+  .github/workflows/parity.yml).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.docx4j</groupId>
+  <artifactId>docx4j-core-ts-parity-harness</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>docx4j-core-ts parity harness</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <!-- docx4j's <revision> on VERSION_17_1_1; raise with the branch. -->
+    <docx4j.version>17.1.1-SNAPSHOT</docx4j.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-core</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <!-- the JAXB implementation docx4j needs at runtime -->
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <!--
+      The font environment of CR-016 phase 0c's -Dfidelity.fonts=jars: the fonts docx4j's
+      own jars ship and nothing else (system discovery is turned off in Harness.main).
+      theme2023 (Akasia, Intos Display) joined them in CR-001 batch 49, and carries the
+      stand-ins for Word 365's Aptos and Aptos Display.  This is what makes the
+      IdentityPlusMapper's decisions in a golden the same on every machine.  Pinned by
+      ${docx4j.version}, which the golden's header records with the commit; the Liberation
+      jar is croscore's alternative and is deliberately absent, as in the environment
+      CR-016 measured.
+    -->
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-export-fo-fonts-symbol</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-export-fo-fonts-croscore</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-export-fo-fonts-crosextra</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.docx4j</groupId>
+      <artifactId>docx4j-export-fo-fonts-theme2023</artifactId>
+      <version>${docx4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.18</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <mainClass>org.docx4j.parity.Harness</mainClass>
+          <!-- exec:java runs in Maven's JVM, so -Dfixtures=... -Dout=... reach the harness -->
+          <systemProperties>
+            <systemProperty>
+              <!-- warn, so that docx4j saying it could not read a part (a theme, say) is
+                   seen rather than baked silently into a golden -->
+              <key>org.slf4j.simpleLogger.defaultLogLevel</key>
+              <value>warn</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

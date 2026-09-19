@@ -1,0 +1,505 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "d5809a1d8ab47324b8a14483d4c818f3b741a030",
+    "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "8e2d22dace4cc601",
+    "date": "2026-09-19T00:34:22Z",
+    "fixture": "fonts-cs-off.docx",
+    "fixtureBytes": 7124,
+    "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
+    "notes": []
+  },
+  "styles": {
+    "defaultParagraphStyleId": "Normal",
+    "documentDefaults": {
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+      "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+    },
+    "docDefaults": "<w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rPrDefault><w:rPr><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>",
+    "byId": {
+      "Caption": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "CsOn": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:cs/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "DefaultParagraphFont": {
+        "type": "character",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Emphasis": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:i/><w:iCs/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Header": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "HeaderChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading1": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"480\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"0\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading1Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading2": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"1\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading2Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading3": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"2\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading3Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading4": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"3\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading4Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Hyperlink": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:color w:themeColor=\"hyperlink\" w:val=\"0000FF\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:u w:val=\"single\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Normal": {
+        "type": "paragraph",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "NormalIndent": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:left=\"720\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Subtitle": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:numPr><w:ilvl w:val=\"1\"/></w:numPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:left=\"86\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:spacing w:val=\"15\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "SubtitleChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:spacing w:val=\"15\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TableGrid": {
+        "type": "table",
+        "basedOn": "TableNormal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TableNormal": {
+        "type": "table",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Title": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pBdr><w:bottom w:color=\"4F81BD\" w:space=\"4\" w:sz=\"8\" w:themeColor=\"accent1\" w:val=\"single\"/></w:pBdr><w:spacing w:after=\"300\" w:line=\"276\" w:lineRule=\"auto\"/><w:contextualSpacing/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text2\" w:themeShade=\"BF\" w:val=\"17365D\"/><w:spacing w:val=\"5\"/><w:kern w:val=\"28\"/><w:sz w:val=\"52\"/><w:szCs w:val=\"52\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TitleChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text2\" w:themeShade=\"BF\" w:val=\"17365D\"/><w:spacing w:val=\"5\"/><w:kern w:val=\"28\"/><w:sz w:val=\"52\"/><w:szCs w:val=\"52\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      }
+    }
+  },
+  "stories": {
+    "main": {
+      "part": "/word/document.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(a) w:cs: The quick brown fox jumps over the lazy dog while the farmer watches f",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(a) w:cs: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(a) w:cs: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:cs/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Courier New",
+                  "bold": false,
+                  "italic": false,
+                  "cs": true,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(b) w:cs w:val=0: The quick brown fox jumps over the lazy dog while the farmer w",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(b) w:cs w:val=0: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(b) w:cs w:val=0: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:cs w:val=\"false\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(c) w:rStyle CsOn, direct w:cs w:val=0: The quick brown fox jumps over the lazy ",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(c) w:rStyle CsOn, direct w:cs w:val=0: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(c) w:rStyle CsOn, direct w:cs w:val=0: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": "CsOn",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"CsOn\"/><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:cs w:val=\"false\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(d) w:rtl w:val=0: The quick brown fox jumps over the lazy dog while the farmer ",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(d) w:rtl w:val=0: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(d) w:rtl w:val=0: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:rtl w:val=\"false\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(e) w:rtl: The quick brown fox jumps over the lazy dog while the farmer watches ",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(e) w:rtl: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(e) w:rtl: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:rtl/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Courier New",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(f) w:cs, Arabic: \u0645\u0631\u062d\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060c \u0647\u0630\u0627 \u0646\u0635 \u062a\u062c\u0631\u064a\u0628\u064a \u0642\u0635\u064a\u0631 \u0644\u0642\u064a\u0627\u0633 \u0627\u0644\u062e\u0637.",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(f) w:cs, Arabic: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(f) w:cs, Arabic: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "\u0645\u0631\u062d\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060c \u0647\u0630\u0627 \u0646\u0635 \u062a\u062c\u0631\u064a\u0628\u064a \u0642\u0635\u064a\u0631 \u0644\u0642\u064a\u0627\u0633 \u0627\u0644\u062e\u0637.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:cs/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "\u0645\u0631\u062d\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060c \u0647\u0630\u0627 \u0646\u0635 \u062a\u062c\u0631\u064a\u0628\u064a \u0642\u0635\u064a\u0631 \u0644\u0642\u064a\u0627\u0633 \u0627\u0644\u062e\u0637.",
+                  "documentFont": "Courier New",
+                  "bold": false,
+                  "italic": false,
+                  "cs": true,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(g) nothing, the control: The quick brown fox jumps over the lazy dog while the ",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(g) nothing, the control: ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(g) nothing, the control: ",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Courier New\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "The quick brown fox jumps over the lazy dog while the farmer watches from the gate.",
+                  "documentFont": "Carlito",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "tables": [],
+  "fonts": {
+    "themePart": null,
+    "defaultFont": "Carlito",
+    "fontsInUse": [
+      "Carlito",
+      "Courier New"
+    ],
+    "stylesInUse": [
+      "CsOn",
+      "DefaultParagraphFont",
+      "Normal"
+    ],
+    "mapping": {
+      "Carlito": {
+        "source": "MAPPER_OWN",
+        "via": "a variant of the name: Carlito regular",
+        "physicalFont": "Carlito Regular"
+      },
+      "Courier New": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Cousine Regular"
+      }
+    },
+    "mappingNote": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed"
+  }
+}

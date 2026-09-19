@@ -667,3 +667,107 @@ lives here and Python consumes the committed goldens (docx4j-python CR-002 secti
 amended in that repository); `Font` and `Paragraph` reads become effective by default with
 `{ direct: true }`, `toApiScript` stays direct; fonts are the selection core and
 `IdentityPlusMapper`. Step 0 can start.
+
+### 14.6 Implementation notes: step 1 (2026-09-19)
+
+The harness (`test/java/`), the first 45 goldens (`test/golden/`), the parity test skeleton
+(`test/parity.test.mjs`) and the weekly workflow (`.github/workflows/parity.yml`) are in.
+`test/java/README.md` documents the harness and `test/golden/README.md` reviews the goldens;
+what follows is what was decided while building them.
+
+- **Input.** Every `.docx` directly under `test/fixtures/` (the eight real Word documents) as
+  well as the 37 probes under `test/fixtures/parity/`: 45 goldens, 2.6 MB, three seconds.
+  618 paragraphs, 1,113 runs, 1,112 font spans, 984 style resolutions, 8 tables, 185 numbered
+  paragraphs. Nothing is truncated and nothing threw (every `notes` array is empty).
+- **The golden's shape** is 14.3's, with four additions the port will want: `docDefaults` (the
+  element as the styles part states it), `indResolved`
+  (`NumberingDefinitionsPart.getInd`, which follows a level's linked style, beside the
+  deprecated `NumberingResult.ind`), `fonts.themePart` / `fonts.defaultFont` (a theme
+  reference that cannot be answered changes every font span in a document, so it is recorded
+  rather than implied), and `header.docx4jCoreJarSha256`.
+- **`docx4jCoreJarSha256`** exists because one `~/.m2` holds one `17.1.1-SNAPSHOT`: the hash
+  says which build a golden actually came from, beside the commit the harness was *told*
+  about. The weekly workflow ignores it, and the header's date, when it diffs.
+- **The XML is trimmed of unused namespace declarations.** docx4j's prefix mapper
+  pre-declares all ninety-odd Office namespaces on whatever it marshals: 3 kB of `xmlns:` on
+  each of tens of thousands of fragments, ten times the size of the goldens (26 MB before,
+  2.6 MB after). Nothing that is compared changes, since the comparison unmarshals.
+- **Determinism.** `docx4j.fonts.discoverPhysicalFonts.enabled=false` before anything builds a
+  `Mapper`, jar discovery left on, and exactly the symbol, croscore and crosextra font jars on
+  the classpath: CR-016 phase 0c's `-Dfidelity.fonts=jars` environment. An empty registry would
+  also be deterministic but would make every mapping `UNMAPPED`; this way the goldens exercise
+  every pass of CR-016 phase 3's precedence template (metric clone, `w:altName`, class, Word's
+  default, unresolvable), which is what step 4 ports. The font cache goes to a fresh temporary
+  directory per run. Verified: two runs into two directories differ only in the header's date.
+- **`mc:AlternateContent` is resolved to its first `mc:Choice`** in the harness's walk.
+  `TraversalUtil` walks the choices *and* the fallback, which put a text box's paragraphs in a
+  golden twice; docx4j's own `mc-preprocessor.xslt` does not help, since it *keeps* an
+  `mc:AlternateContent` whose parent is a `w:r` — which is where Word puts a text box — and
+  prefers the fallback elsewhere. This package resolves every `mc:AlternateContent` on the DOM
+  before unmarshalling, taking the first choice whose `Requires` namespaces are in
+  `UNDERSTOOD_NAMESPACES` (`wps` among them), so the harness's rule is the one that makes the
+  two walk the same document. A choice requiring something neither side knows would diverge;
+  no fixture has one, and the unmarshalled `Requires` no longer carries the prefix bindings
+  needed to do better.
+- **The story rule**, read off the Java rather than guessed: `NumberingStates.forPart(part)`
+  (body; one state shared by every header and footer; one per footnotes, endnotes and comments
+  part) and `NumberingStates.newStory()` on entering a text box, which is what
+  `AbstractWmlConversionContext.enterTextBox` does. A text box's paragraphs stay in the
+  containing part's list, in document order, and count on their own; the containing story runs
+  past them untouched. `numbering-stories.json` shows body 1 2 3, text box 1 2 3, body 4 5 6,
+  header 1 2 3, footer 4 5 6 — docx4j's own `NumberingStoriesTest`, CR-014 probe P7.
+- **`reachesDefaultTableStyle` has no API.** It is `getEffectiveTableStyle`'s `builtIn` local
+  (the chain is empty, or contains the default table style id); its only public sign is the
+  cell margins in the resulting style, which is what `AbstractTableWriter` reads. The harness
+  recomputes it from `PropertyResolver.ancestry`, which is private.
+- **Three reflections** in harness version 1 — `Emulator.resolve` for `NumRef`,
+  `NumberingState`'s private maps and `ListLevel.Counter`'s fields for `stateAfter`, and
+  `PropertyResolver.ancestry` for `reachesDefaultTableStyle` — plus a no-op
+  `RunFontCharacterVisitor` of its own. All four were requested of docx4j and granted; see
+  the regeneration note below.
+- **`w:delText` is its own class**, not a `w:t`: a walk that only reads `org.docx4j.wml.Text`
+  silently loses a deleted run's text. Worth remembering for the port's own traversal.
+- **Regenerated from the merged branch (2026-09-19, harness version 2).** docx4j merged
+  CR-001 batch 49 into `VERSION_17_1_1` at `d5809a1d8`, which makes all four parity
+  accessors public (`Emulator.numRefFor`, `NumberingState.counters()` /
+  `startOverridesApplied()` with a public `ListLevel.Counter`,
+  `PropertyResolver.reachesDefaultTableStyle`, `FontsAnalysis.NO_OP_VISITOR`, all covered by
+  its `ParityAccessorsTest`). The harness calls them, is 100 lines shorter and holds no
+  reflection; run side by side, version 2's goldens are **identical to version 1's on all 45
+  fixtures**, so the accessors and the reflection agree on `numRef`, `stateAfter` and
+  `reachesDefaultTableStyle` everywhere. The batch also settles the themeless default —
+  `docx4j.fonts.defaultTheme` = "2023", Word 365's Aptos — which is the behaviour the
+  provisional goldens had picked up from an unmerged build, so the caveat on those sixteen
+  goldens is discharged rather than encoded. Against the provisional set the only substantive
+  change is `fonts.mapping` in 18 goldens: Aptos and Aptos Display were `UNMAPPED` and are now
+  `METRIC_CLONE` to Akasia Regular and Intos Display Regular, from the new
+  `docx4j-export-fo-fonts-theme2023` jar, which joins symbol, croscore and crosextra in the
+  harness's font environment and in the weekly workflow's build list. No effective property,
+  numbering label, counter, table flag or font span moved.
+- **Step 2 and after** read the goldens through `test/parity.test.mjs`, which today proves
+  only that every recorded fragment unmarshals through the facade (each inside the container
+  the schema puts it in — `w:pPr` in a `w:p`, `w:lvl` in a `w:abstractNum`, and so on, since
+  the runtime resolves global elements only) and that each header names a fixture of the
+  recorded size. The comparisons are `test.todo`s naming the step that turns them on.
+
+**The themeless default, and what it means for steps 4 and Phase A (2026-09-19).** The docx4j
+session confirmed that the Aptos behaviour the 16 goldens carry is docx4j CR-001 batch 49 item 6,
+mid-implementation. Names final as of 2026-09-19 (docx4j branch commits a309177d6, 5e8b2347b,
+04e6e6936, 1316f21c2, merging as a merge commit a day or two later): property
+`docx4j.fonts.defaultTheme` with values `"2023"` (the default: Aptos Display / Aptos, what Word 365
+supplies to a package with no theme part), `"2013"` (Calibri Light / Calibri) and `"2007"`
+(Cambria / Calibri, the answer at branch HEAD before the merge), a `Docx4jProperties.DefaultTheme`
+enum `THEME_2023` / `THEME_2013` / `THEME_2007` carrying the two face names, theme resources
+`org/docx4j/openpackaging/parts/WordprocessingML/theme-2023.xml`, `theme-2013.xml`,
+`theme-2007.xml`, `RunFontSelector.themeFont` answering the themeless case from the property, and
+`WordprocessingMLPackage.createPackage` adding a `ThemePart` from the matching resource. Font
+substitutions added to `font-substitutes.xml`: Aptos to Akasia Regular (metric), Aptos Display to
+Intos Display Regular (metric), Aptos Light to Akasia Light, Aptos Narrow to Arimo (class), Carlito
+behind each; a new module `docx4j-export-fo-fonts-theme2023` carries Akasia and Intos Display
+(the harness classpath adds it at regeneration so those substitutes resolve).
+Two consequences here: step 4's selector implements the same default under the same names (a
+loaded document with no theme part resolves to the 2023 faces; a golden recording themeless
+behaviour must therefore be a loaded document, never a created one), and `createPackage` here
+gains the same three theme resources and the same default so that a document created by either
+library resolves alike (a Phase A departure to close in step 4, recorded in section 12 then). The goldens
+are regenerated at the merge, from the commit range the docx4j session sends.

@@ -1,0 +1,1927 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "d5809a1d8ab47324b8a14483d4c818f3b741a030",
+    "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "8e2d22dace4cc601",
+    "date": "2026-09-19T00:34:22Z",
+    "fixture": "NumberingIndents.docx",
+    "fixtureBytes": 20658,
+    "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
+    "notes": []
+  },
+  "styles": {
+    "defaultParagraphStyleId": "Normal",
+    "documentDefaults": {
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+      "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>"
+    },
+    "docDefaults": "<w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rPrDefault><w:rPr><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>",
+    "byId": {
+      "DefaultParagraphFont": {
+        "type": "character",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Footer": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "FooterChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Header": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4320\" w:val=\"left\"/><w:tab w:pos=\"8640\" w:val=\"left\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "HeaderChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "ListParagraph": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:left=\"720\"/><w:contextualSpacing/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "NoList": {
+        "type": "numbering",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Normal": {
+        "type": "paragraph",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "OmniPage3": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"exact\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "PageNumber": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "TableNormal": {
+        "type": "table",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "zDocID": {
+        "type": "paragraph",
+        "basedOn": null,
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:framePr w:anchorLock=\"true\" w:hAnchor=\"page\" w:vAnchor=\"text\" w:w=\"10800\" w:wrap=\"around\" w:x=\"721\" w:y=\"1\"/><w:tabs><w:tab w:pos=\"10800\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      }
+    }
+  },
+  "stories": {
+    "main": {
+      "part": "/word/document.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": null,
+          "text": "This document tests that the calculated effective indentation for each paragraph",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pBdr><w:top w:color=\"auto\" w:space=\"1\" w:sz=\"4\" w:val=\"single\"/><w:left w:color=\"auto\" w:space=\"4\" w:sz=\"4\" w:val=\"single\"/><w:bottom w:color=\"auto\" w:space=\"1\" w:sz=\"4\" w:val=\"single\"/><w:right w:color=\"auto\" w:space=\"4\" w:sz=\"4\" w:val=\"single\"/></w:pBdr><w:shd w:color=\"auto\" w:fill=\"FFFF00\" w:val=\"clear\"/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"center\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "This document tests that the calculated effective indentation for each paragraph matches the value given in the text.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:highlight w:val=\"yellow\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "This document tests that the calculated effective indentation for each paragraph matches the value given in the text.",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:widowControl w:val=\"false\"/><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"1\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"240\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:hanging=\"360\" w:left=\"360\"/><w:jc w:val=\"both\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "1.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"720\"/>",
+            "ilvl": "0",
+            "numId": "1",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\" w:tplc=\"6F9A042A\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"720\" w:left=\"720\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"720\"/>",
+            "numRef": {
+              "numId": "1",
+              "ilvl": "0",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:widowControl w:val=\"false\"/><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"1\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"240\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:hanging=\"360\" w:left=\"360\"/><w:jc w:val=\"both\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "2.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"720\"/>",
+            "ilvl": "0",
+            "numId": "1",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\" w:tplc=\"6F9A042A\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"720\" w:left=\"720\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"720\"/>",
+            "numRef": {
+              "numId": "1",
+              "ilvl": "0",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"360\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"1080\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:widowControl w:val=\"false\"/><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"1\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"240\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:hanging=\"360\" w:left=\"1080\"/><w:jc w:val=\"both\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "a.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"360\" w:left=\"1080\"/>",
+            "ilvl": "1",
+            "numId": "1",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"1\" w:tplc=\"04090019\"><w:start w:val=\"1\"/><w:numFmt w:val=\"lowerLetter\"/><w:lvlText w:val=\"%2.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"360\" w:left=\"1080\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"360\" w:left=\"1080\"/>",
+            "numRef": {
+              "numId": "1",
+              "ilvl": "1",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"1080\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"1080\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        },
+        {
+          "index": 5,
+          "paraId": null,
+          "pStyle": null,
+          "text": "-------------------------",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"center\"/><w:rPr><w:b/><w:szCs w:val=\"24\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:sz w:val=\"20\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "-------------------------",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:sz w:val=\"20\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "-------------------------",
+                  "documentFont": "Times New Roman",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"both\"/><w:rPr><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        },
+        {
+          "index": 7,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"2\"/></w:numPr><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:jc w:val=\"both\"/><w:rPr><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "1.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"1080\"/>",
+            "ilvl": "0",
+            "numId": "2",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\" w:tplc=\"9914395E\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"720\" w:left=\"1080\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"1080\"/>",
+            "numRef": {
+              "numId": "2",
+              "ilvl": "0",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1",
+                "2/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"2\"/></w:numPr><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:jc w:val=\"both\"/><w:rPr><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "2.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"1080\"/>",
+            "ilvl": "0",
+            "numId": "2",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\" w:tplc=\"9914395E\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"720\" w:left=\"1080\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/><w:b w:val=\"false\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"720\" w:left=\"1080\"/>",
+            "numRef": {
+              "numId": "2",
+              "ilvl": "0",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1",
+                "2/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "paraId": null,
+          "pStyle": null,
+          "text": "<w:ind [expect]w:left=\"1440\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"2\"/></w:numPr><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:hanging=\"360\" w:left=\"1440\"/><w:jc w:val=\"both\"/><w:rPr><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "a.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"360\" w:left=\"1440\"/>",
+            "ilvl": "1",
+            "numId": "2",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"1\" w:tplc=\"04090019\"><w:start w:val=\"1\"/><w:numFmt w:val=\"lowerLetter\"/><w:lvlText w:val=\"%2.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"360\" w:left=\"1440\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"360\" w:left=\"1440\"/>",
+            "numRef": {
+              "numId": "2",
+              "ilvl": "1",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1",
+                "2/0",
+                "2/1"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"1440\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"1440\"[/expect] [expect]w:hanging=\"360\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        },
+        {
+          "index": 11,
+          "paraId": null,
+          "pStyle": null,
+          "text": "-----------------------------",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"center\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "-----------------------------",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "-----------------------------",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 12,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        },
+        {
+          "index": 13,
+          "paraId": null,
+          "pStyle": "ListParagraph",
+          "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"ListParagraph\"/><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"3\"/></w:numPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:contextualSpacing/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "1)",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "ilvl": "0",
+            "numId": "3",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1)\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"0\" w:left=\"0\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "numRef": {
+              "numId": "3",
+              "ilvl": "0",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "5/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1",
+                "2/0",
+                "2/1",
+                "3/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"0\"[/expect] [expect]w:firstLine=\"0\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 14,
+          "paraId": null,
+          "pStyle": "ListParagraph",
+          "text": "<w:ind [expect]w:left=\"357\"[/expect] [expect]w:firstLine=\"3\"[/expect] >",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"ListParagraph\"/><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"3\"/></w:numPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"3\" w:left=\"357\"/><w:contextualSpacing/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": {
+            "numString": "a)",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"3\" w:left=\"357\"/>",
+            "ilvl": "1",
+            "numId": "3",
+            "labelRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:hint=\"default\"/></w:rPr>",
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"1\"><w:start w:val=\"1\"/><w:numFmt w:val=\"lowerLetter\"/><w:lvlText w:val=\"%2)\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"3\" w:left=\"357\"/></w:pPr><w:rPr><w:rFonts w:hint=\"default\"/></w:rPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"3\" w:left=\"357\"/>",
+            "numRef": {
+              "numId": "3",
+              "ilvl": "1",
+              "direct": true,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "3/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "3/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "3/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "4/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "4/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "5/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "5/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "5/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "1/0",
+                "1/1",
+                "2/0",
+                "2/1",
+                "3/0",
+                "3/1"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "<w:ind [expect]w:left=\"357\"[/expect] [expect]w:firstLine=\"3\"[/expect] >",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "<w:ind [expect]w:left=\"357\"[/expect] [expect]w:firstLine=\"3\"[/expect] >",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    },
+    "header:rId12": {
+      "part": "/word/header3.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "Header",
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4320\" w:val=\"left\"/><w:tab w:pos=\"8640\" w:val=\"left\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    },
+    "header:rId8": {
+      "part": "/word/header1.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "Header",
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4320\" w:val=\"left\"/><w:tab w:pos=\"8640\" w:val=\"left\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    },
+    "header:rId9": {
+      "part": "/word/header2.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "Header",
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4320\" w:val=\"left\"/><w:tab w:pos=\"8640\" w:val=\"left\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    },
+    "footer:rId10": {
+      "part": "/word/footer1.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "zDocID",
+          "text": "GDSVF&H\\ DOCPROPERTY DocID  \\* MERGEFORMAT Error! Unknown document property name",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"zDocID\"/><w:framePr w:anchorLock=\"true\" w:hAnchor=\"page\" w:vAnchor=\"text\" w:w=\"10800\" w:wrap=\"around\" w:x=\"721\" w:y=\"1\"/><w:tabs><w:tab w:pos=\"10800\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "GDSVF&H\\",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "GDSVF&H\\",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "Error! Unknown document property name.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:bCs/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "Error! Unknown document property name.",
+                  "documentFont": "Times New Roman",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": "Footer",
+          "text": "PAGE  5",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"Footer\"/><w:framePr w:anchorLock=\"true\" w:hAnchor=\"margin\" w:vAnchor=\"text\" w:wrap=\"around\" w:xAlign=\"right\" w:y=\"1\"/><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:rPr><w:rStyle w:val=\"PageNumber\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "PAGE  ",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "PAGE  ",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "5",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "5",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "paraId": null,
+          "pStyle": "Footer",
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"Footer\"/><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:ind w:right=\"360\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    },
+    "footer:rId11": {
+      "part": "/word/footer2.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "zDocID",
+          "text": "GDSVF&H\\ DOCPROPERTY DocID  \\* MERGEFORMAT Error! Unknown document property name",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"zDocID\"/><w:framePr w:anchorLock=\"true\" w:hAnchor=\"page\" w:vAnchor=\"text\" w:w=\"10800\" w:wrap=\"around\" w:x=\"721\" w:y=\"1\"/><w:tabs><w:tab w:pos=\"10800\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "GDSVF&H\\",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "GDSVF&H\\",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "Error! Unknown document property name.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:bCs/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "Error! Unknown document property name.",
+                  "documentFont": "Times New Roman",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": "Footer",
+          "text": " PAGE 1",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"Footer\"/><w:tabs><w:tab w:pos=\"10080\" w:val=\"right\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"200\" w:lineRule=\"exact\"/><w:jc w:val=\"center\"/><w:rPr><w:rStyle w:val=\"PageNumber\"/><w:sz w:val=\"20\"/></w:rPr></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": " PAGE ",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": " PAGE ",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "1",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "1",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": "PageNumber",
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rStyle w:val=\"PageNumber\"/><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        }
+      ]
+    },
+    "footer:rId13": {
+      "part": "/word/footer3.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "zDocID",
+          "text": "GDSVF&H\\ DOCPROPERTY DocID  \\* MERGEFORMAT Error! Unknown document property name",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"zDocID\"/><w:framePr w:anchorLock=\"true\" w:hAnchor=\"page\" w:vAnchor=\"text\" w:w=\"10800\" w:wrap=\"around\" w:x=\"721\" w:y=\"1\"/><w:tabs><w:tab w:pos=\"10800\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "GDSVF&H\\",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "GDSVF&H\\",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": " DOCPROPERTY DocID  \\* MERGEFORMAT ",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "Error! Unknown document property name.",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:bCs/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "Error! Unknown document property name.",
+                  "documentFont": "Times New Roman",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            },
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:b/><w:noProof/><w:snapToGrid w:val=\"false\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": "Footer",
+          "text": "|GDSVF&H\\31509.4||",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pStyle w:val=\"Footer\"/><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:suppressAutoHyphens/><w:spacing w:after=\"0\" w:line=\"200\" w:lineRule=\"exact\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "|",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:vanish/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "|",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "GDSVF&H\\31509.4",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "GDSVF&H\\31509.4",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "||",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:vanish/><w:sz w:val=\"16\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "||",
+                  "documentFont": "Times New Roman",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "footnotes": {
+      "part": "/word/footnotes.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        }
+      ]
+    },
+    "endnotes": {
+      "part": "/word/endnotes.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\" w:hAnsi=\"Times New Roman\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "tables": [],
+  "fonts": {
+    "themePart": "/word/theme/theme1.xml",
+    "defaultFont": "Calibri",
+    "fontsInUse": [
+      "Calibri",
+      "Times New Roman"
+    ],
+    "stylesInUse": [
+      "DefaultParagraphFont",
+      "Footer",
+      "Header",
+      "ListParagraph",
+      "Normal",
+      "PageNumber",
+      "zDocID"
+    ],
+    "mapping": {
+      "Calibri": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Carlito Regular"
+      },
+      "Times New Roman": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Tinos Regular"
+      }
+    },
+    "mappingNote": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed"
+  }
+}

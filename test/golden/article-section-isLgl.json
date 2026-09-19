@@ -1,0 +1,842 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "d5809a1d8ab47324b8a14483d4c818f3b741a030",
+    "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "8e2d22dace4cc601",
+    "date": "2026-09-19T00:34:22Z",
+    "fixture": "article-section-isLgl.docx",
+    "fixtureBytes": 14383,
+    "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
+    "notes": []
+  },
+  "styles": {
+    "defaultParagraphStyleId": "Normal",
+    "documentDefaults": {
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+      "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+    },
+    "docDefaults": "<w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rPrDefault><w:rPr><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>",
+    "byId": {
+      "DefaultParagraphFont": {
+        "type": "character",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading1": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"480\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:jc w:val=\"center\"/><w:outlineLvl w:val=\"0\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading1Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading2": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:outlineLvl w:val=\"1\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading2Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading3": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"2\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"720\"/><w:outlineLvl w:val=\"2\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading3Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading4": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"3\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"144\" w:left=\"864\"/><w:outlineLvl w:val=\"3\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading4Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading5": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"4\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"1008\"/><w:outlineLvl w:val=\"4\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"accent1\" w:themeShade=\"7F\" w:val=\"243F60\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading5Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"accent1\" w:themeShade=\"7F\" w:val=\"243F60\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading6": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"5\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"1152\"/><w:outlineLvl w:val=\"5\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"7F\" w:val=\"243F60\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading6Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"7F\" w:val=\"243F60\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading7": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"6\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"288\" w:left=\"1296\"/><w:outlineLvl w:val=\"6\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading7Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading8": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"7\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"1440\"/><w:outlineLvl w:val=\"7\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading8Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading9": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"8\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"144\" w:left=\"1584\"/><w:outlineLvl w:val=\"8\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Heading9Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"text1\" w:themeTint=\"BF\" w:val=\"404040\"/><w:sz w:val=\"20\"/><w:szCs w:val=\"20\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "ListParagraph": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:left=\"720\"/><w:contextualSpacing/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "NoList": {
+        "type": "numbering",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "Normal": {
+        "type": "paragraph",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      },
+      "TableNormal": {
+        "type": "table",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>"
+      }
+    }
+  },
+  "stories": {
+    "main": {
+      "part": "/word/document.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": "Heading1",
+          "text": "[expect]Article I.[/expect]Name and Purpose",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"480\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:jc w:val=\"center\"/><w:outlineLvl w:val=\"0\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "Article I.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "ilvl": "0",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"upperRoman\"/><w:pStyle w:val=\"Heading1\"/><w:lvlText w:val=\"Article %1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"0\" w:left=\"0\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "0",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect]Article I.[/expect]Name and Purpose",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect]Article I.[/expect]Name and Purpose",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": "Heading2",
+          "text": "[expect]Section 1.01[/expect]Name  name  name name  name  name  name  name  name",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:outlineLvl w:val=\"1\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "Section 1.01",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "ilvl": "1",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"1\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimalZero\"/><w:pStyle w:val=\"Heading2\"/><w:isLgl/><w:lvlText w:val=\"Section %1.%2\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"0\" w:left=\"0\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "1",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0",
+                "5/1"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect]Section 1.01[/expect]Name  name  name name  name  name  name  name  name  name  name  name  name  ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect]Section 1.01[/expect]Name  name  name name  name  name  name  name  name  name  name  name  name  ",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "paraId": null,
+          "pStyle": "Heading3",
+          "text": "[expect](a)[/expect]Blagh  blagh blagh blagh blagh blagh blagh blagh blagh blagh",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"2\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"720\"/><w:outlineLvl w:val=\"2\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "(a)",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"432\" w:left=\"720\"/>",
+            "ilvl": "2",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"2\"><w:start w:val=\"1\"/><w:numFmt w:val=\"lowerLetter\"/><w:pStyle w:val=\"Heading3\"/><w:lvlText w:val=\"(%3)\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"432\" w:left=\"720\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"432\" w:left=\"720\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "2",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0",
+                "5/1",
+                "5/2"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect](a)[/expect]Blagh  blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect](a)[/expect]Blagh  blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh blagh",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        },
+        {
+          "index": 4,
+          "paraId": null,
+          "pStyle": "Heading1",
+          "text": "[expect]Article II.[/expect]Another article",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"480\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:jc w:val=\"center\"/><w:outlineLvl w:val=\"0\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "Article II.",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "ilvl": "0",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"upperRoman\"/><w:pStyle w:val=\"Heading1\"/><w:lvlText w:val=\"Article %1.\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"0\" w:left=\"0\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "0",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": true
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": true
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0",
+                "5/1",
+                "5/2"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect]Article II.[/expect]Another article",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsia=\"Times New Roman\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect]Article II.[/expect]Another article",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "paraId": null,
+          "pStyle": "Heading2",
+          "text": "[expect]Section 2.01[/expect]Another section",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"1\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:firstLine=\"0\" w:left=\"0\"/><w:outlineLvl w:val=\"1\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "Section 2.01",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "ilvl": "1",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"1\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimalZero\"/><w:pStyle w:val=\"Heading2\"/><w:isLgl/><w:lvlText w:val=\"Section %1.%2\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:firstLine=\"0\" w:left=\"0\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:firstLine=\"0\" w:left=\"0\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "1",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": true
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0",
+                "5/1",
+                "5/2"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect]Section 2.01[/expect]Another section",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect]Section 2.01[/expect]Another section",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "paraId": null,
+          "pStyle": "Heading3",
+          "text": "[expect](a)[/expect]Blagh",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:numPr><w:ilvl w:val=\"2\"/><w:numId w:val=\"5\"/></w:numPr><w:spacing w:after=\"0\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:hanging=\"432\" w:left=\"720\"/><w:outlineLvl w:val=\"2\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": {
+            "numString": "(a)",
+            "isBullet": false,
+            "numFont": null,
+            "ind": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"432\" w:left=\"720\"/>",
+            "ilvl": "2",
+            "numId": "5",
+            "labelRPr": null,
+            "lvl": "<w:lvl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:ilvl=\"2\"><w:start w:val=\"1\"/><w:numFmt w:val=\"lowerLetter\"/><w:pStyle w:val=\"Heading3\"/><w:lvlText w:val=\"(%3)\"/><w:lvlJc w:val=\"left\"/><w:pPr><w:ind w:hanging=\"432\" w:left=\"720\"/></w:pPr></w:lvl>",
+            "indResolved": "<w:ind xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:hanging=\"432\" w:left=\"720\"/>",
+            "numRef": {
+              "numId": "5",
+              "ilvl": "2",
+              "direct": false,
+              "notNumbered": false,
+              "reason": null
+            },
+            "stateAfter": {
+              "counters": {
+                "2/0": {
+                  "value": "2",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/1": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/2": {
+                  "value": "1",
+                  "encounteredAlready": true,
+                  "resetPending": false
+                },
+                "2/3": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/4": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/5": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/6": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/7": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                },
+                "2/8": {
+                  "value": "1",
+                  "encounteredAlready": false,
+                  "resetPending": true
+                }
+              },
+              "startOverridesApplied": [
+                "5/0",
+                "5/1",
+                "5/2"
+              ]
+            }
+          },
+          "runs": [
+            {
+              "text": "[expect](a)[/expect]Blagh",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "[expect](a)[/expect]Blagh",
+                  "documentFont": "Cambria",
+                  "bold": true,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "paraId": null,
+          "pStyle": null,
+          "text": "",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-AU\" w:val=\"en-AU\"/></w:rPr>",
+          "numbering": null,
+          "runs": []
+        }
+      ]
+    }
+  },
+  "tables": [],
+  "fonts": {
+    "themePart": "/word/theme/theme1.xml",
+    "defaultFont": "Calibri",
+    "fontsInUse": [
+      "Calibri",
+      "Cambria",
+      "Courier New",
+      "Symbol",
+      "Times New Roman",
+      "Wingdings"
+    ],
+    "stylesInUse": [
+      "Heading1",
+      "Heading2",
+      "Heading3",
+      "Normal"
+    ],
+    "mapping": {
+      "Calibri": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Carlito Regular"
+      },
+      "Cambria": {
+        "source": "MEASURED_STAND_IN",
+        "via": null,
+        "physicalFont": "Caladea Regular"
+      },
+      "Courier New": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Cousine Regular"
+      },
+      "Symbol": {
+        "source": "UNMAPPED",
+        "via": null,
+        "physicalFont": null
+      },
+      "Times New Roman": {
+        "source": "METRIC_CLONE",
+        "via": null,
+        "physicalFont": "Tinos Regular"
+      },
+      "Wingdings": {
+        "source": "UNMAPPED",
+        "via": null,
+        "physicalFont": null
+      }
+    },
+    "mappingNote": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed"
+  }
+}

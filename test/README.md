@@ -49,6 +49,14 @@ All are docx4j's, Apache-2.0, from `VERSION_17_1_1` at `0077d749c`:
   (the probe corpus has a `numbering-stories.docx` of its own).
 - From `docx4j-samples-docx4j/sample-docs/`: `fonts-modesOfApplication.docx`.
 
+## Parity goldens (`golden/`, CR-001 Phase B step 1)
+
+What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written
+by the Java harness in `java/` and read by `parity.test.mjs`. `golden/README.md` is the review
+guide (counts per golden, and what was found producing them); `java/README.md` says how to
+build docx4j, run the harness and read a golden. `.github/workflows/parity.yml` reruns it
+weekly against docx4j's head and opens a pull request when an answer changes.
+
 ## Word acceptance (manual)
 
 Last run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002

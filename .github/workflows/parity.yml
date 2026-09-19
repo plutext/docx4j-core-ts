@@ -1,0 +1,130 @@
+# CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_1_1, runs
+# the harness (test/java/) over the same fixtures, and opens a pull request when any
+# golden differs, with the docx4j commits since the hash the goldens record in its body.
+#
+# Never on push: it builds docx4j from source, which takes minutes, and a difference is
+# news about docx4j rather than about a change here.
+name: parity
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"     # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out docx4j (VERSION_17_1_1)
+        uses: actions/checkout@v4
+        with:
+          repository: plutext/docx4j
+          ref: VERSION_17_1_1
+          path: .docx4j
+          fetch-depth: 0     # the pull request body lists the commits since the recorded hash
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: The commit the goldens were made from, and docx4j's head
+        id: commits
+        run: |
+          old=$(node -e "const g=require('./test/golden/invoice.json'); process.stdout.write(g.header.docx4jCommit)")
+          new=$(git -C .docx4j rev-parse HEAD)
+          echo "old=$old" >> "$GITHUB_OUTPUT"
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          echo "docx4j: goldens made from $old, head is $new"
+
+      - name: Build docx4j
+        working-directory: .docx4j
+        # docx4j-core is the engine; docx4j-JAXB-ReferenceImpl is the JAXB implementation
+        # it needs at run time; the four font jars are the harness's font environment
+        # (CR-016 phase 0c's -Dfidelity.fonts=jars, theme2023 added by CR-001 batch 49 for
+        # Aptos and Aptos Display), which is what makes the mapping in a golden the same
+        # everywhere.  -am builds what they depend on.
+        run: >
+          mvn -B -q -pl docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,docx4j-export-fo-fonts-croscore,docx4j-export-fo-fonts-crosextra,docx4j-export-fo-fonts-theme2023
+          -am -DskipTests -Dgpg.skip install
+
+      - name: Run the harness
+        working-directory: test/java
+        run: >
+          mvn -B -q compile exec:java
+          -Dfixtures=../fixtures
+          -Dout=${{ runner.temp }}/golden
+          -Ddocx4j.commit=${{ steps.commits.outputs.new }}
+
+      - name: Compare with the committed goldens
+        id: compare
+        # The date is when the harness ran and the jar hash is the build it ran against;
+        # neither is a difference in docx4j's answers, so both are ignored here.  A golden
+        # that differs for a real reason carries its new header along when it is copied in.
+        run: |
+          differed=""
+          for golden in test/golden/*.json; do
+            name=$(basename "$golden")
+            fresh="${{ runner.temp }}/golden/$name"
+            if [ ! -f "$fresh" ]; then differed="$differed $name(missing)"; continue; fi
+            if ! diff -q <(grep -v '"date"\|"docx4jCoreJarSha256"' "$golden") \
+                         <(grep -v '"date"\|"docx4jCoreJarSha256"' "$fresh") > /dev/null; then
+              differed="$differed $name"
+            fi
+          done
+          for fresh in ${{ runner.temp }}/golden/*.json; do
+            name=$(basename "$fresh")
+            [ -f "test/golden/$name" ] || differed="$differed $name(new)"
+          done
+          if [ -n "$differed" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "files=$differed" >> "$GITHUB_OUTPUT"
+            echo "goldens differ:$differed"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "no difference"
+          fi
+
+      - name: Take the new goldens
+        if: steps.compare.outputs.changed == 'true'
+        run: cp ${{ runner.temp }}/golden/*.json test/golden/
+
+      - name: The docx4j commits since the goldens were made
+        if: steps.compare.outputs.changed == 'true'
+        id: log
+        run: |
+          {
+            echo "body<<PARITY_EOF"
+            echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
+            echo
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_1_1\` is now at \`${{ steps.commits.outputs.new }}\`."
+            echo
+            echo "docx4j commits in between:"
+            echo
+            echo '```'
+            git -C .docx4j log --oneline ${{ steps.commits.outputs.old }}..${{ steps.commits.outputs.new }} || echo "(the recorded commit is not an ancestor of the head; history was rewritten or the branch moved)"
+            echo '```'
+            echo
+            echo "Read the diff before merging: a change here is a change in what \`@docx4j/core-ts\` must reproduce (CR-001 section 14). If it is a docx4j fix, the port follows; if it is a regression there, raise it in docx4j rather than encoding it."
+            echo "PARITY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open a pull request
+        if: steps.compare.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: parity/docx4j-drift
+          base: main
+          add-paths: test/golden
+          commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
+          title: "Parity goldens differ from docx4j VERSION_17_1_1"
+          body: ${{ steps.log.outputs.body }}
+          delete-branch: true

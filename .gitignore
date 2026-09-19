@@ -1,3 +1,6 @@
 node_modules
 # built from src/ by `npm run build`
 /dist
+
+# the parity harness is built by hand (test/java/README.md)
+/test/java/target
