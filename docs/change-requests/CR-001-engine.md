@@ -1909,3 +1909,17 @@ declarations through the unmarshal would be a larger change and is not asked for
   been visible the moment the workbook was unmarshalled instead of at a repair prompt in Excel.
   Worth a small CR: a per-part list of elements and attributes the model did not bind, collected
   during unmarshal behind a load option.
+
+**Closed in docx4j the next day** (CR-022 phase 1, `16844ff03`, 2026-09-20, unpushed): the sml
+binding keeps `mc:Ignorable` on the worksheet, styleSheet, table, comments, pivot, connections and
+queryTable roots and re-declares every prefix it names; `x14ac:dyDescent` and `x14ac:knownFonts`
+are typed; `xr:revisionPtr` with its `xr6`/`xr10` attributes is kept; a worksheet's
+`mc:AlternateContent` for controls is kept whole; `x14`/`x15` `extLst` content unmarshals typed;
+`x12ac`, `x16`, `xr16` join the prefix table. For this package that is an objects regeneration
+item (the schema and bindings changed); the parity goldens are unaffected (the harness records
+WordprocessingML only), and once the objects package regenerates from that commit a re-marshalled
+workbook here keeps what docx4j now keeps. Still `DefaultPart` there until phase 2: slicer,
+slicerCache, timeline, timelineCache and ctrlProp parts; still Fallback-resolved: the DrawingML
+`mc:AlternateContent` in drawings. Oracle test to mirror when it lands here:
+`docx4j-core-tests org.xlsx4j.ExcelExtensionsTest` on `cr022-slicers-timelines.xlsx`.
+
