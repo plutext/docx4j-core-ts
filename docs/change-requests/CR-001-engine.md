@@ -790,6 +790,21 @@ no longer exists, and a dangling `numId` must resolve as not numbered rather tha
 (schema: `mc:AlternateContent` admitted in `EG_PContent` and `CT_NumPicBullet`) is a later
 objects-package regeneration.
 
+**`numRefFor`'s reason strings at docx4j `7fba7a150` (2026-09-19), adopted verbatim at the
+regeneration after step 4.** `getNumber` there is a number or null, never an empty result; the
+checks run in this order: no pPr / no numbering part / no resolver, the style chain, `numId` 0,
+no `w:num`, `ilvl` defaulted to 0 when absent, no `w:lvl`, style-linked-elsewhere, then numbered.
+The strings (X is the `w:styleId` the `w:numPr` came from; the suffix says whether the `w:numPr`
+was the paragraph's own): "the paragraph's w:numId 0 turns numbering off" / "style 'X's w:numId 0
+turns numbering off"; "no w:num for numId N (the paragraph's own)" / "... (from style 'X')";
+"no w:lvl L in w:num N (the paragraph's own)" / "... (from style 'X')"; and the pre-existing "no
+pPr", "no numbering part", "no numId, no paragraph style and no default paragraph style", "cyclic
+styles at X", "style 'X' has no pPr", "no numId, and style 'X' is not numbered", "style 'X' has a
+w:numPr without a w:numId val", "level L of numId N is linked to a paragraph style other than
+'X'". docx4j's tests: `ParityAccessorsTest` (`numIdZeroTurnsNumberingOff`,
+`danglingNumIdIsNotNumberedAndSaysWhy`, `missingLevelIsNotNumberedAndSaysWhy`). Branch commits
+since the goldens' `01d661547`: `546b18b56`, `c9612931c` (CR-021 phase 1), `d34852bdd`, `7fba7a150`.
+
 **`w:numId` 0 (for step 3; from docx4j-python, 2026-09-19).** docx4j's `Emulator.resolve` does not
 special-case a direct `w:numPr` whose `w:numId` is 0 (ECMA-376: numbering turned off): `numRefFor`
 answers `numId "0"`, `notNumbered false`, and `getNumber` then finds no list 0 and returns an empty
