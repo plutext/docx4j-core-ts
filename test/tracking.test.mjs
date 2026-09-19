@@ -361,6 +361,63 @@ test('Table: addRows, insertRows, deleteRows, row delete and table delete are tr
   assert.ok(t3.rows[0].cells[0].body.paragraphs[0].p.pPr.rPr.ins);
 });
 
+test('a deleted row marks its cells: w:delText, w:del on every paragraph mark, one change, accept and reject', async () => {
+  const pkg = await tracked([]);
+  const body = pkg.body;
+  pkg.changeTrackingMode = 'Off';
+  const table = body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
+  pkg.changeTrackingMode = 'TrackAll';
+
+  table.deleteRows(0, 1);
+  const row = table.rows[0];
+  assert.ok(row.tr.trPr.del, 'w:trPr/w:del on the row');
+  for (const cell of row.cells) {
+    assert.ok(cell.body.paragraphs[0].p.pPr.rPr.del, 'and w:pPr/w:rPr/w:del on every paragraph mark');
+  }
+  const xml = await xmlOf(pkg);
+  assert.match(xml, /<w:delText>a<\/w:delText>/, 'the cell text is w:delText, so Word strikes it out');
+  assert.match(xml, /<w:delText>b<\/w:delText>/);
+  assert.equal(xml.includes('<w:t>a</w:t>'), false, 'and no w:t is left in the deleted row');
+  assert.match(xml, /<w:del w:id="\d+"[^>]*><w:r><w:delText>a<\/w:delText><\/w:r><\/w:del>/);
+
+  // Office JS reports the row, not the markup inside it: one change (CR-002 section 13)
+  const changes = body.getTrackedChanges();
+  assert.deepEqual(changes.map((c) => [c.type, c.target.kind]), [['Deleted', 'row']]);
+  assert.equal(changes[0].text, 'a\nb');
+
+  // rejecting brings the row back, content readable
+  body.rejectAll();
+  assert.deepEqual(table.values, [['a', 'b'], ['c', 'd']]);
+  assert.equal(body.getTrackedChanges().length, 0);
+  assert.equal((await xmlOf(pkg)).includes('w:delText'), false, 'and no deleted text is left');
+
+  // accepting takes the row away
+  table.deleteRows(0, 1);
+  assert.equal(body.acceptAll(), 1);
+  assert.deepEqual(table.values, [['c', 'd']]);
+
+  // the same for a whole table deleted, and for an inserted row deleted again
+  const second = await tracked([]);
+  second.changeTrackingMode = 'Off';
+  const t2 = second.body.insertTable(1, 1, 'End', [['p']]);
+  second.changeTrackingMode = 'TrackAll';
+  t2.delete();
+  assert.match(await second.getMainDocumentPart().getXml(), /<w:delText>p<\/w:delText>/);
+  assert.equal(second.body.getTrackedChanges().length, 1, 'one change for the one row');
+  second.body.rejectAll();
+  assert.deepEqual(second.body.tables[0].values, [['p']]);
+
+  const third = await tracked([]);
+  const t3 = third.body.insertTable(1, 1, 'End', [['z']]);      // inserted while tracking
+  assert.equal(third.body.getTrackedChanges().length, 1, 'an inserted row reports once too');
+  t3.rows[0].delete();
+  const rowChanges = third.body.getTrackedChanges();
+  assert.deepEqual(rowChanges.map((c) => c.type), ['Added', 'Deleted']);
+  assert.equal(t3.rows[0].cells[0].body.paragraphs.length, 1, 'the cell keeps its paragraph');
+  assert.equal(third.body.acceptAll(), 2);
+  assert.equal(third.body.tables[0].rowCount, 0);
+});
+
 test('a comment made while tracking is on is a comment, not an insertion', async () => {
   const pkg = await tracked(['The quick brown fox jumps']);
   const body = pkg.body;

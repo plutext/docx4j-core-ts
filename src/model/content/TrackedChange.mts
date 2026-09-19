@@ -5,7 +5,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf } from './tree.mjs';
+import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, childrenOf } from './tree.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
@@ -24,8 +24,13 @@ export type TrackedChangeTarget =
   | { kind: 'runProperties'; run: wml.R; value: wml.CTRPrChange }
   /** `w:pPr/w:pPrChange`: the paragraph's properties. */
   | { kind: 'paragraphProperties'; value: wml.CTPPrChange }
-  /** `w:trPr/w:ins` or `w:trPr/w:del`: a table row. */
-  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange };
+  /**
+   * `w:trPr/w:ins` or `w:trPr/w:del`: a table row. `inner` is the revision markup the row's own
+   * cells carry (the `w:ins` or `w:del` around their runs and on their paragraph marks), which
+   * `Body.getTrackedChanges` reports through the row rather than separately, as Office JS does:
+   * one change per row. Accepting or rejecting the row applies them too.
+   */
+  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[] };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -76,7 +81,9 @@ export class TrackedChange {
       case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original' }).map((s) => s.text).join('');
       case 'runProperties': return textOf(t.run);
       case 'paragraphProperties': return this.paragraph?.text ?? '';
-      case 'row': return textOf(t.tr.value as object);
+      // a deleted row's content is `w:delText` inside `w:del`, which the accepted view skips:
+      // its text is what the row said before, as for a run deletion
+      case 'row': return rowText(t.tr.value, t.row === 'del' ? 'original' : 'accepted');
       default: return '';
     }
   }
@@ -118,7 +125,10 @@ export class TrackedChange {
         return;
       }
       case 'row':
-        if (t.row === 'ins') delete t.tr.value.trPr?.ins; else remove(t.owner, t.tr as Element);
+        // an accepted insertion keeps the row, so its content's own w:ins must go with the
+        // w:trPr/w:ins; an accepted deletion takes the row and everything in it away
+        if (t.row === 'ins') { delete t.tr.value.trPr?.ins; applyInner(t.inner, 'accept'); }
+        else remove(t.owner, t.tr as Element);
         return;
     }
   }
@@ -142,7 +152,10 @@ export class TrackedChange {
         return;
       }
       case 'row':
-        if (t.row === 'del') delete t.tr.value.trPr?.del; else remove(t.owner, t.tr as Element);
+        // a rejected deletion keeps the row, so its content comes back too (w:delText to w:t,
+        // the w:del unwrapped, the deleted marks dropped); a rejected insertion takes it away
+        if (t.row === 'del') { delete t.tr.value.trPr?.del; applyInner(t.inner, 'reject'); }
+        else remove(t.owner, t.tr as Element);
         return;
     }
   }
@@ -154,6 +167,29 @@ export class TrackedChange {
 }
 
 // --- the operations ------------------------------------------------------------------------
+
+/**
+ * The text of a table row in one of the two views, a line per paragraph (docx4j TextUtils, which
+ * the builders' `textOf` is - but that reads the accepted view only, and a deleted row's content
+ * is all `w:delText`).
+ */
+function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
+  const lines: string[] = [];
+  const visit = (items: Element[] | undefined): void => {
+    for (const el of items ?? []) {
+      if (typeNameOf(el) === 'org_docx4j_wml.P') { lines.push(textOfView(el.value as object, { view })); continue; }
+      const v = el.value;
+      if (typeof v === 'object' && v !== null) visit(childrenOf(v));
+    }
+  };
+  for (const cell of cellsOf(tr)) visit(childrenOf(cell.element.value));
+  return lines.join('\n');
+}
+
+/** The changes inside a row, last first, so that a paragraph join never disturbs one still to do. */
+function applyInner(inner: TrackedChange[], what: 'accept' | 'reject'): void {
+  for (let i = inner.length - 1; i >= 0; i--) inner[i]![what]();
+}
 
 function remove(owner: Element[], element: Element): void {
   const i = owner.indexOf(element);
@@ -286,11 +322,14 @@ function collectRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCha
   }
 }
 
-/** The `w:trPr/w:ins` and `w:trPr/w:del` revisions of a table row. */
-export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[]): TrackedChange[] {
+/**
+ * The `w:trPr/w:ins` and `w:trPr/w:del` revisions of a table row. `inner` is the revision markup
+ * of the row's own cells, which the row's change owns rather than reporting separately.
+ */
+export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner: TrackedChange[] = []): TrackedChange[] {
   const trPr = tr.value.trPr;
   const out: TrackedChange[] = [];
-  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins }, undefined));
-  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del }, undefined));
+  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner }, undefined));
+  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner }, undefined));
   return out;
 }

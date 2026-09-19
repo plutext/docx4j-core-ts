@@ -12,6 +12,7 @@ import {
   PresentationPropertiesPart, ViewPropertiesPart, TableStylesPart, CommentAuthorsPart,
 } from '../parts/pml/index.mjs';
 import { DEFAULT_SLIDE_MASTER_XML, DEFAULT_SLIDE_LAYOUT_XML, DEFAULT_SLIDE_XML } from '../parts/pml/defaults.mjs';
+import { addShapes, layoutPlaceholders, slidePlaceholdersFor, type SlideTextOptions } from '../parts/pml/placeholders.mjs';
 import { ThemePart } from '../parts/dml/index.mjs';
 import { newFontSettings, themeOfSettings, type FontSettings, type DefaultThemeValue } from '../model/fonts/defaultTheme.mjs';
 
@@ -63,6 +64,10 @@ export interface CreatePresentationOptions {
   landscape?: boolean;
   /** Which Office theme the new presentation's theme part carries; see `pkg.fonts.defaultTheme`. */
   defaultTheme?: DefaultThemeValue;
+  /** The first slide's title; the placeholder is left empty (PowerPoint's prompt) when absent. */
+  title?: string;
+  /** The first slide's body: a string, split on newlines, or one string per paragraph. */
+  body?: string | string[];
 }
 
 /** A pptx (docx4j PresentationMLPackage). */
@@ -91,6 +96,10 @@ export class PresentationMLPackage extends OpcPackage {
    * The master, layout and slide are docx4j's own template markup
    * (`src/parts/pml/defaults.mts`); the theme is the Office theme `pkg.fonts.defaultTheme` names,
    * the same one `WordprocessingMLPackage.createPackage` uses.
+   *
+   * The layout and the slide also take a title and a body placeholder, which docx4j's markup has
+   * not got: without them PowerPoint opens the slide blank, with no "Click to add title" to type
+   * into (CR-001 section 17). `title` and `body` fill the slide's; left out, it shows the prompts.
    */
   static async createPackage(options: CreatePresentationOptions = {}): Promise<PresentationMLPackage> {
     const pkg = new PresentationMLPackage();
@@ -106,9 +115,15 @@ export class PresentationMLPackage extends OpcPackage {
     }));
     pkg.addTargetPart(pp);
 
-    // The layout, and the master that lists it
+    // The layout, and the master that lists it. The layout defines the two placeholders a slide
+    // inherits its geometry from, so it is a Title and Content layout, not docx4j's empty one.
     const layoutPart = new SlideLayoutPart();
     layoutPart.setXml(DEFAULT_SLIDE_LAYOUT_XML);
+    const layout = await layoutPart.getContents();
+    layout.type = 'obj';
+    layout.preserve = true;
+    layout.cSld.name = 'Title and Content';
+    addShapes(layout.cSld.spTree, layoutPlaceholders(pp.contents.sldSz));
 
     const masterPart = new SlideMasterPart();
     pp.addSlideMasterIdListEntry(masterPart);
@@ -124,9 +139,10 @@ export class PresentationMLPackage extends OpcPackage {
     masterPart.addTargetPart(theme);
     pp.addTargetPart(theme);
 
-    // One slide on the layout
+    // One slide on the layout, with the layout's placeholders on it
     const slidePart = new SlidePart();
     slidePart.setXml(DEFAULT_SLIDE_XML);
+    await addSlidePlaceholders(slidePart, layout.cSld, options);
     pp.addSlideIdListEntry(slidePart);
     slidePart.addTargetPart(layoutPart);
 
@@ -135,16 +151,20 @@ export class PresentationMLPackage extends OpcPackage {
 
   /**
    * Adds a slide part to the presentation (docx4j `MainPresentationPart.addSlide`), on the
-   * layout given or on the presentation's first layout, with docx4j's empty shape tree when the
-   * part has no contents of its own. Appends, or inserts at `index`.
+   * layout given or on the presentation's first layout. The slide carries a shape for each
+   * placeholder that layout defines, so that PowerPoint offers "Click to add title" on it;
+   * `title` and `body` fill them in (`body` is one paragraph per line). Appends, or inserts at
+   * `index`.
    */
-  async addSlide(options: { index?: number; layoutPart?: SlideLayoutPart; partName?: string } = {}): Promise<SlidePart> {
+  async addSlide(options: { index?: number; layoutPart?: SlideLayoutPart; partName?: string } & SlideTextOptions = {}): Promise<SlidePart> {
     const pp = this.getMainPresentationPart();
     await pp.getContents();
     const layoutPart = options.layoutPart ?? this.slideMasterParts[0]?.slideLayoutParts[0];
     if (!layoutPart) throw new Docx4JException('The presentation has no slide layout to put a slide on');
     const slidePart = new SlidePart(options.partName ?? this.nextSlideName());
     slidePart.setXml(DEFAULT_SLIDE_XML);
+    // readContents, not getContents: reading the layout must not cost it its byte-for-byte round trip
+    await addSlidePlaceholders(slidePart, (await layoutPart.readContents()).cSld, options);
     pp.addSlide(slidePart, options.index, layoutPart);
     return slidePart;
   }
@@ -223,6 +243,12 @@ export class PresentationMLPackage extends OpcPackage {
   protected override get progId(): string {
     return 'PowerPoint.Show';
   }
+}
+
+/** The placeholder shapes of a new slide, matching the layout it is on (CR-001 section 17). */
+async function addSlidePlaceholders(slidePart: SlidePart, layout: pml.CommonSlideData | undefined, text: SlideTextOptions): Promise<void> {
+  const sld = await slidePart.getContents();
+  addShapes(sld.cSld.spTree, slidePlaceholdersFor(layout, text));
 }
 
 registerPackageClass(MAIN_CONTENT_TYPES, PresentationMLPackage);

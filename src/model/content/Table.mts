@@ -123,9 +123,8 @@ export class Table {
    */
   deleteRows(rowIndex: number, rowCount = 1): void {
     const tracker = this.changeTracker;
-    const rows = rowsOf(this.tbl).slice(rowIndex, rowIndex + rowCount);
-    for (const row of rows.reverse()) {
-      if (tracker) { tracker.markRowDeleted(row.element.value); continue; }
+    if (tracker) { markRowsDeleted(tracker, this.rows.slice(rowIndex, rowIndex + rowCount)); return; }
+    for (const row of rowsOf(this.tbl).slice(rowIndex, rowIndex + rowCount).reverse()) {
       const i = row.container.indexOf(row.element);
       if (i >= 0) row.container.splice(i, 1);
     }
@@ -134,7 +133,7 @@ export class Table {
   /** Removes the table from its container; tracked, every row is marked deleted instead. */
   delete(): void {
     const tracker = this.changeTracker;
-    if (tracker) { for (const row of rowsOf(this.tbl)) tracker.markRowDeleted(row.element.value); return; }
+    if (tracker) { markRowsDeleted(tracker, this.rows); return; }
     const i = this.index;
     if (i >= 0) this.container.splice(i, 1);
   }
@@ -235,7 +234,7 @@ export class TableRow {
   /** Removes the row; tracked, it stays and takes a `w:trPr/w:del` (CR-002 phase F). */
   delete(): void {
     const tracker = this.parentTable.changeTracker;
-    if (tracker) { tracker.markRowDeleted(this.tr); return; }
+    if (tracker) { markRowsDeleted(tracker, [this]); return; }
     const i = this.container.indexOf(this.element);
     if (i >= 0) this.container.splice(i, 1);
   }
@@ -387,6 +386,22 @@ function ancestorOf(value: object, typeName: string, depth: number): object | un
     current = (current as { PARENT?: object }).PARENT;
   }
   return undefined;
+}
+
+/**
+ * A deleted row is `w:trPr/w:del` on it **and** its whole content marked deleted, which is what
+ * Word writes and what it needs to show the row struck out: every run of every cell in a `w:del`
+ * with `w:delText` for its text, and every paragraph mark `w:pPr/w:rPr/w:del` (CR-002 section 13).
+ * The mirror of `markRowsInserted`. Rows of a nested table go the same way.
+ */
+function markRowsDeleted(tracker: ChangeTracker, rows: TableRow[]): void {
+  for (const row of rows.slice().reverse()) {
+    tracker.markRowDeleted(row.tr);
+    for (const cell of row.cells) {
+      for (const paragraph of cell.paragraphs) paragraph.markDeletedInPlace(tracker);
+      for (const nested of cell.tables) markRowsDeleted(tracker, nested.rows);
+    }
+  }
 }
 
 /** A new row is an insertion: `w:trPr/w:ins` on it and a `w:ins` around every run it holds. */

@@ -422,6 +422,11 @@ Departures from the text above, and from docx4j, all deliberate:
 - The relationship-source hook (`setRelationshipsPartFactory`) and the package registry
   (`registerPackageClass`) exist to avoid ES module cycles between `Part`, `RelationshipsPart`,
   `OpcPackage` and its subclasses; `packages/index.mts` registers the three Office kinds.
+- Three more departures came out of the acceptance run of 2026-09-19 and are recorded in
+  section 17: `createPackage()` writes `w:compat/w:compatSetting compatibilityMode` 15, which
+  docx4j does not; a created presentation's layout and slides carry placeholder shapes, which
+  docx4j's template markup does not; and `XmlPart` re-declares `mc:Ignorable` prefixes on
+  marshal, which section 5.6 assumed the facade would do alone.
 
 ## 13. Phase B execution plan (agreed 2026-09-13)
 
@@ -1611,7 +1616,10 @@ well as from the master, so docx4j's "add it in 2 places" is right, not a quirk.
   whole parts, with a header naming the docx4j commit and the Java files. They are set with
   `setXml`, so a created layout or slide nobody touches is written byte for byte as it is there;
   the master is unmarshalled during creation because `addSlideLayoutIdListEntry` has to append to
-  `p:sldLayoutIdLst`, exactly as docx4j marshals its own tree.
+  `p:sldLayoutIdLst`, exactly as docx4j marshals its own tree. (**Superseded for the layout and
+  the slide by section 17.2**: both are unmarshalled during creation now, to take the placeholder
+  shapes PowerPoint needs before it will offer "Click to add title". The master is still written
+  exactly as it is here.)
 - **Ids** follow docx4j: `p:sldId/@id` random in 256 to 2147483647, `p:sldLayoutId/@id` and
   `p:sldMasterId/@id` random above 2147483648 (ECMA-376 4.8.17, 4.8.18, 4.8.20), exported as
   `nextSlideId()` and `nextSlideLayoutOrMasterId()`. Random means a created package is not
@@ -1764,3 +1772,140 @@ same set):
 - **ZIP64** archives, which the zip container rejects.
 
 **Decided 2026-09-19 (Jason):** `docs/` and `examples/` stay GitHub-only; the npm package ships `dist`, the README (which links the guides), LICENSE and NOTICE, as `package.json`'s `files` already says.
+
+## 17. Acceptance findings of 2026-09-19
+
+The manual acceptance run of `test/README.md` (Word 365, PowerPoint and Excel, checks 3 and 9 to
+13, the first time a created pptx and xlsx were opened in Office) found five things. One, check
+13's "values only on the second tab", was the check's expectation being wrong and not the output:
+the script writes the values into `Sales` and then inserts `Cover` at index 0, so `sheets` order
+is Cover, Sales, Notes and the values are on the second tab. The check text now says so. The
+other four are real, and are fixed here; finding 2 (a tracked row deletion struck nothing out) is
+the content API's and is written up in CR-002 section 13. The three that belong to this CR:
+
+### 17.1 A created document opened in compatibility mode
+
+Word 365 opened every `createPackage()` document with **Compatibility Mode** in the title bar,
+because the settings part was empty: with no `w:compat/w:compatSetting compatibilityMode`, Word
+reads the document as pre-2013 and lays it out by the old rules. `createPackage` now writes, in
+Word's own order and all with `w:uri="http://schemas.microsoft.com/office/word"`:
+
+```xml
+<w:compat>
+  <w:compatSetting w:name="compatibilityMode" w:val="15"/>
+  <w:compatSetting w:name="overrideTableStyleFontSizeAndJustification" w:val="1"/>
+  <w:compatSetting w:name="enableOpenTypeFeatures" w:val="1"/>
+  <w:compatSetting w:name="doNotFlipMirrorIndents" w:val="1"/>
+  <w:compatSetting w:name="differentiateMultirowTableHeaders" w:val="1"/>
+  <w:compatSetting w:name="useWord2013TrackBottomHyphenation" w:val="1"/>
+</w:compat>
+```
+
+- These are the six settings Word 365 writes for a new document, measured by the docx4j session
+  on a re-save (2026-09-19); Word also writes a locale-dependent `w:themeFontLang`, which neither
+  library writes. The shape is docx4j's `DocumentSettingsPart.setWordCompatSetting(name, val)`.
+- **Parity, not a departure.** docx4j wrote no mode at `a58cf10b8` (its `getCompatibilityMode()`
+  answered 12 when absent, and its javadoc said Word opens such a document in compatibility mode);
+  this was first fixed here as a departure, then Jason decided it for docx4j the same day:
+  `9de10aac9` adds `DocumentSettingsPart.setCompatSettingsAsWord365` and `createPackage` writes the
+  same six in the same order, so a created settings part matches docx4j's byte for byte. Any
+  theme year is consistent with mode 15 (the mode is the layout rules, the theme the fonts).
+- `createPackage({ compatibilityMode })` sets the value (`'15'` by default) and `''` leaves the
+  setting out, which is docx4j's behaviour back. Nothing else in the package reads it, and a
+  **loaded** document's settings part is untouched, as every untouched part is (a test asserts
+  `word/settings.xml` of `loadAndSave.docx` is byte-identical after a round trip).
+
+### 17.2 A created presentation's slides were blank
+
+PowerPoint opened `check12-*.pptx` with slides that had nothing on them: no "Click to add title",
+nothing to type into. It offers those only where the **slide** holds placeholder shapes — a
+`p:sp` whose `p:nvSpPr/p:nvPr/p:ph` names a type or an index — matching ones the layout defines;
+docx4j's `COMMON_SLIDE_DATA`, which section 16.1 took as the slide and the layout template, is an
+empty `p:spTree`, and docx4j's own `createPackage` never gets as far as a slide.
+
+`src/parts/pml/placeholders.mts` now builds them with the generated factories (`createShape`,
+`createShapeNvSpPr`, `createNvPr`, `createCTPlaceholder` and the `org_docx4j_dml` creators), not
+markup, so the shapes are the object model's and a caller can go on editing them:
+
+- **The layout** (`createPackage`) becomes a Title and Content layout: `type="obj"`,
+  `preserve="true"`, `p:cSld/@name` "Title and Content", and two placeholder shapes — the title
+  (`p:ph type="title"`) and the body (`p:ph idx="1"`) — each with an `a:xfrm` and PowerPoint's
+  prompt text. The geometry is PowerPoint's own Title and Content layout **as fractions of the
+  slide size** (`placeholderGeometry`), so it holds at every `slideSize` rather than only at 4:3.
+  This is where docx4j's template markup stops being written byte for byte: the layout part is
+  unmarshalled during creation, as the master already was.
+- **Every slide** carries one shape per placeholder its layout defines, bar the date, footer and
+  slide-number ones (`slidePlaceholdersFor`, which reads the layout with `readContents()` so that
+  a loaded package's layout keeps its byte-for-byte round trip), with the layout's `type` and
+  `idx` and **no geometry of its own** — inheriting the layout's is what a placeholder is for.
+  Empty, so PowerPoint shows the prompts.
+- **`addSlide({ title, body })`** and `createPackage({ title, body })` fill them: the title in the
+  first title placeholder, `body` in the first body one as `a:p/a:r/a:t`, one paragraph per line
+  (a string is split on `\n`; an array is one entry per paragraph).
+- Still out, as section 16.6 has it: `ResolvedLayout`, `ShapeWrapper` and real placeholder
+  resolution, notes and handouts, and the master's `p:txStyles` (the layout's own `a:lstStyle`
+  would be the place for per-level text styles, and neither is written).
+
+### 17.3 `mc:Ignorable` naming a prefix nothing declared
+
+`check13-remarshalled.xlsx` was the only file any Office application offered to repair. Measured:
+a re-marshalled `xl/workbook.xml` keeps `mc:Ignorable="x15 xr xr6 xr10 xr2"` — the model binds
+`mc:Ignorable` on `CT_Workbook`, so the attribute survives — but declares only `mc`, `r`, `x15`
+and `xr`. `xr:revisionPtr` (with its `xr6:` and `xr10:` attributes) and `workbookView/@xr2:uid`
+are **not in the object model** and are dropped on unmarshal, so nothing in the tree resolves to
+`xr6`, `xr10` or `xr2`; the runtime declares one prefix per entry of the objects package's
+`NAMESPACE_PREFIXES`, which has none of those three, and the facade's
+`stripUnusedNamespaceDeclarations` only ever *removes* declarations the marshaller made — it
+keeps the ones `mc:Ignorable` names, but it cannot add a declaration that was never made. An
+`mc:Ignorable` naming an undeclared prefix is invalid (ECMA-376 Part 3 10.1.2) and is what Excel
+repairs.
+
+The fix is in `src/parts/XmlPart.mts`, so it covers **every** XML part of every format — the same
+class of defect the comments part had before objects 0.1.3:
+
+- At unmarshal (`getContents` and `readContents`), the source root element's namespace
+  declarations are recorded, prefix to URI, from the DOM as parsed — before the MCE preprocessor
+  touches it.
+- At marshal (`marshalToNode`, and so `getBytes` and `getXml` too), every prefix the marshalled
+  root's `mc:Ignorable` names that the root does not declare is declared: from the recorded map,
+  else from `NAMESPACE_PREFIXES`. A prefix neither knows is **dropped from `mc:Ignorable`** and
+  warned about once — an undeclared prefix is the one thing that must not be written.
+- `test/roundtrip.test.mjs` asserts it for `loadAndSave.xlsx`'s workbook (all five prefixes) and
+  worksheet and for `loadAndSave.docx`'s document and settings parts.
+
+`CLAUDE.md`'s "Nothing here touches prefixes" is now narrower than it was: the facade still owns
+the prefix table and the `xml` rule, and this is the one thing a part adds on top of it.
+
+**Closed in the objects package the same day** (`d8bc453`, unreleased): the facade's root pass now
+declares every prefix `mc:Ignorable` names from its table (grown by `xr2`, `xr3`, `xr6`, `xr10`) and
+drops a prefix it cannot resolve with one warning, docx4j's `McIgnorableNamespaceDeclarator` in
+both halves. The `XmlPart` handling here stays: it re-declares from the source root's own
+declarations, so it covers a prefix bound to a namespace the table does not know, or bound
+unconventionally, where the facade can only drop it. A facade that carried the source's
+declarations through the unmarshal would be a larger change and is not asked for.
+
+
+### 17.4 To relay
+
+- **To the objects package** (its own CR, not fixable here): the facade cannot *add* a namespace
+  declaration, only keep or remove one, so an `mc:Ignorable` prefix the model does not bind loses
+  its declaration. `stripUnusedNamespaceDeclarations` could declare an ignorable prefix it knows
+  from `NAMESPACE_PREFIXES`, and `NAMESPACE_PREFIXES` could gain `xr2`
+  (`.../office/spreadsheetml/2015/revision2`), `xr6` (`.../2016/revision6`) and `xr10`
+  (`.../2016/revision10`), which docx4j's own prefix table also lacks. This package no longer
+  depends on that, but it is the right place for the general rule.
+- **To docx4j**: `CT_Workbook` drops `xr:revisionPtr`, and `CT_BookView` drops
+  `workbookView/@xr2:uid`, because the schema itself does not allow them — checked in
+  `xsd/sml/sml_ECMA376_4ed_transitional.xsd`, where `CT_Workbook` (line 4286) and `CT_BookView`
+  (4368) have **no `xs:any` and no `xs:anyAttribute`**; docx4j's own comment in that file quotes
+  the very markup and the four `xr*` namespaces. The loss is Excel's revision bookkeeping, which
+  Excel rewrites on its next save, so it is lossy but not a repair trigger now that the
+  declarations are written. `CT_Worksheet` has no `mc:Ignorable` attribute at all, so a
+  re-marshalled worksheet loses the attribute outright (nothing is left undeclared, so again no
+  repair). Whether to give those types the wildcards is docx4j's call, as the `mc:AlternateContent`
+  laxity of section 15.4 was.
+- **A CR candidate here**: this package reports nothing about content it drops on unmarshal.
+  docx4j-python has a skipped-content report; with one, `xr:revisionPtr` and `xr2:uid` would have
+  been visible the moment the workbook was unmarshalled instead of at a repair prompt in Excel.
+  Worth a small CR: a per-part list of elements and attributes the model did not bind, collected
+  during unmarshal behind a load option.

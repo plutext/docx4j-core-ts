@@ -293,3 +293,8 @@ export class FontDataPart extends BinaryPart {
     super(partName, ContentTypes.PRESENTATIONML_FONT_DATA, Namespaces.PRESENTATIONML_FONT_DATA);
   }
 }
+
+export {
+  type SlideTextOptions, type Rect, placeholderGeometry, placeholderShape, slidePlaceholders,
+  layoutPlaceholders, addShapes, bodyLines, placeholdersOf, slidePlaceholdersFor,
+} from './placeholders.mjs';

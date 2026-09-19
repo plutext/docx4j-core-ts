@@ -11,6 +11,12 @@
 // whole part, so a created slide, layout or master that nobody touches is written byte for byte
 // as docx4j writes it.  Generated content, not hand markup: do not edit without the Java.
 //
+// The placeholder shapes a created layout and slide also carry are not here either: they are
+// built with the generated factories in `placeholders.mts`, because PowerPoint offers
+// "Click to add title" only where the slide itself holds them (CR-001 section 17.2). So the
+// layout and the slide are unmarshalled during creation and are no longer written byte for byte
+// as they are below; the master still is.
+//
 // The theme part is not here: `createPackage()` uses the same embedded Office themes as
 // `WordprocessingMLPackage.createPackage()` (`src/model/fonts/themes.generated.mts`), so which
 // theme a new presentation carries follows `pkg.fonts.defaultTheme`, as it does for a new

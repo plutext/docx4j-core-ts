@@ -1204,8 +1204,10 @@ What is in:
   `w:pPrChange`; `Table.addRows`, `TableRow.insertRows`, `Table.deleteRows`, `TableRow.delete`
   and `Table.delete` go through `ChangeTracker.markRowInserted` / `markRowDeleted`, which write
   `w:trPr/w:ins` and `w:trPr/w:del` (a deleted row stays in the tree until the change is
-  accepted). `Table` and `ContentControl` needed no tracked branch of their own beyond the
-  rows: their text edits already run through `Paragraph.splice` and `Body.insertText`.
+  accepted) **and, since the acceptance run of 2026-09-19, the row's content too** — see the
+  row-revisions note at the end of this section. `Table` and `ContentControl` needed no tracked
+  branch of their own beyond the rows: their text edits already run through `Paragraph.splice`
+  and `Body.insertText`.
 - **Word's rules**, not just the markup: a run already inside a `w:ins` by the same author is
   extended rather than nested in another one; deleting text that author had inserted takes it
   back instead of nesting a `w:del`; a replacement writes the `w:del` first and the `w:ins`
@@ -1305,6 +1307,40 @@ Departures and deferrals, all deliberate:
   revisions alone (the current properties are what the document shows), accepting here also
   drops `w:rPrChange` and `w:pPrChange`, which is what accepting means for a document that
   is saved again.
+
+### Row revisions: the whole row, not just its `w:trPr` (acceptance run of 2026-09-19)
+
+Word showed a tracked row **deletion** with nothing struck out (`check10.docx`, finding 2 of
+`test/README.md`'s acceptance record). Word writes a deleted row as `w:trPr/w:del` **and** the
+cells' content deleted with it: every run in a `w:del` with its `w:t` turned into `w:delText`,
+and every paragraph mark carrying `w:pPr/w:rPr/w:del`. Only the `w:trPr` was written, so the row
+was marked but its text still read as present, and Word had nothing to strike through. An
+inserted row already did the symmetric thing (`markRowsInserted` marks each paragraph and wraps
+its runs in `w:ins`), which is what made the asymmetry visible.
+
+- **`markRowsDeleted` in `Table.mts`** is now the mirror of `markRowsInserted`: `markRowDeleted`
+  for the `w:trPr`, then `Paragraph.markDeletedInPlace(tracker)` on every paragraph of every
+  cell, and itself again on the rows of a nested table. `markDeletedInPlace` is the same pair of
+  primitives `Paragraph.delete()` uses — `deleteText(tracker, 0, length)` and
+  `markParagraphDeleted` — without its "take back my own insertion" step, which would remove the
+  paragraph element and leave a `w:tc` with no block-level child.
+- **One change per row, as Office JS reports it.** `Body.getTrackedChanges` now collects the
+  revision markup inside a row that is itself a revision into that row's `TrackedChange`
+  (`target.inner`) instead of listing it separately: a deleted row is one `Deleted` row change,
+  an inserted row one `Added` row change, whatever their cells carry. Decided this way because
+  Office JS's `TrackedChange` for a row is the row, because listing a dozen inner changes for one
+  user action reads as a dozen changes in any UI over this API, and because it keeps the
+  insertion and deletion sides symmetric (the inserted-row case was already listing its inner
+  `w:ins`). A row carrying no revision of its own still reports its cells' changes as before.
+- **Accept and reject apply the inner markup with the row**: accepting a deleted row removes it
+  and everything in it; rejecting one drops the `w:trPr/w:del` and rejects the inner changes, so
+  the text comes back as `w:t` and the marks lose their `w:del`; accepting an inserted row drops
+  the `w:trPr/w:ins` and accepts the inner insertions (otherwise the row would keep a `w:ins`
+  around every run); rejecting one removes the row. Both directions are applied last-first, as
+  `acceptAll` is.
+- **`TrackedChange.text` of a deleted row** reads the original view (`rowText(tr, 'original')`,
+  a line per paragraph): the builders' `textOf` is the accepted view, in which a deleted row's
+  content, now that it is `w:delText`, is empty.
 
 Objects-package gaps found (candidates for its own CR, worked around here):
 

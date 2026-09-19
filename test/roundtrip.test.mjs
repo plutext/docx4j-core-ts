@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { OpcPackage, WordprocessingMLPackage, ZipPartStore, FlatOpcPartStore, MemoryPartSink, XmlPart, RelationshipsPart, unmarshalPackage, ContentTypes } from '../dist/index.mjs';
+import { OpcPackage, WordprocessingMLPackage, SpreadsheetMLPackage, ZipPartStore, FlatOpcPartStore, MemoryPartSink, XmlPart, RelationshipsPart, unmarshalPackage, ContentTypes } from '../dist/index.mjs';
 import { fixture, bytesEqual, plain } from './helpers.mjs';
 
 async function checkRoundTrip(name, touch) {
@@ -126,4 +126,42 @@ test('round trip: memory sink and unmarshalAll', async () => {
   assert.equal(store.contentTypes.get('word/document22.xml'), ContentTypes.WORDPROCESSINGML_DOCUMENT);
   const back = await OpcPackage.load(store);
   assert.equal(back.parts.size, pkg.parts.size);
+});
+
+test('a re-marshalled part declares every prefix its mc:Ignorable names', async () => {
+  // Excel's xl/workbook.xml carries mc:Ignorable="x15 xr xr6 xr10 xr2" and xr:revisionPtr, whose
+  // xr6/xr10 attributes and whose xr2:uid the object model does not bind; dropping them dropped
+  // their declarations too, and an mc:Ignorable naming an undeclared prefix is what Excel offers
+  // to repair (CR-001 section 17). XmlPart re-declares them from the source root.
+  // the prefixes a root's mc:Ignorable names, each of which it must also declare; [] when the
+  // marshalled root has no mc:Ignorable (the model binds the attribute on w:document, w:settings
+  // and CT_Workbook, but not on CT_Worksheet, which therefore loses it - lossy, but not a repair
+  // trigger, since nothing is left undeclared)
+  const declarations = (xml, tag) => {
+    const at = xml.indexOf(tag);
+    assert.ok(at >= 0, `${tag} in the saved part`);
+    const root = xml.slice(at, xml.indexOf('>', at) + 1);
+    const ignorable = /mc:Ignorable="([^"]*)"/.exec(root);
+    if (!ignorable) return [];
+    const prefixes = ignorable[1].split(/\s+/).filter((p) => p !== '');
+    for (const p of prefixes) assert.ok(root.includes(`xmlns:${p}="`), `xmlns:${p} declared on ${tag}: ${root}`);
+    return prefixes;
+  };
+  const decode = (bytes) => new TextDecoder().decode(bytes);
+
+  const xlsx = await SpreadsheetMLPackage.load(await fixture('loadAndSave.xlsx'));
+  const workbookPart = xlsx.getWorkbookPart();
+  await workbookPart.getContents();
+  const sheet = xlsx.worksheetParts[0];
+  await sheet.getContents();
+  const saved = new ZipPartStore(await xlsx.save());
+  assert.deepEqual(declarations(decode(saved.loadSync('xl/workbook.xml')), '<workbook'), ['x15', 'xr', 'xr6', 'xr10', 'xr2']);
+  declarations(decode(saved.loadSync(sheet.partName.name.slice(1))), '<worksheet');
+
+  const docx = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
+  await docx.getMainDocumentPart().getContents();
+  await docx.getMainDocumentPart().documentSettingsPart.getContents();
+  const savedDocx = new ZipPartStore(await docx.save());
+  assert.ok(declarations(decode(savedDocx.loadSync('word/document.xml')), '<w:document').includes('w14'));
+  assert.ok(declarations(decode(savedDocx.loadSync('word/settings.xml')), '<w:settings').length > 0);
 });

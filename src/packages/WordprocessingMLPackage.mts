@@ -1,4 +1,5 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import { createCTCompat, createCTCompatSetting } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { OpcPackage, type PackageSource } from './OpcPackage.mjs';
 import { registerPackageClass } from './registry.mjs';
 import type { LoadOptions } from '../opc/Load.mjs';
@@ -63,7 +64,34 @@ export interface CreatePackageOptions {
    *  resolve against: `'2023'` (the default, Word 365's Aptos Display / Aptos), `'2013'`
    *  (Calibri Light / Calibri) or `'2007'` (Cambria / Calibri). Sets `pkg.fonts.defaultTheme`. */
   defaultTheme?: DefaultThemeValue;
+  /** The `w:compat/w:compatSetting` value for `compatibilityMode`: `'15'` (the default) is what
+   *  Word 2013 and later write, and is what keeps Word 365 out of compatibility mode. `''`
+   *  leaves the setting out, which is docx4j's own `createPackage` behaviour. */
+  compatibilityMode?: string;
 }
+
+/** The URI of Word's own compatibility settings (docx4j `DocumentSettingsPart.setWordCompatSetting`). */
+const WORD_COMPAT_URI = 'http://schemas.microsoft.com/office/word';
+
+/**
+ * The `w:compat/w:compatSetting`s a created document carries, in the order Word writes them.
+ * `compatibilityMode` 15 is what Word 2013 and later write and is what keeps Word 365 out of
+ * compatibility mode; `overrideTableStyleFontSizeAndJustification` is docx4j's own
+ * (`DocumentSettingsPart.setOverrideTableStyleFontSizeAndJustification`). Word 365 writes four
+ * more - `enableOpenTypeFeatures`, `doNotFlipMirrorIndents`, `differentiateMultirowTableHeaders`
+ * and `useWord2013TrackBottomHyphenation`, all 1 - plus a locale-dependent `w:themeFontLang`,
+ * which are deliberately left out for now (CR-001 section 17); adding them is one edit here.
+ */
+const DEFAULT_COMPAT_SETTINGS: ReadonlyArray<{ name: string; val: string }> = [
+  // The six settings Word 365 writes for a new document, in its order; docx4j's
+  // DocumentSettingsPart.setCompatSettingsAsWord365 (9de10aac9) writes the same six.
+  { name: 'compatibilityMode', val: '15' },
+  { name: 'overrideTableStyleFontSizeAndJustification', val: '1' },
+  { name: 'enableOpenTypeFeatures', val: '1' },
+  { name: 'doNotFlipMirrorIndents', val: '1' },
+  { name: 'differentiateMultirowTableHeaders', val: '1' },
+  { name: 'useWord2013TrackBottomHyphenation', val: '1' },
+];
 
 /** A docx (docx4j WordprocessingMLPackage). */
 export class WordprocessingMLPackage extends OpcPackage implements TrackingHost {
@@ -123,8 +151,20 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     styles.setXml(DEFAULT_STYLES_XML);
     main.addTargetPart(styles);
 
+    /* The settings part carries `w:compat/w:compatSetting compatibilityMode` 15, which Word 2013
+     * and later write into every document they create: without it Word 365 opens the document in
+     * compatibility mode ("Compatibility Mode" in the title bar, the pre-2013 layout rules).
+     * docx4j writes no mode at all (its `getCompatibilityMode()` answers 12 when the setting is
+     * absent, and says so), so this is a deliberate departure from it (CR-001 section 17);
+     * `{ compatibilityMode: '' }` leaves the setting out and gets docx4j's behaviour back. */
     const settings = new DocumentSettingsPart();
-    settings.setContents({});
+    const compatibilityMode = options.compatibilityMode ?? '15';
+    const compatSetting = DEFAULT_COMPAT_SETTINGS
+      .filter((s) => s.name !== 'compatibilityMode' || compatibilityMode !== '')
+      .map((s) => createCTCompatSetting({
+        name: s.name, uri: WORD_COMPAT_URI, val: s.name === 'compatibilityMode' ? compatibilityMode : s.val,
+      }));
+    settings.setContents({ compat: createCTCompat({ compatSetting }) });
     main.addTargetPart(settings);
 
     const core = new DocPropsCorePart();

@@ -407,6 +407,20 @@ export class Paragraph {
     tracker.markParagraphDeleted(this.p);
   }
 
+  /**
+   * The paragraph's content and its mark marked deleted, the paragraph element itself kept:
+   * what the cells of a deleted table row need (a `w:tc` must keep a block-level child, and Word
+   * writes `w:del` around every run and `w:pPr/w:rPr/w:del` on every mark inside a deleted row).
+   * The same primitives `delete()` uses, without its "take back my own insertion" step.
+   * Does nothing when the mark is already deleted.
+   */
+  markDeletedInPlace(tracker: ChangeTracker): void {
+    if (markDeleted(this.p)) return;
+    const length = this.text.length;
+    if (length > 0) this.deleteText(tracker, 0, length);
+    tracker.markParagraphDeleted(this.p);
+  }
+
   /** The paragraph as XML (extension; Office JS getOoxml wraps it in a package). */
   getXml(): Promise<string> {
     return marshalString(this.element as Element);

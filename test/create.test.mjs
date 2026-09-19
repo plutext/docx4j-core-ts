@@ -39,6 +39,34 @@ test('createPackage: a new docx saves and reloads', async () => {
   assert.equal(back.relationshipsPart.getRelationshipByType(Namespaces.PROPERTIES_CORE).target, 'docProps/core.xml');
 });
 
+test('createPackage: the settings part carries compatibilityMode 15, and a loaded document\'s is untouched', async () => {
+  // Without it Word 365 opens the document in compatibility mode (CR-001 section 17).
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const settings = pkg.getMainDocumentPart().documentSettingsPart;
+  assert.deepEqual(settings.contents.compat.compatSetting.map((s) => [s.name, s.uri, s.val]), [
+    ['compatibilityMode', 'http://schemas.microsoft.com/office/word', '15'],
+    ['overrideTableStyleFontSizeAndJustification', 'http://schemas.microsoft.com/office/word', '1'],
+    ['enableOpenTypeFeatures', 'http://schemas.microsoft.com/office/word', '1'],
+    ['doNotFlipMirrorIndents', 'http://schemas.microsoft.com/office/word', '1'],
+    ['differentiateMultirowTableHeaders', 'http://schemas.microsoft.com/office/word', '1'],
+    ['useWord2013TrackBottomHyphenation', 'http://schemas.microsoft.com/office/word', '1'],
+  ]);
+  const xml = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/settings.xml'));
+  assert.match(xml, /<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http:\/\/schemas.microsoft.com\/office\/word" w:val="15"\/>/);
+
+  // the option, and docx4j's own behaviour back
+  const at14 = await WordprocessingMLPackage.createPackage({ compatibilityMode: '14' });
+  assert.equal(at14.getMainDocumentPart().documentSettingsPart.contents.compat.compatSetting[0].val, '14');
+  const none = await WordprocessingMLPackage.createPackage({ compatibilityMode: '' });
+  assert.deepEqual(none.getMainDocumentPart().documentSettingsPart.contents.compat.compatSetting.map((s) => s.name), ['overrideTableStyleFontSizeAndJustification', 'enableOpenTypeFeatures', 'doNotFlipMirrorIndents', 'differentiateMultirowTableHeaders', 'useWord2013TrackBottomHyphenation']);
+
+  // an existing document's settings part is left exactly as it was
+  const original = await fixture('loadAndSave.docx');
+  const loaded = await WordprocessingMLPackage.load(original);
+  const saved = new ZipPartStore(await loaded.save());
+  assert.ok(bytesEqual(new ZipPartStore(original).loadSync('word/settings.xml'), saved.loadSync('word/settings.xml')));
+});
+
 test('addTargetPart: image with a rels entry and a default content type', async () => {
   const pkg = await WordprocessingMLPackage.load(await fixture('HelloWordOnline.docx'));
   const main = pkg.getMainDocumentPart();
@@ -154,12 +182,35 @@ test('PresentationMLPackage.createPackage: a new pptx saves and reloads', async 
   assert.ok(presentation.sldMasterIdLst.sldMasterId[0].id > 2147483648);
   const sld = await slides[0].getContents();
   assert.equal(sld.cSld.spTree.nvGrpSpPr.cNvPr.id, 1);
-  // a second slide
-  const added = await back.addSlide();
+
+  // the slide's placeholders: PowerPoint shows "Click to add title" only where the slide itself
+  // has them (CR-001 section 17). Empty on a created slide, matching the layout's.
+  const shapes = sld.cSld.spTree.spOrGrpSpOrGraphicFrame;
+  assert.deepEqual(shapes.map((s) => [s.nvSpPr.nvPr.ph.type, s.nvSpPr.nvPr.ph.idx]), [['title', undefined], [undefined, 1]]);
+  assert.deepEqual(shapes.map((s) => s.txBody.p.length), [1, 1]);
+  assert.equal(shapes[0].txBody.p[0].egTextRun, undefined, 'empty, so PowerPoint shows the prompt');
+  assert.ok(shapes[0].nvSpPr.cNvSpPr.spLocks.noGrp);
+  assert.equal(shapes[0].spPr.xfrm, undefined, 'the geometry is the layout\'s');
+
+  // and the layout defines them, with the geometry the slide inherits
+  const layout = await slides[0].slideLayoutPart.getContents();
+  const layoutShapes = layout.cSld.spTree.spOrGrpSpOrGraphicFrame;
+  assert.deepEqual(layoutShapes.map((s) => [s.nvSpPr.nvPr.ph.type, s.nvSpPr.nvPr.ph.idx]), [['title', undefined], [undefined, 1]]);
+  assert.equal(layoutShapes[0].spPr.xfrm.off.x, 685800);
+  assert.ok(layoutShapes[0].spPr.xfrm.ext.cx > 0 && layoutShapes[1].spPr.xfrm.ext.cy > 0);
+  assert.equal(layoutShapes[0].txBody.p[0].egTextRun[0].t, 'Click to edit Master title style');
+
+  // a second slide, with text in its placeholders
+  const added = await back.addSlide({ title: 'The title', body: 'First line\nSecond line' });
   assert.equal(added.partName.name, '/ppt/slides/slide2.xml');
   assert.equal(back.slideParts.length, 2);
+  const addedShapes = added.contents.cSld.spTree.spOrGrpSpOrGraphicFrame;
+  assert.equal(addedShapes[0].txBody.p[0].egTextRun[0].t, 'The title');
+  assert.deepEqual(addedShapes[1].txBody.p.map((p) => p.egTextRun[0].t), ['First line', 'Second line']);
   const again = await PresentationMLPackage.load(await back.save());
   assert.equal((await again.getSlideParts()).length, 2);
+  const reloaded = await (await again.getSlideParts())[1].getContents();
+  assert.equal(reloaded.cSld.spTree.spOrGrpSpOrGraphicFrame[0].txBody.p[0].egTextRun[0].t, 'The title');
 });
 
 test('createSlideSize: docx4j\'s well-known sizes, portrait swapping the two', () => {

@@ -338,24 +338,29 @@ export class Body {
   /** Every tracked change in this body, in document order. */
   getTrackedChanges(): TrackedChange[] {
     const out: TrackedChange[] = [];
-    const visit = (items: Element[]): void => {
+    const visit = (items: Element[], into: TrackedChange[]): void => {
       for (const el of items) {
         const tn = typeNameOf(el);
-        if (tn === 'org_docx4j_wml.P') { out.push(...new Paragraph(el as Element<wml.P>, items, this).getTrackedChanges()); continue; }
+        if (tn === 'org_docx4j_wml.P') { into.push(...new Paragraph(el as Element<wml.P>, items, this).getTrackedChanges()); continue; }
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (tn === 'org_docx4j_wml.Tbl') {
           for (const row of rowsOf(v)) {
-            out.push(...trackedChangesOfRow(row.element, row.container));
-            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
+            // A row that is itself a revision reports as one change, as Office JS does: the
+            // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
+            // belongs to that change, which accepts or rejects it along with the row.
+            const inner: TrackedChange[] = [];
+            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? [], inner);
+            const rowChanges = trackedChangesOfRow(row.element, row.container, inner);
+            into.push(...(rowChanges.length > 0 ? rowChanges : inner));
           }
           continue;
         }
         const children = childrenOf(v);
-        if (children) visit(children);
+        if (children) visit(children, into);
       }
     };
-    visit(this.content);
+    visit(this.content, out);
     return out;
   }
 

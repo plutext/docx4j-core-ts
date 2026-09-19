@@ -74,18 +74,39 @@ a pull request when an answer changes.
 
 ## Word acceptance (manual)
 
-Last run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002
+Last run: 2026-09-19, Word 365, PowerPoint and Excel, after CR-001 Phase C: checks 3 and 9 to 13.
+What passed: check 3's theme fonts (Design > Fonts showed the Office theme each `defaultTheme`
+names, and the body text in the theme's body face), check 9 (Word showed **Jane Doe** from the
+custom XML part, and `invoice2013.docx`'s checkbox, date, repeating sections and picture control
+all still worked), check 11's list labels and the shared-abstract edit, check 12's slide sizes,
+master, layout and theme fonts, check 13's tab order and values, and every file but one opened
+without a repair prompt. Five things were found, and are fixed in the same change as this record:
+
+1. **Every created docx opened in compatibility mode** (check 3). `createPackage()` wrote an
+   empty `w:settings`, so Word 365 treated the document as pre-2013. It now writes
+   `w:compat/w:compatSetting compatibilityMode` 15 (CR-001 section 17).
+2. **A tracked row deletion showed no struck-out content** (check 10). Word marks a deleted row
+   with `w:trPr/w:del` *and* every cell's content deleted; only the `w:trPr` was written
+   (CR-002 section 13).
+3. **The created pptx's slides were blank** (check 12): the slide's `p:spTree` was empty, so
+   PowerPoint had no "Click to add title" to offer. The layout and every created slide now carry
+   a title and a body placeholder (CR-001 section 17).
+4. **`check13-remarshalled.xlsx` was the one file Excel offered to repair** (check 13): the
+   re-marshalled `xl/workbook.xml` kept `mc:Ignorable="x15 xr xr6 xr10 xr2"` while declaring only
+   `x15` and `xr`. `XmlPart` now re-declares an ignorable prefix the model dropped
+   (CR-001 section 17).
+5. **Check 13's expectation was wrong**, not the output: the script inserts `Cover` at index 0
+   after writing the values into `Sales`, so values on the second tab is right. The check text
+   below now says so.
+
+Checks 3, 10, 12 and 13 are to be re-run against the fixed code.
+
+Previous run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002
 phases C, G and I: checks 6 to 8, with the script below, all passed. Check 7 as expected shows the fixture's own text, not the
 replacement, on the document surface: the control is bound to a custom XML part, and Word
 re-reads a bound control from the XML part on open, so the replaced `w:sdtContent` is
 overwritten by the stale binding. The control, its title and its binding survived, which is
 what the check is for; writing through the binding is CR-002 phase E (`XmlMapping`).
-
-Outstanding: **check 3**, since CR-001 Phase B step 4 gave `createPackage()` a theme part
-(nine zip entries instead of eight) and the default theme setting. It has not been opened in
-Word since; the three `defaultTheme` values are the thing to look at (Design > Fonts).
-**Checks 12 and 13** are outstanding too: CR-001 Phase C added them, and a created pptx and xlsx
-have not yet been opened in PowerPoint and Excel.
 
 Previous run: 2026-09-10, Word 2016, after CR-001 Phase A and CR-002 phases B and D. All four
 files below opened without a repair prompt: the untouched round trip, the round trip with the
@@ -101,6 +122,9 @@ namespaces, content types or the zip writer, check by hand:
 2. Re-marshalled main part: as 1, but `await pkg.getMainDocumentPart().getContents()` before
    saving. Word must accept the `mc:Ignorable` prefixes and the `xml:space` attributes.
 3. New document: `WordprocessingMLPackage.createPackage()` with a paragraph added, saved, opened.
+   The title bar must **not** say Compatibility Mode: since CR-001 section 17 the settings part
+   carries `w:compat/w:compatSetting compatibilityMode` 15, as Word 2013 and later write (File >
+   Info > Convert must be absent, and Word's own re-save must not change the layout).
    Styles pane shows Normal and Heading 1 to 4. Since CR-001 Phase B step 4 the package also
    carries a theme part (`word/theme/theme1.xml`, nine parts in the zip instead of eight), so
    Design > Fonts must show the Office theme - Aptos Display / Aptos by default, and Calibri
@@ -142,7 +166,10 @@ namespaces, content types or the zip writer, check by hand:
 10. Tracked changes (CR-002 phase F): with `pkg.author` set and `pkg.changeTrackingMode =
    'TrackAll'`, make one of each kind — insert text, delete text, replace a word, change a
    run's formatting and a paragraph's style, add a paragraph, delete a paragraph, add a table
-   row and delete another — then save and open in Word. No repair prompt; Word must show every
+   row and delete another — then save and open in Word. The deleted row must show **struck out**,
+   cell text and all (CR-002 section 13: `w:trPr/w:del` plus a `w:del` around every run and
+   `w:pPr/w:rPr/w:del` on every paragraph mark in it), and the inserted row underlined.
+   No repair prompt; Word must show every
    change in the review pane under the author from `pkg.author`, with the date from
    `pkg.trackedChangeDate`; Accept All must leave the document reading as `body.text` did, and
    Reject All as `body.getText({ view: 'original' })` did. Check too that Word's own Accept All
@@ -161,18 +188,23 @@ namespaces, content types or the zip writer, check by hand:
    only the edited list may change in Word.
 
 12. A created presentation (CR-001 Phase C): `PresentationMLPackage.createPackage()`, saved and
-   opened in PowerPoint. No repair prompt; one slide, blank, in the Slides pane, at the slide size
+   opened in PowerPoint. No repair prompt; one slide in the Slides pane, at the slide size
    asked for (View > Slide Master shows the one master with its one layout, and Design > Variants >
-   Fonts the theme `defaultTheme` names). Check `createPackage({ slideSize: 'SCREEN16x9' })` and
-   `{ slideSize: 'A4', landscape: false }`, and a second slide from `addSlide()`.
+   Fonts the theme `defaultTheme` names). The slide must show **Click to add title** and
+   **Click to add text**, both clickable and typable, at the layout's positions (CR-001 section
+   17); `addSlide({ title, body })` must show that text instead, one paragraph per body line.
+   Check `createPackage({ slideSize: 'SCREEN16x9' })` and `{ slideSize: 'A4', landscape: false }`,
+   and a second slide from `addSlide()`.
 
 13. A created workbook (CR-001 Phase C): `SpreadsheetMLPackage.createPackage()` with
    `createWorksheetPart('Sales')` and a few rows written into `sheetData`, saved and opened in
-   Excel. No repair prompt; one tab named Sales with the values in A1 down. Check a second sheet
-   and one inserted first (`createWorksheetPart('Cover', 0)`): Excel must show the tabs in
-   `sheets` order, Cover first. Also round-trip the two fixtures (check 5) after unmarshalling
-   their main parts, to see a re-marshalled `ppt/presentation.xml` and `xl/workbook.xml` open
-   (the workbook loses Excel's `x15ac:absPath`, which is expected: CR-001 section 16).
+   Excel. No repair prompt. The script below writes the values into `Sales` and then inserts
+   `Cover` at index 0, so Excel must show three tabs in `sheets` order — **Cover first and empty,
+   Sales second with the Q1 and Q2 rows in A1 down, Notes third and empty** — which is what
+   `createWorksheetPart(name, index?)` inserting rather than appending means. Also round-trip the
+   two fixtures (check 5) after unmarshalling their main parts, to see a re-marshalled
+   `ppt/presentation.xml` and `xl/workbook.xml` open (the workbook loses Excel's
+   `x15ac:absPath` and its `xr:revisionPtr`, which is expected: CR-001 sections 16 and 17).
 
 A small Node script for 1 to 3 is:
 
@@ -253,14 +285,15 @@ import { writeFile, readFile } from 'node:fs/promises';
 import { PresentationMLPackage, SpreadsheetMLPackage } from './dist/index.mjs';
 import { createRow, createCell } from '@docx4j/generated-objects-ts/factory/org_xlsx4j_sml';
 
-// 12. a created presentation, at two slide sizes, the second with a second slide
+// 12. a created presentation, at two slide sizes: slide 1 shows the prompts, slide 2 the text
 for (const [name, options] of [['16x9', { slideSize: 'SCREEN16x9' }], ['a4-portrait', { slideSize: 'A4', landscape: false }]]) {
   const deck = await PresentationMLPackage.createPackage(options);
-  if (name === '16x9') await deck.addSlide();
+  if (name === '16x9') await deck.addSlide({ title: 'The second slide', body: 'One body line\nAnd another' });
   await writeFile(`check12-${name}.pptx`, await deck.save());
 }
 
-// 13. a created workbook: three tabs, Cover inserted first, values in the first
+// 13. a created workbook: values into Sales, then Notes appended and Cover inserted first, so the
+// tabs are Cover (empty), Sales (Q1 and Q2), Notes (empty) - `sheets` order, not creation order
 const book = await SpreadsheetMLPackage.createPackage();
 const sheet = book.createWorksheetPart('Sales');
 book.createWorksheetPart('Notes');
