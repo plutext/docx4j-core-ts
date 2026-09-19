@@ -1543,24 +1543,26 @@ if the model binds its whole content**, so any kept branch is verified in the pr
 application before the preprocessor's default changes. Nothing in WordprocessingML traversal or
 numbering moved; the goldens stand.
 
-**Objects regeneration for CR-021 (2026-09-19, objects commit `fc6d851` from docx4j `e864468a4`,
-unreleased; 0.1.5 proposed).** Shape changes for this package when it upgrades: `P.content` and
-the other run-content unions (`Hyperlink`, `P.Dir`, `P.Bdo`, `CTSimpleField`, `CTSmartTagRun`,
-`CTCustomXmlRun`, `CTSdtContentRun`) gain an `mc:AlternateContent` member (additive; an exhaustive
-narrowing needs a new arm); `NumPicBullet.alternateContent`; DrawingML's `CTTextParagraph` admits
-`a14` math; `Workbook.alternateContent` (SpreadsheetML) becomes optional, a compile error for any
-reader (none here). **The constraint on section 5.6**, measured in the objects package rather than
-assumed: `mc:Choice` and `mc:Fallback` map to an `anyElement` property generated with
-`allowDom: false`, so a kept branch unmarshals only when every child is a global element the
-context types (`wps:wsp`, `w:r`: yes; `w:tbl`, a local element, or any untyped namespace: the whole
-unmarshal throws). This package's default therefore stays resolve-on-load, which inlines the
-chosen branch's children where local elements are legal and never meets the throw. Keeping
-branches unresolved needs the two wildcards to admit DOM: the objects session traced
-`allowDom: false` to docx4j's `xsd/mce/markup-compatibility-2006-MINIMAL.xsd`, where `mc:Choice`
-and `mc:Fallback` declare `processContents="strict"` (the compiler reflects it faithfully; the flat
-OPC part's `xmlData` is `skip`, and `a14`'s `CT_TextMath.any` is `lax`, which is the behaviour
-wanted: typed when known, DOM otherwise). So the prerequisite for any change of the 5.6 default is
-docx4j changing those two wildcards to `lax` and the objects package regenerating; no compiler
-change. Proposed to the docx4j session by the objects session on 2026-09-19 (it likely changes the
-Java model too, their call against the CR-021 phase 2 tests). The objects package's `textOf` now
-follows docx4j's `McSelection` through `mcBranchOf`.
+**Objects regeneration for CR-021 (2026-09-19; objects commits `fc6d851` from docx4j `e864468a4`,
+then `9afaba8` from docx4j `a58cf10b8`; unreleased, 0.1.5 proposed).** Shape changes for this
+package when it upgrades: `P.content` and the other run-content unions (`Hyperlink`, `P.Dir`,
+`P.Bdo`, `CTSimpleField`, `CTSmartTagRun`, `CTCustomXmlRun`, `CTSdtContentRun`) gain an
+`mc:AlternateContent` member (additive; an exhaustive narrowing needs a new arm);
+`NumPicBullet.alternateContent`; DrawingML's `CTTextParagraph` admits `a14` math;
+`Workbook.alternateContent` (SpreadsheetML) becomes optional, a compile error for any reader (none
+here). **The constraint on section 5.6, and its removal, in one day.** The first regeneration
+measured that a kept `mc:Choice` loaded only when every child was a global element the context
+types (`wps:wsp`, `w:r`: yes; `w:tbl` or an untyped namespace: the whole unmarshal threw): the
+objects session traced it to `processContents="strict"` on the two wildcards in docx4j's
+`xsd/mce/markup-compatibility-2006-MINIMAL.xsd`, docx4j changed them to `lax` (`a58cf10b8`), and
+the second regeneration's diff was exactly the two `allowDom: false` flags disappearing. Measured
+after: a Choice holding `w:r` is typed as before; one holding `w:tbl` or a vendor-namespace element
+loads as a DOM element and round-trips unchanged, attributes and text intact. So keeping
+`mc:AlternateContent` unresolved is now lossless. This package's default nonetheless stays
+resolve-on-load, for the two reasons the objects session weighed: a DOM branch is opaque to the
+typed views (`textOf` reads nothing from it, `find` and `walk` do not enter it; `walkAll` does), and
+"typed inside a branch" means the mapping's global elements, which is not the set docx4j's Java
+binds (`w:tbl` is bound there through an `@XmlRootElement`, not here; a compiler change, filed
+nowhere while nothing needs it). Section 5.6's default becomes a decision to revisit when a
+consumer needs a byte-faithful re-marshal of both branches. The objects package's `textOf` follows
+docx4j's `McSelection` through `mcBranchOf`.
