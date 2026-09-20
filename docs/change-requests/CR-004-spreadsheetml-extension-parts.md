@@ -1,7 +1,9 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Proposed 2026-09-20. Phase A ready to implement; Phase B waits on the objects package's
-regeneration from docx4j CR-022 (the `x14` and `x15` Excel modules).
+**Status:** Proposed 2026-09-20. Phase A ready to implement; Phase B unblocked the same day by
+objects 0.1.6 (the docx4j CR-022 regeneration, the `x14` and `x15` Excel modules; 0.1.5 carried
+it but could not load a pptx or xlsx whose text body holds an equation, CR-001 section 17.5),
+which this package now depends on.
 **Depends on:** CR-001 Phase A (parts, registry, `DefaultXmlPart`, `BinaryPart`); for Phase B, the
 objects package's CR-022 regeneration (done 2026-09-20 as objects `141f6bd` from docx4j `16844ff03`,
 unreleased: six new modules including `x14` and `x15`, the seven roots unmarshalling typed,

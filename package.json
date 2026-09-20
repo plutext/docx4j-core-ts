@@ -46,7 +46,7 @@
     "build": "tsc -p tsconfig.build.json",
     "generate:fonts": "node scripts/generate-substitutions.mjs",
     "typecheck": "tsc -p tsconfig.json && npm run typecheck:examples",
-    "typecheck:examples": "tsc -p examples/office-addin/tsconfig.json",
+    "typecheck:examples": "npm run build && tsc -p examples/office-addin/tsconfig.json",
     "pretest": "node scripts/generate-supported.mjs",
     "test": "npm run build && tsc -p test/nodenext/tsconfig.json && node --test test/*.test.mjs",
     "prepublishOnly": "npm run typecheck && npm test"
@@ -75,7 +75,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@docx4j/generated-objects-ts": "^0.1.4",
+    "@docx4j/generated-objects-ts": "^0.1.6",
     "fflate": "^0.8.2"
   },
   "devDependencies": {

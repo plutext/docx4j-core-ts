@@ -64,10 +64,30 @@ test('the fallback branch when nothing is understood; preprocessing off', async 
   assert.ok(xml.includes('<w:pict'), 'fallback branch');
   assert.ok(!xml.includes('<w:drawing'));
 
-  // Off: the model types mc:AlternateContent only where a global element can follow; a
-  // w:drawing inside mc:Choice cannot be unmarshalled (it is a local element), as in docx4j.
+  // Off: since the CR-021 regeneration (objects 0.1.5) the model admits mc:AlternateContent in
+  // the WordprocessingML hosts, so the part unmarshals with the element typed and both branches
+  // kept as DOM, and a save writes both back: nothing is lost, but the content API cannot see a
+  // w:drawing inside a DOM branch, which is why resolving on load stays the default (CR-001
+  // section 17.5).
   const raw = await OpcPackage.load(await fixture('loadAndSave.docx'), { mcePreprocess: false });
-  await assert.rejects(() => raw.getMainDocumentPart().getContents());
+  const contents = await raw.getMainDocumentPart().getContents();
+  const alternates = [];
+  const walk = (v) => {
+    if (!v || typeof v !== 'object' || v.nodeType) return;
+    if (v.TYPE_NAME === 'org_docx4j_mce.AlternateContent') alternates.push(v);
+    for (const k of Object.keys(v)) if (k !== 'PARENT') walk(v[k]);
+  };
+  walk(contents);
+  assert.equal(alternates.length, 1);
+  assert.equal(alternates[0].choice.length, 1);
+  assert.equal(alternates[0].choice[0].requires, 'wps');
+  assert.equal(alternates[0].choice[0].any[0].nodeName, 'w:drawing');
+  assert.equal(alternates[0].fallback.any[0].nodeName, 'w:pict');
+  const source = new TextDecoder().decode(new ZipPartStore(await fixture('loadAndSave.docx')).loadSync('word/document.xml'));
+  const saved = new TextDecoder().decode(new ZipPartStore(await raw.save()).loadSync('word/document.xml'));
+  for (const tag of ['<mc:AlternateContent', '<mc:Choice', '<mc:Fallback', '<w:drawing', '<w:pict']) {
+    assert.equal(saved.split(tag).length, source.split(tag).length, `${tag} kept`);
+  }
 });
 
 test('a re-marshalled document declares the conventional prefixes and the mc:Ignorable ones', async () => {

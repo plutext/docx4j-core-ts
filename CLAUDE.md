@@ -33,7 +33,8 @@ npm ci              # fflate, typescript, xpath (dev; an optional peer for consu
 
 npm run build       # tsc -p tsconfig.build.json: src/ -> dist/ (git-ignored)
 npm run typecheck   # tsc --strict over src/ and test/*.ts, then typecheck:examples (skipLibCheck: fflate 0.8.3's typings need TS 5.7)
-npm run typecheck:examples   # examples/office-addin's own tsconfig (the Office globals are a local .d.ts, not @types/office-js)
+npm run typecheck:examples   # builds, then examples/office-addin's own tsconfig: the taskpane imports the package by name, resolved
+                    # through exports to dist/*.d.mts (the Office globals are a local .d.ts, not @types/office-js)
 npm test            # pretest regenerates src/office-js/supported.generated.mts; then build, the nodenext consumer check (test/nodenext), node --test test/*.test.mjs
                     # (a shell glob: Node 22 does not accept a directory, and Node 18 would also run test/helpers.mjs)
 node --test test/roundtrip.test.mjs   # one file, after npm run build
@@ -128,7 +129,8 @@ Key mechanics:
 
 `test/*.test.mjs` on Node's runner, against `dist/` (`content.test.mjs` covers the content API,
 `create.test.mjs` the created docx, pptx and xlsx, `directory.test.mjs` the `./node` container and
-`clone()`, `examples.test.mjs` runs every example in a child process and asserts a line of its
+`clone()`, `omml.test.mjs` an equation in DrawingML text (docx4j `OmmlInDrawingMLTextTest`),
+`examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance
 checklist. The contract: untouched parts byte-identical after a round trip, re-marshalled parts

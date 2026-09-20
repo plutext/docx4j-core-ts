@@ -215,7 +215,8 @@ whose `Requires` namespaces the model understands (`w14`, `w15`, `wp14`, `w16*`,
 its `mc:Fallback`. This is docx4j's behaviour (its preprocessor) and is what Word itself does on
 open; the untaken branch is lost for that part, which is why it happens only for parts that are
 unmarshalled. Off switch: `LoadOptions.mcePreprocess = false` (the content then unmarshals as
-`org_docx4j_mce` objects where the schema allows it).
+`org_docx4j_mce` objects with each branch kept as DOM and written back on save; since objects
+0.1.5 the schema admits the element wherever Word writes it, section 17.5).
 
 On marshal, the root element must declare every prefix named in `mc:Ignorable` even if unused in
 the tree, and Word expects the conventional prefixes (`w`, `r`, `wp`, `a`, `pic`, `v`, `o`,
@@ -367,8 +368,10 @@ each phase ships as a minor version.
 3. MCE preprocessing on by default: **on**. It turned out to be required, not merely
    Word-like: the model types `mc:AlternateContent` only where a global element can follow, so a
    `w:drawing` (a local element) inside `mc:Choice` cannot be unmarshalled at all. Every
-   Word-saved document with a shape hits this. With `mcePreprocess: false` such a part throws on
-   `getContents()`; the option exists for parts whose branches hold global elements only.
+   Word-saved document with a shape hits this. With `mcePreprocess: false` such a part threw on
+   `getContents()` until objects 0.1.5 admitted the element in the WordprocessingML hosts
+   (section 17.5); it now unmarshals with both branches kept as DOM, which the content API
+   cannot see into, so resolving on load stays the default.
 4. Hand-written `[Content_Types].xml`: **hand-written** (`ContentTypeManager`).
 5. `PropertyResolver` on the part or the package: **both**, package delegating (Phase B).
 6. Name departures: camelCase, noted in the class doc comment. The departures made in Phase A
@@ -1965,3 +1968,97 @@ and a Choice's `Requires` prefix declared, which does not arise here because the
 removes the wrapper before unmarshalling. docx4j's `x` alias for the SpreadsheetML main namespace
 on `x14`/`x15` parts, declared beside the default binding, is what the source-root map here
 re-declares when those parts are typed (Phase B).
+
+### 17.5 Objects 0.1.5 tried and held back: `a14:m` equations in DrawingML text (2026-09-20)
+
+`@docx4j/generated-objects-ts` 0.1.5 (npm, tag `d21e144`; the CR-021 to CR-024 regenerations,
+the `x14`/`x15` modules CR-004 Phase B needs, `mc:Ignorable` prefixes declared by the facade,
+CR-003 phase A) was tried here with `^0.1.5`: typecheck clean, 474 of 478 tests pass. The four
+failures are two findings.
+
+**1. A regression: `loadAndSave.pptx` slide 2 and `loadAndSave.xlsx` `drawing1.xml` no longer
+unmarshal** (`load: pptx and xlsx`, the two `ignorable` cases): `Element a:rPr could not be
+unmarshalled as is not known in this context and the property does not allow DOM content`. The
+slide's placeholder holds an equation the way PowerPoint writes one: `mc:AlternateContent`,
+Choice `Requires="a14"` with the shape whose `a:p` carries `a14:m` holding `m:oMathPara`,
+Fallback a picture. `a14` is understood, so the Choice is taken. Under 0.1.4 `a14:m` was not
+admitted by `EG_TextRun` and stayed DOM, written back as it came: lossless. docx4j CR-021
+section 8.9 admitted `a14:m` and made `CT_TextMath` a **lax** wildcard, reasoning that the
+PresentationML and SpreadsheetML JAXB contexts do not carry the OMML classes, so the equation
+stays DOM there and is typed only in the WordprocessingML context. Jsonix has one context with
+every module, so the lax wildcard unmarshals `m:oMathPara` typed through `org_docx4j_math`, and
+inside a DrawingML text body **`m:r` and `m:ctrlPr` hold `a:rPr`**, where `shared-math-2ed.xsd`'s
+`CT_R` and `CT_CtrlPr` reference only `w:EG_RPr` / `w:EG_RPrMath`. JAXB would drop the `a:rPr`
+silently; Jsonix throws. Every pptx or xlsx with an equation in a text body is affected once
+its part is unmarshalled (an untouched part still round-trips from bytes).
+
+Two fixes, both upstream of this package, relayed to the objects session (which owns the
+regeneration and the release) for docx4j's decision:
+
+- *Minimal, mirrors Java's pptx/xlsx outcome exactly:* `CT_TextMath`'s wildcard DOM-only
+  (`processContents="skip"` in `oart14docprop.xsd`, `@XmlAnyElement` without `lax`, Jsonix
+  `allowTypedObject: false` as `CT_XmlData` and the VML text box already have). Costs Java the
+  typed equation in the WordprocessingML context, where an `a14:m` in a DrawingML text body is
+  rare (Word's text boxes are `w:p`).
+- *Complete, "admit what Office writes" one level down:* `CT_R` and `CT_CtrlPr` in
+  `shared-math-2ed.xsd` admit `a:rPr` beside the `w:` group ([MS-ODRAWXML] 2.3.1 puts OMML in
+  DrawingML text, where the run properties are DrawingML's). Then the equation is typed in every
+  context, here and in Java. More schema surface; the math module gains a reference to `dml`,
+  which every context that holds math already loads.
+
+Until an objects release carries one of them this package stays on `^0.1.4` with the lockfile at
+0.1.4, and CR-004 Phase B remains blocked on the objects package after all (the registry entry
+`objects-ts/cr022-regeneration` is done, but the release that carries it is unusable here).
+**A consumer of the published core-ts 0.1.0 is exposed today:** its range is `^0.1.1`, so a fresh
+install resolves the objects package to 0.1.5 and a pptx or xlsx with an equation fails to load.
+The next core-ts release should pin below 0.1.5 or above the fix, whichever comes first.
+
+**2. A promise that moved, to update when the upgrade lands:** `mce.test.mjs`'s
+"preprocessing off" case asserted that `loadAndSave.docx`'s main document part rejects on
+`getContents()` with `mcePreprocess: false` (section 12 item 3: a `w:drawing` inside `mc:Choice`
+could not be unmarshalled). With the CR-021 regeneration it unmarshals: the element is an
+`org_docx4j_mce.AlternateContent` whose Choice (`Requires="wps"`) and Fallback keep their
+`w:drawing` and `w:pict` as DOM, a save writes both branches back (measured: one
+`mc:AlternateContent`, one Choice, one Fallback, three `w:drawing`, one `w:pict`, as in the
+source), and reloading the saved bytes with preprocessing on takes the Choice. So with the
+option off a part keeps every branch, which is what section 15.4 called a lossless kept branch.
+The test becomes: contents unmarshal, the `mc:AlternateContent` is typed with both branches, the
+re-marshalled part carries both, and the section 5.6 default (resolve on load) stays, for the
+reason section 12 item 3 gives in its second half: the content API cannot see a `w:drawing`
+inside a DOM branch. Section 12 item 3's first half is then history.
+
+**Relay (2026-09-20):** the objects session reproduced the failure on the slide with the `a14`
+Choice inlined (its own round-trip tests read the Choice content as DOM straight from the zip,
+which is why they passed) and passed both fixes to the docx4j session recommending the second
+(`a:rPr` admitted in `CT_R` and `CT_CtrlPr`), the first if the second needs thought; objects
+0.1.6 follows the docx4j commit and a regeneration, and the two fixture parts join objects
+CR-004's fidelity set. The published-consumer exposure is with Jason for an `npm deprecate` of
+objects 0.1.5.
+
+**docx4j CR-025 (2026-09-20, `34948f8e9` on `VERSION_17_1_1`, unpushed; the branch becomes
+`VERSION_17_2_0` for the release): `a:rPr` in OMML.** docx4j took the second fix. Once objects
+0.1.6 carries the regeneration, an equation in a DrawingML text body typed through the WML
+context has, on every `m:r`, the `a:rPr` as the first element of its content (Java: a
+`JAXBElement<CTTextCharacterProperties>` in `CTR.content`, factory `createCTRRPrDml`), and on
+every `m:ctrlPr` a property `rPrDml` (`CTTextCharacterProperties`) beside the `w:` ones; docx4j's
+typed round trip of `loadAndSave.pptx` slide 2's fragment equals PowerPoint's bytes canonically
+except booleans' lexical form (`i="1"` to `i="true"`). In its PresentationML and SpreadsheetML
+contexts the equation stays DOM (CR-021 §8.9), so this package, one context, types more than the
+oracle does there. Test to mirror when 0.1.6 lands: `docx4j-core-tests
+org.docx4j.jaxb.OmmlInDrawingMLTextTest` (three tests); the CR is
+`docs/developer/change-requests/CR-025-omml-in-drawingml-text.md`.
+
+**Upgraded to objects 0.1.6 (2026-09-20, npm tag `f71ab46`; `^0.1.6`).** Tested twice before the
+release at the objects session's request (main `daf9395`, then `02c1d2a` with the `c16r3` chart
+attributes unqualified and that prefix in place of `c173`): typecheck clean, every test but the
+moved promise passing, the 45 goldens unchanged, each fixture's `chart1.xml` now keeping
+`c16r3:dispNaAsBlank`'s `val` through a typed round trip. Landed here: `mce.test.mjs`'s
+"preprocessing off" case asserts the new promise (one typed `mc:AlternateContent`, Choice
+`wps` holding a DOM `w:drawing`, Fallback a DOM `w:pict`, the saved part with every branch tag
+counted equal to the source); `test/omml.test.mjs` mirrors `OmmlInDrawingMLTextTest` on both
+fixture parts (16 typed `m:r` whose first content item is the `a:rPr` named value of
+`CTTextCharacterProperties`, 7 `m:ctrlPr` with `rPrDml`, all Cambria Math; the re-marshalled part
+with the same counts and its one `a14:m`). 480 tests. The harness's `c173` becomes `c16r3` at the
+next golden regeneration. Objects 0.1.5 stays on npm undeprecated (no external users yet, Jason's
+call); this package's `^0.1.6` keeps a consumer of the next core-ts release off it. CR-004 Phase B
+now waits only on Phase A.
