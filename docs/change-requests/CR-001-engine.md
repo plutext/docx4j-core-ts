@@ -1923,3 +1923,45 @@ slicerCache, timeline, timelineCache and ctrlProp parts; still Fallback-resolved
 `mc:AlternateContent` in drawings. Oracle test to mirror when it lands here:
 `docx4j-core-tests org.xlsx4j.ExcelExtensionsTest` on `cr022-slicers-timelines.xlsx`.
 
+**docx4j CR-023 (2026-09-20, `cdb44df87` and `0b1dd27a4`, unpushed): Word's extension attributes
+kept.** The oracle now binds what its schema had no reference for where Word writes it:
+`w16du:dateUtc` on every tracked change and comment, `w15:restartNumberingAfterBreak` on
+`w:abstractNum`, `w16cid:durableId` on `w:num`, `w14:noSpellErr` on `w:p`,
+`w16sdtdh:storeItemChecksum` on `w:dataBinding`, `w16sdtfl:formattingAllowed` on `w:sdtPr`,
+`w16se:symEx` in run content, and the `cei` namespace inside commentsExtensible's `extLst`
+(prefix table: `cei`, `cr`). For this package an objects regeneration item, after which a
+re-marshalled part here keeps them too; the parity goldens record effective properties and labels,
+none of which these attributes enter, so the weekly workflow is expected to show no change. Two
+writer findings from docx4j's Word check: an `mc:Ignorable` naming an undeclared prefix (`cr` on
+commentsExtensible.xml, undeclared by docx4j's save until CR-023) is repaired by Word, which
+section 17.3's re-declaration already prevents here and `test/ignorable.test.mjs` now checks for
+every XML part of every fixture; and docx4j's settings part used to rebuild its `mc:Ignorable` on
+save, discarding Word's list, which this package never did (the `ignorable` property round-trips).
+
+**docx4j CR-024 (2026-09-20, `bcb4c7f57`, `85f37d05e`, unpushed): `mc:AlternateContent` kept in
+DrawingML hosts.** The oracle keeps both branches of the `mc:AlternateContent` a spreadsheet
+drawing holds (a check box's `a14` shape under `xdr:wsDr`, whose Fallback is empty; a slicer's or
+timeline's `graphicFrame` in an anchor, Choice `Requires` `a14` / `tsle` / `sle15` with an
+"Excel 2010 or higher" box as Fallback) and the one every chart's `c:style` position holds
+(Choice `c14:style` 102, Fallback `c:style` 2). What this package's resolve-on-load preprocessor
+(section 5.6) does with the same three, by `UNDERSTOOD_NAMESPACES`: the check box's Choice
+(`a14`, understood) is taken, so the drawing survives where resolving to the empty Fallback would
+delete it; the chart's Choice (`c14`, understood) is taken, so a re-marshalled chart part carries
+`c14:style` and loses `c:style` 2 (Excel, Word and PowerPoint read `c14`; a consumer that knows
+only `c:style` sees none); the slicer's and timeline's Choices (`tsle`, `sle15`, `sle`: not
+understood, no modules for them) fall to the "Excel 2010 or higher" box, so **a re-marshalled
+spreadsheet drawing loses its slicers and timelines** (an untouched drawing part keeps its bytes).
+CR-004 Phase B adds those namespaces to `UNDERSTOOD_NAMESPACES` once the objects package carries
+their modules, which it cannot yet: docx4j's `xsd/` has the timeslicer and 2010 slicer schemas but
+`ROOT.xsd` imports neither, and the 2012 slicer (`sle15`) schema is absent, so no regeneration can
+type that content today (objects session, 2026-09-20; the docx4j session is asked to bind them).
+Until then the Fallback behaviour stands, documented. The same regeneration (objects `529a957`)
+does admit `mc:AlternateContent` in the DrawingML hosts, which is what lets a spreadsheet drawing
+survive a round trip with `mcePreprocess: false` at all. Two writer findings
+from docx4j's Excel opens, both covered here: every root's `mc:Ignorable` prefixes declared
+(section 17.3, and `test/ignorable.test.mjs` re-marshals every part of every fixture, the forced
+re-save docx4j recommends, since an untouched part is written from bytes and hides the fault);
+and a Choice's `Requires` prefix declared, which does not arise here because the preprocessor
+removes the wrapper before unmarshalling. docx4j's `x` alias for the SpreadsheetML main namespace
+on `x14`/`x15` parts, declared beside the default binding, is what the source-root map here
+re-declares when those parts are typed (Phase B).
