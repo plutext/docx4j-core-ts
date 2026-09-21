@@ -89,19 +89,20 @@ jobs:
 
       - name: Compare with the committed goldens
         id: compare
-        # The date is when the harness ran, the jar hash is the build it ran against and the
-        # commit is docx4j's head, which moves with every docx4j commit; none is a difference
-        # in docx4j's answers, so all three header fields are ignored here (the first run on
-        # VERSION_17_2_0 flagged all 45 goldens on the commit alone).  A golden that differs
-        # for a real reason carries its new header along when it is copied in.
+        # The date is when the harness ran, the jar hash and file name are the build it ran
+        # against and the commit is docx4j's head, which moves with every docx4j commit; none
+        # is a difference in docx4j's answers, so all four header fields are ignored here (the
+        # first runs on VERSION_17_2_0 flagged all 45 goldens on the commit alone, then on the
+        # jar name alone: 17.1.1-SNAPSHOT became 17.2.0).  A golden that differs for a real
+        # reason carries its new header along when it is copied in.
         run: |
           differed=""
           for golden in test/golden/*.json; do
             name=$(basename "$golden")
             fresh="${{ runner.temp }}/golden/$name"
             if [ ! -f "$fresh" ]; then differed="$differed $name(missing)"; continue; fi
-            if ! diff -q <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"' "$golden") \
-                         <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"' "$fresh") > /dev/null; then
+            if ! diff -q <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"\|"docx4jVersion"' "$golden") \
+                         <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"\|"docx4jVersion"' "$fresh") > /dev/null; then
               differed="$differed $name"
             fi
           done
