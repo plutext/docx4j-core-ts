@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "3",
-    "docx4jCommit": "7fba7a1507fc01fdd7f4dc2f79cdbd6988c044f7",
-    "docx4jVersion": "docx4j-core-17.1.1-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "1c2e2e42a2f50e70",
-    "date": "2026-09-19T03:20:31Z",
+    "docx4jCommit": "f17589ff39667c5d343a56b9bed73358c393348f",
+    "docx4jVersion": "docx4j-core-17.2.0.jar",
+    "docx4jCoreJarSha256": "0d5d9f3e12bc740e",
+    "date": "2026-09-21T21:42:14Z",
     "fixture": "numbering-level-vs-style-indent.docx",
     "fixtureBytes": 8598,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
