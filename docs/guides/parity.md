@@ -55,7 +55,8 @@ separate Maven repository, how to read a golden, and what each field means.
 ## The weekly check
 
 [`.github/workflows/parity.yml`](../../.github/workflows/parity.yml) does the above on a schedule
-against `plutext/docx4j` `VERSION_17_1_1`, and opens a pull request when a golden differs, with
+against `plutext/docx4j` `VERSION_17_2_0` (the release branch; `VERSION_17_1_1` was renamed to it
+on 2026-09-21), and opens a pull request when a golden differs, with
 docx4j's commits since the recorded hash in its body. So a change in docx4j's behaviour arrives
 here as a reviewable diff rather than as a surprise.
 

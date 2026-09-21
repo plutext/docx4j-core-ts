@@ -23,8 +23,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
-    <!-- docx4j's <revision> on VERSION_17_1_1; raise with the branch. -->
-    <docx4j.version>17.1.1-SNAPSHOT</docx4j.version>
+    <!-- docx4j's <revision> on VERSION_17_2_0 (17.1.1-SNAPSHOT on the old branch); raise with
+         the branch, or pass -Ddocx4j.version=... as the workflow does after reading docx4j's pom. -->
+    <docx4j.version>17.2.0</docx4j.version>
   </properties>
 
   <dependencies>

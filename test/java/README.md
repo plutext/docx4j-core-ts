@@ -19,9 +19,14 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.1.1-SNAPSHOT` (and the JAXB implementation
-and three font jars) from your local Maven repository, so build them first from the docx4j
-checkout you want to measure — the sibling `../docx4j` on branch `VERSION_17_1_1`:
+The harness resolves `org.docx4j:docx4j-core:17.2.0` (docx4j's `<revision>` on `VERSION_17_2_0`;
+`pom.xml`'s `docx4j.version`, overridable with `-Ddocx4j.version=...` when the branch you build
+says otherwise) and the JAXB implementation and four font jars from your local Maven repository,
+so build them first from the docx4j checkout you want to measure — the sibling `../docx4j` on the
+release branch, `VERSION_17_2_0` (the old `VERSION_17_1_1` was renamed to it on 2026-09-21).
+A released version number is a trap a SNAPSHOT was not: if nothing was installed locally, Maven
+takes Central's 17.2.0 release and the harness measures that, not the head; the workflow builds
+first, and so must you:
 
 ```
 cd ../docx4j          # ../../../docx4j from here
@@ -32,7 +37,7 @@ mvn -q -pl docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,d
 `docx4j-core` is the engine, `docx4j-JAXB-ReferenceImpl` the JAXB implementation it needs at
 run time, and the four font jars are the harness's font environment (below).
 
-**One local repository, more than one docx4j.** `17.1.1-SNAPSHOT` in `~/.m2` is whatever was
+**One local repository, more than one docx4j.** `17.2.0` in `~/.m2` is whatever was
 installed there last, which is not necessarily the commit you are about to name. Every
 golden's header therefore carries `docx4jCoreJarSha256`, the first sixteen hex digits of the
 SHA-256 of the `docx4j-core` jar that actually ran, beside the `docx4jCommit` the harness was
@@ -40,7 +45,7 @@ told about. If the two disagree with what you expect, rebuild before believing a
 
 **Use a separate local repository whenever the docx4j checkout is shared.** If anyone else may
 be building docx4j at the same time — another session in `../docx4j`, another worktree, a
-colleague on the same machine — an `install` into `~/.m2` overwrites their `17.1.1-SNAPSHOT`
+colleague on the same machine — an `install` into `~/.m2` overwrites their `17.2.0`
 and theirs overwrites yours, and a golden can end up made from a jar neither of you meant. Give
 the build and the harness run a repository of their own, and do not touch `~/.m2` at all:
 

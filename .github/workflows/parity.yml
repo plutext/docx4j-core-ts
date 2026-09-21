@@ -1,5 +1,5 @@
 # CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
-# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_1_1, runs
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_2_0, runs
 # the harness (test/java/) over the same fixtures, and opens a pull request when any
 # golden differs, with the docx4j commits since the hash the goldens record in its body.
 #
@@ -22,11 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check out docx4j (VERSION_17_1_1)
+      # The release branch: docx4j's VERSION_17_1_1 was renamed VERSION_17_2_0 on 2026-09-21
+      # (17.1.1 became the 17.2.0 release).  Rename here when docx4j renames again.
+      - name: Check out docx4j (VERSION_17_2_0)
         uses: actions/checkout@v4
         with:
           repository: plutext/docx4j
-          ref: VERSION_17_1_1
+          ref: VERSION_17_2_0
           path: .docx4j
           fetch-depth: 0     # the pull request body lists the commits since the recorded hash
 
@@ -36,14 +38,19 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: The commit the goldens were made from, and docx4j's head
+      - name: The commit the goldens were made from, docx4j's head, and its version
         id: commits
+        # docx4j's <revision> is what its build installs and what the harness must resolve
+        # (17.1.1-SNAPSHOT on the old branch, 17.2.0 on this one); read it from the checkout so
+        # the branch name above is the only thing to change when docx4j moves on.
         run: |
           old=$(node -e "const g=require('./test/golden/invoice.json'); process.stdout.write(g.header.docx4jCommit)")
           new=$(git -C .docx4j rev-parse HEAD)
+          version=$(sed -n 's/.*<revision>\(.*\)<\/revision>.*/\1/p' .docx4j/pom.xml | head -1)
           echo "old=$old" >> "$GITHUB_OUTPUT"
           echo "new=$new" >> "$GITHUB_OUTPUT"
-          echo "docx4j: goldens made from $old, head is $new"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "docx4j: goldens made from $old, head is $new, version $version"
 
       - name: Build docx4j
         working-directory: .docx4j
@@ -53,7 +60,7 @@ jobs:
         # Aptos and Aptos Display), which is what makes the mapping in a golden the same
         # everywhere.  -am builds what they depend on.
         #
-        # The runner's ~/.m2 is this job's alone, so installing 17.1.1-SNAPSHOT into it is
+        # The runner's ~/.m2 is this job's alone, so installing docx4j's version into it is
         # safe here.  By hand it is not: if the docx4j checkout is shared with another
         # session, build and run with -Dmaven.repo.local=<a directory of your own> so that
         # two people's SNAPSHOT builds cannot overwrite each other and a golden cannot come
@@ -72,6 +79,7 @@ jobs:
         # one copy of the list so the two cannot drift.
         run: >
           mvn -B -q compile exec:java
+          -Ddocx4j.version=${{ steps.commits.outputs.version }}
           -Dfixtures=../fixtures
           -Dout=${{ runner.temp }}/golden
           -Ddocx4j.commit=${{ steps.commits.outputs.new }}
@@ -117,7 +125,7 @@ jobs:
             echo "body<<PARITY_EOF"
             echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
             echo
-            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_1_1\` is now at \`${{ steps.commits.outputs.new }}\`."
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_2_0\` is now at \`${{ steps.commits.outputs.new }}\`."
             echo
             echo "docx4j commits in between:"
             echo
@@ -137,6 +145,6 @@ jobs:
           base: main
           add-paths: test/golden
           commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
-          title: "Parity goldens differ from docx4j VERSION_17_1_1"
+          title: "Parity goldens differ from docx4j VERSION_17_2_0"
           body: ${{ steps.log.outputs.body }}
           delete-branch: true

@@ -180,7 +180,9 @@ when an answer moves. Parity is zero differences.
 - `../jsonix-schema-compiler`: generates the objects package's `modules/`; only relevant when a
   gap turns out to be in the generated declarations rather than the facade.
 - `../docx4j`: the Java original. Releases live on `VERSION_x_y_z` branches (`master` is old);
-  CR-001 was written against `VERSION_17_1_1`, which is the checked-out branch. The classes being
+  CR-001 was written against `VERSION_17_1_1`, renamed `VERSION_17_2_0` on 2026-09-21 when 17.1.1
+  became the 17.2.0 release (the parity workflow and `test/java/pom.xml` follow the rename; the local
+  checkout may sit on the next branch, `VERSION_17_2_1`). The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,

@@ -2062,3 +2062,53 @@ with the same counts and its one `a14:m`). 480 tests. The harness's `c173` becom
 next golden regeneration. Objects 0.1.5 stays on npm undeprecated (no external users yet, Jason's
 call); this package's `^0.1.6` keeps a consumer of the next core-ts release off it. CR-004 Phase B
 now waits only on Phase A.
+
+### 17.6 Strict OOXML: no conversion here, and what a port must get right (2026-09-21)
+
+Asked by the docx4j session whether this package shares two defects fixed that day in
+`org/docx4j/jaxb/mc-preprocessor.xslt`'s strict path (`VERSION_17_2_0` `7892cb501`: the
+points-to-twips conversion had been commented out, so every Word-saved strict document failed
+on `w:spacing w:after="8pt" w:line="12.95pt"`; `3f4776c35`: strict keeps the 2010
+shape/group/canvas elements in the wordprocessingDrawing namespace, and mapping it to `wp:`
+left `wp:wsp`, `wp:wgp`, `wp:wpc` and their children unknown, so Word refused the result). It
+does not: there is no strict-to-transitional path. Measured on docx4j's
+`docx4j-core-tests/src/test/resources/strict/strict-chart.docx`: the package loads (the
+`purl.oclc.org` officeDocument relationship type is recognised, `MAIN_PART_RELATIONSHIPS`, and
+every part gets its typed class), an untouched package round-trips, and the first
+`getContents()` throws `{http://purl.oclc.org/ooxml/wordprocessingml/main}w:document ... not
+known in this context`. Section 12 and section 16 already record strict conversion as out of
+scope.
+
+When it is ported (a CR of its own; the per-part DOM preprocessor hook that runs the section 5.6
+MCE resolution is where a strict rewriter goes, before it), the oracle is `StrictLoadTest` and the
+four Word-saved strict samples under `strict/`, and the two fixes are the specification: for the
+strict WordprocessingML namespace, x2 for the half-point family (`sz`, `szCs`, `kern`,
+`position`, `hps`, `hpsRaise`, `hpsBaseText`) and x20 for every other point value (spacing,
+indents, table widths, tabs, `defaultTabStop`, drawing grid; `w:line` under `lineRule="auto"`
+too, Word writing the 240ths as points); and the wordprocessingDrawing 2010 elements mapped to
+`wps:`/`wpg:`/`wpc:` by root name, children by nearest such ancestor.
+
+**The repair side of the same stylesheet (asked the same day, Jason's actual question).** docx4j's
+`JaxbXmlPart.unmarshal` tries plain JAXB, and on failure transforms the part through
+`mc-preprocessor.xslt` and unmarshals again with the validation handler set to continue; the
+stylesheet's repairs, apart from strict and `mc:AlternateContent`, are (1) decimals in twips
+attributes rounded (Google Docs 2014/2015, pandoc 2.2.1), (2) SSRS 2012's empty `rsid*`
+attributes dropped and empty `pgMar` header/footer made 0, (3) `wordml201011:*` attributes
+dropped, (4) since 17.2.0 malformed nesting repaired: a `w:r` inside a `w:r` hoisted, a `w:p`
+inside a `w:r` or `w:hyperlink` split out as a paragraph of its own (`MalformedNestingTest`, 17
+shapes). This package has none of it: the section 5.6 preprocessor is the only load-time DOM
+pass, run always and once, and Jsonix has no continue mode, so what the model rejects is fatal for
+that part, never silently dropped. Measured against objects 0.1.6: (1) the part's `getContents()`
+throws `Argument [259.2] must be an integer` for every attribute the model types as Int
+(`w:spacing`, `w:ind`, `w:gridCol`, `w:trHeight`, `w:pgSz`, `w:sz`); `w:tblW/@w:w` is a string
+type and keeps the decimal; (2) empty `rsid*` kept as `""` and written back, empty `pgMar`
+header, footer and gutter all become 0; (3) dropped, as any unknown attribute; (4) kept typed
+(`w:p` and `w:r` are global elements and the CR-021 lax wildcard admits them inside run
+content), marshalled back byte-equivalent, and invisible to the content API: `textOf` of
+`<w:r><w:t>a</w:t><w:p>…</w:p><w:t>b</w:t></w:r>` is `ab`, so search, `replaceText`,
+`Paragraph.text` and the Emulator walk pass over the nested subtree without reporting it. The one
+repair here that docx4j lacks is on the marshal side: an `mc:Ignorable` prefix nothing declares is
+dropped from the list with a warning (`XmlPart.declareIgnorablePrefixes`). A repair CR, when a
+corpus asks for it, goes in the same preprocessor hook, with the stylesheet's rounding table and
+`MalformedNestingTest`'s shapes as its oracle; item (4) is the one that matters most, since it
+silently hides text from every reader here.
