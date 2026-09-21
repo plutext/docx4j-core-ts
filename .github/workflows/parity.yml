@@ -58,7 +58,10 @@ jobs:
         # it needs at run time; the four font jars are the harness's font environment
         # (CR-016 phase 0c's -Dfidelity.fonts=jars, theme2023 added by CR-001 batch 49 for
         # Aptos and Aptos Display), which is what makes the mapping in a golden the same
-        # everywhere.  -am builds what they depend on.
+        # everywhere.  -am builds what they depend on, but not docx4j-xjc-copy, which
+        # docx4j-generated-objects uses as a *plugin* dependency of its jaxb-maven-plugin (not a
+        # project dependency, so -am does not reach it); naming it builds and installs it before
+        # the module that needs it.
         #
         # The runner's ~/.m2 is this job's alone, so installing docx4j's version into it is
         # safe here.  By hand it is not: if the docx4j checkout is shared with another
@@ -66,7 +69,7 @@ jobs:
         # two people's SNAPSHOT builds cannot overwrite each other and a golden cannot come
         # from a jar nobody meant.  See test/java/README.md.
         run: >
-          mvn -B -q -pl docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,docx4j-export-fo-fonts-croscore,docx4j-export-fo-fonts-crosextra,docx4j-export-fo-fonts-theme2023
+          mvn -B -q -pl docx4j-xjc-copy,docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,docx4j-export-fo-fonts-croscore,docx4j-export-fo-fonts-crosextra,docx4j-export-fo-fonts-theme2023
           -am -DskipTests -Dgpg.skip install
 
       - name: Run the harness

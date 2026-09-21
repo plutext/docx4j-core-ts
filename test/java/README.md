@@ -31,11 +31,14 @@ first, and so must you:
 ```
 cd ../docx4j          # ../../../docx4j from here
 git rev-parse HEAD    # the hash you will pass to the harness
-mvn -q -pl docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,docx4j-export-fo-fonts-croscore,docx4j-export-fo-fonts-crosextra,docx4j-export-fo-fonts-theme2023 -am -DskipTests -Dgpg.skip install
+mvn -q -pl docx4j-xjc-copy,docx4j-core,docx4j-JAXB-ReferenceImpl,docx4j-export-fo-fonts-symbol,docx4j-export-fo-fonts-croscore,docx4j-export-fo-fonts-crosextra,docx4j-export-fo-fonts-theme2023 -am -DskipTests -Dgpg.skip install
 ```
 
 `docx4j-core` is the engine, `docx4j-JAXB-ReferenceImpl` the JAXB implementation it needs at
-run time, and the four font jars are the harness's font environment (below).
+run time, and the four font jars are the harness's font environment (below). `docx4j-xjc-copy`
+is a plugin dependency of `docx4j-generated-objects`' schema compilation, which `-am` does not
+reach (it follows project dependencies only); a fresh local repository fails without it, a
+well-used one hides the omission.
 
 **One local repository, more than one docx4j.** `17.2.0` in `~/.m2` is whatever was
 installed there last, which is not necessarily the commit you are about to name. Every
