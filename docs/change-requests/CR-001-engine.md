@@ -2141,3 +2141,30 @@ and `v:shape`) and re-marshals with every element of the source present, so typi
 `XmlPart<Xml>` is now possible. Not done: the DOM costs nothing, keeps the byte-for-byte round
 trip, and the comment and form-control paths read their VML through the part's DOM today; a CR
 if a caller wants the tree.
+
+**Strict packages and the byte-copy contract (asked by docx4j through the objects session,
+2026-09-23).** Their concern: if parts nothing read are copied verbatim regardless of
+conformance class, a strict input would come out mixing `purl`-namespaced bytes with
+transitional ones, and a suite of transitional fixtures would never show it. Measured on
+`docx4j-core-tests/.../strict/strict-comments.xlsx` (Excel 365's Strict save, `purl` namespaces,
+a vmlDrawing for the comment), loaded and saved untouched: every markup part is byte-identical,
+so the output is strict throughout. Only `[Content_Types].xml` and the three `.rels` are
+regenerated, and those carry the same package namespaces in both conformance classes; their
+content-type, part-name, relationship-type and target sets equal the source's, including the
+seven `purl.oclc.org` relationship types.
+
+Mixing is impossible here rather than merely unobserved: writing a part transitional would take
+unmarshalling and re-marshalling it, and a strict part cannot unmarshal - the objects context has
+no `purl` modules, so `getContents()` throws on all of them (`{purl}workbook`, `worksheet`,
+`comments`, `styleSheet`, `a:theme`, `xdr:wsDr`, `Properties`). Forcing a read of every part and
+saving leaves those ten as source bytes; the one that reads is `docProps/core.xml`, whose
+namespaces are the same in strict and transitional, so re-marshalling it is correct.
+
+The divergence, for both sides' records: docx4j converts a part on first read and forces a read of
+every part on save so the output is uniformly transitional, which is what made one unreadable part
+fatal (CR-026); this package converts nothing and writes unread parts from source bytes, so a
+strict package round-trips as strict. Neither can produce a mixed package, by opposite means. The
+cost here is that a strict package is read-only in practice: packaging works, nothing above it
+does. A strict conversion CR has to reckon with that contract, since the two pull opposite ways -
+most likely by converting eagerly at load for a strict package and giving up its byte-for-byte
+round trip, which is what docx4j effectively does.
