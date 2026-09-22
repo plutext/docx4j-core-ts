@@ -2112,3 +2112,32 @@ dropped from the list with a warning (`XmlPart.declareIgnorablePrefixes`). A rep
 corpus asks for it, goes in the same preprocessor hook, with the stylesheet's rounding table and
 `MalformedNestingTest`'s shapes as its oracle; item (4) is the one that matters most, since it
 silently hides text from every reader here.
+
+### 17.7 A vmlDrawing part could never unmarshal, and why nothing here noticed (2026-09-23)
+
+The objects session found that no `vmlDrawing` part had ever unmarshalled through
+`@docx4j/generated-objects-ts`: the root of such a part is `<xml>` in **no** namespace, and
+docx4j's wrapper schema declared that global element in an invented `urn:docx4j:vml:root`, so
+every real part threw `Element [xml] could not be unmarshalled`. docx4j CR-026 (`b4ca0d98a`,
+`VERSION_17_2_1`, shipping in 17.2.1) drops the invented target namespace and widens the wildcard
+to `##any`; objects `f9996c3` is the regeneration, proposed as 0.1.7.
+
+Nothing here noticed because `VMLPart` extends `DefaultXmlPart`: a DOM part that never goes
+through Jsonix. Measured on `loadAndSave.xlsx`: the part loads as `VMLPart`, `unmarshalAll()`
+passes over it (it walks `XmlPart` only), and after `unmarshalAll()` and a save the part is
+byte-identical to the source.
+
+**docx4j's companion defect does not exist here.** There, save converts every not-yet-read part,
+so a *strict* package holding a vmlDrawing could not be saved at all — a strict workbook with a
+comment was unsaveable. This package re-marshals only the relationships parts,
+`[Content_Types].xml` and `XmlPart`s that were unmarshalled or had contents or bytes set;
+everything else is copied from `sourcePartStore` as bytes. A part nothing read is never
+converted, so an unreadable part cannot cost a package its save. That is the section 3 contract
+the round-trip suite asserts, not a side effect of the vml part staying DOM.
+
+Tested for the proposed 0.1.7: typecheck clean, 480 tests, no golden moves. With the fix the root
+does unmarshal typed (`{}xml`, `org_docx4j_vml_root.Xml`, holding `o:shapelayout`, `v:shapetype`
+and `v:shape`) and re-marshals with every element of the source present, so typing `VMLPart` as an
+`XmlPart<Xml>` is now possible. Not done: the DOM costs nothing, keeps the byte-for-byte round
+trip, and the comment and form-control paths read their VML through the part's DOM today; a CR
+if a caller wants the tree.
