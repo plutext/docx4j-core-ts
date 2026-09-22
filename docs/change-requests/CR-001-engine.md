@@ -2168,3 +2168,11 @@ cost here is that a strict package is read-only in practice: packaging works, no
 does. A strict conversion CR has to reckon with that contract, since the two pull opposite ways -
 most likely by converting eagerly at load for a strict package and giving up its byte-for-byte
 round trip, which is what docx4j effectively does.
+
+Two notes from docx4j's reply (CR-026 `d92d074b9` carries the comparison as a table and cites
+these sections). One for that future CR, learned there the hard way: eager conversion is exactly
+what makes an unreadable part fatal, so the fallback wants deciding in advance - fail naming the
+part, or keep its bytes and refuse to call the package converted, but never silently mix. One
+against believing too much: "a mixed package would be refused by Office" was the framing of the
+original question and is **not measured** by either side; treat it as an assumption if it ever
+enters planning here.
