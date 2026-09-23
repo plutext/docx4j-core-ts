@@ -2221,3 +2221,16 @@ unaffected (the names collected do not change).
 
 **Effort.** Half a day, most of it the test over the fixtures.
 
+**Measured before building it (core-ts session, 2026-09-24).** The premise holds for the body and
+only for the body. Over all eight `.docx` fixtures, `fontsInUse()` followed by
+`getPropertyResolver()` and `getRunFontSelector()` unmarshals exactly one part - the main
+document part - and that is the only part whose bytes change on the save that follows. The
+headers, footers, notes, comments, styles, theme, settings, numbering and font table are all
+already private (`readQuietly`), so the six header and footer parts the editor saw are **not
+reproduced here**: whatever unmarshalled them was some other path (the editor's own, or a call
+made before `readQuietly` reached these readers), and it would be worth knowing which, because
+the fix below would not touch it. `stories()` line 1 is the whole defect:
+`(await this.getContents()).body?.content`, where every other line is a `readQuietly`. So the
+change is one line plus the guarantee, and the test is what the phase is really buying - it pins
+a property nothing else in this package states.
+

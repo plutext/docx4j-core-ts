@@ -1676,3 +1676,15 @@ The editor deletes `labels.mts` when it consumes the release and the goldens are
 
 **Effort.** Half a day: the walk exists; this is a signature and a test.
 
+**One semantic to state when it is built (core-ts session, 2026-09-24).** `listLabelsOf` shares a
+single `NumberingState` across the stories it walks, in the story order (body first, then headers
+and footers, notes, comments), because a footer's numbers continue the headers' - the story rule
+of section 17. `listLabelsOver(content, emulator)` takes one story's content, so it necessarily
+starts a fresh state and answers as **the first story**. For the editor's case that is exactly
+right (the body is the first story, so the labels equal `listLabels()`'s for every body
+paragraph), and the proposed test compares precisely that. But the signature must say it, or a
+later caller will pass a header's content and get counters that restart. If cross-story
+continuation over private reads is ever wanted, it needs the stories together -
+`listLabelsOver(stories: readonly (readonly Element[])[], emulator)` or an explicit state
+parameter - which is a bigger signature than this phase needs and should not be invented now.
+
