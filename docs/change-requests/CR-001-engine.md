@@ -2,7 +2,8 @@
 
 **Status:** Phase A implemented 2026-09-10 (both steps); Phase B implemented 2026-09-19 (plan in
 section 14, notes in section 15; parity with docx4j VERSION_17_1_1 7fba7a150 on 45 goldens);
-Phase C implemented 2026-09-19 (section 16)
+Phase C implemented 2026-09-19 (section 16); Phase D proposed 2026-09-24 (section 18: font
+discovery over private reads, requested by the editor)
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
 section 9.
@@ -2188,3 +2189,35 @@ writes neither element. When objects ships the regeneration - the same one as CR
 the next - the order follows docx4j's without a change here, and the upgrade should add the
 parity twin of `docx4j-core-tests`' `SettingsDocIdOrderTest`: a Word Online-ordered input
 re-marshalled with `w14:docId` first.
+
+## 18. Phase D, proposed: font discovery that unmarshals nothing (2026-09-24)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-002 section 10.3 item 3 (E1.c, 2026-09-23).
+
+**The problem.** `MainDocumentPart.fontsInUse()` (Phase B step 4, section 15.3) collects the
+font names of every story. Its story walk already reads the headers, footers, footnotes,
+endnotes and comments privately (`readQuietly`, a `readContents()` that answers undefined on
+failure), but it takes the body from `getContents()`, which unmarshals the main part; and the
+editor found, the first time its font box called it, that six header and footer parts had lost
+their byte-for-byte round trip as well (E1.c, 2026-09-23: whichever path unmarshalled them,
+the observable guarantee was broken). The editor's contract is that only a save with changes
+touches the main part and nothing touches the others (ED-002 section 8 item 2), so it stopped
+calling `fontsInUse()` and reads the names off its own projection and the resolver
+(`documentFonts` in `styles.mts`), which is a second, partial implementation of this walk.
+
+**The change.** `fontsInUse()` and everything it calls (`stories()`, `getRunFontSelector()`,
+`styleSource()`, the theme and settings reads behind the selector) read privately: the body
+through `readContents()` when the main part is not unmarshalled, its `contents` when it is, as
+the resolver reads the styles part (`PropertyResolver.create`, section 15.1). The result is the
+same set of names; what changes is the guarantee: **after `fontsInUse()` no part reports
+`isUnmarshalled` that did not before.** The same guarantee is stated for `getRunFontSelector()`
+and `getPropertyResolver()`, which the editor relies on already and which a test should pin.
+
+**Tests.** Over every fixture of `test/fixtures`: record `isUnmarshalled` per part, call
+`fontsInUse()`, `getRunFontSelector()` and `getPropertyResolver()`, and assert no flag changed;
+then save and compare part by part with the source (the oracle of section 12), which is what
+the editor's `roundtrip.test.mts` does over its own fixtures today. The parity goldens are
+unaffected (the names collected do not change).
+
+**Effort.** Half a day, most of it the test over the fixtures.
+

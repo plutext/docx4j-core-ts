@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Phase J proposed 2026-09-24 (section 18: list labels over a tree, requested by the editor).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1634,3 +1634,45 @@ unchanged), `siblingIndex`, `getAncestor` / `getDescendants`, `List.insertParagr
 cross-check. Two existing tests were updated: `office-js.test.mjs` used `paragraph.listItem` as
 its example of an unsupported member (it is supported now) and expected the `insertXml`
 fallback for `w:numPr` (a `w:framePr` paragraph is the fallback example instead).
+
+## 18. Phase J, proposed: list labels over a tree, not a part (2026-09-24)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-002 section 10.3 item 2 (E1.c, 2026-09-23).
+
+**The problem.** `Body.listLabels()` (phase H, section 17) answers over the parts the package
+has unmarshalled: it walks the main part's `contents` and the numbering part through the
+package's resolver. The editor never unmarshals the main part it displays. It reads the tree
+with `readContents()` (a private copy, so an unedited document saves its main part byte for
+byte; ED-002 section 8 item 2) and projects that. Asked for the labels of that tree,
+`listLabels()` answers nothing, since the part it would walk is not unmarshalled and the tree
+it would need is not the part's. The editor therefore carries a copy of this package's story
+walk (`packages/editor-model/src/labels.mts`: the same `NumberingState`, the same text-box
+rule, over the private body's content, with the `Emulator` reading its definitions privately),
+and a round-trip test guards that asking for labels costs no part its bytes. A copy of an
+engine walk in the editor is the thing CLAUDE.md's boundary rule exists to prevent in the other
+direction, and it will drift when the walk here changes.
+
+**The change.** A labels function that takes the tree it walks:
+
+```ts
+// model/content/List.mts
+export function listLabelsOf(body: Body): Map<wml.P, ListLabel>;                  // as now
+export function listLabelsOver(content: readonly Element[], emulator: Emulator): Map<wml.P, ListLabel>;
+// parts/wml
+mainDocumentPart.listLabelsOver(content: readonly Element[]): Promise<Map<wml.P, ListLabel>>;
+```
+
+`listLabelsOver` is the walk `listLabelsOf` already does, with the story's content and the
+emulator as parameters; `listLabelsOf(body)` becomes a call to it over `body.content`. The part
+method obtains the emulator as `Body.listLabels()` does today (`numberingDefinitionsPart.getDefinitions()`,
+which reads privately), so calling it over a `readContents()` tree unmarshals nothing. Keyed by
+the `wml.P` object, as now: the caller that projected the tree holds those objects.
+
+**Tests.** `listLabelsOver` over `readContents()` of a numbered fixture gives the same map as
+`listLabels()` over the unmarshalled part, and afterwards no part reports `isUnmarshalled`
+(the check the editor's `roundtrip.test.mts` makes today, moved to where the guarantee lives).
+The editor deletes `labels.mts` when it consumes the release and the goldens are unaffected
+(labels are recorded from the same emulator).
+
+**Effort.** Half a day: the walk exists; this is a signature and a test.
+
