@@ -346,6 +346,12 @@ touches zip tree-shakes it away.
   is not what Word wrote. Browsers' `DOMParser` is correct. The fix belongs in the runtime: an
   upstream xmldom fix with the version pinned, or `Jsonix.DOM.parse` escaping the two characters
   as references when the declaration is 1.0. Sent to the jsonix session on 2026-09-19.
+  **Being fixed as jsonix CR-004, to land in 3.3.0** (relayed 2026-09-25). It changes how every
+  part unmarshals, so the upgrade here is not routine: check the 45 parity goldens (the
+  `tracked-changes.docx` normalisation in `parity.test.mjs` is the one that should become
+  unnecessary - if it does, remove it rather than leave it), the byte-for-byte round trips, and
+  whether a re-marshalled part now keeps a U+0085 or U+2028 where Word put one. The objects
+  session runs its fidelity set against the candidate before release and says what moves.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 
