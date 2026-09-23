@@ -32,7 +32,9 @@ const UNREADABLE = {
   // sle:slicer, for which the model has no module. CT_GraphicalObjectData's wildcard is
   // allowDom: false, so an unknown graphic is fatal rather than kept as DOM, where JAXB's
   // @XmlAnyElement(lax=true) keeps it. Reported upstream (CR-004 section 5); until the schema is
-  // lax a workbook's drawing cannot be unmarshalled if it frames a slicer through an understood
+  // lax (docx4j 8e8f6ea83 on VERSION_17_2_1 does exactly that, awaiting an objects release; when
+  // it arrives this entry goes and the part must read) a workbook's drawing cannot be
+  // unmarshalled if it frames a slicer through an understood
   // Choice. drawing2.xml frames one too but its Choice requires sle15, which is not understood,
   // so the preprocessor takes its Fallback picture and the part reads: what saves it is the
   // branch being given up, not anything about the slicer.

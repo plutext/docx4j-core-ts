@@ -109,6 +109,15 @@ which is not understood, so its Fallback picture is taken and the part reads - w
 the branch being given up. `test/ignorable.test.mjs` names `drawing1.xml` as unreadable and
 asserts the rejection rather than skipping it, so a second such part cannot hide behind it.
 
+**Fixed upstream the same day** (relayed 2026-09-24): docx4j `8e8f6ea83` on `VERSION_17_2_1`
+makes the `a:graphicData` wildcard lax - in `xsd/dml/dml-graphicalObject.xsd`, not `dml-main.xsd`
+as guessed above - and the `vmlDrawing` root's `##any` wildcard with it (`xsd/vml/vml__ROOT.xsd`,
+CR-026's other half); docx4j records it in its CR-024 section 10. The objects session regenerates
+once that commit is pushed, together with `dae2dfc8b` (the `CT_Settings` order, CR-001 section
+17.7). When the release lands here, `drawing1.xml` should unmarshal with its `a14` branch taken
+and the slicer kept as DOM: the entry for it in `test/ignorable.test.mjs`'s `UNREADABLE` is then
+removed, and its removal is the check that the fix arrived.
+
 **Not affected:** the parity goldens (no fixture of theirs has an extension part), and
 `createPackage()`, which writes none of these parts. docx4j 17.2.1 has since added two more
 SpreadsheetML content types, threaded comments and persons, which it leaves as `DefaultXmlPart`s
