@@ -17,6 +17,21 @@ import { serializeXml } from '../../xml/dom.mjs';
 export type XPathValue = string | number | boolean | undefined;
 
 /**
+ * How an XPaths entry becomes a boolean (OpenDoPE specification v3 section 7.2, table 7, declared
+ * in the XPaths part's `booleanConversion` attribute; CR-005 phase A):
+ *
+ * - `java`: the string value is true only if it equals `true`, ignoring case. `"1"` and `"yes"`
+ *   are false. docx4j's `Boolean.parseBoolean`, and the default for a template that declares no
+ *   mode.
+ * - `xpath1`: XPath 1.0 `boolean()`. A node-set is true if non-empty, a string if non-empty - so
+ *   `"false"` is **true**.
+ * - `xpath2`: the effective boolean value, a string cast to `xs:boolean` accepting only `true`,
+ *   `false`, `1` and `0` - so `"false"` is false and `"yes"` is an **error**. Needs an XPath 2.0
+ *   engine: `FontoXPathEngine` from `@docx4j/core-ts/xpath-fonto`.
+ */
+export type BooleanConversionMode = 'java' | 'xpath1' | 'xpath2';
+
+/**
  * XPath 1.0 over a DOM (CR-002 section 3.6). `select` answers a node set; `selectValue` answers a
  * string, number or boolean result. `namespaces` maps prefixes used in the expression to URIs.
  */
@@ -27,6 +42,50 @@ export interface XPathEngine {
   readonly isReady: boolean;
   select(expression: string, context: Node, namespaces?: Record<string, string>): Node[];
   selectValue(expression: string, context: Node, namespaces?: Record<string, string>): XPathValue;
+  /**
+   * The expression as a boolean in one conversion mode, for an engine that can do more than the
+   * function {@link booleanValue} can do over `selectValue` - in practice `xpath2`, which needs an
+   * XPath 2.0 evaluator. Optional: `XPathEngine` is public and a consumer may implement it, so a
+   * required member would break every implementation that predates this. Callers go through
+   * {@link booleanValue}, never here.
+   */
+  booleanValue?(expression: string, context: Node, namespaces: Record<string, string>, mode: BooleanConversionMode): boolean;
+}
+
+/**
+ * The expression as a boolean in a declared conversion mode (table 7 above).
+ *
+ * `java` and `xpath1` need nothing an `XPathEngine` does not already have, so they work over any
+ * engine: `java` is the string value compared with `true`, `xpath1` is XPath 1.0 `boolean()` of the
+ * expression. `xpath2` is delegated to the engine's own `booleanValue` when it has one, and
+ * otherwise throws naming the engine to install - which is the specification's REQ-032, a processor
+ * evaluating in the declared mode or refusing to process the template.
+ */
+export function booleanValue(
+  engine: XPathEngine,
+  expression: string,
+  context: Node,
+  namespaces: Record<string, string> = {},
+  mode: BooleanConversionMode = 'java',
+): boolean {
+  if (engine.booleanValue) return engine.booleanValue(expression, context, namespaces, mode);
+  switch (mode) {
+    case 'java': {
+      const value = engine.selectValue(expression, context, namespaces);
+      return typeof value === 'boolean' ? value : String(value ?? '').toLowerCase() === 'true';
+    }
+    case 'xpath1': {
+      // boolean() is XPath 1.0's own conversion, so the engine applies the rules rather than this.
+      const value = engine.selectValue(`boolean(${expression})`, context, namespaces);
+      return value === true;
+    }
+    default:
+      throw new Docx4JException(
+        `The boolean conversion mode "${mode}" needs an XPath 2.0 engine: `
+        + "import { FontoXPathEngine } from '@docx4j/core-ts/xpath-fonto' (npm install fontoxpath) "
+        + 'and set pkg.xpathEngine to it',
+      );
+  }
 }
 
 /** What this engine uses of the `xpath` package (typed here: the package is an optional peer). */

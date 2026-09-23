@@ -33,6 +33,10 @@
     "./office-js": {
       "types": "./dist/office-js/index.d.mts",
       "import": "./dist/office-js/index.mjs"
+    },
+    "./xpath-fonto": {
+      "types": "./dist/model/customxml/xpath-fonto.d.mts",
+      "import": "./dist/model/customxml/xpath-fonto.mjs"
     }
   },
   "files": [
@@ -79,13 +83,18 @@
     "fflate": "^0.8.2"
   },
   "devDependencies": {
+    "fontoxpath": "^3.34.0",
     "typescript": "~5.6.3",
     "xpath": "^0.0.34"
   },
   "peerDependencies": {
+    "fontoxpath": "^3.30.0",
     "xpath": "^0.0.34"
   },
   "peerDependenciesMeta": {
+    "fontoxpath": {
+      "optional": true
+    },
     "xpath": {
       "optional": true
     }

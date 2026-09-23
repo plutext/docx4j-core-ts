@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Proposed 2026-09-25, two phases: A the FontoXPath `XPathEngine`, B the processor
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -183,3 +183,53 @@ consumes it, not the other way round.
    (REQ-035 to REQ-037), every document phase B produces is permanently unrevertable - the
    information is cheap while the template is in hand and impossible afterwards. Write the
    markers in phase B; implement reverting when a consumer asks.
+
+## 7. Phase A implementation notes (2026-09-25)
+
+Built as section 2 specifies, with the shape section 6 answered for: `booleanValue` is a
+**function** over any engine plus an **optional** `booleanValue` member on `XPathEngine`, so no
+existing implementation of that public interface breaks and a third-party engine gets the `java`
+and `xpath1` modes for nothing. `FontoXPathEngine` is in `src/model/customxml/xpath-fonto.mts`,
+exported from `@docx4j/core-ts/xpath-fonto`, with `fontoxpath` an optional peer beside `xpath`
+and loaded lazily by `ready()`; the nodenext consumer check imports the new subpath. 496 tests.
+
+**What table 7 turns out to mean, which is not what the CR assumed.** Section 2 proposed
+`xpath2` as `evaluateXPathToBoolean`, "which is the effective boolean value". Measured, that is
+wrong for the case the mode exists for: FontoXPath's effective boolean value of `/invoice/wantspam`
+where the element holds `false` is **true**, because the effective boolean value of a non-empty
+node sequence is true - the opposite of table 7's "`"false"` is false", and a silent wrong answer
+in a template processor, where a condition that should hide content would show it. Reading the
+table's two sentences together gives the rule actually implemented: the effective boolean value,
+**with a string cast to `xs:boolean`**. So a boolean result is itself (`/invoice/amt > 1000`); an
+empty sequence and an empty string are false; any other value is taken by its string value and
+cast, which accepts only `true`, `false`, `1` and `0` and raises an error otherwise -
+`"yes"` is an error, as the table says, and so is `"True"`, `xs:boolean`'s lexical space being
+case-sensitive where the `java` mode is not.
+
+**A divergence from docx4j, deliberate.** docx4j evaluates both XPath modes with
+`XPathConstants.BOOLEAN` (`XmlPart.xpathGetAsBoolean`), which over Saxon is the plain effective
+boolean value, so a selected element holding `false` is **true** there. The specification v3 is
+what this CR names as the contract and it is newer than that code - and its own NOTE says docx4j
+17.2.0 does not read the `booleanConversion` attribute at all, so docx4j is not yet a conformant
+v3 implementation on this point. Recorded rather than resolved here; when phase B's oracle
+harness runs, this is the first place the two will disagree, and the question of which moves is
+docx4j's.
+
+**A defect found in the `xpath` package, recorded per CR-001 section 19.** In Node the default
+engine is the optional peer `xpath` 0.0.34, and it matches element names **case-insensitively**:
+over a document holding `<t>` and `<T>` as distinct elements, `/invoice/t` answers both. A
+browser's `document.evaluate` is correct, and so is FontoXPath, so the same template binds
+differently in an add-in and in Node. `test/xpath-fonto.test.mjs` asserts the broken answer with
+a `KNOWN` comment naming the package and version, so the fix announces itself; the fix is to
+assert equality with FontoXPath instead. Worth reporting upstream, and worth knowing for CR-002
+phase E users today.
+
+**Tests** (`test/xpath-fonto.test.mjs`, 7): table 7's own examples across all three modes over
+both engines; the default engine refusing `xpath2` with a message naming
+`@docx4j/core-ts/xpath-fonto` and `fontoxpath` (REQ-032, evaluate in the declared mode or refuse);
+the `java` default for a template that declares no mode; `select` and `selectValue` agreeing with
+the default engine; an unready engine saying how to ready it; and docx4j's
+`invoice_Saxon_XPath2.docx`, whose two conditions are the discriminating cases - `wantspam` holds
+`false`, which is true in `xpath1` and false in `xpath2`, and `dateGt` is
+`xs:date(/invoice/date) > xs:date('2018-12-31')`, XPath 2.0 syntax that the default engine cannot
+evaluate in any mode, which is why the template is named for Saxon.

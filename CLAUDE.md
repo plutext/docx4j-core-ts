@@ -75,6 +75,7 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range, 
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
+                  FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
@@ -153,7 +154,7 @@ when an answer moves. Parity is zero differences.
 - ES modules only (`"type": "module"`, `.mts` sources built to `dist/*.mjs` with `.d.mts`). Unlike
   the objects package there are no UMD files here, so `"type": "module"` is fine.
 - Public paths are the `exports` map only (`.`, `./opc`, `./parts`, `./packages`, `./model`,
-  `./office-js`, `./node`). Keep them stable; add subpaths deliberately. **`./node` is the only
+  `./office-js`, `./node`, `./xpath-fonto`). Keep them stable; add subpaths deliberately. **`./node` is the only
   one that may import a `node:` builtin** (`DirectoryPartStore`); nothing else under `src/` may,
   so a browser or add-in bundle never sees one. There is no `@types/node`: what that module uses
   is declared in `src/node/node-builtins.d.mts`.

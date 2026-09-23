@@ -24,6 +24,10 @@ phase E typed-kind tests; no document in the docx4j checkout has a `w:dropDownLi
 `mc:AlternateContent` in a header. `tracked-changes.docx` is docx4j's
 `docx4j-samples-docx4j/sample-docs/sample-docx.docx` (also Apache-2.0), a Word file with one
 `w:ins` and one `w:del` by "Jason Harrop", the fixture of `tracking.test.mjs`.
+`invoice_Saxon_XPath2.docx` is docx4j's `sample-docs/databinding` template of that name, whose
+conditions are the cases where the OpenDoPE boolean conversion modes disagree (`wantspam` holds
+`false`) and where XPath 2.0 syntax is required (`xs:date(...) > xs:date(...)`), the fixture of
+`xpath-fonto.test.mjs` (CR-005 phase A).
 `cr022-slicers-timelines.xlsx` is docx4j's fixture of the same name, added by its CR-022 at
 `16844ff03` (Excel 365: two pivot tables, two slicers with their caches, a timeline with its
 cache, a table), the fixture of `sml-extensions.test.mjs` (CR-004 phase A). Its

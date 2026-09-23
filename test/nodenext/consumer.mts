@@ -10,11 +10,14 @@ import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
 import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
 import * as model from '@docx4j/core-ts/model';
 import { Word, NotSupportedError, toApiScript } from '@docx4j/core-ts/office-js';
+import { FontoXPathEngine } from '@docx4j/core-ts/xpath-fonto';
 
 export async function consume(): Promise<string> {
   const pkg: WordprocessingMLPackage = await WordprocessingMLPackage.createPackage();
   const name: PartName = PartName.of('/word/document.xml');
   void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink];
+  pkg.xpathEngine = new FontoXPathEngine();
+  pkg.xpathEngine = new FontoXPathEngine();
   const script: string = await toApiScript(pkg.body);
   await Word.run(pkg, (context) => context.document.body.insertParagraph(script, 'End'));
   void NotSupportedError;
@@ -23,6 +26,8 @@ export async function consume(): Promise<string> {
 
 // Each entry point's types must be real, not any: each line below is an error only while its import
 // resolves, so a degraded import leaves the directive unused and the check fails.
+// @ts-expect-error FontoXPathEngine is a class, not a number
+export const fonto: number = FontoXPathEngine;
 // @ts-expect-error Part is a class, not a number
 export const root: number = Part;
 // @ts-expect-error PartName is a class, not a number
