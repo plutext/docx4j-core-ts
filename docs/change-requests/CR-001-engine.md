@@ -2197,10 +2197,10 @@ re-marshalled with `w14:docId` first.
 **The problem.** `MainDocumentPart.fontsInUse()` (Phase B step 4, section 15.3) collects the
 font names of every story. Its story walk already reads the headers, footers, footnotes,
 endnotes and comments privately (`readQuietly`, a `readContents()` that answers undefined on
-failure), but it takes the body from `getContents()`, which unmarshals the main part; and the
-editor found, the first time its font box called it, that six header and footer parts had lost
-their byte-for-byte round trip as well (E1.c, 2026-09-23: whichever path unmarshalled them,
-the observable guarantee was broken). The editor's contract is that only a save with changes
+failure), but it takes the body from `getContents()`, which unmarshals the main part. (The
+request also reported six header and footer parts losing their round trip; that did not
+reproduce on either side and the editor has withdrawn it - see the measurement below.) The
+editor's contract is that only a save with changes
 touches the main part and nothing touches the others (ED-002 section 8 item 2), so it stopped
 calling `fontsInUse()` and reads the names off its own projection and the resolver
 (`documentFonts` in `styles.mts`), which is a second, partial implementation of this walk.
@@ -2226,10 +2226,13 @@ only for the body. Over all eight `.docx` fixtures, `fontsInUse()` followed by
 `getPropertyResolver()` and `getRunFontSelector()` unmarshals exactly one part - the main
 document part - and that is the only part whose bytes change on the save that follows. The
 headers, footers, notes, comments, styles, theme, settings, numbering and font table are all
-already private (`readQuietly`), so the six header and footer parts the editor saw are **not
-reproduced here**: whatever unmarshalled them was some other path (the editor's own, or a call
-made before `readQuietly` reached these readers), and it would be worth knowing which, because
-the fix below would not touch it. `stories()` line 1 is the whole defect:
+already private (`readQuietly`), so the six header and footer parts the request reported are
+**not reproduced here**. The editor session then reproduced this result against the very copy
+its observation was made with (core-ts 0.1.1 as installed on 2026-09-23, before the commits in
+question) over three of its own fixtures, found no committed editor code that ever called
+`fontsInUse()`, and withdrew the attribution (ED-002 section 10.3 item 3, "Correction,
+2026-09-24"); the remaining candidates are in work that was never committed. `stories()` line 1
+is the whole defect:
 `(await this.getContents()).body?.content`, where every other line is a `readQuietly`. So the
 change is one line plus the guarantee, and the test is what the phase is really buying - it pins
 a property nothing else in this package states.
