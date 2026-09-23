@@ -165,3 +165,20 @@ test('a re-marshalled part declares every prefix its mc:Ignorable names', async 
   assert.ok(declarations(decode(savedDocx.loadSync('word/document.xml')), '<w:document').includes('w14'));
   assert.ok(declarations(decode(savedDocx.loadSync('word/settings.xml')), '<w:settings').length > 0);
 });
+
+// docx4j-core-tests SettingsDocIdOrderTest (its CR for 17.2.1, dae2dfc8b): CT_Settings declares
+// w14:docId before w15:chartTrackingRefBased, which is the order Word desktop writes.
+// HelloWordOnline.docx carries Word Online's order, the other way round, so re-marshalling it is
+// what shows the schema's order rather than the input's. CR-001 section 17.7.
+test('a re-marshalled settings part puts w14:docId before w15:chartTrackingRefBased', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('HelloWordOnline.docx'));
+  const settings = [...pkg.parts.values()].find((p) => p.partName.name.endsWith('settings.xml'));
+  const source = new TextDecoder().decode(new ZipPartStore(await fixture('HelloWordOnline.docx')).loadSync('word/settings.xml'));
+  assert.deepEqual(source.match(/<w1[45]:(docId|chartTrackingRefBased)/g),
+    ['<w15:chartTrackingRefBased', '<w14:docId', '<w15:docId'], 'the input is Word Online-ordered');
+
+  await settings.getContents();
+  const out = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/settings.xml'));
+  assert.deepEqual(out.match(/<w1[45]:(docId|chartTrackingRefBased)/g),
+    ['<w14:docId', '<w15:chartTrackingRefBased', '<w15:docId']);
+});

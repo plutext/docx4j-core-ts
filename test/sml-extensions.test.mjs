@@ -150,3 +150,43 @@ test('the nine classes carry docx4j\'s default part names, content types and rel
   // a name may still be given, as every other part class allows
   assert.equal(new SlicersPart(new PartName('/xl/slicers/slicer7.xml')).partName.name, '/xl/slicers/slicer7.xml');
 });
+
+// The gap CR-004 phase A found and docx4j 8e8f6ea83 closed (CR-004 section 5): a:graphicData's
+// wildcard was strict, so a graphic no module binds was fatal rather than DOM. drawing1.xml
+// frames a slicer through a Choice requiring a14, which the preprocessor takes; drawing2.xml
+// frames one through a Choice requiring sle15, which it does not understand, so that one keeps
+// its Fallback picture.
+test('a drawing that frames a slicer unmarshals, with the slicer kept as DOM', async () => {
+  const pkg = await OpcPackage.load(await fixture(FIXTURE));
+  const drawing = pkg.parts.get('/xl/drawings/drawing1.xml');
+  const contents = await drawing.getContents();
+  const domNodes = [];
+  const walk = (v) => {
+    if (!v || typeof v !== 'object') return;
+    if (v.nodeType) { domNodes.push(v.nodeName); return; }
+    for (const k of Object.keys(v)) if (k !== 'PARENT') walk(v[k]);
+  };
+  walk(contents);
+  assert.deepEqual(domNodes, ['sle:slicer']);
+
+  const out = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('xl/drawings/drawing1.xml'));
+  assert.ok(out.includes('<sle:slicer'), 're-marshalled with its slicer');
+  assert.ok(!out.includes('<mc:Choice'), 'the understood a14 branch was taken on load');
+});
+
+// Excel writes mc:Ignorable="x xr10" on these parts, naming a prefix whose namespace it declares
+// as the default; objects CR-006 declares such a prefix rather than dropping it.
+test('a re-marshalled slicer part keeps Excel\'s mc:Ignorable', async () => {
+  const pkg = await OpcPackage.load(await fixture(FIXTURE));
+  for (const part of [...pkg.parts.values()].filter((p) => p instanceof SlicersPart || p instanceof SlicerCachePart)) {
+    await part.getDocument();
+  }
+  const saved = new ZipPartStore(await pkg.save());
+  for (const name of ['xl/slicers/slicer1.xml', 'xl/slicerCaches/slicerCache1.xml']) {
+    const xml = new TextDecoder().decode(saved.loadSync(name));
+    const root = xml.match(/<[^?!][^>]*>/)[0];
+    const ignorable = /mc:Ignorable="([^"]*)"/.exec(root)?.[1];
+    assert.equal(ignorable, 'x xr10', name);
+    for (const prefix of ignorable.split(' ')) assert.ok(root.includes(`xmlns:${prefix}="`), `${name}: xmlns:${prefix}`);
+  }
+});

@@ -2237,3 +2237,33 @@ is the whole defect:
 change is one line plus the guarantee, and the test is what the phase is really buying - it pins
 a property nothing else in this package states.
 
+
+## 19. Recording a defect so that its fix cannot pass unnoticed (2026-09-25)
+
+Twice now a defect in a dependency has been recorded here as a **test that asserts the broken
+behaviour**, named and dated, rather than as a skipped test or a comment; both times the arriving
+fix announced itself by failing that test. The device is worth stating once, since it is not
+obvious and its two instances were arrived at independently.
+
+The shape. When a defect is upstream and this package cannot fix it, the reflex is to skip the
+case (`it.skip`, an exclusion list, a `try`/`catch` that swallows it). A skip is silent in both
+directions: it does not fail while the defect lasts, and it does not fail when the defect goes,
+so the day the dependency is fixed nobody here learns it, and the skip outlives its reason by
+however long it takes someone to re-read it. Instead, assert what the defect actually does -
+`assert.rejects(...)`, an equality against the wrong answer - with a comment naming the upstream
+commit or issue and what the right answer will be. While the defect lasts the suite is green and
+documents it exactly. When the fix lands the assertion fails, in a run nobody had to remember to
+make, and the failure says what to do: delete the entry, and check that the right answer arrived.
+
+The two instances. `test/ignorable.test.mjs` carried an `UNREADABLE` table naming
+`xl/drawings/drawing1.xml` of `cr022-slicers-timelines.xlsx`, with the reason (CR-004 section 5:
+`CT_GraphicalObjectData`'s wildcard forbade DOM, so a slicer was fatal) and the docx4j commit that
+would fix it; on the first run against objects `7c80f4d` it failed with `Missing expected
+rejection`, which is how this session learned the fix had arrived rather than by re-reading a
+skip. The objects package's `test/fidelity.mjs` has a `KNOWN` table of the same kind, which caught
+its own fix the same way. The cost is a table entry and a sentence of prose; the return is that a
+dependency's progress reaches the dependent automatically.
+
+Two boundaries. It records defects **in a dependency**, not in this package: a defect here is
+fixed, not pinned. And the entry must carry its reason and its upstream reference, or it becomes
+the thing it was meant to replace - an exclusion nobody dares delete.

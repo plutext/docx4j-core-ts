@@ -118,6 +118,15 @@ once that commit is pushed, together with `dae2dfc8b` (the `CT_Settings` order, 
 and the slicer kept as DOM: the entry for it in `test/ignorable.test.mjs`'s `UNREADABLE` is then
 removed, and its removal is the check that the fix arrived.
 
+**It did, and that is how this session found out** (2026-09-25): objects 0.2.0 (npm, tag
+`f90a2c6`) carries the regeneration, and the first run against it failed `ignorable.test.mjs`
+with `Missing expected rejection` for `drawing1.xml`. The part now unmarshals with the `a14`
+branch taken and `sle:slicer` kept as DOM, and re-marshals with the slicer intact;
+`sml-extensions.test.mjs` asserts both, and that Excel's `mc:Ignorable="x xr10"` survives a round
+trip of the slicer and slicer cache parts with both prefixes declared (objects CR-006), which is
+what phase B needs to re-marshal them. The device - recording a dependency's defect as an
+assertion of the broken behaviour rather than as a skip - is written up in CR-001 section 19.
+
 **Not affected:** the parity goldens (no fixture of theirs has an extension part), and
 `createPackage()`, which writes none of these parts. docx4j 17.2.1 has since added two more
 SpreadsheetML content types, threaded comments and persons, which it leaves as `DefaultXmlPart`s

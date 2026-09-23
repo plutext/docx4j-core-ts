@@ -136,6 +136,9 @@ output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equal
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance
 checklist. The contract: untouched parts byte-identical after a round trip, re-marshalled parts
 deep-equal after reload, flat OPC through the objects package's `unmarshalPackage` and back.
+A defect in a dependency is recorded as a test that **asserts the broken behaviour**, with the
+upstream commit in a comment, never as a skip: the arriving fix then announces itself by failing
+that assertion (CR-001 section 19).
 `test/golden/` holds 45 JSON goldens - what **docx4j itself** answers for each fixture
 (effective properties, style resolutions, table styles, list labels and counters, the document
 font of every character), written by the Maven harness in `test/java/` and compared by
