@@ -130,6 +130,7 @@ Key mechanics:
 `test/*.test.mjs` on Node's runner, against `dist/` (`content.test.mjs` covers the content API,
 `create.test.mjs` the created docx, pptx and xlsx, `directory.test.mjs` the `./node` container and
 `clone()`, `omml.test.mjs` an equation in DrawingML text (docx4j `OmmlInDrawingMLTextTest`),
+`sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004 phase A),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

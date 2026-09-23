@@ -72,6 +72,19 @@ export abstract class Part implements RelationshipSource {
     return rel;
   }
 
+  /**
+   * This part's targets of one relationship type that are instances of a class, in relationship
+   * order: what a shortcut for a collection of parts (a sheet's slicers, a workbook's slicer
+   * caches) is made of.
+   */
+  protected partsByRelationshipType<T extends Part>(relationshipType: string, cls: abstract new (...args: never[]) => T): T[] {
+    const rp = this.relationshipsPart;
+    if (!rp) return [];
+    return rp.getRelationshipsByType(relationshipType)
+      .map((r) => rp.getPart(r))
+      .filter((p): p is T => p instanceof cls);
+  }
+
   /** Subclasses keep typed references to well-known targets (styles, numbering, ...); returns true when one was set. */
   setPartShortcut(_part: Part, _relationshipType: string): boolean {
     return false;

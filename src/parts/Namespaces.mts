@@ -92,6 +92,26 @@ export const Namespaces = {
   SPREADSHEETML_PIVOT_CACHE_DEFINITION: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotCacheDefinition',
   SPREADSHEETML_PIVOT_CACHE_RECORDS: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotCacheRecords',
   SPREADSHEETML_EXTERNAL_LINK: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/externalLink',
+  // The Excel 2010 and 2013 extension parts (CR-004): slicers and their caches are 2007,
+  // timelines 2011, the survey 2010; the rest are the officeDocument ones.
+  /** `/xl/slicerCaches/slicerCache1.xml`, from the workbook. */
+  SPREADSHEETML_SLICER_CACHE: 'http://schemas.microsoft.com/office/2007/relationships/slicerCache',
+  /** `/xl/slicers/slicer1.xml`, from a worksheet. */
+  SPREADSHEETML_SLICERS: 'http://schemas.microsoft.com/office/2007/relationships/slicer',
+  /** `/xl/timelineCaches/timelineCache1.xml`, from the workbook. */
+  SPREADSHEETML_TIMELINE_CACHE: 'http://schemas.microsoft.com/office/2011/relationships/timelineCache',
+  /** `/xl/timelines/timeline1.xml`, from a worksheet. */
+  SPREADSHEETML_TIMELINES: 'http://schemas.microsoft.com/office/2011/relationships/timeline',
+  /** `/xl/ctrlProps/ctrlProp1.xml`, from a worksheet, for one of its form controls. */
+  SPREADSHEETML_CONTROL_PROPERTIES: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/ctrlProp',
+  /** `/xl/customDataProps/customDataProps1.xml`, from the workbook. */
+  SPREADSHEETML_CUSTOM_DATA_PROPERTIES: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customDataProps',
+  /** `/xl/customData/customData1.dat`, from its properties part. */
+  SPREADSHEETML_CUSTOM_DATA: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customData',
+  /** `/xl/surveys/survey1.xml`, from the workbook. */
+  SPREADSHEETML_SURVEY: 'http://schemas.microsoft.com/office/2010/relationships/Survey',
+  /** `/xl/model/item.data` ([MS-XLDM]), from the workbook. */
+  SPREADSHEETML_DATA_MODEL: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/powerPivotData',
   WEB_EXTENSION_TASKPANES: 'http://schemas.microsoft.com/office/webextensions/taskpanes/2010/11',
   WEB_EXTENSION_WEBEXTENSION: 'http://schemas.microsoft.com/office/webextensions/webextension/2010/11',
   XML_EVENTS: 'http://www.w3.org/2001/xml-events',

@@ -65,6 +65,7 @@ export const defaultPartRegistry = new PartRegistry()
   .registerForRelationship(Namespaces.EMBEDDED_PKG, (n, ct) => new EmbeddedPackagePart(n, ct))
   .registerForRelationship(Namespaces.OLE_OBJECT, (n, ct) => new OleObjectBinaryPart(n, ct))
   .registerForRelationship(Namespaces.CUSTOM_XML_DATA_STORAGE, (n, ct) => new CustomXmlDataStoragePart(n, ct))
+  .registerForRelationship(Namespaces.SPREADSHEETML_CUSTOM_DATA, (n, ct) => new sml.CustomDataPart(n, ct))
   .register(ContentTypes.WORDPROCESSINGML_DOCUMENT, (n, ct) => new wml.MainDocumentPart(n, ct))
   .register(ContentTypes.WORDPROCESSINGML_DOCUMENT_MACROENABLED, (n, ct) => new wml.MainDocumentPart(n, ct))
   .register(ContentTypes.WORDPROCESSINGML_TEMPLATE, (n, ct) => new wml.MainDocumentPart(n, ct))
@@ -144,4 +145,14 @@ export const defaultPartRegistry = new PartRegistry()
   .register(ContentTypes.SPREADSHEETML_QUERY_TABLE, (n) => new sml.QueryTablePart(n))
   .register(ContentTypes.SPREADSHEETML_CONNECTIONS, (n) => new sml.ConnectionsPart(n))
   .register(ContentTypes.SPREADSHEETML_EXTERNAL_LINK, (n) => new sml.ExternalLinkPart(n))
-  .register(ContentTypes.SPREADSHEETML_PRINTER_SETTINGS, (n) => new sml.PrinterSettingsPart(n));
+  .register(ContentTypes.SPREADSHEETML_PRINTER_SETTINGS, (n) => new sml.PrinterSettingsPart(n))
+  // The Excel 2010 and 2013 extension parts (CR-004).  `CustomDataPart`'s content type is the
+  // generic `application/binary`, so it is registered by relationship type above instead.
+  .register(ContentTypes.SPREADSHEETML_SLICER_CACHE, (n) => new sml.SlicerCachePart(n))
+  .register(ContentTypes.SPREADSHEETML_SLICERS, (n) => new sml.SlicersPart(n))
+  .register(ContentTypes.SPREADSHEETML_TIMELINE_CACHE, (n) => new sml.TimelineCachePart(n))
+  .register(ContentTypes.SPREADSHEETML_TIMELINES, (n) => new sml.TimelinesPart(n))
+  .register(ContentTypes.SPREADSHEETML_CONTROL_PROPERTIES, (n) => new sml.ControlPropertiesPart(n))
+  .register(ContentTypes.SPREADSHEETML_CUSTOM_DATA_PROPERTIES, (n) => new sml.CustomDataPropertiesPart(n))
+  .register(ContentTypes.SPREADSHEETML_SURVEY, (n) => new sml.SurveyPart(n))
+  .register(ContentTypes.SPREADSHEETML_DATA_MODEL, (n) => new sml.DataModelPart(n));

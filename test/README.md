@@ -24,6 +24,13 @@ phase E typed-kind tests; no document in the docx4j checkout has a `w:dropDownLi
 `mc:AlternateContent` in a header. `tracked-changes.docx` is docx4j's
 `docx4j-samples-docx4j/sample-docs/sample-docx.docx` (also Apache-2.0), a Word file with one
 `w:ins` and one `w:del` by "Jason Harrop", the fixture of `tracking.test.mjs`.
+`cr022-slicers-timelines.xlsx` is docx4j's fixture of the same name, added by its CR-022 at
+`16844ff03` (Excel 365: two pivot tables, two slicers with their caches, a timeline with its
+cache, a table), the fixture of `sml-extensions.test.mjs` (CR-004 phase A). Its
+`xl/drawings/drawing1.xml` is the one part in `fixtures/` that cannot be unmarshalled - the
+`a14` Choice is taken and holds a slicer the model has no module for, where
+`CT_GraphicalObjectData`'s wildcard forbids DOM; `ignorable.test.mjs` names it and asserts the
+rejection rather than skipping it, and the part still round-trips from its bytes.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a

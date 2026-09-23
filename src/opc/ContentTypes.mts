@@ -92,6 +92,19 @@ export const ContentTypes = {
   SPREADSHEETML_COMMENTS: 'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml',
   SPREADSHEETML_CONNECTIONS: 'application/vnd.openxmlformats-officedocument.spreadsheetml.connections+xml',
   SPREADSHEETML_EXTERNAL_LINK: 'application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml',
+  // The Excel 2010 and 2013 extension parts ([MS-XLSX] 2.1; docx4j 17.2.0 CR-022, CR-004 here).
+  // The strings are Excel 365's as docx4j measured them: the timeline pair is lowercase, and
+  // the survey's capital S is Excel's too.
+  SPREADSHEETML_SLICER_CACHE: 'application/vnd.ms-excel.slicerCache+xml',
+  SPREADSHEETML_SLICERS: 'application/vnd.ms-excel.slicer+xml',
+  SPREADSHEETML_TIMELINE_CACHE: 'application/vnd.ms-excel.timelineCache+xml',
+  SPREADSHEETML_TIMELINES: 'application/vnd.ms-excel.timeline+xml',
+  SPREADSHEETML_CONTROL_PROPERTIES: 'application/vnd.ms-excel.controlproperties+xml',
+  SPREADSHEETML_CUSTOM_DATA_PROPERTIES: 'application/vnd.openxmlformats-officedocument.customDataProperties+xml',
+  /** Generic, so `CustomDataPart` is registered by relationship type instead. */
+  SPREADSHEETML_CUSTOM_DATA: 'application/binary',
+  SPREADSHEETML_SURVEY: 'application/vnd.ms-excel.Survey+xml',
+  SPREADSHEETML_DATA_MODEL: 'application/vnd.openxmlformats-officedocument.model+data',
   DIGITAL_SIGNATURE_ORIGIN_PART: 'application/vnd.openxmlformats-package.digital-signature-origin',
   DIGITAL_SIGNATURE_XML_SIGNATURE_PART: 'application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml',
   INK_ML: 'application/inkml+xml',

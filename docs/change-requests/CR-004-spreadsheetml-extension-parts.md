@@ -1,6 +1,6 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Proposed 2026-09-20. Phase A ready to implement; Phase B unblocked the same day by
+**Status:** Phase A implemented 2026-09-24 (section 5). Phase B unblocked 2026-09-20 by
 objects 0.1.6 (the docx4j CR-022 regeneration, the `x14` and `x15` Excel modules; 0.1.5 carried
 it but could not load a pptx or xlsx whose text body holds an equation, CR-001 section 17.5),
 which this package now depends on.
@@ -68,3 +68,48 @@ covers it); `ExcelExtensionPartsTest` and `ExcelExtensionsTest` mirrored. Effort
 The slicer, timeline and control content itself (a SpreadsheetML content API is not planned); the
 DrawingML `mc:AlternateContent` in drawings (`a14`, `tsle`, `sle15`), which docx4j still resolves to
 the Fallback and lists as a DrawingML CR.
+
+## 5. Phase A implementation notes (2026-09-24)
+
+As specified in section 3, with three things worth recording.
+
+**The nine classes** are in `src/parts/sml/index.mts`: `SlicerCachePart`, `SlicersPart`,
+`TimelineCachePart`, `TimelinesPart`, `ControlPropertiesPart`, `CustomDataPropertiesPart` and
+`SurveyPart` over `DefaultXmlPart`, `CustomDataPart` and `DataModelPart` over `BinaryPart`, each
+with docx4j's default part name, content type and relationship type (asserted class by class, the
+strings taken from docx4j's `ContentTypes` and `Namespaces` rather than from the specification
+pages). The registry takes eight by content type and `CustomDataPart` by relationship type, its
+content type being the generic `application/binary`. Shortcuts: `WorkbookPart.slicerCacheParts`,
+`timelineCacheParts`, `customDataPropertiesParts`, `surveyPart` and `dataModelPart`;
+`WorksheetPart.slicersParts`, `timelinesParts` and `controlPropertiesParts`. The six collection
+getters share a new `Part.partsByRelationshipType(relationshipType, class)`, which is what
+`WorksheetPart.tableParts` already did by hand; that one getter now uses it too.
+
+**Tests** (`test/sml-extensions.test.mjs`, 4 tests): over docx4j's `cr022-slicers-timelines.xlsx`,
+the parts load with their classes and the shortcuts answer per sheet (sheet2 a slicer and a
+timeline, sheet3 a slicer, sheet1 neither); the workbook round-trips byte for byte, with the four
+content-type overrides and the workbook and sheet relationships intact, and a reload of the saved
+bytes finds them again. The fixture has no control properties, custom data, survey or data model
+part - Excel writes those only for a form control, an add-in, a survey or Power Pivot - so those
+five are built, added, saved and reloaded, which is what exercises `CustomDataPart`'s
+relationship-type entry and every new content-type override.
+
+**A gap this turned up, upstream of here.** `xl/drawings/drawing1.xml` of that fixture cannot be
+unmarshalled: its `mc:AlternateContent` Choice requires `a14`, which **is** understood, so the
+preprocessor takes it, and inside it `a:graphicData` holds the slicer's `sle:slicer`, for which
+the model has no module - and `CT_GraphicalObjectData`'s wildcard is `allowDom: false`, so the
+unknown graphic is fatal instead of staying DOM. JAXB's `@XmlAnyElement(lax=true)` keeps it, which
+is why docx4j does not see this. It is the same remedy as docx4j CR-021 applied to the `mce`
+wildcards (CR-001 section 15.4): the schema's `processContents` wants to be lax. Reported to the
+objects session for docx4j. Consequences here, none of which phase A can fix: a workbook whose
+drawing frames a slicer or a timeline through an understood Choice cannot have that drawing part
+unmarshalled (the part still round-trips from its bytes, and every other part of the workbook
+reads); `drawing2.xml` of the same fixture frames a slicer too but its Choice requires `sle15`,
+which is not understood, so its Fallback picture is taken and the part reads - what saves it is
+the branch being given up. `test/ignorable.test.mjs` names `drawing1.xml` as unreadable and
+asserts the rejection rather than skipping it, so a second such part cannot hide behind it.
+
+**Not affected:** the parity goldens (no fixture of theirs has an extension part), and
+`createPackage()`, which writes none of these parts. docx4j 17.2.1 has since added two more
+SpreadsheetML content types, threaded comments and persons, which it leaves as `DefaultXmlPart`s
+and which are therefore already right here.

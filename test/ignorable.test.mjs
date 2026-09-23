@@ -22,10 +22,35 @@ function undeclared(xml) {
   return ignorable.split(/\s+/).filter((p) => p && !declared.has(p));
 }
 
+/**
+ * Parts that cannot be unmarshalled at all, with the reason, so that forcing a read of every part
+ * does not hide one behind another. Unmarshalling is not what these fixtures are for; a part here
+ * still round-trips from its source bytes, which `roundtrip.test.mjs` asserts.
+ */
+const UNREADABLE = {
+  // The a14 Choice is taken (a14 is understood), and inside it a:graphicData holds the slicer's
+  // sle:slicer, for which the model has no module. CT_GraphicalObjectData's wildcard is
+  // allowDom: false, so an unknown graphic is fatal rather than kept as DOM, where JAXB's
+  // @XmlAnyElement(lax=true) keeps it. Reported upstream (CR-004 section 5); until the schema is
+  // lax a workbook's drawing cannot be unmarshalled if it frames a slicer through an understood
+  // Choice. drawing2.xml frames one too but its Choice requires sle15, which is not understood,
+  // so the preprocessor takes its Fallback picture and the part reads: what saves it is the
+  // branch being given up, not anything about the slicer.
+  'cr022-slicers-timelines.xlsx': ['/xl/drawings/drawing1.xml'],
+};
+
 for (const name of names) {
   test(`mc:Ignorable prefixes declared after re-marshalling every part: ${name}`, async () => {
     const pkg = await OpcPackage.load(await fixture(name));
-    await pkg.unmarshalAll();
+    const unreadable = UNREADABLE[name] ?? [];
+    for (const part of pkg.parts.values()) {
+      if (typeof part.getContents !== 'function') continue;
+      if (unreadable.includes(part.partName.name)) {
+        await assert.rejects(() => part.getContents(), `${part.partName.name} is listed as unreadable but unmarshalled`);
+        continue;
+      }
+      await part.getContents();
+    }
     const out = new ZipPartStore(await pkg.save());
     const failures = [];
     for (const part of out.partNames()) {
