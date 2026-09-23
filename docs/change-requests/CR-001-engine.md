@@ -2176,3 +2176,15 @@ part, or keep its bytes and refuse to call the package converted, but never sile
 against believing too much: "a mixed package would be refused by Office" was the framing of the
 original question and is **not measured** by either side; treat it as an assumption if it ever
 enters planning here.
+
+**docx4j 17.2.1's `CT_Settings` order (`dae2dfc8b`, unpushed when relayed 2026-09-23).**
+`wml.xsd` now declares `w14:docId` before `w15:chartTrackingRefBased` (then `w15:docId`), the
+order Word desktop writes; only those two swapped, no property renamed. It is the reordering the
+objects session flagged when 0.1.6 was tested, and it is real here: measured on
+`loadAndSave.docx`, Word's `w14:docId`, `w15:chartTrackingRefBased`, `w15:docId` comes back from
+a re-marshalled `settings.xml` as `w15:chartTrackingRefBased`, `w14:docId`, `w15:docId`. Harmless
+(Word opens it), and nothing here depends on the order: no test pins it and `createPackage`
+writes neither element. When objects ships the regeneration - the same one as CR-026, so 0.1.7 or
+the next - the order follows docx4j's without a change here, and the upgrade should add the
+parity twin of `docx4j-core-tests`' `SettingsDocIdOrderTest`: a Word Online-ordered input
+re-marshalled with `w14:docId` first.
