@@ -136,17 +136,27 @@ test('docx4j\'s invoice_Saxon_XPath2.docx: the conditions an XPath 1.0 engine ca
   assert.equal(booleanValue(fonto, '/invoice[1]/misc/wantspam', doc, {}, 'xpath1'), true);
   assert.equal(booleanValue(fonto, '/invoice[1]/misc/wantspam', doc, {}, 'java'), false);
 
-  // dateGt is the reason the template is named for Saxon: XPath 2.0 syntax, which an XPath 1.0
-  // engine cannot evaluate at all, in any mode.
+  // dateGt is the reason the template is named for Saxon: XPath 2.0 **syntax**, which an XPath 1.0
+  // engine cannot evaluate at all - in any mode, including the java one. That is the whole of what
+  // this fixture exercises about modes: it declares no xpaths/@booleanConversion, so a processor
+  // reading the template would use its default (java, as docx4j's property default is), and the
+  // engine is needed for the syntax rather than for the cast. The xpath2 cast itself is table 7
+  // above. (Noticed by the docx4j-ts-editor session, ED-003 section 11.2 item 21.)
   const dateGt = "xs:date(/invoice/date) > xs:date('2018-12-31')";
   const namespaces = parsePrefixMappings("xmlns:xs='http://www.w3.org/2001/XMLSchema'");
   assert.deepEqual(namespaces, { xs: 'http://www.w3.org/2001/XMLSchema' });
-  assert.equal(booleanValue(fonto, dateGt, doc, namespaces, 'xpath2'), true);
+  const xpaths = pkg.customXmlParts.items.find((p) => p.namespaceUri === 'http://opendope.org/xpaths');
+  assert.ok(xpaths, 'the template has an XPaths part');
+  assert.equal(xpaths.document.documentElement.hasAttribute('booleanConversion'), false,
+    'and it declares no mode, so the mode below is the caller\'s, not the template\'s');
 
   const dflt = new DefaultXPathEngine();
   await dflt.ready();
-  assert.throws(() => booleanValue(dflt, dateGt, doc, namespaces, 'xpath1'),
-    'XPath 1.0 cannot evaluate an xs:date comparison');
+  for (const mode of ['java', 'xpath1', 'xpath2']) {
+    assert.equal(booleanValue(fonto, dateGt, doc, namespaces, mode), true, `dateGt in ${mode}`);
+    assert.throws(() => booleanValue(dflt, dateGt, doc, namespaces, mode),
+      `XPath 1.0 cannot evaluate an xs:date comparison, whatever the mode: ${mode}`);
+  }
 });
 
 // A defect in the optional peer `xpath` 0.0.34, recorded as an assertion of the broken behaviour

@@ -310,7 +310,13 @@ the default engine; an unready engine saying how to ready it; and docx4j's
 `invoice_Saxon_XPath2.docx`, whose two conditions are the discriminating cases - `wantspam` holds
 `false`, which is true in `xpath1` and false in `xpath2`, and `dateGt` is
 `xs:date(/invoice/date) > xs:date('2018-12-31')`, XPath 2.0 syntax that the default engine cannot
-evaluate in any mode, which is why the template is named for Saxon. The last two cover the
+evaluate in any mode, which is why the template is named for Saxon. **That fixture declares no
+`xpaths/@booleanConversion`** (noticed by the editor session, ED-003 section 11.2 item 21), so
+what it exercises about the engine is the 2.0 *syntax*, needed whatever the mode - a processor
+reading this template would use its default, which is `java` both in the specification and in
+docx4j's property - and not the `xpath2` cast, which is table 7's own test above. The test now
+says so: it asserts the attribute's absence, and evaluates `dateGt` in all three modes, true
+through this engine and a throw through the default one in every one of them. The last two cover the
 constructor form: the module given either way answers as the imported one does, and a module that
 is not `fontoxpath` is refused at the constructor. The nodenext consumer check exercises both
 forms, so the declaration has to admit them.
