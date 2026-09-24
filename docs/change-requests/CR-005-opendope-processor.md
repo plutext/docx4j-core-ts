@@ -232,6 +232,24 @@ not the effective boolean value of a node sequence. `cast1` is the effective boo
 `cast2` is table 7. So the specification, docx4j and this package agree, and FontoXPath's
 `evaluateXPathToBoolean` - what section 2 proposed - would have implemented `cast1`.
 
+**Counterpart:** `docx4j-core-tests org.docx4j.model.datastorage.ConditionBooleanSemanticsTest`
+(docx4j `0d076bdde` on `VERSION_17_2_1`), nine tests pinning what was measured, of which the first
+five are the eleven cases matched here: `cast2`'s lexical space, nothing-selected being false, the
+four out-of-space texts and the two-node sequence being errors, and `typechecking` making no
+difference on a bare path. The rest pin what this package does not attempt - the `cast1` and
+Java-default contrasts, the legacy comparison shapes where `typechecking` does fire, and
+`Xpathref.xpathEval` turning a cast error into an `InputIntegrityException`, which is the
+abort-the-bind behaviour. When the two must be compared, that test is the oracle.
+
+**Counterpart:** `docx4j-core-tests org.docx4j.model.datastorage.ConditionBooleanSemanticsTest`
+(docx4j `0d076bdde` on `VERSION_17_2_1`), nine tests pinning what was measured, of which the first
+five are the eleven cases matched here: `cast2`'s lexical space, nothing-selected being false, the
+four out-of-space texts and the two-node sequence being errors, and `typechecking` making no
+difference on a bare path. The rest pin what this package does not attempt - the `cast1` and
+Java-default contrasts, the legacy comparison shapes where `typechecking` does fire, and
+`Xpathref.xpathEval` turning a cast error into an `InputIntegrityException`, which is the
+abort-the-bind behaviour. When the two must be compared, that test is the oracle.
+
 This engine therefore does what docx4j does rather than casting by hand: `xs:boolean(${expression})`
 evaluated by FontoXPath. All eleven of the measured cases match, and by construction rather than
 by agreement, so the lexical space, the whitespace collapse, the multi-item rule and the empty
@@ -242,9 +260,10 @@ selecting **nothing** is false in both.
 
 The one thing still unsettled is what a raise means. docx4j turns it into an
 `InputIntegrityException` and the whole bind fails - measured: `wantspam` set to `yes` makes
-`Docx4J.bind` throw. Here it is a `Docx4JException` out of `booleanValue`, and what a processor
-does with it is phase B's decision; the specification does not say whether a bad value is a failed
-document or a failed condition. Also measured, and unchanged: nothing in docx4j reads
+`Docx4J.bind` throw, and now pinned by the last test of `ConditionBooleanSemanticsTest`. Here it is
+a `Docx4JException` out of `booleanValue`, and what a processor does with it is phase B's decision;
+the specification does not say whether a bad value is a failed document or a failed condition, and
+the docx4j session agrees that is v3's line to write rather than either implementation's. Also measured, and unchanged: nothing in docx4j reads
 `xpaths/@booleanConversion` (it exists only in `xsd/OpenDoPE/xpaths.xsd`), so the property applies
 to every template and the v3 NOTE still holds at 17.2.1.
 
