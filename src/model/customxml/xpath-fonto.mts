@@ -95,36 +95,32 @@ export class FontoXPathEngine implements XPathEngine {
   }
 
   /**
-   * The `xpath2` mode of table 7: the effective boolean value, except that a **string** is cast to
-   * `xs:boolean`, which accepts only `true`, `false`, `1` and `0` - so `"false"` is false, where
-   * the plain effective boolean value of a non-empty string is true, and `"yes"` is an error.
+   * The `xpath2` mode of table 7, **as docx4j does it**: the expression is wrapped in
+   * `xs:boolean(...)` and the engine performs the cast, which is `XmlPart.cachedXPathGetBoolean`
+   * with `opendope.conditions.Xpathref.XPathBoolean=cast2` (measured against Saxon-HE 9.9.0-2 by
+   * the docx4j session, 2026-09-25, and matched here case for case). Doing what docx4j does,
+   * rather than casting by hand, is what keeps the two from drifting: the lexical space, the
+   * whitespace collapse, the multi-item rule and the empty sequence all come from the engine.
    *
-   * Reading the two sentences of table 7 together: the effective boolean value is the rule, and
-   * the cast is how a **string** takes part in it. So a boolean result (the shape REC-005 asks new
-   * templates to use, `/invoice/total > 1000`) is itself; an empty sequence is false, and so is an
-   * empty string, both being the effective boolean value of nothing; any other value - a node the
-   * expression selected, a number - is taken by its string value and cast, which is how a legacy
-   * expression pointing at a data element behaves. `xs:boolean`'s lexical space is exactly `true`,
-   * `false`, `1` and `0`, so `"True"` is an error here where the `java` mode accepts it.
+   * So: `true`, `1` are true; `false`, `0` are false; leading and trailing space is collapsed
+   * first, so `" false "` is false; an expression selecting **nothing** is false; and anything
+   * else raises - `"yes"`, `"True"` (`xs:boolean`'s lexical space is case-sensitive where the
+   * `java` mode ignores case), `""` from an empty element, and a sequence of more than one node.
    *
-   * This differs from docx4j, whose `XPathConstants.BOOLEAN` over Saxon gives the plain effective
-   * boolean value, under which a selected element holding `false` is **true**; the specification's
-   * table is what CR-005 names as the contract, and CR-005 section 7 records the divergence.
+   * A raise is not a false. docx4j turns it into an `InputIntegrityException` and the whole bind
+   * fails; here it is a `Docx4JException` from this call, and what a processor does with it is
+   * the processor's business (CR-005 phase B). That is the one place the two behaviours are not
+   * yet the same thing, and the specification does not say which is right.
    */
   private xpath2BooleanValue(expression: string, context: Node, namespaces: Record<string, string>): boolean {
-    const value = this.selectValue(expression, context, namespaces);
-    if (typeof value === 'boolean') return value;
-    if (value === undefined) return false;
-    const text = String(value);
-    if (text === '') return false;
-    switch (text) {
-      case 'true': case '1': return true;
-      case 'false': case '0': return false;
-      default:
-        throw new Docx4JException(
-          `The xpath2 boolean conversion mode casts to xs:boolean, which accepts only "true", "false", "1" and "0": `
-          + `"${text}" (from ${expression}) is none of them`,
-        );
+    try {
+      return this.fonto().evaluateXPathToBoolean(`xs:boolean(${expression})`, context, null, null, this.options(namespaces));
+    } catch (e) {
+      throw new Docx4JException(
+        `The xpath2 boolean conversion mode casts to xs:boolean, which accepts only "true", "false", "1" and "0", `
+        + `and one value at a time: ${expression} gives none of them`,
+        { cause: e },
+      );
     }
   }
 

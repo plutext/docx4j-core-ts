@@ -9,8 +9,8 @@ import { FontoXPathEngine } from '../dist/model/customxml/xpath-fonto.mjs';
 import { fixture } from './helpers.mjs';
 
 const DATA = parseXml(
-  '<invoice><t>true</t><T>True</T><f>false</f><one>1</one><zero>0</zero><yes>yes</yes>'
-  + '<empty/><amt>1500</amt></invoice>',
+  '<invoice><t>true</t><T>True</T><f>false</f><one>1</one><zero>0</zero><ws> false </ws>'
+  + '<yes>yes</yes><empty/><two>true</two><two>false</two><amt>1500</amt></invoice>',
 );
 
 async function engines() {
@@ -32,15 +32,22 @@ const verdict = (engine, expression, mode) => {
 test('table 7: the three modes over the specification\'s own examples', async () => {
   const { fonto, dflt } = await engines();
   // | expression        | java  | xpath1 | xpath2  |
+  //
+  // The xpath2 column is docx4j's, measured on Saxon-HE 9.9.0-2 with
+  // opendope.conditions.Xpathref.XPathBoolean=cast2 (the docx4j session, 2026-09-25): this engine
+  // wraps the expression in xs:boolean(...) exactly as XmlPart.cachedXPathGetBoolean does, so the
+  // two answer alike by construction rather than by agreement.
   const table = [
     ['/invoice/t', true, true, true],
     ['/invoice/T', true, true, 'error'],      // java ignores case; xs:boolean's lexical space does not
     ['/invoice/f', false, true, false],       // "false" is true in XPath 1.0, false in 2.0
     ['/invoice/one', false, true, true],      // "1" is false in the Java mode
     ['/invoice/zero', false, true, false],
+    ['/invoice/ws', false, true, false],      // whitespace is collapsed before the cast
     ['/invoice/yes', false, true, 'error'],   // "yes" cannot be cast to xs:boolean
-    ['/invoice/empty', false, true, false],   // a node-set is true if non-empty, whatever it holds
-    ['/invoice/missing', false, false, false],
+    ['/invoice/empty', false, true, 'error'], // "" cannot be cast either: an empty element is not false
+    ['/invoice/missing', false, false, false], // but an expression selecting nothing is
+    ['/invoice/two', true, true, 'error'],    // the java mode takes the first item's string value; the cast will not
     ['/invoice/amt > 1000', true, true, true], // already boolean: every mode agrees
   ];
   for (const [expression, java, xpath1, xpath2] of table) {
@@ -77,7 +84,7 @@ test('select and selectValue answer as the default engine does', async () => {
       dflt.select(expression, DATA).map((n) => n.nodeName), expression);
   }
   assert.equal(fonto.selectValue('string(/invoice/T)', DATA), 'True');
-  assert.equal(fonto.selectValue('count(/invoice/*)', DATA), 8);
+  assert.equal(fonto.selectValue('count(/invoice/*)', DATA), 11);
   assert.equal(fonto.selectValue('/invoice/amt > 1000', DATA), true);
   assert.equal(fonto.selectValue('/invoice/missing', DATA), undefined);
   // a selected element reports its text, as the default engine does

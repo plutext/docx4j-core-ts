@@ -210,7 +210,8 @@ and loaded lazily by `ready()`; the nodenext consumer check imports the new subp
 
 **What table 7 turns out to mean, which is not what the CR assumed.** Section 2 proposed
 `xpath2` as `evaluateXPathToBoolean`, "which is the effective boolean value". Measured, that is
-wrong for the case the mode exists for: FontoXPath's effective boolean value of `/invoice/wantspam`
+wrong for the case the mode exists for - and, as the next paragraph records, it is not what docx4j
+does either: FontoXPath's effective boolean value of `/invoice/wantspam`
 where the element holds `false` is **true**, because the effective boolean value of a non-empty
 node sequence is true - the opposite of table 7's "`"false"` is false", and a silent wrong answer
 in a template processor, where a condition that should hide content would show it. Reading the
@@ -221,14 +222,38 @@ cast, which accepts only `true`, `false`, `1` and `0` and raises an error otherw
 `"yes"` is an error, as the table says, and so is `"True"`, `xs:boolean`'s lexical space being
 case-sensitive where the `java` mode is not.
 
-**A divergence from docx4j, deliberate.** docx4j evaluates both XPath modes with
-`XPathConstants.BOOLEAN` (`XmlPart.xpathGetAsBoolean`), which over Saxon is the plain effective
-boolean value, so a selected element holding `false` is **true** there. The specification v3 is
-what this CR names as the contract and it is newer than that code - and its own NOTE says docx4j
-17.2.0 does not read the `booleanConversion` attribute at all, so docx4j is not yet a conformant
-v3 implementation on this point. Recorded rather than resolved here; when phase B's oracle
-harness runs, this is the first place the two will disagree, and the question of which moves is
-docx4j's.
+**No divergence from docx4j after all, and the implementation now shares its strategy.** The
+paragraph that stood here supposed docx4j's `cast2` to be the plain effective boolean value, from
+reading `XmlPart.xpathGetAsBoolean`. Jason asked the docx4j session to measure it instead
+(Saxon-HE 9.9.0-2, docx4j-core 17.2.1-SNAPSHOT, 2026-09-25), and the supposition was wrong:
+`XmlPart.cachedXPathGetBoolean` with `opendope.conditions.Xpathref.XPathBoolean=cast2` wraps the
+**whole expression** in `xs:boolean(...)` before evaluating, so it is a cast of the atomized node,
+not the effective boolean value of a node sequence. `cast1` is the effective boolean value;
+`cast2` is table 7. So the specification, docx4j and this package agree, and FontoXPath's
+`evaluateXPathToBoolean` - what section 2 proposed - would have implemented `cast1`.
+
+This engine therefore does what docx4j does rather than casting by hand: `xs:boolean(${expression})`
+evaluated by FontoXPath. All eleven of the measured cases match, and by construction rather than
+by agreement, so the lexical space, the whitespace collapse, the multi-item rule and the empty
+sequence cannot drift apart. Two of them had been got wrong by the hand-rolled cast and are fixed:
+an **empty element** raises (`xs:boolean("")` is a cast error) where it had answered false, and a
+**sequence of more than one node** raises where the first item had been taken. An expression
+selecting **nothing** is false in both.
+
+The one thing still unsettled is what a raise means. docx4j turns it into an
+`InputIntegrityException` and the whole bind fails - measured: `wantspam` set to `yes` makes
+`Docx4J.bind` throw. Here it is a `Docx4JException` out of `booleanValue`, and what a processor
+does with it is phase B's decision; the specification does not say whether a bad value is a failed
+document or a failed condition. Also measured, and unchanged: nothing in docx4j reads
+`xpaths/@booleanConversion` (it exists only in `xsd/OpenDoPE/xpaths.xsd`), so the property applies
+to every template and the v3 NOTE still holds at 17.2.1.
+
+The `xpath2.typechecking` property is orthogonal, as read: it fires only in the catch, only when
+Saxon's message contains `cannot compare xs:boolean to xs:string` **and** the expression contains
+`=`, and rewrites only what follows the first `=`. It never fires for a bare path, so `cast2` and
+`strict` answer a condition like `/invoice[1]/misc/wantspam` identically. It matters only for
+legacy comparisons shaped `true() = 'true'`, which this package does not attempt to reproduce and
+which phase B should not until a template needs it.
 
 **A defect found in the `xpath` package, recorded per CR-001 section 19.** In Node the default
 engine is the optional peer `xpath` 0.0.34, and it matches element names **case-insensitively**:
