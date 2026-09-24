@@ -346,6 +346,14 @@ test('Range.hyperlink: an external link over a span, with its relationship', asy
   const xml = new TextDecoder().decode(store.loadSync('word/document.xml'));
   const id = /<w:hyperlink[^>]*r:id="([^"]+)"/.exec(xml)?.[1];
   assert.ok(id, 'a w:hyperlink with an r:id is written');
+  // w:history is what Word and docx4j both write on a hyperlink they make. The value is `true`
+  // where they write `1`: both are ST_OnOff, and this package marshals every boolean that way -
+  // a re-marshalled Word document turns its own w:history="1" into "true" too.
+  assert.match(xml, /<w:hyperlink[^>]*w:history="(1|true)"/);
+  // w:history is what Word and docx4j both write on a hyperlink they make. The value is `true`
+  // where they write `1`: both are ST_OnOff, and this package marshals every boolean that way -
+  // a re-marshalled Word document turns its own w:history="1" into "true" too.
+  assert.match(xml, /<w:hyperlink[^>]*w:history="(1|true)"/);
   const rels = new TextDecoder().decode(store.loadSync('word/_rels/document.xml.rels'));
   assert.ok(rels.includes(`Id="${id}"`) && rels.includes('Target="https://docx4j.org/"')
     && rels.includes('TargetMode="External"'), 'and an external relationship for it');
@@ -368,6 +376,7 @@ test('Range.hyperlink: a location inside the document, and removal', async () =>
   const xml = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
   assert.ok(/<w:hyperlink[^>]*w:anchor="chapter1"/.test(xml));
   assert.ok(!/<w:hyperlink[^>]*r:id=/.test(xml), 'and no r:id');
+  assert.match(xml, /<w:hyperlink[^>]*w:history="(1|true)"/, 'an internal link carries it too');
 
   // address and location together
   range.hyperlink = 'https://example.com/doc#section2';

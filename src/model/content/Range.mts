@@ -256,7 +256,12 @@ export class Range {
     const hash = value.indexOf('#');
     const address = hash === -1 ? value : value.slice(0, hash);
     const location = hash === -1 ? '' : value.slice(hash + 1);
-    const holder = hyperlinkOf({ content: [] }) as Element<wml.P.Hyperlink>;
+    // w:history="1" is what Word writes on every hyperlink it makes, and what docx4j writes when
+    // it builds one (MainDocumentPart.addHyperlink): "add the target to the viewed hyperlinks"
+    // (ECMA-376 17.16.22). Readers do not depend on it, but a document holding one holder from
+    // each source should not differ over it. Found by the docx4j-ts-editor session, ED-003
+    // section 11.8.
+    const holder = hyperlinkOf({ content: [], history: true }) as Element<wml.P.Hyperlink>;
     if (location !== '') holder.value.anchor = location;
     if (address !== '') holder.value.id = this.addHyperlinkRelationship(address);
 

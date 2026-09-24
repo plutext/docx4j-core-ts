@@ -1760,6 +1760,15 @@ refusal, so a range spanning a tracked change or another hyperlink is refused ra
 silently mangled. `hyperlink` is now in `test/office-js-subset.ts`, so `Word.supported` reports
 it and the subset's assignability keeps the shape honest (231 members).
 
+**`w:history`** (2026-09-25, found by the editor session on its own holders, ED-003 section 11.8):
+the setter writes `w:history` on the holder, which is what Word puts on every hyperlink it makes -
+both fixtures carry it on every holder, external and internal - and what docx4j writes when it
+builds one (`MainDocumentPart`, and its `HyperlinkTest` sample). Readers do not depend on it, but
+a document holding one holder from each source should not differ over it. The value is `true`
+where Word writes `1`: both are `ST_OnOff`, and this is how the package marshals every boolean -
+a re-marshalled Word document turns its own `w:history="1"` into `"true"` as well, so this is the
+existing lexical convention rather than anything introduced here.
+
 **Tests** (`test/content.test.mjs`, 3): an external link over a *span* of a paragraph, with the
 `w:hyperlink`, the `r:id`, the `TargetMode="External"` relationship and the text untouched, read
 back after a save and reload, and `""` for a range outside the span; an anchor with no
