@@ -94,10 +94,25 @@ Security (specification section 12): no external entities when parsing (REQ-073;
 parsers here resolve none), cycles refused (REQ-029), missing conditions an error (REQ-030), a
 version newer than 3.0 refused (REQ-010).
 
-Tests: the goldens the editor's Java oracle makes over docx4j's `sample-docs/databinding`
-templates (ED-003 section 4.8: the instance document per template and data) become this
-package's too, compared part by part after the removal step and text by text before it; the
-parity harness pattern (a weekly workflow) keeps them current against docx4j.
+Tests: a `Docx4J.bind` harness in `test/java/` beside the parity one, with its goldens committed
+and a workflow regenerating them against docx4j's head, so a difference arrives as a pull request
+(section 6; Jason accepted this on 2026-09-25, and the editor copies the goldens rather than
+making them). Agreed with the editor session, 2026-09-25:
+
+- **Where they live: `test/golden/opendope/<template basename>.json`.** The editor's refresh
+  script first assumed `test/fixtures/opendope/goldens/`; this repository's precedent is that
+  goldens are `test/golden/` and fixtures are `test/fixtures/`, which CR-001 phase B settled, so
+  the parity precedent wins and the editor has been told the path.
+- **The shape**, which the editor's oracle test expects and this harness therefore writes:
+  `{ "template", "data"?, "docx4j": <version>, "controls": { "<w:id>": { "value"?: string,
+  "kept"?: boolean, "count"?: number, "unchanged"?: true } } }` - one file per template-and-data
+  pair, recording what `Docx4J.bind` did to every content control after insert-XML, preprocess,
+  integrity and bind, **with no removal step**, so a control is still there to be named. Any
+  template and data pair in, a golden out, which is REQ-074 with docx4j as the judge.
+- The pairs: `binding-simple`, `invoice` and `invoice2013` with their data files; `conventions`,
+  `non-element-bind`, `hyperlink-binding-test`, `picture` and `invoice_Saxon_XPath2` against the
+  data part they carry. Applying a data file means replacing the data part's XML before
+  evaluating, which is step 1 of the pipeline, so the values line up either way.
 
 Effort: two to three weeks, by the size of the Java.
 
