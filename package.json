@@ -1,6 +1,6 @@
 {
   "name": "@docx4j/core-ts",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "docx4j-core for TypeScript: Open Packaging (docx/pptx/xlsx zip and flat OPC), typed parts and relationships, style, numbering and font resolution over @docx4j/generated-objects-ts. Node, browsers, Word add-ins.",
   "type": "module",
   "main": "./dist/index.mjs",
