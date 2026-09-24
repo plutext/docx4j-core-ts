@@ -6,7 +6,7 @@ export { BUILT_IN_STYLES, builtInOf, idOfBuiltIn, displayNameOf, styleNameOf, st
 export { Comment } from './Comment.mjs';
 // lists (CR-002 phase H)
 export {
-  List, ListItem, ListItemNotFoundError, listsOf, listLabelsOf, numberingEmulatorOf, levelOf,
+  List, ListItem, ListItemNotFoundError, NumberingFacade, listsOf, listLabelsOf, numberingEmulatorOf, levelOf,
   type ListLevelType, type ListNumbering, type ListBullet, type StartListOptions, type ListLabel,
 } from './List.mjs';
 export { type Author, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';

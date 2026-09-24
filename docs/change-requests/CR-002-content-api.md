@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Section 19: the list definition verbs off the package, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1703,3 +1703,39 @@ caller holding a tree that no part has unmarshalled, which is what `readContents
 section 18's design and the first-story semantic of section 6 stand as written. But nothing waits
 on it now, and a proposed phase with no consumer reads like work someone is owed. Revive it when a
 consumer appears, and re-read section 6's note before building it.
+
+## 19. List definitions without a paragraph (`pkg.numbering`, 2026-09-25)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-003 section 9 item 16 (E2.c step C2), and built
+because it is a decomposition rather than an addition.
+
+**The problem.** `Paragraph.startNewList()` is Office JS's shape and is right for a caller that
+holds a paragraph. An editor with a document model of its own holds a `w:numId` and writes
+`w:numPr` itself; attaching, detaching and level changes are attribute transactions there, but
+*starting* a list had to go through a paragraph of this package - export a tree, run the verb,
+project the result back - a whole-body round trip for what is otherwise one attribute.
+
+**And the paragraph was never needed.** `startNewList` used it for two things: reaching the body
+to find or create the numbering part, and attaching at the end. The definition-building between
+touches nothing paragraph-shaped. So:
+
+- `pkg.numbering.newList({ bullet? }): Promise<string>` - the numbering part created with
+  docx4j's default definitions where the document has none and unmarshalled where it has one, a
+  `w:abstractNum` copied from docx4j's decimal or bullet set, a `w:num` naming it, and that
+  `w:numId` returned. Nothing is attached.
+- `pkg.numbering.restart(numId): string` - `List.restart()` without a `Body`: a `w:num` on the
+  same `w:abstractNum` with a `w:startOverride` at level 0, and its `w:numId`. Synchronous, so
+  the numbering part must have been read.
+
+`startNewList` and `List.restart()` now call the same two helpers (`addListDefinition`,
+`addRestartedNum`) and keep their Office JS shapes exactly; `ensureNumberingPart(body)` delegates
+to an `ensureNumberingPartOf(pkg, main)` that the facade uses. So there is one implementation of
+each, and the accidental dependency on a paragraph is gone rather than duplicated.
+
+**Tests** (`test/lists.test.mjs`, 4): a definition built with no paragraph on a document that has
+no numbering part, the part created, a second call giving a second definition, the bullet set
+chosen, and **nothing attached** - then a paragraph the caller attaches itself numbering `1.`;
+the same against a document that already has a numbering part, surviving a save and reload;
+`restart` giving a `w:num` on the same abstract definition with the override, and the two lists
+numbering `1. 2.` and `1.` independently; and what each verb says when there is no part or no
+such `w:numId`.

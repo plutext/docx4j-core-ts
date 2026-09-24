@@ -21,6 +21,7 @@ import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
 import { ChangeTracker, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
+import { NumberingFacade } from '../model/content/List.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
@@ -436,6 +437,18 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * `customXmlParts.load()`; every node call is synchronous afterwards.
    */
   xpathEngine: XPathEngine = new DefaultXPathEngine();
+
+  /**
+   * The document's list definitions as verbs that need no paragraph: `newList()` and
+   * `restart(numId)` (CR-002 section 19). `Paragraph.startNewList()` and `List.restart()` are
+   * Office JS's shapes and remain; this is for a caller that holds a `w:numId` rather than a
+   * paragraph - an editor with its own document model, writing `w:numPr` itself.
+   */
+  get numbering(): NumberingFacade {
+    return (this.numberingFacade ??= new NumberingFacade(this));
+  }
+
+  private numberingFacade: NumberingFacade | undefined;
 
   /**
    * Office JS `document.customXmlParts`: the custom XML data storage parts as views, with

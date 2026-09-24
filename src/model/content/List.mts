@@ -479,21 +479,9 @@ export class List {
    * Extension name (Office JS has no restart verb); `Paragraph.restartList()` is the sugar.
    */
   restart(): List {
-    const numbering = this.live();
-    const num = this.element;
-    const start = this.level(0)?.start ?? 1;
-    const created = f.createNumberingNum({
-      numId: nextNumId(numbering),
-      abstractNumId: f.createNumberingNumAbstractNumId({ val: num.abstractNumId.val }),
-      lvlOverride: [f.createNumberingNumLvlOverride({
-        ilvl: 0,
-        startOverride: f.createNumberingNumLvlOverrideStartOverride({ val: start }),
-      })],
-    });
-    (numbering.num ??= []).push(created);
-    linkParents(created, numbering);
+    const numId = addRestartedNum(this.live(), this.element.abstractNumId.val, this.level(0)?.start ?? 1);
     this.written();
-    return new List(String(created.numId), this.body);
+    return new List(String(numId), this.body);
   }
 
   /**
@@ -753,9 +741,21 @@ export function detachFromList(paragraph: Paragraph): void {
 export async function startNewList(paragraph: Paragraph, options?: StartListOptions): Promise<List> {
   const body = paragraph.parentBody;
   const part = await ensureNumberingPart(body);
+  const numId = await addListDefinition(part, options?.bullet === true);
+  packageOf(body)?.refreshPropertyResolver();
+  return attachToList(paragraph, numId, options?.level ?? 0);
+}
+
+/**
+ * A `w:abstractNum` copied from docx4j's default definitions (its `numbering.xml` resource:
+ * `w:abstractNum` 1 is Word's decimal set and 0 its bullet set) and a `w:num` naming it; the new
+ * `w:numId`. The paragraph half of `startNewList` is separate because it is separable: nothing
+ * about building a list definition needs one.
+ */
+async function addListDefinition(part: NumberingPartLike, bullet: boolean): Promise<number> {
   const numbering = await part.getContents();
   const defaults = await defaultNumbering();
-  const template = (defaults.abstractNum ?? [])[options?.bullet === true ? 0 : 1];
+  const template = (defaults.abstractNum ?? [])[bullet ? 0 : 1];
   if (template === undefined) throw new Docx4JException('The default numbering definitions are missing an abstractNum');
 
   const abstract = deepCopy(template);
@@ -772,9 +772,27 @@ export async function startNewList(paragraph: Paragraph, options?: StartListOpti
   });
   (numbering.num ??= []).push(num);
   linkParents(num, numbering);
+  return num.numId;
+}
 
-  packageOf(body)?.refreshPropertyResolver();
-  return attachToList(paragraph, num.numId, options?.level ?? 0);
+/**
+ * A `w:num` naming the same `w:abstractNum` as another, with a `w:startOverride` at level 0; the
+ * new `w:numId`. The counters are shared by abstract definition, so this is how Word restarts a
+ * list (CR-001 section 15.2), and it is what {@link List.restart} and
+ * {@link NumberingFacade.restart} both do.
+ */
+function addRestartedNum(numbering: wml.Numbering, abstractNumId: number, start: number): number {
+  const created = f.createNumberingNum({
+    numId: nextNumId(numbering),
+    abstractNumId: f.createNumberingNumAbstractNumId({ val: abstractNumId }),
+    lvlOverride: [f.createNumberingNumLvlOverride({
+      ilvl: 0,
+      startOverride: f.createNumberingNumLvlOverrideStartOverride({ val: start }),
+    })],
+  });
+  (numbering.num ??= []).push(created);
+  linkParents(created, numbering);
+  return created.numId;
 }
 
 /**
@@ -788,6 +806,15 @@ async function ensureNumberingPart(body: Body): Promise<NumberingPartLike> {
   if (pkg === undefined || main === undefined) {
     throw new Docx4JException('This body has no package, so a list cannot be added to it');
   }
+  return ensureNumberingPartOf(pkg, main);
+}
+
+/**
+ * The same, reached from the package rather than from a body, which is what
+ * {@link NumberingFacade} uses: creating a list definition needs no paragraph and no body, and
+ * making one go through either costs a caller that holds neither (CR-002 section 19).
+ */
+async function ensureNumberingPartOf(pkg: ListPackageLike, main: MainPartLike): Promise<NumberingPartLike> {
   const existing = main.numberingDefinitionsPart;
   if (existing !== undefined) {
     // the resolver read the part privately; unmarshalling it gives a second tree, so the
@@ -808,6 +835,56 @@ async function ensureNumberingPart(body: Body): Promise<NumberingPartLike> {
   // a part added since (CR-001 section 15.2 departure 6)
   await pkg.refresh();
   return created as unknown as NumberingPartLike;
+}
+
+/**
+ * The document's list definitions, as verbs that need no paragraph (CR-002 section 19, at the
+ * editor's request): `pkg.numbering`.
+ *
+ * `Paragraph.startNewList()` and `List.restart()` are Office JS's shapes and stay as they are,
+ * but both build a definition first and touch a paragraph only at the end. An editor that keeps
+ * its own document model has the numbering part and a `w:numId` to write, and nothing else - and
+ * going through a paragraph would mean projecting a tree, running the verb and projecting back,
+ * a whole-body round trip for what is otherwise one attribute. So the definition half is here.
+ */
+export class NumberingFacade {
+  constructor(private readonly pkg: ListPackageLike) {}
+
+  /**
+   * A new list definition, and its `w:numId` as a string for a `w:numPr` to name. The numbering
+   * part is created with docx4j's default definitions where the document has none, and an
+   * existing one is unmarshalled so that what is written to it is saved.
+   *
+   * Asynchronous for the same reasons `startNewList` is: the default definitions are XML to be
+   * unmarshalled, and the part may have to be created. Nothing is attached to anything; the
+   * caller writes `w:numPr` itself.
+   */
+  async newList(options?: { bullet?: boolean }): Promise<string> {
+    const main = this.pkg.getMainDocumentPart();
+    const part = await ensureNumberingPartOf(this.pkg, main);
+    const numId = await addListDefinition(part, options?.bullet === true);
+    this.pkg.refreshPropertyResolver();
+    return String(numId);
+  }
+
+  /**
+   * A `w:num` that numbers as `numId` does but starts again, and its own `w:numId`:
+   * `List.restart()` without needing a `Body`. The counters are shared by abstract definition,
+   * so restarting means a new `w:num` with a `w:startOverride`, spent on its first use in a
+   * story (CR-001 section 15.2).
+   *
+   * Synchronous, so the numbering part must have been read: `await pkg.getPropertyResolver()`,
+   * `newList()` or any list read does it.
+   */
+  restart(numId: string | number): string {
+    const part = this.pkg.getMainDocumentPart().numberingDefinitionsPart;
+    if (part === undefined) throw new Docx4JException('This document has no numbering part, so there is no list to restart');
+    const definition = part.definitions.list(numId);
+    if (definition === undefined) throw new ItemNotFound(`No w:num for numId ${numId}`);
+    const created = addRestartedNum(part.makeLive(), definition.num.abstractNumId.val, definition.level('0')?.start ?? 1);
+    this.pkg.refreshPropertyResolver();
+    return String(created);
+  }
 }
 
 // ----------------------------------------------------------------------------- the mechanics

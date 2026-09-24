@@ -459,3 +459,77 @@ test('listString and level equal docx4j\'s labels on every paragraph of all 45 g
   assert.equal(checked, 618, 'every paragraph of every story');
   assert.equal(numbered, 183, 'and the numbered ones docx4j recorded');
 });
+
+// CR-002 section 19: the list definition verbs off the package, which need no paragraph. The
+// editor's case is a document model of its own, holding a w:numId and writing w:numPr itself,
+// where going through Paragraph.startNewList() would mean projecting a tree and projecting back.
+test('pkg.numbering.newList: a definition without a paragraph, and the part created when absent', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  assert.equal(pkg.getMainDocumentPart().numberingDefinitionsPart, undefined);
+
+  const numId = await pkg.numbering.newList();
+  assert.equal(typeof numId, 'string');
+  const part = pkg.getMainDocumentPart().numberingDefinitionsPart;
+  assert.ok(part, 'the numbering part was created, as startNewList does it');
+
+  // the same definitions Paragraph.startNewList() builds: a copy of docx4j's decimal set
+  const definition = part.definitions.list(numId);
+  assert.ok(definition, 'the new w:num is in the definitions');
+  assert.equal(definition.level('0')?.isBullet, false);
+  const bulletId = await pkg.numbering.newList({ bullet: true });
+  assert.notEqual(bulletId, numId, 'a second call gives a second definition');
+  assert.equal(part.definitions.list(bulletId)?.level('0')?.isBullet, true);
+
+  // nothing was attached: no paragraph is a list item
+  assert.deepEqual(pkg.body.paragraphs.filter((p) => p.isListItem), []);
+
+  // and the caller writing w:numPr itself gets a numbered paragraph
+  const paragraph = pkg.body.insertParagraph('one', 'End');
+  paragraph.attachToList(numId, 0);
+  assert.equal(paragraph.isListItem, true);
+  assert.equal(paragraph.listItem.listString, '1.');
+});
+
+test('pkg.numbering.newList: an existing numbering part is used, and the result survives a save', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('invoice.docx'));
+  const numId = await pkg.numbering.newList();
+  const part = pkg.getMainDocumentPart().numberingDefinitionsPart;
+  assert.ok(part.definitions.list(numId), 'added to the document\'s own numbering part');
+
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getPropertyResolver();
+  const reloaded = back.getMainDocumentPart().numberingDefinitionsPart.definitions.list(numId);
+  assert.ok(reloaded, 'the definition is in the saved document');
+  assert.equal(reloaded.level('0')?.isBullet, false);
+});
+
+test('pkg.numbering.restart: List.restart() without a Body', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const numId = await pkg.numbering.newList();
+  const restarted = pkg.numbering.restart(numId);
+  assert.notEqual(restarted, numId);
+
+  const part = pkg.getMainDocumentPart().numberingDefinitionsPart;
+  const num = part.contents.num.find((n) => String(n.numId) === restarted);
+  assert.equal(num.abstractNumId.val, part.contents.num.find((n) => String(n.numId) === numId).abstractNumId.val,
+    'the same abstract definition: counters are shared by it');
+  assert.equal(num.lvlOverride[0].ilvl, 0);
+  assert.equal(num.lvlOverride[0].startOverride.val, 1, 'and a startOverride is what restarts it');
+
+  // the two lists number independently, which is the point of the override
+  const first = pkg.body.insertParagraph('a', 'End');
+  const second = pkg.body.insertParagraph('b', 'End');
+  const third = pkg.body.insertParagraph('c', 'End');
+  first.attachToList(numId, 0);
+  second.attachToList(numId, 0);
+  third.attachToList(restarted, 0);
+  assert.deepEqual([first, second, third].map((p) => p.listItem.listString), ['1.', '2.', '1.']);
+});
+
+test('pkg.numbering.restart: what it says when there is nothing to restart', async () => {
+  const empty = await WordprocessingMLPackage.createPackage();
+  assert.throws(() => empty.numbering.restart('1'), /no numbering part/);
+  const pkg = await WordprocessingMLPackage.createPackage();
+  await pkg.numbering.newList();
+  assert.throws(() => pkg.numbering.restart('99'), /No w:num for numId 99/);
+});
