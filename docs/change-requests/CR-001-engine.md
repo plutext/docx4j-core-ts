@@ -346,12 +346,29 @@ touches zip tree-shakes it away.
   is not what Word wrote. Browsers' `DOMParser` is correct. The fix belongs in the runtime: an
   upstream xmldom fix with the version pinned, or `Jsonix.DOM.parse` escaping the two characters
   as references when the declaration is 1.0. Sent to the jsonix session on 2026-09-19.
-  **Being fixed as jsonix CR-004, to land in 3.3.0** (relayed 2026-09-25). It changes how every
-  part unmarshals, so the upgrade here is not routine: check the 45 parity goldens (the
-  `tracked-changes.docx` normalisation in `parity.test.mjs` is the one that should become
-  unnecessary - if it does, remove it rather than leave it), the byte-for-byte round trips, and
-  whether a re-marshalled part now keeps a U+0085 or U+2028 where Word put one. The objects
-  session runs its fidelity set against the candidate before release and says what moves.
+  **Fixed as jsonix CR-004 and verified here against the candidate** (jsonix `28cff3a`, 3.3.0,
+  2026-09-25). `Jsonix.DOM.parse` gives xmldom a `normalizeLineEndings` chosen by the document's
+  XML version. Measured on the checkout, every item of the checklist this paragraph used to set:
+
+  - **The parity goldens pass with the workaround deleted**, which is the point. `parity.test.mjs`
+    carried an `asParsed()` that normalised the *golden* - docx4j's answer, read by Xerces - down
+    to what our parser could manage; with the fix, `tracked-changes.docx`'s
+    `"and here it continues<U+0085>"` is read as Word wrote it and all 181 parity tests pass
+    against the goldens verbatim. The comparison becomes **stricter**, not looser.
+  - **A re-marshalled part keeps the character**, literally rather than as a reference: the data
+    loss this section recorded is gone.
+  - **The rules are right in each direction**: no declaration and `version="1.0"` keep NEL and
+    LINE SEPARATOR and fold CR and CR LF to LF; `version="1.1"` folds NEL and LINE SEPARATOR too;
+    PARAGRAPH SEPARATOR (U+2029) is kept in both, where xmldom's default had collapsed it.
+  - The whole suite passes (505), so nothing else moved.
+
+  **Not yet upgraded, deliberately.** jsonix arrives transitively through
+  `@docx4j/generated-objects-ts`, whose range `^3.2.1` already admits 3.3.0, and the lockfile here
+  pins 3.2.1 - so CI stays on the old behaviour until the lockfile moves. The `asParsed()` removal
+  is therefore held until that bump and lands in the same commit; removing it sooner would leave
+  `main` red against its own lockfile. Until then `asParsed()` is the record of the defect in the
+  sense of section 19, and it did exactly that job: it was the one test that failed when the fix
+  arrived.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 
