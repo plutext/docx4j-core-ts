@@ -362,13 +362,13 @@ touches zip tree-shakes it away.
     PARAGRAPH SEPARATOR (U+2029) is kept in both, where xmldom's default had collapsed it.
   - The whole suite passes (505), so nothing else moved.
 
-  **Not yet upgraded, deliberately.** jsonix arrives transitively through
-  `@docx4j/generated-objects-ts`, whose range `^3.2.1` already admits 3.3.0, and the lockfile here
-  pins 3.2.1 - so CI stays on the old behaviour until the lockfile moves. The `asParsed()` removal
-  is therefore held until that bump and lands in the same commit; removing it sooner would leave
-  `main` red against its own lockfile. Until then `asParsed()` is the record of the defect in the
-  sense of section 19, and it did exactly that job: it was the one test that failed when the fix
-  arrived.
+  **Upgraded 2026-09-25**, the day jsonix 3.3.0 reached npm (tag `3.3.0` at `dc54ef5`, the same
+  package contents as the `28cff3a` tested above). jsonix arrives transitively through
+  `@docx4j/generated-objects-ts`, whose range `^3.2.1` already admits it, so the upgrade here is a
+  lockfile move - `npm update @docx4j/jsonix` - and `asParsed()` is deleted in the same commit,
+  which is what keeps `main` green against its own lockfile at every point. This section's defect
+  is closed: nothing in the port now loses a character Word wrote, and the parity comparison is
+  one workaround shorter than it was.
 - **Objects facade, later:** nothing else; `getContext`, `unmarshalNode`, `marshalNode`,
   `unmarshalPackage`, `deepCopy`, `unwrap` suffice.
 

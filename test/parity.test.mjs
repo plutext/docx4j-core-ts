@@ -597,21 +597,6 @@ function textOfRun(r) {
   return text;
 }
 
-/**
- * The golden's text as *this package's* XML parser would have read it.
- *
- * `@xmldom/xmldom` applies XML 1.1's line-ending normalisation to an XML 1.0 document, so
- * U+0085 (NEL) and U+2028 (LINE SEPARATOR) inside a `w:t` arrive as U+000A; Xerces, which the
- * harness runs on, keeps them (XML 1.0 normalises only #xD and #xD#xA).  One fixture has one
- * such character (`tracked-changes.docx`, "and here it continues").  Nothing to do with
- * font selection - the span is the same span and the same font - so the comparison normalises
- * the golden rather than recording a font difference; the parser divergence is CR-001 section
- * 15.3's note for the XML layer.
- */
-function asParsed(text) {
-  return text.replace(/\u0085|\u2028/g, '\n');
-}
-
 for (const name of names) {
   test(`parity ${name}: font spans, fonts in use and the mapping equal docx4j`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
@@ -638,8 +623,13 @@ for (const name of names) {
           const effective = resolver.getEffectiveRPr(runs[r].rPr, p.pPr);
           const ours = selector.spans(p.pPr, effective, textOfRun(runs[r]), { rPrIsEffective: true })
             .map(({ text, documentFont, bold, italic, cs, rtl }) => ({ text, documentFont, bold, italic, cs, rtl }));
-          const theirs = (expected.runs[r].fontSpans ?? [])
-            .map((s) => ({ ...s, text: asParsed(s.text) }));
+          // Compared verbatim, U+0085 and U+2028 included. Until @docx4j/jsonix 3.3.0 (its CR-004)
+          // the runtime's xmldom applied XML 1.1's line-ending normalisation to an XML 1.0
+          // document, so a NEL inside a w:t arrived as U+000A where Xerces - which the harness
+          // runs on - kept it, and this comparison normalised the golden down to match. It no
+          // longer has to: tracked-changes.docx's "and here it continues" keeps the NEL Word
+          // wrote (CR-001 section 9).
+          const theirs = expected.runs[r].fontSpans ?? [];
           const difference = firstDifference(ours, theirs);
           if (difference) report(`${story}/${expected.index} run ${r} fontSpans: ${difference}`);
         }
