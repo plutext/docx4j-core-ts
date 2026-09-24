@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Phase J proposed 2026-09-24 (section 18: list labels over a tree, requested by the editor).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1635,7 +1635,7 @@ cross-check. Two existing tests were updated: `office-js.test.mjs` used `paragra
 its example of an unsupported member (it is supported now) and expected the `insertXml`
 fallback for `w:numPr` (a `w:framePr` paragraph is the fallback example instead).
 
-## 18. Phase J, proposed: list labels over a tree, not a part (2026-09-24)
+## 18. Phase J, deferred: list labels over a tree, not a part (proposed 2026-09-24, deferred 2026-09-25)
 
 **Requested by** `plutext/docx4j-ts-editor` ED-002 section 10.3 item 2 (E1.c, 2026-09-23).
 
@@ -1688,3 +1688,18 @@ continuation over private reads is ever wanted, it needs the stories together -
 `listLabelsOver(stories: readonly (readonly Element[])[], emulator)` or an explicit state
 parameter - which is a bigger signature than this phase needs and should not be invented now.
 
+
+### 18.1 Deferred, 2026-09-25: the requester no longer needs it
+
+The editor session, which asked for this phase, withdrew the need a day later: its live labels are
+computed over its **own** nodes, not over a tree of this package's objects - each paragraph gives
+`{ pStyle, numPr }` from its attributes, and `Emulator.getNumber(pPr, state)` with one
+`NumberingState` per story is the whole computation, which is what `labels.mts` already did. No
+tree is involved, so a tree-taking `listLabelsOver` buys it nothing (ED-003 section 9 item 17; the
+registry no longer lists this phase under the editor).
+
+Deferred rather than withdrawn: the phase is still the right shape for the problem it named - a
+caller holding a tree that no part has unmarshalled, which is what `readContents()` gives - and
+section 18's design and the first-story semantic of section 6 stand as written. But nothing waits
+on it now, and a proposed phase with no consumer reads like work someone is owed. Revive it when a
+consumer appears, and re-read section 6's note before building it.
