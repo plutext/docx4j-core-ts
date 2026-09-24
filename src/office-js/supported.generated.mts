@@ -180,6 +180,7 @@ export const SUBSET_MEMBERS: readonly string[] = [
   'Range.getComments',
   'Range.getRange',
   'Range.getTrackedChanges',
+  'Range.hyperlink',
   'Range.insertComment',
   'Range.insertParagraph',
   'Range.insertText',

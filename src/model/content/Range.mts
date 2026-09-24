@@ -7,6 +7,9 @@ import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
+import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
+import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
@@ -224,6 +227,113 @@ export class Range {
     linkParents(sdt, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
     return new ContentControl(sdt, owner, body);
   }
+
+  /**
+   * Office JS `Range.hyperlink`: the address of the first hyperlink in this range, or a new
+   * hyperlink over it. `address#location` separates the address from an optional location within
+   * it, so `"#heading"` is a link inside this document (a `w:anchor`) and
+   * `"https://example.com"` an external one (a relationship). Reading gives `""` where the range
+   * is in no hyperlink.
+   *
+   * Setting removes the hyperlinks the range already carries and wraps its runs in one
+   * `w:hyperlink`, splitting runs at the boundaries as `font` and `insertContentControl` do;
+   * setting `""` removes them and wraps nothing. An external address becomes a relationship of
+   * this range's part, which is why the part must exist (CR-002 section 20).
+   */
+  get hyperlink(): string {
+    const holder = this.hyperlinkHolder();
+    if (holder === undefined) return '';
+    const anchor = holder.value.anchor ?? '';
+    const address = holder.value.id === undefined ? '' : this.relationshipTarget(holder.value.id);
+    return anchor === '' ? address : `${address}#${anchor}`;
+  }
+
+  set hyperlink(value: string) {
+    const paragraph = this.paragraph;
+    this.removeHyperlinks();
+    if (value === '') return;
+
+    const hash = value.indexOf('#');
+    const address = hash === -1 ? value : value.slice(0, hash);
+    const location = hash === -1 ? '' : value.slice(hash + 1);
+    const holder = hyperlinkOf({ content: [] }) as Element<wml.P.Hyperlink>;
+    if (location !== '') holder.value.anchor = location;
+    if (address !== '') holder.value.id = this.addHyperlinkRelationship(address);
+
+    if (this.start === this.end) {
+      paragraph.insertItemsAt(this.start, [holder as Element]);
+      return;
+    }
+    paragraph.splitAt(this.start);
+    paragraph.splitAt(this.end);
+    const segments = paragraph.segments().filter((seg) => seg.start >= this.start && seg.end <= this.end);
+    if (segments.length === 0) throw new Docx4JException('This range covers no run');
+    const owner = segments[0]!.runOwner;
+    if (segments.some((seg) => seg.runOwner !== owner)) {
+      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
+    }
+    const items: Element[] = [];
+    for (const segment of segments) {
+      const element = owner[segment.runIndex] as Element;
+      if (!items.includes(element)) items.push(element);
+    }
+    const at = owner.indexOf(items[0]!);
+    holder.value.content = items as never;
+    owner.splice(at, items.length, holder as Element);
+    linkParents(holder, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
+  }
+
+  /** The `w:hyperlink` this range's first run sits in, if any. */
+  private hyperlinkHolder(): Element<wml.P.Hyperlink> | undefined {
+    for (const segment of this.paragraph.segments()) {
+      if (segment.end <= this.start && this.start !== this.end) continue;
+      if (segment.start >= this.end && this.start !== this.end) break;
+      const parent = (segment.run as { PARENT?: object }).PARENT;
+      const found = hyperlinkHolders(this.paragraph).find((h) => h.value === parent);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  /** Unwraps every `w:hyperlink` the range touches, keeping its runs where they are. */
+  private removeHyperlinks(): void {
+    for (const holder of hyperlinkHolders(this.paragraph)) {
+      const owner = containerOf(holder as Element, this.paragraph);
+      const at = owner.indexOf(holder as Element);
+      if (at === -1) continue;
+      owner.splice(at, 1, ...((holder.value.content ?? []) as Element[]));
+      for (const item of (holder.value.content ?? []) as Element[]) {
+        linkParents(item, (holder as { PARENT?: object }).PARENT ?? this.paragraph.p);
+      }
+    }
+  }
+
+  /** The target of a relationship of this range's part, for the getter. */
+  private relationshipTarget(id: string): string {
+    const part = this.paragraph.parentBody.part;
+    return part?.relationshipsPart?.getRelationshipById(id)?.target ?? '';
+  }
+
+  /** An external relationship of this range's part for the address, and its id. */
+  private addHyperlinkRelationship(address: string): string {
+    const part = this.paragraph.parentBody.part;
+    if (!part) throw new Docx4JException('This range has no part, so a hyperlink cannot be related to it');
+    return part.getRelationshipsPart(true)!.addExternalRelationship(Namespaces.HYPERLINK, address).id;
+  }
+}
+
+/** Every `w:hyperlink` of a paragraph, outermost first (they do not nest in practice). */
+function hyperlinkHolders(paragraph: Paragraph): Element<wml.P.Hyperlink>[] {
+  const out: Element<wml.P.Hyperlink>[] = [];
+  const visit = (items: Element[] | undefined): void => {
+    for (const item of items ?? []) {
+      if (typeNameOf(item) === 'org_docx4j_wml.P.Hyperlink') out.push(item as Element<wml.P.Hyperlink>);
+      const value = item.value;
+      if (typeof value === 'object' && value !== null) visit(runItemsOf(value) as Element[] | undefined);
+    }
+  };
+  visit(runItemsOf(paragraph.p) as Element[] | undefined);
+  return out;
 }
 
 /** The run-level array holding an element, after `insertItemsAt` put it somewhere in the paragraph. */

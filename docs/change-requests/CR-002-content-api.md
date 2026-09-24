@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Section 19: the list definition verbs off the package, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 and 20: the list definition verbs off the package and `Range.hyperlink`, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1739,3 +1739,29 @@ the same against a document that already has a numbering part, surviving a save 
 `restart` giving a `w:num` on the same abstract definition with the override, and the two lists
 numbering `1. 2.` and `1.` independently; and what each verb says when there is no part or no
 such `w:numId`.
+
+## 20. `Range.hyperlink` (2026-09-25)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-003 section 5 (E2.c step C4), and built here rather
+than there because an external hyperlink needs a **relationship**, which is this package's side of
+the dividing rule with the objects package: a tree-only thing belongs there, anything touching
+parts or relationships belongs here. Office JS has the shape, so there was none to invent.
+
+`Range.hyperlink` is a string property, `address#location`: the address part becomes a
+relationship of the range's part and the `r:id` of a `w:hyperlink`; the location part becomes its
+`w:anchor`. So `"#heading"` is a link within this document and carries no relationship,
+`"https://example.com"` an external one, and `"https://example.com/doc#section2"` both. Reading
+gives `""` where the range is in no hyperlink, and setting `""` removes the hyperlinks the range
+carries, keeping their runs where they are.
+
+Setting wraps the range's runs in one `w:hyperlink`, splitting runs at the boundaries exactly as
+`font` and `insertContentControl` already do - the same segment walk, the same one-run-holder
+refusal, so a range spanning a tracked change or another hyperlink is refused rather than
+silently mangled. `hyperlink` is now in `test/office-js-subset.ts`, so `Word.supported` reports
+it and the subset's assignability keeps the shape honest (231 members).
+
+**Tests** (`test/content.test.mjs`, 3): an external link over a *span* of a paragraph, with the
+`w:hyperlink`, the `r:id`, the `TargetMode="External"` relationship and the text untouched, read
+back after a save and reload, and `""` for a range outside the span; an anchor with no
+relationship, an address and location together, and removal leaving the runs; and reading what
+Word wrote, over `hyperlink_dupe.docx`.

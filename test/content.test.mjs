@@ -328,3 +328,64 @@ test('style is the display name, styleBuiltIn the Word.Style value, styleId the 
   assert.throws(() => { p.styleBuiltIn = 'Other'; }, RangeError);
   assert.equal(p.getRange().styleId, 'Heading1');
 });
+
+// CR-002 section 20: Office JS Range.hyperlink. `address#location` separates the address from a
+// location within it, so "#name" is a link inside the document (w:anchor) and an address is an
+// external relationship of the range's part.
+test('Range.hyperlink: an external link over a span, with its relationship', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const paragraph = pkg.body.insertParagraph('see the docs here', 'End');
+  assert.equal(paragraph.getRange().hyperlink, '', 'no hyperlink to begin with');
+
+  const span = paragraph.search('the docs')[0];
+  span.hyperlink = 'https://docx4j.org/';
+  assert.equal(span.hyperlink, 'https://docx4j.org/');
+  assert.equal(paragraph.text, 'see the docs here', 'the text is untouched');
+
+  const store = new ZipPartStore(await pkg.save());
+  const xml = new TextDecoder().decode(store.loadSync('word/document.xml'));
+  const id = /<w:hyperlink[^>]*r:id="([^"]+)"/.exec(xml)?.[1];
+  assert.ok(id, 'a w:hyperlink with an r:id is written');
+  const rels = new TextDecoder().decode(store.loadSync('word/_rels/document.xml.rels'));
+  assert.ok(rels.includes(`Id="${id}"`) && rels.includes('Target="https://docx4j.org/"')
+    && rels.includes('TargetMode="External"'), 'and an external relationship for it');
+
+  // the runs the link covers are exactly the span's
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getMainDocumentPart().getContents();
+  const reloaded = back.body.paragraphs[0];
+  assert.equal(reloaded.search('the docs')[0].hyperlink, 'https://docx4j.org/');
+  assert.equal(reloaded.search('here')[0].hyperlink, '', 'outside the span there is none');
+});
+
+test('Range.hyperlink: a location inside the document, and removal', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const paragraph = pkg.body.insertParagraph('jump to chapter one', 'End');
+  const range = paragraph.getRange();
+
+  range.hyperlink = '#chapter1';
+  assert.equal(range.hyperlink, '#chapter1', 'an anchor, with no relationship');
+  const xml = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
+  assert.ok(/<w:hyperlink[^>]*w:anchor="chapter1"/.test(xml));
+  assert.ok(!/<w:hyperlink[^>]*r:id=/.test(xml), 'and no r:id');
+
+  // address and location together
+  range.hyperlink = 'https://example.com/doc#section2';
+  assert.equal(range.hyperlink, 'https://example.com/doc#section2');
+
+  range.hyperlink = '';
+  assert.equal(range.hyperlink, '');
+  assert.equal(paragraph.text, 'jump to chapter one', 'the runs survive the unwrapping');
+  const after = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
+  assert.ok(!after.includes('<w:hyperlink'), 'and the holder is gone');
+});
+
+test('Range.hyperlink: reads what Word wrote', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('hyperlink_dupe.docx'));
+  await pkg.getMainDocumentPart().getContents();
+  const links = pkg.body.paragraphs
+    .map((p) => p.getRange().hyperlink)
+    .filter((h) => h !== '');
+  assert.ok(links.length > 0, 'the fixture has hyperlinks');
+  for (const link of links) assert.match(link, /^https?:\/\/|^#/, link);
+});

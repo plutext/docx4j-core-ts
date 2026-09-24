@@ -39,7 +39,7 @@ namespace OfficeSubset {
     delete(): Promise<void>;
   }
   export interface Range {
-    text: string; readonly font: Font; style: string;
+    text: string; readonly font: Font; style: string; hyperlink: string;
     insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range;
     insertParagraph(text: string, location: ParagraphLocation): Paragraph;
     search(text: string, options?: SearchOptions): ArrayLike<Range>;
