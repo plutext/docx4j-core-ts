@@ -97,6 +97,28 @@ test('an engine that is not ready says how to ready it', () => {
   assert.throws(() => fonto.select('/invoice', DATA), /not ready/);
 });
 
+// A browser cannot resolve the bare specifier the no-argument form imports, and the @vite-ignore
+// that keeps a bundler from carrying the optional peer against the consumer's will also keeps it
+// from resolving it. So an application imports fontoxpath itself and hands it over.
+test('the module can be passed in, for a browser or a bundle', async () => {
+  const loaded = await import('fontoxpath');
+  for (const given of [loaded, loaded.default]) {
+    const fonto = new FontoXPathEngine(given);
+    assert.equal(fonto.isReady, true, 'ready at once: no import to await');
+    await fonto.ready();
+    assert.equal(booleanValue(fonto, '/invoice/f', DATA, {}, 'xpath2'), false);
+    assert.deepEqual(fonto.select('/invoice/f', DATA).map((n) => n.textContent), ['false']);
+  }
+});
+
+test('a module that is not fontoxpath is refused where it is given, not at the first call', () => {
+  assert.throws(() => new FontoXPathEngine({}), /not the fontoxpath module/);
+  assert.throws(() => new FontoXPathEngine({ default: {} }), /not the fontoxpath module/);
+  assert.throws(() => new FontoXPathEngine(null), /not the fontoxpath module/);
+  // undefined is not "something wrong": it is the Node form, which loads the module itself
+  assert.equal(new FontoXPathEngine(undefined).isReady, false);
+});
+
 test('docx4j\'s invoice_Saxon_XPath2.docx: the conditions an XPath 1.0 engine cannot answer', async () => {
   const pkg = await WordprocessingMLPackage.load(await fixture('invoice_Saxon_XPath2.docx'));
   const fonto = new FontoXPathEngine();

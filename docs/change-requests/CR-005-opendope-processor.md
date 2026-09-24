@@ -283,7 +283,26 @@ a `KNOWN` comment naming the package and version, so the fix announces itself; t
 assert equality with FontoXPath instead. Worth reporting upstream, and worth knowing for CR-002
 phase E users today.
 
-**Tests** (`test/xpath-fonto.test.mjs`, 7): table 7's own examples across all three modes over
+**The module can be passed to the constructor** (2026-09-26, at the editor's request, ED-003
+section 11.2 item 4). `ready()`'s dynamic `import()` of the bare specifier is resolvable in Node
+and **not in a browser**: there is no import map, and the `@vite-ignore` that stops a bundler
+carrying the optional peer against the consumer's will equally stops it resolving the specifier.
+So a `./xpath-fonto` subpath that could not be used in a bundle was half of what phase A promised.
+`new FontoXPathEngine(fontoxpath)` takes the module the application imported itself - its own
+bundler resolving it statically - and is then ready at once, `ready()` resolving immediately;
+`new FontoXPathEngine()` is unchanged for Node, still importing lazily and still naming the
+package to install, now also naming the constructor form. Either the namespace object or the
+default export is accepted, and anything else is refused **where it is given** rather than at the
+first evaluation.
+
+Two designs rejected, and why: a static `import` in the subpath module would satisfy bundlers but
+turn a Node consumer's "npm install fontoxpath" into a bare `ERR_MODULE_NOT_FOUND` at import time
+and make `ready()` a lie; an import map pushes this package's packaging problem onto every
+application that consumes it. Taking the module keeps both audiences and leaves the loading
+decision with the consumer, which is the principle `pkg.xpathEngine` being settable already
+states.
+
+**Tests** (`test/xpath-fonto.test.mjs`, 9): table 7's own examples across all three modes over
 both engines; the default engine refusing `xpath2` with a message naming
 `@docx4j/core-ts/xpath-fonto` and `fontoxpath` (REQ-032, evaluate in the declared mode or refuse);
 the `java` default for a template that declares no mode; `select` and `selectValue` agreeing with
@@ -291,4 +310,7 @@ the default engine; an unready engine saying how to ready it; and docx4j's
 `invoice_Saxon_XPath2.docx`, whose two conditions are the discriminating cases - `wantspam` holds
 `false`, which is true in `xpath1` and false in `xpath2`, and `dateGt` is
 `xs:date(/invoice/date) > xs:date('2018-12-31')`, XPath 2.0 syntax that the default engine cannot
-evaluate in any mode, which is why the template is named for Saxon.
+evaluate in any mode, which is why the template is named for Saxon. The last two cover the
+constructor form: the module given either way answers as the imported one does, and a module that
+is not `fontoxpath` is refused at the constructor. The nodenext consumer check exercises both
+forms, so the declaration has to admit them.

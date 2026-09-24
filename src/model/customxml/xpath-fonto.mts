@@ -37,10 +37,35 @@ const ANY_TYPE = 0;
  * XPath 3.1 through FontoXPath, for the `xpath2` boolean conversion mode and for expressions
  * written in XPath 2.0 syntax. `select`, `selectValue` and the `java` and `xpath1` modes answer as
  * `DefaultXPathEngine` does; `xpath2` is the mode this engine exists for.
+ *
+ * **In a browser or any bundled application, pass the module in.** The no-argument form loads
+ * `fontoxpath` by a dynamic `import()` of the bare specifier, which Node resolves and a browser
+ * does not: there is no import map, and the `@vite-ignore` that keeps a bundler from rewriting the
+ * specifier (needed so that a bundle never carries the optional peer against the consumer's will)
+ * also keeps it from resolving it. So the application imports the module itself, where its own
+ * bundler resolves it statically, and hands it over:
+ *
+ *     import * as fontoxpath from 'fontoxpath';
+ *     import { FontoXPathEngine } from '@docx4j/core-ts/xpath-fonto';
+ *     pkg.xpathEngine = new FontoXPathEngine(fontoxpath);   // ready at once
+ *
+ * In Node, `new FontoXPathEngine()` and `await ready()` still work and still say what to install
+ * if the peer is absent. Which module is loaded, and when, is the consumer's business either way -
+ * the same principle as `pkg.xpathEngine` being settable at all (CR-005 phase A, 2026-09-26).
  */
 export class FontoXPathEngine implements XPathEngine {
   private module: FontoXPathModule | undefined;
   private loading: Promise<void> | undefined;
+
+  /**
+   * @param fontoxpath the `fontoxpath` module, imported by the caller. Omit it in Node to have
+   *   `ready()` import it; supply it in a browser or a bundle, where a bare dynamic specifier
+   *   cannot be resolved. Either the module's namespace object or its default export is accepted,
+   *   the published ESM build having no named exports under Node's interop.
+   */
+  constructor(fontoxpath?: unknown) {
+    if (fontoxpath !== undefined) this.module = moduleOf(fontoxpath);
+  }
 
   get isReady(): boolean {
     return this.module !== undefined;
@@ -51,12 +76,12 @@ export class FontoXPathEngine implements XPathEngine {
     this.loading ??= (async () => {
       const specifier = 'fontoxpath';
       try {
-        // The published ESM build has no named exports under Node's interop, only a default.
-        const loaded = await import(/* @vite-ignore */ specifier) as FontoXPathModule & { default?: FontoXPathModule };
-        this.module = loaded.default ?? loaded;
+        const loaded = await import(/* @vite-ignore */ specifier);
+        this.module = moduleOf(loaded);
       } catch (e) {
         throw new Docx4JException(
-          "FontoXPathEngine needs the optional peer dependency 'fontoxpath' (npm install fontoxpath)",
+          "FontoXPathEngine needs the optional peer dependency 'fontoxpath' (npm install fontoxpath); "
+          + 'in a browser or a bundle, import it yourself and pass it: new FontoXPathEngine(fontoxpath)',
           { cause: e },
         );
       }
@@ -136,6 +161,23 @@ export class FontoXPathEngine implements XPathEngine {
     }
     return this.module;
   }
+}
+
+/**
+ * The module, whether given as a namespace object or as a default export, checked for the one
+ * function every call goes through so that the wrong module is refused where it is passed rather
+ * than at the first evaluation.
+ */
+function moduleOf(loaded: unknown): FontoXPathModule {
+  const candidate = loaded as FontoXPathModule & { default?: FontoXPathModule };
+  const module = typeof candidate?.evaluateXPath === 'function' ? candidate : candidate?.default;
+  if (!module || typeof module.evaluateXPath !== 'function') {
+    throw new Docx4JException(
+      'FontoXPathEngine was given something that is not the fontoxpath module: '
+      + "expected its evaluateXPath, as in new FontoXPathEngine(await import('fontoxpath'))",
+    );
+  }
+  return module;
 }
 
 /** A FontoXPath result in the four-type union `selectValue` reports. */

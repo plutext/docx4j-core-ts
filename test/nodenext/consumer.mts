@@ -17,7 +17,11 @@ export async function consume(): Promise<string> {
   const name: PartName = PartName.of('/word/document.xml');
   void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink];
   pkg.xpathEngine = new FontoXPathEngine();
+  // the browser form: the application imports fontoxpath itself and hands it over
+  pkg.xpathEngine = new FontoXPathEngine(await import('fontoxpath'));
   pkg.xpathEngine = new FontoXPathEngine();
+  // the browser form: the application imports fontoxpath itself and hands it over
+  pkg.xpathEngine = new FontoXPathEngine(await import('fontoxpath'));
   const script: string = await toApiScript(pkg.body);
   await Word.run(pkg, (context) => context.document.body.insertParagraph(script, 'End'));
   void NotSupportedError;
