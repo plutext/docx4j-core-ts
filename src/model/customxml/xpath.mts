@@ -36,8 +36,15 @@ export type BooleanConversionMode = 'java' | 'xpath1' | 'xpath2';
  * string, number or boolean result. `namespaces` maps prefixes used in the expression to URIs.
  */
 export interface XPathEngine {
-  /** Prepares the engine (loads the `xpath` package in Node); idempotent, and cheap once done. */
-  ready(): Promise<void>;
+  /**
+   * Prepares the engine (loads the `xpath` package in Node); idempotent, and cheap once done.
+   *
+   * `context` is a node from a document the engine will be asked about, when the caller has one:
+   * whether a native `document.evaluate` can be used is a property of **that document**, not of
+   * the global one, and the two differ in a mixed environment - a jsdom test whose XML is parsed
+   * by xmldom has a global `document.evaluate` that cannot evaluate over the parsed tree.
+   */
+  ready(context?: Node): Promise<void>;
   /** True when `select` and `selectValue` can be called synchronously. */
   readonly isReady: boolean;
   select(expression: string, context: Node, namespaces?: Record<string, string>): Node[];
@@ -125,8 +132,17 @@ export class DefaultXPathEngine implements XPathEngine {
     return this.native || this.module !== undefined;
   }
 
-  async ready(): Promise<void> {
-    if (this.isReady) return;
+  /**
+   * @param context a node from a document this engine will be asked about. Given one, readiness is
+   *   decided from **that document** rather than from the global: a global `document.evaluate` says
+   *   nothing about a tree some other parser built, and in a mixed environment - jsdom's global
+   *   with xmldom's parser, which is what a Node test runner gives when the runtime resolves its
+   *   `node` export condition - the global would claim readiness the parsed tree cannot honour.
+   *   `pkg.customXmlParts.load()` passes a parsed document for exactly this reason.
+   */
+  async ready(context?: Node): Promise<void> {
+    if (this.module !== undefined) return;
+    if (context === undefined ? this.native : nativeEvaluatorFor(context) !== undefined) return;
     this.loading ??= (async () => {
       const specifier = 'xpath';
       try {
@@ -183,7 +199,12 @@ export class DefaultXPathEngine implements XPathEngine {
   private call(expression: string, context: Node, namespaces: Record<string, string>): unknown {
     if (!this.module) {
       throw new Docx4JException(
-        'The XPath engine is not ready yet: await pkg.customXmlParts.load() (or pkg.xpathEngine.ready()) once before selecting nodes',
+        this.native
+          ? 'This document cannot be evaluated by the host DOM: it was parsed by another one (jsdom\'s '
+            + 'document.evaluate over an xmldom tree, say). Install the optional peer dependency '
+            + "'xpath' and await pkg.xpathEngine.ready(node) with a node of this document, or set "
+            + 'pkg.xpathEngine to an engine that can read it'
+          : 'The XPath engine is not ready yet: await pkg.customXmlParts.load() (or pkg.xpathEngine.ready()) once before selecting nodes',
       );
     }
     const select = Object.keys(namespaces).length > 0 ? this.module.useNamespaces(namespaces) : this.module.select;

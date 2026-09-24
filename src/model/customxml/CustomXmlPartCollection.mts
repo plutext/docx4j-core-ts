@@ -54,7 +54,10 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
       await part.parseDocument();
       if (!this.views.has(part)) this.views.set(part, await this.viewFor(part));
     }
-    await this.host.xpathEngine.ready();
+    // A parsed document, not the global one: whether a native `document.evaluate` can read these
+    // trees is a property of the parser that built them (CR-002 section 21).
+    const parsed = this.views.size > 0 ? [...this.views.values()][0]!.document : undefined;
+    await this.host.xpathEngine.ready(parsed);
     return this.items;
   }
 

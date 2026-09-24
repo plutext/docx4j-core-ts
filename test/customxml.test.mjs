@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, ContentControl, CustomXmlPart, CustomXmlNode,
   CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, canonicalXPathOf, parsePrefixMappings, formatPrefixMappings,
-  sdtProperty,
+  sdtProperty, DefaultXPathEngine, parseXml,
 } from '../dist/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
@@ -453,4 +453,39 @@ test('typed content controls on a document Word wrote (docx4j\'s invoice2013)', 
   for (const name of ['word/styles.xml', 'word/document.xml', 'customXml/item1.xml']) {
     assert.ok(bytesEqual(await before.load(name), await after.load(name)), `${name} changed`);
   }
+});
+
+// CR-002 section 21: readiness is a property of the document, not of the global.
+//
+// A mixed environment — a global `document` with `evaluate` (jsdom) while the XML is parsed by
+// another DOM (xmldom, which the runtime uses in Node) — used to make DefaultXPathEngine decide
+// "native" once from the global and then never load the `xpath` package, so a select over the
+// parsed tree had no evaluator. Found by the docx4j-ts-editor session under vitest with jsdom
+// (ED-003 section 11.8) once jsonix 3.3.0's `node` export condition took effect.
+test('the XPath engine readies for the document it is given, not the global one', async () => {
+  const engine = new DefaultXPathEngine();
+  const document_ = globalThis.document;
+  // a global that claims to evaluate, as jsdom's does
+  globalThis.document = { evaluate: () => { throw new Error('the host DOM cannot read this tree'); } };
+  try {
+    const fresh = new DefaultXPathEngine();
+    assert.equal(fresh.isReady, true, 'the global makes it look ready');
+
+    // ready() with a node of the actually-parsed document loads the engine's own XPath instead
+    const parsed = parseXml('<a><b>one</b><b>two</b></a>');
+    await fresh.ready(parsed);
+    assert.deepEqual(fresh.select('/a/b', parsed).map((n) => n.textContent), ['one', 'two'],
+      'and then the parsed tree is readable');
+
+    // without that, the failure says why rather than answering nonsense
+    const blind = new DefaultXPathEngine();
+    await blind.ready();
+    assert.throws(() => blind.select('/a/b', parsed), /parsed by another one|not ready/);
+  } finally {
+    if (document_ === undefined) delete globalThis.document;
+    else globalThis.document = document_;
+  }
+  // unchanged where the parser and the evaluator are the same DOM: plain Node
+  await engine.ready(parseXml('<a><b>one</b></a>'));
+  assert.equal(engine.isReady, true);
 });

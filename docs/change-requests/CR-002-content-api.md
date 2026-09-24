@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 and 20: the list definition verbs off the package and `Range.hyperlink`, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1774,3 +1774,38 @@ existing lexical convention rather than anything introduced here.
 back after a save and reload, and `""` for a range outside the span; an anchor with no
 relationship, an address and location together, and removal leaving the runs; and reading what
 Word wrote, over `hyperlink_dupe.docx`.
+
+## 21. XPath readiness is a property of the document, not of the global (2026-09-25)
+
+**Found by** `plutext/docx4j-ts-editor` (ED-003 section 11.8), under vitest with the jsdom
+environment, once `@docx4j/jsonix` 3.3.0's `node` export condition took effect.
+
+**The defect.** `DefaultXPathEngine` decided once, at construction, whether a native evaluator was
+available: `typeof document !== 'undefined' && typeof document.evaluate === 'function'`. Under
+jsdom that is true, so `isReady` was true, so `ready()` returned early and the optional `xpath`
+package was never loaded - while the XML itself was parsed by **xmldom**, which the runtime
+resolves in Node. The evaluation path already decided per document (`nativeEvaluatorFor(context)`
+looks at the context node's own document), so the two disagreed: the engine claimed readiness the
+parsed tree could not honour. Neither a browser nor plain Node is affected, the parser and the
+evaluator being the same DOM in both.
+
+**The change.** `ready(context?: Node)` takes a node of a document it will be asked about, and
+decides from **that** document rather than from the global; `pkg.customXmlParts.load()` passes one
+of the documents it has just parsed, which is the moment the answer is knowable. With no argument
+the old global test stands, so an existing caller is unaffected and the parameter is optional on
+the `XPathEngine` interface (an implementation declaring `ready()` still satisfies it).
+
+Where a select is reached with neither a usable native evaluator nor the module, the error now
+says which of the two situations it is: a document the host DOM cannot read - naming the mixed
+environment and the two fixes - rather than the generic "not ready yet", which was the misleading
+half of the report.
+
+**Not fixed by making `ready()` always load `xpath`**, which was the obvious alternative: that
+would attempt a bare dynamic import in every browser and every add-in, where the `@vite-ignore`
+that keeps the optional peer out of a bundle also keeps it from resolving - a swallowed failure on
+the path that matters most, to serve the path that matters least. Deciding from the document costs
+nothing anywhere.
+
+**Test** (`test/customxml.test.mjs`): a global `document.evaluate` that throws, over an
+xmldom-parsed tree - `isReady` true from the global, `ready(parsed)` loading the real engine and
+the tree then readable, and the blind `ready()` failing with the message that names the cause.
