@@ -1,7 +1,8 @@
 // SpreadsheetML parts (docx4j org.docx4j.openpackaging.parts.SpreadsheetML).
 import type * as sml from '@docx4j/generated-objects-ts/modules/org_xlsx4j_sml';
+import type * as x14 from '@docx4j/generated-objects-ts/modules/org_xlsx4j_com_microsoft_schemas_office_spreadsheetml_x2009_x9_main';
+import type * as x15 from '@docx4j/generated-objects-ts/modules/org_xlsx4j_com_microsoft_schemas_office_spreadsheetml_x2010_x11_main';
 import { XmlPart } from '../XmlPart.mjs';
-import { DefaultXmlPart } from '../DefaultXmlPart.mjs';
 import { BinaryPart } from '../BinaryPart.mjs';
 import { Part } from '../Part.mjs';
 import { PartName } from '../../opc/PartName.mjs';
@@ -11,6 +12,10 @@ import { Xlsx4jException } from '../../opc/exceptions.mjs';
 import { ThemePart } from '../dml/index.mjs';
 
 const S = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+/** The Excel 2010 extension namespace (x14; docx4j's org.xlsx4j...x2009.x9.main). */
+const X14 = 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/main';
+/** The Excel 2013 extension namespace (x15; docx4j's org.xlsx4j...x2010.x11.main). */
+const X15 = 'http://schemas.microsoft.com/office/spreadsheetml/2010/11/main';
 
 export class WorkbookPart extends XmlPart<sml.Workbook> {
   sharedStringsPart: SharedStringsPart | undefined;
@@ -217,57 +222,58 @@ export class PrinterSettingsPart extends BinaryPart {
   }
 }
 
-// The Excel 2010 and 2013 extension parts (CR-004 phase A; docx4j
-// org.docx4j.openpackaging.parts.SpreadsheetML).  The seven XML ones are `DefaultXmlPart`s for
-// now: their DOM round-trips byte for byte, and nothing re-marshals them, so an `mc:Ignorable`
-// they carry is untouched.  Phase B makes them `XmlPart`s over the `x14` and `x15` roots.
+// The Excel 2010 and 2013 extension parts (CR-004; docx4j
+// org.docx4j.openpackaging.parts.SpreadsheetML).  Phase A held the seven XML ones as DOM; phase B
+// types them over the x14 and x15 roots the objects package's CR-022 regeneration bound, so their
+// contents read like any other part's and a re-marshalled root is Excel's own shape (the
+// mc:Ignorable Excel writes on them is a property of each root, re-declared by `XmlPart`).
 
 /** A slicer cache (`x14:slicerCacheDefinition`), from the workbook. docx4j `SlicerCachePart`. */
-export class SlicerCachePart extends DefaultXmlPart {
+export class SlicerCachePart extends XmlPart<x14.CTSlicerCacheDefinition> {
   constructor(partName: PartName | string = '/xl/slicerCaches/slicerCache1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_SLICER_CACHE, Namespaces.SPREADSHEETML_SLICER_CACHE);
+    super(partName, ContentTypes.SPREADSHEETML_SLICER_CACHE, Namespaces.SPREADSHEETML_SLICER_CACHE, { namespaceURI: X14, localPart: 'slicerCacheDefinition' });
   }
 }
 
 /** A sheet's slicers (`x14:slicers`). docx4j `SlicersPart`. */
-export class SlicersPart extends DefaultXmlPart {
+export class SlicersPart extends XmlPart<x14.CTSlicers> {
   constructor(partName: PartName | string = '/xl/slicers/slicer1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_SLICERS, Namespaces.SPREADSHEETML_SLICERS);
+    super(partName, ContentTypes.SPREADSHEETML_SLICERS, Namespaces.SPREADSHEETML_SLICERS, { namespaceURI: X14, localPart: 'slicers' });
   }
 }
 
 /** A timeline cache (`x15:timelineCacheDefinition`), from the workbook. docx4j `TimelineCachePart`. */
-export class TimelineCachePart extends DefaultXmlPart {
+export class TimelineCachePart extends XmlPart<x15.CTTimelineCacheDefinition> {
   constructor(partName: PartName | string = '/xl/timelineCaches/timelineCache1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_TIMELINE_CACHE, Namespaces.SPREADSHEETML_TIMELINE_CACHE);
+    super(partName, ContentTypes.SPREADSHEETML_TIMELINE_CACHE, Namespaces.SPREADSHEETML_TIMELINE_CACHE, { namespaceURI: X15, localPart: 'timelineCacheDefinition' });
   }
 }
 
 /** A sheet's timelines (`x15:timelines`). docx4j `TimelinesPart`. */
-export class TimelinesPart extends DefaultXmlPart {
+export class TimelinesPart extends XmlPart<x15.CTTimelines> {
   constructor(partName: PartName | string = '/xl/timelines/timeline1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_TIMELINES, Namespaces.SPREADSHEETML_TIMELINES);
+    super(partName, ContentTypes.SPREADSHEETML_TIMELINES, Namespaces.SPREADSHEETML_TIMELINES, { namespaceURI: X15, localPart: 'timelines' });
   }
 }
 
 /** A form control's properties (`x14:formControlPr`), from a worksheet. docx4j `ControlPropertiesPart`. */
-export class ControlPropertiesPart extends DefaultXmlPart {
+export class ControlPropertiesPart extends XmlPart<x14.CTFormControlPr> {
   constructor(partName: PartName | string = '/xl/ctrlProps/ctrlProp1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_CONTROL_PROPERTIES, Namespaces.SPREADSHEETML_CONTROL_PROPERTIES);
+    super(partName, ContentTypes.SPREADSHEETML_CONTROL_PROPERTIES, Namespaces.SPREADSHEETML_CONTROL_PROPERTIES, { namespaceURI: X14, localPart: 'formControlPr' });
   }
 }
 
 /** The properties of a custom data part (`x14:datastoreItem`). docx4j `CustomDataPropertiesPart`. */
-export class CustomDataPropertiesPart extends DefaultXmlPart {
+export class CustomDataPropertiesPart extends XmlPart<x14.CTDatastoreItem> {
   constructor(partName: PartName | string = '/xl/customDataProps/customDataProps1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_CUSTOM_DATA_PROPERTIES, Namespaces.SPREADSHEETML_CUSTOM_DATA_PROPERTIES);
+    super(partName, ContentTypes.SPREADSHEETML_CUSTOM_DATA_PROPERTIES, Namespaces.SPREADSHEETML_CUSTOM_DATA_PROPERTIES, { namespaceURI: X14, localPart: 'datastoreItem' });
   }
 }
 
 /** A survey (`x15:survey`), from the workbook. docx4j `SurveyPart`. */
-export class SurveyPart extends DefaultXmlPart {
+export class SurveyPart extends XmlPart<x15.CTSurvey> {
   constructor(partName: PartName | string = '/xl/surveys/survey1.xml') {
-    super(partName, ContentTypes.SPREADSHEETML_SURVEY, Namespaces.SPREADSHEETML_SURVEY);
+    super(partName, ContentTypes.SPREADSHEETML_SURVEY, Namespaces.SPREADSHEETML_SURVEY, { namespaceURI: X15, localPart: 'survey' });
   }
 }
 

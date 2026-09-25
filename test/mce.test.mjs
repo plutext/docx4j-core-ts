@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, MCE_NS, ZipPartStore } from '../dist/index.mjs';
 import { fixture, fixturesDir } from './helpers.mjs';
@@ -106,4 +106,21 @@ test('a re-marshalled document declares the conventional prefixes and the mc:Ign
   assert.ok(xml.includes('w14:paraId='));
   const rels = new TextDecoder().decode(store.loadSync('word/_rels/document.xml.rels'));
   assert.ok(rels.startsWith('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship '));
+});
+
+// UNDERSTOOD_NAMESPACES is hand-kept (`src/opc/mce/understood.mts`); this is what announces the
+// next objects regeneration, so that a module added there is weighed here rather than silently
+// left out of the Choice rule. Every module's defaultElementNamespaceURI must be in the set - and
+// the set may hold more, which the file marks and explains.
+test('every namespace the object model has a module for is understood', async () => {
+  const dir = new URL('../node_modules/@docx4j/generated-objects-ts/modules/', import.meta.url);
+  const missing = [];
+  for (const file of (await readdir(dir)).sort()) {
+    if (!file.endsWith('.mjs') || file.includes('.el.') || file.includes('.factory.')) continue;
+    const source = await readFile(new URL(file, dir), 'utf8');
+    // the compiler writes it as a JS string literal, with the slashes escaped
+    const ns = /defaultElementNamespaceURI:\s*'((?:[^'\\]|\\.)*)'/.exec(source)?.[1]?.replace(/\\\//g, '/');
+    if (ns && !UNDERSTOOD_NAMESPACES.has(ns)) missing.push(`${file}: ${ns}`);
+  }
+  assert.deepEqual(missing, [], `add these to UNDERSTOOD_NAMESPACES, or record why not:\n${missing.join('\n')}`);
 });

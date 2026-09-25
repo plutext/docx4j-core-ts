@@ -1,17 +1,21 @@
-// The namespaces the object model has modules for: what "understanding" an mc:Choice means here.
-// Mirrors the defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts
-// (0.1.0); regenerate when modules are added. Word takes the first mc:Choice whose Requires
-// prefixes it all understands (ECMA-376 Part 3, 10.2.1), and so does this preprocessor.
+// What "understanding" an mc:Choice means here: the namespaces whose content survives a load and
+// a save. Word takes the first mc:Choice whose Requires prefixes it all understands (ECMA-376
+// Part 3, 10.2.1), and so does this preprocessor.
+//
+// It is the defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts
+// (0.2.0), which `mce.test.mjs` asserts so that the next regeneration announces an addition, plus
+// two groups of hand-kept entries, each marked below: namespaces no module *defaults* to but which
+// the model binds anyway (attributes, or elements a module of another namespace declares), and the
+// slicer namespaces of CR-004 phase B, whose content the model does not bind at all but carries
+// through as DOM.
 export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
-  'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
   'http://schemas.openxmlformats.org/package/2006/relationships',
   'http://schemas.openxmlformats.org/markup-compatibility/2006',
   'http://schemas.openxmlformats.org/officeDocument/2006/math',
   'http://schemas.openxmlformats.org/officeDocument/2006/bibliography',
   'http://schemas.openxmlformats.org/officeDocument/2006/customXml',
   'http://schemas.openxmlformats.org/schemaLibrary/2006/main',
-  'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties',
   'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties',
   'http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes',
   'http://schemas.openxmlformats.org/package/2006/metadata/core-properties',
@@ -36,7 +40,6 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/drawing/2010/diagram',
   'http://schemas.microsoft.com/office/drawing/2012/main',
   'http://schemas.microsoft.com/office/drawing/2012/chart',
-  'http://schemas.microsoft.com/office/drawing/2012/chartStyle',
   'http://schemas.microsoft.com/office/drawing/2013/main/command',
   'http://schemas.microsoft.com/office/drawing/2014/main',
   'http://schemas.microsoft.com/office/drawing/2014/chart',
@@ -44,7 +47,6 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/drawing/2014/chartex',
   'http://schemas.microsoft.com/office/drawing/2016/11/main',
   'http://schemas.microsoft.com/office/drawing/2016/12/diagram',
-  'http://schemas.microsoft.com/office/drawing/2016/ink',
   'http://schemas.microsoft.com/office/drawing/2016/SVG/main',
   'http://schemas.microsoft.com/office/drawing/2017/03/chart',
   'http://schemas.microsoft.com/office/drawing/2017/decorative',
@@ -68,6 +70,9 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/word/2012/wordprocessingDrawing',
   'http://schemas.microsoft.com/office/word/2015/wordml/symex',
   'http://schemas.microsoft.com/office/word/2016/wordml/cid',
+  'http://schemas.microsoft.com/office/word/2018/wordml',
+  'http://schemas.microsoft.com/office/word/2018/wordml/cex',
+  'http://schemas.microsoft.com/office/word/2026/wordml/cei',
   'http://schemas.microsoft.com/office/webextensions/taskpanes/2010/11',
   'http://schemas.microsoft.com/office/webextensions/webextension/2010/11',
   'http://schemas.microsoft.com/office/powerpoint/2010/main',
@@ -89,10 +94,35 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/excel/2006/main',
   'http://schemas.microsoft.com/office/excel/2008/2/main',
   'http://schemas.microsoft.com/office/excel/2010/spreadsheetDrawing',
+  'http://schemas.microsoft.com/office/spreadsheetml/2009/9/main',
+  'http://schemas.microsoft.com/office/spreadsheetml/2010/11/main',
+  'http://schemas.microsoft.com/office/spreadsheetml/2010/11/ac',
+  'http://schemas.microsoft.com/office/spreadsheetml/2011/1/ac',
+  'http://schemas.microsoft.com/office/spreadsheetml/2014/11/main',
+  'http://schemas.microsoft.com/office/spreadsheetml/2014/revision',
   'http://schemas.microsoft.com/ink/2010/main',
   'http://www.w3.org/1998/Math/MathML',
   'http://www.w3.org/2003/InkML',
   'http://schemas.microsoft.com/office/2006/encryption',
   'http://schemas.microsoft.com/office/2006/keyEncryptor/certificate',
   'http://schemas.microsoft.com/office/2006/keyEncryptor/password',
+
+  // Bound by the model without being any module's default element namespace (so the check in
+  // mce.test.mjs does not reach them): relationship ids and the custom document properties are
+  // attributes and elements other modules' types carry, chartStyle has a module that defaults to
+  // the DrawingML main namespace, and the 2016 ink one a module with no default at all.
+  'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+  'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties',
+  'http://schemas.microsoft.com/office/drawing/2012/chartStyle',
+  'http://schemas.microsoft.com/office/drawing/2016/ink',
+
+  // Excel's slicer and timeline drawings (CR-004 phase B). Nothing binds these - docx4j has not
+  // bound the schemas either - but the Choice they gate is an xdr:graphicFrame whose a:graphicData
+  // holds the one unbound element, and that wildcard is lax (docx4j 8e8f6ea83), so it loads as DOM
+  // and re-marshals unchanged. Taking the Choice therefore keeps the slicer or timeline; leaving
+  // it would take the Fallback, an "Excel 2010 or higher" placeholder box, and lose the slicer for
+  // good. A Choice is only worth taking when everything in it round-trips (docx4j CR-021 8.9).
+  'http://schemas.microsoft.com/office/drawing/2010/slicer',
+  'http://schemas.microsoft.com/office/drawing/2012/slicer',
+  'http://schemas.microsoft.com/office/drawing/2012/timeslicer',
 ]);

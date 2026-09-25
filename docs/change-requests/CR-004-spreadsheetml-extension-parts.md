@@ -1,9 +1,9 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Phase A implemented 2026-09-24 (section 5). Phase B unblocked 2026-09-20 by
-objects 0.1.6 (the docx4j CR-022 regeneration, the `x14` and `x15` Excel modules; 0.1.5 carried
-it but could not load a pptx or xlsx whose text body holds an equation, CR-001 section 17.5),
-which this package now depends on.
+**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). The CR
+is closed. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
+`x14` and `x15` Excel modules; 0.1.5 carried it but could not load a pptx or xlsx whose text body
+holds an equation, CR-001 section 17.5), which this package now depends on.
 **Depends on:** CR-001 Phase A (parts, registry, `DefaultXmlPart`, `BinaryPart`); for Phase B, the
 objects package's CR-022 regeneration (done 2026-09-20 as objects `141f6bd` from docx4j `16844ff03`,
 unreleased: six new modules including `x14` and `x15`, the seven roots unmarshalling typed,
@@ -162,3 +162,80 @@ assertion of the broken behaviour rather than as a skip - is written up in CR-00
 `createPackage()`, which writes none of these parts. docx4j 17.2.1 has since added two more
 SpreadsheetML content types, threaded comments and persons, which it leaves as `DefaultXmlPart`s
 and which are therefore already right here.
+
+## 6. Phase B implementation notes (2026-09-25)
+
+Both halves of the 2026-09-25 re-check in section 3, and nothing else; 512 tests pass, the parity
+goldens do not move (no parity fixture has an extension part), and `npm run typecheck` is clean.
+
+**The typed roots.** The seven XML classes in `src/parts/sml/index.mts` are `XmlPart<T>` over the
+`x14` and `x15` roots instead of `DefaultXmlPart`: `SlicerCachePart` `x14.CTSlicerCacheDefinition`,
+`SlicersPart` `x14.CTSlicers`, `ControlPropertiesPart` `x14.CTFormControlPr`,
+`CustomDataPropertiesPart` `x14.CTDatastoreItem`, `TimelineCachePart` `x15.CTTimelineCacheDefinition`,
+`TimelinesPart` `x15.CTTimelines`, `SurveyPart` `x15.CTSurvey`, each with its root name, so
+`setContents()` on a new part needs no name. `CustomDataPart` and `DataModelPart` stay
+`BinaryPart`s. Nothing else changed: the registry entries, the shortcuts and the content and
+relationship types are phase A's. Excel's `mc:Ignorable` is a property of each of these roots
+(objects CR-022), and `XmlPart.declareIgnorablePrefixes` re-declares what the model does not bind,
+so a re-marshalled `xl/slicers/slicer1.xml` is `<x14:slicers ... mc:Ignorable="x xr10">` with both
+prefixes declared, which is what `ExcelExtensionPartsTest.partsSurviveASave` asserts of docx4j.
+
+One correction to phase A: `x14:datastoreItem`'s attribute is `id`, not `itemID` (docx4j's
+`xsd/xlsx/office_spreadsheetml_2009_9_main.xsd` line 794). Phase A's built fixture wrote `itemID`,
+which nothing read because the part was a DOM; the typed read found it.
+
+**`UNDERSTOOD_NAMESPACES`.** The set was a copy of the objects package's module namespaces at
+0.1.0 and had gone stale by nine modules. It is now 0.2.0's, in three marked groups: the module
+defaults; four namespaces the model binds without any module defaulting to them (`r`, `prop`,
+`cs`, `ink16`); and the three slicer namespaces, which nothing binds at all.
+`mce.test.mjs` asserts the first group module by module, so the next regeneration announces an
+addition instead of quietly leaving it out of the Choice rule.
+
+Two of the nine catch a real loss:
+
+- `x14` (`.../spreadsheetml/2009/9/main`). Excel wraps a worksheet's form controls in an
+  `mc:AlternateContent` whose only Choice requires `x14` and which has **no Fallback**, so the
+  preprocessor was dropping the lot - the `x:controls`, and with it the `r:id` naming each
+  `ControlPropertiesPart`. Measured on `cr022-checkbox.xlsx`: `worksheet.controls` was undefined
+  and a re-marshalled sheet had no controls; it now holds the control, its `r:id` resolves to the
+  part, and the sheet writes them back. This is docx4j CR-022's
+  `ExcelExtensionsTest.formControlAlternateContentKept` reached by the other route: docx4j keeps
+  the `mc:AlternateContent` element itself, where resolving on load cannot rebuild the wrapper, so
+  the saved sheet holds a bare `x:controls`. That is schema-valid (`CT_Worksheet` has `controls`,
+  and `CT_Control` has `controlPr`, in the 4th-edition transitional schema) but it is not Excel's
+  own markup, and it is on the Word/Excel acceptance checklist in `test/README.md` (check 14), with
+  the saved file staged for it on the Office share at `fidelity/cr004b-core-ts-controls/`. Nobody
+  has opened the bare form: docx4j's Excel evidence covers only the wrapper it keeps (its CR-022
+  phase 1 check of `cr022-checkbox-resaved.xlsx`), so the verdict is new information for both
+  ports, and the docx4j session records it in its CR-022 section 20. If Excel repairs the file,
+  the remedy here is to write the `x14` wrapper back on save - a narrow exception to resolving
+  markup compatibility on load, which nothing else has needed.
+- `sle`, `sle15` and `tsle` (`.../drawing/2010/slicer`, `/2012/slicer`, `/2012/timeslicer`), which
+  closes the loss CR-001 section 17.4 recorded. The Choice these gate is an `xdr:graphicFrame`
+  whose `a:graphicData` holds the one unbound element, and that wildcard is lax since docx4j
+  `8e8f6ea83`, so the whole Choice round-trips with the slicer kept as DOM. Measured on
+  `cr022-slicers-timelines.xlsx`, matching the table in section 3: `drawing1.xml` keeps its slicer
+  *and* its timeline (it kept only the slicer before, the timeline's `tsle` Choice losing to the
+  Fallback), `drawing2.xml` keeps the slicer it lost entirely. What is given up is the "Slicers are
+  supported in Excel 2010 or later" placeholder box, which is worth less than the slicer. The rule
+  the Choice has to pass is docx4j CR-021 section 8.9's - a kept Choice is lossless only if
+  everything in it round-trips - and the lax wildcard is what makes these pass it.
+
+The other seven additions (`x15`, `x15ac`, `x12ac`, `x16`, `xr`, and Word's `w16`, `w16cex`,
+`cei`) moved no fixture; they are in the set because their content is bound, which is the rule.
+
+**Tests.** `test/sml-extensions.test.mjs` is 9 tests (was 4), mirroring
+`ExcelExtensionPartsTest` in full and the part of `ExcelExtensionsTest` that exercises this
+package rather than the binding: the typed contents of all four slicer and timeline parts and
+their `mc:Ignorable`, a save that is Excel's shape and reads back the same, the control properties
+part and the kept `x:controls`, the two drawings, and the `x14`/`x15` `extLst` content of the
+workbook, sheet 2 and the styles part. `cr022-checkbox.xlsx` is copied from docx4j with
+provenance (11 KB); `ignorable.test.mjs` picks it up with the rest.
+
+**Deliberately not mirrored**, with the reason: `ExcelExtensionPartsTest.dataModelPartTyped` and
+`ExcelExtensionsTest.dataModelWorkbookTypedAndSavesItsConnections` would want
+`cr022-data-model.xlsx`, 245 KB for a binary part whose size is asserted, where phase A's built
+package already covers `DataModelPart`; and `sparklinesTyped`, `conditionalFormattingsTyped`,
+`dataValidationsTyped` and `x12acAndX16MarshalWithExcelsPrefixes` test the objects package's
+binding, which has its own tests there, over three more fixtures. The slicers fixture already
+carries sparklines, and the extLst test reads its `x14`/`x15` content.

@@ -18,7 +18,8 @@ answers by 45 parity goldens) and CR-002 phases B to I, the whole content API (`
 `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
 the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
 search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
-implemented; CR-002 phase A is the objects package's `builders/wml`. Not yet: CR-001 Phase C.
+implemented; CR-002 phase A is the objects package's `builders/wml`. So are CR-004 (the Excel
+2010/2013 extension parts) and CR-005 phase A (the FontoXPath engine). Not yet: CR-001 Phase C.
 Each CR's last sections record decisions and departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
@@ -131,7 +132,7 @@ Key mechanics:
 `test/*.test.mjs` on Node's runner, against `dist/` (`content.test.mjs` covers the content API,
 `create.test.mjs` the created docx, pptx and xlsx, `directory.test.mjs` the `./node` container and
 `clone()`, `omml.test.mjs` an equation in DrawingML text (docx4j `OmmlInDrawingMLTextTest`),
-`sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004 phase A),
+`sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

@@ -28,13 +28,15 @@ phase E typed-kind tests; no document in the docx4j checkout has a `w:dropDownLi
 conditions are the cases where the OpenDoPE boolean conversion modes disagree (`wantspam` holds
 `false`) and where XPath 2.0 syntax is required (`xs:date(...) > xs:date(...)`), the fixture of
 `xpath-fonto.test.mjs` (CR-005 phase A).
-`cr022-slicers-timelines.xlsx` is docx4j's fixture of the same name, added by its CR-022 at
-`16844ff03` (Excel 365: two pivot tables, two slicers with their caches, a timeline with its
-cache, a table), the fixture of `sml-extensions.test.mjs` (CR-004 phase A). Its
-`xl/drawings/drawing1.xml` is the one part in `fixtures/` that cannot be unmarshalled - the
-`a14` Choice is taken and holds a slicer the model has no module for, where
-`CT_GraphicalObjectData`'s wildcard forbids DOM; `ignorable.test.mjs` names it and asserts the
-rejection rather than skipping it, and the part still round-trips from its bytes.
+`cr022-slicers-timelines.xlsx` and `cr022-checkbox.xlsx` are docx4j's fixtures of those names,
+added by its CR-022 at `16844ff03`, the fixtures of `sml-extensions.test.mjs` (CR-004). The first
+is Excel 365 with two pivot tables, two slicers with their caches, a timeline with its cache,
+sparklines and a table; its `xl/drawings/drawing1.xml` and `drawing2.xml` frame the slicers and
+the timeline through `mc:AlternateContent`, and since CR-004 phase B those Choices are taken and
+the slicer content kept as DOM (it needs the lax `a:graphicData` wildcard of docx4j `8e8f6ea83`,
+in objects 0.2.0). The second is a check box: its worksheet's only `mc:AlternateContent` requires
+`x14` and has no Fallback, so it is what the `x14` half of phase B's `UNDERSTOOD_NAMESPACES`
+change is measured on.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
@@ -110,7 +112,8 @@ without a repair prompt. Five things were found, and are fixed in the same chang
    after writing the values into `Sales`, so values on the second tab is right. The check text
    below now says so.
 
-Checks 3, 10, 12 and 13 are to be re-run against the fixed code.
+Checks 3, 10, 12 and 13 are to be re-run against the fixed code, and check 14 (added by
+CR-004 phase B, 2026-09-25) has not been run at all.
 
 Previous run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002
 phases C, G and I: checks 6 to 8, with the script below, all passed. Check 7 as expected shows the fixture's own text, not the
@@ -216,6 +219,18 @@ namespaces, content types or the zip writer, check by hand:
    two fixtures (check 5) after unmarshalling their main parts, to see a re-marshalled
    `ppt/presentation.xml` and `xl/workbook.xml` open (the workbook loses Excel's
    `x15ac:absPath` and its `xr:revisionPtr`, which is expected: CR-001 sections 16 and 17).
+14. Excel's extension parts (CR-004 phase B): load `fixtures/cr022-slicers-timelines.xlsx`,
+   `await pkg.unmarshalAll()`, save and open in Excel. No repair prompt; both slicers and the
+   timeline must still be there and still filter their pivot tables (the drawings now keep the
+   slicer graphic instead of falling back to the "supported in Excel 2010 or later" placeholder
+   box). Then the same with `fixtures/cr022-checkbox.xlsx`: the check box must still be on the
+   sheet and still toggle. That one is the check worth making: resolving the `mc:AlternateContent`
+   on load cannot rebuild the wrapper, so the saved worksheet holds a bare `<controls>` where
+   Excel writes `mc:AlternateContent > mc:Choice Requires="x14" > controls`. It is schema-valid
+   (`CT_Worksheet` has `controls`), but only Excel can say whether it is accepted. Both files are
+   on the share ready to open, at `fidelity/cr004b-core-ts-controls/` with a README saying what to
+   look for - put there 2026-09-25 so the docx4j session can fold them into the next Excel check
+   it asks for.
 
 A small Node script for 1 to 3 is:
 
