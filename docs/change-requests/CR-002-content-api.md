@@ -1809,3 +1809,28 @@ nothing anywhere.
 **Test** (`test/customxml.test.mjs`): a global `document.evaluate` that throws, over an
 xmldom-parsed tree - `isReady` true from the global, `ready(parsed)` loading the real engine and
 the tree then readable, and the blind `ready()` failing with the message that names the cause.
+
+## 22. Requests from the editor's E2.e (2026-09-25)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-003 section 11.15 (items 1 and 5) and its
+`session.mts`. Neither gates anything there; each has a fallback in the editor that a release
+carrying the change makes dead code.
+
+1. **The shim's collections in its types.** `Word.run`'s proxies hand out arrays with `items`,
+   `getFirst`, `getFirstOrNullObject`, `getLast`, `getCount` and the `load`, `track` and `untrack`
+   no-ops (section 10), but `Document.body` is typed as the plain `Body`, whose `paragraphs` is
+   `Paragraph[]`, so a type check of add-in code against `@docx4j/core-ts/office-js` rejects
+   `paragraphs.items` and `paragraphs.load('items/text')`, which the shim accepts. The editor's
+   console types the context through a mapped view (`Shimmed<T>`: arrays as `Collection<T>` with
+   the no-ops, every object loadable, calls shimmed in turn, promises as they are). That type
+   belongs here, exported from `office-js` as the type of `RequestContext.document` (or as a
+   `ShimmedDocument` beside it), so that a Node user of `Word.run` and an add-in test get the
+   same view; the editor then deletes its copy.
+2. **`ensureStyles(ids)` on the package or the styles part.** Inserting a footnote needs
+   `FootnoteText`, `FootnoteReference` and their linked character styles; `createPackage`'s
+   defaults on 0.1.5 lack the six note styles (main carries them), and a document that has none
+   needs them spliced in with what they are based on and linked to, the resolver refreshed. The
+   editor does this itself (`EditorDocument.ensureStyles`, reading the defaults through a
+   package `createPackage` makes, since the constant is not exported), with Word's definitions
+   as a table when the defaults lack them. A `pkg.styles.ensure(ids)` here, over the same
+   defaults, is the Apache-side home for it; the editor's copy goes when it ships.
