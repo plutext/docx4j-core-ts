@@ -2,7 +2,7 @@
 
 **Status:** Phase A implemented 2026-09-10 (both steps); Phase B implemented 2026-09-19 (plan in
 section 14, notes in section 15; parity with docx4j VERSION_17_1_1 7fba7a150 on 45 goldens);
-Phase C implemented 2026-09-19 (section 16); Phase D proposed 2026-09-24 (section 18: font
+Phase C implemented 2026-09-19 (section 16); Phase D implemented 2026-09-25 (section 18: font
 discovery over private reads, requested by the editor)
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
@@ -2213,7 +2213,7 @@ the next - the order follows docx4j's without a change here, and the upgrade sho
 parity twin of `docx4j-core-tests`' `SettingsDocIdOrderTest`: a Word Online-ordered input
 re-marshalled with `w14:docId` first.
 
-## 18. Phase D, proposed: font discovery that unmarshals nothing (2026-09-24)
+## 18. Phase D: font discovery that unmarshals nothing (proposed 2026-09-24, implemented 2026-09-25)
 
 **Requested by** `plutext/docx4j-ts-editor` ED-002 section 10.3 item 3 (E1.c, 2026-09-23).
 
@@ -2259,6 +2259,24 @@ is the whole defect:
 `(await this.getContents()).body?.content`, where every other line is a `readQuietly`. So the
 change is one line plus the guarantee, and the test is what the phase is really buying - it pins
 a property nothing else in this package states.
+
+### 18.1 Implemented, 2026-09-25
+
+**One word.** `stories()` reads the body with `readContents()` instead of `getContents()`.
+`readContents()` already had exactly the semantics the phase asked for - it answers the
+unmarshalled tree when the part has one and parses privately when it has not - so no new reading
+path was needed, and `getRunFontSelector()`, `styleSource()` and the theme and settings reads
+behind the selector were already private.
+
+**The test is the phase.** `test/fonts.test.mjs` runs the guarantee over **46 documents** - every
+`.docx` under `test/fixtures` and `test/fixtures/parity` - recording `isUnmarshalled` for every
+part, calling `fontsInUse()`, `getRunFontSelector()` and `getPropertyResolver()`, asserting no
+flag moved, and then saving and comparing every part but the relationships ones with its source
+bytes. It has teeth: reverting the one word makes it fail (checked), which is the only thing that
+distinguishes a guarantee from a hope.
+
+**Unchanged:** the names collected, so the parity goldens are untouched and `fontsInUse` still
+answers what docx4j's `FontsInUseTest` expects; and the 45 goldens still pass. 507 tests.
 
 
 ## 19. Recording a defect so that its fix cannot pass unnoticed (2026-09-25)

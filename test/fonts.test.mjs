@@ -715,3 +715,59 @@ test('a theme part with script fonts answers per script, as docx4j\'s ThemePart.
   assert.equal(rfs.themeFont('majorHAnsi'), 'FontMajor');
   assert.equal(rfs.themeFont(undefined), undefined);
 });
+
+// CR-001 phase D: asking a document about its fonts costs no part its round trip.
+//
+// The guarantee, over every .docx fixture there is: after fontsInUse(), getRunFontSelector() and
+// getPropertyResolver(), no part reports isUnmarshalled that did not before, and a save then
+// writes every part from its source bytes. Before the phase, `stories()` took the body from
+// getContents(), which unmarshalled the main document part, so the next save re-marshalled it;
+// every other story was already read privately. Requested by the editor, whose contract is that
+// only a save with changes touches the main part (CR-001 section 18).
+{
+  const { readdir, readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const { ZipPartStore } = await import('../dist/index.mjs');
+  const { fixturesDir } = await import('./helpers.mjs');
+  const docx = [
+    ...(await readdir(fixturesDir)).filter((n) => n.endsWith('.docx')),
+    ...(await readdir(join(fixturesDir, 'parity'))).filter((n) => n.endsWith('.docx')).map((n) => join('parity', n)),
+  ].sort();
+
+  test(`font discovery unmarshals nothing, over ${docx.length} documents`, async () => {
+    assert.ok(docx.length >= 40, `${docx.length} documents`);
+    const failures = [];
+    for (const name of docx) {
+      const bytes = new Uint8Array(await readFile(join(fixturesDir, name)));
+      const pkg = await WordprocessingMLPackage.load(bytes);
+      const before = new Map([...pkg.parts.values()].map((p) => [p.partName.name, p.isUnmarshalled ?? false]));
+
+      const names = await pkg.getMainDocumentPart().fontsInUse();
+      await pkg.getMainDocumentPart().getRunFontSelector();
+      await pkg.getPropertyResolver();
+      assert.ok(names instanceof Set, `${name}: fontsInUse answers a set`);
+
+      for (const part of pkg.parts.values()) {
+        if ((part.isUnmarshalled ?? false) !== before.get(part.partName.name)) {
+          failures.push(`${name}: ${part.partName.name} was unmarshalled by the reads`);
+        }
+      }
+      // and the save that follows writes every part from its bytes (the .rels and the content
+      // types are always regenerated, as every round trip has it)
+      const source = new ZipPartStore(bytes);
+      const saved = new ZipPartStore(await pkg.save());
+      for (const part of pkg.parts.values()) {
+        const entry = part.partName.name.slice(1);
+        if (entry.includes('_rels/')) continue;
+        try {
+          if (Buffer.compare(Buffer.from(source.loadSync(entry)), Buffer.from(saved.loadSync(entry))) !== 0) {
+            failures.push(`${name}: ${entry} was re-marshalled`);
+          }
+        } catch {
+          failures.push(`${name}: ${entry} is missing after the save`);
+        }
+      }
+    }
+    assert.deepEqual(failures, [], failures.slice(0, 20).join('\n'));
+  });
+}

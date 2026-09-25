@@ -227,10 +227,18 @@ export class MainDocumentPart extends DocumentPart<wml.Document> {
     return walkStories(await this.stories(), await this.styleSource(), undefined, false).styles;
   }
 
-  /** The block-level content of each story, in docx4j's order: the body, then the headers and
-   *  footers, the endnotes, the footnotes and the comments. */
+  /**
+   * The block-level content of each story, in docx4j's order: the body, then the headers and
+   * footers, the endnotes, the footnotes and the comments.
+   *
+   * Every story is read **privately** (`readContents`, which answers the unmarshalled tree when
+   * there is one and parses without keeping it when there is not), so asking a document which
+   * fonts it uses does not cost any part its byte-for-byte round trip. The body used to come from
+   * `getContents()`, which unmarshalled the main part and so re-marshalled it on the next save
+   * (CR-001 section 18).
+   */
   private async stories(): Promise<unknown[]> {
-    const out: unknown[] = [(await this.getContents()).body?.content ?? []];
+    const out: unknown[] = [(await this.readContents()).body?.content ?? []];
     const rp = this.relationshipsPart;
     for (const r of rp?.relationships.relationship ?? []) {
       const part = rp?.getPart(r);
