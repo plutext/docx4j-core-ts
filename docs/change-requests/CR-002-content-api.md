@@ -1834,3 +1834,18 @@ carrying the change makes dead code.
    package `createPackage` makes, since the constant is not exported), with Word's definitions
    as a table when the defaults lack them. A `pkg.styles.ensure(ids)` here, over the same
    defaults, is the Apache-side home for it; the editor's copy goes when it ships.
+
+## 23. The unmarshal is sixty per cent of the editor's open (2026-09-25)
+
+**Reported by** `plutext/docx4j-ts-editor` ED-003 section 11.16 item 6, a figure, not a request
+for a particular change. The editor's benchmark document (`ms-docx-250.docx`, 255 pages, 7,218
+top-level blocks, 9,178 paragraphs; Microsoft's [MS-DOCX] doubled) opens in headless Chromium in
+2.7 s to the view and 3.6 s to the first paint; of the 2.7 s, `MainDocumentPart.readContents()`
+is 1.6 s, the projection to the editor's model 0.1 s, the Yjs load 0.2 s, the resolver, fonts and
+numbering reads 0.1 s, the view's creation 0.5 s. In Node the same open is 1.4 s, most of it the
+same unmarshal. ED-001's aspiration is two seconds for 400 pages; the editor's own phases are
+under a second in all, so the unmarshal is where the gap is, and a worker on the editor's side
+would move it off the main thread without shortening it. Whether the unmarshaller of a body of
+this size can be faster (the mapping walk, the object construction per element, the PARENT
+links) is this package's question; the editor's benchmark is the measure and is re-run per
+sub-phase.
