@@ -1978,11 +1978,15 @@ delete it; the chart's Choice (`c14`, understood) is taken, so a re-marshalled c
 only `c:style` sees none); the slicer's and timeline's Choices (`tsle`, `sle15`, `sle`: not
 understood, no modules for them) fall to the "Excel 2010 or higher" box, so **a re-marshalled
 spreadsheet drawing loses its slicers and timelines** (an untouched drawing part keeps its bytes).
-CR-004 Phase B adds those namespaces to `UNDERSTOOD_NAMESPACES` once the objects package carries
-their modules, which it cannot yet: docx4j's `xsd/` has the timeslicer and 2010 slicer schemas but
-`ROOT.xsd` imports neither, and the 2012 slicer (`sle15`) schema is absent, so no regeneration can
-type that content today (objects session, 2026-09-20; the docx4j session is asked to bind them).
-Until then the Fallback behaviour stands, documented. The same regeneration (objects `529a957`)
+CR-004 Phase B adds those namespaces to `UNDERSTOOD_NAMESPACES`. When this was written that waited
+on the objects package carrying their modules, which it still does not - docx4j's `ROOT.xsd`
+imports neither the timeslicer nor the 2010 slicer schema and the 2012 one is absent, so the
+prefixes are in `NAMESPACE_PREFIXES` with no module behind them. **That is no longer a blocker**
+(re-checked 2026-09-25): objects 0.2.0 made `a:graphicData`'s wildcard lax, so an unbound graphic
+stays DOM rather than being fatal, and a Choice naming those namespaces can be taken without a
+module for its content. Measured with an extended understood set, every slicer of
+`cr022-slicers-timelines.xlsx` survives a re-marshal where `drawing2.xml` loses its only one
+today; the table is in CR-004 section 3. Until phase B does it the Fallback behaviour stands. The same regeneration (objects `529a957`)
 does admit `mc:AlternateContent` in the DrawingML hosts, which is what lets a spreadsheet drawing
 survive a round trip with `mcePreprocess: false` at all. Two writer findings
 from docx4j's Excel opens, both covered here: every root's `mc:Ignorable` prefixes declared

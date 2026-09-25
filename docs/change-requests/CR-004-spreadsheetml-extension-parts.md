@@ -63,6 +63,37 @@ Effort: half a day.
 namespace `x14`, `mc:Ignorable="x xr10"` with both declared: CR-001 section 17.3's re-declaration
 covers it); `ExcelExtensionPartsTest` and `ExcelExtensionsTest` mirrored. Effort: half a day.
 
+**Scope re-checked 2026-09-25, before starting it.** Two halves, and the second is no longer
+blocked:
+
+1. *The typed roots.* Unblocked since objects 0.1.5 and confirmed against 0.2.0: all seven roots
+   unmarshal typed - `x14` `CTSlicerCacheDefinition`, `CTSlicers`, `CTFormControlPr`,
+   `CTDatastoreItem`; `x15` `CTTimelineCacheDefinition`, `CTTimelines`, `CTSurvey` - the four with
+   a fixture from `cr022-slicers-timelines.xlsx` and the other three from minimal documents. Excel's
+   `mc:Ignorable="x xr10"` survives a round trip of the slicer and slicer cache parts with both
+   prefixes declared (objects CR-006), which is what re-marshalling them needs.
+2. *`UNDERSTOOD_NAMESPACES` and the slicer drawings.* This CR and CR-001 section 17.4 both said
+   this waits on docx4j binding the slicer schemas (`sle`, `sle15`, `tsle`), which it still has
+   not: those prefixes are in the objects package's `NAMESPACE_PREFIXES` but **no module carries
+   them** (checked). It is no longer a blocker, because objects 0.2.0 made `a:graphicData`'s
+   wildcard **lax** (CR-004 section 5, docx4j `8e8f6ea83`): an unbound graphic now stays DOM
+   instead of being fatal, so a Choice naming those namespaces can be *taken* without a module for
+   its content. Measured on `cr022-slicers-timelines.xlsx` with a preprocessor whose understood set
+   adds the three:
+
+   | | `drawing1.xml` | `drawing2.xml` |
+   |---|---|---|
+   | as shipped | 1 slicer kept | **0 - its only slicer lost to the Fallback** |
+   | the three understood | 2 slicers kept | 1 slicer kept |
+
+   and no part throws either way. So phase B can close the loss CR-001 section 17.4 recorded ("a
+   re-marshalled spreadsheet drawing loses its slicers and timelines") by adding the three
+   namespaces, with the slicer content kept as DOM - no objects modules needed, and none in
+   prospect. What to weigh when doing it: a kept Choice is lossless only if everything in it
+   round-trips, which is the rule docx4j learned in its CR-021 section 8.9 and which the lax
+   wildcard now satisfies for this content; the Fallback that would be given up is the "Excel 2010
+   or higher" placeholder box, which is worth less than the slicer.
+
 ## 4. Not in scope
 
 The slicer, timeline and control content itself (a SpreadsheetML content API is not planned); the
