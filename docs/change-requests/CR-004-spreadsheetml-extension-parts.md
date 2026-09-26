@@ -284,6 +284,30 @@ the discriminator that matters: **docx4j's own re-save**, which keeps the wrappe
   worksheet to write the `x14` wrapper back on save: a narrow exception to resolving markup
   compatibility on load, which nothing else in the port has needed.
 
+**Round 1 (2026-09-26): neither, and a lesson about writing a wrapper.** Variant B (booleans
+`1`/`0`, bare `controls`) opens and is inert; docx4j's own re-save (wrapper kept, JAXB booleans
+`true`/`false`) is inert too. Variant A errored on open, and the reason is a constraint on any
+future fix here: resolving the Choice leaves nothing using the `x14` prefix, so the facade drops
+`xmlns:x14` from the worksheet root - correctly, an unused declaration - and a wrapper put back
+then carries `Requires="x14"` naming a prefix nothing declares. Excel treats that as an XML error,
+not a repairable one. It is exactly `mc:Ignorable`'s rule (CR-001 section 17.3, docx4j CR-023) one
+attribute over: **`Requires` is a prefix reference too, so writing the wrapper means declaring the
+prefix on the root in the same breath.** `XmlPart.declareIgnorablePrefixes` is where that would
+live. Note this does not bite `mc:Ignorable` here - the sheet's is `x14ac xr xr2 xr3`, all still
+declared - which is why nothing caught it before.
+
+**What round 1 does not settle.** A (wrapper only) and B (booleans only) each change one thing, so
+between them they never test the **conjunction**: if Excel needs the wrapper *and* `1`/`0`, both
+are inert and neither says so. The docx4j session's round 2 adds the right control -
+`cr022-checkbox-ORIGINAL-untouched.xlsx`, to find out whether the fixture's check box ever toggled
+(it is docx4j-generated and Excel-re-saved, so that is a real possibility) - and this session added
+`cr022-checkbox-C-everything-restored.xlsx`: the wrapper in Excel's nesting, `xmlns:x14` declared,
+the six booleans `1`/`0`, and `ctrlProp1.xml` and `drawing1.xml` restored to Excel's bytes, with
+everything else still core-ts-marshalled. Read with the original it separates three outcomes: the
+cause is in that restored set, the cause is elsewhere in what core-ts re-marshals (which exonerates
+the wrapper), or the fixture was never live and no verdict so far is a save defect. Every variant
+was checked namespace-well-formed before staging, after A.
+
 Nothing is changed here until those verdicts arrive. What phase B keeps either way is the read:
 `worksheet.controls` holds the control and its `r:id` resolves to the `ControlPropertiesPart`,
 where before phase B the whole `mc:AlternateContent` was dropped and neither existed. The docx4j
