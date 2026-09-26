@@ -296,6 +296,13 @@ the alternative - not resolving - would cost the slicers and the form controls t
 Recorded so that the next reader of a "docx4j drops this too" note knows it is the weaker half of the
 explanation.
 
+**There is a second, sharper form of the same cost**, found the same day and written up as CR-001
+section 21: resolving a Choice can move *bound* content to a position its parent does not accept, and
+then all of it goes. `xl/workbook.xml`'s `x15ac:absPath` is the case - bound as `CTAbsolutePath`, and
+kept when the Choice is left alone, gone when it is resolved, because `CT_Workbook` accepts it only
+inside the wrapper. Where the model binds `mc:AlternateContent` itself, as it does on `CT_Workbook`
+and `CT_Worksheet`, resolving is not free.
+
 That leaves two candidates, and the docx4j session put a one-change variant of each on the share
 for Jason - `cr022-checkbox-A-wrapper-restored.xlsx` and `cr022-checkbox-B-booleans-01.xlsx` - plus
 the discriminator that matters: **docx4j's own re-save**, which keeps the wrapper *and* writes

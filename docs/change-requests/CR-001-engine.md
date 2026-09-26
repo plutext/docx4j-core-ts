@@ -2345,3 +2345,60 @@ port does not do (section 17.6).
 Also in 17.2.1, and of no consequence here: the anonymiser moved into `docx4j-core`
 (`org.docx4j.anon`) and `docx4j-docx-anon` is no longer published. Nothing in this repository or in
 the harness depends on it.
+
+## 21. Resolving a Choice the model itself binds loses what the parent cannot accept (2026-09-27)
+
+Found while answering the objects session's report that its resolution trial "promoted
+`x15ac:absPath` out of a workbook's `mc:AlternateContent` and produced element-order differences"
+(objects CR-004 section 10). The order differences are an artifact of its trial; the promotion is
+not, and on `xl/workbook.xml` it destroys content that would otherwise round-trip **typed**.
+
+`xl/workbook.xml` of `loadAndSave.xlsx`, `cr022-slicers-timelines.xlsx` and `cr022-checkbox.xlsx`
+each carry
+
+```xml
+<mc:AlternateContent><mc:Choice Requires="x15">
+  <x15ac:absPath url="/Users/bcronk/Downloads/" xmlns:x15ac=".../spreadsheetml/2010/11/ac"/>
+</mc:Choice></mc:AlternateContent>
+```
+
+one Choice, no Fallback. Measured through the facade, over the same part and modules:
+
+| | `absPath` in the tree | in the re-marshalled part |
+|---|---|---|
+| as written, the Choice left alone | `CTAbsolutePath`, inside the workbook's `alternateContent` | kept |
+| the Choice resolved, as this package resolves every part | **nothing** | **gone** |
+
+The element is bound - `x15ac:absPath` is `CTAbsolutePath` in the objects model, and `CT_Workbook`
+has an `alternateContent` property since docx4j CR-021 typed it - but it is bound only *inside* the
+wrapper. `CT_Workbook` has no `absPath` element of its own, because the schema does not allow one
+there: the wrapper is what makes it legal. So promoting it puts a bound element in a position its
+parent does not accept, and the unmarshaller skips it.
+
+**This is a second and sharper form of section 17.4's cost.** The first (CR-004 section 7) is that
+resolving turns DOM into typed content and so exposes an *unbound attribute*. This one is that
+resolving moves *bound* content to a position where nothing accepts it, and loses all of it. The
+distinction that matters:
+
+- Where the model does **not** bind `mc:AlternateContent` at that position, resolving is necessary
+  and is why the preprocessor exists: a `w:drawing` inside an `mc:Choice` cannot be typed at all,
+  and the choice is between the Choice's content and nothing.
+- Where the model **does** bind it - `CT_Workbook`, and `CT_Worksheet` since docx4j CR-022 - leaving
+  it alone keeps everything, and resolving keeps only what the parent accepts. For the workbook that
+  is strictly worse.
+
+**Not a regression, and not fixed here.** Before CR-004 phase B `x15` was not understood, so the
+same `absPath` was lost by the other route: no understood Choice and no Fallback means the
+preprocessor drops the element entirely (`replaceAlternateContent`). Phase B changed which route
+loses it, not whether. Sections 16 and 17 have recorded the loss as expected since Phase C; what is
+new is that it is now attributable, and avoidable in principle.
+
+**What a fix would have to weigh, if one is proposed.** Not resolving where the model binds the
+wrapper would keep `absPath`, and would equally leave the worksheet's `x:controls` inside
+`alternateContent` - where CR-004 phase B deliberately put them in the tree so that
+`worksheet.controls` and its `r:id` read (CR-004 section 6). So it is a trade between fidelity and
+the content API's reach, per host type, not a single switch; and the content API would have to walk
+`alternateContent` to keep what phase B gained. That is a CR of its own, and the measurement above
+is what it should start from. `onUnexpectedElement` (jsonix-CR-006, in 3.4.0) reports exactly this
+class of loss at the point it happens, which is the instrument to build it on: today the only way
+to find one is to diff a part by hand, which is how both of this week's cases came to light.
