@@ -2030,3 +2030,42 @@ against 3.3.0 first: four lines, and the report carries line 4 column 3 for a bo
 Meanwhile
 `validateXml` here is mostly a diff over two DOMs and a lookup, which is implementable before any
 jsonix release and only gets *better* when one lands.
+
+**jsonix-CR-006 is implemented (3.4.0, jsonix `fc44f0c`, unreleased) and verified here against the
+checkout** (2026-09-27, the convention jsonix-CR-004 and CR-005 followed before their release).
+Three amendments the jsonix session found by testing, all of them corrections to the request rather
+than to the design, and one of them to a claim of ours: `xsi:type` **is** iterated by the attribute
+loop, so it is excluded when `supportXsiType` is on (this section's review note had said the
+unmarshaller consumes it first - it reads the value but leaves the attribute); an `anyAttribute`
+wildcard keeps unknown attributes, so the attribute callback is silent for such a class, the twin of
+the `anyElement` property the marshalling side already had; and a derived type's marshal enters
+`ClassInfo.marshal` once per inheritance level, so the element callback is deduplicated per output
+element and reports at the most derived level. The surface is
+`createUnmarshaller(options)` / `createMarshaller(options)` over a `deriveContext`, which also makes
+`parentPointers`, `supportXsiType` and `namespacePrefixes` per-call - the pattern the objects facade
+had been applying by hand.
+
+What the verification here established, beyond the suite being green (514 tests, typecheck clean,
+181 parity assertions):
+
+- **Nothing it writes changes.** Every XML part of every fixture that a load re-marshals - 447 parts
+  over 51 fixtures - hashes byte-identically under 3.3.0 and 3.4.0. That is the claim worth checking
+  rather than assuming, because amendment 3's deduplication touches the marshal path itself.
+- **All three of the table's drop cases report on a real `styles.xml`**, not only on a toy mapping:
+  over `comments-two.docx` with the four edits applied, `w:bogusAttr` on `w:docDefaults`, `w:bogus`
+  and `zz:alien` each arrive with the class info that did not expect them
+  (`org_docx4j_wml.DocDefaults`, `org_docx4j_wml.Styles`) and a line and column. The wrongly typed
+  value throws
+  `w:sz/@{...}val (line 1): Argument [NaN] must be an integer, but it is not a number.`, located,
+  with `attributeName` and `node` on the error.
+- **One thing shapes `validateXml` and is not jsonix's to fix: a typed-value error aborts the
+  unmarshal.** With all four edits in place only the problems *before* the bad value are reported,
+  and the rest of the part is never read. So a `validateXml` that promises a complete list cannot be
+  one pass: it reports the drops from a pass that succeeds and the first typed-value error from one
+  that does not, or it re-runs after each throw. Whichever is chosen, the contract must say that the
+  list is complete for drops and first-only for type errors, because a person told "one problem" who
+  then finds three on the next attempt is worse served than one told "at least one".
+
+The facade half is objects CR-007, "Per-call runtime options on the facade, and what unmarshalling
+dropped" (objects `2259931`, proposed; it cannot start until 3.4.0 is on npm). It puts the options on
+all four entry points, `unmarshalString` and `marshalString` included.
