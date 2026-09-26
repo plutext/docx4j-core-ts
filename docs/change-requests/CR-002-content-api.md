@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 25 and 26 and 27: requests from the editor (the last two from its E4 plan, 2026-09-27, proposed). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 25 and 26 and 27: requests from the editor (the last two from its E4 plan, 2026-09-27, proposed and reviewed here the same day, each with a review note; neither is scheduled). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1909,6 +1909,27 @@ stays out of `Word.supported`. The editor builds the expression itself until a r
 this, with no `api` line for its regular-expression commands; the fallback goes when the release
 comes, and the agreement suite gains regular-expression queries then.
 
+**Reviewed 2026-09-27** (not scheduled; nothing is implemented until Jason schedules it). The
+request fits `searchPattern`, which already compiles a `RegExp`, so `matchRegExp` is one more branch
+where `source = text`. Three things it does not say, each of which would be a defect if the branch
+were written from the request alone:
+
+1. **`findAll` has to grow, and it is exported.** It returns `[start, end][]`
+   (`src/model/content/search.mts`), which throws the groups away, so `$1` has nothing to read.
+   Either it returns the matches, or a sibling does and `findAll` keeps its shape for the callers
+   that only want spans. Decide which when scheduling: the first is a breaking change to a public
+   export, the second is two functions where one would do.
+2. **The `u` flag must not reach the other two branches.** Under `u` several escapes that are
+   merely redundant become syntax errors, and the wildcard branch writes some: the `[...]` class it
+   builds doubles backslashes, and `escapeRegExp` escapes `-`. So `u` goes on the `matchRegExp`
+   branch only - which is what the request says, and is worth saying in the code too, because
+   "compile with `u`" invites a reader to move it to the one `new RegExp` at the end.
+3. **`matchWholeWord` must wrap a user expression in `(?:...)`.** The present wrapper is
+   `(?<![\w])${source}(?![\w])`, which is safe only because the plain and wildcard branches can
+   never produce a top-level alternation. A user's `cat|dog` becomes
+   `(?<![\w])cat|dog(?![\w])` - two alternatives, one with each guard - and matches `dog` in
+   `dogma`. A non-capturing group fixes it and does not shift the group numbers `$1` refers to.
+
 ## 27. A request from the editor's E4.b: setting a part's XML strictly (2026-09-27)
 
 **Requested by** `plutext/docx4j-ts-editor` ED-005 section 4 (E4.b, the Developer perspective's
@@ -1944,3 +1965,30 @@ just typed: the editor cannot tell them that what they wrote will not be saved. 
 
 Until a release carries it, the editor checks an edit by unmarshalling and marshalling it back and
 comparing the element and attribute sets, which finds the drops but not their line numbers.
+
+**Reviewed 2026-09-27** (not scheduled). The measurements reproduce, and the jsonix site is the one
+named. Two findings change the shape of the request, both in the editor's favour:
+
+1. **The line numbers are already there, and most of this needs no runtime change at all.** In Node
+   the DOM is parsed by xmldom, which attaches `lineNumber` and `columnNumber` to every element node
+   (checked: `parseXml('<a>\n  <b/>\n</a>')` gives `b.lineNumber === 2`, `columnNumber === 3`). So
+   the editor's own fallback - unmarshal, marshal back, compare the sets - can locate every drop it
+   finds by looking the path up in the *original* DOM and reading the line off it, today, against
+   0.1.5. That covers the first three rows of the table, which are the rows that matter, and it is
+   worth doing in the editor now rather than waiting. **The caveat to write into whatever ships
+   here:** a browser's `DOMParser` attaches nothing, so locations are Node-only unless the caller
+   supplies them; `validateXml` must degrade to path-only rather than pretend.
+2. **The remaining case is the typed value, and that one does want jsonix.** A wrong value throws
+   from `Jsonix.Util.Ensure.ensureInteger` (`jsonix-factory.js` line 843) with only the value in the
+   message, and the throw abandons the unmarshal, so no diff can locate it afterwards. The fix is
+   cheap and is in jsonix's hands: `Jsonix.XML.Input` carries `node`, the current DOM node
+   (line 1181), so the unmarshaller always knows where it is and xmldom has already put the line on
+   that node. Either a callback as the request asks, or - simpler, and it helps every consumer
+   rather than only a validating one - jsonix naming the element or attribute and its line in the
+   error it already throws.
+
+So the jsonix CR is one CR with two parts, the other being CR-006 section 4's marshalling hook in
+the same file: report the skipped element or attribute at line 2383 with `input.node`, and put the
+location into the type-conversion errors. That request is this repository's to file. Meanwhile
+`validateXml` here is mostly a diff over two DOMs and a lookup, which is implementable before any
+jsonix release and only gets *better* when one lands.

@@ -1,6 +1,8 @@
 # CR-006: XPath over the WordprocessingML tree: a read-only binder from marshalled nodes back to the objects
 
-**Status:** Proposed 2026-09-27, at the editor's request
+**Status:** Proposed 2026-09-27, at the editor's request; reviewed here the same day (section 4
+rewritten against the runtime, section 8 added). Not scheduled - nothing is implemented until Jason
+schedules it.
 **Depends on:** CR-001 Phase A (`XmlPart.marshalToNode`); CR-002 phase E (`XPathEngine`,
 `pkg.xpathEngine`, the default engine) and CR-005 phase A (`FontoXPathEngine`); a marshalling hook
 below this package (section 4)
@@ -76,14 +78,55 @@ The alternative that needs no hook, a walk of the DOM and the tree in parallel m
 by name and order, breaks on `any` and mixed content and on the MCE preprocessor's work, and is
 not proposed.
 
-## 4. The hook below this package
+## 4. The hook below this package (read against the runtime, 2026-09-27)
 
-The marshal happens in `@docx4j/jsonix`, reached through `@docx4j/generated-objects-ts`'s
-`marshalNode`. A callback on the marshalling context, called with the value and the DOM element
-when a complex value opens its element, passed through `marshalNode(value, { onElement })`, is
-the whole of it. Where that request goes (jsonix, objects-ts, or both) is this repository's call;
-CR-002 section 27 asks for the matching hook on the unmarshalling side, and the two could be one
-change there.
+The design holds, and the hook is smaller than the request supposed: **three lines in
+`@docx4j/jsonix`, no signature changed.** Measured in `jsonix-factory.js` of 3.3.0.
+
+The request reads as a callback at each site that opens an element, of which there are eight
+(`writeStartElement` is called from `Marshalls.Element.marshalElement` and from the wrapper and
+element-property paths at lines 3099, 3345, 3363, 3372, 3482 and so on), and most of those do not
+have the tree value in hand. But one site downstream of all of them does:
+**`Jsonix.Model.ClassInfo.marshal(value, context, output, scope)`** (line 2426) is called
+immediately after the enclosing element is opened, whichever site opened it, and the open element is
+`output.peek()` (line 1773). So:
+
+```js
+// Jsonix.Model.ClassInfo.marshal, first line
+if (context.onElement) { context.onElement(output.peek(), value); }
+```
+
+records every class-typed value in the tree against its element, and nothing else needs touching.
+Two riders:
+
+- **`any` content is a *copy*.** DOM content goes through `output.writeNode(node)` (line 3511 and
+  line 3761), which does `document.importNode(node, true)` (line 1761), so the element in the
+  marshalled DOM is not the node in the tree and a `WeakMap` keyed on it would miss. `writeNode`
+  returns the imported node, so those two call sites get the same one line, mapping the copy to the
+  original: `var n = output.writeNode(value); if (context.onElement) context.onElement(n, value);`
+  That is how a `Bound` over `sle:slicer` or a `w:drawing` inside a resolved Choice finds its object.
+- **An element backed by a simple type has no object of its own** (its value is a string or a
+  number held by the owning class), so it maps to the owner, as attributes and text nodes already
+  do in section 2. Worth saying in the `Bound` doc comment rather than leaving the caller to find
+  out.
+
+**The hook is per-call, not global, and needs no new option plumbing in the facade.**
+`marshalNode` already marshals through a *derived* context -
+`Object.create(context, { namespacePrefixes: { value: ... } })` in `marshalToDocument` - precisely
+so that the shared context is not mutated. An `onElement` goes on that same derived object, so two
+concurrent marshals cannot see each other's callback, and `marshalNode(value, { onElement })` is a
+one-line change in objects-ts over machinery that is already there.
+
+**Nothing between jsonix and the DOM disturbs node identity.** `marshalNode` returns
+`marshalToDocument(...).documentElement` and the only post-processing is
+`fixRootNamespaceDeclarations`, which sets and removes attributes on the root; `XmlPart.marshalToNode`
+then adds `declareIgnorablePrefixes`'s attributes. There is no serialize-and-reparse anywhere on
+that path, which is what would have made the whole approach unworkable.
+
+Where the request goes: **jsonix**, as its own CR there, with objects-ts passing the option through.
+CR-002 section 27's unmarshalling hook is in the same file and the same shape, so the two are one
+jsonix CR with two parts (see that section's review note: the unmarshalling half is smaller than it
+looks, and most of what the editor asked for needs no runtime change at all).
 
 ## 5. Tests
 
@@ -106,3 +149,30 @@ inside one past plain runs; the hit list says so. Its console's replace-by-XPath
 - **Writing back through the DOM** (`Binder.updateJAXB`): a change is made to the objects, through
   the content API or `setXml` on an element, never to the snapshot.
 - **Other parts than XML parts**: the relationships and content types parts have their own API.
+
+## 8. Review notes (2026-09-27)
+
+Filed by the editor session from the installed 0.1.5 and CR-002 section 3.6, without reading the
+marshalling code; this repository's review of it. The design stands - a read-only binder recorded
+while marshalling, one marshal per call, nothing written back - and section 4 is rewritten with what
+the runtime actually offers. Three things to settle before it is scheduled, none of them a blocker:
+
+1. **The cost, measured rather than assumed.** Section 2 says "one marshal of the part per call,
+   which the editor spends per query, not per keystroke", and records the 255-page document as the
+   case to watch. That number should be measured before the API is offered, because it decides
+   whether the DOM may be cached after all: if a marshal of a large `document.xml` is tens of
+   milliseconds the note is right and no cache is needed; if it is hundreds, the editor's
+   "Select by XPath" will want one, and then the staleness question section 2 dismisses has to be
+   answered rather than avoided. `test/fixtures/` has nothing that size; the editor has the
+   document.
+2. **What `Bound.object` is for a wrapped value.** Section 3 says a value the model wraps as a name
+   and a value "maps its element to the value", which is right for `{ name, value }` pairs, but the
+   tree also holds `JAXBElement`-shaped entries inside `any` and `mixed` collections where the
+   caller's `instanceof`-style test is against the *value*. The rule wants stating once, in the
+   `Bound` doc comment: `object` is always what a walk of the typed tree would hand you at that
+   path, never a wrapper.
+3. **The oracle's reach.** docx4j's `getJAXBNodesViaXPath` runs over a `Binder`, so its answers are
+   only defined for parts JAXB binds whole. A fixture whose part holds DOM content the model does
+   not bind - `cr022-slicers-timelines.xlsx`'s drawings, the OMML of `omml.test.mjs` - will differ
+   in kind, not degree, from docx4j's answer. Pick the fixture set for the harness accordingly, and
+   record the DOM cases as this port's own tests rather than as parity goldens.
