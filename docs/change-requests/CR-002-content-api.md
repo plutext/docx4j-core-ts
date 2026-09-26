@@ -2066,6 +2066,27 @@ What the verification here established, beyond the suite being green (514 tests,
   list is complete for drops and first-only for type errors, because a person told "one problem" who
   then finds three on the next attempt is worse served than one told "at least one".
 
+**3.4.0 is published** (2026-09-27, npm, trusted publisher with provenance, tag `3.4.0` at the
+amended commit). The lockfile here moves to it - objects 0.2.0's `^3.2.1` admits it, so no range
+changes - verified against the **published** artifact and not only the checkout: 514 tests, typecheck
+clean, the 447-part hash set identical to 3.3.0's, and the located error unchanged on the real part.
+
+**Two firing conditions a `validateXml` has to be written around**, both measured here, and jsonix
+records them in its own `CLAUDE.md` as a contract:
+
+1. **A typed-value error aborts the unmarshal** (above): the list is complete for drops and
+   first-only for type errors.
+2. **An unexpected child of an attributes-only class is not reported; it throws.** Measured:
+   `<w:bogus/>` inside `w:styles` reports through `onUnexpectedElement` and the part still
+   unmarshals, while the same element inside `w:sz` (`CT_HpsMeasure`, attributes only) throws
+   `w:bogus (line 1): Illegal state: must be END_ELEMENT.` and reports nothing. The throw **is**
+   located - `ClassInfo.locateError` names the element and the line, which is better than the
+   unlocated 3.3.0 message the jsonix session expected - so nothing is lost to the caller, but it
+   arrives by the other channel. So `validateXml` cannot be "collect the callbacks": it has to
+   collect the callbacks **and** translate a located throw into the same `XmlProblem` shape, or a
+   person editing `w:sz` gets an exception where the same mistake one element up gets a tidy
+   message.
+
 The facade half is objects CR-007, "Per-call runtime options on the facade, and what unmarshalling
 dropped" (objects `2259931`, proposed; it cannot start until 3.4.0 is on npm). It puts the options on
 all four entry points, `unmarshalString` and `marshalString` included; its section 6 is a rule this
