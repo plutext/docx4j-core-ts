@@ -23,9 +23,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
-    <!-- docx4j's <revision> on VERSION_17_2_0 (17.1.1-SNAPSHOT on the old branch); raise with
-         the branch, or pass -Ddocx4j.version=... as the workflow does after reading docx4j's pom. -->
-    <docx4j.version>17.2.0</docx4j.version>
+    <!-- The latest docx4j release, which is what a hand-run resolves from Maven Central.  Development
+         is on VERSION_17_3_0 (<revision> 17.3.0-SNAPSHOT), so to run against docx4j's head build that
+         branch and pass -Ddocx4j.version=17.3.0-SNAPSHOT, as the workflow does after reading its pom. -->
+    <docx4j.version>17.2.1</docx4j.version>
   </properties>
 
   <dependencies>

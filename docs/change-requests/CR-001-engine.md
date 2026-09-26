@@ -2312,3 +2312,36 @@ dependency's progress reaches the dependent automatically.
 Two boundaries. It records defects **in a dependency**, not in this package: a defect here is
 fixed, not pinned. And the entry must carry its reason and its upstream reference, or it becomes
 the thing it was meant to replace - an exclusion nobody dares delete.
+
+## 20. docx4j 17.2.1, and the parity branch moved to `VERSION_17_3_0` (2026-09-27)
+
+docx4j released 17.2.1 (tag `docx4j-17.2.1`) and moved development to `VERSION_17_3_0`
+(`<revision>` `17.3.0-SNAPSHOT`); `VERSION_17_2_1` is frozen at the release. The parity workflow
+follows the *development* branch, because that is where docx4j's answers move, so
+`.github/workflows/parity.yml` now checks out `VERSION_17_3_0` - the branch name is still the one
+thing to change when docx4j moves, since the workflow reads `<revision>` from the checkout for
+`-Ddocx4j.version`. `test/java/pom.xml`'s default is the latest release (17.2.1) for a hand-run
+from Central; measuring the head still means building the sibling checkout and passing
+`-Ddocx4j.version=17.3.0-SNAPSHOT`, as `test/java/README.md` says.
+
+**The goldens do not move, and this was measured rather than assumed.** Diffing the classes Phase B
+ports - `model/PropertyResolver.java`, `model/listnumbering/`, `model/styles/`, `fonts/` - from
+`7fba7a150` (the commit the goldens carry) to `docx4j-17.2.1`, every changed line is a version
+string in a comment or an `@since` tag: 43 files, 317 insertions and 317 deletions, all of the shape
+`@since 17.1.1` -> `@since 17.2.0`, from the release renumbering. No behaviour changed, so no
+regeneration is due; the next weekly run against `VERSION_17_3_0` will say the same, except that the
+jar name in each golden's header becomes `17.3.0-SNAPSHOT` - one of the four header fields the
+comparison ignores, which is why that rename passes without flagging all 45.
+
+The packaging layer did change over the same range, but only by the docx4j CRs this repository has
+already followed part by part: CR-021 and CR-022 (markup compatibility and the Excel extension
+parts, ported as CR-004), CR-023, CR-024 and CR-026 (the wildcards, section 17.7 and CR-004 section
+5), CR-027 (the revision uid attributes). Two things there are deliberately **not** ported:
+`McSelection.selectedContent`, docx4j's *read-time* branch selection for callers walking a tree,
+which has no counterpart here because the preprocessor resolves on load; and
+`PartStore.readSoTheSaveIsTransitional`, which belongs to the strict-to-transitional conversion this
+port does not do (section 17.6).
+
+Also in 17.2.1, and of no consequence here: the anonymiser moved into `docx4j-core`
+(`org.docx4j.anon`) and `docx4j-docx-anon` is no longer published. Nothing in this repository or in
+the harness depends on it.

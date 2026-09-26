@@ -19,13 +19,16 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.2.0` (docx4j's `<revision>` on `VERSION_17_2_0`;
-`pom.xml`'s `docx4j.version`, overridable with `-Ddocx4j.version=...` when the branch you build
-says otherwise) and the JAXB implementation and four font jars from your local Maven repository,
-so build them first from the docx4j checkout you want to measure — the sibling `../docx4j` on the
-release branch, `VERSION_17_2_0` (the old `VERSION_17_1_1` was renamed to it on 2026-09-21).
-A released version number is a trap a SNAPSHOT was not: if nothing was installed locally, Maven
-takes Central's 17.2.0 release and the harness measures that, not the head; the workflow builds
+The harness resolves `org.docx4j:docx4j-core:17.2.1` (`pom.xml`'s `docx4j.version`: the latest
+release, overridable with `-Ddocx4j.version=...`) and the JAXB implementation and four font jars
+from your local Maven repository, so build them first from the docx4j checkout you want to measure.
+**docx4j's answers move on its development branch, `VERSION_17_3_0`** (`<revision>`
+`17.3.0-SNAPSHOT`, since 17.2.1 was released on 2026-09-27; `VERSION_17_2_1` is frozen at that
+release, and before it development was on `VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
+So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_0` and pass
+`-Ddocx4j.version=17.3.0-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
+its pom. A released version number is a trap a SNAPSHOT was not: if nothing was installed locally,
+Maven takes Central's release and the harness measures that, not the head; the workflow builds
 first, and so must you:
 
 ```

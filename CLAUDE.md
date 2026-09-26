@@ -187,8 +187,10 @@ when an answer moves. Parity is zero differences.
   gap turns out to be in the generated declarations rather than the facade.
 - `../docx4j`: the Java original. Releases live on `VERSION_x_y_z` branches (`master` is old);
   CR-001 was written against `VERSION_17_1_1`, renamed `VERSION_17_2_0` on 2026-09-21 when 17.1.1
-  became the 17.2.0 release (the parity workflow and `test/java/pom.xml` follow the rename; the local
-  checkout may sit on the next branch, `VERSION_17_2_1`). The classes being
+  became the 17.2.0 release; development moved to `VERSION_17_3_0` on 2026-09-27 when 17.2.1 was
+  released, and that is the branch the parity workflow checks out (`VERSION_17_2_1` is frozen at the
+  release; `test/java/pom.xml` resolves the latest release for a hand-run, and the workflow reads
+  docx4j's `<revision>` instead). The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
