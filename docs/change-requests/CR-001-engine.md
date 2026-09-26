@@ -2402,3 +2402,56 @@ the content API's reach, per host type, not a single switch; and the content API
 is what it should start from. `onUnexpectedElement` (jsonix-CR-006, in 3.4.0) reports exactly this
 class of loss at the point it happens, which is the instrument to build it on: today the only way
 to find one is to diff a part by hand, which is how both of this week's cases came to light.
+
+### 21.1 The inventory: what this package silently drops today (2026-09-27)
+
+With jsonix 3.4.0's callbacks wired over every XML part of every fixture - the part preprocessed as
+this package preprocesses it, 467 parts of 51 fixtures - the losses stop being anecdotes. This is the
+measurement the future assertion in `ignorable.test.mjs` would record as its known set (see the
+plan in CR-002 section 27's discussion of objects CR-007), and it found two things nobody knew.
+
+**Unexpected elements, 2 distinct** - both of them section 21's kind, bound content promoted where
+its parent will not take it:
+
+| | fixtures |
+|---|---|
+| `x15ac:absPath` in `sml.Workbook` | 4 |
+| `c14:style` in `dml_chart.CTChartSpace` | 3 |
+
+`c14:style` is the second case of the pattern and was not known before: a chart's
+`mc:AlternateContent` names `c14`, the Choice is taken because `c14` is understood, and the promoted
+`c14:style` is not a child `CT_ChartSpace` accepts. Same remedy question as `absPath`, same section.
+
+**Unexpected attributes, 26 distinct.** Three groups:
+
+1. **The revision uids and `b:Sources/@Version`** - `xr3:uid` on `tableColumn` (7), `xr2:uid` on
+   `workbookView` (4), `xr:uid` on `pivotTableDefinition`, `table`, `autoFilter`,
+   `pivotCacheDefinition`, `hyperlink`, `comment`, and `Version` on `b:Sources`. These are exactly
+   what docx4j CR-027 bound (relayed 2026-09-26), so they go when the objects package regenerates
+   from 17.2.1 or later. The inventory is independent confirmation of what that release buys, part by
+   part, and a ready check for it afterwards: these entries should vanish from this list.
+2. **`mc:Ignorable` and `a14:legacySpreadsheetColorIndex` on `a:srgbClr`** (4 each, 2 fixtures), the
+   pair CR-004 section 7 measured. They are reported together, which is the right outcome: keeping
+   the attribute while losing the `mc:Ignorable` that governs it would name a prefix the root does
+   not declare, and Office repairs a file over that.
+3. **`w:stylePaneFormatFilter`'s fifteen attributes** - `w:allStyles`, `w:customStyles`,
+   `w:latentStyles`, `w:stylesInUse`, `w:headingStyles`, `w:numberingStyles`, `w:tableStyles`,
+   `w:directFormattingOnRuns`, `-OnParagraphs`, `-OnNumbering`, `-OnTables`, `w:clearFormatting`,
+   `w:top3HeadingStyles`, `w:visibleStyles`, `w:alternateStyleNames`. **This one was unknown, and it
+   is a docx4j schema gap rather than an objects one.** `wml.xsd` line 12120 types the element as
+   `CT_ShortHexNumber`, which has only `w:val`, where Word writes
+
+   ```xml
+   <w:stylePaneFormatFilter w:val="3F01" w:allStyles="1" w:customStyles="0" ... />
+   ```
+
+   (`NumberingImplicitNumId.docx`), and the 4th-edition transitional schema has `CT_StylePaneFilter`
+   with all sixteen. So every `word/settings.xml` this package re-marshals loses the fifteen and
+   keeps the hex `w:val`, which encodes the same state - which is presumably why fifteen years of
+   round trips have not noticed. Reported to the objects session for docx4j, as the `a:srgbClr` gap
+   was.
+
+**And 16 parts of the 51 fixtures throw rather than unmarshal**, which the inventory counts but does
+not identify; they are the DrawingML and VML parts CR-001 section 17.7 and CR-004 section 5 record.
+Naming them is part of the same future test, since a part that cannot be read is a larger loss than
+an attribute.
