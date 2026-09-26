@@ -1849,3 +1849,20 @@ would move it off the main thread without shortening it. Whether the unmarshalle
 this size can be faster (the mapping walk, the object construction per element, the PARENT
 links) is this package's question; the editor's benchmark is the measure and is re-run per
 sub-phase.
+
+## 24. Requests from the editor's E3.a: identifiers chosen by the caller (2026-09-26)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-004 sections 3.4 and 10.1 (item 5). In a
+co-editing room two sessions allocate from the same counters at once, so every identifier the
+editor makes there is random rather than the next integer. Two engine calls choose their
+identifiers themselves:
+
+1. **`pkg.numbering.newList({ bullet, numId, abstractNumId })` and `restart(numId, { newNumId })`**
+   taking the identifiers to use (checked unused, as `addExternalRelationship`'s proposed id is).
+   The editor renumbers the elements these calls made before anything references them; that
+   fallback goes when a release carries this.
+2. **`customXmlParts.add(xml, { itemID, partName })`** taking the item id and the part name. No
+   fallback in the editor: a new data part is refused in a room until a release carries it
+   (editing an existing part works).
+
+Outside a room the editor passes nothing and the calls behave as today.
