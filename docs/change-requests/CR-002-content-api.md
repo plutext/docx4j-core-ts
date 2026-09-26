@@ -1978,6 +1978,22 @@ named. Two findings change the shape of the request, both in the editor's favour
    worth doing in the editor now rather than waiting. **The caveat to write into whatever ships
    here:** a browser's `DOMParser` attaches nothing, so locations are Node-only unless the caller
    supplies them; `validateXml` must degrade to path-only rather than pretend.
+
+   **Unless the consumer supplies the parser, which it can already** (added 2026-09-27, after the
+   editor said its browser check would parse the pane's text with `@xmldom/xmldom` itself while
+   `parseXml` used the native `DOMParser`). `Jsonix.DOM.use(implementation)` - exported from this
+   package's facade, jsonix-CR-005 section 7.5 - takes a module with `DOMParser` and friends and is
+   consulted before the browser globals, so one call at startup with the xmldom the consumer already
+   loads makes `parseXml` yield `lineNumber` in a browser too (checked: `DOM.use` then `parseXml`
+   gives `lineNumber` 2 for the element on line 2). That also removes the worse half of the
+   two-parser arrangement, which is not the missing line numbers but the **disagreement**: a check
+   parsed by xmldom and an apply parsed by the native `DOMParser` can differ on malformed or
+   edge-case input, so a person can be told their edit is clean and then have `setXml` throw, or the
+   reverse. Two costs to weigh before recommending it: xmldom is slower than the native parser on
+   every part, not only the one being validated, and it is laxer, so accepting input the browser
+   would have rejected becomes the behaviour of the whole application. `DOM.use` is global and takes
+   effect from the call, so a consumer that loads xmldom in a lazy chunk switches parser mid-session
+   unless it calls at startup.
 2. **The remaining case is the typed value, and that one does want jsonix.** A wrong value throws
    from `Jsonix.Util.Ensure.ensureInteger` (`jsonix-factory.js` line 843) with only the value in the
    message, and the throw abandons the unmarshal, so no diff can locate it afterwards. The fix is
