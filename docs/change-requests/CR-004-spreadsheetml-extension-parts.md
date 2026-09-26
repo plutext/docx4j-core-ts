@@ -1,7 +1,9 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). The CR
-is closed. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
+**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). Open:
+acceptance check 14 failed on 2026-09-26 - a re-marshalled worksheet's form control is drawn but
+inert in Excel 365 - and section 7 has the measurements, the two remaining candidates and the
+experiment that separates them. Everything else in both phases is accepted. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
 `x14` and `x15` Excel modules; 0.1.5 carried it but could not load a pptx or xlsx whose text body
 holds an equation, CR-001 section 17.5), which this package now depends on.
 **Depends on:** CR-001 Phase A (parts, registry, `DefaultXmlPart`, `BinaryPart`); for Phase B, the
@@ -203,13 +205,8 @@ Two of the nine catch a real loss:
   the `mc:AlternateContent` element itself, where resolving on load cannot rebuild the wrapper, so
   the saved sheet holds a bare `x:controls`. That is schema-valid (`CT_Worksheet` has `controls`,
   and `CT_Control` has `controlPr`, in the 4th-edition transitional schema) but it is not Excel's
-  own markup, and it is on the Word/Excel acceptance checklist in `test/README.md` (check 14), with
-  the saved file staged for it on the Office share at `fidelity/cr004b-core-ts-controls/`. Nobody
-  has opened the bare form: docx4j's Excel evidence covers only the wrapper it keeps (its CR-022
-  phase 1 check of `cr022-checkbox-resaved.xlsx`), so the verdict is new information for both
-  ports, and the docx4j session records it in its CR-022 section 20. If Excel repairs the file,
-  the remedy here is to write the `x14` wrapper back on save - a narrow exception to resolving
-  markup compatibility on load, which nothing else has needed.
+  own markup, and it went to Excel as acceptance check 14 (`test/README.md`). **It failed**, and
+  section 7 records what is known and what is still to be isolated.
 - `sle`, `sle15` and `tsle` (`.../drawing/2010/slicer`, `/2012/slicer`, `/2012/timeslicer`), which
   closes the loss CR-001 section 17.4 recorded. The Choice these gate is an `xdr:graphicFrame`
   whose `a:graphicData` holds the one unbound element, and that wildcard is lax since docx4j
@@ -239,3 +236,55 @@ package already covers `DataModelPart`; and `sparklinesTyped`, `conditionalForma
 `dataValidationsTyped` and `x12acAndX16MarshalWithExcelsPrefixes` test the objects package's
 binding, which has its own tests there, over three more fixtures. The slicers fixture already
 carries sparklines, and the extLst test reads its `x14`/`x15` content.
+
+## 7. The inert check box (acceptance check 14, 2026-09-26)
+
+Jason's Excel 365 verdict on the two files staged at `fidelity/cr004b-core-ts-controls/`:
+`cr022-slicers-timelines-coretsSaved.xlsx` opens and looks right, so the slicer and timeline half
+of phase B is accepted. `cr022-checkbox-coretsSaved.xlsx` opens with **no repair prompt** and the
+check box is drawn, but **clicking it does nothing** - and a form-control check box toggles its own
+mark whether or not a cell is linked, and this one links none, so that is inert rather than merely
+unwired.
+
+**The cause is not yet isolated, and it is not safely attributable to the bare `x:controls`**: a
+re-marshal changes more than one thing at a time. Measured part by part against the fixture (only
+the differences that could bear on behaviour; `[Content_Types].xml`, the four relationships parts
+and the untouched `docProps`, `sharedStrings`, `styles`, `theme` and `workbook` parts aside):
+
+| | fixture | core-ts saved |
+|---|---|---|
+| `sheet1.xml` controls | `mc:AlternateContent > mc:Choice Requires="x14" > controls` | bare `controls` |
+| booleans (`sheetView@tabSelected`, `controlPr@autoFill`/`autoLine`/`autoPict`/`defaultSize`, `anchor@moveWithCells`) | `1` / `0` | `true` / `false` |
+| `ctrlProps/ctrlProp1.xml` | `formControlPr` in the default namespace, `lockText="1" noThreeD="1"` | `x14:formControlPr`, `lockText="true" noThreeD="true"` |
+| `drawings/vmlDrawing1.vml` | | **byte-identical** (it is a `BinaryPart`, never re-marshalled) |
+| `drawings/drawing1.xml` | one `mc:AlternateContent`, Choice `Requires="a14"`, **empty** `mc:Fallback` | the Choice, resolved |
+| `a14:compatExt/@spid`, `a14:hiddenFill`, `a14:hiddenLine`, `a16:creationId` | | all present |
+| `a:srgbClr/@a14:legacySpreadsheetColorIndex` (and its attribute-level `mc:Ignorable="a14"`) | on both hidden colours | **dropped** |
+
+Four of those rule themselves out. The VML is byte-identical, and it is the VML's
+`x:ClientData ObjectType="Checkbox"` that makes the shape a live control. `a14:compatExt/@spid`
+`_x0000_s1025` survives, so the DrawingML shape is still tied to that VML shape and to
+`control/@shapeId`. The drawing's own `mc:AlternateContent` had an **empty** `mc:Fallback`, so
+resolving it to the `a14` Choice is what Excel does too and loses nothing.
+`a14:legacySpreadsheetColorIndex` is a real loss but it is the hidden fill and line colours of a
+shape Excel draws from the VML, and it is **not ours to fix**: `CT_SRgbColor` has no
+`xsd:anyAttribute` in docx4j's `xsd/dml/dml-baseTypes.xsd` line 357, so docx4j's JAXB drops it as
+well. Worth a docx4j wildcard decision (its CR-024 and CR-026 territory), not a core-ts one.
+
+That leaves two candidates, and the docx4j session put a one-change variant of each on the share
+for Jason - `cr022-checkbox-A-wrapper-restored.xlsx` and `cr022-checkbox-B-booleans-01.xlsx` - plus
+the discriminator that matters: **docx4j's own re-save**, which keeps the wrapper *and* writes
+`true`/`false`, because JAXB serialises `xsd:boolean` the way Jsonix does. So:
+
+- docx4j's re-save inert too -> the booleans are the cause, the defect is shared by both ports,
+  and the fix belongs in the marshalling layer (a lexical-form choice for `xsd:boolean`), not in
+  CR-004. Both lexical forms are valid XML Schema, so this would be Excel reading `@autoFill` and
+  friends with a `== "1"` test.
+- docx4j's re-save fine -> the bare `x:controls` is the cause, and the remedy here is for the
+  worksheet to write the `x14` wrapper back on save: a narrow exception to resolving markup
+  compatibility on load, which nothing else in the port has needed.
+
+Nothing is changed here until those verdicts arrive. What phase B keeps either way is the read:
+`worksheet.controls` holds the control and its `r:id` resolves to the `ControlPropertiesPart`,
+where before phase B the whole `mc:AlternateContent` was dropped and neither existed. The docx4j
+session records the same in its CR-022 section 20.

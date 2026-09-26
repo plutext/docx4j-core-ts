@@ -112,8 +112,9 @@ without a repair prompt. Five things were found, and are fixed in the same chang
    after writing the values into `Sales`, so values on the second tab is right. The check text
    below now says so.
 
-Checks 3, 10, 12 and 13 are to be re-run against the fixed code, and check 14 (added by
-CR-004 phase B, 2026-09-25) has not been run at all.
+Checks 3, 10, 12 and 13 are to be re-run against the fixed code. Check 14 (added by CR-004 phase B,
+2026-09-25) ran on 2026-09-26: its slicers half passed, its form-control half **failed** - see the
+check itself and CR-004 section 7.
 
 Previous run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002
 phases C, G and I: checks 6 to 8, with the script below, all passed. Check 7 as expected shows the fixture's own text, not the
@@ -227,10 +228,13 @@ namespaces, content types or the zip writer, check by hand:
    sheet and still toggle. That one is the check worth making: resolving the `mc:AlternateContent`
    on load cannot rebuild the wrapper, so the saved worksheet holds a bare `<controls>` where
    Excel writes `mc:AlternateContent > mc:Choice Requires="x14" > controls`. It is schema-valid
-   (`CT_Worksheet` has `controls`), but only Excel can say whether it is accepted. Both files are
-   on the share ready to open, at `fidelity/cr004b-core-ts-controls/` with a README saying what to
-   look for - put there 2026-09-25 so the docx4j session can fold them into the next Excel check
-   it asks for.
+   (`CT_Worksheet` has `controls`). **Run 2026-09-26 (Excel 365) and this is the one check that
+   failed:** the slicers workbook is right, and the check box workbook opens with no repair prompt
+   and draws the check box, but clicking it does nothing. The cause is not yet isolated - a
+   re-marshal also turns every boolean from `1`/`0` into `true`/`false` - and CR-004 section 7 has
+   the part-by-part measurements, what they rule out (the VML is byte-identical, `a14:compatExt`
+   survives, the drawing's own `mc:Fallback` was empty) and the two variants on the share that
+   separate the remaining candidates. Files: `fidelity/cr004b-core-ts-controls/`.
 
 A small Node script for 1 to 3 is:
 
