@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 25 and 26 and 27: requests from the editor (the last two from its E4 plan, 2026-09-27, proposed). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1886,3 +1886,61 @@ JS: whether `range.hyperlink = …` in Word applies the style (the setter should
 there, which is what the editor's `api` lines are held to). The editor's `range.hyperlink` command
 changes with it; `api.test.mts` holds the two to the same output, so the editor waits for the
 release that carries this rather than diverging.
+
+## 26. A request from the editor's E4.a: regular expressions in `SearchOptions` (2026-09-27)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-005 section 3.2 (E4.a, find and replace, planned
+2026-09-27). The editor's find bar offers a regular-expression mode beside Word's wildcards, and
+its matcher is this package's `searchPattern` (so that a hit the user sees is a hit `body.search`
+returns, which an agreement suite checks over every fixture). The request:
+
+1. **`matchRegExp?: boolean` in `SearchOptions`**: the search text is an ECMAScript regular
+   expression, compiled with the `u` flag, `i` unless `matchCase`, and never `m` or `s` (a match
+   stays inside a paragraph, as every other search here does). `matchWholeWord` wraps it in the
+   same word-boundary test the plain form uses; `matchWildcards` together with `matchRegExp` is an
+   error. `searchPattern`, `findAll`, `search` and `replaceText` all honour it.
+2. **`$1` to `$9`, `$&` and `$$` in `replaceText`'s replacement** when `matchRegExp` is set
+   (JavaScript's `String.prototype.replace` rules), and Word's `\1` to `\9` when `matchWildcards`
+   is (Word's wildcard replacement syntax), each group taken from the match within the paragraph's
+   text. The replacement keeps the formatting of the match's first character, as today.
+
+An extension beyond Office JS, as `replaceText` is (`Word.SearchOptions` has no such member), so it
+stays out of `Word.supported`. The editor builds the expression itself until a release carries
+this, with no `api` line for its regular-expression commands; the fallback goes when the release
+comes, and the agreement suite gains regular-expression queries then.
+
+## 27. A request from the editor's E4.b: setting a part's XML strictly (2026-09-27)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-005 section 4 (E4.b, the Developer perspective's
+parts panel made editable, planned 2026-09-27): a person edits a part's XML (styles, numbering,
+settings, theme) and applies it through `XmlPart.setXml`. Measured on 0.1.5 against the styles
+part of the editor's `comments-two.docx`, `setXml` then `getContents()` then `getXml()`:
+
+| Edit | Result |
+|---|---|
+| An element the schema does not have in that place (`<w:bogus/>` after `w:docDefaults`) | dropped silently |
+| An attribute the schema does not have (`w:bogus="1"` on `w:docDefaults`) | dropped silently |
+| An element in a namespace the object model does not know, not declared ignorable | dropped silently |
+| A `w:p` inside `w:styles` | kept |
+| An attribute value of the wrong type (`w:sz w:val="big"`) | throws `Argument [NaN] must be an integer, but it is not a number.`, with no location |
+| Malformed XML | throws at parse, with xmldom's message |
+
+A silent drop is right for a file from elsewhere (it is what Word's own lax reading does, and
+the MCE preprocessor already removes what is declared ignorable), and wrong for an edit a person
+just typed: the editor cannot tell them that what they wrote will not be saved. The request:
+
+1. **`XmlPart.validateXml(xml): Promise<XmlProblem[]>`**, or a `{ strict: true }` option on
+   `setXml` that refuses with the same list: each problem the element or attribute, its path from
+   the root (`/w:styles/w:bogus[1]`), and a line and column where the parser gives them, for
+   unexpected elements, unexpected attributes, values of the wrong type (the error above, located),
+   and parse errors. Content in namespaces the document declares ignorable is not a problem
+   (the MCE rules decide it, as on load).
+2. **The hook it needs below this package**: `@docx4j/jsonix` 3.3.0 skips an unexpected element
+   at `jsonix-factory.js` line 2383 under the comment `// TODO optionally report a validation
+   error that the element is not expected`, and ignores unknown attributes likewise; a callback
+   on the unmarshalling context (element or attribute name, the input's position), passed
+   through `@docx4j/generated-objects-ts`'s `unmarshalNode`, is enough. Where that request goes
+   (jsonix, objects-ts) is this repository's call.
+
+Until a release carries it, the editor checks an edit by unmarshalling and marshalling it back and
+comparing the element and attribute sets, which finds the drops but not their line numbers.
