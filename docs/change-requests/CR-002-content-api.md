@@ -1873,9 +1873,11 @@ Outside a room the editor passes nothing and the calls behave as today.
 check of E3.d. `Range.hyperlink`'s setter wraps the range's runs in a `w:hyperlink` and adds the
 relationship, but gives the runs no character style, so in Word the link looks like the text
 around it (hovering and Ctrl+click still work). Word's Insert Hyperlink gives the runs the
-`Hyperlink` character style, adding the style to the styles part when the document lacks it
-(based on `DefaultParagraphFont`, with the theme's hyperlink colour and a single underline, and
-`w:uiPriority` 99 and `w:unhideWhenUsed`).
+`Hyperlink` character style, adding the style to the styles part when the document lacks it. In
+the editor's Word-made fixtures that style is based on `DefaultParagraphFont`, with
+`w:uiPriority` 99, `w:unhideWhenUsed` and a single underline, and its colour either a literal
+`0000FF` (`tracked-changes.docx`, which also has `w:semiHidden`) or `w:themeColor="hyperlink"`
+over a fallback value (`0000FF`, or `467886` from Microsoft 365).
 
 The request: the setter gives each run it wraps `w:rStyle w:val="Hyperlink"` unless the run
 already names a character style, and makes sure the styles part has the `Hyperlink` style, as
