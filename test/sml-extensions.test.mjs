@@ -17,6 +17,7 @@ import { fixture } from './helpers.mjs';
 
 const FIXTURE = 'cr022-slicers-timelines.xlsx';
 const CHECKBOX = 'cr022-checkbox.xlsx';
+const CHECKBOX_LINKED = 'cr022-checkbox-linked.xlsx';
 const X14 = 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/main';
 const X15 = 'http://schemas.microsoft.com/office/spreadsheetml/2010/11/main';
 
@@ -204,6 +205,30 @@ test('a form control\'s properties part is typed, and the sheet keeps its x14 co
   assert.ok(back.parts.get('/xl/ctrlProps/ctrlProp1.xml') instanceof ControlPropertiesPart);
   assert.equal((await backSheet.getContents()).controls.control.length, 1);
   assert.equal((await backSheet.controlPropertiesParts[0].getContents()).objectType, 'CheckBox');
+});
+
+// The same on the fixture whose check box Excel is known to drive - `fmlaLink` on the properties
+// part and `x:FmlaLink` in the VML, so clicking it writes TRUE/FALSE into D4 (docx4j CR-026
+// section 11). This is the file acceptance check 14 was finally measured on, after the unlinked one
+// turned out to be inert before any save (CR-004 section 7), so it is the one the automated test
+// follows: what Excel accepted was this package re-marshalled whole, and `fmlaLink` is the
+// attribute the live control hangs on.
+test('the linked check box: fmlaLink and the VML survive a whole-package re-marshal', async () => {
+  const pkg = await OpcPackage.load(await fixture(CHECKBOX_LINKED));
+  await pkg.unmarshalAll();
+  const sheet = pkg.getWorkbookPart().getWorksheet(0);
+  assert.equal((await sheet.controlPropertiesParts[0].getContents()).fmlaLink, '$D$4');
+
+  const saved = new ZipPartStore(await pkg.save());
+  assert.ok(entry(saved, 'xl/ctrlProps/ctrlProp1.xml').includes('fmlaLink="$D$4"'));
+  // the VML is a BinaryPart, so the x:FmlaLink half of the link is never re-marshalled at all
+  const source = new ZipPartStore(await fixture(CHECKBOX_LINKED));
+  assert.deepEqual(saved.loadSync('xl/drawings/vmlDrawing1.vml'), source.loadSync('xl/drawings/vmlDrawing1.vml'));
+  // and the control still names the properties part, through the shapeId the VML shape carries
+  const control = (await sheet.getContents()).controls.control[0];
+  assert.equal(control.shapeId, 1025);
+  assert.equal(sheet.relationshipsPart.getPart(control.id), sheet.controlPropertiesParts[0]);
+  assert.ok(entry(saved, 'xl/drawings/drawing1.xml').includes('spid="_x0000_s1025"'));
 });
 
 test('the four parts the fixtures have no example of: added, saved, and found again by class', async () => {

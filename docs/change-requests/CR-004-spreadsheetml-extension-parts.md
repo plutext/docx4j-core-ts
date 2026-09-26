@@ -1,12 +1,11 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). Open, and
-narrower than it looked: acceptance check 14's form-control half reported an inert check box on
-2026-09-26, but the fixture's check box does not toggle before the save either, so nothing was
-measured; it is being re-run on `cr022-checkbox-linked.xlsx`, whose box is known to work. Section 7
-has the sequence, and the two findings that survive it regardless (`Requires` is a prefix reference;
-`a14:legacySpreadsheetColorIndex` is dropped, and docx4j drops it too). Everything else in both
-phases is accepted, including the slicer and timeline drawings. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
+**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). **Closed
+2026-09-26**: acceptance check 14 passed on both halves once it was measured on a control that
+worked - Excel 365 drives the check box of a re-marshalled worksheet whose `mc:AlternateContent`
+wrapper is gone, so resolving markup compatibility on load has no counterexample here (section 7,
+and docx4j CR-021 section 8.13). Two lessons survive from getting there: `mc:Choice/@Requires` is a
+prefix reference, and an after-save check needs a before-save fixture that works. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
 `x14` and `x15` Excel modules; 0.1.5 carried it but could not load a pptx or xlsx whose text body
 holds an equation, CR-001 section 17.5), which this package now depends on.
 **Depends on:** CR-001 Phase A (parts, registry, `DefaultXmlPart`, `BinaryPart`); for Phase B, the
@@ -322,7 +321,7 @@ never worked, and three rounds of bisecting measured nothing. Two of the four fi
 anyway, because they do not depend on the verdict: the `Requires` prefix rule above, and the
 `a14:legacySpreadsheetColorIndex` loss, both real and both independently checkable.
 
-**Round 3 (pending)** moves to `cr022-checkbox-linked.xlsx`, the one check box Excel has been seen
+**Round 3 (2026-09-26): accepted, and resolve-on-load stands.** Round 3 moved to `cr022-checkbox-linked.xlsx`, the one check box Excel has been seen
 to toggle (docx4j CR-026 section 11's bisect: `fmlaLink="$D$4"` on the properties part and
 `x:FmlaLink` in the VML, so a click writes `TRUE`/`FALSE` into the empty D4). Two files on the
 share, same base, and between them they separate the wrapper from everything else: the docx4j
@@ -333,11 +332,23 @@ writes the booleans `true`/`false` and prefixes the properties root, while keepi
 VML byte-identical and `control/@shapeId` 1025 tied to `a14:compatExt/@spid _x0000_s1025`). Both
 toggle and drive D4: resolve-on-load stands and phase B needs nothing. Neither: the wrapper is the
 cause and it gets written back, `xmlns:x14` with it. Only the bare one: the wrapper is exonerated
-and the cause is elsewhere in what core-ts re-marshals, the booleans first - a marshalling-layer
-question for both ports, since JAXB writes them the same way.
+and the cause is elsewhere in what core-ts re-marshals, the booleans first.
 
-If it does come back as the wrapper, `cr022-checkbox-linked.xlsx` is the fixture to copy in for the
-test: the inert one cannot witness the fix either.
+**Both toggled and both drove D4.** So Excel accepts a worksheet's controls with the wrapper gone,
+`xmlns:x14` gone from the root, the booleans `true`/`false` and the properties root prefixed `x14:`.
+The `mc:AlternateContent` Excel writes there is forward-compatibility markup for readers that do
+not know `x14`, not a requirement of the ones that do, and **nothing in phase B changes**: the
+worksheet keeps writing the resolved `x:controls`, and there is no exception to resolving markup
+compatibility on load. docx4j records the same in its CR-022 section 20 (closed) and CR-021
+section 8.13.
+
+`cr022-checkbox-linked.xlsx` is copied in as a fixture even so, and
+`sml-extensions.test.mjs` has a tenth test over it: `fmlaLink="$D$4"` survives a whole-package
+re-marshal, the VML keeps its `x:FmlaLink` half of the link by never being re-marshalled at all,
+and `control/@shapeId` 1025 still resolves to the properties part and matches
+`a14:compatExt/@spid`. That is the machine-checkable half of what Excel confirmed, on the one file
+whose Excel behaviour is known - the lesson of section 7 applied to our own suite rather than only
+to the manual checklist.
 
 Nothing is changed here until those verdicts arrive. What phase B keeps either way is the read:
 `worksheet.controls` holds the control and its `r:id` resolves to the `ControlPropertiesPart`,

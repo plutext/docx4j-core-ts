@@ -36,7 +36,10 @@ the timeline through `mc:AlternateContent`, and since CR-004 phase B those Choic
 the slicer content kept as DOM (it needs the lax `a:graphicData` wildcard of docx4j `8e8f6ea83`,
 in objects 0.2.0). The second is a check box: its worksheet's only `mc:AlternateContent` requires
 `x14` and has no Fallback, so it is what the `x14` half of phase B's `UNDERSTOOD_NAMESPACES`
-change is measured on.
+change is measured on - but its check box is inert in Excel before any save (docx4j-generated, no
+`fmlaLink`), so it cannot witness whether a re-marshalled control still works.
+`cr022-checkbox-linked.xlsx`, added 2026-09-26, is the same workbook with the box linked to D4, and
+is the fixture acceptance check 14 was settled on.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
@@ -113,9 +116,8 @@ without a repair prompt. Five things were found, and are fixed in the same chang
    below now says so.
 
 Checks 3, 10, 12 and 13 are to be re-run against the fixed code. Check 14 (added by CR-004 phase B,
-2026-09-25) ran on 2026-09-26: its slicers half passed; its form-control half reported a failure
-that turned out to be the fixture's own, not the save's, and is being re-run on a live control - see
-the check itself and CR-004 section 7.
+2026-09-25) ran on 2026-09-26 and **passed on both halves**, the form-control half after being
+re-run on a live control - see the check itself and CR-004 section 7.
 
 Previous run: 2026-09-16, Word 365 version 2608 (build 20326.20144, Click-to-Run), after CR-002
 phases C, G and I: checks 6 to 8, with the script below, all passed. Check 7 as expected shows the fixture's own text, not the
@@ -229,16 +231,14 @@ namespaces, content types or the zip writer, check by hand:
    sheet and still toggle. That one is the check worth making: resolving the `mc:AlternateContent`
    on load cannot rebuild the wrapper, so the saved worksheet holds a bare `<controls>` where
    Excel writes `mc:AlternateContent > mc:Choice Requires="x14" > controls`. It is schema-valid
-   (`CT_Worksheet` has `controls`). **Run 2026-09-26 (Excel 365) and this is the one check that
-   failed:** the slicers workbook is right, and the check box workbook opens with no repair prompt
-   and draws the check box, but clicking it does nothing. The cause is not yet isolated - a
-   re-marshal also turns every boolean from `1`/`0` into `true`/`false`. **And the fixture turned
-   out not to witness the question**: `cr022-checkbox.xlsx`'s check box does not toggle *before* the
-   save either (docx4j-generated, no `fmlaLink`, no `x:FmlaLink`), so this check as written asked
-   whether a control that never worked still works. CR-004 section 7 has the whole sequence. The
-   check to run instead is on `cr022-checkbox-linked.xlsx` from docx4j-core-tests, whose box drives
-   D4 - the files are on the share at `fidelity/cr004b-core-ts-controls/`. **Take the lesson for any
-   check added here: name a fixture whose feature is known to work before the save.**
+   (`CT_Worksheet` has `controls`). **Accepted 2026-09-26 (Excel 365), measured on
+   `fixtures/cr022-checkbox-linked.xlsx`:** the box toggles and drives D4 after a whole-package
+   re-marshal, so Excel does not need the wrapper and resolve-on-load stands (CR-004 section 7). Use
+   the linked fixture for this check, not `cr022-checkbox.xlsx`, whose check box does not toggle
+   *before* a save either - it is docx4j-generated with no `fmlaLink` and no `x:FmlaLink`, and three
+   rounds of bisecting over it measured nothing. **The lesson for any check added here: name a
+   fixture whose feature is known to work before the save.** Files at
+   `fidelity/cr004b-core-ts-controls/` on the share.
 
 A small Node script for 1 to 3 is:
 
