@@ -269,9 +269,32 @@ Four of those rule themselves out. The VML is byte-identical, and it is the VML'
 `control/@shapeId`. The drawing's own `mc:AlternateContent` had an **empty** `mc:Fallback`, so
 resolving it to the `a14` Choice is what Excel does too and loses nothing.
 `a14:legacySpreadsheetColorIndex` is a real loss but it is the hidden fill and line colours of a
-shape Excel draws from the VML, and it is **not ours to fix**: `CT_SRgbColor` has no
-`xsd:anyAttribute` in docx4j's `xsd/dml/dml-baseTypes.xsd` line 357, so docx4j's JAXB drops it as
-well. Worth a docx4j wildcard decision (its CR-024 and CR-026 territory), not a core-ts one.
+shape Excel draws from the VML. `CT_SRgbColor` has no `xsd:anyAttribute` in docx4j's
+`xsd/dml/dml-baseTypes.xsd` line 357, so nothing binds that attribute in either port - but **the
+cause is not the binding gap alone, it is the MCE preprocessing, and that is worth knowing generally**
+(measured 2026-09-27, after the objects session reported that the attribute round-trips through its
+facade and does not reproduce on its corpus - both measurements were right):
+
+| `xl/drawings/drawing1.xml` of `cr022-checkbox.xlsx`, unmarshalled and re-marshalled | occurrences of the attribute |
+|---|---|
+| through the objects facade alone | 2 in, **2 out** |
+| with `resolveAlternateContent` run first, as every part loaded here is | 2 in, **0 out** |
+
+Unresolved, the whole `xdr:twoCellAnchor` sits inside `mc:AlternateContent`, whose branches the model
+holds as DOM (the `mce` wildcards being lax since docx4j CR-021), so nothing in the shape is typed
+and nothing can be dropped. Resolving the Choice hands the same content to the typed `xdr` model,
+`a14:hiddenFill` and its `a:srgbClr` included, and the unbound attribute goes. **So resolving markup
+compatibility converts DOM into typed content, and can therefore expose a binding gap that the
+unresolved form hid.** That is a property of the preprocessor rather than of this fixture: any
+`mc:Choice` whose content the model binds *incompletely* loses the unbound part on a re-marshal,
+where leaving the Choice alone would have kept all of it. It is the cost side of the judgment
+CR-001 section 17.4 and section 3 of this CR make when they take a Choice, and the reason the
+question there is "does everything in it round-trip" rather than "can the model read it".
+
+Nothing here changes: the attribute is two hidden colours on a shape Excel redraws from the VML, and
+the alternative - not resolving - would cost the slicers and the form controls that phase B recovered.
+Recorded so that the next reader of a "docx4j drops this too" note knows it is the weaker half of the
+explanation.
 
 That leaves two candidates, and the docx4j session put a one-change variant of each on the share
 for Jason - `cr022-checkbox-A-wrapper-restored.xlsx` and `cr022-checkbox-B-booleans-01.xlsx` - plus

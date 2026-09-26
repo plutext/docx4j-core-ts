@@ -2068,4 +2068,17 @@ What the verification here established, beyond the suite being green (514 tests,
 
 The facade half is objects CR-007, "Per-call runtime options on the facade, and what unmarshalling
 dropped" (objects `2259931`, proposed; it cannot start until 3.4.0 is on npm). It puts the options on
-all four entry points, `unmarshalString` and `marshalString` included.
+all four entry points, `unmarshalString` and `marshalString` included; its section 6 is a rule this
+package asked for - **no callback is ever wired by default** - because `tracking.mts`'s
+`recordPPrChange` copies a `w:pPr` as a `PPrBase` *for* the drop, so a default callback would report
+three intentional losses on every tracked property change.
+
+**The re-verification when 3.4.0 was amended.** The jsonix session folded a cosmetic fix into the
+same commit and moved the tag, so the bytes verified above were no longer the bytes to be released.
+Re-verified rather than taken on trust: the pre-amend commit was still in its reflog, so the diff
+could be read directly (`git diff fc44f0c 2e3bcc8`) and is seven lines in
+`ClassInfo.locateError`'s message, resolving the attribute's prefix through `node.lookupPrefix`; the
+suite, the typecheck and the 447-part hash set were then run again and are unchanged, and the real
+case now reads `w:sz/@w:val (line 1): ...` instead of spelling the namespace URI. An amended commit
+is the one case where "only X changed" has to be checked rather than believed, because the artifact
+that was verified no longer exists under that name.

@@ -104,7 +104,12 @@ Key mechanics:
 - **MCE preprocessing** resolves `mc:AlternateContent` (first `mc:Choice` whose `Requires`
   prefixes are all in `UNDERSTOOD_NAMESPACES`, else `mc:Fallback`) on the DOM before
   unmarshalling. It is required, not cosmetic: a `w:drawing` inside `mc:Choice` cannot be typed
-  by the model. `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces.
+  by the model. `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
+  plus the slicer namespaces nothing binds (CR-004 section 6). Taking a Choice **converts DOM into
+  typed content**, so it can expose a binding gap the unresolved form hid: content the model binds
+  only partly loses the unbound part on a re-marshal, where leaving the Choice alone would have kept
+  all of it (measured, CR-004 section 7). The test when adding a namespace is therefore whether
+  everything in the Choice round-trips, not whether the model can read it.
 - **Namespace prefixes** are the facade's job (objects CR-001: `NAMESPACE_PREFIXES` default,
   `mc:Ignorable` declarations kept, `xml` never declared). Nothing here touches prefixes.
 - **The content API is views, not a model.** `Body`/`Paragraph`/`Range` hold a reference to
