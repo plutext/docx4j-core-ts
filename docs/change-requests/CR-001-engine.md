@@ -2455,3 +2455,20 @@ its parent will not take it:
 not identify; they are the DrawingML and VML parts CR-001 section 17.7 and CR-004 section 5 record.
 Naming them is part of the same future test, since a part that cannot be read is a larger loss than
 an attribute.
+
+**The inventory used as a check, and it worked** (2026-09-27, verifying objects CR-007 against that
+package's checkout, which carries the docx4j CR-027 regeneration as well). Re-run against it, the
+attribute list falls from **26 distinct to 17**: every `xr:uid`, `xr2:uid` and `xr3:uid` entry and
+`b:Sources/@Version` is gone, which is exactly the set docx4j CR-027 bound, and the element list is
+unchanged. What is left is precisely the two gaps known to be still open - the `a:srgbClr` pair, and
+`w:stylePaneFormatFilter`'s fifteen, which is the docx4j schema gap this inventory found. So the
+prediction above held part by part, and the same run explained an output change the byte check
+flagged: those Excel parts grow by about 48 bytes each because they now *keep* the uid attributes.
+A hash set that differs is not by itself a regression, and this is what telling the two apart looks
+like.
+
+The limit of the instrument, worth stating where the future test is planned: it sees what the
+**unmarshaller** drops. `deepCopyAs` drops by deleting properties the target type does not declare,
+with no unmarshaller in the path (objects CR-007's section 6), so the three properties
+`tracking.mts`'s `recordPPrChange` deliberately loses are invisible to it - as is any other
+structural copy. An inventory of unmarshal losses is not an inventory of losses.
