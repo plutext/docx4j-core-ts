@@ -2079,13 +2079,20 @@ records them in its own `CLAUDE.md` as a contract:
 2. **An unexpected child of an attributes-only class is not reported; it throws.** Measured:
    `<w:bogus/>` inside `w:styles` reports through `onUnexpectedElement` and the part still
    unmarshals, while the same element inside `w:sz` (`CT_HpsMeasure`, attributes only) throws
-   `w:bogus (line 1): Illegal state: must be END_ELEMENT.` and reports nothing. The throw **is**
-   located - `ClassInfo.locateError` names the element and the line, which is better than the
-   unlocated 3.3.0 message the jsonix session expected - so nothing is lost to the caller, but it
-   arrives by the other channel. So `validateXml` cannot be "collect the callbacks": it has to
-   collect the callbacks **and** translate a located throw into the same `XmlProblem` shape, or a
-   person editing `w:sz` gets an exception where the same mistake one element up gets a tidy
-   message.
+   `w:bogus (line 1): Illegal state: must be END_ELEMENT.` and reports nothing. So `validateXml`
+   cannot be "collect the callbacks": it has to collect the callbacks **and** translate a located
+   throw into the same `XmlProblem` shape, or a person editing `w:sz` gets an exception where the
+   same mistake one element up gets a tidy message.
+
+   The throw is located **when the class is nested**, the enclosing `unmarshalProperty` being what
+   applies `locateError`, and **unlocated when that class is the document's root element**. Measured
+   both ways on `Relationship`, which is attributes-only and a registered root:
+   nested under `Relationships` it throws `bogus (line 3): Illegal state: must be END_ELEMENT.`
+   with `jsonixLocated`, and as the root it throws the bare `Illegal state: must be END_ELEMENT.`
+   with nothing. For this package the root case is unreachable in practice - every `XmlPart` root is
+   an element-bearing type (`w:document`, `w:styles`, `w:settings`, `x14:slicers`, ...) - so
+   `validateXml` will see the located form; but the fallback for a bare message has to exist rather
+   than be assumed away, and it can name the part and say the position is unknown.
 
 The facade half is objects CR-007, "Per-call runtime options on the facade, and what unmarshalling
 dropped" (objects `2259931`, proposed; it cannot start until 3.4.0 is on npm). It puts the options on
