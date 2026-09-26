@@ -1866,3 +1866,21 @@ identifiers themselves:
    (editing an existing part works).
 
 Outside a room the editor passes nothing and the calls behave as today.
+
+## 25. A request from the editor's E3.d: a new hyperlink styled as Word styles one (2026-09-26)
+
+**Requested by** `plutext/docx4j-ts-editor` ED-004 section 10.8 item 8, found in the Word 2010
+check of E3.d. `Range.hyperlink`'s setter wraps the range's runs in a `w:hyperlink` and adds the
+relationship, but gives the runs no character style, so in Word the link looks like the text
+around it (hovering and Ctrl+click still work). Word's Insert Hyperlink gives the runs the
+`Hyperlink` character style, adding the style to the styles part when the document lacks it
+(based on `DefaultParagraphFont`, with the theme's hyperlink colour and a single underline, and
+`w:uiPriority` 99 and `w:unhideWhenUsed`).
+
+The request: the setter gives each run it wraps `w:rStyle w:val="Hyperlink"` unless the run
+already names a character style, and makes sure the styles part has the `Hyperlink` style, as
+`pkg.styles.ensure` would (section 22 item 2). To be checked first against Word through Office
+JS: whether `range.hyperlink = …` in Word applies the style (the setter should do what Word does
+there, which is what the editor's `api` lines are held to). The editor's `range.hyperlink` command
+changes with it; `api.test.mts` holds the two to the same output, so the editor waits for the
+release that carries this rather than diverging.
