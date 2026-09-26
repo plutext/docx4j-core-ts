@@ -1,9 +1,12 @@
 # CR-004: SpreadsheetML extension parts (Excel 2010 and 2013: slicers, timelines, control properties, custom data, survey, data model)
 
-**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). Open:
-acceptance check 14 failed on 2026-09-26 - a re-marshalled worksheet's form control is drawn but
-inert in Excel 365 - and section 7 has the measurements, the two remaining candidates and the
-experiment that separates them. Everything else in both phases is accepted. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
+**Status:** Phase A implemented 2026-09-24 (section 5), phase B 2026-09-25 (section 6). Open, and
+narrower than it looked: acceptance check 14's form-control half reported an inert check box on
+2026-09-26, but the fixture's check box does not toggle before the save either, so nothing was
+measured; it is being re-run on `cr022-checkbox-linked.xlsx`, whose box is known to work. Section 7
+has the sequence, and the two findings that survive it regardless (`Requires` is a prefix reference;
+`a14:legacySpreadsheetColorIndex` is dropped, and docx4j drops it too). Everything else in both
+phases is accepted, including the slicer and timeline drawings. Phase B was unblocked 2026-09-20 by objects 0.1.6 (the docx4j CR-022 regeneration, the
 `x14` and `x15` Excel modules; 0.1.5 carried it but could not load a pptx or xlsx whose text body
 holds an equation, CR-001 section 17.5), which this package now depends on.
 **Depends on:** CR-001 Phase A (parts, registry, `DefaultXmlPart`, `BinaryPart`); for Phase B, the
@@ -303,10 +306,38 @@ are inert and neither says so. The docx4j session's round 2 adds the right contr
 (it is docx4j-generated and Excel-re-saved, so that is a real possibility) - and this session added
 `cr022-checkbox-C-everything-restored.xlsx`: the wrapper in Excel's nesting, `xmlns:x14` declared,
 the six booleans `1`/`0`, and `ctrlProp1.xml` and `drawing1.xml` restored to Excel's bytes, with
-everything else still core-ts-marshalled. Read with the original it separates three outcomes: the
-cause is in that restored set, the cause is elsewhere in what core-ts re-marshals (which exonerates
-the wrapper), or the fixture was never live and no verdict so far is a save defect. Every variant
-was checked namespace-well-formed before staging, after A.
+everything else still core-ts-marshalled. Every variant was checked namespace-well-formed before
+staging, after A.
+
+**Round 2 (2026-09-26): the fixture was never live, and every verdict so far was worthless.** The
+untouched `cr022-checkbox.xlsx` does not toggle either, nor does A2. So `cr022-checkbox.xlsx` is
+not a witness for this question at all: it is docx4j-generated (`Excel2010ExtensionsSamples`) and
+only ever *re-saved* by Excel, its `x14:formControlPr` has no `fmlaLink` and no `checked`, and its
+VML `x:ClientData` no `x:FmlaLink` - a check box nobody had clicked before this week. B, docx4j's
+re-save, A2 and C all inherit that, so none of them can discriminate.
+
+The lesson is about the evidence, not the code: **an acceptance check needs a fixture whose feature
+is known to work before the save.** This one asked "does the control still work?" of a control that
+never worked, and three rounds of bisecting measured nothing. Two of the four findings survive
+anyway, because they do not depend on the verdict: the `Requires` prefix rule above, and the
+`a14:legacySpreadsheetColorIndex` loss, both real and both independently checkable.
+
+**Round 3 (pending)** moves to `cr022-checkbox-linked.xlsx`, the one check box Excel has been seen
+to toggle (docx4j CR-026 section 11's bisect: `fmlaLink="$D$4"` on the properties part and
+`x:FmlaLink` in the VML, so a click writes `TRUE`/`FALSE` into the empty D4). Two files on the
+share, same base, and between them they separate the wrapper from everything else: the docx4j
+session's `cr022-checkbox-linked-BARE-controls.xlsx` (byte-identical but for the two wrappers
+removed, `xmlns:x14` still declared) and this session's `cr022-checkbox-linked-coretsSaved.xlsx`
+(the full pipeline, every part unmarshalled and saved - which drops the wrappers *and* `xmlns:x14`,
+writes the booleans `true`/`false` and prefixes the properties root, while keeping `fmlaLink`, the
+VML byte-identical and `control/@shapeId` 1025 tied to `a14:compatExt/@spid _x0000_s1025`). Both
+toggle and drive D4: resolve-on-load stands and phase B needs nothing. Neither: the wrapper is the
+cause and it gets written back, `xmlns:x14` with it. Only the bare one: the wrapper is exonerated
+and the cause is elsewhere in what core-ts re-marshals, the booleans first - a marshalling-layer
+question for both ports, since JAXB writes them the same way.
+
+If it does come back as the wrapper, `cr022-checkbox-linked.xlsx` is the fixture to copy in for the
+test: the inert one cannot witness the fix either.
 
 Nothing is changed here until those verdicts arrive. What phase B keeps either way is the read:
 `worksheet.controls` holds the control and its `r:id` resolves to the `ControlPropertiesPart`,
