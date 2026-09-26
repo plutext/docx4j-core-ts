@@ -1994,6 +1994,24 @@ named. Two findings change the shape of the request, both in the editor's favour
    would have rejected becomes the behaviour of the whole application. `DOM.use` is global and takes
    effect from the call, so a consumer that loads xmldom in a lazy chunk switches parser mid-session
    unless it calls at startup.
+
+   **The editor took a third way, and it is the one to follow here** (ED-005 section 4.3, editor
+   `8313288`, 2026-09-27; `DOM.use` at startup recorded there as considered and refused, because
+   section 23 puts the unmarshal at sixty per cent of its open and routing every part through the
+   slower parser would spend that). Split the two jobs instead of choosing one parser for both:
+   **the verdict comes from `parseXml` and the unmarshal, the parser `setXml` itself will use**, so
+   the check's answer is the apply's answer by construction; **xmldom is asked only for a location**,
+   for a problem already found, and only where the engine's parser has not already supplied one -
+   which in Node is never, `parseXml` being xmldom there, so the second parse is a browser-only cost
+   over one part's text. No global switch, no disagreement about what is wrong, and nothing slower on
+   the path that opens a document. A `validateXml` here should be built the same way.
+
+   One rider if it is: a location read from a second parse is **advisory**. The path is derived from
+   the engine's DOM and looked up in xmldom's, and where the two parsers differ a positional
+   predicate (`/w:styles/w:style[7]`) can land on a different element rather than on none - so a
+   mismatch has to degrade to the path, as a failure to place it already does. Report the line only
+   when the element found there answers to the same name; otherwise give the path and say nothing
+   about the line.
 2. **The remaining case is the typed value, and that one does want jsonix.** A wrong value throws
    from `Jsonix.Util.Ensure.ensureInteger` (`jsonix-factory.js` line 843) with only the value in the
    message, and the throw abandons the unmarshal, so no diff can locate it afterwards. The fix is
