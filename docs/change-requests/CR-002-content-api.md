@@ -2023,6 +2023,10 @@ named. Two findings change the shape of the request, both in the editor's favour
 
 So the jsonix CR is one CR with two parts, the other being CR-006 section 4's marshalling hook in
 the same file: report the skipped element or attribute at line 2383 with `input.node`, and put the
-location into the type-conversion errors. That request is this repository's to file. Meanwhile
+location into the type-conversion errors. **Filed 2026-09-27 as `plutext/jsonix`
+jsonix-CR-006** ("Report what unmarshalling drops, and record what marshalling writes"), prototyped
+against 3.3.0 first: four lines, and the report carries line 4 column 3 for a bogus element, since
+`Jsonix.XML.Input.node` is the current DOM node and xmldom has already put the position on it.
+Meanwhile
 `validateXml` here is mostly a diff over two DOMs and a lookup, which is implementable before any
 jsonix release and only gets *better* when one lands.

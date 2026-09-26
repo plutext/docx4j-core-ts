@@ -123,10 +123,11 @@ one-line change in objects-ts over machinery that is already there.
 then adds `declareIgnorablePrefixes`'s attributes. There is no serialize-and-reparse anywhere on
 that path, which is what would have made the whole approach unworkable.
 
-Where the request goes: **jsonix**, as its own CR there, with objects-ts passing the option through.
-CR-002 section 27's unmarshalling hook is in the same file and the same shape, so the two are one
-jsonix CR with two parts (see that section's review note: the unmarshalling half is smaller than it
-looks, and most of what the editor asked for needs no runtime change at all).
+Where the request went: **jsonix**, as `plutext/jsonix` jsonix-CR-006, filed 2026-09-27 with
+CR-002 section 27's unmarshalling hook as the other half - the same file, the same shape, one CR.
+Its section 2 prototypes all four sites against 3.3.0 and reports what they answer, including the
+`importNode` copy above, which is how that rider was found. objects-ts passes the option through
+`marshalNode` when it lands; nothing here is scheduled either way.
 
 ## 5. Tests
 
