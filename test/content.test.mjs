@@ -435,7 +435,7 @@ async function casesOf(pkg) {
   const out = {};
   const paragraphs = doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'p');
   for (let i = 0; i < paragraphs.length; i++) {
-    const m = /^Case ([A-E]):/.exec(paragraphs[i].textContent);
+    const m = /^Case ([A-H]):/.exec(paragraphs[i].textContent);
     if (m) out[m[1]] = comparable(serializeXml(paragraphs[i]));
   }
   return out;
@@ -501,6 +501,46 @@ test("Range.hyperlink: the Hyperlink definition is added on save where a documen
   const clone = await again.clone();
   assert.ok((await (await WordprocessingMLPackage.load(await clone.save())).getMainDocumentPart().styleDefinitionsPart.getXml())
     .includes('w:styleId="Hyperlink"'));
+});
+
+// CR-002 section 25's open question, a link over part of an existing link, as Word answered it
+// through Office JS (test/README.md check 16, Word 16.0.20326.20158, 2026-09-28): a range that
+// crosses a link's edge takes the whole of that link into the new one (F), a range inside a link
+// replaces it with a link over the range alone (G), and removing a link from part of it removes
+// all of it, style and all (H). G and H are held to Word's XML; F to Word's reads and its one
+// link, since Word also merged the linked text into one run where this package keeps two.
+const WORD_CHECK_16_LINKS = {
+  F: ['https://example.com/f2', 'https://example.com/f2', 'https://example.com/f2'],
+  G: ['', 'https://example.com/g2', ''],
+  H: ['', '', ''],
+};
+const WORD_CHECK_16_XML = {
+  G: '<w:p><w:r><w:t xml:space="preserve">Case G: </w:t></w:r><w:r><w:t xml:space="preserve">alpha </w:t></w:r><w:hyperlink r:id="" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>beta</w:t></w:r></w:hyperlink><w:r><w:t xml:space="preserve"> gamma</w:t></w:r></w:p>',
+  H: '<w:p><w:r><w:t xml:space="preserve">Case H: </w:t></w:r><w:r><w:t>alpha beta gamma</w:t></w:r></w:p>',
+};
+
+test('Range.hyperlink over part of an existing link does what Word does: check 16, cases F to H', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const steps = {
+    F: [['alpha beta', 'https://example.com/f1'], ['beta gamma', 'https://example.com/f2']],
+    G: [['alpha beta gamma', 'https://example.com/g1'], ['beta', 'https://example.com/g2']],
+    H: [['alpha beta gamma', 'https://example.com/h1'], ['beta', '']],
+  };
+  const paragraphs = {};
+  for (const [id, list] of Object.entries(steps)) {
+    const p = (paragraphs[id] = pkg.body.insertParagraph(`Case ${id}: alpha beta gamma`, 'End'));
+    for (const [target, address] of list) p.search(target, { matchCase: true })[0].hyperlink = address;
+    assert.deepEqual(['alpha', 'beta', 'gamma'].map((w) => p.search(w)[0].hyperlink), WORD_CHECK_16_LINKS[id], `case ${id}: what each word reads`);
+  }
+  const cases = await casesOf(pkg);
+  for (const id of ['G', 'H']) assert.equal(cases[id], WORD_CHECK_16_XML[id], `case ${id}`);
+
+  // F: one link over the union, every run in it styled, and nothing outside it
+  const holders = find(paragraphs.F.p, 'org_docx4j_wml.P.Hyperlink');
+  assert.equal(holders.length, 1, 'one link');
+  assert.equal(textOf(holders[0]), 'alpha beta gamma', 'over the whole of the old link and the range');
+  assert.ok(find(holders[0], 'org_docx4j_wml.R').every((r) => r.rPr?.rStyle?.val === 'Hyperlink'));
+  assert.equal(paragraphs.F.p.content[0].value.rPr, undefined, '"Case F: " is untouched');
 });
 
 // CR-002 section 25, found while implementing it: the setter unwrapped every hyperlink of the

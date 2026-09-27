@@ -269,6 +269,20 @@ export class Range {
 
   set hyperlink(value: string) {
     const paragraph = this.paragraph;
+    // A range that crosses the edge of a link takes the whole of that link into the new one; a range
+    // inside a link replaces it with a link over the range alone. Measured in Word through Office JS
+    // (test/README.md check 16, cases F and G; CR-002 section 25): "alpha beta" linked and then
+    // "beta gamma" is one link over "alpha beta gamma", where "alpha beta gamma" linked and then
+    // "beta" leaves "alpha " and " gamma" unlinked.
+    let start = this.start;
+    let end = this.end;
+    for (const holder of hyperlinkHolders(paragraph)) {
+      const span = this.spanOf(holder);
+      if (span === undefined || !this.touchesSpan(span)) continue;
+      if (span[0] <= this.start && this.end <= span[1]) continue;
+      start = Math.min(start, span[0]);
+      end = Math.max(end, span[1]);
+    }
     this.removeHyperlinks();
     if (value === '') return;
 
@@ -284,13 +298,13 @@ export class Range {
     if (location !== '') holder.value.anchor = location;
     if (address !== '') holder.value.id = this.addHyperlinkRelationship(address);
 
-    if (this.start === this.end) {
-      paragraph.insertItemsAt(this.start, [holder as Element]);
+    if (start === end) {
+      paragraph.insertItemsAt(start, [holder as Element]);
       return;
     }
-    paragraph.splitAt(this.start);
-    paragraph.splitAt(this.end);
-    const segments = paragraph.segments().filter((seg) => seg.start >= this.start && seg.end <= this.end);
+    paragraph.splitAt(start);
+    paragraph.splitAt(end);
+    const segments = paragraph.segments().filter((seg) => seg.start >= start && seg.end <= end);
     if (segments.length === 0) throw new Docx4JException('This range covers no run');
     const owner = segments[0]!.runOwner;
     if (segments.some((seg) => seg.runOwner !== owner)) {
@@ -339,6 +353,16 @@ export class Range {
    * nothing.
    */
   private touches(holder: Element<wml.P.Hyperlink>): boolean {
+    const span = this.spanOf(holder);
+    return span !== undefined && this.touchesSpan(span);
+  }
+
+  private touchesSpan([start, end]: [number, number]): boolean {
+    return this.start === this.end ? start <= this.start && this.start < end : start < this.end && end > this.start;
+  }
+
+  /** The text a hyperlink holds, as [start, end) in the paragraph, or undefined when it holds none. */
+  private spanOf(holder: Element<wml.P.Hyperlink>): [number, number] | undefined {
     let start: number | undefined;
     let end = 0;
     for (const segment of this.paragraph.segments()) {
@@ -346,8 +370,7 @@ export class Range {
       start ??= segment.start;
       end = segment.end;
     }
-    if (start === undefined) return false;
-    return this.start === this.end ? start <= this.start && this.start < end : start < this.end && end > this.start;
+    return start === undefined ? undefined : [start, end];
   }
 
   /**

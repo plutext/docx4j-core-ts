@@ -1949,11 +1949,23 @@ already uses for the settings part; a document that has the style keeps its styl
 byte, and a clone carries the request. `test/content.test.mjs` holds all five cases to the paragraph
 XML Word wrote, less `w:rsid*`, the `w14` ids and the relationship id.
 
-**Open: a link over part of an existing link.** The setter unwraps the whole link its range
-touches and wraps the range, so the rest of the old link is no longer a link; the editor, which
-found the difference by reading both sides (2026-09-28), links the range and leaves the rest of the
-old link linked. Neither is known to be Word's. Check 16's cases F, G and H ask Word, and whichever
-side differs follows.
+**A link over part of an existing link, as Word does it (2026-09-28).** The editor found, by reading
+both sides, that the setter unwrapped the whole link its range touched and wrapped only the range,
+while the editor linked the range and left the rest of the old link linked; neither was known to be
+Word's. Check 16's cases F to H asked Word (16.0.20326.20158):
+
+| Case | Steps | Word |
+|---|---|---|
+| F | link "alpha beta", then "beta gamma" | **one** link, to the second address, over "alpha beta gamma" |
+| G | link "alpha beta gamma", then "beta" | "alpha " and " gamma" unlinked and unstyled, "beta" linked alone |
+| H | link "alpha beta gamma", then `""` on "beta" | no link left at all, and no style |
+
+So a range that crosses a link's edge takes the whole of that link into the new one, and a range
+inside a link replaces it with a link over the range alone; removing from part of a link removes
+all of it. The setter already did G and H; it now does F, extending the range over any link it
+touches but does not lie within (not in 0.2.1). G and H are held to Word's XML; F to Word's reads
+and its one link, since Word also merged the linked text into one run where the setter leaves two.
+The editor differs on F and G and follows.
 
 **A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
 **every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
@@ -2350,6 +2362,15 @@ One correction to the text above, from that fixture: Word writes `w:name` on the
 `w:moveFromRangeStart` and `w:moveToRangeStart`, and **not** on `w:moveFrom` or `w:moveTo`, so the
 halves pair through their range markers, the content of a half lying between its range start and
 end. The empty `w:moveFrom` and `w:moveTo` in `w:pPr/w:rPr` are the moved paragraph's mark.)*
+
+*(Check 16, run 2026-09-28: the move half did not answer. Over the fixture Office JS listed one
+tracked change, a `Formatted` one whose text is the whole document - the fixture's `w:sectPrChange`
+(the page margins, a section-properties revision spanning the only section) - and none of the other
+23; the snippet accepted it as the change holding the moved text, and every `getTrackedChanges`
+after that threw `GeneralException`. `insertOoxml` did bring the move back intact between scenarios.
+So check 17 asks again in a blank document holding the move alone, inserted from the XML check 16
+recorded; this package loads that package and lists the move as the two unrelated changes this
+section describes.)*
 
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 

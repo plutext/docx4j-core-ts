@@ -283,6 +283,22 @@ namespaces, content types or the zip writer, check by hand:
    Each records the paragraph's XML and the link each word reads afterwards. The questions: does
    accepting or rejecting one half resolve the other, what happens to the four range markers, how a
    move is listed, and what a link over part of an existing link does to the rest of it.
+   **Run 2026-09-28 (Word 16.0.20326.20158, Windows): the links answered, the moves did not.** F, G
+   and H are in CR-002 section 25 and `content.test.mjs`. Every move scenario failed with
+   `GeneralException`: over this fixture Office JS listed **one** tracked change, a `Formatted` one
+   whose text is the whole document - the fixture's `w:sectPrChange` (section 12, the page margins),
+   a section-properties revision spanning the only section - and none of the other 23; the snippet,
+   looking for the change holding the moved text, found that one and accepted it, after which every
+   `getTrackedChanges` threw. The move is therefore asked again in a document holding nothing else,
+   check 17. (`insertOoxml` with "Replace" did bring the move back intact each time.)
+17. A tracked move on its own (CR-002 section 29): check 16's move scenarios in a **new blank
+   document**. The third Script Lab snippet below inserts section 3 of the fixture exactly as check
+   16 recorded it - the destination paragraph with `w:moveToRangeStart`, the paragraph it moved
+   before, the source paragraph with `w:moveFromRangeStart`, the paragraph after, the two range ends
+   between them, the move's `w:name` and Author A's revisions - through `insertOoxml` into an
+   emptied body, once per scenario, and records how Office JS lists the move (every change, whole
+   text), acts, and records the blocks and the changes after. Press **Run the check** and copy the
+   JSON back.
 
 A small Node script for 1 to 3 is:
 
@@ -653,6 +669,103 @@ async function check(which) {
       } catch (e) {
         entry.error = String(e && e.message || e);
       }
+    }
+  }
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 17 (Word, Office JS, WordApi 1.6), in a new blank document. The HTML
+tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const MOVED = 'second paragraph of the move';
+const A = 'w:author="Author A" w:date="2026-09-28T05:47:00Z"';
+// section 3 of fixtures/revisions/revisions-word15.docx, as check 16 recorded it
+const BLOCKS = `<w:p><w:pPr><w:rPr><w:moveTo w:id="6" ${A}/></w:rPr></w:pPr><w:moveToRangeStart w:id="7" ${A} w:name="move241466837"/>`
+  + `<w:moveTo w:id="8" ${A}><w:r><w:t>The second paragraph of the move: it goes before the first.</w:t></w:r></w:moveTo></w:p>`
+  + '<w:moveToRangeEnd w:id="7"/>'
+  + '<w:p><w:r><w:t>The first paragraph of the move: it stays where it is.</w:t></w:r></w:p>'
+  + `<w:p><w:pPr><w:rPr><w:moveFrom w:id="9" ${A}/></w:rPr></w:pPr><w:moveFromRangeStart w:id="10" ${A} w:name="move241466837"/>`
+  + `<w:moveFrom w:id="11" ${A}><w:r><w:t>The second paragraph of the move: it goes before the first.</w:t></w:r></w:moveFrom></w:p>`
+  + '<w:moveFromRangeEnd w:id="10"/>'
+  + '<w:p><w:r><w:t>The third paragraph of the move: it stays where it is.</w:t></w:r></w:p>';
+const PACKAGE = `<pkg:package xmlns:pkg="${PKG}">`
+  + '<pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData>'
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}"><w:body>${BLOCKS}</w:body></w:document></pkg:xmlData></pkg:part></pkg:package>`;
+const SCENARIOS = {
+  'accept-destination': { act: 'accept', index: 0 },
+  'accept-source': { act: 'accept', index: 1 },
+  'reject-destination': { act: 'reject', index: 0 },
+  'reject-source': { act: 'reject', index: 1 },
+  'accept-all': { act: 'accept', all: true },
+  'reject-all': { act: 'reject', all: true },
+};
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+async function blocks(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const main = all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1 && n.localName !== 'sectPr').map(xml) : [];
+}
+
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text })) };
+}
+
+async function check() {
+  const report = { host: Office.context.diagnostics, scenarios: {} };
+  for (const [name, scenario] of Object.entries(SCENARIOS)) {
+    const entry = (report.scenarios[name] = {});
+    try {
+      await Word.run(async (context) => {
+        context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+        context.document.body.clear();
+        context.document.body.insertOoxml(PACKAGE, 'Start');
+        await context.sync();
+        entry.before = await blocks(context);
+        const { changes, list } = await listed(context);
+        entry.listedBefore = list;
+        if (scenario.all) {
+          if (scenario.act === 'accept') changes.acceptAll(); else changes.rejectAll();
+        } else {
+          const move = changes.items.filter((c) => c.text.includes(MOVED));
+          const target = move[scenario.index];
+          if (!target) throw new Error(`no change ${scenario.index} holding the moved text (${move.length} listed)`);
+          entry.acted = { type: target.type, text: target.text };
+          if (scenario.act === 'accept') target.accept(); else target.reject();
+        }
+        await context.sync();
+        entry.after = await blocks(context);
+        entry.listedAfter = (await listed(context)).list;
+      });
+    } catch (e) {
+      entry.error = String(e && e.message || e);
     }
   }
   out.value = JSON.stringify(report, null, 2);
