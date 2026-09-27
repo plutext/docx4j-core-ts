@@ -1,15 +1,54 @@
 // DOM, text and base64 helpers over the runtime's DOM implementation. In Node the runtime brings
 // @xmldom/xmldom; in browsers it uses the native DOM. Jsonix.DOM is typed since @docx4j/jsonix 3.2.1.
 import { Jsonix } from '@docx4j/generated-objects-ts';
+import { Docx4JException } from '../opc/exceptions.mjs';
 
 const DOM = Jsonix.DOM;
 
 /** The declaration docx4j writes on every XML part. */
 export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
-/** Parses XML text to a DOM document; throws on malformed input. */
+/**
+ * Parses XML text to a DOM document; throws on malformed input, in a browser as in Node.
+ *
+ * xmldom throws. A browser's `DOMParser` does not: Chromium returns the document up to the error
+ * with an XHTML `parsererror` element first in the root, and Firefox a `parsererror` root in its
+ * own namespace, and handing that on unmarshalled a truncated part without complaint - a settings
+ * part with a stray `<` kept its first child and lost the rest, which a save would have written
+ * (CR-002 section 33). Such a document is refused here, with the parser's own message, which
+ * carries the line and column in both browsers.
+ */
 export function parseXml(text: string): Document {
-  return DOM.parse(text);
+  const doc = DOM.parse(text);
+  const error = parserErrorOf(doc);
+  if (error !== undefined) throw new Docx4JException(`Malformed XML: ${error}`);
+  return doc;
+}
+
+/** The namespaces a browser puts its `parsererror` element in: Chromium and WebKit's, Firefox's. */
+const PARSER_ERROR_NAMESPACES: ReadonlySet<string> = new Set([
+  'http://www.w3.org/1999/xhtml',
+  'http://www.mozilla.org/newlayout/xml/parsererror.xml',
+]);
+
+/**
+ * The message of a browser's `parsererror` document - the root, or the root's first element child,
+ * named `parsererror` in one of the parser-error namespaces - or undefined for a document that
+ * parsed. Chromium's message is the `div` in its element; its `h3`s are boilerplate.
+ */
+function parserErrorOf(doc: Document): string | undefined {
+  const root = doc.documentElement;
+  if (!root) return undefined;
+  let first: Element | null = null;
+  for (let child = root.firstChild; child; child = child.nextSibling) {
+    if (child.nodeType === 1) { first = child as Element; break; }
+  }
+  for (const element of [root, first]) {
+    if (element === null || element.localName !== 'parsererror' || !PARSER_ERROR_NAMESPACES.has(element.namespaceURI ?? '')) continue;
+    const div = element.getElementsByTagNameNS('http://www.w3.org/1999/xhtml', 'div')[0];
+    return ((div ?? element).textContent ?? '').replace(/\s+/g, ' ').trim() || 'the parser reported an error';
+  }
+  return undefined;
 }
 
 /** Serialises a node (document or element) without an XML declaration. */

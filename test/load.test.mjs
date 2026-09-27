@@ -136,3 +136,43 @@ test('an unmarshal failure names the part, with the location and line', async ()
   assert.ok(second instanceof PartUnmarshalException);
   assert.equal(second.partName, '/word/styles.xml');
 });
+
+// CR-002 section 33, found by the editor's E4.b: a browser's DOMParser does not throw on malformed
+// XML. Chromium hands back the document up to the error with an XHTML parsererror first in the root,
+// Firefox a parsererror root in its own namespace, and parseXml passed either on, so a part with a
+// stray `<` unmarshalled truncated. Node's xmldom throws, so the browsers are stood in for through
+// Jsonix.DOM.use with parsers that return what theirs do.
+test('parseXml refuses the parsererror document a browser returns for malformed XML', async () => {
+  const { Jsonix } = await import('@docx4j/generated-objects-ts');
+  const { parseXml, WordprocessingMLPackage } = await import('../dist/index.mjs');
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const XmldomParser = Jsonix.DOM.getImplementation().DOMParser;
+  const returning = (xml) => ({
+    DOMParser: class { parseFromString() { return new XmldomParser().parseFromString(xml, 'application/xml'); } },
+  });
+  const chromium = `<w:settings xmlns:w="${W}"><parsererror xmlns="http://www.w3.org/1999/xhtml" style="display: block">`
+    + '<h3>This page contains the following errors:</h3><div style="font-family:monospace">error on line 3 at column 19: '
+    + 'attributes construct error\n</div><h3>Below is a rendering of the page up to the first error.</h3></parsererror>'
+    + '<w:zoom w:percent="100"/></w:settings>';
+  const firefox = '<parsererror xmlns="http://www.mozilla.org/newlayout/xml/parsererror.xml">XML Parsing Error: not well-formed\n'
+    + 'Location: about:blank\nLine Number 3, Column 19:<sourcetext>  &lt;w:bad &lt;</sourcetext></parsererror>';
+
+  // made before a stand-in parser is installed: creating a package parses its default parts
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const settings = pkg.getMainDocumentPart().documentSettingsPart;
+  settings.setXml(`<w:settings xmlns:w="${W}"><w:zoom w:percent="100"/><w:bad <</w:settings>`);
+  try {
+    Jsonix.DOM.use(returning(chromium));
+    assert.throws(() => parseXml('<a/>'), /^Docx4JException: Malformed XML: error on line 3 at column 19: attributes construct error$/);
+    // and through a part, which is where the content was lost
+    await assert.rejects(() => settings.getContents(), /Malformed XML: error on line 3 at column 19/);
+    assert.equal(settings.isUnmarshalled, false, 'nothing was unmarshalled');
+
+    Jsonix.DOM.use(returning(firefox));
+    assert.throws(() => parseXml('<a/>'), /Malformed XML: XML Parsing Error: not well-formed Location: about:blank Line Number 3, Column 19:/);
+  } finally {
+    Jsonix.DOM.use(null);
+  }
+  // a document that parsed is untouched, an element of that name in another namespace included
+  assert.equal(parseXml('<a xmlns="urn:x"><parsererror/></a>').documentElement.localName, 'a');
+});
