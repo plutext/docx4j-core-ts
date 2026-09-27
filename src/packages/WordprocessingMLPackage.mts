@@ -20,7 +20,7 @@ import type { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
-import { ChangeTracker, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
+import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
 import { NumberingFacade } from '../model/content/List.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
@@ -332,6 +332,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     this.tracker = undefined;
     this.trackingPending = false;
     writeTrackRevisions(await this.settingsPart().getContents(), mode);
+    if (mode !== 'Off') await this.seedAnnotationIds();
   }
 
   /** The settings part, created (with its relationship and content type) when the document has none. */
@@ -361,6 +362,35 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     if (mode === 'Off') return undefined;
     if (!this.tracker || this.tracker.mode !== mode) this.tracker = new ChangeTracker(this, mode);
     return this.tracker;
+  }
+
+  /**
+   * TrackingHost: a floor for the annotation id, from the WordprocessingML parts that were **not**
+   * unmarshalled; `seedAnnotationIds()` fills it. 0 until then (CR-002 section 28.2).
+   */
+  annotationIdFloor = 0;
+
+  /**
+   * Raises `annotationIdFloor` above every annotation id in the WordprocessingML parts that are not
+   * unmarshalled, reading each **privately** (`readContents`, CR-001 Phase D's device), so that a
+   * part nobody has touched keeps its byte-for-byte round trip and still cannot have its ids reused.
+   *
+   * Awaited by `setChangeTrackingMode()` and by `withTracking()`, which is where tracking is turned
+   * on; a caller that uses the synchronous `changeTrackingMode` setter on a document with unread
+   * parts should await this itself, since `nextId()` cannot (the content API's setters are
+   * synchronous, which is why the floor exists at all rather than the scan being made async).
+   */
+  async seedAnnotationIds(): Promise<number> {
+    for (const part of this.parts) {
+      if (!(part instanceof XmlPart) || part.isUnmarshalled) continue;
+      if (!part.partName.name.startsWith('/word/')) continue;
+      let tree: unknown;
+      try { tree = await part.readContents(); } catch { continue; }   // an unreadable part cannot hold ids we must avoid
+      if (typeof tree === 'object' && tree !== null) {
+        this.annotationIdFloor = highestAnnotationId(tree, this.annotationIdFloor);
+      }
+    }
+    return this.annotationIdFloor;
   }
 
   /** TrackingHost: the trees a new revision id must be above, which is every part already unmarshalled. */

@@ -24,7 +24,7 @@ export type ChangeTrackingMode = 'Off' | 'TrackAll' | 'TrackMineOnly';
  * which also extends `CTMarkup`) is a different space and is excluded, so that phase G's
  * comment ids and phase F's revision ids never have to agree.
  */
-const MARKUP_TYPES = new Set([
+export const MARKUP_TYPES: ReadonlySet<string> = new Set([
   'org_docx4j_wml.CTMarkup', 'org_docx4j_wml.CTBookmark', 'org_docx4j_wml.CTBookmarkRange',
   'org_docx4j_wml.CTCellMergeTrackChange', 'org_docx4j_wml.CTMarkupRange', 'org_docx4j_wml.CTMathRunTrackChange',
   'org_docx4j_wml.CTMoveBookmark', 'org_docx4j_wml.CTMoveFromRangeEnd', 'org_docx4j_wml.CTMoveToRangeEnd',
@@ -34,6 +34,21 @@ const MARKUP_TYPES = new Set([
   'org_docx4j_wml.CTTrackChangeNumbering', 'org_docx4j_wml.CTTrackChangeRange',
   'org_docx4j_wml.ParaRPrChange', 'org_docx4j_wml.RunDel', 'org_docx4j_wml.RunIns', 'org_docx4j_wml.RunTrackChange',
 ]);
+
+/**
+ * The highest annotation id in a tree (`MARKUP_TYPES` only, the one `w:id` space of ECMA-376
+ * 17.13.5.4). Shared so that the tracker's scan of the unmarshalled parts and the package's
+ * private read of the rest cannot drift apart (CR-002 section 28.2).
+ */
+export function highestAnnotationId(root: object, from = 0): number {
+  let highest = from;
+  walk(root, (value) => {
+    const tn = (value as { TYPE_NAME?: string }).TYPE_NAME;
+    const id = (value as { id?: unknown }).id;
+    if (tn !== undefined && MARKUP_TYPES.has(tn) && typeof id === 'number' && id > highest) highest = id;
+  });
+  return highest;
+}
 
 /** What a package offers so that its edits can be tracked; `WordprocessingMLPackage` implements it. */
 export interface TrackingHost {
@@ -47,6 +62,12 @@ export interface TrackingHost {
   readonly trackedChangeDate?: Date | undefined;
   /** The trees to scan for the highest annotation id in use: the parts already unmarshalled. */
   markupRoots(): object[];
+  /**
+   * A floor for the annotation id, above every id in the parts that were **not** unmarshalled
+   * (`seedAnnotationIds()` reads them privately). 0 until it is seeded; `markupRoots()` covers the
+   * rest, so the next id is one above the greater of the two (CR-002 section 28.2).
+   */
+  readonly annotationIdFloor: number;
 }
 
 /** The tracker of a package whose mode is not `Off`; `undefined` when it is (duck typed, no import cycle). */
@@ -91,17 +112,17 @@ export class ChangeTracker {
     return this.host.author.name;
   }
 
-  /** The next annotation id: one above the highest in use in the parts already unmarshalled. */
+  /**
+   * The next annotation id: one above the highest in use anywhere in the document - the parts
+   * already unmarshalled, scanned here, and the rest through the host's `annotationIdFloor`,
+   * which `seedAnnotationIds()` fills from their bytes without unmarshalling them (CR-002
+   * section 28.2; before that this saw only the unmarshalled parts, so a revision in an unread
+   * footnote or comment part did not raise the counter).
+   */
   nextId(): number {
     if (this.counter === undefined) {
-      let highest = 0;
-      for (const root of this.host.markupRoots()) {
-        walk(root, (value) => {
-          const tn = (value as { TYPE_NAME?: string }).TYPE_NAME;
-          const id = (value as { id?: unknown }).id;
-          if (tn !== undefined && MARKUP_TYPES.has(tn) && typeof id === 'number' && id > highest) highest = id;
-        });
-      }
+      let highest = this.host.annotationIdFloor;
+      for (const root of this.host.markupRoots()) highest = highestAnnotationId(root, highest);
       this.counter = highest;
     }
     return ++this.counter;

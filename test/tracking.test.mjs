@@ -489,3 +489,43 @@ test('an untouched tracked-changes fixture round trips byte for byte', async () 
     assert.ok(bytesEqual(before.loadSync(name), after.loadSync(name)), `${name} byte-identical`);
   }
 });
+
+// CR-002 section 28.2: the annotation id counter must be above every id in the DOCUMENT, not only
+// in the parts that happen to be unmarshalled. A revision in an unread footnote, endnote, header or
+// comment part did not raise it, so the next id collided with one already in use - ECMA-376
+// 17.13.5.4 makes that one id space. `seedAnnotationIds()` reads the untouched parts privately
+// (CR-001 Phase D's device), so they keep their byte-for-byte round trip.
+test('a revision id is above every id in the document, not only in the parts read', async () => {
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  // a document whose footnotes part carries a high revision id, and which nothing has unmarshalled
+  const source = await WordprocessingMLPackage.createPackage();
+  const main = source.getMainDocumentPart();
+  const { FootnotesPart } = await import('../dist/index.mjs');
+  const footnotes = new FootnotesPart();
+  footnotes.setXml(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:footnotes xmlns:w="${W}">`
+    + '<w:footnote w:id="1"><w:p><w:ins w:id="9100" w:author="Bob" w:date="2026-01-01T00:00:00Z">'
+    + '<w:r><w:t>a tracked footnote</w:t></w:r></w:ins></w:p></w:footnote></w:footnotes>');
+  main.addTargetPart(footnotes);
+  source.body.insertParagraph('Body text', 'End');
+
+  const pkg = await WordprocessingMLPackage.load(await source.save());
+  assert.equal(pkg.getMainDocumentPart().footnotesPart?.isUnmarshalled, false, 'the footnotes part is untouched');
+
+  // the async setter seeds the floor, so the id cannot collide
+  await pkg.getMainDocumentPart().getContents();
+  pkg.author = { name: 'Ada' };
+  await pkg.setChangeTrackingMode('TrackAll');
+  assert.ok(pkg.annotationIdFloor >= 9100, `floor ${pkg.annotationIdFloor} is above the footnote's id`);
+  const p = pkg.body.paragraphs[0];
+  p.getRange('End').insertText(' and more', 'End');
+  const ins = [...(await pkg.getMainDocumentPart().getContents()).body.content]
+    .flatMap((e) => e.value?.content ?? []).map((e) => e.value).filter((v) => v?.TYPE_NAME === 'org_docx4j_wml.RunIns');
+  assert.ok(ins.length >= 1, 'the edit was tracked');
+  assert.ok(ins.every((v) => v.id > 9100), `ids ${ins.map((v) => v.id)} are above the footnote's 9100`);
+
+  // and reading it did not cost the footnotes part its round trip
+  assert.equal(pkg.getMainDocumentPart().footnotesPart.isUnmarshalled, false, 'still not unmarshalled');
+  const saved = new ZipPartStore(await pkg.save());
+  const original = new ZipPartStore(await source.save());
+  assert.deepEqual(saved.loadSync('word/footnotes.xml'), original.loadSync('word/footnotes.xml'));
+});
