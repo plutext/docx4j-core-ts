@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Of these, section 25 is implemented; the rest are proposed and scope for the next release is Jason's call (section 30 lists them in order with estimates). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Section 25 implemented 2026-09-26; sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, and fixed after a review of it (section 31). Not in that release: section 27's strict `setXml` (the editor's split design covers it) and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2290,3 +2290,107 @@ Items 1 to 9 are about three and a half days and remove nine workarounds. CR-006
 each a piece of work of their own and neither is asked for, so the natural release is 1 to 9, with
 1 and 2 going in regardless because they are defects. That is the recommendation; the decision is
 Jason's.
+
+## 31. The release section 30 scoped: what landed, and a review of it (2026-09-27)
+
+**Scope, set by Jason 2026-09-27:** section 30's items 1 to 9 and CR-006, one commit per item and one
+release at the end; the move fix (section 29) is out. What landed, in order:
+
+| | Item | Section | Commit | Note |
+|---|---|---|---|---|
+| 1 | The revision-id counter over every part | 28.2 | `401ff59` | `annotationIdFloor`, seeded by `seedAnnotationIds()` through Phase D's private reads, so `nextId` stays synchronous |
+| 2 | Tracked dates to the minute | 28.2 | `b541bec` | Truncated where the default date is taken; a `trackedChangeDate` the caller sets is written as given |
+| 3 | `pkg.withTracking` | 28.1 | `573fd28` | Asynchronous only, where 28.1 sketched a synchronous overload too: it awaits the seed of item 1 before `fn` |
+| 4 | Caller-chosen ids | 24 | `f027cee` | `numbering.newList({ numId, abstractNumId })`, `restart(numId, { newNumId })`, `customXmlParts.add(xml, { itemID, partName })` |
+| 5 | `pkg.styles.ensure` | 22.2 | `e0319fd` | The nine definitions docx4j's `styles.xml` comments out, in `spliceableStyles.mts` |
+| 6 | Comment options and rich content | 28.3 | `a572656` | |
+| 7 | `matchRegExp` | 26 | `00a7376` | And Word's wildcard grouping, which had never been implemented: `(` and `)` were escaped to literals |
+| 8 | `ShimmedDocument` | 22.1 | `8253b72`, `afbfe17` | |
+| 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
+| - | XPath over the tree | CR-006 | `7368f8c` | All but CR-006 section 5's docx4j oracle (CR-006 section 9) |
+
+**A review of `adce961..7368f8c`**, asked for before the release: fifteen findings, each reproduced
+against the build or read in the code. Every fix below has a test that fails on the code before it.
+The numbers are the review's.
+
+*Change tracking.*
+
+1. **An id given out inside `withTracking` was reissued after it.** The counter lived on the
+   tracker, and `withTracking` put the document's tracker back with the counter it had before the
+   call, so the first revision after the call took the id of the call's last one: ids 1, 2, 2 for
+   Ada, the agent, Ada - the sequence of this release's own "nests over an on setting" test, which
+   checked only the authors. The counter is now the package's (`TrackingHost.annotationIdCounter`),
+   a document having one id space whatever trackers it has; it is forgotten when the mode is set,
+   as the tracker was, so that a fresh scan sees what arrived by other routes. `withTracking` no
+   longer touches the tracker. The floor is consulted on every id, so a seed awaited after the
+   first id still counts.
+2. **Calls that overlapped broke each other.** `withTracking` saved package-wide state and put it
+   back in a `finally`, so two calls that overlapped and ended in the other order left the package
+   with the first call's author and tracking on for good. It now keeps the running calls in order:
+   the latest one's markup applies, the one before it again when it ends, and the package's own
+   when the last ends; a nested call hands back to its outer one. What it cannot do is attribute:
+   the markup is the package's while a call runs, so **during an overlap the later call's author
+   applies to every edit**, since nothing here can tell which asynchronous call an edit came from.
+   The method's doc says so; a caller whose calls must record different authors awaits one before
+   starting the next.
+3. **Every call re-read and re-scanned.** Each `withTracking` re-read every untouched `/word/` part
+   for the seed, and its fresh tracker rescanned every unmarshalled tree on its first id. The
+   package's counter removes the rescan. The seed now remembers each part with what it read: `true`
+   for a part holding only its source bytes (new: `XmlPart.isUntouched`), which cannot change, and
+   otherwise the array `getBytes()` returned, which is the same until the bytes are set again.
+
+*Four calls threw after changing the document.* Each now refuses before it writes.
+
+4. **`newList` with a `numId` in use** wrote the `w:abstractNum` and then refused the `numId`,
+   leaving an orphan to be saved: in a room, one per refused allocation. Both ids are settled first,
+   and an id refused for its form is refused before a numbering part can be created for it.
+5. **`insertComment([])` and `reply([])`** placed the markers and then refused the content, leaving
+   a `commentRangeStart`, a `commentRangeEnd` and a `w:commentReference` naming an id with no
+   `w:comment`. (Not opened in Word, so what Word makes of such a file is not claimed here; the
+   reference to a missing comment is.) The content is checked first; `reply`'s check for an anchor
+   now also runs before its first insert, not after it.
+6. **`customXmlParts.add` with a malformed `itemID`** was refused after the data part had been
+   related from the main document part, leaving it in the package without a properties part and
+   out of `customXmlDataStorageParts`. The id is checked first.
+7. **`styles.ensure`** wrote the first styles of a closure and then threw at an unknown id, without
+   refreshing the resolver. The closure is now worked out against a private read before anything is
+   written. Its doc comment said it threw `ItemNotFound`; it throws `Docx4JException` naming the id,
+   and the doc now says so (the content API's only `ItemNotFound` is the list module's, and a second
+   one for this was not worth making).
+
+*The rest.*
+
+8. **`Range.replaceText` had no group references.** Section 26 gave them to the paragraph's and
+   the body's `replaceText` and missed the range's, so `$2$1` was inserted literally.
+9. **`numId: 0` was accepted.** A `w:numId` of 0 in a `w:numPr` means "not numbered"
+   (`detachFromList` writes it), so a list given it numbers nothing. A `numId` is now from 1; an
+   `abstractNumId` may be 0.
+10. **`Body.select` returned the wrong views.** Its map kept the first view put for an object and put
+    a paragraph's run items first, so an inline content control came back as a `Range`; it mapped
+    only top-level tables and one level under each run item, so a nested table or a `w:t` in a
+    hyperlink came back as a bare `Bound`; and an attribute or text node came back as its element's
+    view, losing which attribute matched. Now the most specific view is put first at every depth
+    (controls, then tables, rows and cells, then paragraphs, then runs); a `w:r` or anything in one
+    maps to the paragraph's `Range` wherever the run sits (a hyperlink, an insertion or deletion, an
+    inline control); a `w:hyperlink` and the other run-level holders are `Bound`s, as the doc comment
+    always said; and an attribute or text node is always the `Bound`.
+11. **`customXmlParts.add` with an `itemID` needed `load()` first**, because its uniqueness check went
+    through the views, which throw for a part not yet parsed. It checks the package's index of the
+    parts instead, which needs no parse.
+12. **`styles.ensure`'s text check could cost the round trip.** A document that has the styles but
+    writes `w:styleId='X'` or another prefix missed the check, and the part was unmarshalled - and so
+    re-marshalled on save - though nothing was added. A miss now falls to a private read; the part is
+    unmarshalled only when something is added.
+13. **`pkg.selectObjects` marshalled the part twice**, once only to ready the engine - a marshal the
+    editor measured at 349 to 411 ms on its 255-page main document part, spent on every select. `XmlPart.selectObjects` readies the engine on the
+    snapshot it evaluates (CR-006 section 9).
+14. **Wildcards.** The review called section 26's change of meaning a regression; it is not.
+    Parentheses group in Word's wildcards, so the old literal match was the defect, and this finding
+    is dismissed. Two things in it stand: the code comment claimed no expression that worked before
+    changes meaning, which is false (`f(x)` matched the text "f(x)" and now matches "fx"), and an
+    unbalanced parenthesis threw the translation's `SyntaxError`, quoting a pattern the caller never
+    wrote. The comment is corrected, and an invalid wildcard pattern throws a `Docx4JException`
+    naming the caller's pattern, with the `SyntaxError` as its cause.
+15. **`styles.ensure` re-created the facade's `deepCopy`** (`copyStyle` and `stripParents`, which
+    CLAUDE.md says not to do), on the premise that `deepCopy` would follow `PARENT` into the default
+    tree. It cannot: the runtime defines `PARENT` non-enumerable. `deepCopy` it is.

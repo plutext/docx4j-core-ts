@@ -1,8 +1,10 @@
 # CR-006: XPath over the WordprocessingML tree: a read-only binder from marshalled nodes back to the objects
 
 **Status:** Proposed 2026-09-27, at the editor's request; reviewed here the same day (section 4
-rewritten against the runtime, section 8 added). Not scheduled - nothing is implemented until Jason
-schedules it.
+rewritten against the runtime, section 8 added). Scheduled by Jason the same day with CR-002
+section 30's release, and implemented (`7368f8c`, fixes from a review in CR-002 section 31) **all
+but section 5's docx4j oracle**, which is what would make it parity rather than self-consistency
+(section 9).
 **Depends on:** CR-001 Phase A (`XmlPart.marshalToNode`); CR-002 phase E (`XPathEngine`,
 `pkg.xpathEngine`, the default engine) and CR-005 phase A (`FontoXPathEngine`); a marshalling hook
 below this package (section 4)
@@ -177,3 +179,42 @@ the runtime actually offers. Three things to settle before it is scheduled, none
    not bind - `cr022-slicers-timelines.xlsx`'s drawings, the OMML of `omml.test.mjs` - will differ
    in kind, not degree, from docx4j's answer. Pick the fixture set for the harness accordingly, and
    record the DOM cases as this port's own tests rather than as parity goldens.
+
+## 9. Implementation (2026-09-27)
+
+Implemented as sections 2 to 4 describe, over `@docx4j/jsonix` 3.4.0's `onElement` (jsonix-CR-006)
+through `@docx4j/generated-objects-ts` 0.3.0's `marshalNode(value, { onElement })` (objects CR-007).
+`src/model/content/binder.mts` records the map and builds the `Bound`s; `XmlPart.selectObjects`,
+`pkg.selectObjects` (the main document part by default) and `Body.select` are the API. Section 8's
+three questions, answered:
+
+1. **The cost** was measured by the editor on its 255-page main document part: 349 to 411 ms a
+   marshal, against 975 ms for the first unmarshal, and a selection runs on Enter. No cache.
+2. **`Bound.object`** is what a walk of the typed tree hands you at that path, never a wrapper, as
+   the `Bound` doc comment says; for DOM content the model does not bind it is the node in the
+   **tree**, not the snapshot's imported copy (section 4's first rider, which has its test on
+   `cr022-slicers-timelines.xlsx`).
+3. **The oracle's reach** stands as written, and the oracle is not built (below).
+
+Departures from section 2, each deliberate:
+
+- **`select` is on `Body` only**, not on `Paragraph`, `Table` or `ContentControl` as contexts, and
+  the expression is evaluated over the whole part the body belongs to, not from the body's own
+  element: `//w:p` from a header's body selects that header's paragraphs. A hit outside a sub-body
+  (a cell's, a control's) comes back as a `Bound`, since the body has no view of it.
+- **What `Body.select` maps to a view**, fixed after the review (CR-002 section 31, finding 10):
+  the most specific view at any depth - `ContentControl` (inline ones included), `Table` (nested
+  ones included), `TableRow`, `TableCell`, `Paragraph`; a `Range` over the paragraph for a `w:r` or
+  anything in one, wherever the run sits; and the `Bound` for everything else, a `w:hyperlink`
+  included. An attribute or a text node is always the `Bound`, so the caller keeps what matched.
+- **`XmlPart.selectObjects` readies the engine itself**, on the snapshot it evaluates, rather than
+  requiring a ready one (CR-002 section 31, finding 13). Whether an engine can evaluate a tree is a
+  property of the document the tree is in (CR-002 section 21), and the snapshot is that document;
+  readying on a marshal of its own cost `pkg.selectObjects` a second marshal of the part.
+
+**Not done: section 5's oracle.** The tests hold the API to itself - paths, identity, the views,
+the snapshot leaving the part alone, the wildcard copy - but not to docx4j. The harness is a
+`test/java` program running `getJAXBNodesViaXPath` over the main document parts of a fixture set
+chosen per section 8 item 3, recording each result's path, compared by a test here as the parity
+goldens are. Until it exists, a difference in the order or the reach of a result from docx4j's
+would not be seen.

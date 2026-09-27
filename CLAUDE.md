@@ -18,9 +18,12 @@ answers by 45 parity goldens) and CR-002 phases B to I, the whole content API (`
 `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
 the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
 search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
-implemented; CR-002 phase A is the objects package's `builders/wml`. So are CR-004 (the Excel
-2010/2013 extension parts) and CR-005 phase A (the FontoXPath engine). Not yet: CR-001 Phase C.
-Each CR's last sections record decisions and departures.
+implemented; CR-002 phase A is the objects package's `builders/wml`. So are CR-001 Phases C and D
+(pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
+2010/2013 extension parts), CR-005 phase A (the FontoXPath engine), and CR-006 (`selectObjects` and
+`Body.select`, XPath over the tree) but for its docx4j oracle. The editor's release requests are
+CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
+departures.
 
 The dividing rule with the objects package: anything that needs only an object tree (helpers,
 the `XmlUtils`-style facade, flat OPC typing) lives there; anything that needs parts or
@@ -74,7 +77,8 @@ src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, Numbe
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink), Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
-                  tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml
+                  tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
+                  binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
