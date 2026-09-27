@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Section 25 implemented 2026-09-26; sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, and fixed after a review of it (section 31). Not in that release: section 27's strict `setXml` (the editor's split design covers it) and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Section 25 implemented 2026-09-26; sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 27's strict `setXml` (the editor's split design covers it) and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2330,6 +2330,11 @@ release at the end; the move fix (section 29) is out. What landed, in order:
 | 8 | `ShimmedDocument` | 22.1 | `8253b72`, `afbfe17` | |
 | 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
 | - | XPath over the tree | CR-006 | `7368f8c` | CR-006 section 5's docx4j oracle followed after the review: 46 XPath goldens, zero differences (CR-006 section 9.1) |
+
+**Released 2026-09-27 as 0.2.0**, not 0.1.6: it re-exports the objects 0.3 facade, wildcard
+parentheses now group, and `TrackingHost` gained two required members, so a `^0.1.x` range must not
+pick it up. The published tarball was checked identical to a pack of the tag, and a clean consumer
+install of it smoke-tested.
 
 **A review of `adce961..7368f8c`**, asked for before the release: fifteen findings, each reproduced
 against the build or read in the code. Every fix below has a test that fails on the code before it.
