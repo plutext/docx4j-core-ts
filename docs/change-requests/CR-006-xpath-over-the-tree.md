@@ -250,3 +250,27 @@ The goldens are from the 17.2.1 release on Maven Central (`docx4j-17.2.1`, `0e8e
 from `7fba7a150`, which the parity goldens record: the XPath and binder code has not moved in years,
 a release needed no build, and `.github/workflows/parity.yml` now regenerates these with the parity
 goldens every week from docx4j's head, diffing them the same way.
+
+## 10. A defect the editor found: `pathOf` is quadratic in a parent's children (2026-09-27)
+
+**Found by** `plutext/docx4j-ts-editor` ED-005 section 12.1 item 12 (E4.a's Select by XPath, on
+0.2.0). `boundsOf` calls `pathOf` for every node, and `pathOf` counts the node's preceding
+siblings of the same qualified name to write its position, walking from the parent's first child,
+and does the same for every ancestor. A hit list of the 7,088 paragraphs of a 255-page document's
+body walks up to 7,088 siblings for each: `//w:p[w:pPr/w:pStyle]` (6,972 hits) took 25 seconds in
+Chromium, 21 of them in `pathOf` (a CPU profile of the select), where the marshal took 0.5 s and the
+native evaluation 0.05 s; in Node over xmldom `boundsOf` took 161 ms for the same hits, which is
+why the tests here never saw it.
+
+The editor binds with its own copy until a release fixes it: the same `Bound`s and the same paths,
+held to `pkg.selectObjects`' paths over every fixture by its `xpath.test.mts`, with the positions of
+a parent's children counted once per call (a map per parent, filled on first need) and each
+element's path kept for its descendants. That is the fix asked for here, in `boundsOf` or in a
+`pathOf` that takes such a cache; a positional path is otherwise unchanged. With it the same select
+takes 0.6 s in Chromium, the export and the marshal 0.53 s of that.
+
+A second measurement, for whoever weighs the engines (not a defect of this package): FontoXPath's
+evaluation of `//w:p[w:pPr/w:pStyle]` over that DOM takes 3.3 s in Node and about 25 s in Chromium;
+the default engine takes 21.8 s in Node (the `xpath` package over xmldom) and 0.05 s in Chromium
+(native `document.evaluate`). The editor's XPath tab therefore evaluates with the default engine
+and offers XPath 3.1 as an option.

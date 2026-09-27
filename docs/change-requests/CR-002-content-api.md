@@ -2439,3 +2439,36 @@ The numbers are the review's.
 15. **`styles.ensure` re-created the facade's `deepCopy`** (`copyStyle` and `stripParents`, which
     CLAUDE.md says not to do), on the premise that `deepCopy` would follow `PARENT` into the default
     tree. It cannot: the runtime defines `PARENT` non-enumerable. `deepCopy` it is.
+
+## 32. Three findings from the editor's E4.a (2026-09-27)
+
+**Found by** `plutext/docx4j-ts-editor` ED-005 section 12.1 (E4.a landed 2026-09-27 on 0.2.0): its
+find matches through `searchPattern` and `matchesOf` and is held to `body.search` over every
+fixture by an agreement suite (38 fixtures, more than a thousand queries, over ten thousand hits),
+and its Replace and Replace all are held to `search` plus `insertText(…, 'Replace')` by its
+`api.test.mts`. Everything agrees but for these; none is scheduled.
+
+1. **A hit that splits a grapheme cluster.** `search` returns 12 over the editor's fixtures: under
+   the wildcard `[!a-z ]`, each half of an emoji's surrogate pair (the wildcard branch compiles
+   without `u`, so `?` and a class match one UTF-16 unit), and in Arabic a letter without the
+   combining tashkeel mark that follows it (`[!a-z ]`, and `\p{L}+` with `matchRegExp`, which stops
+   before a combining mark). A `Range` over half a surrogate pair is not text a person can see, and
+   replacing one splits a run inside a cluster, which the editor never does (its ED-001 section
+   3.7). The editor drops such hits; its suite leaves them out of this package's list and pins
+   their count, so the two agree the day this does. Asked: `searchMatches` drops a match whose ends
+   are not grapheme boundaries (`Intl.Segmenter`, checked only for a paragraph with a code unit at
+   or above U+0300, which is what the editor does and costs nothing on Latin text); and the
+   wildcard branch counts code points (a class or `?` over a surrogate pair), if that can be done
+   without the `u` flag the branch cannot take (section 26's review, item 2).
+2. **A stale `xml:space="preserve"` after `splice`.** `Paragraph.splice` sets `space = 'preserve'`
+   when the new value needs it and never removes it, so a `w:t` shortened from "Font styles " to
+   "Font X" keeps the attribute; the builders' `t()` writes it only where the text needs it, as
+   Word does. The same text either way, but the editor's export and this package's differ in a
+   byte-level comparison, which the editor's `api.test.mts` tolerates for exactly this attribute
+   with this section as the reason. Asked: `splice` removes `space` when the new value no longer
+   needs it (the same test as the one that sets it).
+3. **Word's special characters.** In a find without wildcards Word reads `^p` as a paragraph mark,
+   `^t` as a tab and `^^` as a caret; `searchPattern` escapes `^`, so `^t` finds the two
+   characters. The editor does not offer them (`\t` in an expression finds a tab, and `^p` could
+   never match, since no search crosses a paragraph, section 29). Recorded, not asked: for an
+   Office JS add-in's `search('^t')` to find what it finds in Word, this is where it would go.
