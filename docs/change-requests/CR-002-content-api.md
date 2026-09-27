@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which is **not implemented** - this line called it implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - and is scheduled for 0.2.1, its check in Word first (section 25; `test/README.md` check 15); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented 2026-09-28 for 0.2.1**, after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1922,6 +1922,39 @@ which `createPackage` writes and `pkg.styles.ensure` splices from, already carry
 definition that matches the editor's Word-made fixtures: based on `DefaultParagraphFont`, colour
 `0000FF` with `w:themeColor="hyperlink"`, a single underline, `w:uiPriority` 99 and
 `w:unhideWhenUsed`.)*
+
+**Implemented 2026-09-28, for 0.2.1, from check 15's answers** (Word 16.0.20326.20158 on Windows):
+
+| Case | What Word did |
+|---|---|
+| A, an external link over plain text | `w:rStyle w:val="Hyperlink"` on the wrapped run |
+| B, an internal `#_top` link | the same: the style does not depend on the kind of link |
+| C, a run that already had `Strong` | `Strong` **replaced** by `Hyperlink` |
+| D, a bold, red run | `Hyperlink` added, `w:b` kept, `w:color` **removed** |
+| E, a link set and then removed with `""` | the run left with no `w:rPr`: the style goes with the link |
+
+The style definition Word wrote is docx4j's default one but for the fallback colour value
+(`0563C1` against `0000FF`, both under `w:themeColor="hyperlink"`), so the default is what is
+spliced in. Two things differ from the request above, both because Word does otherwise: a run's own
+character style is replaced rather than kept (C), and the direct colour goes (D). **Not measured:**
+what Word does to direct formatting other than bold and colour (an underline, a highlight, a size);
+the setter keeps all of it, which is right for bold and unknown for the rest.
+
+The setter now gives each run it wraps the style and drops its `w:color` (`applyRunOptions`,
+`{ style: 'Hyperlink', color: '' }`), and a link removed takes `Hyperlink` off its runs and an
+emptied `w:rPr` with it. Under change tracking the restyle is a formatting revision, `w:rPrChange`,
+as a `font` write is. The definition cannot be ensured by a synchronous setter, so the setter asks
+the package (`requireStyles`) and `saveTo` runs `styles.ensure` - the device `trackingPending`
+already uses for the settings part; a document that has the style keeps its styles part byte for
+byte, and a clone carries the request. `test/content.test.mjs` holds all five cases to the paragraph
+XML Word wrote, less `w:rsid*`, the `w14` ids and the relationship id.
+
+**A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
+**every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
+the others, and `hyperlink = ''` on unlinked text removed links elsewhere in the paragraph. Office
+JS removes the hyperlinks in the range. Removal now takes only the links whose text the range
+overlaps - for an empty range, the link it lies in - and the getter reads the first such link, where
+for an empty range it had read the paragraph's first link wherever the range was.
 
 ## 26. A request from the editor's E4.a: regular expressions in `SearchOptions` (2026-09-27)
 

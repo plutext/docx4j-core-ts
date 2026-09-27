@@ -113,6 +113,11 @@ body.replaceText('(\\d+) pages', '$1 pp.', { matchRegExp: true });
 body.replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true });
 ```
 
+`range.hyperlink = 'https://example.com/'` (or `'#bookmark'` for a place in the document) makes the
+range a link, styled as Word styles one: its runs take the `Hyperlink` character style, over any
+character style they had, and lose their direct colour; `''` removes the links the range touches,
+style and all. A document that lacks the `Hyperlink` definition gets it when it is saved.
+
 A style the document lacks is spliced in from docx4j's defaults, with the styles it is based on and
 linked to: `await pkg.styles.ensure(['FootnoteText', 'FootnoteReference'])` returns the ids it
 added, and a document that already has them keeps its styles part byte for byte.

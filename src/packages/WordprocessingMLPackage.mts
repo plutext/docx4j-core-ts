@@ -126,6 +126,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   private trackingScopes: TrackingScope[] = [];
   private beforeScopes: { author: Author; date: Date | undefined; override: ChangeTrackingMode | undefined } | undefined;
   /**
+   * Style ids a synchronous setter has given runs, to be defined in the styles part by the time the
+   * package is saved: `Range.hyperlink` writes `w:rStyle w:val="Hyperlink"` and cannot await
+   * `styles.ensure` (CR-002 section 25). `saveTo` ensures them; nothing is read before then.
+   */
+  private requiredStyles = new Set<string>();
+  /**
    * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
    * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
    * array until they are set again.
@@ -504,9 +510,19 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return out;
   }
 
-  /** A clone carries the identity, the tracking date, the theme setting and the XPath engine. */
+  /**
+   * Asks for style definitions a synchronous setter has referenced; they are ensured on save, as
+   * `pkg.styles.ensure(ids)` would, and a document that already has them keeps its styles part
+   * byte for byte (CR-002 section 25). Await `styles.ensure` instead to have them at once.
+   */
+  requireStyles(ids: Iterable<string>): void {
+    for (const id of ids) this.requiredStyles.add(id);
+  }
+
+  /** A clone carries the identity, the tracking date, the theme setting, the XPath engine and the styles still to ensure. */
   protected override copyPackageSettingsTo(target: OpcPackage): void {
     if (!(target instanceof WordprocessingMLPackage)) return;
+    target.requireStyles(this.requiredStyles);
     target.author = { ...this.author };
     target.trackedChangeDate = this.trackedChangeDate;
     target.fonts.defaultTheme = this.fonts.defaultTheme;
@@ -515,6 +531,10 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
 
   override async saveTo<R>(sink: PartSink<R>): Promise<R> {
     if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
+    if (this.requiredStyles.size > 0) {
+      await this.styles.ensure([...this.requiredStyles]);
+      this.requiredStyles.clear();
+    }
     return super.saveTo(sink);
   }
 

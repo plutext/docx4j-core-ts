@@ -3,10 +3,10 @@ import { Font } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
-import { type Element, typeNameOf, linkParents, runItemsOf, type TextViewOptions } from './tree.mjs';
+import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
-import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import { sdt as sdtOf, nextSdtId, applyRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { Namespaces } from '../../parts/Namespaces.mjs';
@@ -247,7 +247,17 @@ export class Range {
    * Setting removes the hyperlinks the range already carries and wraps its runs in one
    * `w:hyperlink`, splitting runs at the boundaries as `font` and `insertContentControl` do;
    * setting `""` removes them and wraps nothing. An external address becomes a relationship of
-   * this range's part, which is why the part must exist (CR-002 section 20).
+   * this range's part, which is why the part must exist (CR-002 section 20). Only the hyperlinks
+   * the range touches are removed; before 0.2.1 every one in the paragraph was (section 25).
+   *
+   * The runs are styled as Word styles them, measured through Office JS (`test/README.md` check
+   * 15, CR-002 section 25): each run a link wraps takes the `Hyperlink` character style, over any
+   * character style it had, and loses its direct colour, keeping the rest of its direct formatting;
+   * a link removed takes the style off its runs again. The `Hyperlink` definition is added to the
+   * styles part when the document lacks it, at the latest when the package is saved - a setter
+   * cannot await it - so `await pkg.styles.ensure('Hyperlink')` first where an effective read
+   * before the save must see it. Under change tracking the restyle is a formatting revision, as a
+   * `font` write is.
    */
   get hyperlink(): string {
     const holder = this.hyperlinkHolder();
@@ -295,30 +305,67 @@ export class Range {
     holder.value.content = items as never;
     owner.splice(at, items.length, holder as Element);
     linkParents(holder, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
+    this.restyle(holder.value, true);
+    (paragraph.parentBody.package_ as { requireStyles?: (ids: string[]) => void } | undefined)
+      ?.requireStyles?.([HYPERLINK_STYLE]);
   }
 
-  /** The `w:hyperlink` this range's first run sits in, if any. */
+  /** The first `w:hyperlink` this range touches, if any. */
   private hyperlinkHolder(): Element<wml.P.Hyperlink> | undefined {
-    for (const segment of this.paragraph.segments()) {
-      if (segment.end <= this.start && this.start !== this.end) continue;
-      if (segment.start >= this.end && this.start !== this.end) break;
-      const parent = (segment.run as { PARENT?: object }).PARENT;
-      const found = hyperlinkHolders(this.paragraph).find((h) => h.value === parent);
-      if (found) return found;
-    }
-    return undefined;
+    return hyperlinkHolders(this.paragraph).find((holder) => this.touches(holder));
   }
 
-  /** Unwraps every `w:hyperlink` the range touches, keeping its runs where they are. */
+  /**
+   * Unwraps every `w:hyperlink` the range touches, keeping its runs where they are and taking the
+   * `Hyperlink` style off them. Until 0.2.1 this unwrapped every hyperlink of the paragraph, so
+   * linking one word unlinked the others (CR-002 section 25).
+   */
   private removeHyperlinks(): void {
-    for (const holder of hyperlinkHolders(this.paragraph)) {
+    for (const holder of hyperlinkHolders(this.paragraph).filter((h) => this.touches(h))) {
       const owner = containerOf(holder as Element, this.paragraph);
       const at = owner.indexOf(holder as Element);
       if (at === -1) continue;
+      this.restyle(holder.value, false);
       owner.splice(at, 1, ...((holder.value.content ?? []) as Element[]));
       for (const item of (holder.value.content ?? []) as Element[]) {
         linkParents(item, (holder as { PARENT?: object }).PARENT ?? this.paragraph.p);
       }
+    }
+  }
+
+  /**
+   * Whether this range touches a hyperlink's text: overlaps it, or for an empty range lies in it
+   * (from its first character up to, not including, its end). A hyperlink holding no text touches
+   * nothing.
+   */
+  private touches(holder: Element<wml.P.Hyperlink>): boolean {
+    let start: number | undefined;
+    let end = 0;
+    for (const segment of this.paragraph.segments()) {
+      if (!within(segment.run, holder.value, this.paragraph.p)) continue;
+      start ??= segment.start;
+      end = segment.end;
+    }
+    if (start === undefined) return false;
+    return this.start === this.end ? start <= this.start && this.start < end : start < this.end && end > this.start;
+  }
+
+  /**
+   * The `Hyperlink` character style on every run of a hyperlink, in place of any character style
+   * and with the direct colour removed, or off again when the link goes: what Word does (CR-002
+   * section 25). A run whose properties are then empty loses its `w:rPr`, as in Word's output.
+   */
+  private restyle(holder: wml.P.Hyperlink, linked: boolean): void {
+    const tracking = this.paragraph.fontTracking();
+    const runs = new Set([...runsOf(holder), ...runsOf(holder, { view: 'original' })].map((r) => r.value));
+    for (const run of runs) {
+      if (!linked && run.rPr?.rStyle?.val !== HYPERLINK_STYLE) continue;
+      run.rPr ??= { TYPE_NAME: 'org_docx4j_wml.RPr' };
+      // the properties as they are now become w:rPrChange, unless this run is our own insertion
+      if (tracking && !tracking.ownInsertions.has(run)) tracking.tracker.recordRPrChange(run.rPr);
+      applyRunOptions(run.rPr, linked ? { style: HYPERLINK_STYLE, color: '' } : { style: '' });
+      if (Object.keys(run.rPr).every((key) => key === 'TYPE_NAME')) delete run.rPr;
+      else linkParents(run.rPr, run);
     }
   }
 
@@ -334,6 +381,17 @@ export class Range {
     if (!part) throw new Docx4JException('This range has no part, so a hyperlink cannot be related to it');
     return part.getRelationshipsPart(true)!.addExternalRelationship(Namespaces.HYPERLINK, address).id;
   }
+}
+
+/** The character style Word gives the runs of a hyperlink it makes. */
+const HYPERLINK_STYLE = 'Hyperlink';
+
+/** Whether `object` is `ancestor` or below it, following `PARENT` no further than `stop`. */
+function within(object: object, ancestor: object, stop: object): boolean {
+  for (let o: object | undefined = object; o !== undefined && o !== stop; o = (o as { PARENT?: object }).PARENT) {
+    if (o === ancestor) return true;
+  }
+  return false;
 }
 
 /** Every `w:hyperlink` of a paragraph, outermost first (they do not nest in practice). */

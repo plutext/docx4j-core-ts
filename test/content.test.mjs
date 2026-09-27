@@ -350,10 +350,6 @@ test('Range.hyperlink: an external link over a span, with its relationship', asy
   // where they write `1`: both are ST_OnOff, and this package marshals every boolean that way -
   // a re-marshalled Word document turns its own w:history="1" into "true" too.
   assert.match(xml, /<w:hyperlink[^>]*w:history="(1|true)"/);
-  // w:history is what Word and docx4j both write on a hyperlink they make. The value is `true`
-  // where they write `1`: both are ST_OnOff, and this package marshals every boolean that way -
-  // a re-marshalled Word document turns its own w:history="1" into "true" too.
-  assert.match(xml, /<w:hyperlink[^>]*w:history="(1|true)"/);
   const rels = new TextDecoder().decode(store.loadSync('word/_rels/document.xml.rels'));
   assert.ok(rels.includes(`Id="${id}"`) && rels.includes('Target="https://docx4j.org/"')
     && rels.includes('TargetMode="External"'), 'and an external relationship for it');
@@ -387,6 +383,137 @@ test('Range.hyperlink: a location inside the document, and removal', async () =>
   assert.equal(paragraph.text, 'jump to chapter one', 'the runs survive the unwrapping');
   const after = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
   assert.ok(!after.includes('<w:hyperlink'), 'and the holder is gone');
+});
+
+// CR-002 section 25: a link is styled as Word styles one. What Word does was measured through Office
+// JS - test/README.md check 15, Word 16.0.20326.20158 on Windows, 2026-09-28 - and each case below is
+// held to the paragraph XML Word wrote, less what is Word's own bookkeeping (w:rsid*, the w14 ids,
+// the relationship id) and w:history's spelling (1 there, true here: both ST_OnOff).
+const WORD_CHECK_15 = {
+  A: '<w:p><w:r><w:t xml:space="preserve">Case A: an external link on </w:t></w:r><w:hyperlink r:id="" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>this text</w:t></w:r></w:hyperlink></w:p>',
+  B: '<w:p><w:r><w:t xml:space="preserve">Case B: an internal link on </w:t></w:r><w:hyperlink w:anchor="_top" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>this text</w:t></w:r></w:hyperlink></w:p>',
+  C: '<w:p><w:r><w:t xml:space="preserve">Case C: a link on </w:t></w:r><w:hyperlink r:id="" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>these strong words</w:t></w:r></w:hyperlink></w:p>',
+  D: '<w:p><w:r><w:t xml:space="preserve">Case D: a link on </w:t></w:r><w:hyperlink r:id="" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/><w:b/></w:rPr><w:t>this bold red text</w:t></w:r></w:hyperlink></w:p>',
+  E: '<w:p><w:r><w:t xml:space="preserve">Case E: a link set and then </w:t></w:r><w:r><w:t>removed here</w:t></w:r></w:p>',
+};
+
+/** Word's bookkeeping and this package's namespace declarations out, so the markup can be compared. */
+function comparable(xml) {
+  return xml
+    .replace(/ xmlns(:\w+)?="[^"]*"/g, '')
+    .replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '')
+    .replace(/ r:id="[^"]*"/g, ' r:id=""')
+    .replace(/ w:history="(1|true)"/g, ' w:history="1"');
+}
+
+/** The paragraphs of a package's main part whose text starts `Case X:`, by X, as XML. */
+async function casesOf(pkg) {
+  const { parseXml, serializeXml } = await import('../dist/index.mjs');
+  const doc = parseXml(await pkg.getMainDocumentPart().getXml());
+  const out = {};
+  const paragraphs = doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'p');
+  for (let i = 0; i < paragraphs.length; i++) {
+    const m = /^Case ([A-E]):/.exec(paragraphs[i].textContent);
+    if (m) out[m[1]] = comparable(serializeXml(paragraphs[i]));
+  }
+  return out;
+}
+
+test('Range.hyperlink styles a link as Word does: the markup of test/README.md check 15', async () => {
+  const { p: wp, r: wr } = await import('@docx4j/generated-objects-ts/builders/wml');
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = pkg.body;
+  const last = () => body.paragraphs.at(-1);
+  body.insertParagraph('Case A: an external link on this text', 'End');
+  last().search('this text')[0].hyperlink = 'https://example.com/a';
+  body.insertParagraph('Case B: an internal link on this text', 'End');
+  last().search('this text')[0].hyperlink = '#_top';
+  // C: a run that already names a character style - Word replaces it, where section 25's request
+  // said to keep it
+  body.addObject(wp([wr('Case C: a link on '), wr('these strong words', { style: 'Strong' })]));
+  last().search('these strong words')[0].hyperlink = 'https://example.com/c';
+  // D: direct formatting - Word keeps the bold and drops the colour. The run starts as Word's did:
+  // Office JS's font.bold wrote w:b alone, where the builders' bold writes w:b and w:bCs
+  const boldRed = wr('this bold red text', { bold: true, color: '#FF0000' });
+  delete boldRed.value.rPr.bCs;
+  body.addObject(wp([wr('Case D: a link on '), boldRed]));
+  last().search('this bold red text')[0].hyperlink = 'https://example.com/d';
+  // E: set and removed - the style goes with the link
+  body.insertParagraph('Case E: a link set and then removed here', 'End');
+  last().search('removed here')[0].hyperlink = 'https://example.com/e';
+  last().search('removed here')[0].hyperlink = '';
+
+  const cases = await casesOf(pkg);
+  for (const id of Object.keys(WORD_CHECK_15)) assert.equal(cases[id], WORD_CHECK_15[id], `case ${id}`);
+});
+
+test("Range.hyperlink: the Hyperlink definition is added on save where a document lacks it, and nothing else", async () => {
+  // comments-two.docx defines no Hyperlink style, as a Word document has none until a link is made
+  const lacking = await WordprocessingMLPackage.load(await fixture('comments-two.docx'));
+  const styles = lacking.getMainDocumentPart().styleDefinitionsPart;
+  assert.ok(!(await styles.getXml()).includes('w:styleId="Hyperlink"'));
+  await lacking.getMainDocumentPart().getContents();
+  lacking.body.paragraphs[0].getRange().hyperlink = 'https://example.com/';
+  assert.equal(styles.isUnmarshalled, false, 'the setter reads nothing: the style is ensured on save');
+  const back = await WordprocessingMLPackage.load(await lacking.save());
+  const defined = (await back.getMainDocumentPart().styleDefinitionsPart.getContents()).style
+    .find((s) => s.styleId === 'Hyperlink');
+  assert.ok(defined, 'docx4j\'s default definition is spliced in');
+  assert.equal(defined.type, 'character');
+  assert.equal(defined.basedOn.val, 'DefaultParagraphFont');
+  assert.equal(defined.rPr.color.themeColor, 'hyperlink', 'the theme colour, as Word writes it');
+  assert.equal(defined.rPr.u.val, 'single');
+
+  // a document that has it keeps its styles part byte for byte
+  const having = await WordprocessingMLPackage.load(await fixture('hyperlink_dupe.docx'));
+  await having.getMainDocumentPart().getContents();
+  having.body.paragraphs[0].getRange().hyperlink = 'https://example.com/';
+  const saved = new ZipPartStore(await having.save());
+  const source = new ZipPartStore(await fixture('hyperlink_dupe.docx'));
+  assert.deepEqual(saved.loadSync('word/styles.xml'), source.loadSync('word/styles.xml'));
+
+  // and a clone still owes it
+  const again = await WordprocessingMLPackage.load(await fixture('comments-two.docx'));
+  await again.getMainDocumentPart().getContents();
+  again.body.paragraphs[0].getRange().hyperlink = 'https://example.com/';
+  const clone = await again.clone();
+  assert.ok((await (await WordprocessingMLPackage.load(await clone.save())).getMainDocumentPart().styleDefinitionsPart.getXml())
+    .includes('w:styleId="Hyperlink"'));
+});
+
+// CR-002 section 25, found while implementing it: the setter unwrapped every hyperlink of the
+// paragraph, not the ones the range touched, so linking one word unlinked the others.
+test('Range.hyperlink removes only the links the range touches', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const p = pkg.body.insertParagraph('one two three', 'End');
+  const link = (word) => p.search(word)[0];
+  link('one').hyperlink = 'https://example.com/one';
+  link('three').hyperlink = 'https://example.com/three';
+  link('two').hyperlink = 'https://example.com/two';
+  assert.deepEqual(['one', 'two', 'three'].map((w) => link(w).hyperlink),
+    ['https://example.com/one', 'https://example.com/two', 'https://example.com/three']);
+
+  link('two').hyperlink = '';
+  assert.deepEqual(['one', 'two', 'three'].map((w) => link(w).hyperlink), ['https://example.com/one', '', 'https://example.com/three']);
+  assert.equal(p.text, 'one two three');
+  // the style went with the link it belonged to, and only that one
+  const styled = find(p.p, 'org_docx4j_wml.R').map((r) => r.rPr?.rStyle?.val ?? null);
+  assert.equal(styled.filter((s) => s === 'Hyperlink').length, 2, `${styled}`);
+
+  // an empty range reads the link it lies in, and nothing where there is none
+  assert.equal(new Range(p, 9, 9).hyperlink, 'https://example.com/three');
+  assert.equal(new Range(p, 5, 5).hyperlink, '');
+});
+
+test('Range.hyperlink under change tracking: the restyle is a formatting revision', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('a tracked link', 'End');
+  pkg.author = { name: 'Ada' };
+  await pkg.setChangeTrackingMode('TrackAll');
+  pkg.body.paragraphs[0].search('link')[0].hyperlink = 'https://example.com/';
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.match(xml, /<w:rStyle w:val="Hyperlink"\/><w:rPrChange [^>]*w:author="Ada"/);
+  assert.ok(pkg.body.getTrackedChanges().some((c) => c.type === 'Formatted'));
 });
 
 test('Range.hyperlink: reads what Word wrote', async () => {
