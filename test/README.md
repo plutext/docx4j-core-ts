@@ -379,6 +379,28 @@ namespaces, content types or the zip writer, check by hand:
    `scripts/make-check20-inputs.mjs`, every other byte Word's: the source paragraph and its range
    removed (12), the destination's two range markers removed (13), the source's two removed (14).
    The saved files are compared with the fixture's section 3, as check 18's were.
+   **When a dialog appears** (rejecting case 01 showed Word's "Tracked Moves Conflict Dialog",
+   asking whether to keep the original location's text or the edited new location's), take the
+   default and save under the planned name, then redo that step choosing the other option and save
+   with `-keep-new` (or a suffix naming the choice); note which cases and actions showed one.
+21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
+   the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
+   in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick
+   brown ~~red~~ fox jumps over the ~~very~~ lazy dog near the ~~old~~ stone bridge ~~at dawn~~.",
+   where "red " is Author B's insertion, "very " Author A's, and "old " Author A's deletion. Each
+   case on a **fresh copy**, with Review > Display for Review set to **All Markup** (so deletions
+   show), Review > **Track Changes off**, and the author set as for check 20; saved into
+   `fixtures/revisions/check21/`:
+
+   | Case | As | Do |
+   |---|---|---|
+   | `21a-in-insertion.docx` | B | click inside Author A's inserted "very", between "ve" and "ry", and type "X" |
+   | `21b-at-insertion-end.docx` | B | click just after Author A's inserted "very " (before "lazy"), and type "Y" |
+   | `21c-in-deletion.docx` | B | click inside Author A's deleted "old", between "o" and "ld", and type "Z" |
+   | `21d-in-own-insertion.docx` | A | as 21a, but as Author A, whose insertion it is |
+
+   The engine keeps text typed inside a `w:ins` in that `w:ins` when tracking is off (the editor's
+   `api.test` holds it to that); if Word makes it plain, both change.
 
 A small Node script for 1 to 3 is:
 

@@ -2433,7 +2433,12 @@ edges, as its author and as another, and in the source), moved text deleted (in 
 the source), a move moved again, a phrase moved within a paragraph, and a half without its partner
 or its range markers - each with accept and reject afterwards. `test/README.md` check 20 is that
 list, by hand as check 18 was; its last three cases open inputs made from the fixture by
-`scripts/make-check20-inputs.mjs`.
+`scripts/make-check20-inputs.mjs`. Rejecting an edited move (case 01) brought up Word's "Tracked
+Moves Conflict Dialog" - keep the original location's text, the default, or the edited new
+location's - so text typed inside moved text is part of the move to Word, and each such step is
+saved both ways. Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
+another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
+lands in, and the editor's api.test holds the editor to that.
 
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 
