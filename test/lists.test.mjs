@@ -533,3 +533,55 @@ test('pkg.numbering.restart: what it says when there is nothing to restart', asy
   await pkg.numbering.newList();
   assert.throws(() => pkg.numbering.restart('99'), /No w:num for numId 99/);
 });
+
+// CR-002 section 24: in a co-editing room two sessions allocate from the same counters at once, so
+// the editor chooses random identifiers and needs them honoured rather than renumbered. Checked
+// unused, and a clash throws rather than moving quietly: a caller who names an id is asserting
+// something about the room's state.
+test('newList and restart take the identifiers to use, checked unused', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const numId = await pkg.numbering.newList({ numId: 4242, abstractNumId: 77 });
+  assert.equal(numId, '4242');
+  const numbering = pkg.getMainDocumentPart().numberingDefinitionsPart.contents;
+  const num = numbering.num.find((n) => Number(n.numId) === 4242);
+  assert.ok(num, 'the w:num carries the chosen numId');
+  assert.equal(Number(num.abstractNumId.val), 77, 'and names the chosen abstractNumId');
+  assert.ok(numbering.abstractNum.some((a) => Number(a.abstractNumId) === 77));
+
+  const restarted = pkg.numbering.restart(4242, { newNumId: 9001 });
+  assert.equal(restarted, '9001');
+
+  // a clash throws, on either identifier and on a restart
+  await assert.rejects(() => pkg.numbering.newList({ numId: 4242 }), /4242 is already in use/);
+  await assert.rejects(() => pkg.numbering.newList({ abstractNumId: 77 }), /77 is already in use/);
+  assert.throws(() => pkg.numbering.restart(4242, { newNumId: 9001 }), /9001 is already in use/);
+  await assert.rejects(() => pkg.numbering.newList({ numId: -1 }), /non-negative integer/);
+
+  // and passing nothing behaves as before
+  const next = await pkg.numbering.newList();
+  assert.equal(next, '9002', 'the next free numId after the chosen ones');
+});
+
+test('customXmlParts.add takes an itemID and a part name, checked unused', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const ID = '{4B0E8F1A-2C3D-4E5F-8A9B-0C1D2E3F4A5B}';
+  const part = pkg.customXmlParts.add('<data xmlns="urn:test"><a>1</a></data>', { itemID: ID, partName: '/customXml/item7.xml' });
+  assert.equal(part.id, ID);
+  assert.equal(part.part.partName.name, '/customXml/item7.xml');
+  assert.equal(pkg.customXmlParts.getItem(ID), part, 'found by the id it was given');
+  assert.equal(pkg.customXmlParts.getItem('4b0e8f1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b'), part, 'and unbraced, any case');
+
+  // the id may be given unbraced, and is written braced and upper case as Word writes it
+  const second = pkg.customXmlParts.add('<d xmlns="urn:t2"/>', { itemID: '5c1f9a2b-3d4e-5f6a-9b0c-1d2e3f4a5b6c' });
+  assert.equal(second.id, '{5C1F9A2B-3D4E-5F6A-9B0C-1D2E3F4A5B6C}');
+
+  assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: ID }), /already in use/);
+  assert.throws(() => pkg.customXmlParts.add('<x/>', { partName: '/customXml/item7.xml' }), /already in this package/);
+  assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: 'not-a-guid' }), /must be a GUID/);
+
+  // it survives a round trip under the name and id it was given
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.customXmlParts.load();
+  assert.ok(back.customXmlParts.getItem(ID), 'the chosen itemID is in the reloaded package');
+  assert.ok(back.parts.get('/customXml/item7.xml'), 'and so is the chosen part name');
+});

@@ -752,14 +752,16 @@ export async function startNewList(paragraph: Paragraph, options?: StartListOpti
  * `w:numId`. The paragraph half of `startNewList` is separate because it is separable: nothing
  * about building a list definition needs one.
  */
-async function addListDefinition(part: NumberingPartLike, bullet: boolean): Promise<number> {
+async function addListDefinition(part: NumberingPartLike, bullet: boolean, ids?: ChosenListIds): Promise<number> {
   const numbering = await part.getContents();
   const defaults = await defaultNumbering();
   const template = (defaults.abstractNum ?? [])[bullet ? 0 : 1];
   if (template === undefined) throw new Docx4JException('The default numbering definitions are missing an abstractNum');
 
   const abstract = deepCopy(template);
-  abstract.abstractNumId = nextAbstractNumId(numbering);
+  abstract.abstractNumId = ids?.abstractNumId === undefined
+    ? nextAbstractNumId(numbering)
+    : requireFreeId(numbering, 'abstractNumId', Number(ids.abstractNumId));
   abstract.nsid = f.createCTLongHexNumber({ val: hexId() });
   delete abstract.styleLink;
   delete abstract.numStyleLink;
@@ -767,7 +769,7 @@ async function addListDefinition(part: NumberingPartLike, bullet: boolean): Prom
   linkParents(abstract, numbering);
 
   const num = f.createNumberingNum({
-    numId: nextNumId(numbering),
+    numId: ids?.numId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', Number(ids.numId)),
     abstractNumId: f.createNumberingNumAbstractNumId({ val: abstract.abstractNumId }),
   });
   (numbering.num ??= []).push(num);
@@ -781,9 +783,9 @@ async function addListDefinition(part: NumberingPartLike, bullet: boolean): Prom
  * list (CR-001 section 15.2), and it is what {@link List.restart} and
  * {@link NumberingFacade.restart} both do.
  */
-function addRestartedNum(numbering: wml.Numbering, abstractNumId: number, start: number): number {
+function addRestartedNum(numbering: wml.Numbering, abstractNumId: number, start: number, newNumId?: string | number): number {
   const created = f.createNumberingNum({
-    numId: nextNumId(numbering),
+    numId: newNumId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', Number(newNumId)),
     abstractNumId: f.createNumberingNumAbstractNumId({ val: abstractNumId }),
     lvlOverride: [f.createNumberingNumLvlOverride({
       ilvl: 0,
@@ -859,10 +861,10 @@ export class NumberingFacade {
    * unmarshalled, and the part may have to be created. Nothing is attached to anything; the
    * caller writes `w:numPr` itself.
    */
-  async newList(options?: { bullet?: boolean }): Promise<string> {
+  async newList(options?: { bullet?: boolean } & ChosenListIds): Promise<string> {
     const main = this.pkg.getMainDocumentPart();
     const part = await ensureNumberingPartOf(this.pkg, main);
-    const numId = await addListDefinition(part, options?.bullet === true);
+    const numId = await addListDefinition(part, options?.bullet === true, options);
     this.pkg.refreshPropertyResolver();
     return String(numId);
   }
@@ -876,12 +878,12 @@ export class NumberingFacade {
    * Synchronous, so the numbering part must have been read: `await pkg.getPropertyResolver()`,
    * `newList()` or any list read does it.
    */
-  restart(numId: string | number): string {
+  restart(numId: string | number, options?: { newNumId?: string | number }): string {
     const part = this.pkg.getMainDocumentPart().numberingDefinitionsPart;
     if (part === undefined) throw new Docx4JException('This document has no numbering part, so there is no list to restart');
     const definition = part.definitions.list(numId);
     if (definition === undefined) throw new ItemNotFound(`No w:num for numId ${numId}`);
-    const created = addRestartedNum(part.makeLive(), definition.num.abstractNumId.val, definition.level('0')?.start ?? 1);
+    const created = addRestartedNum(part.makeLive(), definition.num.abstractNumId.val, definition.level('0')?.start ?? 1, options?.newNumId);
     this.pkg.refreshPropertyResolver();
     return String(created);
   }
@@ -926,6 +928,30 @@ function lvlTextOf(level: number, formatString?: (string | number)[]): string {
 /** A free `w:numId`: one past the highest the document uses (Word numbers from 1). */
 function nextNumId(numbering: wml.Numbering): number {
   return (numbering.num ?? []).reduce((max, num) => Math.max(max, Number(num.numId)), 0) + 1;
+}
+
+/**
+ * The identifiers a caller may choose for a new list definition, when the next integer is the wrong
+ * answer: in a co-editing room two sessions allocate at once, so the editor picks random ids and
+ * needs them honoured rather than renumbered (CR-002 section 24).
+ */
+export interface ChosenListIds {
+  numId?: string | number | undefined;
+  abstractNumId?: string | number | undefined;
+}
+
+/**
+ * A chosen identifier, checked unused, as `addExternalRelationship`'s proposed id is. A clash throws
+ * rather than renumbering: a caller who names an id is asserting something about a room's state, and
+ * quietly moving it would break the peer that named it (CR-002 section 24).
+ */
+function requireFreeId(numbering: wml.Numbering, kind: 'numId' | 'abstractNumId', id: number): number {
+  if (!Number.isInteger(id) || id < 0) throw new Docx4JException(`A ${kind} must be a non-negative integer, not ${id}`);
+  const taken = kind === 'numId'
+    ? (numbering.num ?? []).some((num) => Number(num.numId) === id)
+    : (numbering.abstractNum ?? []).some((a) => Number(a.abstractNumId) === id);
+  if (taken) throw new Docx4JException(`The ${kind} ${id} is already in use in this document's numbering part`);
+  return id;
 }
 
 /** A free `w:abstractNumId`. */

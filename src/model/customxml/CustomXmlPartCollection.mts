@@ -89,17 +89,30 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    * A new custom XML part holding this XML, with its properties part and a fresh itemID, related
    * from the main document part (docx4j's `AbstractMigrator.addPropertiesPart` recipe: Word
    * silently drops a custom XML part that only the package relates to).
+   *
+   * `itemID` and `partName` may be given, both checked unused, for a co-editing room where two
+   * sessions allocate at once and the next free name is not the right answer (CR-002 section 24).
+   * A clash throws rather than renaming, as a chosen list `numId` does: the caller is asserting
+   * something about the room's state, and renaming would break the peer that chose it.
    */
-  add(xml: string, options: { schemaRefs?: string[] } = {}): CustomXmlPart {
+  add(xml: string, options: { schemaRefs?: string[]; itemID?: string; partName?: string } = {}): CustomXmlPart {
     const document = parseXml(xml);
     const root = document.documentElement;
     if (!root) throw new Docx4JException('A custom XML part needs a document element');
 
-    const dataPart = new CustomXmlDataStoragePart('/customXml/item1.xml');
-    dataPart.setDocument(document);
-    this.host.customXmlRelationshipSource().addTargetPart(dataPart, 'RENAME_IF_NAME_EXISTS');
+    const chosenName = options.partName === undefined ? undefined : PartName.of(options.partName);
+    if (chosenName && this.host.customXmlRelationshipSource().package?.parts.get(chosenName.name)) {
+      throw new Docx4JException(`The part name ${chosenName.name} is already in this package`);
+    }
+    if (options.itemID !== undefined && this.getItem(options.itemID)) {
+      throw new Docx4JException(`The itemID ${options.itemID} is already in use by a custom XML part`);
+    }
 
-    const itemID = `{${uuid().toUpperCase()}}`;
+    const dataPart = new CustomXmlDataStoragePart(chosenName ?? '/customXml/item1.xml');
+    dataPart.setDocument(document);
+    this.host.customXmlRelationshipSource().addTargetPart(dataPart, chosenName ? 'OVERWRITE_IF_NAME_EXISTS' : 'RENAME_IF_NAME_EXISTS');
+
+    const itemID = options.itemID === undefined ? `{${uuid().toUpperCase()}}` : normaliseChosenItemID(options.itemID);
     const propsName = PartName.of(`/customXml/itemProps${suffixOf(dataPart.partName)}.xml`);
     const props = new CustomXmlDataStoragePropertiesPart(propsName);
     const refs = options.schemaRefs ?? (root.namespaceURI ? [root.namespaceURI] : []);
@@ -182,6 +195,18 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
 }
 
 /** An itemID without braces, lower-cased: how docx4j keys the map and how Office JS compares ids. */
+/**
+ * A chosen itemID in the form the properties part carries: braced and upper case, as Word and
+ * `uuid()` write it. A caller may pass it either way round (CR-002 section 24).
+ */
+function normaliseChosenItemID(id: string): string {
+  const bare = id.trim().replace(/^\{|\}$/g, '');
+  if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(bare)) {
+    throw new Docx4JException(`An itemID must be a GUID, with or without braces, not ${id}`);
+  }
+  return `{${bare.toUpperCase()}}`;
+}
+
 function normaliseId(id: string): string {
   return id.replace(/[{}]/g, '').toLowerCase();
 }
