@@ -2451,9 +2451,9 @@ saved both ways.
 | Part of the source deleted (09) | a `w:del` nested inside the `w:moveFrom` | - | - |
 | The destination moved again (10) | **one** move, the same `w:name`, the source unchanged, the new destination; the old one gone | as check 18 | as check 18 |
 | A phrase moved within a paragraph (11) | a `w:ins` and a `w:del`, **not** a move | - | - |
-| The source side removed (12) | shown as an insertion; saved unchanged | the text kept, plain | the text **kept**, plain |
-| The destination's range markers removed (13) | shown as added, and moved; saved unchanged | the destination kept, plain; the source's `w:moveFrom` (and mark) turned into a pending `w:del`, its range markers kept | the destination paragraph gone; the source likewise turned into a pending `w:del` |
-| The source's range markers removed (14) | shown as moved (insertion), and deletion; **saved** with the destination as a `w:ins` (range markers kept) and the source as a `w:del` - but these files carry a stray edit | on the source: its run deletion and deleted mark accepted together, the paragraph gone | the paragraph restored, run and mark together |
+| The source side removed (12) | shown as an insertion; the "saved unchanged" file is byte-identical to the input, so Word never re-saved it: how Word saves this markup is **not** measured | the text kept, plain | the text **kept**, plain |
+| The destination's range markers removed (13) | shown as added, and moved; not re-saved (byte-identical to the input, as 12) | the destination kept, plain; the source's `w:moveFrom` (and mark) turned into a pending `w:del`, its range markers kept | the destination paragraph gone; the source likewise turned into a pending `w:del` |
+| The source's range markers removed (14) | shown as moved (insertion), and deletion; **re-saved** (Jason typed a space in section 2 to make Word save): the destination written as a `w:ins`, its range markers kept, and the source as a `w:del` - Word dissolves this broken pair when it saves | on the source: its run deletion and deleted mark accepted together, the paragraph gone | the paragraph restored, run and mark together |
 
 Who typed or deleted makes no difference but to `w:author`; new revisions carry `w16du:dateUtc`
 beside `w:date`. Against the engine as released in 0.2.2, applied to each edited file and compared
@@ -2463,8 +2463,20 @@ and reject matches in 03, 06, 07, 08 and 10. It differs in four places: rejectin
 destination with no source (12) removes the text, which Word keeps; a destination without range
 markers (13) leaves its paragraph mark and its partner a move, where Word resolves the mark and turns
 the partner into a pending `w:del`; and Word accepts or rejects a deleted paragraph's run deletion and
-mark deletion together (14), where the engine lists and resolves them apart - not a move question,
-and measured only on the files with the stray edit.
+mark deletion together (14), where the engine lists and resolves them apart - not a move question.
+(Case 14's extra space was Jason's, typed in section 2 to make Word save at all; the cases saved
+"unchanged", 12 and 13, are byte-identical to their inputs, because Word does not save a file it has
+not changed, so only 14 shows what Word writes on saving a broken pair.)
+
+*(Check 21, run 2026-09-28: all four files were saved with `w:trackRevisions` still on, so they show
+typing with tracking **on**, and the tracking-off question stays open. What they show is still worth
+having: typed inside another author's insertion (21a), Word splits that `w:ins` around the typist's
+own; at its end (21b), the typist's `w:ins` goes after it; inside a deletion (21c), Word splits the
+`w:del` around the typist's `w:ins`; inside the typist's own insertion (21d), Word also split it
+into three, where the engine extends it - which may turn on the time between the edits, so it is
+not taken as settled. The engine's tracked insertion puts text typed inside another's revision at the
+edge of that revision, not where it was typed, and refuses to type inside a deletion: a defect found
+from these files and check 20's case 01.)*
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it

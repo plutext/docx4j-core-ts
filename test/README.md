@@ -386,9 +386,10 @@ namespaces, content types or the zip writer, check by hand:
    **Run 2026-09-28 (Word 16.0.20326.20158), 39 files; the findings are CR-002 section 29's table.**
    The dialog came up on rejecting 01, 04, 06, 07 and 08 (their `-keep-new` files), not on 03.
    Jason's notes: 11 showed as an insertion and a deletion, 12 as an insertion, 13 as added then
-   moved, 14 as moved (insertion) then deletion, for the two locations respectively. The three 14
-   files also carry a stray tracked space Author A inserted at the end of section 2, so what Word did
-   on saving 14 may be the edit's doing rather than the markup's.
+   moved, 14 as moved (insertion) then deletion, for the two locations respectively. Word does not
+   save a file it has not changed: 12 and 13 as "saved unchanged" are byte-identical to their inputs,
+   and in 14 Jason typed a space at the end of section 2 to make Word save it, which is where its
+   conversion of the broken pair comes from.
 21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
    the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
    in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick
@@ -406,7 +407,11 @@ namespaces, content types or the zip writer, check by hand:
    | `21d-in-own-insertion.docx` | A | as 21a, but as Author A, whose insertion it is |
 
    The engine keeps text typed inside a `w:ins` in that `w:ins` when tracking is off (the editor's
-   `api.test` holds it to that); if Word makes it plain, both change.
+   `api.test` holds it to that); if Word makes it plain, both change. **Run 2026-09-28: tracking was
+   still on** - all four files have `w:trackRevisions` in `word/settings.xml` - so they show typing
+   with tracking on (CR-002 section 29 has what they show), and the tracking-off question needs a
+   re-run: turn Track Changes off (the Review tab button not highlighted) before typing, and check
+   that the saved `settings.xml` has no `w:trackRevisions`.
 
 A small Node script for 1 to 3 is:
 
