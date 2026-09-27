@@ -5,7 +5,7 @@ rewritten against the runtime, section 8 added). Scheduled by Jason the same day
 section 30's release, and **implemented** 2026-09-27 (`7368f8c`, fixes from a review in CR-002
 section 31), with section 5's docx4j oracle the same day: 46 XPath goldens from docx4j 17.2.1,
 zero differences (section 9). Section 10's quadratic `pathOf`, found by the editor on 0.2.0, fixed
-2026-09-28 for 0.2.1.
+in 0.2.1 (released 2026-09-28).
 **Depends on:** CR-001 Phase A (`XmlPart.marshalToNode`); CR-002 phase E (`XPathEngine`,
 `pkg.xpathEngine`, the default engine) and CR-005 phase A (`FontoXPathEngine`); a marshalling hook
 below this package (section 4)
