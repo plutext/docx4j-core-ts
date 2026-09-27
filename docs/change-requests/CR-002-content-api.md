@@ -1816,7 +1816,12 @@ the tree then readable, and the blind `ready()` failing with the message that na
 `session.mts`. Neither gates anything there; each has a fallback in the editor that a release
 carrying the change makes dead code.
 
-1. **The shim's collections in its types.** `Word.run`'s proxies hand out arrays with `items`,
+1. **The shim's collections in its types.** *(Implemented 2026-09-27: `Shimmed<T>` in
+   `src/office-js/shimmed.mts`, and `RequestContext.document` is `ShimmedDocument`. The check is a
+   compile-only one in `test/nodenext/consumer.mts` - add-in code using `paragraphs.items`,
+   `load('items/text')`, `getFirst()` and `getCount().value` - which is where a degraded type would
+   show. `Collection<T>` was already exported from `./office-js`; what was missing was the mapped
+   type that says every array the proxies hand out is one.)* `Word.run`'s proxies hand out arrays with `items`,
    `getFirst`, `getFirstOrNullObject`, `getLast`, `getCount` and the `load`, `track` and `untrack`
    no-ops (section 10), but `Document.body` is typed as the plain `Body`, whose `paragraphs` is
    `Paragraph[]`, so a type check of add-in code against `@docx4j/core-ts/office-js` rejects

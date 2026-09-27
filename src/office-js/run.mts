@@ -9,8 +9,12 @@ import type { WordprocessingMLPackage } from '../packages/WordprocessingMLPackag
 import { Document, type RunOptions } from './document.mjs';
 import { EXTRA_MEMBERS } from './extras.mjs';
 import { Wrapper, unwrap, type PendingSink } from './proxy.mjs';
+import type { Shimmed } from './shimmed.mjs';
 
 export type { RunOptions };
+
+/** The `Document` as the shim presents it (CR-002 section 22.1): `context.document`'s type. */
+export type ShimmedDocument = Shimmed<Document>;
 
 /** Office JS's `context.trackedObjects`: object lifetime is the garbage collector's business here. */
 export interface TrackedObjects {
@@ -18,9 +22,16 @@ export interface TrackedObjects {
   remove<T>(object: T): T;
 }
 
-/** A subset of Office JS `Word.RequestContext` over a package. */
+/**
+ * A subset of Office JS `Word.RequestContext` over a package.
+ *
+ * `document` is typed `ShimmedDocument`, which is what the proxies actually present: every array a
+ * `Collection` with `items` and `getFirst`, every object `load`able (CR-002 section 22.1). The
+ * runtime object is the same either way; the type is what lets an add-in script type-check against
+ * this package exactly as it does against Office JS.
+ */
 export class RequestContext implements PendingSink {
-  readonly document: Document;
+  readonly document: ShimmedDocument;
   /** Tracking is a no-op: nothing here is a remote proxy. */
   readonly trackedObjects: TrackedObjects = { add: (o) => o, remove: (o) => o };
   private pending: Promise<unknown>[] = [];
@@ -30,7 +41,7 @@ export class RequestContext implements PendingSink {
     readonly package_: WordprocessingMLPackage,
     options: RunOptions = {},
   ) {
-    this.document = new Document(package_, options);
+    this.document = new Document(package_, options) as unknown as ShimmedDocument;
   }
 
   /** @internal a promise whose result the next `sync()` must resolve. */

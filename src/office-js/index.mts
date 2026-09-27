@@ -13,7 +13,7 @@
 //     paragraphs.items[0].font.bold = true;
 //   });
 
-import { run, RequestContext, type RunOptions, type TrackedObjects } from './run.mjs';
+import { run, RequestContext, type RunOptions, type TrackedObjects, type ShimmedDocument } from './run.mjs';
 import { Document, DocumentProperties } from './document.mjs';
 import { supported, SUBSET_MEMBERS } from './supported.mjs';
 import { ClientResult, unwrap, nullObject, Wrapper, type Collection, type PendingSink } from './proxy.mjs';
@@ -28,6 +28,8 @@ import {
 } from './enums.mjs';
 
 export { run, RequestContext, Document, DocumentProperties, ClientResult, unwrap, nullObject, Wrapper, toApiScript, supported, SUBSET_MEMBERS };
+export type { Shimmed, ShimmedObject, ShimmedCollection, Loadable } from './shimmed.mjs';
+export type { ShimmedDocument };
 export { NotSupportedError, ItemNotFoundError, ValueNotLoadedError };
 export { InsertLocation, Alignment, UnderlineType, ChangeTrackingMode, BreakType, ContentControlType, Style, ErrorCodes, SearchOptions };
 export { ListLevelType, ListNumbering, ListBullet };
