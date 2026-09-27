@@ -248,7 +248,9 @@ export class Range {
    * `w:hyperlink`, splitting runs at the boundaries as `font` and `insertContentControl` do;
    * setting `""` removes them and wraps nothing. An external address becomes a relationship of
    * this range's part, which is why the part must exist (CR-002 section 20). Only the hyperlinks
-   * the range touches are removed; before 0.2.1 every one in the paragraph was (section 25).
+   * the range touches are removed; before 0.2.1 every one in the paragraph was (section 25). An
+   * empty range is refused with a `GeneralException`, as Office JS refuses it (section 25, check 19):
+   * to change a link under a caret, set it on the link's whole range.
    *
    * The runs are styled as Word styles them, measured through Office JS (`test/README.md` check
    * 15, CR-002 section 25): each run a link wraps takes the `Hyperlink` character style, over any
@@ -268,6 +270,13 @@ export class Range {
   }
 
   set hyperlink(value: string) {
+    // Office JS refuses a hyperlink set on an empty range - inside a link, in plain text, just after a
+    // link, and "" alike - with GeneralException, and changes nothing (test/README.md check 19, Word
+    // 16.0.20326.20158; CR-002 section 25). Before, the setter removed the link under a caret and
+    // left an empty w:hyperlink there.
+    if (this.start === this.end) {
+      throw new GeneralException('A hyperlink cannot be set on an empty range, as in Office JS: select the text to link, or the whole of a link to change it');
+    }
     const paragraph = this.paragraph;
     // A range that crosses the edge of a link takes the whole of that link into the new one; a range
     // inside a link replaces it with a link over the range alone. Measured in Word through Office JS
@@ -298,10 +307,6 @@ export class Range {
     if (location !== '') holder.value.anchor = location;
     if (address !== '') holder.value.id = this.addHyperlinkRelationship(address);
 
-    if (start === end) {
-      paragraph.insertItemsAt(start, [holder as Element]);
-      return;
-    }
     paragraph.splitAt(start);
     paragraph.splitAt(end);
     const segments = paragraph.segments().filter((seg) => seg.start >= start && seg.end <= end);
@@ -349,9 +354,9 @@ export class Range {
   }
 
   /**
-   * Whether this range touches a hyperlink's text: overlaps it, or for an empty range lies in it
-   * (from its first character up to, not including, its end). A hyperlink holding no text touches
-   * nothing.
+   * Whether this range touches a hyperlink's text: overlaps it, or for an empty range lies in it or
+   * at either end of it - Office JS reads a caret just after a link as in that link (check 19, case
+   * K; the start edge was not measured). A hyperlink holding no text touches nothing.
    */
   private touches(holder: Element<wml.P.Hyperlink>): boolean {
     const span = this.spanOf(holder);
@@ -359,7 +364,7 @@ export class Range {
   }
 
   private touchesSpan([start, end]: [number, number]): boolean {
-    return this.start === this.end ? start <= this.start && this.start < end : start < this.end && end > this.start;
+    return this.start === this.end ? start <= this.start && this.start <= end : start < this.end && end > this.start;
   }
 
   /** The text a hyperlink holds, as [start, end) in the paragraph, or undefined when it holds none. */
@@ -404,6 +409,18 @@ export class Range {
     const part = this.paragraph.parentBody.part;
     if (!part) throw new Docx4JException('This range has no part, so a hyperlink cannot be related to it');
     return part.getRelationshipsPart(true)!.addExternalRelationship(Namespaces.HYPERLINK, address).id;
+  }
+}
+
+/**
+ * What Office JS throws where the host refuses an operation it has no answer for: its `code`, so that
+ * add-in code branching on `error.code` behaves the same here (check 19).
+ */
+class GeneralException extends Docx4JException {
+  readonly code = 'GeneralException';
+  constructor(message: string) {
+    super(message);
+    this.name = 'GeneralException';
   }
 }
 

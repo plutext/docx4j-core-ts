@@ -1976,6 +1976,14 @@ in plain text the setter's empty `w:hyperlink` is as doubtful. What Office JS do
 is not known, so `test/README.md` check 19 asks it (a caret inside a link, in plain text, just after
 a link, and `""` inside one). Scheduled by Jason with the run merge above; not to be released yet.
 
+*(Check 19, run 2026-09-28 in Word 16.0.20326.20158: **Office JS refuses it.** `range.hyperlink = ...`
+on an empty range threw `GeneralException` in all four cases, `""` included, and changed nothing; so
+neither the setter's old behaviour nor the editor's re-targeting is Office JS's. The setter now
+refuses an empty range the same way, before it changes anything, with an error whose `code` is
+`GeneralException`, as add-in code would branch on. Reading at a caret gave the link it lies in, and
+a caret just after a link reads that link (case K), so the getter counts a link's end as in it; the
+start edge was not measured and stays in. Implemented 2026-09-28, unreleased.)*
+
 **A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
 **every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
 the others, and `hyperlink = ''` on unlinked text removed links elsewhere in the paragraph. Office

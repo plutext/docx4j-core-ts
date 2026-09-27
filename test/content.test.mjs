@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { WordprocessingMLPackage, OpcPackage, Paragraph, Range, wml as parseWml, textOf, find, ZipPartStore } from '../dist/index.mjs';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
-import { fixture } from './helpers.mjs';
+import { fixture, plain } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
@@ -542,6 +542,35 @@ test('Range.hyperlink over part of an existing link does what Word does: check 1
   assert.equal(textOf(holders[0]), 'alpha beta gamma', 'over the whole of the old link and the range');
   assert.ok(find(holders[0], 'org_docx4j_wml.R').every((r) => r.rPr?.rStyle?.val === 'Hyperlink'));
   assert.equal(paragraphs.F.p.content[0].value.rPr, undefined, '"Case F: " is untouched');
+});
+
+// CR-002 section 25: a link set at a caret, as Office JS answered it (test/README.md check 19, Word
+// 16.0.20326.20158, 2026-09-28): an empty range is refused with GeneralException and nothing changes -
+// inside a link (I), in plain text (J), just after a link (K), and "" inside one (L). Reading at a
+// caret gives the link it lies in, and a caret just after a link reads that link (K).
+test('Range.hyperlink at a caret: refused as Office JS refuses it, and read as it reads it (check 19)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const setUp = (id, link) => {
+    const p = pkg.body.insertParagraph(`Case ${id}: alpha beta gamma`, 'End');
+    if (link) p.search(link[0], { matchCase: true })[0].hyperlink = link[1];
+    return p;
+  };
+  const inBeta = (p) => { const beta = p.search('beta')[0]; return new Range(p, beta.start + 1, beta.start + 1); };
+  const afterAlpha = (p) => p.search('alpha')[0].getRange('End');
+  const cases = [
+    ['I', ['alpha beta gamma', 'https://example.com/i1'], inBeta, 'https://example.com/i2', 'https://example.com/i1'],
+    ['J', null, inBeta, 'https://example.com/j1', ''],
+    ['K', ['alpha', 'https://example.com/k1'], afterAlpha, 'https://example.com/k2', 'https://example.com/k1'],
+    ['L', ['alpha beta gamma', 'https://example.com/l1'], inBeta, '', 'https://example.com/l1'],
+  ];
+  for (const [id, link, caretOf, address, reads] of cases) {
+    const p = setUp(id, link);
+    const caret = caretOf(p);
+    assert.equal(caret.hyperlink, reads, `case ${id}: what the caret reads`);
+    const before = JSON.stringify(plain(p.p));
+    assert.throws(() => { caret.hyperlink = address; }, (e) => e.code === 'GeneralException', `case ${id}: refused`);
+    assert.equal(JSON.stringify(plain(p.p)), before, `case ${id}: and nothing changed`);
+  }
 });
 
 // CR-002 section 25, found while implementing it: the setter unwrapped every hyperlink of the

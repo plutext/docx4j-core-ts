@@ -337,7 +337,11 @@ namespaces, content types or the zip writer, check by hand:
    caret inside a link ("alpha beta gamma" linked, the caret in "beta"), given a new address; J, a
    caret in plain text, given an address; K, a caret just after a link on "alpha", given another
    address; L, a caret inside a link, given `""`. For each: what the caret reads before and after,
-   what each word reads afterwards, and the paragraph's XML.
+   what each word reads afterwards, and the paragraph's XML. **Run 2026-09-28 (Word
+   16.0.20326.20158): Office JS refuses a hyperlink on an empty range.** All four threw
+   `GeneralException` and left the paragraph as it was, `""` included. Reading at the caret gave
+   the link it lies in (I, L), `""` in plain text (J), and **the link just before it** for a caret
+   right after one (K).
 20. What Word does to a move that is edited, moved again, or missing a part (CR-002 section 29,
    asked by the editor for its tracker, E4.c step C3), by hand, as check 18 was. Section 3 of
    `fixtures/revisions/revisions-word15.docx` is the move: "The second paragraph of the move: it goes
