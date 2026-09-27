@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, and its items 1 and 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, and its items 1 and 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, scheduled 2026-09-28 with its check in Word first (`test/README.md` check 16). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1949,6 +1949,12 @@ already uses for the settings part; a document that has the style keeps its styl
 byte, and a clone carries the request. `test/content.test.mjs` holds all five cases to the paragraph
 XML Word wrote, less `w:rsid*`, the `w14` ids and the relationship id.
 
+**Open: a link over part of an existing link.** The setter unwraps the whole link its range
+touches and wraps the range, so the rest of the old link is no longer a link; the editor, which
+found the difference by reading both sides (2026-09-28), links the range and leaves the rest of the
+old link linked. Neither is known to be Word's. Check 16's cases F, G and H ask Word, and whichever
+side differs follows.
+
 **A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
 **every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
 the others, and `hyperlink = ''` on unlinked text removed links elsewhere in the paragraph. Office
@@ -2335,6 +2341,15 @@ Three things follow, and the first is the answer the editor needed:
 Not scheduled. Recorded here rather than left in a message because the answer "no" is the kind of
 thing a consumer builds on, and the defect behind it would otherwise be found by whoever first
 accepts a move in the editor.
+
+*(Scheduled by Jason 2026-09-28, with section 32 item 1's grapheme filter beside it. Step 1 is a
+check in Word, `test/README.md` check 16, on a copy of the editor's Word-made
+`fixtures/revisions/revisions-word15.docx`, whose section 3 is a move: how Office JS lists a move,
+and what accepting or rejecting either half, or all, does to both halves and the four markers.
+One correction to the text above, from that fixture: Word writes `w:name` on the range starts,
+`w:moveFromRangeStart` and `w:moveToRangeStart`, and **not** on `w:moveFrom` or `w:moveTo`, so the
+halves pair through their range markers, the content of a half lying between its range start and
+end. The empty `w:moveFrom` and `w:moveTo` in `w:pPr/w:rPr` are the moved paragraph's mark.)*
 
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 

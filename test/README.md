@@ -40,6 +40,13 @@ change is measured on - but its check box is inert in Excel before any save (doc
 `fmlaLink`), so it cannot witness whether a re-marshalled control still works.
 `cr022-checkbox-linked.xlsx`, added 2026-09-26, is the same workbook with the box linked to D4, and
 is the fixture acceptance check 14 was settled on.
+`revisions/revisions-word15.docx` is the docx4j-ts-editor's Word-made revision fixture of that name
+(its `packages/editor-model/test/fixtures/revisions/`, ED-005 section 13, at its `a0e1c4b`):
+the engine built the text, and Word 15 made every revision in it, as Author A and Author B, by
+following the instructions in the document. Section 3 is a move - a paragraph cut and pasted above
+the one before it - so it carries Word's `w:moveFrom`, `w:moveTo`, their range markers and the
+move's `w:name`, which is what CR-002 section 29 is measured on (check 16). It sits in a directory
+of its own so that neither Java harness makes a golden of it.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
@@ -259,6 +266,23 @@ namespaces, content types or the zip writer, check by hand:
    `w:rStyle w:val="Hyperlink"`, what happens to a run that already names a character style and to
    direct formatting, does an internal link get the style too, does removing the link remove the
    style, and what the style definition is.
+16. A tracked move, accepted and rejected (CR-002 section 29), and a hyperlink over part of another
+   (section 25), **Word's own answers, before the engine changes**. Open a **copy** of
+   `fixtures/revisions/revisions-word15.docx` in Word and run the second Script Lab snippet below
+   (Script tab, HTML tab, Run, then **Run the check** with "All" chosen), and copy the JSON back.
+   It needs WordApi 1.6 (`getTrackedChanges`, `accept`, `reject`, `acceptAll`, `rejectAll`). It
+   turns tracking off, keeps the body's OOXML, and for each of six scenarios puts that OOXML back
+   (`insertOoxml`, "Replace"), records section 3 (the move) before, acts, and records it after,
+   with the tracked changes Office JS reports: accept the move's first change in document order
+   (its destination), accept its second (its source), reject each, accept all, reject all. The
+   first thing it records is how Office JS lists the move - two changes or one, and of which types.
+   If a scenario's "before" shows that `insertOoxml` did not bring the move back as a move, run the
+   scenarios one at a time instead, each on a fresh copy, choosing it in the list. Then three
+   hyperlink cases, appended as paragraphs: F links "alpha beta" and then "beta gamma"; G links
+   "alpha beta gamma" and then "beta"; H links "alpha beta gamma" and then sets "beta" to `""`.
+   Each records the paragraph's XML and the link each word reads afterwards. The questions: does
+   accepting or rejecting one half resolve the other, what happens to the four range markers, how a
+   move is listed, and what a link over part of an existing link does to the rest of it.
 
 A small Node script for 1 to 3 is:
 
@@ -491,6 +515,146 @@ async function check() {
           .map(xml)
       : 'no styles part in body.getOoxml()';
   });
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 16 (Word, Office JS, WordApi 1.6), on a copy of
+`fixtures/revisions/revisions-word15.docx`. The HTML tab:
+
+```html
+<select id="scenario">
+  <option value="all">All (restores the body between scenarios)</option>
+  <option value="accept-destination">Accept the move's destination only</option>
+  <option value="accept-source">Accept the move's source only</option>
+  <option value="reject-destination">Reject the move's destination only</option>
+  <option value="reject-source">Reject the move's source only</option>
+  <option value="accept-all">Accept all</option>
+  <option value="reject-all">Reject all</option>
+  <option value="links">The hyperlink cases only</option>
+</select>
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const MOVED = 'second paragraph of the move';
+const SCENARIOS = {
+  'accept-destination': { act: 'accept', index: 0 },
+  'accept-source': { act: 'accept', index: 1 },
+  'reject-destination': { act: 'reject', index: 0 },
+  'reject-source': { act: 'reject', index: 1 },
+  'accept-all': { act: 'accept', all: true },
+  'reject-all': { act: 'reject', all: true },
+};
+const LINKS = [
+  ['F', 'Case F: alpha beta gamma', [['alpha beta', 'https://example.com/f1'], ['beta gamma', 'https://example.com/f2']]],
+  ['G', 'Case G: alpha beta gamma', [['alpha beta gamma', 'https://example.com/g1'], ['beta', 'https://example.com/g2']]],
+  ['H', 'Case H: alpha beta gamma', [['alpha beta gamma', 'https://example.com/h1'], ['beta', '']]],
+];
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () =>
+  check(document.getElementById('scenario').value).catch((e) => { out.value = String(e.stack || e); }));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+/** The body's block-level children, from the document's own body OOXML. */
+async function blocks(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const main = all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1) : [];
+}
+
+/** Section 3, the move: everything between its heading and section 4's, less the instructions. */
+async function section(context) {
+  const kids = await blocks(context);
+  const start = kids.findIndex((n) => n.localName === 'p' && n.textContent.trim() === '3. A move');
+  const end = kids.findIndex((n, i) => i > start && n.localName === 'p' && n.textContent.startsWith('4. '));
+  if (start < 0 || end < 0) return `section 3 not found (${start}, ${end})`;
+  return kids.slice(start + 1, end).filter((n) => !n.textContent.startsWith('[')).map(xml);
+}
+
+async function listed(context, filter) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text.slice(0, 70) }))
+    .filter((c) => !filter || c.text.includes(filter)) };
+}
+
+async function check(which) {
+  const report = { host: Office.context.diagnostics, which, moves: {}, links: {} };
+  let original;
+  await Word.run(async (context) => {
+    context.document.load('changeTrackingMode');
+    await context.sync();
+    report.trackingModeBefore = context.document.changeTrackingMode;
+    context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+    const ooxml = context.document.body.getOoxml();
+    await context.sync();
+    original = ooxml.value;
+    report.listed = (await listed(context)).list;          // how Office JS lists every change, the move's among them
+  });
+  const names = which === 'all' ? Object.keys(SCENARIOS) : which === 'links' ? [] : [which];
+  for (const name of names) {
+    const entry = (report.moves[name] = {});
+    try {
+      await Word.run(async (context) => {
+        if (which === 'all') { context.document.body.insertOoxml(original, 'Replace'); await context.sync(); }
+        entry.before = await section(context);
+        const { changes, list } = await listed(context);
+        entry.moveBefore = list.filter((c) => c.text.includes('paragraph of the move'));
+        const scenario = SCENARIOS[name];
+        if (scenario.all) {
+          if (scenario.act === 'accept') changes.acceptAll(); else changes.rejectAll();
+        } else {
+          const move = changes.items.filter((c) => c.text.includes(MOVED));
+          const target = move[scenario.index];
+          if (!target) throw new Error(`no change ${scenario.index} of the move (${move.length} listed)`);
+          entry.acted = { type: target.type, text: target.text.slice(0, 70) };
+          if (scenario.act === 'accept') target.accept(); else target.reject();
+        }
+        await context.sync();
+        entry.after = await section(context);
+        entry.moveAfter = (await listed(context, 'paragraph of the move')).list;
+      });
+    } catch (e) {
+      entry.error = String(e && e.message || e);
+    }
+  }
+  if (which === 'all' || which === 'links') {
+    for (const [id, text, steps] of LINKS) {
+      const entry = (report.links[id] = {});
+      try {
+        await Word.run(async (context) => {
+          context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+          const paragraph = context.document.body.insertParagraph(text, 'End');
+          for (const [target, address] of steps) {
+            paragraph.search(target, { matchCase: true }).getFirst().hyperlink = address;
+            await context.sync();
+          }
+          const words = ['alpha', 'beta', 'gamma'].map((w) => paragraph.search(w, { matchCase: true }).getFirst());
+          words.forEach((r) => r.load('hyperlink'));
+          await context.sync();
+          entry.reads = Object.fromEntries(words.map((r, i) => [['alpha', 'beta', 'gamma'][i], r.hyperlink]));
+          const p = (await blocks(context)).find((n) => n.localName === 'p' && n.textContent.startsWith(`Case ${id}:`));
+          entry.xml = p ? xml(p) : 'not found';
+        });
+      } catch (e) {
+        entry.error = String(e && e.message || e);
+      }
+    }
+  }
   out.value = JSON.stringify(report, null, 2);
 }
 ```
