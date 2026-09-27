@@ -14,7 +14,7 @@ import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/w
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
-import type { SearchOptions } from './search.mjs';
+import { expandReplacement, type SearchOptions } from './search.mjs';
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
@@ -317,8 +317,11 @@ export class Body {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    const matches = this.search(find, options);
-    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    const matches = this.paragraphs.flatMap((p) => p.searchMatches(find, options));
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const { range, match } = matches[i]!;
+      range.insertText(expandReplacement(replace, match, options), 'Replace');
+    }
     return matches.length;
   }
 

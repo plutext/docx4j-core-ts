@@ -448,3 +448,67 @@ test('styles.ensure leaves a document that has the styles byte for byte', async 
   const source = new ZipPartStore(await fixture('loadAndSave.docx'));
   assert.deepEqual(saved.loadSync('word/styles.xml'), source.loadSync('word/styles.xml'));
 });
+
+// CR-002 section 26: regular expressions in SearchOptions, and group references in a replacement.
+// The three traps its review note named are each asserted here, since each would be a silent defect.
+test('matchRegExp: searching and replacing with a regular expression', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('Order 1234 shipped; order 99 pending', 'End');
+  const body = pkg.body;
+
+  assert.equal(body.search('\\d+', { matchRegExp: true }).length, 2);
+  assert.deepEqual(body.search('\\d+', { matchRegExp: true }).map((r) => r.text), ['1234', '99']);
+  assert.equal(body.search('ORDER', { matchRegExp: true }).length, 2, 'case-insensitive by default');
+  assert.equal(body.search('ORDER', { matchRegExp: true, matchCase: true }).length, 0);
+
+  // group references: $1, $& and $$
+  const p = pkg.body.paragraphs[0];
+  assert.equal(p.replaceText('(\\d+)', '[$1]', { matchRegExp: true }), 2);
+  assert.equal(p.text, 'Order [1234] shipped; order [99] pending');
+  pkg.body.insertParagraph('a-b', 'End');
+  const second = pkg.body.paragraphs[1];
+  second.replaceText('(a)-(b)', '$2-$1 ($&) $$', { matchRegExp: true });
+  assert.equal(second.text, 'b-a (a-b) $');
+
+  // a reference to a group the pattern does not have expands to nothing, as JavaScript does
+  pkg.body.insertParagraph('xyz', 'End');
+  pkg.body.paragraphs[2].replaceText('(x)', '$1$5', { matchRegExp: true });
+  assert.equal(pkg.body.paragraphs[2].text, 'xyz');
+});
+
+test('matchRegExp: the three traps of section 26\'s review note', async () => {
+  const { searchPattern } = await import('../dist/index.mjs');
+  // 1. findAll keeps its shape; matchesOf is what carries the groups
+  const { findAll, matchesOf } = await import('../dist/index.mjs');
+  assert.deepEqual(findAll('ab', searchPattern('(a)', { matchRegExp: true })), [[0, 1]]);
+  assert.equal(matchesOf('ab', searchPattern('(a)', { matchRegExp: true }))[0][1], 'a', 'the group is there');
+
+  // 2. the u flag is on the regexp branch only - it would reject the wildcard branch's escapes
+  assert.ok(searchPattern('a', { matchRegExp: true }).flags.includes('u'));
+  assert.ok(!searchPattern('a', { matchWildcards: true }).flags.includes('u'));
+  assert.ok(!searchPattern('a-b').flags.includes('u'));
+  assert.doesNotThrow(() => searchPattern('[a-z]', { matchWildcards: true }), 'the wildcard class still compiles');
+  assert.doesNotThrow(() => searchPattern('a-b'), 'and so does an escaped hyphen');
+
+  // 3. matchWholeWord wraps a user expression in a group, or an alternation escapes the guards
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('dogma and a cat', 'End');
+  assert.equal(pkg.body.search('cat|dog', { matchRegExp: true, matchWholeWord: true }).length, 1,
+    'cat matches, dog inside dogma does not');
+  assert.equal(pkg.body.search('cat|dog', { matchRegExp: true, matchWholeWord: true })[0].text, 'cat');
+  // and the group numbers a replacement refers to are unshifted by that wrapper
+  pkg.body.insertParagraph('cat', 'End');
+  pkg.body.paragraphs[1].replaceText('(c)(a)t', '$2$1', { matchRegExp: true, matchWholeWord: true });
+  assert.equal(pkg.body.paragraphs[1].text, 'ac');
+
+  // matchRegExp with matchWildcards is an error, not a silent precedence
+  assert.throws(() => searchPattern('x', { matchRegExp: true, matchWildcards: true }), /choose one/);
+});
+
+test('Word wildcards keep their own \\1 replacement syntax', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('the quick fox', 'End');
+  // a wildcard group is (...) as in Word, and the replacement names it \1
+  assert.equal(pkg.body.paragraphs[0].replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true }), 1);
+  assert.equal(pkg.body.paragraphs[0].text, 'the fox quick');
+});

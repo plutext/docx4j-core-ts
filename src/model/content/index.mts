@@ -15,7 +15,7 @@ export { Table, TableRow, TableCell, cellOf } from './Table.mjs';
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';
-export { type SearchOptions, searchPattern } from './search.mjs';
+export { type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement } from './search.mjs';
 export { segmentsOf, runsOf, runItemsOf, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, type TextSegment, type Located, type TextView, type TextViewOptions, type RevisionKind, type RevisionHolder } from './tree.mjs';
 // change tracking (CR-002 phase F)
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeTarget } from './TrackedChange.mjs';

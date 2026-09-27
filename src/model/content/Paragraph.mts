@@ -11,7 +11,7 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
 import { Font, type FontTracking } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
-import { searchPattern, findAll, type SearchOptions } from './search.mjs';
+import { searchPattern, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
@@ -355,7 +355,17 @@ export class Paragraph {
 
   /** Matches within this paragraph. */
   search(text: string, options?: SearchOptions): Range[] {
-    return findAll(this.text, searchPattern(text, options)).map(([s, e]) => new Range(this, s, e));
+    return this.searchMatches(text, options).map((m) => m.range);
+  }
+
+  /**
+   * `search`, keeping each match's capture groups, which is what a replacement's `$1` or Word's `\1`
+   * expands from (CR-002 section 26). Not an Office JS member; `replaceText` is its only caller here
+   * and `Body.replaceText` the other.
+   */
+  searchMatches(text: string, options?: SearchOptions): { range: Range; match: RegExpExecArray }[] {
+    return matchesOf(this.text, searchPattern(text, options))
+      .map((match) => ({ range: new Range(this, match.index, match.index + match[0].length), match }));
   }
 
   /**
@@ -364,8 +374,11 @@ export class Paragraph {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    const matches = this.search(find, options);
-    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    const matches = this.searchMatches(find, options);
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const { range, match } = matches[i]!;
+      range.insertText(expandReplacement(replace, match, options), 'Replace');
+    }
     return matches.length;
   }
 
