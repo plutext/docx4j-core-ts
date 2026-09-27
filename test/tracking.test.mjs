@@ -1,7 +1,7 @@
 // CR-002 phase F: change tracking and replaceText.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WordprocessingMLPackage, ZipPartStore } from '../dist/index.mjs';
+import { WordprocessingMLPackage, ZipPartStore, ChangeTracker } from '../dist/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
 const DATE = new Date(Date.UTC(2026, 8, 16, 10, 30, 0));
@@ -784,3 +784,30 @@ for (const scenario of ['accept-all', 'reject-all']) {
       'every paragraph of the document reads as in Word\'s, its other 22 revisions included');
   });
 }
+
+// CR-002 section 34, asked for by the editor: its export takes every revision id from the package's
+// counter, and seeding it re-read the main part the editor had already imported itself - 1.06 s on a
+// 255-page document. noteAnnotationIds records a part's highest id instead of reading it.
+test('noteAnnotationIds: a part the caller has read is not read again by the seed', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('revisions/revisions-word15.docx'));
+  const main = pkg.getMainDocumentPart();
+  let reads = 0;
+  const read = main.readContents.bind(main);
+  main.readContents = () => { reads++; return read(); };
+
+  await pkg.noteAnnotationIds(main, 1000);
+  assert.equal(pkg.annotationIdFloor, 1000, 'the floor rises at once');
+  await pkg.seedAnnotationIds();
+  assert.equal(reads, 0, 'the seed does not read the noted part');
+  assert.equal(main.isUnmarshalled, false);
+  assert.equal(new ChangeTracker(pkg, 'TrackAll').nextId(), 1001, 'and the next id is above the noted one');
+
+  // bytes set again are not the bytes noted: the next seed reads the part afresh
+  main.setXml(await main.getXml());
+  await pkg.seedAnnotationIds();
+  assert.equal(reads, 1);
+
+  await assert.rejects(() => pkg.noteAnnotationIds(main, -1), /non-negative integer/);
+  const other = await WordprocessingMLPackage.createPackage();
+  await assert.rejects(() => pkg.noteAnnotationIds(other.getMainDocumentPart(), 5), /not a part of this package/);
+});

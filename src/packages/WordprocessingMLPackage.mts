@@ -498,6 +498,28 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return this.annotationIdFloor;
   }
 
+  /**
+   * Records the highest annotation id of a part the caller has read itself, so that
+   * `seedAnnotationIds()` does not read it again. An editor that imports the main document part into
+   * a model of its own knows that part's ids already, and seeding would parse it a second time -
+   * 1.06 s for a 255-page document (CR-002 section 34). The floor rises to `highest` at once, and
+   * the part counts as read for the bytes it holds now: set its bytes again and the next seed reads
+   * it afresh; unmarshal it and the counter's own scan of it covers it.
+   *
+   * The caller vouches for the number: one lower than the part's highest id lets a new revision
+   * reuse an id. Asynchronous only because a part whose bytes were set is keyed on those bytes.
+   */
+  async noteAnnotationIds(part: XmlPart<unknown>, highest: number): Promise<void> {
+    if (!Number.isInteger(highest) || highest < 0) {
+      throw new Docx4JException(`The highest annotation id must be a non-negative integer, not ${String(highest)}`);
+    }
+    if (this.parts.get(part.partName.name) !== part) {
+      throw new Docx4JException(`${part.partName.name} is not a part of this package`);
+    }
+    this.annotationIdFloor = Math.max(this.annotationIdFloor, highest);
+    if (!part.isUnmarshalled) this.seededParts.set(part, part.isUntouched ? true : await part.getBytes());
+  }
+
   /** TrackingHost: the trees a new revision id must be above, which is every part already unmarshalled. */
   markupRoots(): object[] {
     const out: object[] = [];

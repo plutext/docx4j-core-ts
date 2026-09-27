@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter done 2026-09-28 (unreleased; its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, implemented 2026-09-28 (unreleased) from Word's Review tab (`test/README.md` check 18). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter done 2026-09-28 (unreleased; its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, implemented 2026-09-28 (unreleased) from Word's Review tab (`test/README.md` check 18). Section 34 (`noteAnnotationIds`, the editor's request) implemented 2026-09-28 for 0.2.2. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2619,3 +2619,24 @@ Chromium the message is the text of its `div`, without the boilerplate `h3`s aro
 stands the browsers in through `Jsonix.DOM.use` with parsers returning what theirs return - Node's
 xmldom throws on its own - and holds `part.getContents()` to refusing too, the part left
 unmarshalled.)*
+
+## 34. A request from the editor's E4.c: seeding the revision ids from a part the caller has read (2026-09-28)
+
+**Requested by** `plutext/docx4j-ts-editor` (E4.c step C2, its `87d5bbd`), as a soft request, not
+blocking. The editor's export takes every revision id it writes from the package's counter
+(`new ChangeTracker(pkg, 'TrackAll').nextId()`, which since section 31 finding 1 shares one counter
+per package). The editor imports the main document part into a model of its own, so the package
+never unmarshals it, and `seedAnnotationIds()` - which must see every part's ids so that none is
+reissued (section 28.2) - reads it privately a second time: 1.06 s on the editor's 255-page
+document. The editor therefore seeds only when its edit layer holds a revision. Asked: a way to tell
+the seed the highest id of a part the caller has already read.
+
+**Implemented 2026-09-28 (unreleased), scheduled by Jason for 0.2.2.**
+`pkg.noteAnnotationIds(part, highest)` raises the annotation-id floor to `highest` at once and
+records the part as read for the bytes it holds now, the same record the seed keeps (section 31
+finding 3): the seed skips it, and reads it afresh if its bytes are set again; once the part is
+unmarshalled the counter's own scan covers it. It refuses a number that is not a non-negative
+integer and a part of another package. The caller vouches for the number - one lower than the part's
+highest id lets a new revision reuse an id - which is the price of not reading the part.
+`tracking.test.mjs` holds it on the Word-made revisions fixture: the noted main part is not read by
+the seed, the next id is above the noted one, and setting the part's bytes makes the seed read it.
