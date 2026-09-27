@@ -677,6 +677,33 @@ test('matchRegExp: the three traps of section 26\'s review note', async () => {
   assert.throws(() => searchPattern('x', { matchRegExp: true, matchWildcards: true }), /choose one/);
 });
 
+// CR-002 section 32 item 1, found by the editor's agreement suite: a hit could start or end inside a
+// grapheme cluster - half of an emoji's surrogate pair under a wildcard class (the wildcard branch
+// counts UTF-16 units), or an Arabic letter without its combining mark under \p{L}+. Replacing one
+// split a character, and half a surrogate pair is saved as U+FFFD. Such hits are dropped now.
+test('a search never returns a hit that splits a character', async () => {
+  const { searchPattern, findAll } = await import('../dist/index.mjs');
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const emoji = pkg.body.insertParagraph('a\u{1F600}b', 'End');
+  assert.equal(emoji.text.length, 4, 'the emoji is two UTF-16 units');
+  assert.deepEqual(emoji.search('[!a-z ]', { matchWildcards: true }).map((r) => r.text), [],
+    'each half of the pair matched the class; neither is a hit');
+  assert.equal(pkg.body.replaceText('[!a-z ]', 'X', { matchWildcards: true }), 0);
+  assert.equal(emoji.text, 'a\u{1F600}b', 'and a replace leaves the emoji whole');
+  assert.deepEqual(emoji.search('?', { matchWildcards: true }).map((r) => r.text), ['a', 'b']);
+
+  // a letter and the fatha on it (U+064E) are one cluster: \p{L}+ stops before the mark
+  const arabic = pkg.body.insertParagraph('\u0628\u064E \u062A', 'End');
+  assert.deepEqual(arabic.search('\\p{L}+', { matchRegExp: true }).map((r) => r.text), ['\u062A'],
+    'the letter without its mark is not a hit; the bare letter after the space is');
+  assert.deepEqual(arabic.search('\\p{L}\\p{M}', { matchRegExp: true }).map((r) => r.text), ['\u0628\u064E'],
+    'a match of the whole cluster is');
+
+  // findAll, the exported span form, drops the same hits; Latin text is untouched by all this
+  assert.deepEqual(findAll('a\u{1F600}b', searchPattern('[!a-z ]', { matchWildcards: true })), []);
+  assert.deepEqual(findAll('cat hat', searchPattern('?at', { matchWildcards: true })), [[0, 3], [4, 7]]);
+});
+
 test('Word wildcards keep their own \\1 replacement syntax', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   pkg.body.insertParagraph('the quick fox', 'End');

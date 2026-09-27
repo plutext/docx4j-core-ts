@@ -94,6 +94,14 @@ export function findAll(text: string, pattern: RegExp): [number, number][] {
  * Every match of a pattern in a text, with its capture groups: what `replaceText` needs to expand
  * `$1` and Word's `\1`. An empty match advances by one rather than looping forever, as `findAll`
  * has always done.
+ *
+ * A match that starts or ends inside a grapheme cluster is dropped: half of an emoji's surrogate
+ * pair (a wildcard `?` or class matches one UTF-16 unit), or an Arabic letter without the
+ * combining mark after it (`\p{L}+` stops before the mark). Such a range is not text a person can
+ * see, and replacing it splits a character - half a surrogate pair is saved as U+FFFD (CR-002
+ * section 32 item 1, found by the editor's agreement suite). The clusters are `Intl.Segmenter`'s,
+ * computed only for a text with a code unit at or above U+0300, below which every code unit is a
+ * cluster of its own, so Latin text pays nothing; a runtime without `Intl.Segmenter` keeps every match.
  */
 export function matchesOf(text: string, pattern: RegExp): RegExpExecArray[] {
   const out: RegExpExecArray[] = [];
@@ -102,7 +110,18 @@ export function matchesOf(text: string, pattern: RegExp): RegExpExecArray[] {
     if (m[0].length === 0) { pattern.lastIndex++; continue; }
     out.push(m);
   }
-  return out;
+  const boundaries = out.length > 0 ? graphemeBoundaries(text) : undefined;
+  return boundaries === undefined ? out : out.filter((m) => boundaries.has(m.index) && boundaries.has(m.index + m[0].length));
+}
+
+/** The code-unit offsets where a grapheme cluster starts, and the text's end; undefined where every unit is its own cluster. */
+function graphemeBoundaries(text: string): Set<number> | undefined {
+  if (!/[\u0300-\uffff]/.test(text)) return undefined;
+  const Segmenter = (Intl as { Segmenter?: new (locale?: string, options?: { granularity: 'grapheme' }) => { segment(input: string): Iterable<{ index: number }> } }).Segmenter;
+  if (Segmenter === undefined) return undefined;
+  const boundaries = new Set<number>([text.length]);
+  for (const segment of new Segmenter(undefined, { granularity: 'grapheme' }).segment(text)) boundaries.add(segment.index);
+  return boundaries;
 }
 
 /**
