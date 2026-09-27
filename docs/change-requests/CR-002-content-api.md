@@ -1839,7 +1839,9 @@ carrying the change makes dead code.
    `w:styleId="FootnoteText"` text search says it does. The nine are extracted with provenance into
    `spliceableStyles.mts`, which is where `ensure` looks after the defaults; `ensure` strips comments
    before its own byte-for-byte shortcut, since that shortcut would otherwise answer "nothing to do"
-   for precisely the documents this exists for.)* Inserting a footnote needs
+   for precisely the documents this exists for. After the review it refuses before it writes, falls
+   back to a private read when that shortcut misses, and copies with the facade's `deepCopy`:
+   section 31 findings 7, 12 and 15.)* Inserting a footnote needs
    `FootnoteText`, `FootnoteReference` and their linked character styles; `createPackage`'s
    defaults on 0.1.5 lack the six note styles (main carries them), and a document that has none
    needs them spliced in with what they are based on and linked to, the resolver refreshed. The
@@ -1879,6 +1881,9 @@ identifiers themselves:
    (editing an existing part works).
 
 Outside a room the editor passes nothing and the calls behave as today.
+
+*(Implemented 2026-09-27 as item 4 of section 30's release, `f027cee`; a chosen `numId` is from 1
+and a refusal leaves the part as it was since the review, section 31 findings 4, 6, 9 and 11.)*
 
 ## 25. A request from the editor's E3.d: a new hyperlink styled as Word styles one (2026-09-26)
 
@@ -1922,7 +1927,9 @@ stays out of `Word.supported`. The editor builds the expression itself until a r
 this, with no `api` line for its regular-expression commands; the fallback goes when the release
 comes, and the agreement suite gains regular-expression queries then.
 
-**Reviewed 2026-09-27** (not scheduled; nothing is implemented until Jason schedules it). The
+**Reviewed 2026-09-27** (not scheduled then; scheduled the same day as item 7 of section 30's
+release and implemented in `00a7376`, with Word's wildcard grouping, which had never been; the
+range's `replaceText` was missed and fixed after the review, section 31 findings 8 and 14). The
 request fits `searchPattern`, which already compiles a `RegExp`, so `matchRegExp` is one more branch
 where `source = text`. Three things it does not say, each of which would be a defect if the branch
 were written from the request alone:
@@ -1979,7 +1986,8 @@ just typed: the editor cannot tell them that what they wrote will not be saved. 
 Until a release carries it, the editor checks an edit by unmarshalling and marshalling it back and
 comparing the element and attribute sets, which finds the drops but not their line numbers.
 
-**Reviewed 2026-09-27** (not scheduled). The measurements reproduce, and the jsonix site is the one
+**Reviewed 2026-09-27** (not scheduled then; the located error alone was item 9 of section 30's
+release, `7c90cbd`, recorded below; the strict `setXml` is not in it). The measurements reproduce, and the jsonix site is the one
 named. Two findings change the shape of the request, both in the editor's favour:
 
 1. **The line numbers are already there, and most of this needs no runtime change at all.** In Node
@@ -2144,6 +2152,10 @@ since each has a decision in it that the request leaves open.
 
 ### 28.1 `pkg.withTracking(markup, fn)`: tracking for one call
 
+*(Implemented 2026-09-27 as item 3 of section 30's release, `573fd28`: asynchronous only, since it
+awaits the seed of 28.2. Reissued ids, overlapping calls and a re-read per call fixed after the
+review, section 31 findings 1 to 3.)*
+
 The editor's agent must record its own edits as revisions without changing the document's setting:
 a room's `w:trackRevisions` belongs to the document, not to one caller. The request is a scoped
 form, restoring afterwards, that **must not** write `w:trackRevisions`, create a settings part, set
@@ -2178,6 +2190,10 @@ the only way the restore survives a rejection.
 
 ### 28.2 Revision ids over every part, and dates to the minute
 
+*(Implemented 2026-09-27 as items 1 and 2 of section 30's release, `401ff59` and `b541bec`, Phase D's
+device as recommended below; the counter moved from the tracker to the package after the review,
+section 31 finding 1.)*
+
 Two defects rather than features, and the first is a correctness bug worth fixing whatever else
 lands.
 
@@ -2201,6 +2217,9 @@ in `calendarOf`, or where the default `new Date()` is taken - the latter, so tha
 `trackedChangeDate` deliberately gets what they asked for.
 
 ### 28.3 `insertComment` and `reply` taking author, initials, date and id, and rich content
+
+*(Implemented 2026-09-27 as item 6 of section 30's release, `a572656`; empty content is refused
+before the markers are placed since the review, section 31 finding 5.)*
 
 `Range.insertComment(text)` and `Comment.reply(text)` take a string and use the package author and
 the current date. In a co-editing room the author is the peer who made the comment and the date is
@@ -2290,6 +2309,9 @@ Items 1 to 9 are about three and a half days and remove nine workarounds. CR-006
 each a piece of work of their own and neither is asked for, so the natural release is 1 to 9, with
 1 and 2 going in regardless because they are defects. That is the recommendation; the decision is
 Jason's.
+
+**Decided 2026-09-27:** items 1 to 9 and CR-006, one commit per item and one release; the move fix
+out. Section 31 records what landed and the review of it.
 
 ## 31. The release section 30 scoped: what landed, and a review of it (2026-09-27)
 
