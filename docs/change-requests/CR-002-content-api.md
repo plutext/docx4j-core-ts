@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 25 and 26 and 27: requests from the editor (the last two from its E4 plan, 2026-09-27, proposed and reviewed here the same day, each with a review note; neither is scheduled). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Of these, section 25 is implemented; the rest are proposed and scope for the next release is Jason's call (section 30 lists them in order with estimates). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2110,3 +2110,159 @@ suite, the typecheck and the 447-part hash set were then run again and are uncha
 case now reads `w:sz/@w:val (line 1): ...` instead of spelling the namespace URI. An amended commit
 is the one case where "only X changed" has to be checked rather than believed, because the artifact
 that was verified no longer exists under that name.
+
+## 28. Requests from the editor's E4.c (2026-09-27): tracking for one call, revision ids and dates, comment options
+
+**Requested by** `plutext/docx4j-ts-editor` ED-005 sections 5.4, 5.7, 7.4 and 8.5, relayed
+2026-09-27 with Jason's intent that they be in the next release if they fit. Each removes a
+workaround the editor would otherwise ship. Filed here with the design settled against the code,
+since each has a decision in it that the request leaves open.
+
+### 28.1 `pkg.withTracking(markup, fn)`: tracking for one call
+
+The editor's agent must record its own edits as revisions without changing the document's setting:
+a room's `w:trackRevisions` belongs to the document, not to one caller. The request is a scoped
+form, restoring afterwards, that **must not** write `w:trackRevisions`, create a settings part, set
+`trackingPending`, or disturb the cached `trackingMode`.
+
+The pieces are already separate, which is what makes this small. `changeTrackingMode`'s setter
+writes three things - the cached `trackingMode`, the settings part when it is unmarshalled, and
+`trackingPending` when it is not (`WordprocessingMLPackage` lines 314 to 319) - and the *reader*
+every mutation consults is the getter. So the shape is a fourth field the getter honours first and
+the setter never touches:
+
+```ts
+withTracking<T>(markup: { author: Author; date?: Date }, fn: () => T): T;
+withTracking<T>(markup: { author: Author; date?: Date }, fn: () => Promise<T>): Promise<T>;
+```
+
+setting an override, `author` and `trackedChangeDate`, running `fn`, and restoring all three in a
+`finally`. Three things the implementation must get right, each a way to leak:
+
+1. **The getter must not cache the override.** It currently memoises into `trackingMode`
+   (`this.trackingMode = modeOf(...)`), so an override that went through that field would outlive
+   the call. It has to be read before, and returned without storing.
+2. **`save()` must not be tempted.** It does `if (this.trackingPending) await
+   setChangeTrackingMode(...)`, so the override must leave `trackingPending` alone - which follows
+   from not going through the setter, and is worth a test rather than a comment.
+3. **Restoring must be exact for the "never set" case.** `trackingMode` is `undefined` until
+   something reads or writes it; restoring must put `undefined` back, not `'Off'`, or the next read
+   stops consulting the settings part.
+
+The async overload matters: the agent's run is asynchronous, and a `finally` after an `await` is
+the only way the restore survives a rejection.
+
+### 28.2 Revision ids over every part, and dates to the minute
+
+Two defects rather than features, and the first is a correctness bug worth fixing whatever else
+lands.
+
+**The id counter reads only unmarshalled parts.** `RevisionMarkup.nextId` walks
+`host.markupRoots()` and takes one above the highest `w:id` it finds among the `MARKUP_TYPES`
+(`tracking.mts` lines 94 to 107), and its own comment says "the parts already unmarshalled". So a
+revision in a footnote, endnote, header or comment part nobody has read does not raise the counter,
+and the next id collides with it. Word tolerates duplicate annotation ids unevenly and the editor's
+own pairing of `w:moveFrom` to `w:moveTo` by id would break outright. The fix is to unmarshal every
+WordprocessingML part that can hold revision markup before seeding the counter, which makes the
+first `nextId()` await-ing - or to seed it from the source bytes without unmarshalling, the device
+CR-001 Phase D used for font discovery (`readContents`), which keeps `nextId` synchronous and does
+not cost those parts their byte-for-byte round trip. **Phase D's device is the one to use**: the
+content API's setters are synchronous, and making id allocation async would reach every caller.
+
+**Dates should be written to the minute.** `markup()` writes
+`calendarOf(host.trackedChangeDate ?? new Date())`, seconds and all. Word writes seconds zero, and
+the consequence for the editor is not cosmetic: typing and an agent run split into one change per
+second instead of grouping, because Word groups adjacent revisions by author and timestamp. Truncate
+in `calendarOf`, or where the default `new Date()` is taken - the latter, so that a caller who sets
+`trackedChangeDate` deliberately gets what they asked for.
+
+### 28.3 `insertComment` and `reply` taking author, initials, date and id, and rich content
+
+`Range.insertComment(text)` and `Comment.reply(text)` take a string and use the package author and
+the current date. In a co-editing room the author is the peer who made the comment and the date is
+when they made it, so the editor would write both onto the element after the call - which works and
+is exactly the kind of thing that should not be in a consumer.
+
+```ts
+insertComment(content: string | Element[], options?: CommentOptions): Promise<Comment>;
+reply(content: string | Element[], options?: CommentOptions): Promise<Comment>;
+interface CommentOptions { author?: Author; date?: Date; id?: number; }
+```
+
+`id` is **checked unused** - across the comments part, and against the extended and extensible
+parts, since a `w:comment` id is referenced from `w15:commentEx` and from the markers in the
+document - and a clash throws rather than silently renumbering: a caller who names an id is
+asserting something about a room's state, and a renumber would break the peer that named it.
+`content` as `Element[]` accepts the paragraphs a rich comment is edited as; a string keeps the
+present single-paragraph behaviour.
+
+### 28.4 Regular expressions
+
+Section 26, unchanged, with the three amendments its review note records. It is the one Tier 1 item
+already filed.
+
+## 29. Two answers for the editor's E4.c, and a defect one of them found (2026-09-27)
+
+**Asked by** `plutext/docx4j-ts-editor`, wanting them settled before writing E4.c rather than
+discovering them in it. Both measured, not reasoned.
+
+**Does `search` ever match across a paragraph boundary? No.** `Body.search` is
+`paragraphs.flatMap((p) => p.search(...))` (`Body.mts` line 310) and a paragraph's search runs
+`findAll` over that paragraph's own `text`, so a pattern cannot see past it. Measured on two
+paragraphs `one two` and `three four`: `search('two three')` returns 0 hits and `search('two')`
+returns 1. The same holds for `Range.search`, which searches within the range's paragraph. This is
+deliberate and matches Office JS, and section 26's `matchRegExp` will not change it - which is why
+that section forbids the `m` and `s` flags.
+
+**Does accepting or rejecting one half of a move resolve both? No, and that is a defect.** The two
+halves are independent tracked changes and nothing pairs them: `accept()` and `reject()` switch on
+`t.revision` alone (`TrackedChange.mts` lines 113 and 141), and **nothing in `src/` reads
+`w:moveFrom`'s or `w:moveTo`'s `w:name`, or handles `w:moveFromRangeStart` and
+`w:moveToRangeStart` at all**. So accepting a `w:moveTo` unwraps that half and leaves the
+`w:moveFrom` a live revision; the *text* reads correctly either way, because the accepted view
+already skips `w:moveFrom` content (`tree.mts` line 75), but the markup is left as half a move, and
+the range-start and range-end markers Word writes around both halves are neither paired nor removed.
+
+Three things follow, and the first is the answer the editor needed:
+
+1. **Until this is fixed, a caller must accept or reject both halves itself**, matching them on
+   `w:name`. `TrackedChange` exposes `element`, so this is possible from outside, which is why this
+   is a defect to schedule rather than a blocker.
+2. **The fix is not just pairing the two halves.** Word's move is four elements plus two runs
+   containers: `w:moveFromRangeStart` / `w:moveFromRangeEnd` and the `w:moveTo` pair, all carrying
+   the same `w:name`. Accepting a move means resolving both halves *and* dropping all four markers;
+   rejecting it means putting the content back at the `w:moveFrom` and removing the destination.
+   Doing half of that leaves a document Word will offer to repair, which is worse than today's
+   honest half-move.
+3. **`getTrackedChanges()` should probably present a move as one change**, not two, since Office JS
+   has no notion of half a move and a UI that lists two entries for one user action is wrong. That
+   is a bigger change than the accept fix and wants its own decision.
+
+Not scheduled. Recorded here rather than left in a message because the answer "no" is the kind of
+thing a consumer builds on, and the defect behind it would otherwise be found by whoever first
+accepts a move in the editor.
+
+## 30. What the editor wants in the next release, and what it costs (2026-09-27)
+
+Relayed with Jason's intent that these land if they fit, the editor's own priority order preserved.
+Estimates are mine, and are the reason the order below is not quite the editor's: two of its Tier 1
+items are cheap and two are not.
+
+| | Item | Section | Estimate | Note |
+|---|---|---|---|---|
+| 1 | The revision-id counter reads every part | 28.2 | 2 h | **A defect, not a feature**: ids collide today. Phase D's `readContents` device keeps `nextId` synchronous |
+| 2 | Tracked dates to the minute | 28.2 | 1 h | Also a defect in effect: per-second revisions do not group in Word |
+| 3 | `pkg.withTracking` | 28.1 | half a day | The workaround the editor least wants to ship. Three leak paths to test, all named |
+| 4 | Caller-chosen ids for lists and custom XML parts | 24 | half a day | Filed 2026-09-26; a new data part is refused in a room without it |
+| 5 | `pkg.styles.ensure` and the six note styles | 22.2 | half a day | Retires a Word-definitions fallback table in the editor |
+| 6 | `insertComment` / `reply` options and rich content | 28.3 | half a day | The `id`-unused check spans three parts |
+| 7 | `matchRegExp` and group references | 26 | half a day | Three traps named in its review note; `findAll`'s shape has to change |
+| 8 | The `ShimmedDocument` type | 22.1 | 1 h | Retires the console's copy |
+| 9 | The located wrong-type error alone | 27 | 2 h | The rest of 27 is covered by the editor's split design |
+| - | CR-006, XPath over the tree | CR-006 | 2 to 3 days | The editor measured the marshal at 349-411 ms on its 255-page main part against 975 ms for the first unmarshal, so no cache is needed and my section 2 caution is answered. Nice-to-have: block-level hits by position are acceptable meanwhile |
+| - | A move resolved as one change | 29 | 1 to 2 days | Not requested; the editor pairs the halves itself. Bigger than it looks - four markers, and `getTrackedChanges` arguably presents one change |
+
+Items 1 to 9 are about three and a half days and remove nine workarounds. CR-006 and the move fix are
+each a piece of work of their own and neither is asked for, so the natural release is 1 to 9, with
+1 and 2 going in regardless because they are defects. That is the recommendation; the decision is
+Jason's.
