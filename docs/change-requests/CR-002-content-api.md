@@ -2640,3 +2640,12 @@ integer and a part of another package. The caller vouches for the number - one l
 highest id lets a new revision reuse an id - which is the price of not reading the part.
 `tracking.test.mjs` holds it on the Word-made revisions fixture: the noted main part is not read by
 the seed, the next id is above the noted one, and setting the part's bytes makes the seed read it.
+
+**The number to vouch with (2026-09-28, the editor's follow-up, in 0.2.2).** The editor cannot vouch
+for the main part's highest id from its own projection: its import notes revisions, move ranges and
+bookmarks, but not comment ranges, a numbering `w:ins`, or anything inside content it keeps opaque.
+`highestAnnotationId(tree)` - the walk the seed and the tracker use, over `MARKUP_TYPES`, the one id
+space of ECMA-376 17.13.5.4 - is exactly that number, so the package index now exports both;
+hand-copying the set would drift. Measured by the editor on its 255-page document: the walk 23 ms,
+the note 0 ms, the seed after it 48 ms, against 1,060 ms for the seed alone. The test holds noting the
+walk's number to the same floor as reading every part.

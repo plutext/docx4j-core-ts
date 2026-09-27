@@ -20,7 +20,7 @@ export { segmentsOf, runsOf, runItemsOf, childrenOf, rowsOf, cellsOf, BLOCK_LEVE
 // change tracking (CR-002 phase F)
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeTarget } from './TrackedChange.mjs';
 export {
-  ChangeTracker, trackerOf, calendarOf, dateOf, copyRPr, markDeleted, markInserted,
+  ChangeTracker, trackerOf, calendarOf, dateOf, copyRPr, markDeleted, markInserted, highestAnnotationId, MARKUP_TYPES,
   toDeletedText, toRestoredText, restoreRPr, restorePPr,
   trackInsertedParagraph, trackInsertedTable, wrapNewRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
   type ChangeTrackingMode, type TrackingHost, type TrackingScope,

@@ -1,7 +1,7 @@
 // CR-002 phase F: change tracking and replaceText.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WordprocessingMLPackage, ZipPartStore, ChangeTracker } from '../dist/index.mjs';
+import { WordprocessingMLPackage, ZipPartStore, ChangeTracker, highestAnnotationId } from '../dist/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
 const DATE = new Date(Date.UTC(2026, 8, 16, 10, 30, 0));
@@ -808,6 +808,16 @@ test('noteAnnotationIds: a part the caller has read is not read again by the see
   assert.equal(reads, 1);
 
   await assert.rejects(() => pkg.noteAnnotationIds(main, -1), /non-negative integer/);
+
+  // the number to vouch with is highestAnnotationId over the tree the caller read, which the index
+  // exports for this (the editor's import cannot see every id: comment ranges, a numbering w:ins,
+  // content it keeps opaque) - and it is the number the seed itself would have found
+  const fresh = await WordprocessingMLPackage.load(await fixture('revisions/revisions-word15.docx'));
+  const seeded = await fresh.seedAnnotationIds();
+  const noted = await WordprocessingMLPackage.load(await fixture('revisions/revisions-word15.docx'));
+  const tree = await noted.getMainDocumentPart().readContents();
+  await noted.noteAnnotationIds(noted.getMainDocumentPart(), highestAnnotationId(tree));
+  assert.equal(await noted.seedAnnotationIds(), seeded, 'the same floor as reading every part');
   const other = await WordprocessingMLPackage.createPackage();
   await assert.rejects(() => pkg.noteAnnotationIds(other.getMainDocumentPart(), 5), /not a part of this package/);
 });
