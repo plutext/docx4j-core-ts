@@ -176,7 +176,7 @@ public class Harness {
 		if (failed > 0) System.exit(1);
 	}
 
-	private static String required(String property) {
+	static String required(String property) {
 		String value = System.getProperty(property);
 		if (value == null || value.isEmpty()) {
 			throw new IllegalArgumentException("-D" + property + "=... is required");
@@ -186,7 +186,7 @@ public class Harness {
 
 	/** Every .docx directly under the fixtures directory and under its parity/ directory,
 	 *  in one sorted order (.pptx, .xlsx and loose .xml are not WordprocessingML). */
-	private static List<File> documents(File fixtures) {
+	static List<File> documents(File fixtures) {
 		List<File> all = new ArrayList<File>();
 		docx(fixtures, all);
 		docx(new File(fixtures, "parity"), all);
@@ -202,7 +202,7 @@ public class Harness {
 		}
 	}
 
-	private static String basename(File f) {
+	static String basename(File f) {
 		String n = f.getName();
 		return n.substring(0, n.length() - ".docx".length());
 	}
@@ -267,7 +267,7 @@ public class Harness {
 	 * unchanged sources gives a new jar; a golden that differs for a real reason carries
 	 * the new value with it.
 	 */
-	private static String docx4jCoreJarSha256() {
+	static String docx4jCoreJarSha256() {
 		try {
 			java.net.URL location = WordprocessingMLPackage.class.getProtectionDomain()
 					.getCodeSource().getLocation();
@@ -284,7 +284,7 @@ public class Harness {
 	}
 
 	/** The docx4j jar's version: its manifest where it has one, else the jar's file name. */
-	private static String docx4jVersion() {
+	static String docx4jVersion() {
 		Package p = WordprocessingMLPackage.class.getPackage();
 		String version = p == null ? null : p.getImplementationVersion();
 		if (version != null) return version;

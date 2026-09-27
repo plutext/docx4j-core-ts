@@ -2329,7 +2329,7 @@ release at the end; the move fix (section 29) is out. What landed, in order:
 | 7 | `matchRegExp` | 26 | `00a7376` | And Word's wildcard grouping, which had never been implemented: `(` and `)` were escaped to literals |
 | 8 | `ShimmedDocument` | 22.1 | `8253b72`, `afbfe17` | |
 | 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
-| - | XPath over the tree | CR-006 | `7368f8c` | All but CR-006 section 5's docx4j oracle (CR-006 section 9) |
+| - | XPath over the tree | CR-006 | `7368f8c` | CR-006 section 5's docx4j oracle followed after the review: 46 XPath goldens, zero differences (CR-006 section 9.1) |
 
 **A review of `adce961..7368f8c`**, asked for before the release: fifteen findings, each reproduced
 against the build or read in the code. Every fix below has a test that fails on the code before it.

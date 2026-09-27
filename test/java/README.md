@@ -197,9 +197,46 @@ its own; version 2 calls the accessors, and produced goldens identical to versio
 docx4j's `McSelection` (above), and produced goldens identical to version 2's on all 45
 fixtures too — so the harness now holds no rule of its own about what docx4j answers.
 
+## The XPath harness (CR-006)
+
+A second main class in the same project, the oracle for `XmlPart.selectObjects` (CR-006
+section 5). For every `.docx` fixture it runs a fixed list of expressions
+(`XPathHarness.EXPRESSIONS`: every paragraph, run, text, table and control; what sits in a run;
+CR-006's predicates; positional ones; one attribute and one text selection) over the main
+document part through docx4j's `XmlUtils.getJAXBAssociationsForXPath` - what
+`getJAXBNodesViaXPath` is built on, without its throw where a hit has no object - and records
+every hit's path (in the form `pathOf` writes), the kind of node, and the class of the object
+docx4j's binder associates with it, spelled as the objects package spells a `TYPE_NAME`. One
+golden per fixture under [`../golden/xpath/`](../golden/xpath/), compared by
+`test/xpath-parity.test.mjs`.
+
+```
+mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.XPathHarness \
+  -Dfixtures=../fixtures -Dout=../golden/xpath -Ddocx4j.commit=<hash>
+```
+
+Under two seconds for 46 fixtures; the same rules as above for which docx4j it runs against.
+
+- **The binder is made from a fresh marshal.** The harness reads the part's contents before it
+  asks for the binder, so `getBinder()` takes its "contents set, no binder yet" branch: it
+  marshals them and binds that DOM, which is what `selectObjects` does on every call (docx4j's
+  `refreshXmlFirst`). Asked first, `getBinder()` binds the source XML instead, which keeps what
+  neither object model has.
+- **A fixture whose main part marshals an `mc:AlternateContent` records no hits** (the header's
+  `alternateContent` says how many). docx4j keeps the element and both branches in its tree, so
+  its marshal has a text box's paragraphs twice, while this package resolves the choice before it
+  unmarshals: the two would be answering about different documents (CR-006 section 8 item 3).
+  Three fixtures, each with a text box.
+- **Paths are docx4j's**, prefixes and all, and the header's `prefixes` records the namespace of
+  every prefix a path uses; the test asserts they are the objects package's before it compares a
+  path, so a prefix that came to differ would say so.
+
 ## Files
 
-- `pom.xml` — Java 21, `docx4j-core` and friends from the local repository, `exec-maven-plugin`.
-- `src/main/java/org/docx4j/parity/Harness.java` — the whole harness.
+- `pom.xml` — Java 21, `docx4j-core` and friends from the local repository, `exec-maven-plugin`;
+  `exec.mainClass` is a property so the command line can choose the harness.
+- `src/main/java/org/docx4j/parity/Harness.java` — the parity harness.
+- `src/main/java/org/docx4j/parity/XPathHarness.java` — the XPath harness (CR-006), which shares
+  the parity harness's fixture list and provenance helpers.
 - `src/main/java/org/docx4j/parity/Json.java` — a small JSON writer, so the only dependency
   is docx4j.

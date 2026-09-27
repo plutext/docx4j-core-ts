@@ -1,0 +1,14 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "0e8e7633ef46012e0d3603339728b83ed21d5045",
+    "docx4jVersion": "docx4j-core-17.2.1.jar",
+    "docx4jCoreJarSha256": "676c17c978995592",
+    "date": "2026-09-27T10:05:24Z",
+    "fixture": "numbering-stories-coretests.docx",
+    "fixtureBytes": 16455,
+    "part": "/word/document.xml",
+    "alternateContent": 1,
+    "prefixes": {}
+  }
+}

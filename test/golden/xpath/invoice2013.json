@@ -1,0 +1,1727 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "0e8e7633ef46012e0d3603339728b83ed21d5045",
+    "docx4jVersion": "docx4j-core-17.2.1.jar",
+    "docx4jCoreJarSha256": "676c17c978995592",
+    "date": "2026-09-27T10:05:24Z",
+    "fixture": "invoice2013.docx",
+    "fixtureBytes": 49797,
+    "part": "/word/document.xml",
+    "alternateContent": 0,
+    "prefixes": {
+      "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "pic": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+      "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+      "wp": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+    }
+  },
+  "hits": {
+    "//w:p": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[6]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:r": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[2]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[3]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      }
+    ],
+    "//w:t": [
+      {
+        "path": "/w:document/w:body[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[2]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[3]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[4]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[3]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[2]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Text"
+      }
+    ],
+    "/w:document/w:body/*": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tbl"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tbl"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[6]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:bookmarkStart[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTBookmark"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:bookmarkEnd[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTMarkupRange"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sectPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SectPr"
+      }
+    ],
+    "//w:tbl": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tbl"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tbl"
+      }
+    ],
+    "//w:tr": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tr"
+      }
+    ],
+    "//w:tc": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.Tc"
+      }
+    ],
+    "//w:tbl//w:p": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:sdt": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtRow"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtRow"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtRun"
+      }
+    ],
+    "//w:sdtContent": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtContentBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[2]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[3]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtContentBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRow"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRow"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtContentBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtContentBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtContentBlock"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTSdtContentRun"
+      }
+    ],
+    "//w:hyperlink": [],
+    "//w:bookmarkStart": [
+      {
+        "path": "/w:document/w:body[1]/w:bookmarkStart[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTBookmark"
+      }
+    ],
+    "//w:bookmarkEnd": [
+      {
+        "path": "/w:document/w:body[1]/w:bookmarkEnd[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.CTMarkupRange"
+      }
+    ],
+    "//w:sectPr": [
+      {
+        "path": "/w:document/w:body[1]/w:sectPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SectPr"
+      }
+    ],
+    "//w:pPr": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[1]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[2]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[3]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:pPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.PPr"
+      }
+    ],
+    "//w:rPr": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:pPr[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.ParaRPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[2]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtPr[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:pPr[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.ParaRPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtPr[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:rPr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.RPr"
+      }
+    ],
+    "//w:pStyle": [],
+    "//w:rStyle": [],
+    "//w:numPr": [],
+    "//w:ins": [],
+    "//w:del": [],
+    "//w:delText": [],
+    "//w:fldSimple": [],
+    "//w:fldChar": [],
+    "//w:instrText": [],
+    "//w:tab": [],
+    "//w:br": [],
+    "//w:drawing": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:drawing[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.Drawing"
+      }
+    ],
+    "//wp:inline": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:drawing[1]/wp:inline[1]",
+        "node": "element",
+        "object": "org_docx4j_dml_wordprocessingDrawing.Inline"
+      }
+    ],
+    "//a:graphic": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:drawing[1]/wp:inline[1]/a:graphic[1]",
+        "node": "element",
+        "object": "org_docx4j_dml.Graphic"
+      }
+    ],
+    "//pic:pic": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:drawing[1]/wp:inline[1]/a:graphic[1]/a:graphicData[1]/pic:pic[1]",
+        "node": "element",
+        "object": "org_docx4j_dml_picture.Pic"
+      }
+    ],
+    "//w:footnoteReference": [],
+    "//w:commentRangeStart": [],
+    "//w:proofErr": [
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:proofErr[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.ProofErr"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:proofErr[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.ProofErr"
+      }
+    ],
+    "//w:lastRenderedPageBreak": [],
+    "//w:p[w:pPr/w:numPr]": [],
+    "//w:p[w:pPr/w:pStyle/@w:val='Heading1']": [],
+    "//w:r[w:rPr/w:rFonts]": [
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      }
+    ],
+    "//w:r[w:rPr/w:b]": [
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.R"
+      }
+    ],
+    "//w:sdt[w:sdtPr/w:tag]": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.SdtBlock"
+      }
+    ],
+    "//w:p[.//w:t]": [
+      {
+        "path": "/w:document/w:body[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:p[not(w:r)]": [
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[2]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[6]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:p[last()]": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:p[3]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "(//w:p)[1]": [
+      {
+        "path": "/w:document/w:body[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:body/w:p[1]": [
+      {
+        "path": "/w:document/w:body[1]/w:p[1]",
+        "node": "element",
+        "object": "org_docx4j_wml.P"
+      }
+    ],
+    "//w:pStyle/@w:val": [],
+    "//w:t/text()": [
+      {
+        "path": "/w:document/w:body[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[3]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[2]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[3]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:r[4]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]/w:p[5]/w:sdt[3]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[2]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[2]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[4]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[1]/w:p[1]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[2]/w:p[1]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[3]/w:p[1]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:tbl[2]/w:sdt[1]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:tr[1]/w:tc[4]/w:p[1]/w:r[2]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:p[7]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[2]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:sdt[1]/w:sdtContent[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      },
+      {
+        "path": "/w:document/w:body[1]/w:sdt[3]/w:sdtContent[1]/w:sdt[1]/w:sdtContent[1]/w:p[1]/w:r[1]/w:t[1]/text()",
+        "node": "text",
+        "object": null
+      }
+    ]
+  }
+}

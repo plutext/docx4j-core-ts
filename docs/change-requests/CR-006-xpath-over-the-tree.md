@@ -2,9 +2,9 @@
 
 **Status:** Proposed 2026-09-27, at the editor's request; reviewed here the same day (section 4
 rewritten against the runtime, section 8 added). Scheduled by Jason the same day with CR-002
-section 30's release, and implemented (`7368f8c`, fixes from a review in CR-002 section 31) **all
-but section 5's docx4j oracle**, which is what would make it parity rather than self-consistency
-(section 9).
+section 30's release, and **implemented** 2026-09-27 (`7368f8c`, fixes from a review in CR-002
+section 31), with section 5's docx4j oracle the same day: 46 XPath goldens from docx4j 17.2.1,
+zero differences (section 9).
 **Depends on:** CR-001 Phase A (`XmlPart.marshalToNode`); CR-002 phase E (`XPathEngine`,
 `pkg.xpathEngine`, the default engine) and CR-005 phase A (`FontoXPathEngine`); a marshalling hook
 below this package (section 4)
@@ -194,7 +194,8 @@ three questions, answered:
    the `Bound` doc comment says; for DOM content the model does not bind it is the node in the
    **tree**, not the snapshot's imported copy (section 4's first rider, which has its test on
    `cr022-slicers-timelines.xlsx`).
-3. **The oracle's reach** stands as written, and the oracle is not built (below).
+3. **The oracle's reach** stands as written: the fixtures whose main part holds what the two sides
+   treat differently in kind (an `mc:AlternateContent`) are recorded without hits (section 9.1).
 
 Departures from section 2, each deliberate:
 
@@ -212,9 +213,40 @@ Departures from section 2, each deliberate:
   property of the document the tree is in (CR-002 section 21), and the snapshot is that document;
   readying on a marshal of its own cost `pkg.selectObjects` a second marshal of the part.
 
-**Not done: section 5's oracle.** The tests hold the API to itself - paths, identity, the views,
-the snapshot leaving the part alone, the wildcard copy - but not to docx4j. The harness is a
-`test/java` program running `getJAXBNodesViaXPath` over the main document parts of a fixture set
-chosen per section 8 item 3, recording each result's path, compared by a test here as the parity
-goldens are. Until it exists, a difference in the order or the reach of a result from docx4j's
-would not be seen.
+### 9.1 The oracle (section 5)
+
+`test/java`'s `XPathHarness`, a second main class beside the parity harness, runs 47 expressions
+over the main document part of every `.docx` fixture through docx4j's
+`XmlUtils.getJAXBAssociationsForXPath` - what `getJAXBNodesViaXPath` is built on, without its throw
+where a hit has no object - and records every hit's path, the kind of node, and the class of the
+object docx4j's binder associates with it, spelled as a `TYPE_NAME`. `test/golden/xpath/` holds one
+golden per fixture; `test/xpath-parity.test.mjs` runs the same expressions through
+`pkg.selectObjects` and requires the same hits in the same order, each object of docx4j's class and
+an object of the part's own tree (found by walking it, so not a copy). The expressions are the
+structural ones (every paragraph, run, text, table, row, cell and control, the body's children),
+what sits in a run (fields, tabs, breaks, a picture's `wp:inline`, `a:graphic` and `pic:pic`),
+section 1's predicates, positional ones (`//w:p[last()]`, `(//w:p)[1]`), which are where an order
+would show, and one attribute and one text selection.
+
+**The result: zero differences**, 6,016 hits over 43 fixtures, on the first run. Checked not to
+be vacuous by corrupting a golden three ways - two hits swapped, a run's class changed, a text's
+class changed - each of which fails. Three things the harness had to decide, recorded in
+`test/java/README.md`:
+
+- **The binder is made from a fresh marshal.** docx4j's `getBinder()` binds the source XML when the
+  part has not been unmarshalled, and a marshal of the tree when it has, so the harness unmarshals
+  first. That is the same snapshot `selectObjects` evaluates, and what docx4j's `refreshXmlFirst`
+  is for.
+- **Section 8 item 3's fixtures.** Three fixtures - `loadAndSave`, `numbering-stories` and
+  `numbering-stories-coretests`, each with a text box - marshal an `mc:AlternateContent` in their
+  main part. docx4j keeps the element and both branches in its tree, so its marshal has the text
+  box's paragraphs twice; this package resolves the choice before it unmarshals. They are recorded
+  without hits, and the test lists them, so that a fixture joining them is a decision.
+- **The departure of section 2, measured.** docx4j's binder associates nothing with an attribute or
+  a text node (778 text nodes and 114 attributes here, all null); this package gives the owning
+  element's object, and the test checks it is the object of the class docx4j gives that element.
+
+The goldens are from the 17.2.1 release on Maven Central (`docx4j-17.2.1`, `0e8e7633e`) rather than
+from `7fba7a150`, which the parity goldens record: the XPath and binder code has not moved in years,
+a release needed no build, and `.github/workflows/parity.yml` now regenerates these with the parity
+goldens every week from docx4j's head, diffing them the same way.

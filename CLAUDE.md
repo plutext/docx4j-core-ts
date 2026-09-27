@@ -21,7 +21,7 @@ search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `
 implemented; CR-002 phase A is the objects package's `builders/wml`. So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine), and CR-006 (`selectObjects` and
-`Body.select`, XPath over the tree) but for its docx4j oracle. The editor's release requests are
+`Body.select`, XPath over the tree, held to docx4j by 46 XPath goldens). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -157,7 +157,10 @@ font of every character), written by the Maven harness in `test/java/` and compa
 Regenerate by hand (build docx4j, then `mvn -q -o compile exec:java -Dfixtures=../fixtures
 -Dout=../golden -Ddocx4j.commit=<hash>` in `test/java`; each README says more);
 `.github/workflows/parity.yml` does it weekly against docx4j's head and opens a pull request
-when an answer moves. Parity is zero differences.
+when an answer moves. Parity is zero differences. `test/golden/xpath/` is CR-006's oracle: what
+docx4j's `getJAXBNodesViaXPath` selects for 47 expressions per fixture, made by the same Maven
+project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and compared by
+`test/xpath-parity.test.mjs`.
 
 ## Rules
 

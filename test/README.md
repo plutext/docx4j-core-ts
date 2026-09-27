@@ -88,6 +88,11 @@ what was found producing them); `java/README.md` says how to build docx4j, run t
 read a golden. `.github/workflows/parity.yml` reruns it weekly against docx4j's head and opens
 a pull request when an answer changes.
 
+`golden/xpath/` holds CR-006's oracle, made by the same project's `XPathHarness` and read by
+`xpath-parity.test.mjs`: what docx4j's `getJAXBNodesViaXPath` selects for 47 expressions over each
+fixture's main document part, from the docx4j 17.2.1 release. `selectObjects` returns the same hits
+in the same order, with objects of the same classes, on all 43 fixtures that have hits.
+
 ## Word acceptance (manual)
 
 Last run: 2026-09-19, Word 365, PowerPoint and Excel, after CR-001 Phase C: checks 3 and 9 to 13.

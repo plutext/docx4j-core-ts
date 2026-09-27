@@ -150,3 +150,23 @@ to. Things worth a look, and things found while producing them:
   Word draws, and what the TypeScript side resolves on the DOM before unmarshalling. docx4j's
   own default (the property empty) would give the fallback, and so would its mc-preprocessor.
   See the harness README, which lists the eighty-four prefixes.
+
+## `xpath/`: what docx4j's `getJAXBNodesViaXPath` selects (CR-006)
+
+One JSON file per `.docx` fixture, recording what docx4j's binder answers for each of the XPath
+harness's 47 expressions over the main document part: every hit's path, the kind of node, and the
+class of the object docx4j associates with it. The contract `XmlPart.selectObjects` meets, compared
+by `test/xpath-parity.test.mjs`: the same hits in the same order, each object of docx4j's class and
+an object of the part's own tree. **Zero differences.** The harness and the form of a golden are in
+[`../java/README.md`](../java/README.md#the-xpath-harness-cr-006).
+
+| | |
+|---|---|
+| docx4j | the 17.2.1 release from Maven Central (`docx4j-core-17.2.1.jar`, SHA-256 `676c17c978995592…`), tagged `docx4j-17.2.1` at `0e8e7633ef46012e0d3603339728b83ed21d5045`. The XPath and binder code has not moved in years, so a release is as good an oracle here as the head, and needed no build; the weekly workflow regenerates these from the head with the rest |
+| harness version | 1 |
+| fixtures | all 46 `.docx` (the 45 of the parity goldens and `invoice_Saxon_XPath2.docx`); 43 with hits, and three - `loadAndSave`, `numbering-stories`, `numbering-stories-coretests` - recorded without, since their main part marshals an `mc:AlternateContent` (a text box), which docx4j keeps with both branches and this package resolves before it unmarshals |
+| hits | 6,016: 5,124 elements, each with a class; 778 text nodes and 114 attributes, with which docx4j's binder associates nothing and this package the owning element's object (CR-006 section 2) |
+
+Regenerate with `-Dexec.mainClass=org.docx4j.parity.XPathHarness -Dout=../golden/xpath` on the
+command above. Two runs differ only in the header's `date`, checked by running twice into two
+directories and diffing (2026-09-27).

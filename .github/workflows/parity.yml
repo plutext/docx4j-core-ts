@@ -89,6 +89,19 @@ jobs:
           -Dout=${{ runner.temp }}/golden
           -Ddocx4j.commit=${{ steps.commits.outputs.new }}
 
+      - name: Run the XPath harness
+        working-directory: test/java
+        # CR-006 section 5: what docx4j's getJAXBNodesViaXPath selects over the same fixtures'
+        # main document parts, the oracle for selectObjects (test/golden/xpath/, compared by
+        # test/xpath-parity.test.mjs).  The same project, another main class.
+        run: >
+          mvn -B -q exec:java
+          -Dexec.mainClass=org.docx4j.parity.XPathHarness
+          -Ddocx4j.version=${{ steps.commits.outputs.version }}
+          -Dfixtures=../fixtures
+          -Dout=${{ runner.temp }}/golden/xpath
+          -Ddocx4j.commit=${{ steps.commits.outputs.new }}
+
       - name: Compare with the committed goldens
         id: compare
         # The date is when the harness ran, the jar hash and file name are the build it ran
@@ -99,8 +112,8 @@ jobs:
         # reason carries its new header along when it is copied in.
         run: |
           differed=""
-          for golden in test/golden/*.json; do
-            name=$(basename "$golden")
+          for golden in test/golden/*.json test/golden/xpath/*.json; do
+            name=${golden#test/golden/}
             fresh="${{ runner.temp }}/golden/$name"
             if [ ! -f "$fresh" ]; then differed="$differed $name(missing)"; continue; fi
             if ! diff -q <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"\|"docx4jVersion"' "$golden") \
@@ -108,8 +121,8 @@ jobs:
               differed="$differed $name"
             fi
           done
-          for fresh in ${{ runner.temp }}/golden/*.json; do
-            name=$(basename "$fresh")
+          for fresh in ${{ runner.temp }}/golden/*.json ${{ runner.temp }}/golden/xpath/*.json; do
+            name=${fresh#${{ runner.temp }}/golden/}
             [ -f "test/golden/$name" ] || differed="$differed $name(new)"
           done
           if [ -n "$differed" ]; then
@@ -129,11 +142,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: golden-${{ steps.commits.outputs.new }}
-          path: ${{ runner.temp }}/golden/*.json
+          path: |
+            ${{ runner.temp }}/golden/*.json
+            ${{ runner.temp }}/golden/xpath/*.json
 
       - name: Take the new goldens
         if: steps.compare.outputs.changed == 'true'
-        run: cp ${{ runner.temp }}/golden/*.json test/golden/
+        run: |
+          cp ${{ runner.temp }}/golden/*.json test/golden/
+          mkdir -p test/golden/xpath
+          cp ${{ runner.temp }}/golden/xpath/*.json test/golden/xpath/
 
       - name: The docx4j commits since the goldens were made
         if: steps.compare.outputs.changed == 'true'
