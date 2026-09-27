@@ -22,6 +22,7 @@ import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollect
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
 import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost, type TrackingScope } from '../model/content/tracking.mjs';
 import { NumberingFacade } from '../model/content/List.mjs';
+import { StylesFacade } from '../model/content/stylesFacade.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
@@ -505,6 +506,29 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * `customXmlParts.load()`; every node call is synchronous afterwards.
    */
   xpathEngine: XPathEngine = new DefaultXPathEngine();
+
+  /**
+   * The document's style definitions as a verb that needs no `Body`: `ensure(ids)` splices in a
+   * style the document lacks, out of the same defaults `createPackage()` writes, with what it is
+   * based on and linked to (CR-002 section 22.2).
+   */
+  get styles(): StylesFacade {
+    return (this.stylesFacade ??= new StylesFacade(this));
+  }
+
+  private stylesFacade: StylesFacade | undefined;
+
+  /** The styles part, created with the defaults when the document has none (CR-002 section 22.2). */
+  ensureStyleDefinitionsPart(): StyleDefinitionsPart {
+    const main = this.getMainDocumentPart();
+    let part = main.styleDefinitionsPart;
+    if (!part) {
+      part = new StyleDefinitionsPart();
+      part.setXml(DEFAULT_STYLES_XML);
+      main.addTargetPart(part);
+    }
+    return part;
+  }
 
   /**
    * The document's list definitions as verbs that need no paragraph: `newList()` and

@@ -1826,7 +1826,15 @@ carrying the change makes dead code.
    belongs here, exported from `office-js` as the type of `RequestContext.document` (or as a
    `ShimmedDocument` beside it), so that a Node user of `Word.run` and an add-in test get the
    same view; the editor then deletes its copy.
-2. **`ensureStyles(ids)` on the package or the styles part.** Inserting a footnote needs
+2. **`ensureStyles(ids)` on the package or the styles part.** *(Implemented 2026-09-27 as
+   `pkg.styles.ensure(ids)`. The request's premise turned out to be exactly right and for a reason
+   neither side had: docx4j's own `styles.xml` - which `DEFAULT_STYLES_XML` reproduces verbatim,
+   generated - carries **nine definitions commented out**, the six note styles among them. So a
+   created document has no `FootnoteText` although the file appears to contain one, and a
+   `w:styleId="FootnoteText"` text search says it does. The nine are extracted with provenance into
+   `spliceableStyles.mts`, which is where `ensure` looks after the defaults; `ensure` strips comments
+   before its own byte-for-byte shortcut, since that shortcut would otherwise answer "nothing to do"
+   for precisely the documents this exists for.)* Inserting a footnote needs
    `FootnoteText`, `FootnoteReference` and their linked character styles; `createPackage`'s
    defaults on 0.1.5 lack the six note styles (main carries them), and a document that has none
    needs them spliced in with what they are based on and linked to, the resolver refreshed. The

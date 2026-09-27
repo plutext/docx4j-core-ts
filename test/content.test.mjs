@@ -398,3 +398,53 @@ test('Range.hyperlink: reads what Word wrote', async () => {
   assert.ok(links.length > 0, 'the fixture has hyperlinks');
   for (const link of links) assert.match(link, /^https?:\/\/|^#/, link);
 });
+
+// CR-002 section 22.2: pkg.styles.ensure(ids) splices in a style the document lacks, with what it
+// is based on and linked to. The need is sharper than it looks: docx4j's own styles.xml - which
+// createPackage writes verbatim - carries nine definitions COMMENTED OUT, the six note styles among
+// them, so a created document has no FootnoteText although the file appears to contain one.
+test('styles.ensure splices a missing style in with its basedOn and link closure', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+
+  // the defaults do NOT define it, the appearance of the XML notwithstanding
+  const xml = await styles.getXml();
+  assert.ok(xml.includes('w:styleId="FootnoteText"'), 'the text mentions it');
+  assert.ok(!xml.replace(/<!--[\s\S]*?-->/g, '').includes('w:styleId="FootnoteText"'), 'but only inside a comment');
+
+  const added = await pkg.styles.ensure('FootnoteText');
+  assert.deepEqual(added, ['FootnoteTextChar', 'FootnoteText'],
+    'the closure, in dependency order: the linked character style, then itself (Normal and '
+    + 'DefaultParagraphFont are already defined, so they are left alone)');
+  const defined = styles.contents.style.map((s) => s.styleId);
+  for (const id of added) assert.ok(defined.includes(id), id);
+  const footnote = styles.contents.style.find((s) => s.styleId === 'FootnoteText');
+  assert.equal(footnote.type, 'paragraph');
+  assert.equal(footnote.name.val, 'footnote text');
+  assert.equal(footnote.link.val, 'FootnoteTextChar');
+
+  // idempotent, and a document's own definition always wins over the default
+  assert.deepEqual(await pkg.styles.ensure(['FootnoteText', 'Normal']), []);
+  footnote.name.val = 'my footnote text';
+  await pkg.styles.ensure('FootnoteText');
+  assert.equal(styles.contents.style.filter((s) => s.styleId === 'FootnoteText').length, 1, 'not duplicated');
+  assert.equal(styles.contents.style.find((s) => s.styleId === 'FootnoteText').name.val, 'my footnote text', 'not overwritten');
+
+  // an id nothing can define says so rather than inventing one
+  await assert.rejects(() => pkg.styles.ensure('NoSuchStyle'), /No definition to splice/);
+
+  // and it survives a round trip
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  const backStyles = await back.getMainDocumentPart().styleDefinitionsPart.getContents();
+  assert.ok(backStyles.style.some((s) => s.styleId === 'FootnoteTextChar'));
+});
+
+test('styles.ensure leaves a document that has the styles byte for byte', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  assert.deepEqual(await pkg.styles.ensure(['Normal', 'Heading1']), [], 'nothing added');
+  assert.equal(styles.isUnmarshalled, false, 'and the part was never unmarshalled');
+  const saved = new ZipPartStore(await pkg.save());
+  const source = new ZipPartStore(await fixture('loadAndSave.docx'));
+  assert.deepEqual(saved.loadSync('word/styles.xml'), source.loadSync('word/styles.xml'));
+});
