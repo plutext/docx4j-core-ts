@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Section 25 implemented 2026-09-26; sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 27's strict `setXml` (the editor's split design covers it) and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which is **not implemented** and waits on its check in Word - this line called it implemented from 2026-09-26 until the editor found otherwise on 0.2.0 (section 25); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix. Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -1904,6 +1904,14 @@ JS: whether `range.hyperlink = …` in Word applies the style (the setter should
 there, which is what the editor's `api` lines are held to). The editor's `range.hyperlink` command
 changes with it; `api.test.mts` holds the two to the same output, so the editor waits for the
 release that carries this rather than diverging.
+
+*(Not implemented, and not in 0.2.0: nothing has been done beyond this text, and the check in Word
+comes first. From 2026-09-26 the Status line said this section was implemented - `adce961`, which
+revised only the paragraph above, was taken for the implementation, and the claim was carried
+forward and dated rather than checked against `Range.mts` - until the editor tried it on the
+installed 0.2.0 on 2026-09-27: `search('world')[0].hyperlink = 'https://example.com/'` leaves the
+wrapped run without `w:rStyle w:val="Hyperlink"`. Scheduling it is Jason's call; the editor has
+no workaround meanwhile and will follow whatever the setter does.)*
 
 ## 26. A request from the editor's E4.a: regular expressions in `SearchOptions` (2026-09-27)
 
