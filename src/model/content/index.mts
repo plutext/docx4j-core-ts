@@ -9,7 +9,7 @@ export {
   List, ListItem, ListItemNotFoundError, NumberingFacade, listsOf, listLabelsOf, numberingEmulatorOf, levelOf,
   type ListLevelType, type ListNumbering, type ListBullet, type StartListOptions, type ListLabel,
 } from './List.mjs';
-export { type Author, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
+export { type Author, type CommentContent, type CommentOptions, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
 export { Font, type UnderlineType, type RPrHolder, type FontTracking } from './Font.mjs';
 export { Table, TableRow, TableCell, cellOf } from './Table.mjs';
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture } from './InlinePicture.mjs';

@@ -259,3 +259,56 @@ test('anchors: an empty range gets a reference run only; cells and hyperlinks wo
   assert.deepEqual(link.p.content[0].value.content.map((e) => e.name.localPart), ['r', 'r']);
   assert.equal(link.text, 'linked text');
 });
+
+// CR-002 section 28.3: in a co-editing room the author of a comment is the peer who made it and the
+// date is when they made it, neither being a property of whoever saves; and a comment edited rich is
+// paragraphs rather than a string.
+test('insertComment and reply take the author, initials, date and id', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada Lovelace' };
+  pkg.body.insertParagraph('Some text to comment on', 'End');
+  const range = pkg.body.paragraphs[0].getRange();
+
+  const made = new Date(Date.UTC(2026, 8, 20, 14, 5, 0));
+  const comment = await range.insertComment('from the peer', {
+    author: { name: 'Grace Hopper', email: 'grace@example.com' }, initials: 'GBH', date: made, id: 77,
+  });
+  assert.equal(comment.id, 77);
+  assert.equal(comment.authorName, 'Grace Hopper');
+  assert.equal(comment.element.initials, 'GBH');
+  assert.equal(comment.creationDate.toISOString(), made.toISOString());
+
+  const reply = await comment.reply('and the answer', { author: { name: 'Alan Turing' }, id: 78 });
+  assert.equal(reply.id, 78);
+  assert.equal(reply.authorName, 'Alan Turing');
+  assert.equal(reply.parent, comment);
+
+  // the package author is untouched by either
+  assert.equal(pkg.author.name, 'Ada Lovelace');
+
+  // a chosen id is checked unused, against the comments part and the story's markers
+  await assert.rejects(() => range.insertComment('again', { id: 77 }), /77 is already in use/);
+  await assert.rejects(() => range.insertComment('again', { id: -2 }), /non-negative integer/);
+
+  // and it all survives a round trip
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getMainDocumentPart().getContents();
+  const comments = await back.body.getComments();
+  assert.equal(comments.length, 1);
+  assert.equal(comments[0].id, 77);
+  assert.equal(comments[0].authorName, 'Grace Hopper');
+  assert.equal(comments[0].replies[0].authorName, 'Alan Turing');
+});
+
+test('a comment can be given paragraphs rather than a string', async () => {
+  const { p: wp, r: wr } = await import('@docx4j/generated-objects-ts/builders/wml');
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('anchor', 'End');
+  const paragraphs = [wp([wr('first line')]), wp([wr('second line')])];
+  const comment = await pkg.body.paragraphs[0].getRange().insertComment(paragraphs);
+  assert.equal(comment.content, 'first line\nsecond line');
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getMainDocumentPart().getContents();
+  assert.equal((await back.body.getComments())[0].content, 'first line\nsecond line');
+  await assert.rejects(() => pkg.body.paragraphs[0].getRange().insertComment([]), /at least one paragraph/);
+});

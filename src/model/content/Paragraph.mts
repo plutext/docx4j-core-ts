@@ -20,7 +20,7 @@ import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/w
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
-import { commentApi } from './comments.mjs';
+import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, copyRPr, markDeleted, toDeletedText } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
@@ -671,8 +671,8 @@ export class Paragraph {
   }
 
   /** Comments the whole paragraph (sugar over `getRange().insertComment`). */
-  async insertComment(text: string): Promise<Comment> {
-    return commentApi().insertComment(this.getRange(), text);
+  async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    return commentApi().insertComment(this.getRange(), content, options);
   }
 
   // --- content controls (CR-002 phase E) ---

@@ -25,6 +25,26 @@ export const COMMENT_REFERENCE_STYLE = 'CommentReference';
  * Who a comment (and, with phase F, a tracked change) is by. `WordprocessingMLPackage.author`;
  * there is no signed-in user here, so the package carries the identity.
  */
+/**
+ * What a comment is made of: the text, or the paragraphs of a comment that was edited rich
+ * (CR-002 section 28.3). A string splits on newlines, as it did before this option existed.
+ */
+export type CommentContent = string | Element<wml.P>[];
+
+/**
+ * Who made a comment and when, and its `w:id`, for a caller that knows better than the package does:
+ * in a co-editing room the author is the peer who made it and the date is when they made it
+ * (CR-002 section 28.3). Anything omitted falls back to what the package would have used.
+ */
+export interface CommentOptions {
+  author?: Author | undefined;
+  /** Overrides the initials derived from the author's name. */
+  initials?: string | undefined;
+  date?: Date | undefined;
+  /** Checked unused across the comments part and the story's markers; a clash throws. */
+  id?: number | undefined;
+}
+
 export interface Author {
   name: string;
   /** Word's `w:initials`; derived from the name when not given. */
@@ -95,7 +115,7 @@ export function commentPartsAccess(): CommentPartsAccess {
 /** How `Body`, `Paragraph` and `Range` reach the `Comment` views; registered by `Comment.mts`. */
 export interface CommentApi {
   commentsOf(scope: Body | Paragraph | Range): Promise<Comment[]>;
-  insertComment(range: Range, text: string): Promise<Comment>;
+  insertComment(range: Range, content: CommentContent, options?: CommentOptions): Promise<Comment>;
 }
 
 let api: CommentApi | undefined;

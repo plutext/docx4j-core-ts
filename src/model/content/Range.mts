@@ -13,7 +13,7 @@ import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { searchPattern, findAll, type SearchOptions } from './search.mjs';
-import { commentApi } from './comments.mjs';
+import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
 
@@ -187,8 +187,8 @@ export class Range {
    * boundaries, as `font` does), the comment itself and the side-part entries, creating any of
    * the comment parts the document lacks. Asynchronous because it unmarshals those parts.
    */
-  async insertComment(text: string): Promise<Comment> {
-    return commentApi().insertComment(this, text);
+  async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    return commentApi().insertComment(this, content, options);
   }
 
   // --- content controls (CR-002 phase E) ---

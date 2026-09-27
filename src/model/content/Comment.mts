@@ -13,7 +13,8 @@ import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
 import {
-  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, calendarToDate, commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
+  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions,
+  calendarToDate, commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
   dateToCalendar, initialsOf, isDone, markersOf, markersOfParagraph, nextCommentId, paraIdTaken, randomHexId, removeMarkers,
   setCommentApi, type CommentMarker, type CommentParts,
 } from './comments.mjs';
@@ -120,12 +121,15 @@ export class Comment {
     return this.parentComment;
   }
 
-  /** A reply in the same thread, anchored to the same range, as Word writes them. */
-  async reply(text: string): Promise<Comment> {
+  /**
+   * A reply in the same thread, anchored to the same range, as Word writes them. `options` are
+   * `insertComment`'s (CR-002 section 28.3).
+   */
+  async reply(content: CommentContent, options?: CommentOptions): Promise<Comment> {
     const parts = await this.parts.ensureAll();
-    const id = nextCommentId(parts.comments, this.body.container);
+    const id = commentId(parts, this.body, options);
     placeAfter(this.body, this.id, id);
-    const reply = addComment(parts, this.body, id, text, this);
+    const reply = addComment(parts, this.body, id, content, this, options);
     this.replyList.push(reply);
     reply.parentComment = this;
     return reply;
@@ -310,13 +314,14 @@ function placeAfter(body: Body, parentId: number, id: number): void {
 }
 
 /** The `w:comment` and the side-part entries of a new comment; the markers are already written. */
-function addComment(parts: CommentParts, body: Body, id: number, text: string, parent: Comment | undefined): Comment {
-  const author = parts.author;
-  const paragraphs = text.split('\n').map((line, i) => commentParagraph(line, i === 0));
+function addComment(parts: CommentParts, body: Body, id: number, content: CommentContent, parent: Comment | undefined, options?: CommentOptions): Comment {
+  const author = options?.author ?? parts.author;
+  const paragraphs = paragraphsOfContent(content);
   const paraId = randomHexId((candidate) => paraIdTaken(parts, body.container, candidate));
   paragraphs[0]!.value.paraId = paraId;
   const comment = wmlFactory.createCommentsComment({
-    id, author: author.name, initials: initialsOf(author), date: dateToCalendar(new Date()),
+    id, author: author.name, initials: options?.initials ?? initialsOf(author),
+    date: dateToCalendar(options?.date ?? new Date()),
     content: paragraphs as wml.Comments.Comment['content'],
   });
   const comments = (parts.comments.comment ??= []);
@@ -356,13 +361,46 @@ function addPerson(parts: CommentParts, name: string, email: string | undefined)
   linkParents(person, people);
 }
 
-/** `Range.insertComment` (CR-002 section 3.8): the markers, the comment and the side-part entries. */
-export async function insertComment(range: Range, text: string): Promise<Comment> {
+/**
+ * `Range.insertComment` (CR-002 section 3.8): the markers, the comment and the side-part entries.
+ *
+ * `options` (CR-002 section 28.3) name the author, the initials, the date and the `w:id`: in a
+ * co-editing room the author is the peer who made the comment and the date is when they made it,
+ * neither of which is a property of whoever is saving. A given `id` is checked unused and a clash
+ * throws.
+ */
+export async function insertComment(range: Range, content: CommentContent, options?: CommentOptions): Promise<Comment> {
   const body = range.paragraph.parentBody;
   const parts = await commentPartsAccess().create(body);
-  const id = nextCommentId(parts.comments, body.container);
+  const id = commentId(parts, body, options);
   placeAround(range, id);
-  return addComment(parts, body, id, text, undefined);
+  return addComment(parts, body, id, content, undefined, options);
+}
+
+/**
+ * The `w:id` for a new comment: the caller's when given, checked unused across the comments part and
+ * the markers in the story, else the next free one. A clash throws rather than renumbering, as a
+ * chosen list `numId` does: the caller is asserting something about a room's state (section 28.3).
+ */
+function commentId(parts: CommentParts, body: Body, options?: CommentOptions): number {
+  if (options?.id === undefined) return nextCommentId(parts.comments, body.container);
+  const id = options.id;
+  if (!Number.isInteger(id) || id < 0) throw new Docx4JException(`A comment id must be a non-negative integer, not ${id}`);
+  if ((parts.comments.comment ?? []).some((c) => c.id === id)) {
+    throw new Docx4JException(`The comment id ${id} is already in use in this document's comments part`);
+  }
+  if (markersOf(body.container).some((m) => m.id === id)) {
+    throw new Docx4JException(`The comment id ${id} is already named by a marker in this story`);
+  }
+  return id;
+}
+
+/** The paragraphs of a comment's content: a string splits on newlines, elements are taken as they are. */
+function paragraphsOfContent(content: CommentContent): Element<wml.P>[] {
+  if (typeof content === 'string') return content.split('\n').map((line, i) => commentParagraph(line, i === 0));
+  const paragraphs = [...content];
+  if (paragraphs.length === 0) throw new Docx4JException('A comment needs at least one paragraph');
+  return paragraphs;
 }
 
 /**
