@@ -534,6 +534,32 @@ test('Word wildcards keep their own \\1 replacement syntax', async () => {
   // a wildcard group is (...) as in Word, and the replacement names it \1
   assert.equal(pkg.body.paragraphs[0].replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true }), 1);
   assert.equal(pkg.body.paragraphs[0].text, 'the fox quick');
+
+  // Section 26 changed what a wildcard pattern with parentheses finds: f(x) matched the text "f(x)"
+  // and now groups, as Word's wildcards do, so it matches "fx"; \( is the literal. An unbalanced one
+  // is refused naming the caller's pattern, not the translation's SyntaxError (section 31).
+  const { searchPattern, findAll } = await import('../dist/index.mjs');
+  assert.deepEqual(findAll('fx f(x)', searchPattern('f(x)', { matchWildcards: true })), [[0, 2]]);
+  assert.deepEqual(findAll('fx f(x)', searchPattern('f\\(x\\)', { matchWildcards: true })), [[3, 7]]);
+  assert.throws(() => searchPattern('f(x', { matchWildcards: true }),
+    (e) => e.name === 'Docx4JException' && /Not a valid wildcard pattern: f\(x$/.test(e.message) && e.cause instanceof SyntaxError);
+});
+
+// CR-002 section 31: section 26 gave the paragraph's and the body's replaceText group references,
+// and missed the range's.
+test('Range.replaceText expands group references as the paragraph does', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const p = pkg.body.insertParagraph('cat and cat', 'End');
+  assert.equal(p.getRange().replaceText('(c)(a)t', '$2$1', { matchRegExp: true }), 2);
+  assert.equal(p.text, 'ac and ac');
+  const q = pkg.body.insertParagraph('the quick fox', 'End');
+  q.getRange().replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true });
+  assert.equal(q.text, 'the fox quick');
+  // within the span only, and at the right offsets when the span does not start the paragraph
+  const r = pkg.body.insertParagraph('ab ab ab', 'End');
+  const [, middle] = r.search('ab');
+  assert.equal(middle.replaceText('(a)(b)', '$2$1', { matchRegExp: true }), 1);
+  assert.equal(r.text, 'ab ba ab');
 });
 
 // CR-006: XPath over the WordprocessingML tree, through a binder recorded while marshalling.

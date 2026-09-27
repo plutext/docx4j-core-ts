@@ -12,7 +12,7 @@ import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_do
 import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
-import { searchPattern, findAll, type SearchOptions } from './search.mjs';
+import { searchPattern, findAll, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
@@ -148,10 +148,19 @@ export class Range {
     return findAll(this.text, searchPattern(text, options)).map(([s, e]) => new Range(this.paragraph, base + s, base + e));
   }
 
-  /** Replaces every match in this span, last first so the offsets stay valid; returns the count (CR-002 section 3.7). */
+  /**
+   * Replaces every match in this span, last first so the offsets stay valid; returns the count
+   * (CR-002 section 3.7). The replacement's `$1` or Word's `\1` expands as it does on a paragraph
+   * (section 26; this one was missed there, section 31).
+   */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    const matches = this.search(find, options);
-    for (let i = matches.length - 1; i >= 0; i--) matches[i]!.insertText(replace, 'Replace');
+    const base = this.start;
+    const matches = matchesOf(this.text, searchPattern(find, options));
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const match = matches[i]!;
+      new Range(this.paragraph, base + match.index, base + match.index + match[0].length)
+        .insertText(expandReplacement(replace, match, options), 'Replace');
+    }
     return matches.length;
   }
 

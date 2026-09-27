@@ -1,3 +1,5 @@
+import { Docx4JException } from '../../opc/exceptions.mjs';
+
 /** Office JS Word.SearchOptions, the subset honoured here, plus `matchRegExp` (CR-002 section 26). */
 export interface SearchOptions {
   matchCase?: boolean;
@@ -56,8 +58,9 @@ export function searchPattern(text: string, options: SearchOptions = {}): RegExp
       } else if (c === '(' || c === ')') {
         // Word's wildcard grouping, which `\1` to `\9` in a replacement refer to (CR-002 section 26);
         // a literal parenthesis is `\(`, taken by the escape case above. Before section 26 both were
-        // escaped to literals, so no expression that worked then changes meaning - one that used
-        // them meant them literally and Word would not have matched it either.
+        // escaped to literals, so this changes what a pattern with them finds: `f(x)` matched the
+        // text "f(x)" and now matches "fx", as Word's wildcards do. An unbalanced one is refused
+        // below (CR-002 section 31).
         source += c;
       } else source += escapeRegExp(c);
     }
@@ -65,7 +68,13 @@ export function searchPattern(text: string, options: SearchOptions = {}): RegExp
     source = escapeRegExp(text);
   }
   if (options.matchWholeWord) source = `(?<![\\w])${source}(?![\\w])`;
-  return new RegExp(source, options.matchCase ? 'g' : 'gi');
+  try {
+    return new RegExp(source, options.matchCase ? 'g' : 'gi');
+  } catch (cause) {
+    // Only a wildcard pattern can fail here - a plain text is escaped whole - and the RegExp's own
+    // message quotes the translation, a pattern the caller never wrote.
+    throw new Docx4JException(`Not a valid wildcard pattern: ${text}`, { cause });
+  }
 }
 
 export function escapeRegExp(s: string): string {
