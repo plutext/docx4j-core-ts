@@ -118,6 +118,19 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * nor the cached `trackingMode` (CR-002 section 28.1).
    */
   private trackingOverride: ChangeTrackingMode | undefined;
+  /**
+   * The `withTracking` calls still running, oldest first, and what the package said before the
+   * first of them. The latest call's markup applies; when it ends, the latest one still running
+   * applies again, and when none is left the package is as it was (CR-002 section 31).
+   */
+  private trackingScopes: TrackingScope[] = [];
+  private beforeScopes: { author: Author; date: Date | undefined; override: ChangeTrackingMode | undefined } | undefined;
+  /**
+   * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
+   * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
+   * array until they are set again.
+   */
+  private seededParts = new WeakMap<XmlPart<unknown>, Uint8Array | true>();
 
   /**
    * The package's font settings (CR-001 Phase B step 4), docx4j's `docx4j.fonts.*` properties
@@ -323,6 +336,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   set changeTrackingMode(mode: ChangeTrackingMode) {
     this.trackingMode = mode;
     this.tracker = undefined;
+    this.annotationIdCounter = undefined;
     const settings = this.mainDocumentPart ? this.settingsPart() : undefined;
     if (settings?.isUnmarshalled) { writeTrackRevisions(settings.contents, mode); this.trackingPending = false; }
     else this.trackingPending = true;
@@ -338,25 +352,45 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * the package tracking. It is asynchronous for one reason: it awaits `seedAnnotationIds()` before
    * running `fn`, so a revision written inside it cannot reuse an id from a part nobody has read
    * (section 28.2). `fn` itself may be synchronous.
+   *
+   * Calls nest, and calls that overlap in time end in whatever order they end without leaving the
+   * package tracking. But the markup is the package's for as long as a call runs, not the call's:
+   * while two are running, **the later one's author and mode apply to every edit**, the earlier
+   * one's included, because nothing here can tell which asynchronous call an edit came from. Await
+   * one before starting another when they must be recorded as different authors (section 31).
    */
   async withTracking<T>(markup: TrackingScope, fn: () => T | Promise<T>): Promise<T> {
     await this.seedAnnotationIds();
-    const previous = {
-      author: this.author, date: this.trackedChangeDate,
-      override: this.trackingOverride, tracker: this.tracker,
-    };
-    this.author = markup.author;
-    this.trackedChangeDate = markup.date;
-    this.trackingOverride = markup.mode ?? 'TrackAll';
-    this.tracker = undefined;
+    const scope: TrackingScope = { ...markup };
+    if (this.trackingScopes.length === 0) {
+      this.beforeScopes = { author: this.author, date: this.trackedChangeDate, override: this.trackingOverride };
+    }
+    this.trackingScopes.push(scope);
+    this.applyTrackingScope(scope);
     try {
       return await fn();
     } finally {
-      this.author = previous.author;
-      this.trackedChangeDate = previous.date;
-      this.trackingOverride = previous.override;
-      this.tracker = previous.tracker;
+      this.trackingScopes.splice(this.trackingScopes.indexOf(scope), 1);
+      const latest = this.trackingScopes[this.trackingScopes.length - 1];
+      if (latest !== undefined) this.applyTrackingScope(latest);
+      else if (this.beforeScopes !== undefined) {
+        this.author = this.beforeScopes.author;
+        this.trackedChangeDate = this.beforeScopes.date;
+        this.trackingOverride = this.beforeScopes.override;
+        this.beforeScopes = undefined;
+      }
     }
+  }
+
+  /**
+   * One `withTracking` call's markup made the package's. The tracker is left alone: the getter makes
+   * another when the mode differs, and the id counter it reads is the package's, so a tracker kept
+   * across the call cannot reissue an id given out inside it (section 31).
+   */
+  private applyTrackingScope(scope: TrackingScope): void {
+    this.author = scope.author;
+    this.trackedChangeDate = scope.date;
+    this.trackingOverride = scope.mode ?? 'TrackAll';
   }
 
   /** The mode as the settings part has it, unmarshalling the part (docx4j's async counterpart of the getter). */
@@ -370,6 +404,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   async setChangeTrackingMode(mode: ChangeTrackingMode): Promise<void> {
     this.trackingMode = mode;
     this.tracker = undefined;
+    this.annotationIdCounter = undefined;
     this.trackingPending = false;
     writeTrackRevisions(await this.settingsPart().getContents(), mode);
     if (mode !== 'Off') await this.seedAnnotationIds();
@@ -422,6 +457,13 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   annotationIdFloor = 0;
 
   /**
+   * TrackingHost: the last annotation id issued, shared by every tracker this package makes (CR-002
+   * section 31). Forgotten when the mode is set, as the tracker used to be, so that the next id is
+   * found by a fresh scan of whatever has arrived since by other routes (`insertOoxml`, `setContents`).
+   */
+  annotationIdCounter: number | undefined;
+
+  /**
    * Raises `annotationIdFloor` above every annotation id in the WordprocessingML parts that are not
    * unmarshalled, reading each **privately** (`readContents`, CR-001 Phase D's device), so that a
    * part nobody has touched keeps its byte-for-byte round trip and still cannot have its ids reused.
@@ -430,16 +472,23 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * on; a caller that uses the synchronous `changeTrackingMode` setter on a document with unread
    * parts should await this itself, since `nextId()` cannot (the content API's setters are
    * synchronous, which is why the floor exists at all rather than the scan being made async).
+   *
+   * A part is read once for the bytes it holds: an agent that wraps every edit in `withTracking`
+   * would otherwise re-read every header, footer and note part each time (section 31). Its source
+   * bytes cannot change; bytes that were set are read again when they are set again.
    */
   async seedAnnotationIds(): Promise<number> {
     for (const part of this.parts) {
       if (!(part instanceof XmlPart) || part.isUnmarshalled) continue;
       if (!part.partName.name.startsWith('/word/')) continue;
+      const read: Uint8Array | true = part.isUntouched ? true : await part.getBytes();
+      if (this.seededParts.get(part) === read) continue;
       let tree: unknown;
-      try { tree = await part.readContents(); } catch { continue; }   // an unreadable part cannot hold ids we must avoid
+      try { tree = await part.readContents(); } catch { tree = undefined; }   // an unreadable part cannot hold ids we must avoid
       if (typeof tree === 'object' && tree !== null) {
         this.annotationIdFloor = highestAnnotationId(tree, this.annotationIdFloor);
       }
+      this.seededParts.set(part, read);
     }
     return this.annotationIdFloor;
   }

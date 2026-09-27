@@ -623,3 +623,91 @@ test('withTracking restores after a throw, and nests over an on setting', async 
   assert.equal(added.getTrackedChanges().length, 0, 'the paragraph added with mode Off is not a revision');
   assert.equal(pkg.changeTrackingMode, 'TrackAll');
 });
+
+// CR-002 section 31, from the review of the release: the id counter lived on the tracker, and
+// withTracking put the document's tracker back with the counter it had before the call - so the next
+// revision after it reused the id the call's last revision was given.
+test('withTracking: a revision after the call does not reuse an id given out inside it', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada' };
+  pkg.body.insertParagraph('text', 'End');
+  await pkg.setChangeTrackingMode('TrackAll');
+  const end = () => pkg.body.paragraphs[0].getRange('End');
+  end().insertText(' a', 'End');
+  await pkg.withTracking({ author: { name: 'Agent' } }, () => end().insertText(' b', 'End'));
+  end().insertText(' c', 'End');
+  await pkg.withTracking({ author: { name: 'Agent' }, mode: 'TrackMineOnly' }, () => end().insertText(' d', 'End'));
+  end().insertText(' e', 'End');
+
+  const changes = pkg.body.getTrackedChanges();
+  assert.deepEqual(changes.map((c) => c.author), ['Ada', 'Agent', 'Ada', 'Agent', 'Ada']);
+  const ids = changes.map((c) => c.id);
+  assert.equal(new Set(ids).size, ids.length, `every id is distinct: ${ids}`);
+});
+
+test('withTracking calls that overlap end in either order and leave the package as it was', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada' };
+  pkg.body.insertParagraph('text', 'End');
+  const gate = () => { let open; const shut = new Promise((resolve) => { open = resolve; }); return { shut, open }; };
+  const a = gate();
+  const b = gate();
+  const entered = new Set();
+  const first = pkg.withTracking({ author: { name: 'A' } }, async () => { entered.add('A'); await a.shut; });
+  const second = pkg.withTracking({ author: { name: 'B' } }, async () => { entered.add('B'); await b.shut; });
+  while (entered.size < 2) await new Promise((resolve) => setImmediate(resolve));
+
+  // while both run, the later call's markup is the package's (nothing can tell whose an edit is)
+  assert.equal(pkg.author.name, 'B');
+  assert.equal(pkg.changeTrackingMode, 'TrackAll');
+  // the earlier one ends first: the later one still applies
+  a.open();
+  await first;
+  assert.equal(pkg.author.name, 'B');
+  assert.equal(pkg.changeTrackingMode, 'TrackAll');
+  // and when the last one ends the package is as it was before the first - it used to be left with
+  // A's author and tracking on for good
+  b.open();
+  await second;
+  assert.equal(pkg.author.name, 'Ada');
+  assert.equal(pkg.changeTrackingMode, 'Off');
+  assert.equal(pkg.trackedChangeDate, undefined);
+
+  // a nested call hands back to its outer one, and that to the package
+  await pkg.withTracking({ author: { name: 'Outer' } }, async () => {
+    await pkg.withTracking({ author: { name: 'Inner' }, mode: 'Off' }, () => {
+      assert.equal(pkg.changeTrackingMode, 'Off');
+    });
+    assert.equal(pkg.author.name, 'Outer');
+    assert.equal(pkg.changeTrackingMode, 'TrackAll');
+  });
+  assert.equal(pkg.author.name, 'Ada');
+  assert.equal(pkg.changeTrackingMode, 'Off');
+});
+
+test('seedAnnotationIds reads a part once for the bytes it holds', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('comments-two.docx'));
+  let reads = 0;
+  for (const part of pkg.parts.values()) {
+    if (typeof part.readContents !== 'function') continue;
+    const read = part.readContents.bind(part);
+    part.readContents = () => { reads++; return read(); };
+  }
+  await pkg.withTracking({ author: { name: 'Agent' } }, () => {});
+  assert.ok(reads > 0, 'the first call reads the parts nobody has unmarshalled');
+  reads = 0;
+  await pkg.withTracking({ author: { name: 'Agent' } }, () => {});
+  await pkg.seedAnnotationIds();
+  assert.equal(reads, 0, 'later calls read nothing: an untouched part cannot change');
+
+  // bytes that are set are read again, and an id in them counts
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  styles.setXml('<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    + '<w:style w:type="character" w:styleId="X"><w:rPr><w:b/><w:rPrChange w:id="900" w:author="x">'
+    + '<w:rPr/></w:rPrChange></w:rPr></w:style></w:styles>');
+  assert.equal(await pkg.seedAnnotationIds(), 900);
+  assert.equal(reads, 1, 'the part whose bytes were set, and only it');
+  reads = 0;
+  await pkg.seedAnnotationIds();
+  assert.equal(reads, 0, 'and not again while they stay the same');
+});

@@ -68,6 +68,14 @@ export interface TrackingHost {
    * rest, so the next id is one above the greater of the two (CR-002 section 28.2).
    */
   readonly annotationIdFloor: number;
+  /**
+   * The last annotation id issued in the document, or `undefined` until the first, when the tracker
+   * scans for the highest in use. The host holds it rather than the tracker because a document has
+   * one id space and may have several trackers over its life - `withTracking` can make one with
+   * another mode - and a tracker with a counter of its own reissues the ids another one gave out
+   * (CR-002 section 31).
+   */
+  annotationIdCounter: number | undefined;
 }
 
 /**
@@ -129,8 +137,6 @@ function element<T>(localPart: string, value: T): Element<T> {
  * The name follows Office JS's vocabulary (`Word.ChangeTrackingMode`).
  */
 export class ChangeTracker {
-  private counter: number | undefined;
-
   constructor(readonly host: TrackingHost, readonly mode: ChangeTrackingMode) {}
 
   /** The `w:author` a new revision carries: the package author's name. */
@@ -144,14 +150,20 @@ export class ChangeTracker {
    * which `seedAnnotationIds()` fills from their bytes without unmarshalling them (CR-002
    * section 28.2; before that this saw only the unmarshalled parts, so a revision in an unread
    * footnote or comment part did not raise the counter).
+   *
+   * The scan runs once per document, not per tracker: the counter is the host's. The floor is
+   * consulted on every call, so a `seedAnnotationIds()` awaited after the first id still counts.
    */
   nextId(): number {
-    if (this.counter === undefined) {
-      let highest = this.host.annotationIdFloor;
-      for (const root of this.host.markupRoots()) highest = highestAnnotationId(root, highest);
-      this.counter = highest;
+    const host = this.host;
+    let counter = host.annotationIdCounter;
+    if (counter === undefined) {
+      counter = 0;
+      for (const root of host.markupRoots()) counter = highestAnnotationId(root, counter);
     }
-    return ++this.counter;
+    counter = Math.max(counter, host.annotationIdFloor) + 1;
+    host.annotationIdCounter = counter;
+    return counter;
   }
 
   /** The `w:id`, `w:author` and `w:date` a new revision carries. */

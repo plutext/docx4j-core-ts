@@ -91,6 +91,15 @@ export class XmlPart<T = unknown> extends Part {
     return this.element !== undefined || this.bytes !== undefined;
   }
 
+  /**
+   * True while the part holds nothing but its source: never unmarshalled, no contents or bytes set.
+   * Such a part is written back byte for byte, and what a private read finds in it cannot change,
+   * which is what lets a reader remember it (CR-002 section 31).
+   */
+  get isUntouched(): boolean {
+    return this.element === undefined && this.bytes === undefined;
+  }
+
   /** The unmarshalled contents (docx4j getJaxbElement()); throws when not yet unmarshalled. */
   get contents(): T {
     if (this.element === undefined) throw new Docx4JException(`Part ${this.partName} is not unmarshalled yet; await getContents() first`);
