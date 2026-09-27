@@ -529,3 +529,34 @@ test('a revision id is above every id in the document, not only in the parts rea
   const original = new ZipPartStore(await source.save());
   assert.deepEqual(saved.loadSync('word/footnotes.xml'), original.loadSync('word/footnotes.xml'));
 });
+
+// CR-002 section 28.2: Word stamps a revision to the minute, and groups adjacent revisions by
+// author and timestamp; a per-second stamp makes one change of every keystroke run.
+test('a revision dated now is stamped to the minute, and an explicit date is untouched', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada' };
+  pkg.body.insertParagraph('text', 'End');
+  pkg.changeTrackingMode = 'TrackAll';
+  pkg.body.paragraphs[0].getRange('End').insertText(' more', 'End');
+  const changes = pkg.body.getTrackedChanges();
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0].date.getUTCSeconds(), 0, 'seconds zero');
+  assert.equal(changes[0].date.getUTCMilliseconds(), 0, 'milliseconds zero');
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.match(xml, /w:date="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00Z"/, 'written with :00 seconds');
+
+  // two edits a moment apart carry the same stamp, which is what lets Word group them
+  pkg.body.paragraphs[0].getRange('End').insertText(' and more', 'End');
+  const dates = pkg.body.getTrackedChanges().map((c) => c.date.toISOString());
+  assert.equal(new Set(dates).size, 1, `one timestamp for both edits, got ${dates.join(', ')}`);
+
+  // an explicit date is the caller's business and is not truncated
+  const exact = new Date(Date.UTC(2026, 8, 16, 10, 30, 45, 250));
+  const p2 = await WordprocessingMLPackage.createPackage();
+  p2.author = { name: 'Ada' };
+  p2.trackedChangeDate = exact;
+  p2.body.insertParagraph('text', 'End');
+  p2.changeTrackingMode = 'TrackAll';
+  p2.body.paragraphs[0].getRange('End').insertText('!', 'End');
+  assert.equal(p2.body.getTrackedChanges()[0].date.getUTCSeconds(), 45, 'the caller\'s seconds kept');
+});

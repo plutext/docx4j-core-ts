@@ -75,6 +75,18 @@ export function trackerOf(pkg: unknown): ChangeTracker | undefined {
   return (pkg as { changeTracker?: ChangeTracker } | undefined)?.changeTracker;
 }
 
+/**
+ * Now, with the seconds and milliseconds dropped, which is what Word stamps a revision with.
+ * Not cosmetic: Word groups adjacent revisions by author **and** timestamp, so a per-second stamp
+ * makes one change of every keystroke run and an editor's typing unreviewable (CR-002 section 28.2).
+ * A caller that sets `trackedChangeDate` gets exactly the date it asked for, truncated or not.
+ */
+export function nowToTheMinute(): Date {
+  const now = new Date();
+  now.setUTCSeconds(0, 0);
+  return now;
+}
+
 /** An `XmlCalendar` in UTC, as Word writes `w:date` (an xsd:dateTime ending in `Z`). */
 export function calendarOf(date: Date): wml.XmlCalendar {
   return {
@@ -130,7 +142,7 @@ export class ChangeTracker {
 
   /** The `w:id`, `w:author` and `w:date` a new revision carries. */
   markup(): { id: number; author: string; date: wml.XmlCalendar } {
-    return { id: this.nextId(), author: this.author, date: calendarOf(this.host.trackedChangeDate ?? new Date()) };
+    return { id: this.nextId(), author: this.author, date: calendarOf(this.host.trackedChangeDate ?? nowToTheMinute()) };
   }
 
   /** A `w:ins` / `w:del` attribute set: the id, this package's author and the date. */
