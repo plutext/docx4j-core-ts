@@ -383,6 +383,12 @@ namespaces, content types or the zip writer, check by hand:
    asking whether to keep the original location's text or the edited new location's), take the
    default and save under the planned name, then redo that step choosing the other option and save
    with `-keep-new` (or a suffix naming the choice); note which cases and actions showed one.
+   **Run 2026-09-28 (Word 16.0.20326.20158), 39 files; the findings are CR-002 section 29's table.**
+   The dialog came up on rejecting 01, 04, 06, 07 and 08 (their `-keep-new` files), not on 03.
+   Jason's notes: 11 showed as an insertion and a deletion, 12 as an insertion, 13 as added then
+   moved, 14 as moved (insertion) then deletion, for the two locations respectively. The three 14
+   files also carry a stray tracked space Author A inserted at the end of section 2, so what Word did
+   on saving 14 may be the edit's doing rather than the markup's.
 21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
    the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
    in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick

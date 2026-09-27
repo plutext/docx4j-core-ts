@@ -2436,7 +2436,37 @@ list, by hand as check 18 was; its last three cases open inputs made from the fi
 `scripts/make-check20-inputs.mjs`. Rejecting an edited move (case 01) brought up Word's "Tracked
 Moves Conflict Dialog" - keep the original location's text, the default, or the edited new
 location's - so text typed inside moved text is part of the move to Word, and each such step is
-saved both ways. Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
+saved both ways.
+
+*(Check 20, run 2026-09-28, Word 16.0.20326.20158, 39 files in `test/fixtures/revisions/check20/`.)*
+
+| Case | What Word wrote | Accept the move | Reject the move (default) |
+|---|---|---|---|
+| Typed inside the destination (01 as A, 02 as B) | the `w:moveTo` split around a plain `w:ins` by the typist, inside the range | the move accepted; the `w:ins` left pending | the dialog; everything in the destination range gone, typed text included ("keep new": the edited paragraph at the source, its `w:ins` pending) |
+| Typed at the destination's start (03) | a `w:ins` **before** `w:moveToRangeStart`, outside the range | the move accepted; the `w:ins` pending | no dialog; the move rejected; the `w:ins`, outside the range, kept and joined to the next paragraph |
+| Typed at its end (04) | a `w:ins` after the `w:moveTo`, inside the range (the range ends between paragraphs) | the `w:ins` pending | as 01 |
+| Typed in the source (05) | the `w:moveFrom` split around a `w:ins`, inside the source range | - | - |
+| Part of the destination deleted (06 as A, 07 as B) | a `w:del` **nested inside** the `w:moveTo` | the `w:del` left pending | the dialog; the destination gone with it |
+| All the destination's text deleted (08) | the `w:moveTo` holding only a `w:del` | the paragraph kept, its text a pending `w:del` | the dialog; as 06 |
+| Part of the source deleted (09) | a `w:del` nested inside the `w:moveFrom` | - | - |
+| The destination moved again (10) | **one** move, the same `w:name`, the source unchanged, the new destination; the old one gone | as check 18 | as check 18 |
+| A phrase moved within a paragraph (11) | a `w:ins` and a `w:del`, **not** a move | - | - |
+| The source side removed (12) | shown as an insertion; saved unchanged | the text kept, plain | the text **kept**, plain |
+| The destination's range markers removed (13) | shown as added, and moved; saved unchanged | the destination kept, plain; the source's `w:moveFrom` (and mark) turned into a pending `w:del`, its range markers kept | the destination paragraph gone; the source likewise turned into a pending `w:del` |
+| The source's range markers removed (14) | shown as moved (insertion), and deletion; **saved** with the destination as a `w:ins` (range markers kept) and the source as a `w:del` - but these files carry a stray edit | on the source: its run deletion and deleted mark accepted together, the paragraph gone | the paragraph restored, run and mark together |
+
+Who typed or deleted makes no difference but to `w:author`; new revisions carry `w16du:dateUtc`
+beside `w:date`. Against the engine as released in 0.2.2, applied to each edited file and compared
+section 3 block for block: accept matches Word everywhere measured (01, 03, 04, 06, 07, 08, 10, 12),
+and reject matches in 03, 06, 07, 08 and 10. It differs in four places: rejecting an edited move
+(01, 04) leaves the typed `w:ins` in the destination range, which Word removes; rejecting a
+destination with no source (12) removes the text, which Word keeps; a destination without range
+markers (13) leaves its paragraph mark and its partner a move, where Word resolves the mark and turns
+the partner into a pending `w:del`; and Word accepts or rejects a deleted paragraph's run deletion and
+mark deletion together (14), where the engine lists and resolves them apart - not a move question,
+and measured only on the files with the stray edit.
+
+Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
 lands in, and the editor's api.test holds the editor to that.
 
