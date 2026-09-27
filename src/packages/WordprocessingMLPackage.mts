@@ -23,6 +23,7 @@ import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.m
 import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost, type TrackingScope } from '../model/content/tracking.mjs';
 import { NumberingFacade } from '../model/content/List.mjs';
 import { StylesFacade } from '../model/content/stylesFacade.mjs';
+import type { Bound } from '../model/content/binder.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
@@ -401,6 +402,17 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     if (mode === 'Off') return undefined;
     if (!this.tracker || this.tracker.mode !== mode) this.tracker = new ChangeTracker(this, mode);
     return this.tracker;
+  }
+
+  /**
+   * The objects an XPath selects in a part of this document, with the package's engine readied for
+   * you (CR-006; docx4j `MainDocumentPart.getJAXBNodesViaXPath`). The part defaults to the main
+   * document part, which is what a `//w:p[...]` expression means.
+   */
+  async selectObjects(xpath: string, options: { part?: XmlPart<unknown>; namespaces?: Record<string, string> } = {}): Promise<Bound[]> {
+    const part = options.part ?? this.getMainDocumentPart();
+    await this.xpathEngine.ready(await part.marshalToNode());
+    return part.selectObjects(xpath, { engine: this.xpathEngine, namespaces: options.namespaces });
   }
 
   /**

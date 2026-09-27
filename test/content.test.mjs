@@ -512,3 +512,86 @@ test('Word wildcards keep their own \\1 replacement syntax', async () => {
   assert.equal(pkg.body.paragraphs[0].replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true }), 1);
   assert.equal(pkg.body.paragraphs[0].text, 'the fox quick');
 });
+
+// CR-006: XPath over the WordprocessingML tree, through a binder recorded while marshalling.
+// docx4j does it with a JAXB Binder; here jsonix 3.4.0's onElement callback records which object
+// each marshalled element came from (objects CR-007 passes it through marshalNode).
+test('selectObjects: the objects an XPath selects, with their paths', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('First', 'End').styleBuiltIn = 'Heading1';
+  pkg.body.insertParagraph('Second', 'End');
+  pkg.body.insertParagraph('Third', 'End').styleBuiltIn = 'Heading1';
+
+  const all = await pkg.selectObjects('//w:p');
+  assert.equal(all.length, 3);
+  assert.deepEqual(all.map((b) => b.path), [
+    '/w:document/w:body[1]/w:p[1]', '/w:document/w:body[1]/w:p[2]', '/w:document/w:body[1]/w:p[3]',
+  ]);
+  // the object is the one in the tree, by identity - the whole point of the binder
+  const content = pkg.getMainDocumentPart().contents.body.content;
+  assert.equal(all[0].object, content[0].value);
+  assert.equal(all[2].object, content[2].value);
+
+  const headings = await pkg.selectObjects("//w:p[w:pPr/w:pStyle/@w:val='Heading1']");
+  assert.deepEqual(headings.map((b) => b.path), ['/w:document/w:body[1]/w:p[1]', '/w:document/w:body[1]/w:p[3]']);
+
+  // an attribute maps to the object of the element that owns it, and says which attribute
+  const attrs = await pkg.selectObjects('//w:pStyle/@w:val');
+  assert.equal(attrs.length, 2);
+  assert.equal(attrs[0].attribute, 'w:val');
+  assert.equal(attrs[0].path, '/w:document/w:body[1]/w:p[1]/w:pPr[1]/w:pStyle[1]/@w:val');
+  assert.equal(attrs[0].object, content[0].value.pPr.pStyle, 'the w:pStyle object, not the w:p');
+
+  // the DOM is a snapshot: changing it changes nothing, and the part keeps its own contents
+  attrs[0].node.value = 'Heading9';
+  assert.equal(content[0].value.pPr.pStyle.val, 'Heading1', 'the tree is untouched');
+  assert.match(await pkg.getMainDocumentPart().getXml(), /w:val="Heading1"/);
+});
+
+test('Body.select: the content-API view of each hit, and the Bound where there is none', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('Heading', 'End').styleBuiltIn = 'Heading1';
+  pkg.body.insertParagraph('Body text', 'End');
+  pkg.body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
+
+  const kind = async (xpath) => (await pkg.body.select(xpath)).map((h) => h.constructor.name);
+  assert.deepEqual(await kind("//w:p[w:pPr/w:pStyle/@w:val='Heading1']"), ['Paragraph']);
+  assert.deepEqual(await kind('//w:tbl'), ['Table']);
+  assert.deepEqual(await kind('//w:tr'), ['TableRow', 'TableRow']);
+  assert.deepEqual(await kind('//w:tc'), ['TableCell', 'TableCell', 'TableCell', 'TableCell']);
+  // a run or a text node has no view of its own in Office JS, so it maps to a Range over its paragraph
+  assert.deepEqual([...new Set(await kind('//w:t'))], ['Range']);
+  // and anything else comes back as the Bound
+  const [pPr] = await pkg.body.select('//w:pPr');
+  assert.equal(pPr.path, '/w:document/w:body[1]/w:p[1]/w:pPr[1]');
+  assert.ok(pPr.node, 'a Bound carries its node');
+
+  // a selected view is usable: this is what makes a structural replace one line for a caller
+  const [heading] = await pkg.body.select("//w:p[w:pPr/w:pStyle/@w:val='Heading1']");
+  assert.equal(heading.text, 'Heading');
+  assert.equal(heading.styleBuiltIn, 'Heading1');
+  heading.getRange('End').insertText(' edited', 'End');
+  assert.equal(pkg.body.paragraphs[0].text, 'Heading edited');
+});
+
+test('selectObjects reaches a wildcard child through the imported copy', async () => {
+  // jsonix writes any-content with importNode, so the element in the snapshot is a COPY of the tree
+  // node; the binder maps the copy back to the ORIGINAL (jsonix-CR-006 section 2, finding 3). Without
+  // that line a select could not reach exactly the content the model does not bind - here the slicer
+  // inside an a:graphicData, which nothing in the model types (CR-004 section 7).
+  const { DefaultXPathEngine } = await import('../dist/index.mjs');
+  const pkg = await OpcPackage.load(await fixture('cr022-slicers-timelines.xlsx'));
+  const drawing = pkg.parts.get('/xl/drawings/drawing1.xml');
+  await drawing.getContents();
+  const engine = new DefaultXPathEngine();
+  await engine.ready(await drawing.marshalToNode());
+
+  const hits = await drawing.selectObjects("//*[local-name()='slicer']", { engine });
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].path, '/xdr:wsDr/xdr:twoCellAnchor[1]/xdr:graphicFrame[1]/a:graphic[1]/a:graphicData[1]/sle:slicer[1]');
+  assert.equal(hits[0].object?.nodeName, 'sle:slicer', 'the object of DOM content is the node itself');
+  assert.notEqual(hits[0].object, hits[0].node, 'and it is the node in the TREE, not the snapshot copy');
+  // which is what makes it usable: editing it edits the document
+  hits[0].object.setAttribute('name', 'Renamed');
+  assert.match(await drawing.getXml(), /name="Renamed"/);
+});

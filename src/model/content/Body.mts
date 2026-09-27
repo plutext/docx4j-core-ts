@@ -8,13 +8,21 @@ import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated
 import { runOf, paragraphOf } from './tree.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
-import { Table } from './Table.mjs';
+import { Table, type TableRow, type TableCell } from './Table.mjs';
 import { ContentControl, collectControls, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { expandReplacement, type SearchOptions } from './search.mjs';
+import type { Bound } from './binder.mjs';
+import { runItemsOf } from '@docx4j/generated-objects-ts/builders/wml';
+
+/**
+ * What `Body.select` returns for one hit: the content-API view of the selected element where there
+ * is one, and the `Bound` itself otherwise (CR-006 section 2).
+ */
+export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentControl | Range | Bound;
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
@@ -103,6 +111,57 @@ export class Body {
       }
     };
     visit(this.content);
+    return out;
+  }
+
+  /**
+   * The content-API views an XPath selects (CR-006): a `Paragraph`, `Table`, `TableRow`, `TableCell`
+   * or `ContentControl` where the selected element has one, a `Range` over the whole paragraph for a
+   * `w:r` or `w:t`, and the `Bound` itself for anything else - an attribute, a text node, a `w:pPr`,
+   * a wildcard child. A caller that wants the tree objects rather than views uses
+   * `pkg.selectObjects`.
+   *
+   * The expression is evaluated over a snapshot of the part this body belongs to, so it sees the
+   * whole part - `//w:p` from a header's body selects that header's paragraphs. Every call marshals
+   * the part afresh (CR-006 section 2).
+   */
+  async select(xpath: string, options: { namespaces?: Record<string, string> } = {}): Promise<SelectResult[]> {
+    const pkg = this.package_ as { selectObjects?: (x: string, o?: unknown) => Promise<Bound[]> } | undefined;
+    if (pkg?.selectObjects === undefined) throw new Docx4JException('select needs the package that owns this body');
+    const bounds = await pkg.selectObjects(xpath, { part: this.part, namespaces: options.namespaces });
+    const views = this.viewsByObject();
+    return bounds.map((bound) => views.get(bound.object as object) ?? bound);
+  }
+
+  /**
+   * Every view this body can make, keyed by the tree object behind it, so that a selected object
+   * becomes the view a caller can act on. Built per select: the views are cheap wrappers and nothing
+   * is cached but the `Body` itself (CR-002's "views, not a model"). A `w:r` and a `w:t` map to a
+   * `Range` over the paragraph that holds them, which is the nearest thing the content API has - a
+   * run is not addressable on its own in Office JS.
+   */
+  private viewsByObject(): Map<object, SelectResult> {
+    const out = new Map<object, SelectResult>();
+    const put = (value: unknown, view: SelectResult): void => {
+      if (typeof value === 'object' && value !== null && !out.has(value)) out.set(value, view);
+    };
+    for (const paragraph of this.paragraphs) {
+      put(paragraph.element.value, paragraph);
+      const range = paragraph.getRange();
+      for (const item of runItemsOf(paragraph.element.value) ?? []) {
+        put(item.value, range);
+        const children = childrenOf(item.value as object);
+        if (children) for (const child of children) put(child.value, range);
+      }
+    }
+    for (const table of this.tables) {
+      put(table.element.value, table);
+      for (const row of table.rows) {
+        put(row.element.value, row);
+        for (const cell of row.cells) put(cell.element.value, cell);
+      }
+    }
+    for (const control of this.contentControls) put(control.element.value, control);
     return out;
   }
 

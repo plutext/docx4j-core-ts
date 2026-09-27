@@ -5,6 +5,7 @@ import { Namespaces } from './Namespaces.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION } from '../xml/dom.mjs';
 import { log } from '../model/properties/log.mjs';
+import { bindSnapshot, boundsOf, requireReadyEngine, type Bound } from '../model/content/binder.mjs';
 
 const XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
 const MC_NS = Namespaces.MARKUP_COMPATIBILITY;
@@ -31,6 +32,21 @@ function locationOf(message: string, located: boolean): string | undefined {
   if (!located) return undefined;
   return /^(.+?)(?: \(line \d+(?:, column \d+)?\))?: /.exec(message)?.[1];
 }
+
+/** What `selectObjects` needs: the engine to evaluate with, and any prefixes beyond the defaults. */
+export interface SelectOptions {
+  /** The engine; `pkg.selectObjects` and `Body.select` pass the package's. */
+  engine?: { isReady: boolean; select(expression: string, context: Node, namespaces?: Record<string, string>): Node[] } | undefined;
+  /** Prefixes added to (or overriding) the objects package's own table. */
+  namespaces?: Record<string, string> | undefined;
+}
+
+/** The objects package's prefix table as XPath wants it, prefix to URI; built once. */
+const NAMESPACE_PREFIXES_BY_PREFIX: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const [uri, prefix] of Object.entries(NAMESPACE_PREFIXES)) if (prefix !== '' && !(prefix in out)) out[prefix] = uri;
+  return out;
+})();
 
 /** A qualified name for a part's root element. */
 export interface RootName {
@@ -151,6 +167,30 @@ export class XmlPart<T = unknown> extends Part {
     const loaded = await this.loadSourceBytes();
     if (loaded === undefined) throw new Docx4JException(`Part ${this.partName} has no content and no source container`);
     return loaded;
+  }
+
+  /**
+   * The objects an XPath selects in this part, through a DOM marshalled for the purpose
+   * (CR-006; docx4j `JaxbXmlPart.getJAXBNodesViaXPath`, which does it with a JAXB `Binder`).
+   *
+   * Each result carries the node the expression selected, the tree object behind it, the attribute
+   * name when an attribute was selected, and the node's path from the root. The DOM is a **snapshot**:
+   * changing it changes nothing, and a select leaves the part's own bytes alone - the marshal is
+   * thrown away. Every call marshals afresh, since the tree has no change log a cached snapshot could
+   * be checked against (CR-006 section 2).
+   *
+   * The prefixes default to the ones the objects package writes, so `//w:p[w:pPr/w:pStyle/@w:val='Heading1']`
+   * needs no mapping; `options.namespaces` adds to or overrides them. The engine is the caller's
+   * (`pkg.xpathEngine`: XPath 1.0 by default, 3.1 with `FontoXPathEngine`), and must be ready -
+   * `await engine.ready(node)` - which `pkg.selectObjects` does for you.
+   */
+  async selectObjects(xpath: string, options: SelectOptions = {}): Promise<Bound[]> {
+    const element = this.element ?? (await this.getContents(), this.element);
+    if (element === undefined) throw new Docx4JException(`Part ${this.partName} has no contents to select over`);
+    const snapshot = await bindSnapshot(element);
+    const engine = requireReadyEngine(options.engine, `selectObjects on ${this.partName}`);
+    const namespaces = { ...NAMESPACE_PREFIXES_BY_PREFIX, ...options.namespaces };
+    return boundsOf(engine.select(xpath, snapshot.root, namespaces), snapshot);
   }
 
   /** The root element as a DOM element (docx4j XmlUtils.marshaltoW3CDomDocument). */
