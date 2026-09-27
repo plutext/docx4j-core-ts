@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter done 2026-09-28 (unreleased; its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, scheduled 2026-09-28 with its check in Word first (`test/README.md` check 16). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter done 2026-09-28 (unreleased; its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, implemented 2026-09-28 (unreleased) from Word's Review tab (`test/README.md` check 18). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2379,6 +2379,35 @@ and threw once past it, that is the answer. There is therefore no Office JS beha
 `TrackedChange.accept` / `reject` to for a move - the engine already does better than the host by
 not throwing - and what the fix should do is asked of Word's Review tab by hand, check 18: each
 scenario on a fresh copy of the fixture, saved, and compared with section 3.)*
+
+**Implemented 2026-09-28 (unreleased), from check 18.** Word's answer, the same from either half:
+
+| Action | Word | The paragraph |
+|---|---|---|
+| Accept, from the destination or the source | the whole move accepted | at its destination only; the source paragraph gone with its mark |
+| Reject, from the destination or the source | the whole move rejected | back at its source; the destination paragraph gone with its mark |
+| Accept all, reject all | the same to the move | as above |
+
+All eight move elements go every time - both halves, both paragraph marks, the four range markers -
+and nothing outside the move changes. `TrackedChange.accept()` and `reject()` on a run-level half now
+do exactly that: the half finds its move from where it stands (the range start of its side open
+there, whose `w:name` the other side's range start shares), and the whole move is resolved - the
+markers removed first, since a range end between two paragraphs would stop a paragraph join; the
+halves unwrapped or removed; the paragraph marks last, last first, a moved paragraph emptied by the
+resolution removed outright, one with other content joined as a deleted or inserted mark is. A half
+in no named range - markup without range markers - is treated on its own, as before; a half the
+other one already resolved does nothing, so `acceptAll` and `rejectAll` need no change.
+
+Item 3 above, whether `getTrackedChanges()` should present a move as one change, is decided **no,
+for now**: Office JS offers no listing to be held to (it throws), Word's Review tab acts on a move
+from either half, and each half listed now resolves the whole move, so keeping the two entries
+changes no count a caller relies on. The moved paragraph's own mark (`w:pPr/w:rPr/w:moveFrom` or
+`w:moveTo`) is still not listed as a change of its own; it goes with its move.
+
+`tracking.test.mjs` holds all six to Word's saved files: section 3 block for block (element,
+paragraph properties, text, move markup left), 24 changes down to 22 for one action with the rest of
+the document the same in both views, and for accept all and reject all every one of the document's
+69 paragraphs reading as in Word's - its other 22 revisions of every kind included.
 
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 

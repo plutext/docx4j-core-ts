@@ -46,7 +46,9 @@ the engine built the text, and Word 15 made every revision in it, as Author A an
 following the instructions in the document. Section 3 is a move - a paragraph cut and pasted above
 the one before it - so it carries Word's `w:moveFrom`, `w:moveTo`, their range markers and the
 move's `w:name`, which is what CR-002 section 29 is measured on (check 16). It sits in a directory
-of its own so that neither Java harness makes a golden of it.
+of its own so that neither Java harness makes a golden of it. `revisions/check18/` holds what Word
+made of it in check 18 - one action each through the Review tab, on a fresh copy, saved by Jason
+2026-09-28 - the oracle of `tracking.test.mjs`'s move tests.
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
@@ -320,7 +322,13 @@ namespaces, content types or the zip writer, check by hand:
    Nothing else is changed in any copy. Note anything Word says or selects on the way (a message,
    both copies highlighted at once, the change it moves to). The saved files are compared with the
    fixture's section 3: whether acting on one half resolved the other, and what became of the four
-   range markers and the paragraph marks.
+   range markers and the paragraph marks. **Run 2026-09-28 (Word 16.0.20326.20158): a move is one
+   change.** Accepting either half left the paragraph at its destination only, the source paragraph
+   gone with its mark; rejecting either half put it back at its source, the destination paragraph
+   gone with its mark; all eight move elements went every time, and nothing outside section 3
+   changed (the same text in both views, 24 changes down to 22; Word's re-save merged runs and
+   dropped `w:proofErr`, no more). Accept all and reject all did the same to the move. The files are
+   `tracking.test.mjs`'s oracle.
 
 A small Node script for 1 to 3 is:
 

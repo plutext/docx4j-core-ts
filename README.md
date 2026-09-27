@@ -231,7 +231,9 @@ body.acceptAll();     // or rejectAll(), or accept()/reject() one at a time
 ```
 
 `getTrackedChanges()` is also on `Paragraph` and `Range`. Text and searches read the accepted
-view throughout, so an agent sees the document as it will read once the changes are taken.
+view throughout, so an agent sees the document as it will read once the changes are taken. A moved
+paragraph is listed as its two halves, and accepting or rejecting either resolves the whole move,
+as Word's Review tab does.
 
 To record one caller's edits without touching the document's own setting - an agent working in a
 document whose `w:trackRevisions` belongs to its owner - use `withTracking`. Nothing is written

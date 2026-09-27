@@ -711,3 +711,76 @@ test('seedAnnotationIds reads a part once for the bytes it holds', async () => {
   await pkg.seedAnnotationIds();
   assert.equal(reads, 0, 'and not again while they stay the same');
 });
+
+// CR-002 section 29: a move is one change. Word's Review tab accepts or rejects the whole move from
+// either half, the four range markers and both paragraph marks with it; Office JS cannot even list
+// a move in Word 16.0.20326.20158 (test/README.md checks 16 and 17), so the oracle is check 18: each
+// action done by hand in Word on a fresh copy of fixtures/revisions/revisions-word15.docx and saved
+// into fixtures/revisions/check18/. Section 3 of that fixture is the move.
+const MOVED = 'second paragraph of the move';
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+async function loaded(name) {
+  const pkg = await WordprocessingMLPackage.load(await fixture(name));
+  await pkg.getMainDocumentPart().getContents();
+  return pkg;
+}
+
+/** Section 3's blocks: element, paragraph properties, text, and how much move markup is left in each. */
+async function moveSection(pkg) {
+  const { parseXml, serializeXml } = await import('../dist/index.mjs');
+  const body = parseXml(await pkg.getMainDocumentPart().getXml()).getElementsByTagNameNS(W, 'body')[0];
+  const blocks = Array.from(body.childNodes).filter((n) => n.nodeType === 1);
+  const start = blocks.findIndex((n) => n.localName === 'p' && n.textContent.trim() === '3. A move');
+  const end = blocks.findIndex((n, i) => i > start && n.localName === 'p' && n.textContent.startsWith('4. '));
+  return blocks.slice(start + 1, end).filter((n) => !n.textContent.startsWith('[')).map((n) => {
+    const pPr = Array.from(n.childNodes).find((c) => c.localName === 'pPr');
+    const moves = Array.from(n.getElementsByTagNameNS(W, '*')).filter((x) => x.localName.startsWith('move')).length
+      + (n.localName.startsWith('move') ? 1 : 0);
+    return [n.localName, pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '') : '', n.textContent, moves];
+  });
+}
+
+/** The text of every paragraph outside section 3, in both views. */
+function outsideTheMove(pkg) {
+  const paragraphs = pkg.body.paragraphs;
+  const start = paragraphs.findIndex((p) => p.text === '3. A move');
+  const end = paragraphs.findIndex((p) => p.text.startsWith('4. '));
+  const kept = paragraphs.filter((_, i) => i <= start || i >= end);
+  return [kept.map((p) => p.text), kept.map((p) => p.getText({ view: 'original' }))];
+}
+
+for (const [scenario, half, action] of [
+  ['accept-destination', 0, 'accept'], ['accept-source', 1, 'accept'],
+  ['reject-destination', 0, 'reject'], ['reject-source', 1, 'reject'],
+]) {
+  test(`a move is one change: ${scenario} does what Word's Review tab did (check 18)`, async () => {
+    const pkg = await loaded('revisions/revisions-word15.docx');
+    const before = outsideTheMove(pkg);
+    const changes = pkg.body.getTrackedChanges();
+    const move = changes.filter((c) => c.text.includes(MOVED));
+    assert.deepEqual(move.map((c) => c.type), ['Added', 'Deleted'], 'the move is listed as its two halves, destination first');
+    move[half][action]();
+
+    const word = await loaded(`revisions/check18/${scenario}.docx`);
+    assert.deepEqual(await moveSection(pkg), await moveSection(word), 'section 3 as Word left it: the whole move resolved, no marker left');
+    assert.equal(pkg.body.getTrackedChanges().length, changes.length - 2, 'both halves gone, and nothing else');
+    assert.deepEqual(outsideTheMove(pkg), before, 'the rest of the document untouched, in both views');
+    // the other half, already resolved with it, does nothing when asked
+    move[1 - half][action]();
+    assert.deepEqual(await moveSection(pkg), await moveSection(word));
+  });
+}
+
+for (const scenario of ['accept-all', 'reject-all']) {
+  test(`a move is one change: ${scenario} leaves the document Word's does (check 18)`, async () => {
+    const pkg = await loaded('revisions/revisions-word15.docx');
+    if (scenario === 'accept-all') pkg.body.acceptAll(); else pkg.body.rejectAll();
+    const word = await loaded(`revisions/check18/${scenario}.docx`);
+    assert.deepEqual(await moveSection(pkg), await moveSection(word));
+    assert.equal(pkg.body.getTrackedChanges().length, 0);
+    assert.ok(!/<w:move/.test(await pkg.getMainDocumentPart().getXml()), 'no move markup anywhere');
+    assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), word.body.paragraphs.map((p) => p.text),
+      'every paragraph of the document reads as in Word\'s, its other 22 revisions included');
+  });
+}

@@ -105,11 +105,15 @@ export class TrackedChange {
     return p.getRange('Whole');
   }
 
-  /** Keeps the change: a `w:ins` is unwrapped, a `w:del` removed, a deleted mark joins the paragraphs. */
+  /**
+   * Keeps the change: a `w:ins` is unwrapped, a `w:del` removed, a deleted mark joins the paragraphs.
+   * Either half of a move keeps the whole move, as Word's Review tab does (CR-002 section 29).
+   */
   accept(): void {
     const t = this.target;
     switch (t.kind) {
       case 'run':
+        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'accept')) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else remove(t.owner, t.element);
         return;
       case 'mark':
@@ -133,11 +137,15 @@ export class TrackedChange {
     }
   }
 
-  /** Puts back what was there: a `w:ins` is removed, a `w:del` restored, a `w:rPrChange` re-applied. */
+  /**
+   * Puts back what was there: a `w:ins` is removed, a `w:del` restored, a `w:rPrChange` re-applied.
+   * Either half of a move rejects the whole move, as Word's Review tab does (CR-002 section 29).
+   */
   reject(): void {
     const t = this.target;
     switch (t.kind) {
       case 'run':
+        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'reject')) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') remove(t.owner, t.element); else restoreDeleted(t);
         return;
       case 'mark':
@@ -231,7 +239,7 @@ function dropMark(paragraph: Paragraph | undefined, which: 'ins' | 'del'): void 
  * with: the paragraph then goes, its content joining the one before. With neither neighbour the
  * mark is simply dropped.
  */
-export function joinWithNext(paragraph: Paragraph, fallbackToPrevious = false): void {
+export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' | 'p'>, fallbackToPrevious = false): void {
   const container = paragraph.container;
   const i = container.indexOf(paragraph.element);
   const next = i >= 0 ? container[i + 1] : undefined;
@@ -286,6 +294,121 @@ function acceptedOffsetOf(p: wml.P, target: Element): number {
   };
   visit(runItemsOf(p));
   return found >= 0 ? found : pos;
+}
+
+// --- moves -------------------------------------------------------------------------------------
+
+/**
+ * One piece of a move's markup, in document order: a range marker, a run-level half (`w:moveFrom`
+ * or `w:moveTo` around runs), or a moved paragraph's mark (`w:pPr/w:rPr/w:moveFrom` or `w:moveTo`).
+ */
+type MovePiece =
+  | { kind: 'start'; side: 'from' | 'to'; id: number; name: string; element: Element; owner: Element[] }
+  | { kind: 'end'; side: 'from' | 'to'; id: number; element: Element; owner: Element[] }
+  | { kind: 'half'; side: 'from' | 'to'; element: Element; owner: Element[]; names: string[] }
+  | { kind: 'mark'; side: 'from' | 'to'; paragraph: Element<wml.P>; container: Element[]; names: string[] };
+
+const RANGE_MARKERS: Readonly<Record<string, { kind: 'start' | 'end'; side: 'from' | 'to' }>> = {
+  moveFromRangeStart: { kind: 'start', side: 'from' }, moveFromRangeEnd: { kind: 'end', side: 'from' },
+  moveToRangeStart: { kind: 'start', side: 'to' }, moveToRangeEnd: { kind: 'end', side: 'to' },
+};
+
+/**
+ * Accepts or rejects the whole move a run-level half belongs to, as Word's Review tab does from
+ * either half (`test/README.md` check 18, Word 16.0.20326.20158; Office JS cannot list a move at
+ * all there, check 17). Word pairs the halves by the `w:name` on their range starts
+ * (`w:moveFromRangeStart`, `w:moveToRangeStart`); `w:moveFrom` and `w:moveTo` carry none, so a half
+ * belongs to the move whose range of its side is open where it stands. Accepting keeps the
+ * destination and removes the source, paragraph mark and all; rejecting the other way round; the
+ * four range markers go either way. Returns false for a half in no named range - markup without
+ * range markers, or a half already resolved - which the caller then treats on its own, as before.
+ */
+function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolean {
+  const t = change.target;
+  if (t.kind !== 'run' || !change.paragraph) return false;
+  const pieces = movePiecesOf(storyOf(change.paragraph.p));
+  const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
+  if (!half || half.kind !== 'half' || half.names.length === 0) return false;
+  const name = half.names[0]!;
+  const ids = new Set(pieces.filter((piece) => piece.kind === 'start' && piece.name === name).map((piece) => (piece as { id: number }).id));
+  const mine = pieces.filter((piece) =>
+    (piece.kind === 'start' && piece.name === name) || (piece.kind === 'end' && ids.has(piece.id))
+    || ((piece.kind === 'half' || piece.kind === 'mark') && piece.names.includes(name)));
+  const kept = action === 'accept' ? 'to' : 'from';
+
+  // the markers first: a range end between two paragraphs would stop the paragraph join below
+  for (const piece of mine) if (piece.kind === 'start' || piece.kind === 'end') remove(piece.owner, piece.element);
+  for (const piece of mine) {
+    if (piece.kind !== 'half') continue;
+    const target = { kind: 'run' as const, revision: piece.side === 'from' ? 'moveFrom' as const : 'moveTo' as const, element: piece.element, owner: piece.owner, value: piece.element.value as wml.CTTrackChange };
+    if (piece.side === kept) { if (piece.side === 'from') restoreDeleted(target); else unwrap(target); }
+    else remove(piece.owner, piece.element);
+  }
+  // the paragraph marks last, last first, so that a join never disturbs one still to do
+  const marks = mine.filter((piece): piece is Extract<MovePiece, { kind: 'mark' }> => piece.kind === 'mark');
+  for (let i = marks.length - 1; i >= 0; i--) {
+    const mark = marks[i]!;
+    const p = mark.paragraph.value;
+    if (mark.side === kept) {
+      const rPr = p.pPr?.rPr;
+      if (rPr) delete rPr[mark.side === 'from' ? 'moveFrom' : 'moveTo'];
+      pruneParagraphProperties(p);
+    } else if ((p.content ?? []).length === 0) {
+      remove(mark.container, mark.paragraph as Element);                 // the moved paragraph, emptied: gone, as in Word
+    } else {
+      const rPr = p.pPr?.rPr;
+      if (rPr) delete rPr[mark.side === 'from' ? 'moveFrom' : 'moveTo'];
+      joinWithNext({ container: mark.container, element: mark.paragraph, p }, mark.side === 'to');
+    }
+  }
+  return true;
+}
+
+/** The story a paragraph is in: the outermost array of block content above it (a body, a header, a note). */
+function storyOf(p: wml.P): Element[] {
+  let story: Element[] | undefined;
+  for (let o: object | undefined = p; o !== undefined; o = (o as { PARENT?: object }).PARENT) {
+    const content = (o as { content?: unknown }).content;
+    if (Array.isArray(content) && (o as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.P') story = content as Element[];
+  }
+  return story ?? [];
+}
+
+/** Every piece of move markup in a story, in document order, each half and mark with the names of the ranges open over it. */
+function movePiecesOf(story: Element[]): MovePiece[] {
+  const out: MovePiece[] = [];
+  const open = { from: new Map<number, string>(), to: new Map<number, string>() };
+  const visit = (items: Element[]): void => {
+    for (const el of items) {
+      const marker = RANGE_MARKERS[el.name?.localPart ?? ''];
+      const value = el.value as { id?: number; name?: string } | undefined;
+      if (marker && value) {
+        const id = Number(value.id);
+        if (marker.kind === 'start') { open[marker.side].set(id, value.name ?? ''); out.push({ kind: 'start', side: marker.side, id, name: value.name ?? '', element: el, owner: items }); }
+        else { open[marker.side].delete(id); out.push({ kind: 'end', side: marker.side, id, element: el, owner: items }); }
+        continue;
+      }
+      const revision = revisionKindOf(el);
+      if (revision === 'moveFrom' || revision === 'moveTo') {
+        const side = revision === 'moveFrom' ? 'from' : 'to';
+        out.push({ kind: 'half', side, element: el, owner: items, names: [...open[side].values()] });
+      }
+      const v = el.value;
+      if (typeof v !== 'object' || v === null) continue;
+      const children = childrenOf(v) ?? runItemsOf(v);
+      if (children) visit(children);
+      if (typeNameOf(el) === 'org_docx4j_wml.P') {
+        const rPr = (v as wml.P).pPr?.rPr;
+        for (const side of ['from', 'to'] as const) {
+          if (rPr?.[side === 'from' ? 'moveFrom' : 'moveTo']) {
+            out.push({ kind: 'mark', side, paragraph: el as Element<wml.P>, container: items, names: [...open[side].values()] });
+          }
+        }
+      }
+    }
+  };
+  visit(story);
+  return out;
 }
 
 // --- collecting ----------------------------------------------------------------------------
