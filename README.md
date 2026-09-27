@@ -103,6 +103,20 @@ p?.insertParagraph('Inserted after the fourth block', 'After');
 (await pkg.paragraphAt({ contains: 'Chapter 2' }))?.delete();
 ```
 
+`search` and `replaceText` take Office JS's `matchCase`, `matchWholeWord` and `matchWildcards`
+(Word's `?`, `*`, `[a-z]`, `<`, `>`, `@` and `(...)` groups, with `\1` in the replacement), and
+`matchRegExp` for an ECMAScript regular expression, with `$1` in the replacement. A match never
+crosses a paragraph.
+
+```ts
+body.replaceText('(\\d+) pages', '$1 pp.', { matchRegExp: true });
+body.replaceText('(quick) (fox)', '\\2 \\1', { matchWildcards: true });
+```
+
+A style the document lacks is spliced in from docx4j's defaults, with the styles it is based on and
+linked to: `await pkg.styles.ensure(['FootnoteText', 'FootnoteReference'])` returns the ids it
+added, and a document that already has them keeps its styles part byte for byte.
+
 Docx4j's names are there as aliases (`addParagraphOfText`, `addStyledParagraphOfText`,
 `addObject`, `getContent`), and the tree stays reachable: `paragraph.p` is the `P`,
 `body.content` the live array.
@@ -173,6 +187,12 @@ list.setLevelStartingNumber(0, 5);
 const again = p4.restartList();                 // the same list, numbering again from its start
 ```
 
+Without a paragraph, `pkg.numbering.newList()` makes a definition and returns its `w:numId`, and
+`pkg.numbering.restart(numId)` one that numbers again from the start. Both take the identifiers to
+use when the next free one is the wrong answer - two sessions allocating in one co-edited
+document - checked unused, a clash throwing rather than renumbering:
+`await pkg.numbering.newList({ numId: 4242, abstractNumId: 77 })`.
+
 A level writer changes the `w:abstractNum`, so it copies that definition first when another
 `w:num` shares it — the change stays local to this list. `startNewList()` is asynchronous here
 (Office JS's is not): it copies its definition from docx4j's default `numbering.xml` and adds
@@ -208,6 +228,21 @@ body.acceptAll();     // or rejectAll(), or accept()/reject() one at a time
 `getTrackedChanges()` is also on `Paragraph` and `Range`. Text and searches read the accepted
 view throughout, so an agent sees the document as it will read once the changes are taken.
 
+To record one caller's edits without touching the document's own setting - an agent working in a
+document whose `w:trackRevisions` belongs to its owner - use `withTracking`. Nothing is written
+to the settings part, and the author, date and mode are put back when `fn` returns or throws:
+
+```ts
+await pkg.withTracking({ author: { name: 'Agent' } }, () => {
+  body.replaceText('colour', 'color');
+});
+```
+
+Calls nest. While two overlap, the later one's author and mode apply to every edit, since nothing
+can tell which asynchronous call an edit came from: await one before starting another when they
+must be recorded as different authors. A revision is dated to the minute, as Word dates them, and
+its id is above every annotation id in the document, including those in parts nobody has read.
+
 ### Comments
 
 `getComments()` on the body, a paragraph or a range, and `insertComment` on a range or a
@@ -228,6 +263,15 @@ for (const c of await body.getComments()) {    // document order, replies nested
   console.log(c.authorName, c.creationDate, c.content, c.replies.length, c.getRange().map((r) => r.text));
   if (c.resolved) await c.delete();            // the comment, its replies, the markers and every side entry
 }
+```
+
+`insertComment` and `reply` take the author, initials, date and `w:id` when they are not the
+package's - a comment made by another person in a co-edited document - and paragraphs as well as
+a string. A chosen id is checked unused, and a clash throws:
+
+```ts
+await hit.insertComment('Checked', { author: { name: 'Grace Hopper' }, date: new Date('2026-09-27T10:15:00Z'), id: 42 });
+await hit.insertComment([p1, p2]);             // w:p elements, for rich content
 ```
 
 ### XML in
@@ -252,6 +296,33 @@ cannot hold:
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 body.addObject(el.p({ content: [el.r({ content: [el.t({ value: 'Hello World' })] })] }));
 ```
+
+A part that cannot be unmarshalled throws `PartUnmarshalException`, whose message names the part
+and, where the parser supplies a position (xmldom in Node; not a browser), the element or attribute
+and its line: `/word/styles.xml: w:sz/@w:val (line 7): Argument [NaN] must be an integer, but it is not a number.`
+`partName`, `location`, `line` and `column` are fields of their own.
+
+### XPath over the document
+
+`pkg.selectObjects(xpath)` evaluates an XPath over a part - the main document part unless you pass
+another - and answers as docx4j's `getJAXBNodesViaXPath` does: for each hit, the node, the tree
+object behind it and its path. `body.select(xpath)` gives the content-API view instead, where the
+element has one (`Paragraph`, `Table`, `TableRow`, `TableCell`, `ContentControl`, a `Range` for a
+run):
+
+```ts
+const hits = await pkg.selectObjects("//w:p[w:pPr/w:pStyle/@w:val='Heading1']");
+hits[0].object;         // the P itself, not a copy: change it and the document changes
+hits[0].path;           // '/w:document/w:body[1]/w:p[3]'
+
+for (const heading of await body.select("//w:p[w:pPr/w:pStyle/@w:val='Heading1']")) {
+  if (heading instanceof Paragraph) heading.styleBuiltIn = 'Heading2';
+}
+```
+
+The prefixes are the objects package's (`w`, `r`, `wp`, `a`, ...), and `namespaces` adds others.
+Each call evaluates a fresh snapshot of the part, so what it selects is never stale and changing the
+snapshot's DOM changes nothing. The answers are held to docx4j's own by the XPath goldens (CR-006).
 
 ### Tables, pictures and content controls
 
@@ -350,6 +421,7 @@ document part (Word drops a custom XML part the main part does not relate to):
 
 ```ts
 const part = pkg.customXmlParts.add('<greeting xmlns="http://example.com/g"><to>World</to></greeting>');
+// or with the itemID and part name to use, checked unused: { itemID: '{4B0E8F1A-...}', partName: '/customXml/item7.xml' }
 control.xmlMapping.setMapping('/ns0:greeting[1]/ns0:to[1]', "xmlns:ns0='http://example.com/g'", part);
 control.xmlMapping.setMappingByNode(part.selectSingleNode('/ns0:greeting/ns0:to', "xmlns:ns0='http://example.com/g'"));
 ```
@@ -474,6 +546,10 @@ await Word.run(pkg, async (context) => {
 });
 await writeFile('edited.docx', await pkg.save());
 ```
+
+The callback's `context.document` is typed `ShimmedDocument`, so add-in code that uses
+`paragraphs.items`, `load('items/text')`, `getFirst()` or `getCount().value` type-checks here as it
+does against Office JS.
 
 `Word.supported` is the set of `Class.member` strings this package implements
 (`Word.supported.has('Body.insertParagraph')`), generated from the compile-time subset, so a
