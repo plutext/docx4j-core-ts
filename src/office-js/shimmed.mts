@@ -46,5 +46,19 @@ export type Shimmed<T> =
 /** A collection of shimmed items, as the proxies wrap an array. */
 export type ShimmedCollection<I> = Collection<Shimmed<I>> & Loadable<Collection<Shimmed<I>>>;
 
-/** An object with every member shimmed, and Office JS's `load` / `track` / `untrack` beside them. */
-export type ShimmedObject<T> = { [K in keyof T]: Shimmed<T[K]> } & Loadable<T>;
+/**
+ * An object with every member shimmed, and Office JS's `load` / `track` / `untrack` beside them.
+ *
+ * `T &` matters and is not redundant: a mapped type keeps only the public members, so without it a
+ * shimmed `Body` is not assignable to `Body` and a consumer cannot pass `context.document.body` to
+ * its own function typed on the plain view - which is exactly what an add-in that shares one `edit`
+ * between Word and the shim does (`examples/office-addin/taskpane.ts`). Intersecting keeps that
+ * assignable while the mapped half still narrows an array member to a `Collection`.
+ *
+ * The **order** matters too, and is the subtler half: an intersection of two call signatures is an
+ * overload set, and TypeScript picks the first that matches. With `T` first, `getRange()` resolves
+ * to `T`'s own signature and hands back a plain `Range`, so `paragraph.getRange().font.load(...)`
+ * is rejected although the shim allows it. The mapped half therefore comes first, so the shimmed
+ * return type wins, and `T` follows to keep assignability.
+ */
+export type ShimmedObject<T> = { [K in keyof T]: Shimmed<T[K]> } & T & Loadable<T>;
