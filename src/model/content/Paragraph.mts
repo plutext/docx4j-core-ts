@@ -532,7 +532,7 @@ export class Paragraph {
           const middle = seg === first && !inserted ? text : '';
           if (seg === first) inserted = true;
           const value = seg.text.substring(0, from) + middle + seg.text.substring(to);
-          if (value === '') toRemove.push(seg); else { t.value = value; if (/^\s|\s$|\s\s/.test(value)) t.space = 'preserve'; }
+          if (value === '') toRemove.push(seg); else setText(t, value);
         } else toRemove.push(seg);
       }
       for (const seg of toRemove.reverse()) {
@@ -554,8 +554,7 @@ export class Paragraph {
       if (target) {
         const t = target.item.value as wml.Text;
         const at = start - target.start;
-        t.value = target.text.substring(0, at) + text + target.text.substring(at);
-        if (/^\s|\s$|\s\s/.test(t.value)) t.space = 'preserve';
+        setText(t, target.text.substring(0, at) + text + target.text.substring(at));
       } else {
         // no w:t to extend: a new run next to the segment at `start`, with that run's formatting
         const before = [...segs].reverse().find((s) => s.end <= start);
@@ -602,8 +601,7 @@ export class Paragraph {
     const t = seg.item.value as wml.Text;
     const head = seg.text.substring(0, at);
     const tail = seg.text.substring(at);
-    t.value = head;
-    if (/^\s|\s$|\s\s/.test(head)) t.space = 'preserve';
+    setText(t, head);
     const rest = seg.owner.splice(seg.index + 1);
     const second = runOf([textItem(tail), ...rest], seg.run.rPr ? deepCopy(seg.run.rPr) : undefined);
     seg.runOwner.splice(seg.runIndex + 1, 0, second);
@@ -798,8 +796,7 @@ export class Paragraph {
       if (!seg || !tracker.ownInsertion(seg.revision)) continue;
       if (seg.editable) {
         const t = seg.item.value as wml.Text;
-        t.value = side === 'after' ? seg.text + text : text + seg.text;
-        if (/^\s|\s$|\s\s/.test(t.value)) t.space = 'preserve';
+        setText(t, side === 'after' ? seg.text + text : text + seg.text);
       } else {
         const run = runOf([textItem(text)], copyRPr(seg.run.rPr));
         seg.runOwner.splice(side === 'after' ? seg.runIndex + 1 : seg.runIndex, 0, run);
@@ -909,3 +906,17 @@ function outlineLevelOf(pPr: wml.PPr | undefined): number {
   const level = pPr?.outlineLvl?.val;
   return level === undefined ? 10 : level + 1;
 }
+
+/**
+ * Sets a `w:t`'s text with `xml:space="preserve"` exactly when the text needs it - whitespace at
+ * either end, or two whitespace characters together - which is how the builders' `t()` and Word
+ * write it. Setting the attribute and never taking it off left a text shortened from "Font styles "
+ * to "Font X" still preserving, the same text but not the same bytes as a `w:t` made afresh
+ * (CR-002 section 32 item 2).
+ */
+function setText(t: wml.Text, value: string): void {
+  t.value = value;
+  if (/^\s|\s$|\s\s/.test(value)) t.space = 'preserve';
+  else delete t.space;
+}
+

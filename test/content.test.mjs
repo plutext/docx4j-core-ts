@@ -329,6 +329,28 @@ test('style is the display name, styleBuiltIn the Word.Style value, styleId the 
   assert.equal(p.getRange().styleId, 'Heading1');
 });
 
+// CR-002 section 32 item 2, asked for by the editor: an edited w:t kept xml:space="preserve" once
+// its text no longer needed it, so "Font styles " shortened to "Font X" differed in its bytes from a
+// w:t made afresh, as the builders' t() and Word write one.
+test('an edited w:t has xml:space="preserve" exactly when its text needs it', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const texts = (paragraph) => find(paragraph.p, 'org_docx4j_wml.Text').map((t) => [t.value, t.space ?? null]);
+
+  const replaced = pkg.body.insertParagraph('Font styles ', 'End');
+  assert.deepEqual(texts(replaced), [['Font styles ', 'preserve']]);
+  pkg.body.replaceText('styles ', 'X');
+  assert.deepEqual(texts(replaced), [['Font X', null]], 'a replace that no longer needs it drops it');
+
+  const split = pkg.body.insertParagraph('Bold styles ', 'End');
+  split.search('Bold')[0].font.bold = true;
+  assert.deepEqual(texts(split), [['Bold', null], [' styles ', 'preserve']], 'so does the head of a split');
+
+  const grown = pkg.body.insertParagraph('a b', 'End');
+  grown.getRange('End').insertText(' ', 'End');
+  assert.deepEqual(texts(grown), [['a b ', 'preserve']], 'and an edit that comes to need it gets it');
+  assert.match(await pkg.getMainDocumentPart().getXml(), /<w:t>Font X<\/w:t>/);
+});
+
 // CR-002 section 20: Office JS Range.hyperlink. `address#location` separates the address from a
 // location within it, so "#name" is a link inside the document (w:anchor) and an address is an
 // external relationship of the range's part.
