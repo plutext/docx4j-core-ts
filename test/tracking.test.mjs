@@ -560,3 +560,66 @@ test('a revision dated now is stamped to the minute, and an explicit date is unt
   p2.body.paragraphs[0].getRange('End').insertText('!', 'End');
   assert.equal(p2.body.getTrackedChanges()[0].date.getUTCSeconds(), 45, 'the caller\'s seconds kept');
 });
+
+// CR-002 section 28.1: an editor's agent records its edits as itself, in a room whose
+// w:trackRevisions belongs to the document. So withTracking must leave no trace of itself: not in
+// the settings part, not in a settings part it created, not in trackingPending, and not in the
+// cached mode a later read reports.
+test('withTracking records revisions without touching the document\'s setting', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada' };
+  pkg.body.insertParagraph('text', 'End');
+  const settings = pkg.getMainDocumentPart().documentSettingsPart;
+  const before = await settings.getXml();
+  assert.equal(pkg.changeTrackingMode, 'Off');
+
+  const date = new Date(Date.UTC(2026, 8, 27, 9, 15, 0));
+  const returned = await pkg.withTracking({ author: { name: 'Agent', initials: 'AG' }, date }, () => {
+    pkg.body.paragraphs[0].getRange('End').insertText(' from the agent', 'End');
+    return 'result';
+  });
+  assert.equal(returned, 'result', 'the value of fn is returned');
+
+  const changes = pkg.body.getTrackedChanges();
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0].author, 'Agent');
+  assert.equal(changes[0].date.toISOString(), date.toISOString());
+
+  // and nothing of the call survives it
+  assert.equal(pkg.changeTrackingMode, 'Off', 'the mode is as it was');
+  assert.equal(pkg.author.name, 'Ada', 'the package author is restored');
+  assert.equal(pkg.trackedChangeDate, undefined, 'the package date is restored');
+  assert.equal(await settings.getXml(), before, 'the settings part is byte-identical');
+  assert.ok(!(await settings.getXml()).includes('trackRevisions'), 'no w:trackRevisions was written');
+  const reloaded = await WordprocessingMLPackage.load(await pkg.save());
+  assert.equal(await reloaded.getChangeTrackingMode(), 'Off', 'and the saved document is not tracking');
+});
+
+test('withTracking restores after a throw, and nests over an on setting', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.author = { name: 'Ada' };
+  pkg.body.insertParagraph('text', 'End');
+  await assert.rejects(() => pkg.withTracking({ author: { name: 'Agent' } }, () => { throw new Error('boom'); }), /boom/);
+  assert.equal(pkg.changeTrackingMode, 'Off', 'restored after a throw');
+  assert.equal(pkg.author.name, 'Ada');
+
+  // over a document that IS tracking: the call's author wins inside, the document's outside
+  await pkg.setChangeTrackingMode('TrackAll');
+  pkg.body.paragraphs[0].getRange('End').insertText(' by Ada', 'End');
+  await pkg.withTracking({ author: { name: 'Agent' } }, () => {
+    pkg.body.paragraphs[0].getRange('End').insertText(' by the agent', 'End');
+  });
+  pkg.body.paragraphs[0].getRange('End').insertText(' by Ada again', 'End');
+  assert.deepEqual([...new Set(pkg.body.getTrackedChanges().map((c) => c.author))].sort(), ['Ada', 'Agent']);
+  assert.equal(pkg.changeTrackingMode, 'TrackAll', 'the document is still tracking afterwards');
+
+  // and mode Off suppresses tracking for the call only
+  const untrackedText = 'plain';
+  await pkg.withTracking({ author: { name: 'Agent' }, mode: 'Off' }, () => {
+    pkg.body.insertParagraph(untrackedText, 'End');
+  });
+  const added = pkg.body.paragraphs.at(-1);
+  assert.equal(added.text, untrackedText);
+  assert.equal(added.getTrackedChanges().length, 0, 'the paragraph added with mode Off is not a revision');
+  assert.equal(pkg.changeTrackingMode, 'TrackAll');
+});

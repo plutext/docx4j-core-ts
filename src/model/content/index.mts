@@ -23,7 +23,7 @@ export {
   ChangeTracker, trackerOf, calendarOf, dateOf, copyRPr, markDeleted, markInserted,
   toDeletedText, toRestoredText, restoreRPr, restorePPr,
   trackInsertedParagraph, trackInsertedTable, wrapNewRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
-  type ChangeTrackingMode, type TrackingHost,
+  type ChangeTrackingMode, type TrackingHost, type TrackingScope,
 } from './tracking.mjs';
 // The objects package's builders, re-exported so that one import serves the content API and the tree it works on.
 export { wml, wmlOne, p, r, t, br, tab, tbl, tr, tc, sdt, sdtPr, nextSdtId, sdtProperty, sdtKindOf, inlinePicture, rPrToElements, rPrFromElements, textOf, walk, walkAll, find, linkParents, applyRunOptions, readRunOptions, UNDERLINE_TO_WML, isElement, typeNameOf, W_NS, type Element, type Wrapper, type WmlOptions, type Raw, type Interpolated, type RunOptions, type RunFormatting, type ParagraphOptions, type TableOptions, type CellOptions, type SdtKind, type SdtForm, type SdtOptions } from '@docx4j/generated-objects-ts/builders/wml';

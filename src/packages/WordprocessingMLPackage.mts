@@ -20,7 +20,7 @@ import type { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
 import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.mjs';
-import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost } from '../model/content/tracking.mjs';
+import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost, type TrackingScope } from '../model/content/tracking.mjs';
 import { NumberingFacade } from '../model/content/List.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
@@ -110,6 +110,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   private tracker: ChangeTracker | undefined;
   /** Set when `changeTrackingMode` was written but the settings part was not unmarshalled yet. */
   private trackingPending = false;
+  /**
+   * `withTracking`'s mode for the duration of one call: read by the getter before everything else
+   * and **never** written by the setter, so it touches neither the settings part, `trackingPending`
+   * nor the cached `trackingMode` (CR-002 section 28.1).
+   */
+  private trackingOverride: ChangeTrackingMode | undefined;
 
   /**
    * The package's font settings (CR-001 Phase B step 4), docx4j's `docx4j.fonts.*` properties
@@ -305,6 +311,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * unmarshalled yet (`setChangeTrackingMode()` does it there and then).
    */
   get changeTrackingMode(): ChangeTrackingMode {
+    if (this.trackingOverride !== undefined) return this.trackingOverride;
     if (this.trackingMode !== undefined) return this.trackingMode;
     const settings = this.mainDocumentPart?.documentSettingsPart;
     if (settings?.isUnmarshalled) return (this.trackingMode = modeOf(settings.contents));
@@ -317,6 +324,37 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     const settings = this.mainDocumentPart ? this.settingsPart() : undefined;
     if (settings?.isUnmarshalled) { writeTrackRevisions(settings.contents, mode); this.trackingPending = false; }
     else this.trackingPending = true;
+  }
+
+  /**
+   * Runs `fn` with revisions recorded as `markup` says, and the document's own setting untouched:
+   * nothing is written to `w:trackRevisions`, no settings part is created, and the mode a later read
+   * reports is the one that was there before (CR-002 section 28.1, for an editor whose agent must
+   * record its edits as a named author in a room whose tracking setting belongs to the document).
+   *
+   * The author, the date and the mode are restored in a `finally`, so a throw from `fn` cannot leave
+   * the package tracking. It is asynchronous for one reason: it awaits `seedAnnotationIds()` before
+   * running `fn`, so a revision written inside it cannot reuse an id from a part nobody has read
+   * (section 28.2). `fn` itself may be synchronous.
+   */
+  async withTracking<T>(markup: TrackingScope, fn: () => T | Promise<T>): Promise<T> {
+    await this.seedAnnotationIds();
+    const previous = {
+      author: this.author, date: this.trackedChangeDate,
+      override: this.trackingOverride, tracker: this.tracker,
+    };
+    this.author = markup.author;
+    this.trackedChangeDate = markup.date;
+    this.trackingOverride = markup.mode ?? 'TrackAll';
+    this.tracker = undefined;
+    try {
+      return await fn();
+    } finally {
+      this.author = previous.author;
+      this.trackedChangeDate = previous.date;
+      this.trackingOverride = previous.override;
+      this.tracker = previous.tracker;
+    }
   }
 
   /** The mode as the settings part has it, unmarshalling the part (docx4j's async counterpart of the getter). */

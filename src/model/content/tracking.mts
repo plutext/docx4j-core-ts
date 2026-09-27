@@ -70,6 +70,20 @@ export interface TrackingHost {
   readonly annotationIdFloor: number;
 }
 
+/**
+ * What `WordprocessingMLPackage.withTracking` records for the duration of one call: who, when, and
+ * which mode (`TrackAll` unless said otherwise). The document's own `w:trackRevisions` is not
+ * touched - an editor's agent records its edits as itself in a room whose setting belongs to the
+ * document, not to the caller (CR-002 section 28.1).
+ */
+export interface TrackingScope {
+  author: Author;
+  /** The `w:date` for every revision in the call; `undefined` means now, to the minute. */
+  date?: Date | undefined;
+  /** `TrackAll` unless given; `Off` runs `fn` with tracking suppressed for the call. */
+  mode?: ChangeTrackingMode | undefined;
+}
+
 /** The tracker of a package whose mode is not `Off`; `undefined` when it is (duck typed, no import cycle). */
 export function trackerOf(pkg: unknown): ChangeTracker | undefined {
   return (pkg as { changeTracker?: ChangeTracker } | undefined)?.changeTracker;
