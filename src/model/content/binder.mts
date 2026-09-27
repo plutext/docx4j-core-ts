@@ -58,14 +58,15 @@ export async function bindSnapshot<T>(element: Jsonix.TypedNamedValue<T>): Promi
   return { root, objects };
 }
 
-/** Turns selected nodes into `Bound`s against a snapshot. */
+/** Turns selected nodes into `Bound`s against a snapshot, with one path cache for them all. */
 export function boundsOf(nodes: readonly Node[], snapshot: BoundSnapshot): Bound[] {
+  const paths = new Paths();
   return nodes.map((node) => {
     const owner = owningElement(node);
     const bound: Bound = {
       node,
       object: owner === undefined ? undefined : snapshot.objects.get(owner),
-      path: pathOf(node),
+      path: paths.of(node),
     };
     if (node.nodeType === 2) bound.attribute = (node as Attr).name;
     return bound;
@@ -94,26 +95,58 @@ function owningElement(node: Node): Element | undefined {
  * than a short one, and docx4j's harness records the same form.
  */
 export function pathOf(node: Node): string {
-  if (node.nodeType === 2) {
-    const owner = (node as Attr).ownerElement;
-    return `${owner === null ? '' : pathOf(owner)}/@${(node as Attr).name}`;
-  }
-  if (node.nodeType === 3 || node.nodeType === 4) {
-    const parent = node.parentNode;
-    return `${parent === null ? '' : pathOf(parent)}/text()`;
-  }
-  if (node.nodeType !== 1) return '';
-  const element = node as Element;
-  const parent = element.parentNode;
-  if (parent === null || parent.nodeType !== 1) return `/${element.nodeName}`;
-  let index = 0;
-  for (let sibling = parent.firstChild; sibling; sibling = sibling.nextSibling) {
-    if (sibling.nodeType === 1 && (sibling as Element).nodeName === element.nodeName) {
-      index++;
-      if (sibling === element) break;
+  return new Paths().of(node);
+}
+
+/**
+ * Paths for the nodes of one snapshot. Each parent's children are counted once, on first need,
+ * and each element's path is kept for its descendants, so a hit list costs one pass over the
+ * parents it touches. Counting a node's preceding siblings afresh for every node and every
+ * ancestor was quadratic in a parent's children: the 6,972 hits of `//w:p[w:pPr/w:pStyle]` over a
+ * 7,088-paragraph body took 21 s in Chromium, where the marshal took 0.5 s (CR-006 section 10).
+ */
+class Paths {
+  /** For a parent, the position of each element child among its siblings of the same name. */
+  private readonly positions = new Map<Node, Map<Node, number>>();
+  private readonly elementPaths = new Map<Node, string>();
+
+  of(node: Node): string {
+    if (node.nodeType === 2) {
+      const owner = (node as Attr).ownerElement;
+      return `${owner === null ? '' : this.of(owner)}/@${(node as Attr).name}`;
     }
+    if (node.nodeType === 3 || node.nodeType === 4) {
+      const parent = node.parentNode;
+      return `${parent === null ? '' : this.of(parent)}/text()`;
+    }
+    if (node.nodeType !== 1) return '';
+    const known = this.elementPaths.get(node);
+    if (known !== undefined) return known;
+    const element = node as Element;
+    const parent = element.parentNode;
+    const path = parent === null || parent.nodeType !== 1
+      ? `/${element.nodeName}`
+      : `${this.of(parent)}/${element.nodeName}[${this.position(parent, element)}]`;
+    this.elementPaths.set(node, path);
+    return path;
   }
-  return `${pathOf(parent)}/${element.nodeName}[${index}]`;
+
+  private position(parent: Node, element: Element): number {
+    let positions = this.positions.get(parent);
+    if (positions === undefined) {
+      positions = new Map();
+      const counts = new Map<string, number>();
+      for (let sibling = parent.firstChild; sibling; sibling = sibling.nextSibling) {
+        if (sibling.nodeType !== 1) continue;
+        const name = (sibling as Element).nodeName;
+        const n = (counts.get(name) ?? 0) + 1;
+        counts.set(name, n);
+        positions.set(sibling, n);
+      }
+      this.positions.set(parent, positions);
+    }
+    return positions.get(element) ?? 0;
+  }
 }
 
 function isElement(node: unknown): node is Element {

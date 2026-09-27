@@ -4,7 +4,8 @@
 rewritten against the runtime, section 8 added). Scheduled by Jason the same day with CR-002
 section 30's release, and **implemented** 2026-09-27 (`7368f8c`, fixes from a review in CR-002
 section 31), with section 5's docx4j oracle the same day: 46 XPath goldens from docx4j 17.2.1,
-zero differences (section 9).
+zero differences (section 9). Section 10's quadratic `pathOf`, found by the editor on 0.2.0, fixed
+2026-09-28 for 0.2.1.
 **Depends on:** CR-001 Phase A (`XmlPart.marshalToNode`); CR-002 phase E (`XPathEngine`,
 `pkg.xpathEngine`, the default engine) and CR-005 phase A (`FontoXPathEngine`); a marshalling hook
 below this package (section 4)
@@ -274,3 +275,10 @@ evaluation of `//w:p[w:pPr/w:pStyle]` over that DOM takes 3.3 s in Node and abou
 the default engine takes 21.8 s in Node (the `xpath` package over xmldom) and 0.05 s in Chromium
 (native `document.evaluate`). The editor's XPath tab therefore evaluates with the default engine
 and offers XPath 3.1 as an option.
+
+*(Fixed 2026-09-28 for 0.2.1, at Jason's request, as asked: `boundsOf` makes the paths of a hit list
+through one cache, which counts a parent's children once, on first need, and keeps each element's
+path for its descendants; `pathOf` on its own goes through a cache of its own. The paths are
+unchanged - the XPath goldens hold every one of them. Measured in Node over xmldom, 30,000 siblings
+took 4.2 s before and 14 ms after; the test selects that many and allows a second, which the old
+code missed by three times and the new one meets seventy times over.)*

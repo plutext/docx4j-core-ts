@@ -798,6 +798,30 @@ test('pkg.selectObjects marshals the part once, for the snapshot', async () => {
   assert.equal(extra, 0);
 });
 
+// CR-006 section 10, found by the editor: pathOf counted a node's preceding siblings afresh for
+// every node and every ancestor, quadratic in a parent's children - 21 s in Chromium for the 6,972
+// hits of a 7,088-paragraph body. In Node over xmldom 30,000 siblings took 4.2 s that way and take
+// 14 ms now, so the limit below is far from both.
+test("boundsOf counts a parent's children once, not once per hit", async () => {
+  const { parseXml, boundsOf, pathOf } = await import('../dist/index.mjs');
+  const n = 30000;
+  const doc = parseXml(`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${'<w:p/>'.repeat(n)}</w:body></w:document>`);
+  const nodes = Array.from(doc.documentElement.firstChild.childNodes);
+  const started = performance.now();
+  const bounds = boundsOf(nodes, { root: doc.documentElement, objects: new WeakMap() });
+  const elapsed = performance.now() - started;
+  assert.ok(elapsed < 1000, `${Math.round(elapsed)} ms for ${n} siblings`);
+  assert.equal(bounds[n - 1].path, `/w:document/w:body[1]/w:p[${n}]`);
+  assert.equal(pathOf(nodes[41]), '/w:document/w:body[1]/w:p[42]', 'pathOf on its own agrees');
+
+  // positions still count siblings of the same name only, and attributes and text hang off them
+  const mixed = parseXml('<w:body xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p/><w:tbl/><w:p w:rsidR="1">x</w:p></w:body>');
+  const [p1, tbl, p2] = Array.from(mixed.documentElement.childNodes);
+  const hits = boundsOf([p1, tbl, p2, p2.getAttributeNode('w:rsidR'), p2.firstChild], { root: mixed.documentElement, objects: new WeakMap() });
+  assert.deepEqual(hits.map((b) => b.path),
+    ['/w:body/w:p[1]', '/w:body/w:tbl[1]', '/w:body/w:p[2]', '/w:body/w:p[2]/@w:rsidR', '/w:body/w:p[2]/text()']);
+});
+
 test('selectObjects reaches a wildcard child through the imported copy', async () => {
   // jsonix writes any-content with importNode, so the element in the snapshot is a COPY of the tree
   // node; the binder maps the copy back to the ORIGINAL (jsonix-CR-006 section 2, finding 3). Without
