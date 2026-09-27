@@ -1969,6 +1969,13 @@ the editor's request (its api.test tolerated it as `RUNS_MERGED`) the setter now
 adjacent text-only runs whose properties are identical (2026-09-28, unreleased), so all three cases
 are held to Word's XML.
 
+**Open: a link set at a caret (2026-09-28).** The editor found, reading both sides, that with an
+empty range inside a link the setter removes that link and inserts an empty `w:hyperlink` at the
+caret, where the editor's dialog re-targets the whole link, as Word's Edit Hyperlink does; at a caret
+in plain text the setter's empty `w:hyperlink` is as doubtful. What Office JS does on an empty range
+is not known, so `test/README.md` check 19 asks it (a caret inside a link, in plain text, just after
+a link, and `""` inside one). Scheduled by Jason with the run merge above; not to be released yet.
+
 **A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
 **every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
 the others, and `hyperlink = ''` on unlinked text removed links elsewhere in the paragraph. Office
@@ -2410,6 +2417,15 @@ changes no count a caller relies on. The moved paragraph's own mark (`w:pPr/w:rP
 paragraph properties, text, move markup left), 24 changes down to 22 for one action with the rest of
 the document the same in both views, and for accept all and reject all every one of the document's
 69 paragraphs reading as in Word's - its other 22 revisions of every kind included.
+
+**Asked next: a move edited, moved again, or missing a part (2026-09-28).** The editor's tracker
+(its E4.c step C3) writes a plain `w:ins` or `w:del` beside moved text and never a `w:moveTo` of its
+own, and asked, with Jason, what Word does instead of guessing: text typed inside a move (at its
+edges, as its author and as another, and in the source), moved text deleted (in part, whole, and in
+the source), a move moved again, a phrase moved within a paragraph, and a half without its partner
+or its range markers - each with accept and reject afterwards. `test/README.md` check 20 is that
+list, by hand as check 18 was; its last three cases open inputs made from the fixture by
+`scripts/make-check20-inputs.mjs`.
 
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 

@@ -329,6 +329,52 @@ namespaces, content types or the zip writer, check by hand:
    changed (the same text in both views, 24 changes down to 22; Word's re-save merged runs and
    dropped `w:proofErr`, no more). Accept all and reject all did the same to the move. The files are
    `tracking.test.mjs`'s oracle.
+19. A hyperlink set at a caret (CR-002 section 25), **Office JS's own answer, before the engine
+   changes**. The editor's link dialog edits the link under a caret, as Word's Edit Hyperlink does;
+   the setter removes that link and puts an empty `w:hyperlink` at the caret; what Office JS's
+   `range.hyperlink = ...` does on an empty range is not known. Run the fourth Script Lab snippet
+   below in a **new blank document** and copy the JSON back. Four paragraphs, each its own case: I, a
+   caret inside a link ("alpha beta gamma" linked, the caret in "beta"), given a new address; J, a
+   caret in plain text, given an address; K, a caret just after a link on "alpha", given another
+   address; L, a caret inside a link, given `""`. For each: what the caret reads before and after,
+   what each word reads afterwards, and the paragraph's XML.
+20. What Word does to a move that is edited, moved again, or missing a part (CR-002 section 29,
+   asked by the editor for its tracker, E4.c step C3), by hand, as check 18 was. Section 3 of
+   `fixtures/revisions/revisions-word15.docx` is the move: "The second paragraph of the move: it goes
+   before the first." stands at its **destination** (the first of section 3's paragraphs) and,
+   struck through, at its **source** (below "The first paragraph of the move"). Before starting, in
+   Word 15: Review > Track Changes on, "Track moves" kept on in the tracking options, and File >
+   Options > General with "Always use these values regardless of sign in to Office" ticked, so that
+   the user name set there is the author: **Author A** (initials AA) made the move, **Author B**
+   (BB) is another person. Each numbered case starts from a **fresh copy** of the file named, and is
+   saved into `fixtures/revisions/check20/` as `NN-name.docx`. A case marked **+ accept/reject**
+   is then taken on twice from that saved file: open it, click in the destination copy's original
+   words (on "second"), Review > Accept > **Accept This Change**, save as `NN-name-accept.docx`;
+   open it again, click in the same place, Review > Reject > **Reject Change**, save as
+   `NN-name-reject.docx`. Note anything Word says, refuses or selects on the way. Change nothing
+   else.
+
+   | Case | Start from | As | Do | Then |
+   |---|---|---|---|---|
+   | 01-type-inside-a | the fixture | A | in the destination copy, click after "goes" and type " quickly" | + accept/reject |
+   | 02-type-inside-b | the fixture | B | the same | |
+   | 03-type-at-start | the fixture | B | click at the very start of the destination copy (before "The") and type "Now " | + accept/reject |
+   | 04-type-at-end | the fixture | B | click at the end of the destination copy (after "first.", before the paragraph mark) and type " Really." | + accept/reject |
+   | 05-type-in-source | the fixture | B | click inside the struck-through source copy, after "goes", and type "X" (note where the text goes, or whether Word refuses) | |
+   | 06-delete-part-a | the fixture | A | in the destination copy select "it goes " and press Delete | + accept/reject |
+   | 07-delete-part-b | the fixture | B | the same | |
+   | 08-delete-all | the fixture | B | select all of the destination copy's text (not its paragraph mark) and press Delete | + accept/reject |
+   | 09-delete-in-source | the fixture | B | select "it goes " in the struck-through source copy and press Delete (note what Word does) | |
+   | 10-move-again | the fixture | A | triple-click the destination copy (its mark with it), cut (Ctrl+X), click at the start of "The third paragraph of the move", paste (Ctrl+V) | + accept/reject (click in the pasted copy) |
+   | 11-phrase-move | the fixture | A | in "The first paragraph of the move: it stays where it is." select "it stays where it is", cut, click just after "The ", paste (note whether Word marks a move, green, or a deletion and an insertion) | + accept/reject (click in the pasted phrase), if Word marked a move |
+   | 12-partner-missing | `check20/input/partner-missing.docx` | - | open it; note how Word shows the destination copy (a move? an insertion?); save it unchanged | + accept/reject |
+   | 13-moveTo-no-ranges | `check20/input/moveTo-no-ranges.docx` | - | the same | + accept/reject |
+   | 14-moveFrom-no-ranges | `check20/input/moveFrom-no-ranges.docx` | - | the same; for accept/reject click in the struck-through source copy instead | + accept/reject |
+
+   Case 4's inputs (12 to 14) are the fixture with `word/document.xml` edited as text by
+   `scripts/make-check20-inputs.mjs`, every other byte Word's: the source paragraph and its range
+   removed (12), the destination's two range markers removed (13), the source's two removed (14).
+   The saved files are compared with the fixture's section 3, as check 18's were.
 
 A small Node script for 1 to 3 is:
 
@@ -798,6 +844,71 @@ async function check() {
       entry.error = String(e && e.message || e);
     }
   }
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 19 (Word, Office JS, WordApi 1.3), in a new blank document. The HTML
+tab is check 15's (a **Run the check** button and a text box). The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+// [id, linked first (target, address) or null, where the caret goes, the address given at the caret]
+const CASES = [
+  ['I', ['alpha beta gamma', 'https://example.com/i1'], 'inside beta', 'https://example.com/i2'],
+  ['J', null, 'inside beta', 'https://example.com/j1'],
+  ['K', ['alpha', 'https://example.com/k1'], 'after alpha', 'https://example.com/k2'],
+  ['L', ['alpha beta gamma', 'https://example.com/l1'], 'inside beta', ''],
+];
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+async function check() {
+  const report = { host: Office.context.diagnostics, cases: {} };
+  for (const [id, link, where, address] of CASES) {
+    const entry = (report.cases[id] = {});
+    try {
+      await Word.run(async (context) => {
+        context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+        const paragraph = context.document.body.insertParagraph(`Case ${id}: alpha beta gamma`, 'End');
+        if (link) { paragraph.search(link[0], { matchCase: true }).getFirst().hyperlink = link[1]; await context.sync(); }
+        const caret = where === 'after alpha'
+          ? paragraph.search('alpha', { matchCase: true }).getFirst().getRange('End')
+          : paragraph.search('et', { matchCase: true }).getFirst().getRange('Start');   // b|eta
+        caret.load('hyperlink');
+        await context.sync();
+        entry.caretBefore = caret.hyperlink;
+        caret.hyperlink = address;
+        await context.sync();
+        caret.load('hyperlink,text');
+        const words = ['alpha', 'beta', 'gamma'].map((w) => paragraph.search(w, { matchCase: true }).getFirst());
+        words.forEach((r) => r.load('hyperlink'));
+        paragraph.load('text');
+        await context.sync();
+        Object.assign(entry, {
+          caretAfter: caret.hyperlink, caretText: caret.text, paragraphText: paragraph.text,
+          reads: Object.fromEntries(words.map((r, i) => [['alpha', 'beta', 'gamma'][i], r.hyperlink])),
+        });
+      });
+    } catch (e) {
+      entry.error = String(e && e.message || e);
+    }
+  }
+  await Word.run(async (context) => {
+    const ooxml = context.document.body.getOoxml();
+    await context.sync();
+    const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+    const main = all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+    for (const p of main ? all(main, W, 'p') : []) {
+      const m = /^Case ([IJKL]):/.exec(p.textContent);
+      if (m) report.cases[m[1]].xml = xml(p);
+    }
+  });
   out.value = JSON.stringify(report, null, 2);
 }
 ```
