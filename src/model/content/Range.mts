@@ -6,7 +6,7 @@ import type { BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
-import { sdt as sdtOf, nextSdtId, applyRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
+import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { Namespaces } from '../../parts/Namespaces.mjs';
@@ -320,6 +320,7 @@ export class Range {
     owner.splice(at, items.length, holder as Element);
     linkParents(holder, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
     this.restyle(holder.value, true);
+    mergeTextRuns(holder.value.content as Element[], holder.value);
     (paragraph.parentBody.package_ as { requireStyles?: (ids: string[]) => void } | undefined)
       ?.requireStyles?.([HYPERLINK_STYLE]);
   }
@@ -408,6 +409,40 @@ export class Range {
 
 /** The character style Word gives the runs of a hyperlink it makes. */
 const HYPERLINK_STYLE = 'Hyperlink';
+
+/**
+ * Adjacent runs holding nothing but text and the same properties become one, as Word writes a link
+ * it makes: linking "beta gamma" over the end of a link on "alpha beta" gives Word one run
+ * "alpha beta gamma" (`test/README.md` check 16, case F), where splitting and restyling left two.
+ * Runs whose properties differ at all - a `w:rPrChange` under tracking among them - stay apart.
+ */
+function mergeTextRuns(items: Element[], parent: object): void {
+  for (let i = items.length - 1; i > 0; i--) {
+    const [a, b] = [items[i - 1]!, items[i]!];
+    if (!isTextRun(a) || !isTextRun(b)) continue;
+    const [ra, rb] = [a.value as wml.R, b.value as wml.R];
+    if (canonical(ra.rPr) !== canonical(rb.rPr)) continue;
+    const text = [...(ra.content ?? []), ...(rb.content ?? [])].map((item) => (item.value as wml.Text).value ?? '').join('');
+    ra.content = [textElement(text)] as never;
+    linkParents(ra.content, ra);
+    items.splice(i, 1);
+  }
+  linkParents(items, parent);
+}
+
+function isTextRun(item: Element): boolean {
+  return typeNameOf(item) === 'org_docx4j_wml.R'
+    && ((item.value as wml.R).content ?? []).every((c) => (c as Element).name?.localPart === 't');
+}
+
+/** A value as text with its keys in order and `PARENT` left out, to compare run properties by content. */
+function canonical(value: unknown): string {
+  return JSON.stringify(value, (key, v) => {
+    if (key === 'PARENT') return undefined;
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) return v;
+    return Object.fromEntries(Object.keys(v).sort().map((k) => [k, (v as Record<string, unknown>)[k]]));
+  });
+}
 
 /** Whether `object` is `ancestor` or below it, following `PARENT` no further than `stop`. */
 function within(object: object, ancestor: object, stop: object): boolean {

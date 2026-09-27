@@ -1963,9 +1963,11 @@ Word's. Check 16's cases F to H asked Word (16.0.20326.20158):
 So a range that crosses a link's edge takes the whole of that link into the new one, and a range
 inside a link replaces it with a link over the range alone; removing from part of a link removes
 all of it. The setter already did G and H; it now does F, extending the range over any link it
-touches but does not lie within (not in 0.2.1). G and H are held to Word's XML; F to Word's reads
-and its one link, since Word also merged the linked text into one run where the setter leaves two.
-The editor differs on F and G and follows.
+touches but does not lie within (released in 0.2.2). The editor differs on F and G and follows.
+Word also writes F's linked text as one run where the setter left two with the same properties; at
+the editor's request (its api.test tolerated it as `RUNS_MERGED`) the setter now merges a new link's
+adjacent text-only runs whose properties are identical (2026-09-28, unreleased), so all three cases
+are held to Word's XML.
 
 **A defect found on the way, in the same setter (section 20, since 0.1.x):** the setter unwrapped
 **every** hyperlink of the paragraph, not the ones its range touched, so linking one word unlinked
