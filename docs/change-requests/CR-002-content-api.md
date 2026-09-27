@@ -2372,6 +2372,14 @@ So check 17 asks again in a blank document holding the move alone, inserted from
 recorded; this package loads that package and lists the move as the two unrelated changes this
 section describes.)*
 
+*(Check 17, run 2026-09-28: **Office JS cannot list a move** in Word 16.0.20326.20158. The move went
+in intact every time, and the first `body.getTrackedChanges()` threw `GeneralException` before
+anything was accepted or rejected; with check 16, where it listed only the revision before the move
+and threw once past it, that is the answer. There is therefore no Office JS behaviour to hold
+`TrackedChange.accept` / `reject` to for a move - the engine already does better than the host by
+not throwing - and what the fix should do is asked of Word's Review tab by hand, check 18: each
+scenario on a fresh copy of the fixture, saved, and compared with section 3.)*
+
 ## 30. What the editor wants in the next release, and what it costs (2026-09-27)
 
 Relayed with Jason's intent that these land if they fit, the editor's own priority order preserved.

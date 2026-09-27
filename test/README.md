@@ -298,7 +298,29 @@ namespaces, content types or the zip writer, check by hand:
    between them, the move's `w:name` and Author A's revisions - through `insertOoxml` into an
    emptied body, once per scenario, and records how Office JS lists the move (every change, whole
    text), acts, and records the blocks and the changes after. Press **Run the check** and copy the
-   JSON back.
+   JSON back. **Run 2026-09-28 (Word 16.0.20326.20158): Office JS cannot list a move.** The move went
+   in intact every time (Word renumbering its ids 0 to 5), and the first `getTrackedChanges()` after
+   it threw `GeneralException`, before anything was accepted or rejected. With check 16, where it
+   listed only the revision before the move and threw once past it, that is this build's answer:
+   there is no Office JS behaviour for a move to hold the engine to, so Word's own Review commands
+   are asked instead, check 18.
+18. A tracked move accepted and rejected through Word's Review tab (CR-002 section 29), by hand.
+   Each scenario on a **fresh copy** of `fixtures/revisions/revisions-word15.docx`, saved under the
+   name given, into `fixtures/revisions/check18/`; section 3 is the move, where "The second
+   paragraph of the move" appears twice - its destination above "The first paragraph of the move",
+   and its source, struck through, below it:
+   - `accept-destination.docx`: click in the destination copy, Review > Accept > **Accept This
+     Change**.
+   - `accept-source.docx`: click in the struck-through source copy, Review > Accept > **Accept This
+     Change**.
+   - `reject-destination.docx`: click in the destination copy, Review > Reject > **Reject Change**.
+   - `reject-source.docx`: click in the source copy, Review > Reject > **Reject Change**.
+   - `accept-all.docx`: Review > Accept > **Accept All Changes**.
+   - `reject-all.docx`: Review > Reject > **Reject All Changes**.
+   Nothing else is changed in any copy. Note anything Word says or selects on the way (a message,
+   both copies highlighted at once, the change it moves to). The saved files are compared with the
+   fixture's section 3: whether acting on one half resolved the other, and what became of the four
+   range markers and the paragraph marks.
 
 A small Node script for 1 to 3 is:
 
