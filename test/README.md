@@ -244,6 +244,21 @@ namespaces, content types or the zip writer, check by hand:
    rounds of bisecting over it measured nothing. **The lesson for any check added here: name a
    fixture whose feature is known to work before the save.** Files at
    `fidelity/cr004b-core-ts-controls/` on the share.
+15. A new hyperlink's style (CR-002 section 25), **Word's own answer, before the engine changes**.
+   What Office JS's `range.hyperlink = ...` does in Word decides what this package's setter does,
+   since the editor's `api` lines are held to it. Run the Script Lab snippet below (Insert > Get
+   Add-ins > Script Lab, then Script Lab > Code > New snippet: paste the Script and HTML tabs,
+   Run, press **Run the check**) **in a new blank document**, and copy the text box's JSON back.
+   It makes five paragraphs, each its own case with its own `sync`, so one failing case does not
+   hide the others: A an external link over plain text, B an internal `#` link, C a link over
+   text that already has a character style (`Strong`), D a link over direct formatting (bold, red),
+   E a link set and then removed with `""`. For each it records what Office JS reports back
+   (`style`, `styleBuiltIn`, the font's colour and underline) and the paragraph's XML from
+   `body.getOoxml()`, and from the same package the `Hyperlink` and `FollowedHyperlink` style
+   definitions Word wrote. The questions it answers: does Word give the wrapped runs
+   `w:rStyle w:val="Hyperlink"`, what happens to a run that already names a character style and to
+   direct formatting, does an internal link get the style too, does removing the link remove the
+   style, and what the style definition is.
 
 A small Node script for 1 to 3 is:
 
@@ -408,3 +423,75 @@ again.setLevelNumbering(0, 'UpperRoman');                          // copies the
 console.log('shared-abstract edit:', [...m.body.listLabels().values()].map((x) => x.listString).join(' | '));
 await writeFile(`${OUT}/check11-b.docx`, await m.save());
 ```
+
+And the Script Lab snippet for 15 (Word, Office JS; WordApi 1.3 for `Range.hyperlink` and
+`styleBuiltIn`). The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+async function check() {
+  const report = { host: Office.context.diagnostics, cases: {} };
+  const cases = [
+    ['A', 'Case A: an external link on this text', 'this text', async (r) => { r.hyperlink = 'https://example.com/a'; }],
+    ['B', 'Case B: an internal link on this text', 'this text', async (r) => { r.hyperlink = '#_top'; }],
+    ['C', 'Case C: a link on these strong words', 'these strong words', async (r, context) => {
+      r.styleBuiltIn = Word.Style.strong; await context.sync(); r.hyperlink = 'https://example.com/c'; }],
+    ['D', 'Case D: a link on this bold red text', 'this bold red text', async (r, context) => {
+      r.font.bold = true; r.font.color = '#FF0000'; await context.sync(); r.hyperlink = 'https://example.com/d'; }],
+    ['E', 'Case E: a link set and then removed here', 'removed here', async (r, context) => {
+      r.hyperlink = 'https://example.com/e'; await context.sync(); r.hyperlink = ''; }],
+  ];
+  for (const [id, text, target, act] of cases) {
+    const entry = (report.cases[id] = {});
+    try {
+      await Word.run(async (context) => {
+        const paragraph = context.document.body.insertParagraph(text, 'End');
+        const range = paragraph.search(target, { matchCase: true }).getFirst();
+        await act(range, context);
+        await context.sync();
+        range.load('hyperlink,style,styleBuiltIn,font/color,font/underline,font/bold');
+        await context.sync();
+        Object.assign(entry, {
+          hyperlink: range.hyperlink, style: range.style, styleBuiltIn: range.styleBuiltIn,
+          color: range.font.color, underline: range.font.underline, bold: range.font.bold,
+        });
+      });
+    } catch (e) {
+      entry.error = String(e && e.message || e);
+    }
+  }
+  await Word.run(async (context) => {
+    const ooxml = context.document.body.getOoxml();
+    await context.sync();
+    const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+    const xml = (node) => new XMLSerializer().serializeToString(node).replace(/ xmlns:\w+="[^"]*"/g, '');
+    const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+    const part = (name) => all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === name);
+    const main = part('/word/document.xml');
+    const styles = part('/word/styles.xml');
+    for (const p of main ? all(main, W, 'p') : []) {
+      const m = /^Case ([A-E]):/.exec(p.textContent);
+      if (m) report.cases[m[1]].xml = xml(p);
+    }
+    report.styles = styles
+      ? all(styles, W, 'style')
+          .filter((s) => ['Hyperlink', 'FollowedHyperlink'].includes(s.getAttributeNS(W, 'styleId')))
+          .map(xml)
+      : 'no styles part in body.getOoxml()';
+  });
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
