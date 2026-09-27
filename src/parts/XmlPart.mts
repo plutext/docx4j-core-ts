@@ -2,7 +2,7 @@ import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix } from '@do
 import { Part } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { Namespaces } from './Namespaces.mjs';
-import { Docx4JException } from '../opc/exceptions.mjs';
+import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION } from '../xml/dom.mjs';
 import { log } from '../model/properties/log.mjs';
 
@@ -20,6 +20,17 @@ function knownUriOf(prefix: string): string | undefined {
 }
 
 const warnedPrefixes = new Set<string>();
+
+/**
+ * The element or attribute a located runtime error names, out of its message: jsonix writes
+ * `w:sz/@w:val (line 7): ...` when it could place the fault and `w:bogus (line 3): ...` for an
+ * element, so the location is everything before the position or the colon - and `w:sz` must not be
+ * cut at its own prefix separator, which a naive split on `:` does.
+ */
+function locationOf(message: string, located: boolean): string | undefined {
+  if (!located) return undefined;
+  return /^(.+?)(?: \(line \d+(?:, column \d+)?\))?: /.exec(message)?.[1];
+}
 
 /** A qualified name for a part's root element. */
 export interface RootName {
@@ -83,7 +94,7 @@ export class XmlPart<T = unknown> extends Part {
       const doc = parseXml(decodeXmlText(bytes));
       this.recordDeclarations(doc);
       this.preprocessor?.(doc, this as XmlPart<unknown>);
-      this.element = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc);
+      this.element = await this.unmarshal(doc);
       this.rootName ??= { namespaceURI: this.element.name.namespaceURI, localPart: this.element.name.localPart };
       this.bytes = undefined;
     }
@@ -106,7 +117,7 @@ export class XmlPart<T = unknown> extends Part {
     const doc = parseXml(decodeXmlText(bytes));
     this.recordDeclarations(doc);
     this.preprocessor?.(doc, this as XmlPart<unknown>);
-    return (await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc)).value;
+    return (await this.unmarshal(doc)).value;
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */
@@ -148,6 +159,29 @@ export class XmlPart<T = unknown> extends Part {
     const root = await marshalNode(this.element as Jsonix.TypedNamedValue);
     this.declareIgnorablePrefixes(root);
     return root;
+  }
+
+  /**
+   * Unmarshals, and names the part when the runtime refuses. The runtime's own message says what is
+   * wrong and, since `@docx4j/jsonix` 3.4.0, where - `w:sz/@w:val (line 12): Argument [NaN] must be
+   * an integer` - but not which part it was reading, which is the first thing a person editing a
+   * part's XML needs (CR-002 section 27). The location it found is lifted onto the exception so a
+   * caller does not parse the message; `line` is undefined where the parser supplies no position,
+   * which is every browser (only xmldom carries a locator).
+   */
+  private async unmarshal(doc: Document): Promise<Jsonix.TypedNamedValue<T>> {
+    try {
+      return await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc);
+    } catch (cause) {
+      const located = cause as { message?: unknown; node?: { lineNumber?: number; columnNumber?: number } | undefined; attributeName?: { localPart?: string } | undefined; jsonixLocated?: boolean };
+      const message = typeof located?.message === 'string' ? located.message : String(cause);
+      throw new PartUnmarshalException(`${this.partName}: ${message}`, this.partName.name, {
+        cause,
+        location: locationOf(message, located?.jsonixLocated === true),
+        line: typeof located?.node?.lineNumber === 'number' ? located.node.lineNumber : undefined,
+        column: typeof located?.node?.columnNumber === 'number' ? located.node.columnNumber : undefined,
+      });
+    }
   }
 
   /** The source root element's namespace declarations, prefix to URI (`xmlns=` is the empty prefix). */

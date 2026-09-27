@@ -2036,7 +2036,18 @@ named. Two findings change the shape of the request, both in the editor's favour
 
 So the jsonix CR is one CR with two parts, the other being CR-006 section 4's marshalling hook in
 the same file: report the skipped element or attribute at line 2383 with `input.node`, and put the
-location into the type-conversion errors. **Filed 2026-09-27 as `plutext/jsonix`
+location into the type-conversion errors.
+
+**Item 9 of the E4 release, done 2026-09-27: the located error alone.** A part that cannot be
+unmarshalled throws `PartUnmarshalException`, whose message is
+`/word/styles.xml: w:sz/@w:val (line 7): Argument [NaN] must be an integer`, with `partName`,
+`location`, `line` and `column` as fields and the runtime's error as `cause`. The runtime says what
+and where; only the part was missing, and it is the first thing a person editing a part's XML needs.
+`line` is undefined wherever the parser supplies no position, which is every browser, so a consumer
+must not require it. `validateXml` itself is not in this release - the editor's split design covers
+the rest, and the two firing conditions above are what it has to be written around.
+
+**Filed 2026-09-27 as `plutext/jsonix`
 jsonix-CR-006** ("Report what unmarshalling drops, and record what marshalling writes"), prototyped
 against 3.3.0 first: four lines, and the report carries line 4 column 3 for a bogus element, since
 `Jsonix.XML.Input.node` is the current DOM node and xmldom has already put the position on it.

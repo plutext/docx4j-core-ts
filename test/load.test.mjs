@@ -5,7 +5,7 @@ import {
   MainDocumentPart, StyleDefinitionsPart, HeaderPart, FooterPart, ImagePart, ChartPart, EmbeddedPackagePart,
   DefaultXmlPart, CommentsExtensiblePart, CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, DocPropsCorePart, DocPropsExtendedPart,
   CommentsExtendedPart, PeoplePart, MainPresentationPart, SlidePart, WorkbookPart, WorksheetPart, SharedStringsPart,
-  ZipPartStore, ContentTypes, Namespaces, Docx4JException,
+  ZipPartStore, ContentTypes, Namespaces, Docx4JException, PartUnmarshalException,
 } from '../dist/index.mjs';
 import { fixture } from './helpers.mjs';
 
@@ -110,4 +110,29 @@ test('load: pptx and xlsx', async () => {
 test('load: the wrong package class throws', async () => {
   const xlsx = await fixture('loadAndSave.xlsx');
   await assert.rejects(() => WordprocessingMLPackage.load(xlsx), Docx4JException);
+});
+
+// CR-002 section 27 (item 9 of the E4 release): a part that cannot be unmarshalled names itself, and
+// carries the location jsonix 3.4.0 found rather than leaving a caller to parse the message. The
+// editor's parts panel shows a person what its save would refuse; "which part" is the first thing
+// they need and the runtime cannot know it.
+test('an unmarshal failure names the part, with the location and line', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  styles.setXml((await styles.getXml()).replace('<w:sz w:val="22" />', '<w:sz w:val="big" />'));
+
+  const error = await styles.getContents().then(() => undefined, (e) => e);
+  assert.ok(error instanceof PartUnmarshalException, `expected PartUnmarshalException, got ${error?.constructor?.name}`);
+  assert.equal(error.partName, '/word/styles.xml');
+  assert.match(error.message, /^\/word\/styles\.xml: /, 'the part comes first in the message');
+  assert.match(error.message, /Argument \[NaN\] must be an integer/, 'and the runtime\'s own message follows');
+  assert.equal(error.location, 'w:sz/@w:val', 'the attribute, not cut at its own prefix separator');
+  assert.equal(typeof error.line, 'number');
+  assert.ok(error.line > 0);
+  assert.ok(error.cause, 'the runtime error is the cause');
+
+  // readContents reports the same way, since a private read fails for the same reasons
+  const second = await styles.readContents().then(() => undefined, (e) => e);
+  assert.ok(second instanceof PartUnmarshalException);
+  assert.equal(second.partName, '/word/styles.xml');
 });

@@ -65,3 +65,37 @@ export class PartUnrecognisedException extends Docx4JException {
     this.name = 'PartUnrecognisedException';
   }
 }
+
+/**
+ * An XML part that could not be unmarshalled, naming the part (CR-002 section 27, item 9 of the
+ * E4 release). The runtime's own message is specific about *what* is wrong and, since
+ * `@docx4j/jsonix` 3.4.0, *where* - `w:sz/@w:val (line 12): Argument [NaN] must be an integer` -
+ * but it cannot know which part it was reading, and a person editing a part's XML in an editor needs
+ * that first. The location fields are lifted off the runtime's error so a caller does not have to
+ * parse the message.
+ */
+export class PartUnmarshalException extends Docx4JException {
+  constructor(
+    message: string,
+    /** The part being unmarshalled: `/word/styles.xml`. */
+    readonly partName: string,
+    options?: {
+      cause?: unknown;
+      /** The element or attribute the runtime was on, when it said. */
+      location?: string | undefined;
+      /** Its line in the source, when the parser supplied one (Node only: xmldom's locator). */
+      line?: number | undefined;
+      column?: number | undefined;
+    },
+  ) {
+    super(message, { cause: options?.cause });
+    this.name = 'PartUnmarshalException';
+    this.location = options?.location;
+    this.line = options?.line;
+    this.column = options?.column;
+  }
+
+  readonly location: string | undefined;
+  readonly line: number | undefined;
+  readonly column: number | undefined;
+}
