@@ -2472,3 +2472,21 @@ and its Replace and Replace all are held to `search` plus `insertText(…, 'Repl
    characters. The editor does not offer them (`\t` in an expression finds a tab, and `^p` could
    never match, since no search crosses a paragraph, section 29). Recorded, not asked: for an
    Office JS add-in's `search('^t')` to find what it finds in Word, this is where it would go.
+
+## 33. A finding from the editor's E4.b: `parseXml` does not throw in a browser (2026-09-27)
+
+**Found by** `plutext/docx4j-ts-editor` ED-005 section 12.2 item 3 (E4.b, the parts panel made
+editable, on 0.2.0). `parseXml` is `Jsonix.DOM.parse` over the runtime's DOM, and its comment says
+it "throws on malformed input". In Node, over xmldom, it does. In a browser it does not: Chromium's
+`DOMParser` returns the document up to the error with an XHTML `parsererror` element first in the
+root and everything after the error dropped (Firefox returns a `parsererror` root in its own
+namespace), and `parseXml` hands that document on. So `part.setXml(text)` then `getContents()` of a
+malformed text unmarshals a truncated part without complaint: a settings part with a stray `<`
+inside a tag kept its first child and lost the rest, and a save would have written that. The
+editor's check before an Apply now finds the `parsererror` itself and refuses, so the editor does
+not depend on a fix; `setXml`'s other callers in a browser do (a console script, an add-in).
+
+Asked: `parseXml` throws when the document it gets back is a `parsererror` document (the root, or
+the root's first element child, named `parsererror` in the XHTML or the Mozilla parser-error
+namespace), with the parser's message, which carries the line and column in both browsers
+("error on line 3 at column 19: ..."). Not scheduled.
