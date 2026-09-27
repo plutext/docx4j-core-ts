@@ -13,7 +13,6 @@
 // not the node in the tree and a map keyed on it would miss exactly the content a caller most wants
 // (jsonix-CR-006 section 2, finding 3).
 import { marshalNode, type Jsonix } from '@docx4j/generated-objects-ts';
-import { Docx4JException } from '../../opc/exceptions.mjs';
 
 /** What an XPath selected, and the tree object behind it (CR-006 section 2). */
 export interface Bound {
@@ -119,13 +118,4 @@ export function pathOf(node: Node): string {
 
 function isElement(node: unknown): node is Element {
   return typeof node === 'object' && node !== null && (node as { nodeType?: unknown }).nodeType === 1;
-}
-
-/** The engine an expression goes to, and the error when there is none ready. */
-export function requireReadyEngine<E extends { isReady: boolean }>(engine: E | undefined, what: string): E {
-  if (engine === undefined) throw new Docx4JException(`${what} needs an XPath engine; set pkg.xpathEngine`);
-  if (!engine.isReady) {
-    throw new Docx4JException(`${what} needs its XPath engine ready; await pkg.xpathEngine.ready(node) first`);
-  }
-  return engine;
 }

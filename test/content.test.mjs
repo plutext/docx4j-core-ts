@@ -574,6 +574,54 @@ test('Body.select: the content-API view of each hit, and the Bound where there i
   assert.equal(pkg.body.paragraphs[0].text, 'Heading edited');
 });
 
+// CR-002 section 31, from the review of the release: the view map kept the first view registered for
+// an object and registered a paragraph's run items first, so an inline control came back as a Range;
+// it registered top-level tables and one level of run children only; and an attribute or a text node
+// came back as its element's view, losing what matched.
+test('Body.select: the most specific view at any depth, and the Bound for an attribute or text', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const p = pkg.body.insertParagraph('one two three', 'End');
+  p.search('two')[0].insertContentControl();
+  p.search('three')[0].hyperlink = 'https://example.com/';
+  const table = pkg.body.insertTable(1, 1, 'End', [['outer']]);
+  table.getCell(0, 0).body.insertTable(1, 1, 'End', [['inner']]);
+  pkg.author = { name: 'Ada' };
+  await pkg.setChangeTrackingMode('TrackAll');
+  pkg.body.insertParagraph('plain', 'End').getRange('End').insertText(' inserted', 'End');
+
+  const kind = async (xpath) => (await pkg.body.select(xpath)).map((h) => h.constructor.name);
+  assert.deepEqual(await kind('//w:sdt'), ['ContentControl'], 'an inline control is its own view');
+  assert.deepEqual(await kind('//w:tbl'), ['Table', 'Table'], 'a nested table is a Table');
+  assert.deepEqual(await kind('//w:tbl//w:tbl//w:tc'), ['TableCell']);
+  // a run's content maps to the paragraph's Range wherever the run sits
+  assert.deepEqual(await kind('//w:sdt//w:t'), ['Range'], 'in an inline control');
+  assert.deepEqual(await kind('//w:hyperlink//w:t'), ['Range'], 'in a hyperlink');
+  assert.deepEqual([...new Set(await kind('//w:ins//w:t'))], ['Range'], 'in an insertion');
+  // and the hyperlink itself has no view
+  const [link] = await pkg.body.select('//w:hyperlink');
+  assert.ok(link.path.endsWith('/w:hyperlink[1]'), 'a w:hyperlink is the Bound');
+
+  // an attribute or a text node is the Bound, never its element's view, so what matched survives
+  const [rid] = await pkg.body.select('//w:hyperlink/@r:id');
+  assert.equal(rid.attribute, 'r:id');
+  const [text] = await pkg.body.select("//w:t[.='one ']/text()");
+  assert.ok(text.path.endsWith('/w:t[1]/text()'), text.path);
+  assert.equal(text.node.nodeValue, 'one ');
+});
+
+test('pkg.selectObjects marshals the part once, for the snapshot', async () => {
+  // it used to marshal a second node only to ready the engine; the engine is readied on the snapshot
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('text', 'End');
+  const main = pkg.getMainDocumentPart();
+  let extra = 0;
+  const marshal = main.marshalToNode.bind(main);
+  main.marshalToNode = () => { extra++; return marshal(); };
+  assert.equal((await pkg.selectObjects('//w:p')).length, 1);
+  assert.equal((await pkg.body.select('//w:p')).length, 1);
+  assert.equal(extra, 0);
+});
+
 test('selectObjects reaches a wildcard child through the imported copy', async () => {
   // jsonix writes any-content with importNode, so the element in the snapshot is a COPY of the tree
   // node; the binder maps the copy back to the ORIGINAL (jsonix-CR-006 section 2, finding 3). Without

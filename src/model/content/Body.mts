@@ -5,7 +5,7 @@ import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
 import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
-import { runOf, paragraphOf } from './tree.mjs';
+import { runOf, paragraphOf, runsOf } from './tree.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table, type TableRow, type TableCell } from './Table.mjs';
@@ -16,7 +16,6 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { expandReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
-import { runItemsOf } from '@docx4j/generated-objects-ts/builders/wml';
 
 /**
  * What `Body.select` returns for one hit: the content-API view of the selected element where there
@@ -115,11 +114,14 @@ export class Body {
   }
 
   /**
-   * The content-API views an XPath selects (CR-006): a `Paragraph`, `Table`, `TableRow`, `TableCell`
-   * or `ContentControl` where the selected element has one, a `Range` over the whole paragraph for a
-   * `w:r` or `w:t`, and the `Bound` itself for anything else - an attribute, a text node, a `w:pPr`,
-   * a wildcard child. A caller that wants the tree objects rather than views uses
-   * `pkg.selectObjects`.
+   * The content-API views an XPath selects (CR-006): a `ContentControl`, `Table`, `TableRow`,
+   * `TableCell` or `Paragraph` where the selected element has one, at any depth - an inline content
+   * control is a `ContentControl`, a nested table a `Table`; a `Range` over the whole paragraph for a
+   * `w:r` or anything in one (`w:t`, `w:tab`), wherever the run sits (a hyperlink, an insertion, an
+   * inline control); and the `Bound` itself for anything else - an attribute, a text node, a `w:pPr`,
+   * a `w:hyperlink`, a wildcard child. An attribute or a text node is always the `Bound`, never its
+   * element's view, so that what matched is not lost. A caller that wants the tree objects rather
+   * than views uses `pkg.selectObjects`.
    *
    * The expression is evaluated over a snapshot of the part this body belongs to, so it sees the
    * whole part - `//w:p` from a header's body selects that header's paragraphs. Every call marshals
@@ -130,38 +132,51 @@ export class Body {
     if (pkg?.selectObjects === undefined) throw new Docx4JException('select needs the package that owns this body');
     const bounds = await pkg.selectObjects(xpath, { part: this.part, namespaces: options.namespaces });
     const views = this.viewsByObject();
-    return bounds.map((bound) => views.get(bound.object as object) ?? bound);
+    return bounds.map((bound) => (bound.node.nodeType === 1 ? views.get(bound.object as object) : undefined) ?? bound);
   }
 
   /**
    * Every view this body can make, keyed by the tree object behind it, so that a selected object
    * becomes the view a caller can act on. Built per select: the views are cheap wrappers and nothing
-   * is cached but the `Body` itself (CR-002's "views, not a model"). A `w:r` and a `w:t` map to a
-   * `Range` over the paragraph that holds them, which is the nearest thing the content API has - a
-   * run is not addressable on its own in Office JS.
+   * is cached but the `Body` itself (CR-002's "views, not a model"). The first view put for an object
+   * is the one it keeps, so the most specific kinds go first: a content control before the
+   * paragraph that holds an inline one, a table at any depth before the paragraphs in its cells, and
+   * a paragraph before the runs in it. A `w:r` and what is in it map to a `Range` over the paragraph,
+   * which is the nearest thing the content API has - a run is not addressable on its own in Office
+   * JS. A run in a text box is not one of the paragraph's, and stays a `Bound`.
    */
   private viewsByObject(): Map<object, SelectResult> {
     const out = new Map<object, SelectResult>();
     const put = (value: unknown, view: SelectResult): void => {
       if (typeof value === 'object' && value !== null && !out.has(value)) out.set(value, view);
     };
+    const controls = this.contentControls;
+    for (const control of controls) put(control.element.value, control);
+    const putTables = (tables: Table[]): void => {
+      for (const table of tables) {
+        put(table.element.value, table);
+        for (const row of table.rows) {
+          put(row.element.value, row);
+          for (const cell of row.cells) {
+            put(cell.element.value, cell);
+            putTables(cell.tables);
+          }
+        }
+      }
+    };
+    putTables(this.tables);
+    for (const control of controls) if (control.form === 'Block') putTables(control.tables);
     for (const paragraph of this.paragraphs) {
       put(paragraph.element.value, paragraph);
       const range = paragraph.getRange();
-      for (const item of runItemsOf(paragraph.element.value) ?? []) {
-        put(item.value, range);
-        const children = childrenOf(item.value as object);
-        if (children) for (const child of children) put(child.value, range);
+      // both views, so that a run in a w:del is found as well as one in a w:ins
+      for (const view of ['accepted', 'original'] as const) {
+        for (const run of runsOf(paragraph.element.value, { view })) {
+          put(run.value, range);
+          for (const item of run.value.content ?? []) put(item.value, range);
+        }
       }
     }
-    for (const table of this.tables) {
-      put(table.element.value, table);
-      for (const row of table.rows) {
-        put(row.element.value, row);
-        for (const cell of row.cells) put(cell.element.value, cell);
-      }
-    }
-    for (const control of this.contentControls) put(control.element.value, control);
     return out;
   }
 

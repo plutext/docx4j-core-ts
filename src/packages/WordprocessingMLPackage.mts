@@ -440,13 +440,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   }
 
   /**
-   * The objects an XPath selects in a part of this document, with the package's engine readied for
-   * you (CR-006; docx4j `MainDocumentPart.getJAXBNodesViaXPath`). The part defaults to the main
+   * The objects an XPath selects in a part of this document, through the package's engine
+   * (CR-006; docx4j `MainDocumentPart.getJAXBNodesViaXPath`). The part defaults to the main
    * document part, which is what a `//w:p[...]` expression means.
    */
   async selectObjects(xpath: string, options: { part?: XmlPart<unknown>; namespaces?: Record<string, string> } = {}): Promise<Bound[]> {
     const part = options.part ?? this.getMainDocumentPart();
-    await this.xpathEngine.ready(await part.marshalToNode());
     return part.selectObjects(xpath, { engine: this.xpathEngine, namespaces: options.namespaces });
   }
 

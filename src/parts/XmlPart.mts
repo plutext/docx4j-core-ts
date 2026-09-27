@@ -5,7 +5,7 @@ import { Namespaces } from './Namespaces.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION } from '../xml/dom.mjs';
 import { log } from '../model/properties/log.mjs';
-import { bindSnapshot, boundsOf, requireReadyEngine, type Bound } from '../model/content/binder.mjs';
+import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 
 const XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
 const MC_NS = Namespaces.MARKUP_COMPATIBILITY;
@@ -35,8 +35,11 @@ function locationOf(message: string, located: boolean): string | undefined {
 
 /** What `selectObjects` needs: the engine to evaluate with, and any prefixes beyond the defaults. */
 export interface SelectOptions {
-  /** The engine; `pkg.selectObjects` and `Body.select` pass the package's. */
-  engine?: { isReady: boolean; select(expression: string, context: Node, namespaces?: Record<string, string>): Node[] } | undefined;
+  /** The engine; `pkg.selectObjects` and `Body.select` pass the package's. It is readied on the snapshot. */
+  engine?: {
+    ready(context?: Node): Promise<void>;
+    select(expression: string, context: Node, namespaces?: Record<string, string>): Node[];
+  } | undefined;
   /** Prefixes added to (or overriding) the objects package's own table. */
   namespaces?: Record<string, string> | undefined;
 }
@@ -190,14 +193,18 @@ export class XmlPart<T = unknown> extends Part {
    *
    * The prefixes default to the ones the objects package writes, so `//w:p[w:pPr/w:pStyle/@w:val='Heading1']`
    * needs no mapping; `options.namespaces` adds to or overrides them. The engine is the caller's
-   * (`pkg.xpathEngine`: XPath 1.0 by default, 3.1 with `FontoXPathEngine`), and must be ready -
-   * `await engine.ready(node)` - which `pkg.selectObjects` does for you.
+   * (`pkg.xpathEngine`: XPath 1.0 by default, 3.1 with `FontoXPathEngine`), and is readied here on
+   * the snapshot itself: whether an engine can evaluate a tree is a property of the document that
+   * tree is in (CR-002 section 21), and readying it on a marshal of its own would cost a second one
+   * (CR-002 section 31).
    */
   async selectObjects(xpath: string, options: SelectOptions = {}): Promise<Bound[]> {
     const element = this.element ?? (await this.getContents(), this.element);
     if (element === undefined) throw new Docx4JException(`Part ${this.partName} has no contents to select over`);
+    const engine = options.engine;
+    if (engine === undefined) throw new Docx4JException(`selectObjects on ${this.partName} needs an XPath engine; pkg.selectObjects passes the package's`);
     const snapshot = await bindSnapshot(element);
-    const engine = requireReadyEngine(options.engine, `selectObjects on ${this.partName}`);
+    await engine.ready(snapshot.root);
     const namespaces = { ...NAMESPACE_PREFIXES_BY_PREFIX, ...options.namespaces };
     return boundsOf(engine.select(xpath, snapshot.root, namespaces), snapshot);
   }
