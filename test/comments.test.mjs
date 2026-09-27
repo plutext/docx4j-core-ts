@@ -310,5 +310,16 @@ test('a comment can be given paragraphs rather than a string', async () => {
   const back = await WordprocessingMLPackage.load(await pkg.save());
   await back.getMainDocumentPart().getContents();
   assert.equal((await back.body.getComments())[0].content, 'first line\nsecond line');
+  // Refused before anything is written: the markers used to be placed first, and were left naming a
+  // w:comment that was never made (CR-002 section 31). The same for a reply.
+  const markers = async () => {
+    const xml = await pkg.getMainDocumentPart().getXml();
+    return ['commentRangeStart', 'commentRangeEnd', 'commentReference'].map((name) => xml.split(`<w:${name} `).length - 1);
+  };
+  const before = await markers();
+  assert.deepEqual(before, [1, 1, 1]);
   await assert.rejects(() => pkg.body.paragraphs[0].getRange().insertComment([]), /at least one paragraph/);
+  await assert.rejects(() => comment.reply([]), /at least one paragraph/);
+  assert.deepEqual(await markers(), before, 'no marker was left behind');
+  assert.equal((await pkg.body.getComments()).length, 1);
 });

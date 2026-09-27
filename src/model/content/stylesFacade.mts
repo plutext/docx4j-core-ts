@@ -5,7 +5,7 @@
 // their linked character styles, and a document that has neither shows the note in Normal. Doing it
 // in a consumer means carrying a table of Word's definitions, which is what this replaces.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { unmarshalNode, type Jsonix } from '@docx4j/generated-objects-ts';
+import { deepCopy, unmarshalNode, type Jsonix } from '@docx4j/generated-objects-ts';
 import { linkParents } from './tree.mjs';
 import { parseXml } from '../../xml/dom.mjs';
 import { DEFAULT_STYLES_XML } from '../../parts/wml/defaultStyles.mjs';
@@ -27,16 +27,20 @@ export interface StylePackageLike {
  * **commented out** - which is why a created document has no `FootnoteText` although the file
  * appears to contain one, and why this facade exists (CR-002 section 22.2).
  */
-let sources: Promise<wml.Style[]> | undefined;
+let sources: Promise<StyleSources> | undefined;
 
-function styleSources(): Promise<wml.Style[]> {
+/** The defaults a created styles part holds, and those with the nine commented-out ones after them. */
+interface StyleSources {
+  defaults: wml.Style[];
+  all: wml.Style[];
+}
+
+function styleSources(): Promise<StyleSources> {
   return (sources ??= (async () => {
-    const out: wml.Style[] = [];
-    for (const xml of [DEFAULT_STYLES_XML, SPLICEABLE_STYLES_XML]) {
-      const element = await unmarshalNode<Jsonix.TypedNamedValue<wml.Styles>>(parseXml(xml));
-      out.push(...(element.value.style ?? []));
-    }
-    return out;
+    const read = async (xml: string): Promise<wml.Style[]> =>
+      (await unmarshalNode<Jsonix.TypedNamedValue<wml.Styles>>(parseXml(xml))).value.style ?? [];
+    const defaults = await read(DEFAULT_STYLES_XML);
+    return { defaults, all: [...defaults, ...(await read(SPLICEABLE_STYLES_XML))] };
   })());
 }
 
@@ -57,79 +61,74 @@ export class StylesFacade {
    *
    * A style already in the document is left exactly as it is - the document's own definition wins
    * over the default, always, since a consumer must not silently restyle a document it was asked to
-   * add a footnote to. An id the defaults do not carry throws `ItemNotFound`: the caller asked for a
-   * definition nothing here has, and inventing one would be worse than saying so.
+   * add a footnote to. An id the defaults do not carry throws a `Docx4JException` naming it: the
+   * caller asked for a definition nothing here has, and inventing one would be worse than saying so.
+   * The whole closure is worked out before anything is written, so a call that throws has changed
+   * nothing (CR-002 section 31).
    *
    * A document that already has every id keeps its styles part **byte for byte**: the part is not
-   * unmarshalled at all when its XML names them, the check `ensureCommentStyles` uses.
+   * unmarshalled at all when its XML names them, the check `ensureCommentStyles` uses, and when that
+   * text check misses (another prefix, single quotes) it is read privately rather than unmarshalled,
+   * so the part is still written back from its source unless something is added.
    */
   async ensure(ids: string | readonly string[]): Promise<string[]> {
     const wanted = typeof ids === 'string' ? [ids] : [...ids];
+    for (const id of wanted) {
+      if (typeof id !== 'string' || id === '') throw new Docx4JException(`Not a styleId: ${String(id)}`);
+    }
     if (wanted.length === 0) return [];
-    const part = this.pkg.getMainDocumentPart().styleDefinitionsPart ?? this.pkg.ensureStyleDefinitionsPart();
+    const existing = this.pkg.getMainDocumentPart().styleDefinitionsPart;
 
     // The cheap path: an untouched part whose XML names them all is left alone, so a document that
     // has them keeps its styles part byte for byte. The comments must go first - docx4j's own
     // default styles carry nine definitions COMMENTED OUT, so a plain `includes` finds
     // `w:styleId="FootnoteText"` in a document that does not have the style and this would answer
     // "nothing to do" for exactly the documents the facade exists for.
-    if (!part.isUnmarshalled) {
-      const xml = (await part.getXml()).replace(/<!--[\s\S]*?-->/g, '');
+    if (existing !== undefined && !existing.isUnmarshalled) {
+      const xml = (await existing.getXml()).replace(/<!--[\s\S]*?-->/g, '');
       if (wanted.every((id) => xml.includes(`w:styleId="${id}"`))) return [];
     }
 
+    // What the document holds now, read without unmarshalling; a part created below holds the defaults.
+    const source = await styleSources();
+    const present = existing === undefined ? source.defaults : ((await existing.readContents()).style ?? []);
+    const plan = closureOf(wanted, present, source.all);
+
+    // a document with no styles part gets the defaults, whether or not anything else is needed
+    const part = existing ?? this.pkg.ensureStyleDefinitionsPart();
+    if (plan.length === 0) return [];
     const styles = await part.getContents();
     const list = (styles.style ??= []);
-    const has = (id: string): boolean => list.some((s) => s.styleId === id);
-    const source = await styleSources();
-    const added: string[] = [];
-
-    const addWithClosure = (id: string, seen: Set<string>): void => {
-      if (has(id) || seen.has(id)) return;
-      seen.add(id);
-      const template = source.find((s) => s.styleId === id);
-      if (template === undefined) {
-        throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles nor the nine it comments out carry one. Define it yourself on the styles part.`);
-      }
-      // what it is based on and linked to must be there too, and before it reads better in the part
-      for (const dependency of [template.basedOn?.val, template.link?.val]) {
-        if (typeof dependency === 'string') addWithClosure(dependency, seen);
-      }
-      const style = copyStyle(template);
+    for (const template of plan) {
+      const style = deepCopy(template);
       list.push(style);
       linkParents(style, styles);
-      added.push(id);
-    };
-
-    for (const id of wanted) {
-      if (typeof id !== 'string' || id === '') throw new Docx4JException(`Not a styleId: ${String(id)}`);
-      addWithClosure(id, new Set());
     }
-    if (added.length > 0) this.pkg.refreshPropertyResolver();
-    return added;
+    this.pkg.refreshPropertyResolver();
+    return plan.map((style) => style.styleId as string);
   }
 }
 
 /**
- * A style copied out of the shared defaults. `structuredClone` rather than the facade's `deepCopy`
- * because the tree carries `PARENT` back-references, which `linkParents` re-establishes for the
- * copy's new home; cloning them would drag the whole default tree along.
+ * The definitions to splice, in the order they are written: each wanted id the document lacks,
+ * after what it is `w:basedOn` and `w:link`ed to, recursively. Throws for an id nothing carries.
  */
-function copyStyle(style: wml.Style): wml.Style {
-  const copy: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(style)) {
-    if (key === 'PARENT') continue;
-    copy[key] = value === null || typeof value !== 'object' ? value : structuredClone(stripParents(value));
-  }
-  return copy as unknown as wml.Style;
-}
-
-/** `structuredClone` cannot take a cycle through `PARENT`, so they go before it is called. */
-function stripParents(value: object): object {
-  const out: Record<string, unknown> = Array.isArray(value) ? ([] as unknown as Record<string, unknown>) : {};
-  for (const [key, v] of Object.entries(value)) {
-    if (key === 'PARENT') continue;
-    out[key] = v === null || typeof v !== 'object' ? v : stripParents(v);
-  }
-  return Array.isArray(value) ? Object.values(out) : out;
+function closureOf(wanted: readonly string[], present: readonly wml.Style[], source: readonly wml.Style[]): wml.Style[] {
+  const plan: wml.Style[] = [];
+  const has = (id: string): boolean => present.some((s) => s.styleId === id) || plan.some((s) => s.styleId === id);
+  const add = (id: string, seen: Set<string>): void => {
+    if (has(id) || seen.has(id)) return;
+    seen.add(id);
+    const template = source.find((s) => s.styleId === id);
+    if (template === undefined) {
+      throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles nor the nine it comments out carry one. Define it yourself on the styles part.`);
+    }
+    // what it is based on and linked to must be there too, and before it reads better in the part
+    for (const dependency of [template.basedOn?.val, template.link?.val]) {
+      if (typeof dependency === 'string') add(dependency, seen);
+    }
+    plan.push(template);
+  };
+  for (const id of wanted) add(id, new Set());
+  return plan;
 }

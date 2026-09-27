@@ -449,6 +449,29 @@ test('styles.ensure leaves a document that has the styles byte for byte', async 
   assert.deepEqual(saved.loadSync('word/styles.xml'), source.loadSync('word/styles.xml'));
 });
 
+// CR-002 section 31, from the review of the release: ensure wrote what it could and then threw at
+// an unknown id, and a styles part whose XML the text check missed was unmarshalled - and so
+// re-marshalled on save - even when nothing was added.
+test('styles.ensure changes nothing when it throws, and keeps a part the text check misses', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  await assert.rejects(() => pkg.styles.ensure(['FootnoteText', 'Bogus']), /No definition to splice for the style Bogus/);
+  assert.equal(styles.isUnmarshalled, false, 'the part was not even unmarshalled');
+  assert.ok(!(await styles.getXml()).replace(/<!--[\s\S]*?-->/g, '').includes('w:styleId="FootnoteTextChar"'),
+    'and FootnoteTextChar, first in the closure, was not written');
+  await assert.rejects(() => pkg.styles.ensure(['FootnoteText', '']), /Not a styleId/);
+  assert.equal(styles.isUnmarshalled, false);
+
+  // single quotes: the text check misses them, and a private read answers instead
+  const quoted = await WordprocessingMLPackage.createPackage();
+  const part = quoted.getMainDocumentPart().styleDefinitionsPart;
+  const xml = (await part.getXml()).replace(/w:styleId="([^"]*)"/g, "w:styleId='$1'");
+  part.setXml(xml);
+  assert.deepEqual(await quoted.styles.ensure('Normal'), []);
+  assert.equal(part.isUnmarshalled, false, 'nothing to add, so nothing unmarshalled');
+  assert.equal(await part.getXml(), xml, 'and the part is as it was');
+});
+
 // CR-002 section 26: regular expressions in SearchOptions, and group references in a replacement.
 // The three traps its review note named are each asserted here, since each would be a silent defect.
 test('matchRegExp: searching and replacing with a regular expression', async () => {

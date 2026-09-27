@@ -100,19 +100,27 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     const root = document.documentElement;
     if (!root) throw new Docx4JException('A custom XML part needs a document element');
 
+    // Everything that can refuse the call runs before a part is made, so a refusal leaves the package
+    // as it was (CR-002 section 31: a malformed itemID used to be refused after the data part was
+    // related, which left it in the package without a properties part). The itemID is checked
+    // against the keys the package indexes its custom XML parts by, which needs no parse; the views
+    // do, and `load()` is not a precondition of `add()`.
     const chosenName = options.partName === undefined ? undefined : PartName.of(options.partName);
     if (chosenName && this.host.customXmlRelationshipSource().package?.parts.get(chosenName.name)) {
       throw new Docx4JException(`The part name ${chosenName.name} is already in this package`);
     }
-    if (options.itemID !== undefined && this.getItem(options.itemID)) {
-      throw new Docx4JException(`The itemID ${options.itemID} is already in use by a custom XML part`);
+    const itemID = options.itemID === undefined ? `{${uuid().toUpperCase()}}` : normaliseChosenItemID(options.itemID);
+    if (options.itemID !== undefined) {
+      const key = normaliseId(itemID);
+      if ([...this.host.customXmlDataStorageParts.keys()].some((existing) => normaliseId(existing) === key)) {
+        throw new Docx4JException(`The itemID ${options.itemID} is already in use by a custom XML part`);
+      }
     }
 
     const dataPart = new CustomXmlDataStoragePart(chosenName ?? '/customXml/item1.xml');
     dataPart.setDocument(document);
     this.host.customXmlRelationshipSource().addTargetPart(dataPart, chosenName ? 'OVERWRITE_IF_NAME_EXISTS' : 'RENAME_IF_NAME_EXISTS');
 
-    const itemID = options.itemID === undefined ? `{${uuid().toUpperCase()}}` : normaliseChosenItemID(options.itemID);
     const propsName = PartName.of(`/customXml/itemProps${suffixOf(dataPart.partName)}.xml`);
     const props = new CustomXmlDataStoragePropertiesPart(propsName);
     const refs = options.schemaRefs ?? (root.namespaceURI ? [root.namespaceURI] : []);

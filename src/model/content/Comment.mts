@@ -126,10 +126,11 @@ export class Comment {
    * `insertComment`'s (CR-002 section 28.3).
    */
   async reply(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    const paragraphs = paragraphsOfContent(content);
     const parts = await this.parts.ensureAll();
     const id = commentId(parts, this.body, options);
     placeAfter(this.body, this.id, id);
-    const reply = addComment(parts, this.body, id, content, this, options);
+    const reply = addComment(parts, this.body, id, paragraphs, this, options);
     this.replyList.push(reply);
     reply.parentComment = this;
     return reply;
@@ -302,21 +303,25 @@ function placeAfter(body: Body, parentId: number, id: number): void {
   const start = markers.find((m) => m.kind === 'start');
   const end = [...markers].reverse().find((m) => m.kind === 'end');
   const reference = [...markers].reverse().find((m) => m.kind === 'reference');
+  if (!(reference?.run && reference.runOwner) && !end) {
+    // refused before anything is written, so that no marker is left naming a comment never made
+    throw new Docx4JException(`Comment ${parentId} has no markers in this body; cannot anchor a reply`);
+  }
   if (start) insertAt(start.owner, start.owner.indexOf(start.item) + 1, [el.commentRangeStart(wmlFactory.createCommentRangeStart({ id }))], parentOf(start.item));
   if (end) insertAt(end.owner, end.owner.indexOf(end.item) + 1, [el.commentRangeEnd(wmlFactory.createCommentRangeEnd({ id }))], parentOf(end.item));
   if (reference?.run && reference.runOwner) {
     insertAt(reference.runOwner, reference.runOwner.indexOf(reference.run) + 1, [referenceRun(id)], parentOf(reference.run));
   } else if (end) {
     insertAt(end.owner, end.owner.indexOf(end.item) + 1, [referenceRun(id)], parentOf(end.item));
-  } else {
-    throw new Docx4JException(`Comment ${parentId} has no markers in this body; cannot anchor a reply`);
   }
 }
 
-/** The `w:comment` and the side-part entries of a new comment; the markers are already written. */
-function addComment(parts: CommentParts, body: Body, id: number, content: CommentContent, parent: Comment | undefined, options?: CommentOptions): Comment {
+/**
+ * The `w:comment` and the side-part entries of a new comment; the markers are already written. The
+ * paragraphs come checked, by `paragraphsOfContent` before the markers were placed.
+ */
+function addComment(parts: CommentParts, body: Body, id: number, paragraphs: Element<wml.P>[], parent: Comment | undefined, options?: CommentOptions): Comment {
   const author = options?.author ?? parts.author;
-  const paragraphs = paragraphsOfContent(content);
   const paraId = randomHexId((candidate) => paraIdTaken(parts, body.container, candidate));
   paragraphs[0]!.value.paraId = paraId;
   const comment = wmlFactory.createCommentsComment({
@@ -370,11 +375,15 @@ function addPerson(parts: CommentParts, name: string, email: string | undefined)
  * throws.
  */
 export async function insertComment(range: Range, content: CommentContent, options?: CommentOptions): Promise<Comment> {
+  // Everything that can refuse the call runs before anything is written: the content, then the id
+  // once the parts can say which are taken. A refusal after the markers were placed left them naming
+  // a comment that does not exist (CR-002 section 31).
+  const paragraphs = paragraphsOfContent(content);
   const body = range.paragraph.parentBody;
   const parts = await commentPartsAccess().create(body);
   const id = commentId(parts, body, options);
   placeAround(range, id);
-  return addComment(parts, body, id, content, undefined, options);
+  return addComment(parts, body, id, paragraphs, undefined, options);
 }
 
 /**

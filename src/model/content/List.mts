@@ -758,10 +758,15 @@ async function addListDefinition(part: NumberingPartLike, bullet: boolean, ids?:
   const template = (defaults.abstractNum ?? [])[bullet ? 0 : 1];
   if (template === undefined) throw new Docx4JException('The default numbering definitions are missing an abstractNum');
 
-  const abstract = deepCopy(template);
-  abstract.abstractNumId = ids?.abstractNumId === undefined
+  // both identifiers are settled before anything is written, so a clash leaves the part as it was
+  // (CR-002 section 31: an orphan w:abstractNum was saved for every refused numId)
+  const abstractNumId = ids?.abstractNumId === undefined
     ? nextAbstractNumId(numbering)
-    : requireFreeId(numbering, 'abstractNumId', Number(ids.abstractNumId));
+    : requireFreeId(numbering, 'abstractNumId', ids.abstractNumId);
+  const numId = ids?.numId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', ids.numId);
+
+  const abstract = deepCopy(template);
+  abstract.abstractNumId = abstractNumId;
   abstract.nsid = f.createCTLongHexNumber({ val: hexId() });
   delete abstract.styleLink;
   delete abstract.numStyleLink;
@@ -769,8 +774,8 @@ async function addListDefinition(part: NumberingPartLike, bullet: boolean, ids?:
   linkParents(abstract, numbering);
 
   const num = f.createNumberingNum({
-    numId: ids?.numId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', Number(ids.numId)),
-    abstractNumId: f.createNumberingNumAbstractNumId({ val: abstract.abstractNumId }),
+    numId,
+    abstractNumId: f.createNumberingNumAbstractNumId({ val: abstractNumId }),
   });
   (numbering.num ??= []).push(num);
   linkParents(num, numbering);
@@ -785,7 +790,7 @@ async function addListDefinition(part: NumberingPartLike, bullet: boolean, ids?:
  */
 function addRestartedNum(numbering: wml.Numbering, abstractNumId: number, start: number, newNumId?: string | number): number {
   const created = f.createNumberingNum({
-    numId: newNumId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', Number(newNumId)),
+    numId: newNumId === undefined ? nextNumId(numbering) : requireFreeId(numbering, 'numId', newNumId),
     abstractNumId: f.createNumberingNumAbstractNumId({ val: abstractNumId }),
     lvlOverride: [f.createNumberingNumLvlOverride({
       ilvl: 0,
@@ -862,6 +867,9 @@ export class NumberingFacade {
    * caller writes `w:numPr` itself.
    */
   async newList(options?: { bullet?: boolean } & ChosenListIds): Promise<string> {
+    // the form is checked before a numbering part can be created for a call that is then refused
+    if (options?.numId !== undefined) requireIdForm('numId', options.numId);
+    if (options?.abstractNumId !== undefined) requireIdForm('abstractNumId', options.abstractNumId);
     const main = this.pkg.getMainDocumentPart();
     const part = await ensureNumberingPartOf(this.pkg, main);
     const numId = await addListDefinition(part, options?.bullet === true, options);
@@ -941,12 +949,26 @@ export interface ChosenListIds {
 }
 
 /**
+ * A chosen identifier in range: a `w:numId` from 1, since 0 is what a `w:numPr` says to mean "not
+ * numbered" (`detachFromList` writes it, and Word and the Emulator read it so), and a
+ * `w:abstractNumId` from 0 (CR-002 section 31).
+ */
+function requireIdForm(kind: 'numId' | 'abstractNumId', chosen: string | number): number {
+  const id = Number(chosen);
+  const least = kind === 'numId' ? 1 : 0;
+  if (!Number.isInteger(id) || id < least) {
+    throw new Docx4JException(`A ${kind} must be an integer from ${least}, not ${String(chosen)}`);
+  }
+  return id;
+}
+
+/**
  * A chosen identifier, checked unused, as `addExternalRelationship`'s proposed id is. A clash throws
  * rather than renumbering: a caller who names an id is asserting something about a room's state, and
  * quietly moving it would break the peer that named it (CR-002 section 24).
  */
-function requireFreeId(numbering: wml.Numbering, kind: 'numId' | 'abstractNumId', id: number): number {
-  if (!Number.isInteger(id) || id < 0) throw new Docx4JException(`A ${kind} must be a non-negative integer, not ${id}`);
+function requireFreeId(numbering: wml.Numbering, kind: 'numId' | 'abstractNumId', chosen: string | number): number {
+  const id = requireIdForm(kind, chosen);
   const taken = kind === 'numId'
     ? (numbering.num ?? []).some((num) => Number(num.numId) === id)
     : (numbering.abstractNum ?? []).some((a) => Number(a.abstractNumId) === id);

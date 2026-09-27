@@ -555,11 +555,29 @@ test('newList and restart take the identifiers to use, checked unused', async ()
   await assert.rejects(() => pkg.numbering.newList({ numId: 4242 }), /4242 is already in use/);
   await assert.rejects(() => pkg.numbering.newList({ abstractNumId: 77 }), /77 is already in use/);
   assert.throws(() => pkg.numbering.restart(4242, { newNumId: 9001 }), /9001 is already in use/);
-  await assert.rejects(() => pkg.numbering.newList({ numId: -1 }), /non-negative integer/);
+  await assert.rejects(() => pkg.numbering.newList({ numId: -1 }), /numId must be an integer from 1, not -1/);
+
+  // numId 0 is what a w:numPr says to mean "not numbered" (detachFromList writes it), so a list
+  // given it would number nothing (CR-002 section 31)
+  await assert.rejects(() => pkg.numbering.newList({ numId: 0 }), /numId must be an integer from 1, not 0/);
+  assert.throws(() => pkg.numbering.restart(4242, { newNumId: 0 }), /from 1, not 0/);
+
+  // a refused call leaves the part as it was: the w:abstractNum used to be written before the numId
+  // was checked, and saved as an orphan for every clash
+  const counts = () => [numbering.abstractNum.length, numbering.num.length];
+  const before = counts();
+  await assert.rejects(() => pkg.numbering.newList({ numId: 4242 }), /already in use/);
+  await assert.rejects(() => pkg.numbering.newList({ numId: 4243, abstractNumId: 77 }), /already in use/);
+  assert.deepEqual(counts(), before, 'no w:abstractNum or w:num is left behind');
 
   // and passing nothing behaves as before
   const next = await pkg.numbering.newList();
   assert.equal(next, '9002', 'the next free numId after the chosen ones');
+
+  // an identifier refused for its form is refused before a numbering part is made for it
+  const bare = await WordprocessingMLPackage.createPackage();
+  await assert.rejects(() => bare.numbering.newList({ numId: 0 }), /from 1/);
+  assert.equal(bare.getMainDocumentPart().numberingDefinitionsPart, undefined, 'no numbering part was created');
 });
 
 test('customXmlParts.add takes an itemID and a part name, checked unused', async () => {
@@ -577,11 +595,29 @@ test('customXmlParts.add takes an itemID and a part name, checked unused', async
 
   assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: ID }), /already in use/);
   assert.throws(() => pkg.customXmlParts.add('<x/>', { partName: '/customXml/item7.xml' }), /already in this package/);
+  // a refused call leaves no part behind: a malformed itemID used to be refused after the data part
+  // was related, which saved it without a properties part (CR-002 section 31)
+  const customXmlNames = () => [...pkg.parts.values()].map((p) => p.partName.name).filter((n) => n.startsWith('/customXml/')).sort();
+  const namesBefore = customXmlNames();
   assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: 'not-a-guid' }), /must be a GUID/);
+  assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: ID }), /already in use/);
+  assert.deepEqual(customXmlNames(), namesBefore, 'no custom XML part was added');
 
   // it survives a round trip under the name and id it was given
   const back = await WordprocessingMLPackage.load(await pkg.save());
   await back.customXmlParts.load();
   assert.ok(back.customXmlParts.getItem(ID), 'the chosen itemID is in the reloaded package');
   assert.ok(back.parts.get('/customXml/item7.xml'), 'and so is the chosen part name');
+});
+
+test('customXmlParts.add with an itemID needs no load(), and still finds a clash', async () => {
+  // The uniqueness check went through the views, which throw for a part not yet parsed, so a chosen
+  // itemID needed customXmlParts.load() first while a generated one did not (CR-002 section 31). The
+  // package's own index of the parts answers it without a parse.
+  const pkg = await WordprocessingMLPackage.load(await fixture('invoice.docx'));
+  const [existing] = [...pkg.customXmlDataStorageParts.keys()];
+  assert.ok(existing, 'the fixture has a custom XML part');
+  assert.throws(() => pkg.customXmlParts.add('<x/>', { itemID: existing.toUpperCase() }), /already in use/);
+  const added = pkg.customXmlParts.add('<x xmlns="urn:x"/>', { itemID: '6d2a0b3c-4e5f-4a7b-8c9d-0e1f2a3b4c5d' });
+  assert.equal(added.id, '{6D2A0B3C-4E5F-4A7B-8C9D-0E1F2A3B4C5D}');
 });
