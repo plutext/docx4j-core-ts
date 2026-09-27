@@ -2445,11 +2445,18 @@ its parent will not take it:
    <w:stylePaneFormatFilter w:val="3F01" w:allStyles="1" w:customStyles="0" ... />
    ```
 
-   (`NumberingImplicitNumId.docx`), and the 4th-edition transitional schema has `CT_StylePaneFilter`
-   with all sixteen. So every `word/settings.xml` this package re-marshals loses the fifteen and
-   keeps the hex `w:val`, which encodes the same state - which is presumably why fifteen years of
-   round trips have not noticed. Reported to the objects session for docx4j, as the `a:srgbClr` gap
-   was.
+   (`NumberingImplicitNumId.docx`, the one fixture here that carries the element: sixteen attributes
+   in, one out), and the 4th-edition transitional schema has `CT_StylePaneFilter` with all sixteen.
+   So every `word/settings.xml` this package re-marshals loses the fifteen and keeps the hex `w:val`,
+   which encodes the same state - which is presumably why fifteen years of round trips have not
+   noticed. Reported to the objects session for docx4j, as the `a:srgbClr` gap was.
+
+   **No CR of ours is due for it** (checked 2026-09-27): docx4j has the measurement from the objects
+   session, `docx4j-python` has already fixed it in its own copy with a `CT_StylePaneFilter`, and
+   docx4j intends to follow for port parity. The neighbouring `w:stylePaneSortMethod` was thought to
+   need the same retyping and that claim was withdrawn as unverified; **no fixture here carries the
+   element at all**, which is the corroboration from this side, so nobody should re-raise it on our
+   account.
 
 **And 16 parts of the 51 fixtures throw rather than unmarshal**, which the inventory counts but does
 not identify; they are the DrawingML and VML parts CR-001 section 17.7 and CR-004 section 5 record.
@@ -2474,7 +2481,10 @@ of loss it cannot see:
   the *marshal* fails to write is invisible. The objects package's fidelity test has the opposite
   reach - it compares a round trip, so it sees a marshal-side loss but has to infer the cause - which
   is why the two instruments agree exactly on attributes and not in general (objects CR-004
-  section 11).
+  section 11). The two **elements** above are the clean demonstration: they do not appear in that
+  package's residual at all, and their absence is structural rather than a miss, since both are
+  visible only once a Choice has been resolved and that corpus resolves five of its twenty-four
+  `mce` parts. They are findings about a consumer that resolves, not about the model.
 - **It sees the unmarshaller, not every drop.** `deepCopyAs` drops by deleting properties the target
   type does not declare, with no unmarshaller in the path (objects CR-007 section 6), so the three
   properties `tracking.mts`'s `recordPPrChange` deliberately loses are invisible to it, as is any
