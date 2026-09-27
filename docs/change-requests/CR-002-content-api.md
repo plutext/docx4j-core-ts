@@ -2095,7 +2095,7 @@ records them in its own `CLAUDE.md` as a contract:
    than be assumed away, and it can name the part and say the position is unknown.
 
 The facade half is objects CR-007, "Per-call runtime options on the facade, and what unmarshalling
-dropped" (objects `2259931`, proposed; it cannot start until 3.4.0 is on npm). It puts the options on
+dropped", **released in objects 0.3.0 and taken here the same day**. It puts the options on
 all four entry points, `unmarshalString` and `marshalString` included; its section 6 is a rule this
 package asked for - **no callback is ever wired by default** - because `tracking.mts`'s
 `recordPPrChange` copies a `w:pPr` as a `PPrBase` *for* the drop, so a default callback would report

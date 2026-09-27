@@ -2457,7 +2457,7 @@ Naming them is part of the same future test, since a part that cannot be read is
 an attribute.
 
 **The inventory used as a check, and it worked** (2026-09-27, verifying objects CR-007 against that
-package's checkout, which carries the docx4j CR-027 regeneration as well). Re-run against it, the
+package's checkout, and confirmed on the published 0.3.0 the same day). Re-run against it, the
 attribute list falls from **26 distinct to 17**: every `xr:uid`, `xr2:uid` and `xr3:uid` entry and
 `b:Sources/@Version` is gone, which is exactly the set docx4j CR-027 bound, and the element list is
 unchanged. What is left is precisely the two gaps known to be still open - the `a:srgbClr` pair, and
@@ -2467,8 +2467,18 @@ flagged: those Excel parts grow by about 48 bytes each because they now *keep* t
 A hash set that differs is not by itself a regression, and this is what telling the two apart looks
 like.
 
-The limit of the instrument, worth stating where the future test is planned: it sees what the
-**unmarshaller** drops. `deepCopyAs` drops by deleting properties the target type does not declare,
-with no unmarshaller in the path (objects CR-007's section 6), so the three properties
-`tracking.mts`'s `recordPPrChange` deliberately loses are invisible to it - as is any other
-structural copy. An inventory of unmarshal losses is not an inventory of losses.
+The limits of the instrument, worth stating where the future test is planned, since each is a class
+of loss it cannot see:
+
+- **It sees the way in, not the way out.** A callback fires where the unmarshaller drops; anything
+  the *marshal* fails to write is invisible. The objects package's fidelity test has the opposite
+  reach - it compares a round trip, so it sees a marshal-side loss but has to infer the cause - which
+  is why the two instruments agree exactly on attributes and not in general (objects CR-004
+  section 11).
+- **It sees the unmarshaller, not every drop.** `deepCopyAs` drops by deleting properties the target
+  type does not declare, with no unmarshaller in the path (objects CR-007 section 6), so the three
+  properties `tracking.mts`'s `recordPPrChange` deliberately loses are invisible to it, as is any
+  other structural copy.
+
+An inventory of unmarshal losses is not an inventory of losses, and a test built on one should say
+which it is.

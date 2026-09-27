@@ -3,7 +3,7 @@
 // Part 3, 10.2.1), and so does this preprocessor.
 //
 // It is the defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts
-// (0.2.0), which `mce.test.mjs` asserts so that the next regeneration announces an addition, plus
+// (0.3.0), which `mce.test.mjs` asserts so that the next regeneration announces an addition, plus
 // two groups of hand-kept entries, each marked below: namespaces no module *defaults* to but which
 // the model binds anyway (attributes, or elements a module of another namespace declares), and the
 // slicer namespaces of CR-004 phase B, whose content the model does not bind at all but carries
@@ -100,6 +100,7 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/spreadsheetml/2011/1/ac',
   'http://schemas.microsoft.com/office/spreadsheetml/2014/11/main',
   'http://schemas.microsoft.com/office/spreadsheetml/2014/revision',
+  'http://schemas.microsoft.com/office/spreadsheetml/2018/calcfeatures',
   'http://schemas.microsoft.com/ink/2010/main',
   'http://www.w3.org/1998/Math/MathML',
   'http://www.w3.org/2003/InkML',
