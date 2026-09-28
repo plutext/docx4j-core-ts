@@ -2488,6 +2488,37 @@ editor's reviewer was right, and both sides change. With check 20 this makes one
 where a revision is splits it, and is the typist's `w:ins` when tracking is on and plain text when
 it is off.)*
 
+**Fixed 2026-09-28 (unreleased), at Jason's request: the engine now does what checks 20 and 21 show.**
+
+- **A. Text typed where a revision is.** Inside another's revision (a `w:ins`, a `w:moveTo`) the
+  revision is split - its second half a copy of its attributes under a new `w:id` - and the typist's
+  `w:ins` goes between the halves with tracking on, a plain run with it off; at a revision's end the
+  new text goes after it, at its start before it, and before a move's range start that opens there,
+  so text typed at the start of moved text is outside the move (case 03). An untracked replacement
+  that begins inside a revision is a deletion and then that typing, so its text is plain too (the
+  editor's api.test case over "An" in `tracked-changes.docx`). Text typed inside the typist's own
+  insertion with tracking on still extends it: check 21's first run saw Word split even that, but
+  whether it turns on the time between the edits is not known. Where the typed-into run is not
+  directly in the revision (inside a hyperlink in it, say) the split is not attempted and the text
+  goes where it did before.
+- **B. Rejecting an edited move** removes everything inside the destination's range - text typed
+  into it, deletions nested in it - as Word's default "keep original location text" does (cases 01,
+  04); text before the range start stays (03). Accepting leaves such edits pending, as before and as
+  Word does. What accepting does to text typed into the source was not measured and is left alone.
+- **C. A destination whose source is gone** keeps its text, plain, when rejected as when accepted
+  (case 12).
+- **D. A destination without range markers** is resolved as an insertion, its paragraph mark with
+  it - kept when accepted, the paragraph taken away when rejected - and the other side of the broken
+  pair, a source range whose name no destination carries, becomes a plain pending `w:del`, its range
+  markers kept (case 13). Read from one case; Word may instead dissolve any broken pair when it
+  saves (case 14), which the engine does not attempt.
+
+Not changed: a deleted paragraph's run deletion and mark deletion are still two changes, where Word's
+Accept and Reject took them together (case 14). That changes what `getTrackedChanges()` lists, so it
+waits for its own check. `tracking.test.mjs` holds A to D to Word's files: cases 01 to 04 typed with
+tracking on, 21a, 21b and 21d with it off, and accept and reject on nine of check 20's edited files,
+each failing on the code before this.
+
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
 lands in, and the editor's api.test holds the editor to that.

@@ -2,7 +2,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, type TextSegment, type TextViewOptions } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
   if (rPr) run.value.rPr = rPr;
@@ -22,7 +22,7 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { type ChangeTracker, copyRPr, markDeleted, toDeletedText } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -519,6 +519,13 @@ export class Paragraph {
     }
     let segs = this.segments();
     let inserted = false;
+    // A replacement that begins inside a revision is a deletion and then the new text typed there, so
+    // the new text is plain and splits the revision, as typed text is (test/README.md check 21), rather
+    // than joining the revision it replaced part of.
+    if (end > start && text.length > 0 && segs.find((s) => s.start <= start && start < s.end)?.revision) {
+      this.splice(start, end, '');
+      return this.splice(start, start, text);
+    }
     if (end > start) {
       // Replace: the new text takes the place (and formatting) of the first replaced character, as Word does.
       const first = segs.find((s) => s.start <= start && start < s.end);
@@ -547,10 +554,25 @@ export class Paragraph {
       segs = this.segments();
     }
     if (text.length > 0) {
-      // Insert: extend the w:t at `start` (the one containing it, else the one ending there, else the one starting there)
-      const target = segs.find((s) => s.editable && s.start < start && start < s.end)
-        ?? segs.find((s) => s.editable && s.end === start)
-        ?? segs.find((s) => s.editable && s.start === start);
+      // Text typed with tracking off is plain wherever it lands, as Word writes it (test/README.md
+      // check 21): inside a revision it splits the revision, and next to one it goes beside it, not
+      // in it. Otherwise it extends the w:t at `start` (the one containing it, else the one ending
+      // there, else the one starting there).
+      const containing = segs.find((s) => s.editable && s.start < start && start < s.end);
+      if (containing?.revision && this.insertBetweenHalves(start, runOf([textItem(text)], copyRPr(containing.run.rPr)), () => this.nextAnnotationId())) {
+        return new Range(this, start, start + text.length);
+      }
+      const ending = segs.find((s) => s.editable && s.end === start);
+      const starting = segs.find((s) => s.editable && s.start === start);
+      const target = (containing && !containing.revision ? containing : undefined)
+        ?? (ending && !ending.revision ? ending : undefined) ?? (starting && !starting.revision ? starting : undefined)
+        ?? containing;                                   // a revision that could not be split: extended, as before
+      const edge = target ? undefined : ending ?? starting;
+      if (edge?.revision) {
+        const run = runOf([textItem(text)], copyRPr(edge.run.rPr));
+        this.insertBesideRevision(edge.revision, run, edge === ending ? 'after' : 'before');
+        return new Range(this, start, start + text.length);
+      }
       if (target) {
         const t = target.item.value as wml.Text;
         const at = start - target.start;
@@ -776,6 +798,66 @@ export class Paragraph {
   }
 
   /**
+   * Splits the revision that holds the text at `at` into two - the second half a copy of its
+   * attributes under a new `w:id` - and puts `item` between them. Word splits a revision so when
+   * text is typed inside it: around the typist's `w:ins` with tracking on, around plain text with it
+   * off (`test/README.md` checks 20 and 21). False, with nothing changed but a run split at `at`,
+   * where the text there is not directly in the revision (in a hyperlink inside it, say): the caller
+   * then does what it did before.
+   */
+  private insertBetweenHalves(at: number, item: Element, nextId: () => number): boolean {
+    this.splitAt(at);
+    const after = this.segments().find((s) => s.start >= at && s.revision);
+    const holder = after?.revision;
+    const index = holder && after ? holder.items.indexOf(after.runOwner[after.runIndex]!) : -1;
+    if (!holder || index <= 0) return false;
+    const value = holder.value as unknown as Record<string, unknown>;
+    const itemsKey = Object.keys(value).find((key) => value[key] === holder.items);
+    if (!itemsKey) return false;
+    const copy: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value)) if (key !== itemsKey) copy[key] = v;
+    copy.id = nextId();
+    copy[itemsKey] = holder.items.splice(index);
+    const second = { name: holder.element.name, value: copy } as Element;
+    const parent = (holder.value as { PARENT?: object }).PARENT ?? this.p;
+    const at2 = holder.owner.indexOf(holder.element) + 1;
+    holder.owner.splice(at2, 0, item, second);
+    linkParents(copy[itemsKey], copy);
+    linkParents([item, second], parent);
+    return true;
+  }
+
+  /**
+   * Puts `item` beside a revision rather than in it: after it, or before it - and then before the
+   * range start of a move whose range opens just there, so that text typed at the start of moved
+   * text is not inside the move (`test/README.md` check 20 case 03).
+   */
+  private insertBesideRevision(holder: RevisionHolder, item: Element, side: 'before' | 'after'): void {
+    let index = holder.owner.indexOf(holder.element) + (side === 'after' ? 1 : 0);
+    if (side === 'before' && (holder.kind === 'moveTo' || holder.kind === 'moveFrom')) {
+      const marker = holder.kind === 'moveTo' ? 'moveToRangeStart' : 'moveFromRangeStart';
+      while (index > 0 && holder.owner[index - 1]?.name?.localPart === marker) index--;
+    }
+    holder.owner.splice(index, 0, item);
+    linkParents(item, (holder.value as { PARENT?: object }).PARENT ?? this.p);
+  }
+
+  /**
+   * A fresh annotation id for markup this paragraph writes itself: the package's counter when there
+   * is a package that keeps one, since a document has one id space; else one above every id in the
+   * story.
+   */
+  private nextAnnotationId(): number {
+    const pkg = this.parentBody.package_ as Partial<TrackingHost> | undefined;
+    if (pkg && typeof pkg.markupRoots === 'function' && 'annotationIdFloor' in pkg) {
+      return new ChangeTracker(pkg as TrackingHost, 'TrackAll').nextId();
+    }
+    let root: object = this.p;
+    for (let o: object | undefined = this.p; o !== undefined; o = (o as { PARENT?: object }).PARENT) root = o;
+    return highestAnnotationId(root) + 1;
+  }
+
+  /**
    * Text inserted at `at` as a `w:ins`. A run of this author's own that is already inside a
    * `w:ins` is extended rather than nested in another one, as Word does. `anchor` is the `w:del`
    * of a replacement, which the insertion must follow.
@@ -808,6 +890,18 @@ export class Paragraph {
     tracker.assertEditable(neighbour?.revision);
     const rPr = copyRPr(neighbour?.run.rPr ?? runsOf(this.p)[0]?.value.rPr);
     const ins = tracker.ins([runOf([textItem(text)], rPr)]);
+    // Typed inside another's revision - a w:ins, a w:moveTo - the revision is split and the typist's
+    // w:ins goes between its halves, as Word writes it (test/README.md check 20 case 01, check 21's
+    // first run); before, it went to the revision's edge, putting the text in the wrong place.
+    if (before?.revision && after?.revision && before.revision.element === after.revision.element
+      && this.insertBetweenHalves(at, ins as Element, () => tracker.nextId())) {
+      return;
+    }
+    // at the start of a revision, beside it - and outside a move's range that opens there (case 03)
+    if (!before && after?.revision) {
+      this.insertBesideRevision(after.revision, ins as Element, 'before');
+      return;
+    }
     if (neighbour) {
       const owner = neighbour.revision ? neighbour.revision.owner : neighbour.runOwner;
       const item = neighbour.revision ? neighbour.revision.element : neighbour.runOwner[neighbour.runIndex]!;

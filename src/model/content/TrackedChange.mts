@@ -5,11 +5,11 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, childrenOf } from './tree.mjs';
+import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, childrenOf, W_NS } from './tree.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
-import { dateOf, toRestoredText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
+import { dateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
@@ -114,6 +114,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'accept')) return;
+        if (t.revision === 'moveTo' && resolveRangelessDestination(this, 'accept')) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else remove(t.owner, t.element);
         return;
       case 'mark':
@@ -146,6 +147,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'reject')) return;
+        if (t.revision === 'moveTo' && resolveRangelessDestination(this, 'reject')) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') remove(t.owner, t.element); else restoreDeleted(t);
         return;
       case 'mark':
@@ -306,7 +308,9 @@ type MovePiece =
   | { kind: 'start'; side: 'from' | 'to'; id: number; name: string; element: Element; owner: Element[] }
   | { kind: 'end'; side: 'from' | 'to'; id: number; element: Element; owner: Element[] }
   | { kind: 'half'; side: 'from' | 'to'; element: Element; owner: Element[]; names: string[] }
-  | { kind: 'mark'; side: 'from' | 'to'; paragraph: Element<wml.P>; container: Element[]; names: string[] };
+  | { kind: 'mark'; side: 'from' | 'to'; paragraph: Element<wml.P>; container: Element[]; names: string[] }
+  /** Anything else directly in a paragraph while a range is open: text typed into moved text, say. */
+  | { kind: 'inner'; side: 'from' | 'to'; element: Element; owner: Element[]; names: string[] };
 
 const RANGE_MARKERS: Readonly<Record<string, { kind: 'start' | 'end'; side: 'from' | 'to' }>> = {
   moveFromRangeStart: { kind: 'start', side: 'from' }, moveFromRangeEnd: { kind: 'end', side: 'from' },
@@ -333,11 +337,21 @@ function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolea
   const ids = new Set(pieces.filter((piece) => piece.kind === 'start' && piece.name === name).map((piece) => (piece as { id: number }).id));
   const mine = pieces.filter((piece) =>
     (piece.kind === 'start' && piece.name === name) || (piece.kind === 'end' && ids.has(piece.id))
-    || ((piece.kind === 'half' || piece.kind === 'mark') && piece.names.includes(name)));
-  const kept = action === 'accept' ? 'to' : 'from';
+    || ((piece.kind === 'half' || piece.kind === 'mark' || piece.kind === 'inner') && piece.names.includes(name)));
+  // A destination whose source is gone is kept whichever way it is resolved: Word rejected such a
+  // move and left its text, plain, where it stood (test/README.md check 20 case 12).
+  const orphan = !mine.some((piece) => piece.side === 'from');
+  const kept = action === 'accept' || orphan ? 'to' : 'from';
 
   // the markers first: a range end between two paragraphs would stop the paragraph join below
   for (const piece of mine) if (piece.kind === 'start' || piece.kind === 'end') remove(piece.owner, piece.element);
+  // Rejected, a move takes with it everything typed into its destination: Word's default when moved
+  // text was edited (the Tracked Moves Conflict Dialog's "keep original location text", check 20
+  // cases 01 and 04). Text typed before the range starts is outside the move and stays (case 03).
+  // What accepting does to text typed into the source was not measured, so it is left alone.
+  if (kept === 'from') {
+    for (const piece of mine) if (piece.kind === 'inner' && piece.side === 'to') remove(piece.owner, piece.element);
+  }
   for (const piece of mine) {
     if (piece.kind !== 'half') continue;
     const target = { kind: 'run' as const, revision: piece.side === 'from' ? 'moveFrom' as const : 'moveTo' as const, element: piece.element, owner: piece.owner, value: piece.element.value as wml.CTTrackChange };
@@ -378,7 +392,7 @@ function storyOf(p: wml.P): Element[] {
 function movePiecesOf(story: Element[]): MovePiece[] {
   const out: MovePiece[] = [];
   const open = { from: new Map<number, string>(), to: new Map<number, string>() };
-  const visit = (items: Element[]): void => {
+  const visit = (items: Element[], runLevel = false): void => {
     for (const el of items) {
       const marker = RANGE_MARKERS[el.name?.localPart ?? ''];
       const value = el.value as { id?: number; name?: string } | undefined;
@@ -392,11 +406,15 @@ function movePiecesOf(story: Element[]): MovePiece[] {
       if (revision === 'moveFrom' || revision === 'moveTo') {
         const side = revision === 'moveFrom' ? 'from' : 'to';
         out.push({ kind: 'half', side, element: el, owner: items, names: [...open[side].values()] });
+      } else if (runLevel) {
+        for (const side of ['from', 'to'] as const) {
+          if (open[side].size > 0) out.push({ kind: 'inner', side, element: el, owner: items, names: [...open[side].values()] });
+        }
       }
       const v = el.value;
       if (typeof v !== 'object' || v === null) continue;
       const children = childrenOf(v) ?? runItemsOf(v);
-      if (children) visit(children);
+      if (children) visit(children, typeNameOf(el) === 'org_docx4j_wml.P');
       if (typeNameOf(el) === 'org_docx4j_wml.P') {
         const rPr = (v as wml.P).pPr?.rPr;
         for (const side of ['from', 'to'] as const) {
@@ -409,6 +427,62 @@ function movePiecesOf(story: Element[]): MovePiece[] {
   };
   visit(story);
   return out;
+}
+
+/**
+ * A `w:moveTo` in no named range - its range markers gone - resolved as Word resolved one (check 20
+ * case 13, where Word showed it as an insertion): kept plain when accepted, taken away when rejected,
+ * its paragraph mark with it. And the other side of the broken pair - a source range whose `w:name`
+ * no destination range carries - is turned into a plain deletion, pending, its range markers kept,
+ * as Word left it either way. That second part is read from one case; Word's own rule may be that it
+ * dissolves any broken pair when it saves (case 14), which this does not attempt.
+ */
+function resolveRangelessDestination(change: TrackedChange, action: 'accept' | 'reject'): boolean {
+  const t = change.target;
+  const paragraph = change.paragraph;
+  if (t.kind !== 'run' || t.revision !== 'moveTo' || !paragraph) return false;
+  const pieces = movePiecesOf(storyOf(paragraph.p));
+  const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
+  if (!half || half.kind !== 'half' || half.names.length > 0) return false;
+
+  if (action === 'accept') unwrap(t); else remove(t.owner, t.element);
+  const mark = pieces.find((piece) => piece.kind === 'mark' && piece.side === 'to' && piece.paragraph === paragraph.element && piece.names.length === 0);
+  const p = paragraph.p;
+  if (mark && p.pPr?.rPr?.moveTo) {
+    if (action === 'accept' || (p.content ?? []).length > 0) {
+      delete p.pPr.rPr.moveTo;
+      if (action === 'accept') pruneParagraphProperties(p);
+      else joinWithNext(paragraph, true);
+    } else {
+      remove(paragraph.container, paragraph.element);
+    }
+  }
+  const destinations = new Set(pieces.filter((piece) => piece.kind === 'start' && piece.side === 'to').map((piece) => (piece as { name: string }).name));
+  const orphaned = (names: string[]): boolean => names.length > 0 && names.every((name) => !destinations.has(name));
+  for (const piece of pieces) {
+    if (piece.kind === 'half' && piece.side === 'from' && orphaned(piece.names)) toDeletion(piece.element, piece.owner);
+    if (piece.kind === 'mark' && piece.side === 'from' && orphaned(piece.names)) {
+      const rPr = piece.paragraph.value.pPr?.rPr;
+      if (rPr?.moveFrom) { rPr.del = rPr.moveFrom; delete rPr.moveFrom; }
+    }
+  }
+  return true;
+}
+
+/** A `w:moveFrom` turned into the plain `w:del` of the same runs, their text become deleted text. */
+function toDeletion(element: Element, owner: Element[]): void {
+  const value = element.value as unknown as wml.CTTrackChange;
+  const items = runItemsOf(element.value as object) ?? [];
+  for (const item of items) if (typeNameOf(item) === 'org_docx4j_wml.R') toDeletedText(item.value as wml.R);
+  const del = {
+    name: { namespaceURI: W_NS, localPart: 'del' },
+    value: { TYPE_NAME: 'org_docx4j_wml.RunDel', id: value.id, author: value.author, date: value.date, customXmlOrSmartTagOrSdt: items },
+  } as unknown as Element;
+  const i = owner.indexOf(element);
+  if (i < 0) return;
+  owner.splice(i, 1, del);
+  linkParents(items, del.value as object);
+  linkParents(del, (value as { PARENT?: object }).PARENT);
 }
 
 // --- collecting ----------------------------------------------------------------------------

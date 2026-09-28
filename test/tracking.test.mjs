@@ -737,7 +737,9 @@ async function moveSection(pkg) {
     const pPr = Array.from(n.childNodes).find((c) => c.localName === 'pPr');
     const moves = Array.from(n.getElementsByTagNameNS(W, '*')).filter((x) => x.localName.startsWith('move')).length
       + (n.localName.startsWith('move') ? 1 : 0);
-    return [n.localName, pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '') : '', n.textContent, moves];
+    // ids, dates and session ids are Word's to renumber when it saves; what is compared is the markup
+    const properties = pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w:id|w:date|w16du:dateUtc|w:rsid\w*)="[^"]*"/g, '') : '';
+    return [n.localName, properties, n.textContent, moves];
   });
 }
 
@@ -820,4 +822,97 @@ test('noteAnnotationIds: a part the caller has read is not read again by the see
   assert.equal(await noted.seedAnnotationIds(), seeded, 'the same floor as reading every part');
   const other = await WordprocessingMLPackage.createPackage();
   await assert.rejects(() => pkg.noteAnnotationIds(other.getMainDocumentPart(), 5), /not a part of this package/);
+});
+
+// CR-002 section 29, from checks 20 and 21 (Word 16.0.20326.20158, by hand; the files are the oracle).
+// Text typed where a revision is splits the revision: the typist's w:ins between its halves with
+// tracking on, plain text with it off; typed at a revision's edge it goes beside it, and typed at the
+// start of moved text it goes outside the move's range. Before, tracked text typed inside another's
+// revision went to the revision's edge - the wrong place - and untracked text joined the revision.
+
+/** A paragraph as the spans of text it shows: [kind, author, text], adjacent spans of one kind and author merged. */
+function spansOf(pkg, startsWith) {
+  const p = pkg.body.paragraphs.find((x) => x.getText({ view: 'original' }).startsWith(startsWith) || x.text.startsWith(startsWith));
+  const out = [];
+  const add = (kind, author, text) => {
+    const last = out[out.length - 1];
+    if (last && last[0] === kind && last[1] === author) last[2] += text; else out.push([kind, author, text]);
+  };
+  const textOfRun = (r) => (r.value.content ?? []).map((c) => c.value?.value ?? '').join('');
+  for (const item of p.p.content ?? []) {
+    const name = item.name?.localPart;
+    if (name === 'r') add('plain', '', textOfRun(item));
+    else if (['ins', 'del', 'moveTo', 'moveFrom'].includes(name)) {
+      const runs = item.value.customXmlOrSmartTagOrSdt ?? item.value.accOrBarOrBox ?? [];
+      add(name, item.value.author, runs.filter((r) => r.name?.localPart === 'r').map(textOfRun).join(''));
+    }
+  }
+  return out;
+}
+
+async function typedAt(file, author, tracked, startsWith, at, text) {
+  const { Range } = await import('../dist/index.mjs');
+  const pkg = await loaded(file);
+  pkg.author = { name: author };
+  await pkg.setChangeTrackingMode(tracked ? 'TrackAll' : 'Off');
+  const p = pkg.body.paragraphs.find((x) => x.text.startsWith(startsWith));
+  const offset = at(p);
+  new Range(p, offset, offset).insertText(text, 'Start');
+  return pkg;
+}
+
+test('typing into moved text, tracked, writes what Word wrote (check 20, cases 01 to 04)', async () => {
+  const goes = (p) => p.search('goes ')[0].end;
+  for (const [name, author, at, text, find] of [
+    ['01-type-inside-a', 'Author A', goes, 'quickly ', 'The second paragraph'],
+    ['02-type-inside-b', 'Author B', goes, 'quickly ', 'The second paragraph'],
+    ['03-type-at-start', 'Author B', () => 0, 'Now ', 'Now The second'],
+    ['04-type-at-end', 'Author B', (p) => p.text.length, ' Really.', 'The second paragraph'],
+  ]) {
+    const pkg = await typedAt('revisions/revisions-word15.docx', author, true, 'The second paragraph', at, text);
+    const word = await loaded(`revisions/check20/${name}.docx`);
+    assert.deepEqual(spansOf(pkg, find), spansOf(word, find), name);
+    // and where the markers are: case 03's insertion is outside the move's range, as Word put it
+    const xml = await pkg.getMainDocumentPart().getXml();
+    if (name === '03-type-at-start') assert.match(xml, /<w:ins [^>]*><w:r><w:t xml:space="preserve">Now <\/w:t><\/w:r><\/w:ins><w:moveToRangeStart /);
+  }
+});
+
+test('typing into a revision with tracking off is plain and splits it (check 21, re-run)', async () => {
+  const inVery = (p) => p.search('very')[0].start + 2;
+  for (const [name, author, at, text] of [
+    ['21a-in-insertion', 'Author B', inVery, 'X'],
+    ['21b-at-insertion-end', 'Author B', (p) => p.search('very ')[0].end, 'Y'],
+    ['21d-in-own-insertion', 'Author A', inVery, 'X'],
+  ]) {
+    const pkg = await typedAt('revisions/revisions-word15.docx', author, false, 'The quick brown', at, text);
+    const word = await loaded(`revisions/check21/${name}.docx`);
+    assert.deepEqual(spansOf(pkg, 'The quick brown'), spansOf(word, 'The quick brown'), name);
+  }
+  // with tracking on, the typist's own w:ins between the halves: what check 21's first run recorded
+  // (its files were replaced by the re-run; CR-002 section 29 keeps the XML)
+  const on = await typedAt('revisions/revisions-word15.docx', 'Author B', true, 'The quick brown', inVery, 'X');
+  assert.deepEqual(spansOf(on, 'The quick brown').slice(3, 6), [['ins', 'Author A', 've'], ['ins', 'Author B', 'X'], ['ins', 'Author A', 'ry ']]);
+  const ids = spansOf(on, 'The quick brown').length && (await on.getMainDocumentPart().getXml()).match(/<w:ins w:id="(\d+)"/g);
+  assert.equal(new Set(ids).size, ids.length, 'the split half has an id of its own');
+
+  // a replacement that starts inside a revision is a deletion and then typing: plain, beside it
+  const replaced = await loaded('tracked-changes.docx');
+  await replaced.setChangeTrackingMode('Off');
+  assert.equal(replaced.body.replaceText('An', 'XY', { matchCase: true }), 1);
+  assert.deepEqual(spansOf(replaced, 'Here is some').slice(0, 2),
+    [['plain', '', 'Here is some change tracking. XY'], ['ins', 'Jason Harrop', ' insertion']]);
+});
+
+test('accepting and rejecting an edited, re-moved or broken move leaves what Word left (check 20)', async () => {
+  for (const name of ['01-type-inside-a', '03-type-at-start', '04-type-at-end', '06-delete-part-a', '07-delete-part-b',
+    '08-delete-all', '10-move-again', '12-partner-missing', '13-moveTo-no-ranges']) {
+    for (const action of ['accept', 'reject']) {
+      const pkg = await loaded(`revisions/check20/${name}.docx`);
+      const destination = pkg.body.getTrackedChanges().find((c) => c.target.kind === 'run' && c.target.revision === 'moveTo');
+      destination[action]();
+      const word = await loaded(`revisions/check20/${name}-${action}.docx`);
+      assert.deepEqual(await moveSection(pkg), await moveSection(word), `${name} ${action}`);
+    }
+  }
 });
