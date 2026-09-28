@@ -2451,7 +2451,7 @@ saved both ways.
 | Part of the source deleted (09) | a `w:del` nested inside the `w:moveFrom` | - | - |
 | The destination moved again (10) | **one** move, the same `w:name`, the source unchanged, the new destination; the old one gone | as check 18 | as check 18 |
 | A phrase moved within a paragraph (11) | a `w:ins` and a `w:del`, **not** a move | - | - |
-| The source side removed (12) | shown as an insertion; saved (the re-run's Save As): the destination written as a `w:ins`, run and mark, its range markers kept | the text kept, plain | the text **kept**, plain |
+| The source side removed (12) | shown as moved (insertion); saved (the re-run's Save As): the destination written as a `w:ins`, run and mark, its range markers kept | the text kept, plain | the text **kept**, plain |
 | The destination's range markers removed (13) | shown as added, and moved; saved (the re-run): the destination written as a `w:ins`, the source as a `w:del`, run and mark each, the source's range markers kept | the destination kept, plain; the source's `w:moveFrom` (and mark) turned into a pending `w:del`, its range markers kept | the destination paragraph gone; the source likewise turned into a pending `w:del` |
 | The source's range markers removed (14) | shown as moved (insertion), and deletion; **re-saved** (Jason typed a space in section 2 to make Word save): the destination written as a `w:ins`, its range markers kept, and the source as a `w:del` - Word dissolves this broken pair when it saves | on the source: its run deletion and deleted mark accepted together, the paragraph gone, the destination a pending `w:ins`; on the destination (the re-run): kept, plain, the source a pending `w:del` | on the source: the paragraph restored, run and mark together, the destination a pending `w:ins`; on the destination: kept, plain, as case 12, the source a pending `w:del` |
 
@@ -2525,6 +2525,11 @@ it is off.)*
   that cannot be paired becomes a pending `w:ins` or `w:del`, range markers kept. A complete move
   resolved leaves the document's other moves alone. The engine does not dissolve broken pairs on
   load or save, as Word does: an untouched part is still saved byte for byte.
+  Word's labels agree with this. Read again at the re-run (destination, then source), they are
+  12 "moved (insertion)"; 13 "added", "moved"; and 14 "moved (insertion)", "deletion". Word calls a
+  half "moved" when a named range holds it, even with no partner, and gives a half without one its
+  plain kind. The label also says what rejecting does. A "moved" destination with no source is kept
+  (12, 14), as fix C keeps it, and an "added" one is taken away (13), as the rule above does.
 
 Not changed: a deleted paragraph's run deletion and mark deletion - plain `w:del`, not a broken move
 - are still two changes, where Word's Accept and Reject took them together in case 14. That changes

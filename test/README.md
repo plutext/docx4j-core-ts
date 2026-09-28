@@ -385,7 +385,7 @@ namespaces, content types or the zip writer, check by hand:
    with `-keep-new` (or a suffix naming the choice); note which cases and actions showed one.
    **Run 2026-09-28 (Word 16.0.20326.20158), 39 files; the findings are CR-002 section 29's table.**
    The dialog came up on rejecting 01, 04, 06, 07 and 08 (their `-keep-new` files), not on 03.
-   Jason's notes: 11 showed as an insertion and a deletion, 12 as an insertion, 13 as added then
+   Jason's notes: 11 showed as an insertion and a deletion, 12 as moved (insertion) (so the re-run's reading; the first run's note said an insertion), 13 as added then
    moved, 14 as moved (insertion) then deletion, for the two locations respectively. Word does not
    save a file it has not changed: 12 and 13 as "saved unchanged" are byte-identical to their inputs,
    and in 14 Jason typed a space at the end of section 2 to make Word save it, which is where its
@@ -406,7 +406,9 @@ namespaces, content types or the zip writer, check by hand:
    and reject from the input match the first run's from the saved file (ids apart), so Word dissolves
    the pair when it reads it; clicking the destination instead kept it, plain, either way (as 12),
    the source left a pending `w:del`. Jason also re-did 12's and 13's accept and reject; they match
-   the first run, so only the seven files above were added. CR-002 section 29, fix E.
+   the first run, so only the seven files above were added. Word's labels, read again, for the
+   destination and source respectively: 12 "moved (insertion)"; 13 "added", "moved"; 14 "moved
+   (insertion)", "deletion". CR-002 section 29, fix E.
 21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
    the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
    in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick
