@@ -596,7 +596,12 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    each with the markup after (a block unchanged from before shows as `=`) and what is still listed.
    A case that throws records the error and the next goes on. The document is left holding the last
    case; close it without saving. It needs WordApi 1.6; merging cells needs `Table.mergeCells`, and
-   the case records an error where the build lacks it.
+   the case records an error where the build lacks it. **Run 2026-09-28 (Word 16.0.20326.20158);
+   CR-002 section 35 has the findings, `docs/word-known-issues.md` entries 2 to 4 the Word issues.**
+   Two faults of the snippet's own: `body.clear()` keeps the last paragraph's properties, so the
+   list made in `list-level` (whose accept and reject threw) stayed on the body's last paragraph
+   through part B and was listed there (in `tblPrChange` it was the only change listed); and its
+   `revisions` summary came out empty although the markup holds the revisions.
 
 A small Node script for 1 to 3 is:
 

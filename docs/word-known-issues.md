@@ -50,3 +50,37 @@ us.
 
 A caller that edits definitions under tracking should expect no revision and no way to reject the
 edit, in this package and in Word alike.
+
+## 2. Deleting a table column and merging cells are not tracked; an added column cannot be rejected away
+
+**Found** 2026-09-28, Word 16.0.20326.20158 (Windows), through Office JS, `test/README.md` check 27
+(part A, cases `delete-column`, `merge-vertical`, `add-column`).
+
+With Track Changes on, `table.deleteColumns(1, 1)` removed the column outright and
+`table.mergeCells(0, 0, 1, 0)` merged two cells vertically (their text moved into one cell), and
+neither left any revision: nothing was listed, and there was nothing to reject. `table.addColumns`
+was tracked, but as a formatting change of the table plus a `w:ins` of the new cells' text - Word
+wrote no `w:cellIns` - so rejecting everything left the new column in place, empty. None of the three
+can be seen or undone by a reviewer as a table change. (Measured through Office JS only; whether
+Word's own Table Tools commands behave the same, or warn that the action will not be tracked, has
+not been checked.)
+
+## 3. Office JS cannot list a cell merge, and failed on a list change at the end of the body
+
+**Found** 2026-09-28, the same run (check 27). With a `w:cellMerge` in the document,
+`body.getTrackedChanges()` threw `GeneralException` (as it does over a move, checks 16 and 17). A list
+made and moved a level down under tracking, on the body's last paragraph, was listed as one
+`Formatted` change, and then `accept()`, `reject()`, `acceptAll()` and `rejectAll()` each threw
+`GeneralException`.
+
+## 4. `insertOoxml` does not carry table and numbering revisions faithfully
+
+**Found** 2026-09-28, the same run (check 27, part B). Put in through `insertOoxml` with tracking off,
+a `w:tblPrChange` and a `w:tblGridChange` were dropped (the table came in with its current
+properties and no record), and so was a `w:numberingChange` (the list renumbered, no record). A
+`w:trPrChange` or `w:tcPrChange` came in with records Word made up - a `w:tblPrChange`, a
+`w:tblGridChange` over an odd grid, a `w:tblPrExChange`, cell widths recorded as `auto` - and
+rejecting them produced a mangled table (five grid columns, `w:gridAfter`, spanning cells). An
+inserted or deleted cell (`w:cellIns`, `w:cellDel`), a mark's `w:rPrChange` and a section break's
+`w:sectPrChange` came in intact. A test that needs Word's resolution of table-property revisions has
+to open a file (check 18), not insert one.

@@ -3023,6 +3023,44 @@ accepted and rejected one at a time and all at once. Only a section's properties
 through Office JS; check 18's files cover them. The object model binds every kind: each of the ten
 handwritten cases survives an unmarshal and marshal unchanged.)*
 
+**Check 27, run 2026-09-28 (Word 16.0.20326.20158), through Script Lab.** What it settles:
+
+| Question | Answer |
+|---|---|
+| What Word writes for a table or cell property change (alignment, width, style, a cell's shading, width or vertical alignment, a row's height) | Not one record but a set: a `w:tblPrChange`, a `w:tblGridChange` and a `w:tcPrChange` on every cell of the rows affected - every row for a table property or a width, the one row for a cell's shading or alignment or a row's height - recording the old value even where nothing changed. A width change records the old layout over a grid that merges the old and new column edges (widths 2000, 1152, 853, 1995, 304, 3152 for old edges 3152/6304/9456 and new 2000/4005/6000), the old cells spanning it (`w:gridSpan` 2, 3, 1). A row's alignment (following the table's) and its height get **no** `w:trPrChange`; a table style adds unrecorded `w:cnfStyle` to rows, cells and paragraphs. |
+| How Office JS lists them | One `Formatted` change per table, its text the table's (`a1\tb1\tc1\r\n...`), or per row where only a row's cells changed (`a1\tb1\tc1\r\n`) - not one per record. |
+| How Word resolves them (in the session, and from a file in check 18) | Accept drops every record. Reject puts the recorded table, grid (the merged grid collapsed back: 3152 x 3) and cells back, **and removes row properties no record holds**: the rows' `w:jc` (in check 18's saved file too), a row's `w:trHeight` and the `w:cnfStyle` (in the session). |
+| Column added, deleted; cells merged | Added: the table change above plus a `w:ins` of the new cells' text, no `w:cellIns` - the insertions listed only once the table change is accepted, and reject all left the column, empty. Deleted and merged: **not tracked** (known issues, entry 2). |
+| `w:cellIns`, `w:cellDel` (written, which Word no longer writes) | Listed `Added` / `Deleted`, text the row's. Accepting an insertion or rejecting a deletion drops the marker; accepting a deletion or rejecting an insertion removes the cell, the cell before it widened to span its grid column (`w:gridSpan` 2, `w:tcW` 6000). |
+| `w:cellMerge` | Office JS cannot list it: `getTrackedChanges()` throws `GeneralException` (entry 3). |
+| `w:numberingChange` | Word writes a `w:pPrChange` for a list change (as checks 18 and 25 found), and `insertOoxml` dropped a written `w:numberingChange` (entry 4). |
+| A paragraph mark's `w:rPrChange` | Written by current Word: bold on a whole paragraph put a `w:rPrChange` on the run **and** on the mark. Listed as **one** `Formatted` change with the run's (`"Before.\r"`) - formatting changes that touch group too, at least a run with its mark; alone, a mark's lists as `"\r"`. Accept keeps the bold and drops the records; reject removes both. |
+| A section break's `w:sectPrChange` | Listed `Formatted`, text the section's last paragraph with `\f` (`"The end of section one.\f"`). Accept drops the record; reject puts the recorded `w:sectPr` back. |
+
+What `insertOoxml` does to table revisions (entry 4) means part B says nothing reliable about
+`w:tblPrChange`, `w:tblGridChange`, `w:trPrChange` or `w:tcPrChange` in a file; for those the oracle
+stays check 18's two files and part A.
+
+**The design, revised.** One target per table for its property records - `tableProperties`, holding
+the `w:tblPrChange`, the `w:tblGridChange` and every `w:tcPrChange` and `w:trPrChange` in it -
+listed once, where the table stands, its text the table's where the table-level records differ from
+the current properties, else the text of the rows whose records do; a group that holds no difference
+at all is no change (checks 24 and 26's rule). Accept drops them all. Reject restores the table's
+properties, its grid (collapsing a merged grid: grid columns that every row spans together become
+one) and each cell's and row's recorded properties, and removes from a row without a record the
+properties Word derives - its `w:jc`, measured from a file; `w:trHeight` and `w:cnfStyle`, measured in
+the session only. `cell` for `w:cellIns` / `w:cellDel` as measured. `markProperties` for a mark's
+`w:rPrChange`, grouping with the run formatting it touches, as Office JS grouped it; whether two
+touching runs' `w:rPrChange` group as well is not yet measured, and until it is, runs stay one change
+each. `sectionProperties` as measured, its text with `\f`. A `w:cellMerge` and a `w:numberingChange`,
+which neither Word nor Office JS lists, are resolved without being listed: accept drops them, and
+reject drops a `w:numberingChange` and puts a `w:cellMerge`'s original merge back (docx4j's reading,
+unmeasured).
+
+**Still open, for a later check if wanted:** row properties that exist before a table change (does
+Word then write a `w:trPrChange`, and does reject keep them?); `w:trHeight` rejected from a saved file
+rather than in the session; and two touching runs' formatting changes, one change or two.
+
 **Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
 files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
 the mark's run properties.
