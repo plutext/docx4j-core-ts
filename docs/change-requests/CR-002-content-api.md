@@ -2616,7 +2616,8 @@ means, so the case cannot tell keeping the current level from writing 0. The edi
 check 25 asks, with an item demoted to the third level in the same tracked change that bulleted it,
 so that the recorded numbering has no `w:ilvl` and the current one has 2. *(Run 2026-09-28: that case
 edited the list's definition instead - Bullets with only a caret, Tab at a list's first item - which
-Word does not track, so it is asked again as 25e/25f with the paragraph selected. The level-2 case
+Word does not track (`docs/word-known-issues.md` entry 1), so it is asked again as 25e/25f with the
+paragraph selected. The level-2 case
 restored `w:ilvl="2"` as recorded; the level-0 items again had no `w:ilvl` recorded and 0 current,
 so the question stays open. It also widened the indent rule: those items recorded
 `w:ind w:hanging="360"` alone, part of their level's `left=720 hanging=360`, and Word dropped it too.

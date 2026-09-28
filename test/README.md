@@ -532,7 +532,8 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    Bullets clicked with only a caret in "One." made level 0 of the list's own definition a bullet
    (so "Three." turned too), and Tab at the start of a list's first item indented every level of the
    definition by 1080; the paragraphs kept their numbering. Word does not track a list definition,
-   so the Review pane showed nothing and Reject All left 25d as 25c. The case is therefore asked
+   so the Review pane showed nothing and Reject All left 25d as 25c (recorded as a known issue in
+   Word, `docs/word-known-issues.md` entry 1). The case is therefore asked
    again, with the paragraph selected and its level set by name, both of which change the paragraph.
    As **Author A** throughout:
    1. If `25-input.docx` is gone, make it again: new blank document, tracking **off**, "One.", "Two."
