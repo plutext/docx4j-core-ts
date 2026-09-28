@@ -2651,6 +2651,13 @@ back and drops the `w:pPrChange` when the paragraph is as it was - Office JS's p
 the same count. The setters and the list writes (`attachToList`, `detachFromList`, `ListItem.level`)
 all settle.
 
+**TODO (Jason, 2026-09-28: worth a check later).** With tracking **off**, `paragraph.alignment =
+'Left'` writes `w:jc="left"` and a zero left indent `w:ind w:left="0"`, where Word's Ctrl+L and
+Decrease Indent removed the direct values (measured only with tracking on, check 26). The editor's
+Ctrl+L does the same as the engine. A Word check would ask what Ctrl+L, Decrease Indent (and
+perhaps Office JS's `paragraph.alignment = "Left"`) write with tracking off, on a paragraph whose
+style already gives that value.
+
 **A revision's date, found by check 23.** Office JS gave `w:date="2026-09-28T01:00:00Z"` as
 `2026-09-27T15:00:00Z`: Word reads `w:date` as local wall-clock time, the `Z` notwithstanding, and
 writes it that way too, with the true UTC in `w16du:dateUtc` (check 22's files: `w:date` 10:54Z,
