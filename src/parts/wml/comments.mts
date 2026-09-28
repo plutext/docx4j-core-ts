@@ -10,6 +10,7 @@ import * as w15Factory from '@docx4j/generated-objects-ts/factory/org_docx4j_w15
 import * as w16cidFactory from '@docx4j/generated-objects-ts/factory/org_docx4j_w16cid';
 import { linkParents } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { parseXml } from '../../xml/dom.mjs';
 import { Namespaces } from '../Namespaces.mjs';
 import { MainDocumentPart, CommentsPart, CommentsExtendedPart, CommentsIdsPart, PeoplePart } from './index.mjs';
 import type { Body } from '../../model/content/Body.mjs';
@@ -17,6 +18,7 @@ import {
   COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, setCommentPartsAccess, dateToCalendar,
   type Author, type CommentParts, type CommentsExtensible,
 } from '../../model/content/comments.mjs';
+import { dateOf } from '../../model/content/tracking.mjs';
 // Loaded for its side effect: the Comment views register themselves with the content API.
 import '../../model/content/Comment.mjs';
 
@@ -26,6 +28,7 @@ class DocumentCommentParts implements CommentParts {
   people: w15.CTPeople | undefined;
   commentsIds: w16cid.CTCommentsIds | undefined;
   extensible: CommentsExtensible | undefined;
+  readonly datesUtc = new Map<string, Date>();
   private loadedAll = false;
 
   constructor(
@@ -80,7 +83,44 @@ async function partsFor(main: MainDocumentPart, commentsPart: CommentsPart, auth
   // The two side parts a view reads: the threads and done flags, and the authors' emails.
   if (main.commentsExtendedPart) parts.commentsEx = await main.commentsExtendedPart.getContents();
   if (main.peoplePart) parts.people = await main.peoplePart.getContents();
+  await readDatesUtc(main, parts.datesUtc);
   return parts;
+}
+
+const W16CID_NS = 'http://schemas.microsoft.com/office/word/2016/wordml/cid';
+const W16CEX_NS = 'http://schemas.microsoft.com/office/word/2018/wordml/cex';
+
+/**
+ * Each comment's `w16cex:dateUtc`, by the paragraph id `w16cid:commentId` pairs its durable id with.
+ * From the parts' contents when they are unmarshalled, else from their XML, which leaves them
+ * untouched: no view needs them otherwise, and an unmarshalled part is re-marshalled on save.
+ */
+async function readDatesUtc(main: MainDocumentPart, into: Map<string, Date>): Promise<void> {
+  const idsPart = main.commentsIdsPart;
+  const extensiblePart = main.commentsExtensiblePart;
+  if (!idsPart || !extensiblePart) return;
+  const paraIdOf = new Map<string, string>();
+  if (idsPart.isUnmarshalled) {
+    for (const e of idsPart.contents.commentId ?? []) if (e.durableId && e.paraId) paraIdOf.set(e.durableId.toUpperCase(), e.paraId.toUpperCase());
+  } else {
+    for (const e of Array.from(parseXml(await idsPart.getXml()).getElementsByTagNameNS(W16CID_NS, 'commentId'))) {
+      const durableId = e.getAttributeNS(W16CID_NS, 'durableId');
+      const paraId = e.getAttributeNS(W16CID_NS, 'paraId');
+      if (durableId && paraId) paraIdOf.set(durableId.toUpperCase(), paraId.toUpperCase());
+    }
+  }
+  const add = (durableId: string | undefined, date: Date | undefined): void => {
+    const paraId = durableId ? paraIdOf.get(durableId.toUpperCase()) : undefined;
+    if (paraId && date && !Number.isNaN(date.getTime())) into.set(paraId, date);
+  };
+  if (extensiblePart.isUnmarshalled) {
+    for (const e of extensiblePart.contents.commentExtensible ?? []) add(e.durableId, dateOf(e.dateUtc));
+  } else {
+    for (const e of Array.from(parseXml(await extensiblePart.getXml()).getElementsByTagNameNS(W16CEX_NS, 'commentExtensible'))) {
+      const value = e.getAttributeNS(W16CEX_NS, 'dateUtc');
+      add(e.getAttributeNS(W16CEX_NS, 'durableId') ?? undefined, value ? new Date(value) : undefined);
+    }
+  }
 }
 
 async function ensurePeople(main: MainDocumentPart): Promise<w15.CTPeople> {

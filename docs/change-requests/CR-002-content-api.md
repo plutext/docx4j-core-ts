@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date read and written as Word means it (section 29, found by check 23), its `w16du:dateUtc` in undeclared documents waiting on the objects package.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2606,19 +2606,30 @@ that already declare it. Whether a given Word version would refuse it has not be
 released.** Reading: `TrackedChange.date` is `w16du:dateUtc` when the markup has it, else `w:date`
 read as local wall-clock time (a `w:date` with a non-zero offset, which Word does not write, as it
 says), through the new `revisionDateOf`. Writing: `w:date` on the local wall clock with a `Z`, as Word
-writes it (`wordCalendarOf`), and `w16du:dateUtc` in UTC only where the part's root already lists
-`w16du` in `mc:Ignorable` - a Word document does, a created one does not. A `Body` asks the package's
-tracker for one bound to its part (`ChangeTracker.forPart`), which is how the tracker knows; the
-package's own `changeTracker`, bound to no part, writes `w:date` alone. `calendarOf` and `dateOf`
-keep their UTC meaning. "Local" is the process's time zone, as it is the add-in's for Office JS; the
-tests hold in UTC, UTC+10, UTC-4/-5 and UTC+5:30. The second half - `w16du:dateUtc` in documents that
-do not yet declare `w16du` - waits on the objects package, asked on the same day to raise a change
-request for the declaration. docx4j's own answer to the same problem is for the writer to add the
-prefix to the root's `ignorable` (`Paginate.declareW14Ignorable`, `DocumentSettingsPart`'s w14/w15),
-which the facade then declares; the engine could do that for `w16du` itself, which is Jason's call.
-Not changed: a comment's date (`Comment.creationDate`), which Word also writes as local time, with
-the true UTC in `w16cex:dateUtc` in the comments-extensible part; it is the same question and was not
-asked.
+writes it (`wordCalendarOf`), and `w16du:dateUtc` in UTC. A `Body` asks the package's tracker for
+one bound to its part (`ChangeTracker.forPart`); before writing `w16du:dateUtc` that tracker makes
+the part's root list `w16du` in `mc:Ignorable`, appending it when absent, and the facade declares
+the prefix - docx4j's own answer to the same problem, the writer adding its prefix to the root's
+`ignorable` (`Paginate.declareW14Ignorable`, `DocumentSettingsPart`'s w14/w15). Jason chose that
+over waiting for the objects package, which has filed objects-ts/CR-008 (a marshalled part declares
+the Office extension namespaces it uses as ignorable) for every writer; the engine does not depend on
+it. A created document therefore gains `mc:Ignorable="w16du"` with its first revision; a Word
+document's list, which names `w16du` already, is unchanged. The package's own `changeTracker`, bound
+to no part, writes `w:date` alone. `calendarOf` and `dateOf` keep their UTC meaning. "Local" is the
+process's time zone, as it is the add-in's for Office JS; the tests hold in UTC, UTC+10, UTC-4/-5 and
+UTC+5:30. Whether a Word version that does not know `w16du` refuses a part that declares it ignorable,
+as the specification says it must not, has not been checked (objects CR-008 notes the same).
+
+**Comments, the same rule (Jason, the same day).** `Comment.creationDate` is the comment's
+`w16cex:dateUtc` when the document has one for it (its paragraph id to a durable id through
+`w16cid:commentsIds`, to the date through `w16cex:commentsExtensible`, both read from their XML when
+the comments load, so a document whose comments are only read keeps those parts byte for byte), else
+`w:date` read as local time. `loadAndSave.docx` shows the convention with a second author: `w:date`
+18:21, `w16cex:dateUtc` 23:21 (UTC-5); `creationDate` said 18:21 UTC before and says 23:21 now. A new
+comment's `w:date` is on the local wall clock, and its `w16cex:dateUtc`, written when the document
+has that part (none is created, as before), is now the date the caller gave: it was stamped with the
+time of the call whatever `date` said, so a co-editing room's comment carried two different times.
+What Office JS's `Comment.creationDate` returns was not measured; the rule is taken from revisions.
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it

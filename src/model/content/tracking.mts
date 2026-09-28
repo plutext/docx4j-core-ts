@@ -156,11 +156,21 @@ export interface TrackedPart {
   readonly contents?: unknown;
 }
 
-/** True when the part's root lists `w16du` in `mc:Ignorable`, so that `w16du:dateUtc` may be written in it. */
-function declaresDateUtc(part: TrackedPart | undefined): boolean {
-  const contents = part?.contents as { value?: { ignorable?: string }; ignorable?: string } | undefined;
-  const ignorable = contents?.value?.ignorable ?? contents?.ignorable;
-  return typeof ignorable === 'string' && ignorable.split(/\s+/).includes('w16du');
+/**
+ * Makes sure the part's root lists `w16du` in `mc:Ignorable`, appending it when absent, so that
+ * `w16du:dateUtc` may be written in it; the facade then declares the prefix. This is docx4j's
+ * pattern - the writer of the content adds its prefix (`Paginate.declareW14Ignorable`) - and Jason's
+ * decision (CR-002 section 29); objects CR-008 would do it for every writer. False when there is no
+ * unmarshalled root to put it on. Every part a `Body` is over (document, header, footer, notes,
+ * comments) has a root that binds `mc:Ignorable`.
+ */
+function declareDateUtc(part: TrackedPart | undefined): boolean {
+  const contents = part?.contents as { value?: unknown } | undefined;
+  if (!contents || typeof contents !== 'object') return false;
+  const root = (contents.value && typeof contents.value === 'object' ? contents.value : contents) as { ignorable?: string };
+  const prefixes = (root.ignorable ?? '').split(/\s+/).filter((prefix) => prefix.length > 0);
+  if (!prefixes.includes('w16du')) root.ignorable = [...prefixes, 'w16du'].join(' ');
+  return true;
 }
 
 function element<T>(localPart: string, value: T): Element<T> {
@@ -225,15 +235,15 @@ export class ChangeTracker {
 
   /**
    * The `w:id`, `w:author` and `w:date` a new revision carries, `w:date` in Word's local wall-clock
-   * convention (`wordCalendarOf`), and `w16du:dateUtc`, the true UTC, when the part's root already
-   * lists `w16du` in `mc:Ignorable`, as the documents Word writes do. Where it does not, the attribute
-   * is left out: a consumer that does not know `w16du` must reject it unless it is declared ignorable,
-   * and nothing here adds that declaration (CR-002 section 29; objects package CR).
+   * convention (`wordCalendarOf`), and `w16du:dateUtc`, the true UTC, as Word writes them both. The
+   * part's root is made to list `w16du` in `mc:Ignorable` first (`declareDateUtc`): a consumer that
+   * does not know `w16du` must reject it unless it is declared ignorable. A tracker bound to no part -
+   * the package's own - writes `w:date` alone (CR-002 section 29).
    */
   markup(): { id: number; author: string; date: wml.XmlCalendar; dateUtc?: wml.XmlCalendar } {
     const when = this.host.trackedChangeDate ?? nowToTheMinute();
     const markup: { id: number; author: string; date: wml.XmlCalendar; dateUtc?: wml.XmlCalendar } = { id: this.nextId(), author: this.author, date: wordCalendarOf(when) };
-    if (declaresDateUtc(this.part)) markup.dateUtc = calendarOf(when);
+    if (declareDateUtc(this.part)) markup.dateUtc = calendarOf(when);
     return markup;
   }
 

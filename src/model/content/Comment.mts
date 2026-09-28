@@ -12,10 +12,11 @@ import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
+import { revisionDateOf, wordCalendarOf } from './tracking.mjs';
 import {
   COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions,
-  calendarToDate, commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
-  dateToCalendar, initialsOf, isDone, markersOf, markersOfParagraph, nextCommentId, paraIdTaken, randomHexId, removeMarkers,
+  commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
+  initialsOf, isDone, markersOf, markersOfParagraph, nextCommentId, paraIdTaken, randomHexId, removeMarkers,
   setCommentApi, type CommentMarker, type CommentParts,
 } from './comments.mjs';
 
@@ -61,9 +62,19 @@ export class Comment {
     return ad ? ad[1]! : userId;
   }
 
-  /** `w:date`; undefined when the comment carries none. */
+  /**
+   * When the comment was made, as Word means it (CR-002 section 29, the revision dates' rule): its
+   * `w16cex:dateUtc` when the document has one for it, which is UTC; else `w:date`, which Word writes
+   * on the author's local wall clock whatever its `Z` says, read as local time. Undefined when the
+   * comment carries neither.
+   */
   get creationDate(): Date | undefined {
-    return calendarToDate(this.element.date);
+    for (const el of [...(this.element.content ?? [])].reverse()) {
+      const paraId = typeNameOf(el) === 'org_docx4j_wml.P' ? (el.value as wml.P).paraId : undefined;
+      const utc = paraId ? this.parts.datesUtc.get(paraId.toUpperCase()) : undefined;
+      if (utc) return utc;
+    }
+    return revisionDateOf({ date: this.element.date });
   }
 
   /** The comment's paragraphs as a `Body` (extension: the same content API as the document's). */
@@ -205,6 +216,7 @@ export class Comment {
         const durableId = ids[i]!.durableId;
         ids.splice(i, 1);
         if (durableId) this.parts.extensible?.remove(durableId);
+        this.parts.datesUtc.delete(paraId.toUpperCase());
       }
     }
   }
@@ -322,11 +334,13 @@ function placeAfter(body: Body, parentId: number, id: number): void {
  */
 function addComment(parts: CommentParts, body: Body, id: number, paragraphs: Element<wml.P>[], parent: Comment | undefined, options?: CommentOptions): Comment {
   const author = options?.author ?? parts.author;
+  // one instant for w:date (the local wall clock, as Word writes it) and w16cex:dateUtc (UTC)
+  const made = options?.date ?? new Date();
   const paraId = randomHexId((candidate) => paraIdTaken(parts, body.container, candidate));
   paragraphs[0]!.value.paraId = paraId;
   const comment = wmlFactory.createCommentsComment({
     id, author: author.name, initials: options?.initials ?? initialsOf(author),
-    date: dateToCalendar(options?.date ?? new Date()),
+    date: wordCalendarOf(made),
     content: paragraphs as wml.Comments.Comment['content'],
   });
   const comments = (parts.comments.comment ??= []);
@@ -344,7 +358,10 @@ function addComment(parts: CommentParts, body: Body, id: number, paragraphs: Ele
     const commentId = w16cidFactory.createCTCommentId({ paraId, durableId });
     (parts.commentsIds.commentId ??= []).push(commentId);
     linkParents(commentId, parts.commentsIds);
-    parts.extensible?.set(durableId, new Date());
+    if (parts.extensible) {
+      parts.extensible.set(durableId, made);
+      parts.datesUtc.set(paraId.toUpperCase(), made);
+    }
   }
   addPerson(parts, author.name, author.email);
   return new Comment(comment, parts, body);

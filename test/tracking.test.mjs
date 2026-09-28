@@ -8,8 +8,11 @@ const DATE = new Date(Date.UTC(2026, 8, 16, 10, 30, 0));
 /** A date as Word writes `w:date`: local wall-clock time, with a `Z` (CR-002 section 29, check 23). */
 const wordDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   + `T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}Z`;
-/** A pattern with `@DATE` standing for DATE as `w:date` carries it, whatever this process's time zone. */
-const at = (pattern) => new RegExp(pattern.source.replaceAll('@DATE', wordDate(DATE)));
+/**
+ * A pattern with `@DATE` standing for DATE as `w:date` carries it, whatever this process's time zone,
+ * and `@UTC` for the `w16du:dateUtc` beside it (CR-002 section 29).
+ */
+const at = (pattern) => new RegExp(pattern.source.replaceAll('@DATE', wordDate(DATE)).replaceAll('@UTC', ' w16du:dateUtc="2026-09-16T10:30:00Z"'));
 
 /** A package of the given paragraphs, tracking on, author Ada, with a fixed revision date. */
 async function tracked(texts = ['The quick brown fox jumps', 'Second paragraph here', 'Third one']) {
@@ -62,7 +65,7 @@ test('insertText writes w:ins; the accepted text is what an untracked edit gives
   assert.equal(p.text, 'Hello The quick brown fox jumps');
   assert.equal(p.getText({ view: 'original' }), 'The quick brown fox jumps');
   const xml = await xmlOf(pkg);
-  assert.match(xml, at(/<w:ins w:id="1" w:author="Ada" w:date="@DATE"><w:r><w:t xml:space="preserve">Hello <\/w:t><\/w:r><\/w:ins>/));
+  assert.match(xml, at(/<w:ins w:id="1"@UTC w:author="Ada" w:date="@DATE"><w:r><w:t xml:space="preserve">Hello <\/w:t><\/w:r><\/w:ins>/));
   // the tree: one w:ins holding one run
   const ins = p.p.content[0];
   assert.equal(ins.name.localPart, 'ins');
@@ -94,7 +97,7 @@ test('a deletion moves the runs into w:del with w:delText; the original view kee
   assert.equal(p.text, 'The quick fox jumps');
   assert.equal(p.getText({ view: 'original' }), 'The quick brown fox jumps');
   const xml = await xmlOf(pkg);
-  assert.match(xml, at(/<w:del w:id="1" w:author="Ada" w:date="@DATE"><w:r><w:delText xml:space="preserve">brown <\/w:delText><\/w:r><\/w:del>/));
+  assert.match(xml, at(/<w:del w:id="1"@UTC w:author="Ada" w:date="@DATE"><w:r><w:delText xml:space="preserve">brown <\/w:delText><\/w:r><\/w:del>/));
   assert.equal(xml.includes('<w:t xml:space="preserve">brown'), false);
 
   const plainPkg = await untracked(['The quick brown fox jumps']);
@@ -134,8 +137,8 @@ test('Font and paragraph properties keep the old ones in w:rPrChange and w:pPrCh
   p.style = 'Heading1';
   p.alignment = 'Centered';
   const xml = await xmlOf(pkg);
-  assert.match(xml, at(/<w:rPr><w:b\/><w:bCs\/><w:rPrChange w:id="1" w:author="Ada" w:date="@DATE"><w:rPr\/><\/w:rPrChange><\/w:rPr>/));
-  assert.match(xml, at(/<w:pPrChange w:id="2" w:author="Ada" w:date="@DATE"><w:pPr\/><\/w:pPrChange>/));
+  assert.match(xml, at(/<w:rPr><w:b\/><w:bCs\/><w:rPrChange w:id="1"@UTC w:author="Ada" w:date="@DATE"><w:rPr\/><\/w:rPrChange><\/w:rPr>/));
+  assert.match(xml, at(/<w:pPrChange w:id="2"@UTC w:author="Ada" w:date="@DATE"><w:pPr\/><\/w:pPrChange>/));
   assert.equal(xml.includes('xsi:type'), false, 'w:pPrChange/w:pPr is a CT_PPrBase, no xsi:type');
   // one w:pPrChange only: the first write keeps the original
   assert.equal(xml.match(/<w:pPrChange/g).length, 1);
@@ -330,7 +333,7 @@ test('Table: addRows, insertRows, deleteRows, row delete and table delete are tr
   const [added] = table.addRows('End', 1, [['e', 'f']]);
   assert.ok(added.tr.trPr.ins, 'w:trPr/w:ins on the added row');
   assert.ok(added.cells[0].body.paragraphs[0].p.pPr.rPr.ins, 'and its paragraph marks are insertions');
-  assert.match(await xmlOf(pkg), at(/<w:trPr><w:ins w:id="1" w:author="Ada" w:date="@DATE"\/><\/w:trPr>/));
+  assert.match(await xmlOf(pkg), at(/<w:trPr><w:ins w:id="1"@UTC w:author="Ada" w:date="@DATE"\/><\/w:trPr>/));
 
   const [between] = table.rows[0].insertRows('After', 1, [['x', 'y']]);
   assert.ok(between.tr.trPr.ins, 'insertRows marks the row inserted too');
@@ -1023,7 +1026,7 @@ test('what makes one change: kind and author, not date; insertions as deletions 
   assert.equal(dated.date.toISOString(), new Date(2026, 8, 28, 1, 0, 0).toISOString());
 });
 
-test('a revision date as Word means it: w16du:dateUtc when there, else w:date as local time; written both ways', async () => {
+test('a revision date as Word means it: w16du:dateUtc when there, else w:date as local time; written both ways, w16du declared', async () => {
   // Word's file: w:date="2026-09-28T10:54:00Z" (Jason's wall clock, UTC+10), w16du:dateUtc="2026-09-28T00:54:00Z"
   const word = await loaded('revisions/check22/22-deleted.docx');
   assert.equal(word.body.getTrackedChanges()[0].date.toISOString(), '2026-09-28T00:54:00.000Z', 'the true UTC, in any time zone');
@@ -1042,11 +1045,16 @@ test('a revision date as Word means it: w16du:dateUtc when there, else w:date as
   assert.match(ins, /w16du:dateUtc="2026-09-28T01:30:00Z"/, 'w16du:dateUtc in UTC');
   assert.match(xml, /mc:Ignorable="[^"]*\bw16du\b/, 'the declaration kept');
 
-  // written into a document that does not declare w16du ignorable: w:date alone
+  // written into a created document, which declares nothing: w16du made ignorable first, as docx4j
+  // does for w14, and then both attributes
   const created = await tracked(['one']);
   created.body.paragraphs[0].getRange('End').insertText(' two', 'End');
   const createdXml = await xmlOf(created);
-  assert.match(createdXml, at(/<w:ins w:id="\d+" w:author="Ada" w:date="@DATE">/));
-  assert.equal(createdXml.includes('dateUtc'), false, 'no w16du:dateUtc where w16du is not declared ignorable');
+  assert.match(createdXml, at(/<w:ins w:id="\d+"@UTC w:author="Ada" w:date="@DATE">/));
+  assert.match(createdXml, /<w:document [^>]*mc:Ignorable="w16du"/, 'w16du listed as ignorable');
+  assert.match(createdXml, /<w:document [^>]*xmlns:w16du="http:\/\/schemas.microsoft.com\/office\/word\/2023\/wordml\/word16du"/);
   assert.equal(created.body.getTrackedChanges()[0].date.toISOString(), DATE.toISOString(), 'read back as written');
+  const reloaded = await WordprocessingMLPackage.load(await created.save());
+  await reloaded.getMainDocumentPart().getContents();
+  assert.equal(reloaded.body.getTrackedChanges()[0].date.toISOString(), DATE.toISOString(), 'and after a save');
 });

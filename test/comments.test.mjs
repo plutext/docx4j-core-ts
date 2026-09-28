@@ -26,7 +26,9 @@ test('reads a comment, its author, date and range from a document Word wrote', a
   assert.equal(comment.authorEmail, 'buck.cronk@oracle.com', 'from w:people, unwrapped from the AD form');
   assert.equal(comment.content, 'Comment');
   assert.equal(comment.paraId, '36593EBD');
-  assert.equal(comment.creationDate.toISOString(), '2026-05-18T18:21:00.000Z');
+  // w:date="2026-05-18T18:21:00Z" is the author's wall clock (UTC-5); w16cex:dateUtc has the true
+  // time, which is what creationDate reads (CR-002 section 29)
+  assert.equal(comment.creationDate.toISOString(), '2026-05-18T23:21:00.000Z');
   assert.equal(comment.resolved, false);
   assert.deepEqual(comment.replies, []);
   const ranges = comment.getRange();
@@ -322,4 +324,36 @@ test('a comment can be given paragraphs rather than a string', async () => {
   await assert.rejects(() => comment.reply([]), /at least one paragraph/);
   assert.deepEqual(await markers(), before, 'no marker was left behind');
   assert.equal((await pkg.body.getComments()).length, 1);
+});
+
+// CR-002 section 29: Jason's decision on revision dates, extended to comments. Word writes w:date on
+// the author's local wall clock and the true UTC in w16cex:dateUtc (loadAndSave.docx: 18:21 and 23:21).
+test('a comment date as Word means it: w16cex:dateUtc when there, else w:date as local time; written both ways', async () => {
+  const local = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    + `T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}Z`;
+  const made = new Date(Date.UTC(2026, 8, 28, 3, 45, 0));
+
+  // Word's document, which has the w16cex part: w:date local, the dateUtc entry the date given (it was
+  // stamped with the time of the call before), and read back as given, before and after a save
+  const word = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
+  const body = await word.getBody();
+  const comment = await body.paragraphs[0].getRange().insertComment('dated', { date: made });
+  assert.equal(comment.creationDate.toISOString(), made.toISOString());
+  const saved = await word.save();
+  const comments = await partBytes(saved, 'word/comments.xml');
+  const extensible = await partBytes(saved, 'word/commentsExtensible.xml');
+  assert.match(new TextDecoder().decode(comments), new RegExp(`<w:comment w:id="${comment.id}"[^>]* w:date="${local(made)}"`));
+  assert.match(new TextDecoder().decode(extensible), /w16cex:dateUtc="2026-09-28T03:45:00Z"/);
+  const again = await WordprocessingMLPackage.load(saved);
+  const reread = (await (await again.getBody()).getComments()).find((c) => c.id === comment.id);
+  assert.equal(reread.creationDate.toISOString(), made.toISOString(), 'from w16cex:dateUtc after a save');
+
+  // a created document has no w16cex part: w:date alone, read as local time, the same instant
+  const created = await WordprocessingMLPackage.createPackage();
+  created.body.insertParagraph('text', 'End');
+  const plain = await created.body.paragraphs[0].getRange().insertComment('dated', { date: made });
+  assert.equal(plain.element.date.hour, made.getHours(), 'w:date on the local wall clock');
+  const back = await WordprocessingMLPackage.load(await created.save());
+  const plainBack = (await (await back.getBody()).getComments())[0];
+  assert.equal(plainBack.creationDate.toISOString(), made.toISOString());
 });

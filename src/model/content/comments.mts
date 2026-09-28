@@ -84,6 +84,13 @@ export interface CommentParts {
   commentsIds: w16cid.CTCommentsIds | undefined;
   /** `w16cex:commentsExtensible`, when the document has one. */
   extensible: CommentsExtensible | undefined;
+  /**
+   * Each comment's `w16cex:dateUtc` by the `w14:paraId` the w16cid part names it by (upper case),
+   * read from the two parts' XML when the comments are loaded - reading does not unmarshal them, so
+   * a document whose comments are only read keeps those parts byte for byte - and kept in step as
+   * comments are added and removed (CR-002 section 29: a date as Word means it).
+   */
+  readonly datesUtc: Map<string, Date>;
   /** The package's author identity. */
   readonly author: Author;
   /** The w15 extended part, created (with its relationship and content type) when absent. */
@@ -316,15 +323,7 @@ export function isDone(value: string | undefined): boolean {
 
 // --- dates ---
 
-/** A Jsonix calendar (what `w:date` unmarshals to) as a Date; undefined when there is none. */
-export function calendarToDate(calendar: XmlCalendar | undefined): Date | undefined {
-  if (!calendar || calendar.year === undefined || Number.isNaN(calendar.year)) return undefined;
-  const num = (v: number | undefined, fallback = 0): number => (v === undefined || Number.isNaN(v) ? fallback : v);
-  const ms = Date.UTC(calendar.year, num(calendar.month, 1) - 1, num(calendar.day, 1), num(calendar.hour), num(calendar.minute), num(calendar.second), Math.round(num(calendar.fractionalSecond) * 1000));
-  return new Date(ms - num(calendar.timezone) * 60000);
-}
-
-/** A Date as the UTC calendar Word writes (`2026-09-15T09:00:00Z`). */
+/** A Date as a UTC calendar (`2026-09-15T09:00:00Z`): what Word writes in `w16cex:dateUtc`. */
 export function dateToCalendar(date: Date): XmlCalendar {
   return {
     year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate(),
