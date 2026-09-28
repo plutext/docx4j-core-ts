@@ -113,8 +113,7 @@ export class TrackedChange {
     const t = this.target;
     switch (t.kind) {
       case 'run':
-        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'accept')) return;
-        if (t.revision === 'moveTo' && resolveRangelessDestination(this, 'accept')) return;
+        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'accept') || resolveRangelessHalf(this, 'accept'))) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else remove(t.owner, t.element);
         return;
       case 'mark':
@@ -146,8 +145,7 @@ export class TrackedChange {
     const t = this.target;
     switch (t.kind) {
       case 'run':
-        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && resolveMove(this, 'reject')) return;
-        if (t.revision === 'moveTo' && resolveRangelessDestination(this, 'reject')) return;
+        if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'reject') || resolveRangelessHalf(this, 'reject'))) return;
         if (t.revision === 'ins' || t.revision === 'moveTo') remove(t.owner, t.element); else restoreDeleted(t);
         return;
       case 'mark':
@@ -330,7 +328,8 @@ const RANGE_MARKERS: Readonly<Record<string, { kind: 'start' | 'end'; side: 'fro
 function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolean {
   const t = change.target;
   if (t.kind !== 'run' || !change.paragraph) return false;
-  const pieces = movePiecesOf(storyOf(change.paragraph.p));
+  const story = storyOf(change.paragraph.p);
+  const pieces = movePiecesOf(story);
   const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
   if (!half || half.kind !== 'half' || half.names.length === 0) return false;
   const name = half.names[0]!;
@@ -342,6 +341,7 @@ function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolea
   // move and left its text, plain, where it stood (test/README.md check 20 case 12).
   const orphan = !mine.some((piece) => piece.side === 'from');
   const kept = action === 'accept' || orphan ? 'to' : 'from';
+  const broken = orphan || !mine.some((piece) => piece.side === 'to');
 
   // the markers first: a range end between two paragraphs would stop the paragraph join below
   for (const piece of mine) if (piece.kind === 'start' || piece.kind === 'end') remove(piece.owner, piece.element);
@@ -375,6 +375,7 @@ function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolea
       joinWithNext({ container: mark.container, element: mark.paragraph, p }, mark.side === 'to');
     }
   }
+  if (broken) dissolveBrokenMoves(story);
   return true;
 }
 
@@ -430,59 +431,87 @@ function movePiecesOf(story: Element[]): MovePiece[] {
 }
 
 /**
- * A `w:moveTo` in no named range - its range markers gone - resolved as Word resolved one (check 20
- * case 13, where Word showed it as an insertion): kept plain when accepted, taken away when rejected,
- * its paragraph mark with it. And the other side of the broken pair - a source range whose `w:name`
- * no destination range carries - is turned into a plain deletion, pending, its range markers kept,
- * as Word left it either way. That second part is read from one case; Word's own rule may be that it
- * dissolves any broken pair when it saves (case 14), which this does not attempt.
+ * A move half in no named range - its range markers gone - resolved as Word resolved one (check 20
+ * cases 13 and 14, where Word showed it as an insertion or a deletion): a `w:moveTo` as an insertion,
+ * a `w:moveFrom` as a deletion, its paragraph mark with it, so that a paragraph whose text and mark
+ * both go goes whole. Then the rest of the broken pair is dissolved (`dissolveBrokenMoves`).
  */
-function resolveRangelessDestination(change: TrackedChange, action: 'accept' | 'reject'): boolean {
+function resolveRangelessHalf(change: TrackedChange, action: 'accept' | 'reject'): boolean {
   const t = change.target;
   const paragraph = change.paragraph;
-  if (t.kind !== 'run' || t.revision !== 'moveTo' || !paragraph) return false;
-  const pieces = movePiecesOf(storyOf(paragraph.p));
+  if (t.kind !== 'run' || (t.revision !== 'moveTo' && t.revision !== 'moveFrom') || !paragraph) return false;
+  const story = storyOf(paragraph.p);
+  const pieces = movePiecesOf(story);
   const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
   if (!half || half.kind !== 'half' || half.names.length > 0) return false;
 
-  if (action === 'accept') unwrap(t); else remove(t.owner, t.element);
-  const mark = pieces.find((piece) => piece.kind === 'mark' && piece.side === 'to' && piece.paragraph === paragraph.element && piece.names.length === 0);
+  const side = half.side;
+  const key = side === 'from' ? 'moveFrom' : 'moveTo';
+  const keep = (side === 'to') === (action === 'accept');     // an insertion accepted, a deletion rejected
+  if (!keep) remove(t.owner, t.element);
+  else if (side === 'to') unwrap(t);
+  else restoreDeleted(t);
+  const mark = pieces.find((piece) => piece.kind === 'mark' && piece.side === side && piece.paragraph === paragraph.element && piece.names.length === 0);
   const p = paragraph.p;
-  if (mark && p.pPr?.rPr?.moveTo) {
-    if (action === 'accept' || (p.content ?? []).length > 0) {
-      delete p.pPr.rPr.moveTo;
-      if (action === 'accept') pruneParagraphProperties(p);
-      else joinWithNext(paragraph, true);
-    } else {
+  if (mark && p.pPr?.rPr?.[key]) {
+    if (keep) {
+      delete p.pPr.rPr[key];
+      pruneParagraphProperties(p);
+    } else if ((p.content ?? []).length === 0) {
       remove(paragraph.container, paragraph.element);
+    } else {
+      delete p.pPr.rPr[key];
+      joinWithNext(paragraph, side === 'to');
     }
   }
-  const destinations = new Set(pieces.filter((piece) => piece.kind === 'start' && piece.side === 'to').map((piece) => (piece as { name: string }).name));
-  const orphaned = (names: string[]): boolean => names.length > 0 && names.every((name) => !destinations.has(name));
-  for (const piece of pieces) {
-    if (piece.kind === 'half' && piece.side === 'from' && orphaned(piece.names)) toDeletion(piece.element, piece.owner);
-    if (piece.kind === 'mark' && piece.side === 'from' && orphaned(piece.names)) {
-      const rPr = piece.paragraph.value.pPr?.rPr;
-      if (rPr?.moveFrom) { rPr.del = rPr.moveFrom; delete rPr.moveFrom; }
-    }
-  }
+  dissolveBrokenMoves(story);
   return true;
 }
 
-/** A `w:moveFrom` turned into the plain `w:del` of the same runs, their text become deleted text. */
-function toDeletion(element: Element, owner: Element[]): void {
+/**
+ * Every move half and moved paragraph mark in the story that cannot be paired - in no named range,
+ * or in one whose `w:name` no range of the other side carries - turned into the plain `w:ins` or
+ * `w:del` it stands for, pending, its range markers kept. That is how Word saved each broken pair
+ * in check 20 (re-run, cases 12 to 14, saved unchanged) and what it left of the other side once one
+ * was accepted or rejected. It runs after a broken move is resolved, and only then, so a document's
+ * other moves are left as they are; but a broken pair's halves cannot be told from another's, so
+ * this takes them all.
+ */
+function dissolveBrokenMoves(story: Element[]): void {
+  const pieces = movePiecesOf(story);
+  const named = { from: new Set<string>(), to: new Set<string>() };
+  for (const piece of pieces) if (piece.kind === 'start') named[piece.side].add(piece.name);
+  const unpaired = (side: 'from' | 'to', names: string[]): boolean => {
+    const other = named[side === 'from' ? 'to' : 'from'];
+    return names.every((name) => !other.has(name));          // true for no names too
+  };
+  for (const piece of pieces) {
+    if (piece.kind === 'half' && unpaired(piece.side, piece.names)) toPlainRevision(piece.element, piece.owner, piece.side === 'from' ? 'del' : 'ins');
+    if (piece.kind === 'mark' && unpaired(piece.side, piece.names)) {
+      const rPr = piece.paragraph.value.pPr?.rPr;
+      if (piece.side === 'from' && rPr?.moveFrom) { rPr.del = rPr.moveFrom; delete rPr.moveFrom; }
+      if (piece.side === 'to' && rPr?.moveTo) { rPr.ins = rPr.moveTo; delete rPr.moveTo; }
+    }
+  }
+}
+
+/**
+ * A `w:moveFrom` turned into the plain `w:del` of the same runs, their text become deleted text, or a
+ * `w:moveTo` into the plain `w:ins`.
+ */
+function toPlainRevision(element: Element, owner: Element[], kind: 'ins' | 'del'): void {
   const value = element.value as unknown as wml.CTTrackChange;
   const items = runItemsOf(element.value as object) ?? [];
-  for (const item of items) if (typeNameOf(item) === 'org_docx4j_wml.R') toDeletedText(item.value as wml.R);
-  const del = {
-    name: { namespaceURI: W_NS, localPart: 'del' },
-    value: { TYPE_NAME: 'org_docx4j_wml.RunDel', id: value.id, author: value.author, date: value.date, customXmlOrSmartTagOrSdt: items },
+  if (kind === 'del') for (const item of items) if (typeNameOf(item) === 'org_docx4j_wml.R') toDeletedText(item.value as wml.R);
+  const plain = {
+    name: { namespaceURI: W_NS, localPart: kind },
+    value: { TYPE_NAME: kind === 'del' ? 'org_docx4j_wml.RunDel' : 'org_docx4j_wml.RunIns', id: value.id, author: value.author, date: value.date, customXmlOrSmartTagOrSdt: items },
   } as unknown as Element;
   const i = owner.indexOf(element);
   if (i < 0) return;
-  owner.splice(i, 1, del);
-  linkParents(items, del.value as object);
-  linkParents(del, (value as { PARENT?: object }).PARENT);
+  owner.splice(i, 1, plain);
+  linkParents(items, plain.value as object);
+  linkParents(plain, (value as { PARENT?: object }).PARENT);
 }
 
 // --- collecting ----------------------------------------------------------------------------

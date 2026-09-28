@@ -915,4 +915,14 @@ test('accepting and rejecting an edited, re-moved or broken move leaves what Wor
       assert.deepEqual(await moveSection(pkg), await moveSection(word), `${name} ${action}`);
     }
   }
+  // case 14, its source's range markers gone, taken from the input on either side (the re-run):
+  // the side clicked resolved, paragraph mark and all, and the other side a plain w:ins or w:del
+  for (const [side, suffix] of [['moveFrom', 'input'], ['moveTo', 'dest-input']]) {
+    for (const action of ['accept', 'reject']) {
+      const pkg = await loaded('revisions/check20/input/moveFrom-no-ranges.docx');
+      pkg.body.getTrackedChanges().find((c) => c.target.kind === 'run' && c.target.revision === side)[action]();
+      const word = await loaded(`revisions/check20/14-moveFrom-no-ranges-${action}-${suffix}.docx`);
+      assert.deepEqual(await moveSection(pkg), await moveSection(word), `14 ${side} ${action}`);
+    }
+  }
 });

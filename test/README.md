@@ -401,6 +401,12 @@ namespaces, content types or the zip writer, check by hand:
    the struck-through source copy, Accept This Change, Save As `14-moveFrom-no-ranges-accept-input.docx`;
    the same with Reject Change, `-reject-input`; then both again clicking in the destination copy,
    `-accept-dest-input` and `-reject-dest-input`. Seven files; note anything Word says or selects.
+   **Re-run 2026-09-28: Save As wrote all three**, each broken pair dissolved: every half Word could
+   not pair written as a plain `w:ins` or `w:del`, run and mark, its range markers kept. 14's accept
+   and reject from the input match the first run's from the saved file (ids apart), so Word dissolves
+   the pair when it reads it; clicking the destination instead kept it, plain, either way (as 12),
+   the source left a pending `w:del`. Jason also re-did 12's and 13's accept and reject; they match
+   the first run, so only the seven files above were added. CR-002 section 29, fix E.
 21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
    the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
    in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick
