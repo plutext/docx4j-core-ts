@@ -411,7 +411,10 @@ namespaces, content types or the zip writer, check by hand:
    still on** - all four files have `w:trackRevisions` in `word/settings.xml` - so they show typing
    with tracking on (CR-002 section 29 has what they show), and the tracking-off question needs a
    re-run: turn Track Changes off (the Review tab button not highlighted) before typing, and check
-   that the saved `settings.xml` has no `w:trackRevisions`.
+   that the saved `settings.xml` has no `w:trackRevisions`. **Re-run 2026-09-28, tracking off
+   (checked): Word makes the typed text plain** in all four, splitting the `w:ins` (21a, 21d) or
+   `w:del` (21c) it lands in, or following the `w:ins` it ends (21b). The files are the re-run's;
+   CR-002 section 29 has the first run's tracking-on results.
 
 A small Node script for 1 to 3 is:
 

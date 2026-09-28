@@ -2475,8 +2475,18 @@ own; at its end (21b), the typist's `w:ins` goes after it; inside a deletion (21
 `w:del` around the typist's `w:ins`; inside the typist's own insertion (21d), Word also split it
 into three, where the engine extends it - which may turn on the time between the edits, so it is
 not taken as settled. The engine's tracked insertion puts text typed inside another's revision at the
-edge of that revision, not where it was typed, and refuses to type inside a deletion: a defect found
-from these files and check 20's case 01.)*
+edge of that revision, not where it was typed: a defect found from these files and check 20's case
+01. (A point inside deleted text is not addressable through the content API at all - its offsets are
+the accepted view's, where a deletion has no length - so 21c has no engine counterpart.)*
+
+*(Check 21 re-run 2026-09-28 with tracking truly **off** - no `w:trackRevisions` in any saved
+`settings.xml`. **Word makes typed text plain**: inside another author's insertion (21a) and inside
+the typist's own (21d) it splits the `w:ins` around a plain run; at an insertion's end (21b) the
+plain run follows it; inside a deletion (21c) it splits the `w:del` around a plain run. The engine
+keeps text typed inside or at the end of a `w:ins` in that `w:ins` - "veXry", "very Y" - so the
+editor's reviewer was right, and both sides change. With check 20 this makes one rule: text typed
+where a revision is splits it, and is the typist's `w:ins` when tracking is on and plain text when
+it is off.)*
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
