@@ -495,6 +495,27 @@ namespaces, content types or the zip writer, check by hand:
 
    Note what Word's Review pane lists after each step. The question in each of 24b, 24c and 24e is
    whether the run keeps a `w:rPrChange`.
+25. A rejected list change's level (CR-002 section 29, asked by the editor after its C5): check 18's
+   section 9 recorded `w:numPr` with no `w:ilvl` in `w:pPrChange`, and Word's reject wrote
+   `w:ilvl="0"` - but the current level was 0 as well, so Word may keep the current level or write
+   the recorded one (a missing `w:ilvl` meaning 0), and the engine and the editor each write one of
+   the two. In a **new blank document**, with the author set as for check 20, and tracking **off**:
+   type "One.", "Two." and "Three." as a numbered list (Home > Numbering), put the caret at the very
+   start of "Two." and press Tab twice (it goes to the third level), then save
+   `fixtures/revisions/check25/25-input.docx`. Then, each from a **fresh copy** of that file, with
+   tracking **on**, as Author A:
+
+   | File | Do |
+   |---|---|
+   | `25a-bullets.docx` | select all three items, click Bullets; save |
+   | `25b-bullets-reject.docx` | carrying on from 25a, Review > Reject > **Reject All Changes**; save |
+   | `25c-demote.docx` | put the caret at the very start of "One.", click Bullets, then press Tab twice (it goes to the third level, bulleted); save |
+   | `25d-demote-reject.docx` | carrying on from 25c, Review > Reject > **Reject All Changes**; save |
+
+   The questions: what `w:pPrChange` records for "Two." in 25a (its level, 2, or none) and what 25b
+   restores; and in 25c, whether "One."'s recorded numbering still has no `w:ilvl` while its current
+   one has `w:ilvl="2"` - the case that separates the two readings - and whether 25d writes
+   `w:ilvl` 0, 2, or none.
 
 A small Node script for 1 to 3 is:
 

@@ -2612,7 +2612,9 @@ first went stale. They now read the list again after each pass until nothing is 
 whose `w:ins` or `w:del` is resolved kept an empty `<w:trPr/>`; Word writes none. Not changed: the
 fourth finding, Word's explicit `w:ilvl="0"` on a restored `w:numPr` that recorded none, which the
 editor reads as Word keeping the current level - the current level was 0, what a missing `w:ilvl`
-means, so the case cannot tell keeping the current level from writing 0. `tracking.test.mjs` holds
+means, so the case cannot tell keeping the current level from writing 0. The editor agreed; `test/README.md`
+check 25 asks, with an item demoted to the third level in the same tracked change that bulleted it,
+so that the recorded numbering has no `w:ilvl` and the current one has 2. `tracking.test.mjs` holds
 the paragraph ids and rows to Word's files and every revisions fixture to an empty list after
 either "all". Asked in the same message, and not yet run: whether Word keeps a `w:rPrChange` whose
 recorded properties equal the current ones (formatting changed and changed back), which the engine
