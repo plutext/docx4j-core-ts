@@ -547,6 +547,28 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
 
    25e should record "Three."'s numbering with no `w:ilvl` and carry `w:ilvl="1"`; 25f then writes 1
    (Word keeps the current level), or 0 or none (it writes the recorded one).
+26. Paragraph formatting changed and changed back, tracked (CR-002 section 29, check 24's question
+   for a paragraph, asked by the editor): does Word keep a `w:pPrChange` once the paragraph's
+   properties are back to what it recorded? Check 24 found Word drops a run's `w:rPrChange` then;
+   the editor's tracker drops a paragraph's too, and the engine keeps it. Save into
+   `fixtures/revisions/check26/`:
+   1. As **Author A** (the user name in File > Options > General, with "Always use these values
+      regardless of sign in to Office" ticked): new blank document, Track Changes **off**, type "The
+      first paragraph." and "The second paragraph."; File > Save As `26-input.docx`.
+   2. Open `26-input.docx`, File > **Save As** `26a-centred.docx`. Turn Track Changes **on**. Click in
+      "The first paragraph.", press Ctrl+E (centre). Ctrl+S.
+   3. Open `26a-centred.docx`, File > **Save As** `26b-left-again.docx`. Click in "The first
+      paragraph.", press Ctrl+L (align left). Ctrl+S.
+   4. Change the user name to **Author B**. Open `26a-centred.docx`, File > **Save As**
+      `26c-left-by-b.docx`. Click in "The first paragraph.", press Ctrl+L. Ctrl+S. Change the user
+      name back to **Author A**.
+   5. Open `26-input.docx`, File > **Save As** `26d-indented.docx`. Turn Track Changes **on**. Click
+      in "The second paragraph.", Home > **Increase Indent**. Ctrl+S.
+   6. Open `26d-indented.docx`, File > **Save As** `26e-indent-back.docx`. Click in "The second
+      paragraph.", Home > **Decrease Indent**. Ctrl+S.
+
+   Note what Word's Review pane lists after each step. The questions: 26a and 26d should each carry a
+   `w:pPrChange`; do 26b, 26c and 26e keep it?
 
 A small Node script for 1 to 3 is:
 
