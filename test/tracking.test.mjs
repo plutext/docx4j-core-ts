@@ -1229,3 +1229,25 @@ test('a paragraph formatting change undone is no change at all, as Word does (ch
   listed.body.paragraphs[0].detachFromList();
   assert.deepEqual(listed.body.getTrackedChanges().filter((c) => c.target.kind === 'paragraphProperties'), [], 'detached: none');
 });
+
+// CR-002 section 29 (fix F) and 35, check 28: bold put on an italic run and a plain one is one change,
+// as Office JS lists it ("alpha beta"), whatever each run recorded.
+test('touching formatting changes by one author are one change, as Office JS lists them (check 28)', async () => {
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/check28/${name}.docx`));
+    await pkg.getBody();
+    return pkg;
+  };
+  const alpha = (pkg) => pkg.body.paragraphs.find((p) => p.text.startsWith('alpha')).p.content
+    .filter((el) => el.name?.localPart === 'r')
+    .map((r) => [(r.value.content ?? []).map((c) => c.value?.value ?? '').join(''), Boolean(r.value.rPr?.b), Boolean(r.value.rPr?.i)]);
+  const pkg = await read('28a-changes');
+  // the two tables' property changes are section 35's, not listed yet
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.author, c.text]), [['Formatted', 'Author A', 'alpha beta']]);
+  for (const [action, expected] of [['accept', '28a-accept-all'], ['reject', '28a-reject-all']]) {
+    const edited = await read('28a-changes');
+    edited.body.getTrackedChanges()[0][action]();
+    assert.deepEqual(alpha(edited), alpha(await read(expected)), action);
+    assert.deepEqual(edited.body.getTrackedChanges(), [], `${action}: nothing left in the paragraph`);
+  }
+});

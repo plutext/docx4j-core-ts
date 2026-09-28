@@ -32,12 +32,13 @@ export type TrackedChangeTarget =
    */
   | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[] }
   /**
-   * Touching insertions or deletions by one author - `w:ins` or `w:del` around runs and inserted or
-   * deleted paragraph marks, with nothing unrevised between them - which Office JS lists as one
-   * change (CR-002 section 29, checks 22 and 23): a deleted paragraph's text and mark, a deletion
-   * across a mark. `pieces` are the single changes, in document order; `value` is the first's.
+   * Touching insertions, deletions or formatting changes by one author - `w:ins` or `w:del` around
+   * runs and inserted or deleted paragraph marks, or runs' `w:rPrChange`, with nothing unrevised
+   * between them - which Office JS lists as one change (CR-002 section 29, checks 22, 23 and 28): a
+   * deleted paragraph's text and mark, a deletion across a mark, bold put on two runs of different
+   * formatting. `pieces` are the single changes, in document order; `value` is the first's.
    */
-  | { kind: 'group'; revision: 'ins' | 'del'; pieces: TrackedChange[]; value: wml.CTTrackChange };
+  | { kind: 'group'; revision: 'ins' | 'del' | 'format'; pieces: TrackedChange[]; value: wml.CTTrackChange };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -58,7 +59,7 @@ export class TrackedChange {
       case 'run': return t.revision === 'ins' || t.revision === 'moveTo' ? 'Added' : 'Deleted';
       case 'mark': return t.mark === 'ins' ? 'Added' : 'Deleted';
       case 'row': return t.row === 'ins' ? 'Added' : 'Deleted';
-      case 'group': return t.revision === 'ins' ? 'Added' : 'Deleted';
+      case 'group': return t.revision === 'ins' ? 'Added' : t.revision === 'del' ? 'Deleted' : 'Formatted';
       default: return 'Formatted';
     }
   }
@@ -114,7 +115,7 @@ export class TrackedChange {
     }
     if (t.kind === 'group') {
       // a range is one paragraph's: the group's text in the paragraph it starts in
-      const here = t.pieces.filter((piece) => piece.target.kind === 'run' && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
+      const here = t.pieces.filter((piece) => (piece.target.kind === 'run' || piece.target.kind === 'runProperties') && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
       if (here.length === 0) return t.pieces[0]!.getRange();
       return new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
     }
@@ -696,9 +697,10 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       continue;
     }
     if (typeNameOf(el) === 'org_docx4j_wml.R') {
+      // a run whose formatting changed is a piece of its own; one that did not keeps pieces apart
       const run = el.value as wml.R;
-      if ((run.content ?? []).length > 0) out.push(BREAK);
       if (run.rPr?.rPrChange) out.push(new TrackedChange({ kind: 'runProperties', run, value: run.rPr.rPrChange }, paragraph));
+      else if ((run.content ?? []).length > 0) out.push(BREAK);
       continue;
     }
     const nested = runItemsOf(el.value as object);
@@ -706,20 +708,26 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
   }
 }
 
-/** What a piece groups as: a `w:ins` or `w:del` around runs, or an inserted or deleted mark. Moves and formatting do not group. */
-function groupable(change: TrackedChange): 'ins' | 'del' | undefined {
+/**
+ * What a piece groups as: a `w:ins` or `w:del` around runs, or an inserted or deleted mark; a run's
+ * `w:rPrChange` (check 28: bold on an italic run and a plain one, one change). Moves and a
+ * paragraph's `w:pPrChange` do not group.
+ */
+function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined {
   const t = change.target;
   if (t.kind === 'mark') return t.mark;
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
+  if (t.kind === 'runProperties') return 'format';
   return undefined;
 }
 
 /**
- * Tokens made into the changes Office JS lists: consecutive pieces of one kind (inserted or deleted)
- * by one author, nothing unrevised between them, are one change (checks 22 and 23: text and marks
- * alike, dates regardless; another author, or an insertion against a deletion, starts a new one). A
- * change that does not group - formatting, a move - is listed where it stands and does not break a
- * group. A group of one piece is that piece.
+ * Tokens made into the changes Office JS lists: consecutive pieces of one kind (inserted, deleted, or
+ * a run's formatting) by one author, nothing unrevised between them, are one change (checks 22, 23
+ * and 28: text and marks alike, dates regardless, formatting whatever it recorded; another author, or
+ * one kind against another, starts a new one). A change that does not group - a paragraph's
+ * properties, a move - is listed where it stands and does not break a group. A group of one piece is
+ * that piece.
  */
 export function groupTouching(tokens: TrackedChangeToken[]): TrackedChange[] {
   const out: (TrackedChange | TrackedChange[])[] = [];

@@ -624,7 +624,13 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    7. Close it. Open `28a-changes.docx` again, File > **Save As** `28c-accept-all.docx`, then Review >
       Accept > **Accept All Changes**, Ctrl+S.
 
-   Save the four files into `fixtures/revisions/check28/` (or leave them in `__tmp/28/`).
+   Save the four files into `fixtures/revisions/check28/` (or leave them in `__tmp/28/`). **Run
+   2026-09-28 (Word 16.0.20326.20158; the files saved as `28a-changes`, `28a-reject-all`,
+   `28a-accept-all`).** Question 1: Word wrote a `w:trPrChange` for each row that had properties of its
+   own (row 1's exact height and header row, row 2's no-break), none for row 3, which had none, and
+   rejecting from the saved file gave rows 1 and 2 back their recorded properties and row 3 none.
+   Question 2: yes, the height went (table 2). Question 3: **one** change, `Formatted "alpha beta"`,
+   the two runs having recorded different formatting (italic, none). CR-002 sections 29 and 35.
 
 A small Node script for 1 to 3 is:
 

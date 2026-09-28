@@ -2582,7 +2582,12 @@ was. Not measured, and left as it was: a revision inside a revision (a deletion 
 listed apart as before; and what Office JS does when a change cut at a paragraph's end is accepted
 from that paragraph (here it resolves the paragraph's part). `acceptAll()` and `rejectAll()` count
 changes, so their counts fall where pieces group. `tracking.test.mjs` holds the listing and every
-accept and reject to check 22's file and JSON and to check 23's nine cases.
+accept and reject to check 22's file and JSON and to check 23's nine cases. *(Check 28, 2026-09-28: formatting changes group too. Bold put on an
+italic run and a plain one is one change, `Formatted "alpha beta"`, in Office JS, whatever each run
+recorded, so a run's `w:rPrChange` is now a groupable piece of kind `format`, a group of them a
+`group` of `revision: 'format'`, and a run whose formatting changed no longer keeps its neighbour
+apart. A paragraph's `w:pPrChange` and moves still do not group; a mark's `w:rPrChange`, which groups
+with its run's in Office JS (check 27), waits for section 35 to list it.)*
 
 **A list paragraph's indent on reject (fixed 2026-09-28, unreleased, at Jason's request).** The
 editor, holding its C4 to check 18's files, found that Word's `reject-all.docx` restores section 9's
@@ -3062,6 +3067,19 @@ Word then write a `w:trPrChange`, and does reject keep them?); `w:trHeight` reje
 rather than in the session; and two touching runs' formatting changes, one change or two. *(Asked
 as `test/README.md` check 28, 2026-09-28, in one document the engine made:
 `fixtures/revisions/check28/28-input.docx`.)*
+
+**Check 28, run 2026-09-28, answered all three.** (1) Word writes a `w:trPrChange` for a row, when a
+table changes, exactly where the row had properties of its own - its recorded `w:trPr` those
+properties (an exact height and a header row; a no-break) - and none for a row that had none; rejecting
+from the saved file gave each row its recorded properties back, and the row without a record none.
+So a row in the change without a `w:trPrChange` had no properties before it, and reject clears it:
+the rule the design above assumed for `w:jc`, now for all of a row's properties, from a file. (2) A
+row's height set under tracking is removed by reject from the saved file too. (3) Two touching runs
+whose formatting changed - bold put on an italic run and a plain one - are **one** change,
+`Formatted "alpha beta"`, whatever each recorded; implemented the same day (section 29, fix F, whose
+grouping now covers a run's `w:rPrChange`). The design's reject is therefore: the recorded table,
+grid, rows and cells back; a row in the change (it has a `w:trPrChange` or a cell with a
+`w:tcPrChange`) without a record cleared of its properties; a row outside the change untouched.
 
 **Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
 files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
