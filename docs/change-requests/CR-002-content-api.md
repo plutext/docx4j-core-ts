@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29).
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, tracked changes the engine does not list (section, table, grid, row, cell, a mark's run properties), **proposed** 2026-09-28 at the editor's request, not scheduled.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2955,3 +2955,68 @@ space of ECMA-376 17.13.5.4 - is exactly that number, so the package index now e
 hand-copying the set would drift. Measured by the editor on its 255-page document: the walk 23 ms,
 the note 0 ms, the seed after it 48 ms, against 1,060 ms for the seed alone. The test holds noting the
 walk's number to the same floor as reading every part.
+
+## 35. A request from the editor: tracked changes the engine does not list (2026-09-28)
+
+*Proposed; not scheduled. Asked by the editor (its ED-005 proposal 24, accepted by Jason
+2026-09-28). Nothing in the editor's E4.d waits on it.*
+
+**What is missing.** `TrackedChangeTarget` covers run-level `w:ins` / `w:del` / `w:moveFrom` /
+`w:moveTo`, paragraph marks, `w:rPrChange` on runs, `w:pPrChange`, table rows and groups of them
+(section 29's fix F). Word has more revision markup, and none of it is listed by
+`getTrackedChanges()` or resolved by `acceptAll()` / `rejectAll()`:
+
+| Markup | Where | What it records |
+|---|---|---|
+| `w:sectPrChange` | the body's `w:sectPr`, and a paragraph's `w:pPr/w:sectPr` | the section's old properties |
+| `w:tblPrChange` | `w:tblPr` | the table's old properties |
+| `w:tblGridChange` | `w:tblGrid` | the old column widths |
+| `w:trPrChange` | `w:trPr` | a row's old properties |
+| `w:tcPrChange` | `w:tcPr` | a cell's old properties |
+| `w:cellIns`, `w:cellDel` | `w:tcPr` | an inserted or deleted cell |
+| `w:cellMerge` | `w:tcPr` | a vertical merge changed |
+| `w:numberingChange` | `w:numPr` | a paragraph's old numbering (a legacy form) |
+| `w:rPrChange` on a mark | `w:pPr/w:rPr` | the paragraph mark's old run properties |
+
+Measured on main (dc77f6c): `revisions-word15.docx` holds 1 `w:sectPrChange`, 1 `w:tblPrChange`, 1
+`w:tblGridChange` and 4 `w:tcPrChange` in `word/document.xml`; Word's check 18 `accept-all.docx`
+and `reject-all.docx` hold none, and the engine's `acceptAll()` and `rejectAll()` leave all seven.
+Word's reject put the section's recorded properties back (margins 1440 where the change made 720)
+and its accept dropped the record, so those two files are the oracle for section, table, grid and
+cell properties. How Office JS lists these is known for one kind: check 16 found it listing the
+fixture's `w:sectPrChange` as one `Formatted` change whose text is the whole document.
+
+**What the editor needs.** Each listed, with its author and date, in document order, and
+`accept()` / `reject()` on each matching Word's files; the editor resolves them through the
+engine's tree (`runOnTree`), one at a time and in its "all" commands. Until a release has them, the
+editor lists them as "In Word only", without accept or reject, and its "all" commands report how
+many they left.
+
+**Proposed design.** New target kinds, each `Formatted` but for the cells:
+
+- `sectionProperties`, `tableProperties`, `tableGrid`, `rowProperties`, `cellProperties`,
+  `markProperties` (a mark's `w:rPrChange`), `numbering`: accept drops the record; reject puts the
+  recorded properties back in place of the current ones, as `restorePPr` does for a paragraph
+  (the grid's recorded `w:gridCol` widths, the section's recorded `w:sectPr` less its parts
+  references, which are not recorded).
+- `cell` (`w:cellIns` Added, `w:cellDel` Deleted, `w:cellMerge` Formatted): accepting an insertion
+  or rejecting a deletion drops the marker; accepting a deletion or rejecting an insertion removes
+  the cell; a merge's resolution is to be measured first.
+- Where they list: a table's and a grid's with the table, before its rows; a row's and a cell's
+  with the row and cell they are on; a section's where its `w:sectPr` stands. Formatting changes
+  do not group (section 29, fix F). What Office JS reports as their `text` is unmeasured beyond
+  check 16's section.
+- Section 29's settle step (checks 24 and 26) would apply to them too: a record whose properties
+  are back is no change. Unmeasured for these kinds.
+
+**What needs Word first.** There is no Word-made case of `w:cellIns`, `w:cellDel`, `w:cellMerge`,
+`w:numberingChange` or a mark's `w:rPrChange` in the fixtures. The editor reports that Word 2013 and
+later generally refuse to track cell insertion and deletion, and neither Word used here wrote a
+`w:numberingChange` for a list change (both wrote a `w:pPrChange`, checks 18 and 25): a check would
+establish which of these current Word writes at all, and how it resolves them; kinds Word no longer
+writes could be resolved on docx4j's reading alone. A second, Script Lab, check would ask how Office
+JS lists table and cell property changes.
+
+**Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
+files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
+the mark's run properties.
