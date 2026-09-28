@@ -390,6 +390,17 @@ namespaces, content types or the zip writer, check by hand:
    save a file it has not changed: 12 and 13 as "saved unchanged" are byte-identical to their inputs,
    and in 14 Jason typed a space at the end of section 2 to make Word save it, which is where its
    conversion of the broken pair comes from.
+   **Re-run of 12 to 14 (asked 2026-09-28)**, for two things the first run could not show. First, how
+   Word *writes* each broken pair: open each input, change nothing, and File > **Save As** into
+   `check20/` as `NN-name-resaved.docx` (Save As, unlike Ctrl+S on an unchanged file, should write it;
+   if the file comes out byte-identical to its input, redo it by typing "x" at the end of section 2
+   and pressing Backspace - with tracking on, deleting your own insertion leaves no markup - then
+   save). Second, accept and reject on 14's broken markup itself: the first run took them from the
+   saved file, where Word had already written the pair as a plain `w:ins` and `w:del`, so they measured
+   a deleted paragraph, not the broken move. From `input/moveFrom-no-ranges.docx` each time: click in
+   the struck-through source copy, Accept This Change, Save As `14-moveFrom-no-ranges-accept-input.docx`;
+   the same with Reject Change, `-reject-input`; then both again clicking in the destination copy,
+   `-accept-dest-input` and `-reject-dest-input`. Seven files; note anything Word says or selects.
 21. Typing with tracking **off** next to tracked changes (CR-002 phase F's `insertText`, asked by
    the editor for its tracker, E4.c step C3): does Word keep typed text inside the insertion it lands
    in, or make it plain? Section 1 of `fixtures/revisions/revisions-word15.docx` reads "The quick
@@ -415,6 +426,25 @@ namespaces, content types or the zip writer, check by hand:
    (checked): Word makes the typed text plain** in all four, splitting the `w:ins` (21a, 21d) or
    `w:del` (21c) it lands in, or following the `w:ins` it ends (21b). The files are the re-run's;
    CR-002 section 29 has the first run's tracking-on results.
+22. A deleted paragraph, listed, accepted and rejected (CR-002 section 29, what check 20's case 14
+   left open): Word accepted and rejected a deleted paragraph's run deletion and its deleted mark
+   together, where the engine lists and resolves them as two changes. No move is involved, so Office
+   JS can list the changes (it throws on a move, checks 16 and 17). In a **new blank document**, with
+   the author set as for check 20 (Author A), Home > Show/Hide (the pilcrows showing) and Review >
+   Display for Review > **All Markup**, type seven paragraphs with tracking **off**: "One.", "Two.",
+   "Three.", "Four.", "Five six.", "Seven eight.", "Nine.". Then turn Track Changes **on** and:
+   triple-click "Two." (its mark selected with it) and press Delete; click at the end of "Four."
+   (before its pilcrow) and press **Delete** once, deleting that mark alone (note whether Word marks
+   it or refuses); select from "six." through "Seven " (across the mark between them) and press
+   Delete. Save into `fixtures/revisions/check22/` as `22-deleted.docx`. Then, from that file each
+   time, as check 20 did: click in "Two.", Review > Accept > Accept This Change, save
+   `22-accept-whole.docx`; the same with Reject Change, `22-reject-whole.docx`; then clicking in the
+   deleted "six.", `22-accept-across.docx` and `22-reject-across.docx`. Note what Word selects on
+   each. Last, open `22-deleted.docx`, run the Script Lab snippet for 22 below, and copy the JSON back
+   (it lists the changes as Office JS does, whole and per paragraph, then accepts and rejects each
+   of the first three from a fresh copy of the body, and puts the document back). The questions:
+   is a deleted paragraph one change or two, is a lone deleted mark a change of its own, and what
+   does accepting or rejecting one of them take with it.
 
 A small Node script for 1 to 3 is:
 
@@ -953,3 +983,74 @@ async function check() {
 }
 ```
 
+And the Script Lab snippet for 22 (Word, Office JS, WordApi 1.6), run in `22-deleted.docx`. The HTML
+tab is check 15's (a **Run the check** button and a text box). The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+const SCENARIOS = [0, 1, 2].flatMap((i) => [[`accept-${i}`, i, 'accept'], [`reject-${i}`, i, 'reject']]);
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+/** The body's paragraphs, from the document's own body OOXML. */
+async function paragraphs(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const main = all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  return body ? Array.from(body.childNodes).filter((n) => n.localName === 'p').map(xml) : [];
+}
+
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, text: c.text })) };
+}
+
+async function check() {
+  const report = { host: Office.context.diagnostics, scenarios: {} };
+  let original;
+  await Word.run(async (context) => {
+    context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+    const ooxml = context.document.body.getOoxml();
+    await context.sync();
+    original = ooxml.value;
+    report.paragraphs = await paragraphs(context);
+    report.listed = (await listed(context)).list;
+    const ps = context.document.body.paragraphs;
+    ps.load('items/text');
+    await context.sync();
+    const per = ps.items.map((p) => { const c = p.getTrackedChanges(); c.load('items/type,items/text'); return c; });
+    await context.sync();
+    report.byParagraph = ps.items.map((p, i) => ({ text: p.text, changes: per[i].items.map((c) => `${c.type}: ${c.text}`) }));
+  });
+  for (const [name, index, act] of SCENARIOS) {
+    const entry = (report.scenarios[name] = {});
+    try {
+      await Word.run(async (context) => {
+        context.document.body.insertOoxml(original, 'Replace');
+        await context.sync();
+        const { changes } = await listed(context);
+        const target = changes.items[index];
+        if (!target) { entry.skipped = `no change ${index}`; return; }
+        entry.acted = { type: target.type, text: target.text };
+        if (act === 'accept') target.accept(); else target.reject();
+        await context.sync();
+        entry.listedAfter = (await listed(context)).list;
+        entry.paragraphs = await paragraphs(context);
+      });
+    } catch (e) {
+      entry.error = String(e && e.message || e);
+    }
+  }
+  await Word.run(async (context) => { context.document.body.insertOoxml(original, 'Replace'); await context.sync(); });
+  out.value = JSON.stringify(report, null, 2);
+}
+```
