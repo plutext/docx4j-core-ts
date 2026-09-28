@@ -249,7 +249,7 @@ export class Body {
 
   /** The package's change tracker while `changeTrackingMode` is on; undefined when it is off (CR-002 phase F). */
   get changeTracker(): ChangeTracker | undefined {
-    return trackerOf(this.package_);
+    return trackerOf(this.package_)?.forPart(this.part);
   }
 
   insertParagraph(text: string, location: 'Start' | 'End'): Paragraph {

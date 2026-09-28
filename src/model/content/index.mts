@@ -20,10 +20,10 @@ export { segmentsOf, runsOf, runItemsOf, childrenOf, rowsOf, cellsOf, BLOCK_LEVE
 // change tracking (CR-002 phase F)
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeTarget } from './TrackedChange.mjs';
 export {
-  ChangeTracker, trackerOf, calendarOf, dateOf, copyRPr, markDeleted, markInserted, highestAnnotationId, MARKUP_TYPES,
+  ChangeTracker, trackerOf, calendarOf, dateOf, wordCalendarOf, revisionDateOf, copyRPr, markDeleted, markInserted, highestAnnotationId, MARKUP_TYPES,
   toDeletedText, toRestoredText, restoreRPr, restorePPr,
   trackInsertedParagraph, trackInsertedTable, wrapNewRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
-  type ChangeTrackingMode, type TrackingHost, type TrackingScope,
+  type ChangeTrackingMode, type TrackingHost, type TrackingScope, type TrackedPart,
 } from './tracking.mjs';
 // The objects package's builders, re-exported so that one import serves the content API and the tree it works on.
 export { wml, wmlOne, p, r, t, br, tab, tbl, tr, tc, sdt, sdtPr, nextSdtId, sdtProperty, sdtKindOf, inlinePicture, rPrToElements, rPrFromElements, textOf, walk, walkAll, find, linkParents, applyRunOptions, readRunOptions, UNDERLINE_TO_WML, isElement, typeNameOf, W_NS, type Element, type Wrapper, type WmlOptions, type Raw, type Interpolated, type RunOptions, type RunFormatting, type ParagraphOptions, type TableOptions, type CellOptions, type SdtKind, type SdtForm, type SdtOptions } from '@docx4j/generated-objects-ts/builders/wml';

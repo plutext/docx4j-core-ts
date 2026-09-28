@@ -9,7 +9,7 @@ import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
-import { dateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
+import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
@@ -67,9 +67,13 @@ export class TrackedChange {
     return this.target.value.author;
   }
 
-  /** `w:date`, when the markup carries one; a group's is its first piece's, as Office JS reports it. */
+  /**
+   * When the change was made: `w16du:dateUtc` if the markup has it, else `w:date` read as Word writes
+   * it, local wall-clock time (`revisionDateOf`, CR-002 section 29); a group's is its first piece's,
+   * as Office JS reports it.
+   */
   get date(): Date | undefined {
-    return dateOf(this.target.value.date);
+    return revisionDateOf(this.target.value);
   }
 
   /** The annotation id (`w:id`; an extension). */
