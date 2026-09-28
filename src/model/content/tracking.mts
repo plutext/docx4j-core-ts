@@ -151,8 +151,8 @@ export function revisionDateOf(value: { date?: wml.XmlCalendar; dateUtc?: wml.Xm
   return new Date(cal.year, (cal.month ?? 1) - 1, cal.day ?? 1, cal.hour ?? 0, cal.minute ?? 0, cal.second ?? 0);
 }
 
-/** A run's properties compared as values: keys sorted, `PARENT`, `TYPE_NAME` and absent values left out. */
-function canonical(value: unknown): string {
+/** Properties compared as values: keys sorted, `PARENT`, `TYPE_NAME` and absent values left out. */
+export function canonical(value: unknown): string {
   return JSON.stringify(value, (key, v) => {
     if (key === 'PARENT' || key === 'TYPE_NAME' || v === undefined) return undefined;
     if (v && typeof v === 'object' && !Array.isArray(v)) return Object.fromEntries(Object.keys(v).sort().map((k) => [k, (v as Record<string, unknown>)[k]]));

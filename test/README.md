@@ -571,7 +571,10 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
       paragraph.", Home > **Decrease Indent**. Ctrl+S.
 
    Note what Word's Review pane lists after each step. The questions: 26a and 26d should each carry a
-   `w:pPrChange`; do 26b, 26c and 26e keep it?
+   `w:pPrChange`; do 26b, 26c and 26e keep it? **Run 2026-09-28 (Word 16.0.20326.20158; 26e saved as
+   `26d-indented-back.docx`): Word drops it, all three times,** and writes no `w:pPr`: Ctrl+L removed
+   the `w:jc`, Decrease Indent the `w:ind`, and B's undoing of A's change left no revision by either.
+   CR-002 section 29.
 
 A small Node script for 1 to 3 is:
 

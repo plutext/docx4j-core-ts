@@ -22,7 +22,7 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, type TrackingHost } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -64,6 +64,23 @@ export interface ParagraphFormatting {
 }
 
 const TWIPS_PER_POINT = 20;
+
+/** Office JS's paragraph formatting read from a `w:pPr`, resolved (`effective`) or direct. */
+function formattingOf(pPr: wml.PPr | undefined, effective: boolean): ParagraphFormatting {
+  return {
+    alignment: alignmentOf(pPr, effective),
+    leftIndent: (pPr?.ind?.left ?? 0) / TWIPS_PER_POINT,
+    rightIndent: (pPr?.ind?.right ?? 0) / TWIPS_PER_POINT,
+    firstLineIndent: firstLineIndentOf(pPr),
+    spaceBefore: (pPr?.spacing?.before ?? 0) / TWIPS_PER_POINT,
+    spaceAfter: (pPr?.spacing?.after ?? 0) / TWIPS_PER_POINT,
+    lineSpacing: lineSpacingOf(pPr),
+    outlineLevel: outlineLevelOf(pPr),
+  };
+}
+
+/** The `w:pPr` members `formattingOf` reads; everything else is compared as it is written. */
+const FORMATTING_MEMBERS = new Set(['jc', 'ind', 'spacing', 'outlineLvl']);
 
 /**
  * A subset of Office JS `Word.Paragraph` over a `w:p` in a body, cell, header, footer or
@@ -118,8 +135,9 @@ export class Paragraph {
   set styleId(id: string) {
     // through pPr(), so that a tracked write records w:pPrChange first (CR-002 phase F)
     const pPr = this.pPr();
-    if (id === '' || id === 'Normal') { delete pPr.pStyle; return; }
-    pPr.pStyle = { val: id };
+    if (id === '' || id === 'Normal') delete pPr.pStyle;
+    else pPr.pStyle = { val: id };
+    this.settleFormatting();
   }
 
   /**
@@ -168,18 +186,7 @@ export class Paragraph {
    * Phase B step 2 (an absent property reads 0, 10 or `'Unknown'`).
    */
   formatting(options?: FormattingOptions): ParagraphFormatting {
-    const pPr = this.readPPr(options);
-    const effective = options?.direct !== true;
-    return {
-      alignment: alignmentOf(pPr, effective),
-      leftIndent: (pPr?.ind?.left ?? 0) / TWIPS_PER_POINT,
-      rightIndent: (pPr?.ind?.right ?? 0) / TWIPS_PER_POINT,
-      firstLineIndent: firstLineIndentOf(pPr),
-      spaceBefore: (pPr?.spacing?.before ?? 0) / TWIPS_PER_POINT,
-      spaceAfter: (pPr?.spacing?.after ?? 0) / TWIPS_PER_POINT,
-      lineSpacing: lineSpacingOf(pPr),
-      outlineLevel: outlineLevelOf(pPr),
-    };
+    return formattingOf(this.readPPr(options), options?.direct !== true);
   }
 
   /** The effective alignment; an absent `w:jc` after resolution is `'Left'`, as Office JS. */
@@ -189,15 +196,16 @@ export class Paragraph {
   set alignment(v: AlignmentOrUnknown) {
     const pPr = this.pPr();
     const val: wml.JcEnumeration | undefined = v === 'Left' ? 'left' : v === 'Centered' ? 'center' : v === 'Right' ? 'right' : v === 'Justified' ? 'both' : undefined;
-    if (val === undefined) { delete pPr.jc; return; }
-    pPr.jc = { val };
+    if (val === undefined) delete pPr.jc;
+    else pPr.jc = { val };
+    this.settleFormatting();
   }
 
   /** Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). */
   get leftIndent(): number { return (this.effectivePPr.ind?.left ?? 0) / TWIPS_PER_POINT; }
-  set leftIndent(pt: number) { this.ind().left = Math.round(pt * TWIPS_PER_POINT); }
+  set leftIndent(pt: number) { this.ind().left = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
   get rightIndent(): number { return (this.effectivePPr.ind?.right ?? 0) / TWIPS_PER_POINT; }
-  set rightIndent(pt: number) { this.ind().right = Math.round(pt * TWIPS_PER_POINT); }
+  set rightIndent(pt: number) { this.ind().right = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
   /** First-line indent; negative for a hanging indent, as Office JS. */
   get firstLineIndent(): number {
     return firstLineIndentOf(this.effectivePPr);
@@ -205,19 +213,20 @@ export class Paragraph {
   set firstLineIndent(pt: number) {
     const ind = this.ind();
     if (pt < 0) { ind.hanging = Math.round(-pt * TWIPS_PER_POINT); delete ind.firstLine; } else { ind.firstLine = Math.round(pt * TWIPS_PER_POINT); delete ind.hanging; }
+    this.settleFormatting();
   }
   get spaceBefore(): number { return (this.effectivePPr.spacing?.before ?? 0) / TWIPS_PER_POINT; }
-  set spaceBefore(pt: number) { this.spacing().before = Math.round(pt * TWIPS_PER_POINT); }
+  set spaceBefore(pt: number) { this.spacing().before = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
   get spaceAfter(): number { return (this.effectivePPr.spacing?.after ?? 0) / TWIPS_PER_POINT; }
-  set spaceAfter(pt: number) { this.spacing().after = Math.round(pt * TWIPS_PER_POINT); }
+  set spaceAfter(pt: number) { this.spacing().after = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
   /** Line spacing in points: w:line/240 lines of 12pt when the rule is auto, else w:line twips; 0 when not set. */
   get lineSpacing(): number {
     return lineSpacingOf(this.effectivePPr);
   }
-  set lineSpacing(pt: number) { const s = this.spacing(); s.line = Math.round(pt * TWIPS_PER_POINT); s.lineRule = 'exact'; }
+  set lineSpacing(pt: number) { const s = this.spacing(); s.line = Math.round(pt * TWIPS_PER_POINT); s.lineRule = 'exact'; this.settleFormatting(); }
   /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. A heading style supplies it. */
   get outlineLevel(): number { return outlineLevelOf(this.effectivePPr); }
-  set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; }
+  set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; this.settleFormatting(); }
 
   /**
    * The runs' formatting: reads the first run's *effective* properties, writes direct
@@ -460,6 +469,36 @@ export class Paragraph {
     linkParents(pPr, this.p);
     this.changeTracker?.recordPPrChange(pPr);
     return pPr;
+  }
+
+  /**
+   * After a tracked write of the paragraph's properties: when the paragraph is as it was, its
+   * recorded properties go back as they were and the `w:pPrChange` goes, since Word keeps no
+   * formatting change that changes nothing, whoever changed it back (`test/README.md` check 26:
+   * centred then left again, by the same author and by another; Increase Indent then Decrease
+   * Indent; each left no `w:pPr`; CR-002 section 29). "As it was" is Office JS's paragraph
+   * formatting (alignment, indents, spacing, outline level) read resolved from both, the rest of the
+   * properties - the style, the list - written the same: Word's Ctrl+L and Decrease Indent removed
+   * the direct values where this package's setters write `w:jc="left"` and `w:ind w:left="0"`.
+   * Without the package's `PropertyResolver` only properties written the same count.
+   *
+   * @internal public so that the list views (CR-002 phase H) settle their `w:numPr` writes.
+   */
+  settleFormatting(): void {
+    const pPr = this.p.pPr;
+    const recorded = pPr?.pPrChange?.pPr;
+    if (!pPr || !pPr.pPrChange || !this.changeTracker) return;
+    const current: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(pPr)) if (key !== 'pPrChange' && key !== 'rPr' && key !== 'sectPr') current[key] = value;
+    const before = { ...(recorded ?? {}) } as Record<string, unknown>;
+    let same = canonical(current) === canonical(before);
+    if (!same) {
+      const rest = (props: Record<string, unknown>): string => canonical(Object.fromEntries(Object.entries(props).filter(([key]) => !FORMATTING_MEMBERS.has(key))));
+      const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: { getEffectivePPr(pPr: wml.PPr | undefined): wml.PPr } } | undefined)?.propertyResolverOrUndefined;
+      same = resolver !== undefined && rest(current) === rest(before)
+        && canonical(formattingOf(resolver.getEffectivePPr(current as wml.PPr), true)) === canonical(formattingOf(resolver.getEffectivePPr(before as wml.PPr), true));
+    }
+    if (same) restorePPr(this.p, recorded);
   }
 
   /**

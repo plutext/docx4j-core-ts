@@ -590,6 +590,7 @@ export class ListItem {
     }
     numPr.ilvl = f.createPPrBaseNumPrIlvl({ val: value });
     linkParents(numPr.ilvl, numPr);
+    this.paragraph.settleFormatting();
   }
 
   /**
@@ -711,6 +712,7 @@ export function attachToList(paragraph: Paragraph, listId: number | string, leve
   numPr.numId = f.createPPrBaseNumPrNumId({ val: Number(listId) });
   numPr.ilvl = f.createPPrBaseNumPrIlvl({ val: level });
   linkParents(numPr, paragraph.p.pPr as object);
+  paragraph.settleFormatting();
   return new List(String(listId), paragraph.parentBody);
 }
 
@@ -723,11 +725,13 @@ export function detachFromList(paragraph: Paragraph): void {
   if (paragraph.p.pPr?.numPr !== undefined) {
     delete paragraph.pPr().numPr;
   }
-  if (!isListItem(paragraph)) return;
-  const numPr = paragraph.numPr();
-  numPr.numId = f.createPPrBaseNumPrNumId({ val: 0 });
-  linkParents(numPr.numId, numPr);
-  delete numPr.ilvl;
+  if (isListItem(paragraph)) {
+    const numPr = paragraph.numPr();
+    numPr.numId = f.createPPrBaseNumPrNumId({ val: 0 });
+    linkParents(numPr.numId, numPr);
+    delete numPr.ilvl;
+  }
+  paragraph.settleFormatting();
 }
 
 /**

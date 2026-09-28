@@ -1188,3 +1188,44 @@ test('a formatting change undone is no change at all, whoever undoes it, as Word
   assert.deepEqual(linked.body.getTrackedChanges(), []);
   assert.equal((await xmlOf(linked)).includes('rPrChange'), false);
 });
+
+// CR-002 section 29, check 26: Word keeps no paragraph formatting change once the paragraph is as it
+// was, whoever changes it back, and writes no w:pPr (Ctrl+L, Decrease Indent remove the direct values).
+test('a paragraph formatting change undone is no change at all, as Word does (check 26)', async () => {
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/check26/${name}.docx`));
+    await pkg.getBody();                                                 // the property resolver compares
+    return pkg;
+  };
+  const bodyXml = async (pkg) => (await pkg.getMainDocumentPart().getXml()).match(/<w:body>(.*?)<w:sectPr/)[1]
+    .replace(/ w:(rsid\w*|date)="[^"]*"| w16du:dateUtc="[^"]*"| w14:\w+="[^"]*"|<w:proofErr [^>]*\/>/g, '');
+  for (const [from, author, index, act, expected] of [
+    ['26a-centred', 'Author A', 0, (p) => { p.alignment = 'Left'; }, '26b-left-again'],
+    ['26a-centred', 'Author B', 0, (p) => { p.alignment = 'Left'; }, '26c-left-by-b'],
+    ['26d-indented', 'Author A', 1, (p) => { p.leftIndent = 0; }, '26d-indented-back'],
+  ]) {
+    const pkg = await read(from);
+    pkg.author = { name: author };
+    await pkg.setChangeTrackingMode('TrackAll');
+    act(pkg.body.paragraphs[index]);
+    assert.equal(await bodyXml(pkg), await bodyXml(await read(expected)), `${from} undone by ${author}`);
+    assert.deepEqual(pkg.body.getTrackedChanges(), []);
+  }
+
+  // undone in part, it is still a change: centred and indented, then left again
+  const partial = await tracked(['one', 'two']);
+  await partial.getPropertyResolver();
+  const p = partial.body.paragraphs[0];
+  p.alignment = 'Centered';
+  p.leftIndent = 36;
+  p.alignment = 'Left';
+  assert.deepEqual(partial.body.getTrackedChanges().map((c) => c.type), ['Formatted']);
+
+  // a list attached and detached again under tracking leaves nothing to review
+  const listed = await tracked(['one', 'two']);
+  await listed.getPropertyResolver();
+  await listed.body.paragraphs[0].startNewList();
+  assert.equal(listed.body.getTrackedChanges().filter((c) => c.target.kind === 'paragraphProperties').length, 1, 'attached: a formatting change');
+  listed.body.paragraphs[0].detachFromList();
+  assert.deepEqual(listed.body.getTrackedChanges().filter((c) => c.target.kind === 'paragraphProperties'), [], 'detached: none');
+});
