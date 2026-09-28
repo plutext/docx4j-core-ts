@@ -631,6 +631,33 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    rejecting from the saved file gave rows 1 and 2 back their recorded properties and row 3 none.
    Question 2: yes, the height went (table 2). Question 3: **one** change, `Formatted "alpha beta"`,
    the two runs having recorded different formatting (italic, none). CR-002 sections 29 and 35.
+29. Enter at the **end** of a paragraph: which paragraph mark does Word treat as the new one (CR-002
+   section 29, asked by the editor for its ED-005 section 12.16)? In the middle of a paragraph Word
+   puts the new mark at the caret, so the first half's mark is the inserted one (the revisions
+   fixture's section 6). At the end, if it does the same, the paragraph that keeps the old mark is
+   the new empty one - and after a Heading 1, whose next style is Normal, that paragraph changes
+   style: does Word then record a `w:pPrChange`, or mark the other pilcrow? Input:
+   `fixtures/revisions/check29/29-input.docx` (made by the engine; a copy is in the shared
+   `__tmp/29/`): a Heading 1 ("Case a heading") and Normal paragraphs, two of whose marks Author A
+   inserted ("Cases c and d: ..." and "Case e: ..."). Before starting: Home > **Show/Hide** (the
+   pilcrows showing) and Review > Display for Review > **All Markup**. The author is the user name in
+   File > Options > General, with "Always use these values regardless of sign in to Office" ticked.
+   Each case starts from `29-input.docx`: open it, File > **Save As** the case's file name, set the
+   author and tracking as the table says, act, Ctrl+S, close.
+
+   | File | Author | Track Changes | Do |
+   |---|---|---|---|
+   | `29a-heading-end-tracked.docx` | **Author B** | **on** | click at the very end of "Case a heading" (press End), press Enter, type New |
+   | `29b-normal-end-tracked.docx` | **Author B** | **on** | click at the very end of "Case b: the end of this Normal paragraph." (End), press Enter, type New |
+   | `29c-inserted-mark-end-untracked.docx` | **Author B** | **off** | click at the very end of "Cases c and d: Author A inserted this paragraph's mark." (End: the caret just before Author A's inserted pilcrow), press Enter, type New |
+   | `29d-inserted-mark-end-tracked.docx` | **Author B** | **on** | the same as 29c |
+   | `29e-inserted-mark-middle-untracked.docx` | **Author B** | **off** | in "Case e: before the split, after the split. ...", click just after the first comma (after "split,"), press Enter |
+
+   For 29a and 29d, before closing, note what Review > **Reviewing Pane** lists (for example whether
+   a "Formatted" entry appears, and which paragraph each inserted pilcrow is on). If Word 2010 is to
+   hand, the same five again, each file name ending `-word2010`. The questions, per file, for the
+   paragraphs around the caret: their text and `w:pStyle`; which carries `w:pPr/w:rPr/w:ins` (or
+   `w:del`), and whose; and whether a `w:pPrChange` was written, and where.
 
 A small Node script for 1 to 3 is:
 
