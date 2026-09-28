@@ -659,7 +659,15 @@ already named, so each case starts by opening its own file.
    a "Formatted" entry appears, and which paragraph each inserted pilcrow is on). If Word 2010 is to
    hand, the same five again, each file name ending `-word2010`. The questions, per file, for the
    paragraphs around the caret: their text and `w:pStyle`; which carries `w:pPr/w:rPr/w:ins` (or
-   `w:del`), and whose; and whether a `w:pPrChange` was written, and where.
+   `w:del`), and whose; and whether a `w:pPrChange` was written, and where. **Run 2026-09-29 (Word
+   16.0.20326.20158; Word 2010 not run; the Reviewing Pane not noted): the caret rule at the end
+   too.** The new mark is the one at the caret, so the paragraph before it ends with the new mark and
+   the paragraph after it - "New" - keeps the old one. 29a: "Case a heading" stays Heading 1, its mark
+   inserted by B; "New" keeps the old mark and turns Normal, with a `w:pPrChange` recording Heading 1,
+   its text B's `w:ins`. 29b: the first mark inserted by B, "New" with no `w:pPrChange`. 29c (tracking
+   off): the first paragraph a new plain mark, "New" keeping Author A's inserted mark, its text plain.
+   29d: the first mark inserted by B, "New" keeping A's inserted mark, its text B's `w:ins`. 29e: the
+   first half plain, the second keeping A's inserted mark. CR-002 section 29.
 
 A small Node script for 1 to 3 is:
 

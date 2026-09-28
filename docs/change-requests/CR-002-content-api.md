@@ -2589,6 +2589,19 @@ recorded, so a run's `w:rPrChange` is now a groupable piece of kind `format`, a 
 apart. A paragraph's `w:pPrChange` and moves still do not group; a mark's `w:rPrChange`, which groups
 with its run's in Office JS (check 27), waits for section 35 to list it.)*
 
+**Enter at the end of a paragraph (check 29, run 2026-09-29, for the editor's ED-005 section 12.16).**
+Word puts the new paragraph mark at the caret at the end of a paragraph as in the middle: the
+paragraph before the caret ends with the new mark, and the one after it keeps the old. Tracked, that
+makes the first paragraph's mark the inserted one (by the typist), whatever the old mark was - Author
+A's inserted mark stays on the new line after it (29d), and with tracking off the first paragraph gets
+a plain mark and the new line A's (29c; in the middle, 29e, the same). After a Heading 1, whose next
+style is Normal, the new line keeps the old mark and turns Normal, and Word records that as a
+`w:pPrChange` on it recording Heading 1 (29a); after a Normal paragraph, none (29b). The editor's
+keyboard Enter is what this measures; the engine has no Enter at a caret - `insertParagraph(text,
+'After')` is Office JS's call, which puts a new paragraph after this one with its properties and,
+tracked, marks the new paragraph's mark (section 13), and what Office JS does there has not been
+measured. Files in `test/fixtures/revisions/check29/`.
+
 **A list paragraph's indent on reject (fixed 2026-09-28, unreleased, at Jason's request).** The
 editor, holding its C4 to check 18's files, found that Word's `reject-all.docx` restores section 9's
 three list items with `w:numPr` (`ilvl 0`, `numId 3`) and no `w:ind`, where their `w:pPrChange`
