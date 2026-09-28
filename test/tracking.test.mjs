@@ -966,6 +966,11 @@ test('touching deletions, text and paragraph marks, are one change, as Office JS
       edited.body.getTrackedChanges()[index][action]();
       const word = typeof expected === 'string' ? paragraphsOf(await loaded(`revisions/check22/${expected}.docx`)) : expected;
       assert.deepEqual(paragraphsOf(edited), word, `${action} ${index}`);
+      if (typeof expected === 'string') {
+        // and each paragraph keeps the w14:paraId Word kept: the second's, where a mark went
+        const wordIds = (await loaded(`revisions/check22/${expected}.docx`)).body.paragraphs.map((q) => q.p.paraId);
+        assert.deepEqual(edited.body.paragraphs.map((q) => q.p.paraId), wordIds, `${action} ${index}: paragraph ids`);
+      }
       assert.equal(edited.body.getTrackedChanges().length, 2, `${action} ${index}: the other two left`);
     }
   }
@@ -1073,7 +1078,8 @@ test('acceptAll and rejectAll over the check 18 document leave what Word left, l
         // ids, dates and session ids are Word's to renumber; a missing w:ilvl means level 0
         const properties = pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '')
           .replace(/ (w:id|w:date|w16du:dateUtc|w:rsid\w*|w14:\w+)="[^"]*"/g, '').replace('<w:ilvl w:val="0"/>', '') : '';
-        return [n.localName, n.textContent, properties];
+        // the paragraph's w14:paraId: when a mark goes, Word keeps the second paragraph's
+        return [n.localName, n.textContent, properties, n.getAttributeNS('http://schemas.microsoft.com/office/word/2010/wordml', 'paraId')];
       });
   };
   const read = async (name) => {
@@ -1085,6 +1091,7 @@ test('acceptAll and rejectAll over the check 18 document leave what Word left, l
     const pkg = await read('revisions/revisions-word15.docx');
     pkg.body[`${action}All`]();
     assert.deepEqual(await blocksOf(pkg), await blocksOf(await read(`revisions/check18/${action}-all.docx`)), `${action}All`);
+    assert.equal((await pkg.getMainDocumentPart().getXml()).includes('<w:trPr/>'), false, `${action}All: a resolved row's empty w:trPr goes, as Word writes none`);
   }
 
   // without the numbering part read there is nothing to compare with, and the recorded indent comes back
@@ -1092,4 +1099,21 @@ test('acceptAll and rejectAll over the check 18 document leave what Word left, l
   unread.body.rejectAll();
   const item = unread.body.paragraphs.find((p) => p.text === 'The first numbered item.');
   assert.deepEqual([item.p.pPr.ind.left, item.p.pPr.ind.hanging], [720, 360]);
+});
+
+// Found by the editor's C5: accepting a move carried a deletion nested in its moved text out of it,
+// and resolving a broken move dissolved the rest into a new w:ins, so "all" left changes listed.
+test('acceptAll and rejectAll leave nothing listed, over every revisions fixture', async () => {
+  const { readdir } = await import('node:fs/promises');
+  const check20 = (await readdir(new URL('./fixtures/revisions/check20/', import.meta.url))).filter((f) => /^\d\d-[A-Za-z-]+\.docx$/.test(f) && !/-(accept|reject)/.test(f));
+  const files = ['tracked-changes.docx', 'revisions/revisions-word15.docx', 'revisions/check22/22-deleted.docx',
+    ...check20.map((f) => `revisions/check20/${f}`), ...['partner-missing', 'moveTo-no-ranges', 'moveFrom-no-ranges'].map((f) => `revisions/check20/input/${f}.docx`)];
+  assert.ok(check20.length >= 14, `check 20's case files found: ${check20.length}`);
+  for (const file of files) {
+    for (const action of ['accept', 'reject']) {
+      const pkg = await loaded(file);
+      pkg.body[`${action}All`]();
+      assert.deepEqual(pkg.body.getTrackedChanges().map((c) => `${c.type} ${c.author}: ${c.text}`), [], `${file} ${action}All`);
+    }
+  }
 });

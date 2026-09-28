@@ -451,19 +451,34 @@ export class Body {
 
   /**
    * Accepts every tracked change, last first so that a paragraph join never disturbs one still
-   * to do (docx4j `AcceptTrackedChanges` is the reference). Returns how many were accepted.
+   * to do (docx4j `AcceptTrackedChanges` is the reference). Returns how many were listed.
    */
   acceptAll(): number {
-    const changes = this.getTrackedChanges();
-    for (let i = changes.length - 1; i >= 0; i--) changes[i]!.accept();
-    return changes.length;
+    return this.resolveAll('accept');
   }
 
-  /** Rejects every tracked change, last first. Returns how many were rejected. */
+  /** Rejects every tracked change, last first. Returns how many were listed. */
   rejectAll(): number {
-    const changes = this.getTrackedChanges();
-    for (let i = changes.length - 1; i >= 0; i--) changes[i]!.reject();
-    return changes.length;
+    return this.resolveAll('reject');
+  }
+
+  /**
+   * Resolving one change can leave another to be listed afresh: accepting a move carries a deletion
+   * nested in its moved text out of it, and resolving a broken move dissolves the rest of it into a
+   * new `w:ins` or `w:del` (CR-002 section 29), so the list read first goes stale. The list is read
+   * again after each pass until nothing is left, as "all" promises (found by the editor's C5); a
+   * pass that resolves nothing ends it.
+   */
+  private resolveAll(what: 'accept' | 'reject'): number {
+    let changes = this.getTrackedChanges();
+    const count = changes.length;
+    while (changes.length > 0) {
+      for (let i = changes.length - 1; i >= 0; i--) changes[i]![what]();
+      const left = this.getTrackedChanges();
+      if (left.length >= changes.length) break;
+      changes = left;
+    }
+    return count;
   }
 
   /** Every `w:tr` in this body's tables, in document order (rows of nested tables included). */

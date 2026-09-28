@@ -477,6 +477,24 @@ namespaces, content types or the zip writer, check by hand:
    elements Word merged into one when inserting them. Office JS reported every `w:date` as local
    time (01:00Z came back as 15:00Z the day before). CR-002 section 29, fix F, and its open item on
    dates.
+24. Formatting changed and changed back, tracked (CR-002 section 29, asked by the editor for its C5
+   agreement suite): does Word keep a `w:rPrChange` whose recorded properties equal the run's
+   current ones, or drop it? The engine keeps it (a `w:rPrChange` with `<w:rPr/>` after bold then
+   unbold); the editor drops it. It matters to `Range.hyperlink` with tracking on, whose restyle is a
+   formatting change: a link made and then removed leaves the run as it was. In a **new blank
+   document**, with the author set as for check 20, type "alpha beta gamma delta" with tracking off,
+   then turn Track Changes **on** and save each step into `fixtures/revisions/check24/`:
+
+   | File | As | Do |
+   |---|---|---|
+   | `24a-bold.docx` | A | select "beta", Ctrl+B |
+   | `24b-unbold.docx` | A | carrying on from 24a, select "beta", Ctrl+B again |
+   | `24c-unbold-by-b.docx` | B | open `24a-bold.docx`, select "beta", Ctrl+B |
+   | `24d-style.docx` | A | open `24b-unbold.docx`, select "gamma", apply the **Strong** character style (Home > Styles) |
+   | `24e-style-cleared.docx` | A | carrying on from 24d, select "gamma", Ctrl+Space |
+
+   Note what Word's Review pane lists after each step. The question in each of 24b, 24c and 24e is
+   whether the run keeps a `w:rPrChange`.
 
 A small Node script for 1 to 3 is:
 

@@ -152,7 +152,7 @@ export class TrackedChange {
       case 'row':
         // an accepted insertion keeps the row, so its content's own w:ins must go with the
         // w:trPr/w:ins; an accepted deletion takes the row and everything in it away
-        if (t.row === 'ins') { delete t.tr.value.trPr?.ins; applyInner(t.inner, 'accept'); }
+        if (t.row === 'ins') { delete t.tr.value.trPr?.ins; pruneRowProperties(t.tr.value); applyInner(t.inner, 'accept'); }
         else remove(t.owner, t.tr as Element);
         return;
       case 'group':
@@ -187,7 +187,7 @@ export class TrackedChange {
       case 'row':
         // a rejected deletion keeps the row, so its content comes back too (w:delText to w:t,
         // the w:del unwrapped, the deleted marks dropped); a rejected insertion takes it away
-        if (t.row === 'del') { delete t.tr.value.trPr?.del; applyInner(t.inner, 'reject'); }
+        if (t.row === 'del') { delete t.tr.value.trPr?.del; pruneRowProperties(t.tr.value); applyInner(t.inner, 'reject'); }
         else remove(t.owner, t.tr as Element);
         return;
       case 'group':
@@ -339,7 +339,24 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
   linkParents(content, p);
   p.pPr = nextP.pPr;
   if (p.pPr) linkParents(p.pPr, p);
+  // The mark that survives is the next paragraph's, and so is the paragraph's identity: Word keeps the
+  // second paragraph's w14:paraId when a mark goes (check 18's accept-all and reject-all, check 22's
+  // 22-accept-whole; found by the editor's C5). Its w14:textId and session ids come with it; Word
+  // writes a new textId, the text having changed, which Word will do again when it next saves.
+  for (const key of PARAGRAPH_ATTRIBUTES) {
+    const value = nextP[key];
+    if (value === undefined) delete p[key]; else p[key] = value;
+  }
   container.splice(i + 1, 1);
+}
+
+/** A `w:p`'s own attributes, which go with its mark. */
+const PARAGRAPH_ATTRIBUTES = ['paraId', 'textId', 'rsidDel', 'rsidP', 'rsidR', 'rsidRDefault', 'rsidRPr', 'noSpellErr'] as const;
+
+/** A row's `w:trPr` with nothing left in it goes, as Word writes none (check 18's accept-all and reject-all). */
+function pruneRowProperties(tr: wml.Tr): void {
+  const trPr = tr.trPr;
+  if (trPr && !trPr.ins && !trPr.del && !trPr.trPrChange && !(trPr.cnfStyleOrDivIdOrGridBefore?.length)) delete tr.trPr;
 }
 
 /** The span of a run-level revision in the paragraph's accepted text; collapsed for a deletion. */
