@@ -415,7 +415,7 @@ namespaces, content types or the zip writer, check by hand:
    brown ~~red~~ fox jumps over the ~~very~~ lazy dog near the ~~old~~ stone bridge ~~at dawn~~.",
    where "red " is Author B's insertion, "very " Author A's, and "old " Author A's deletion. Each
    case on a **fresh copy**, with Review > Display for Review set to **All Markup** (so deletions
-   show), Review > **Track Changes off**, and the author set as for check 20; saved into
+   show), Review > **Track Changes off**, and the author (the "As" column) set as the user name in File > Options > General, with "Always use these values regardless of sign in to Office" ticked; saved into
    `fixtures/revisions/check21/`:
 
    | Case | As | Do |
@@ -438,7 +438,7 @@ namespaces, content types or the zip writer, check by hand:
    left open): Word accepted and rejected a deleted paragraph's run deletion and its deleted mark
    together, where the engine lists and resolves them as two changes. No move is involved, so Office
    JS can list the changes (it throws on a move, checks 16 and 17). In a **new blank document**, with
-   the author set as for check 20 (Author A), Home > Show/Hide (the pilcrows showing) and Review >
+   **Author A** as the user name in File > Options > General, with "Always use these values regardless of sign in to Office" ticked, Home > Show/Hide (the pilcrows showing) and Review >
    Display for Review > **All Markup**, type seven paragraphs with tracking **off**: "One.", "Two.",
    "Three.", "Four.", "Five six.", "Seven eight.", "Nine.". Then turn Track Changes **on** and:
    triple-click "Two." (its mark selected with it) and press Delete; click at the end of "Four."
@@ -482,14 +482,14 @@ namespaces, content types or the zip writer, check by hand:
    current ones, or drop it? The engine keeps it (a `w:rPrChange` with `<w:rPr/>` after bold then
    unbold); the editor drops it. It matters to `Range.hyperlink` with tracking on, whose restyle is a
    formatting change: a link made and then removed leaves the run as it was. In a **new blank
-   document**, with the author set as for check 20, type "alpha beta gamma delta" with tracking off,
+   document**, with **Author A** as the user name in File > Options > General, with "Always use these values regardless of sign in to Office" ticked, type "alpha beta gamma delta" with tracking off,
    then turn Track Changes **on** and save each step into `fixtures/revisions/check24/`:
 
    | File | As | Do |
    |---|---|---|
    | `24a-bold.docx` | A | select "beta", Ctrl+B |
    | `24b-unbold.docx` | A | carrying on from 24a, select "beta", Ctrl+B again |
-   | `24c-unbold-by-b.docx` | B | open `24a-bold.docx`, select "beta", Ctrl+B |
+   | `24c-unbold-by-b.docx` | B | open `24a-bold.docx`, change the user name to **Author B**, select "beta", Ctrl+B |
    | `24d-style.docx` | A | open `24b-unbold.docx`, select "gamma", apply the **Strong** character style (Home > Styles) |
    | `24e-style-cleared.docx` | A | carrying on from 24d, select "gamma", Ctrl+Space |
 
@@ -499,7 +499,7 @@ namespaces, content types or the zip writer, check by hand:
    section 9 recorded `w:numPr` with no `w:ilvl` in `w:pPrChange`, and Word's reject wrote
    `w:ilvl="0"` - but the current level was 0 as well, so Word may keep the current level or write
    the recorded one (a missing `w:ilvl` meaning 0), and the engine and the editor each write one of
-   the two. In a **new blank document**, with the author set as for check 20, and tracking **off**:
+   the two. In a **new blank document**, with **Author A** as the user name in File > Options > General, with "Always use these values regardless of sign in to Office" ticked, and tracking **off**:
    type "One.", "Two." and "Three." as a numbered list (Home > Numbering), put the caret at the very
    start of "Two." and press Tab twice (it goes to the third level), then save
    `fixtures/revisions/check25/25-input.docx`. Then, each from a **fresh copy** of that file, with
