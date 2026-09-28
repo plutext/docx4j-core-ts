@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "0e8e7633ef46012e0d3603339728b83ed21d5045",
-    "docx4jVersion": "docx4j-core-17.2.1.jar",
-    "docx4jCoreJarSha256": "676c17c978995592",
-    "date": "2026-09-27T10:05:24Z",
+    "docx4jCommit": "a8d20c1cc0d168ec940ed9ed1b08a91c50ec492f",
+    "docx4jVersion": "docx4j-core-17.3.0-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "ed92b2e826456394",
+    "date": "2026-09-28T13:06:54Z",
     "fixture": "numbering-label-ilvl0.docx",
     "fixtureBytes": 10308,
     "part": "/word/document.xml",
