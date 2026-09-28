@@ -45,6 +45,19 @@ export interface CommentOptions {
   id?: number | undefined;
 }
 
+/**
+ * A comment's entry for markers the caller placed (`addCommentEntry`, CR-002 section 36): the caller's
+ * `w:id`, which its markers already name, the content, and the author, initials and date as in
+ * `CommentOptions`.
+ */
+export interface CommentEntry extends Omit<CommentOptions, 'id'> {
+  /** The `w:id` the caller's markers name; refused when the comments part already has a comment by it. */
+  id: number;
+  content: CommentContent;
+  /** The comment this one answers: its `w15:commentEx` then names the parent's (`w15:paraIdParent`). */
+  parent?: Comment | undefined;
+}
+
 export interface Author {
   name: string;
   /** Word's `w:initials`; derived from the name when not given. */

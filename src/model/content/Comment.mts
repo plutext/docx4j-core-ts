@@ -12,9 +12,9 @@ import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
-import { revisionDateOf, wordCalendarOf } from './tracking.mjs';
+import { revisionDateOf, wordCalendarOf, copyRPr } from './tracking.mjs';
 import {
-  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions,
+  COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions, type CommentEntry,
   commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
   initialsOf, isDone, markersOf, markersOfParagraph, nextCommentId, paraIdTaken, randomHexId, removeMarkers,
   setCommentApi, type CommentMarker, type CommentParts,
@@ -249,9 +249,41 @@ function annotationRefRun(): Element<wml.R> {
   return runOf([el.annotationRef(wmlFactory.createRAnnotationRef())], applyRunOptions({}, { style: COMMENT_REFERENCE_STYLE }));
 }
 
-/** The run that anchors a comment in the body: `w:commentReference` in the `CommentReference` style. */
-function referenceRun(id: number): Element<wml.R> {
-  return runOf([el.commentReference(wmlFactory.createRCommentReference({ id }))], applyRunOptions({}, { style: COMMENT_REFERENCE_STYLE }));
+/**
+ * The run that anchors a comment in the body: `w:commentReference` in the `CommentReference` style,
+ * over the run properties of the text it stands by when given (Word's reference run for a comment at
+ * a caret carried the text's `w:sz`, CR-002 section 36).
+ */
+function referenceRun(id: number, textRPr?: wml.RPr): Element<wml.R> {
+  const rPr = applyRunOptions(copyRPr(textRPr) ?? {}, { style: COMMENT_REFERENCE_STYLE });
+  return runOf([el.commentReference(wmlFactory.createRCommentReference({ id }))], rPr);
+}
+
+/** A comment marker that takes no room: a range start or end, or a run holding only a reference. */
+function isCommentMarker(item: Element | undefined): boolean {
+  if (!item) return false;
+  const name = item.name?.localPart;
+  if (name === 'commentRangeStart' || name === 'commentRangeEnd') return true;
+  if (typeNameOf(item) !== 'org_docx4j_wml.R') return false;
+  const content = ((item.value as wml.R).content ?? []) as Element[];
+  return content.length > 0 && content.every((c) => c.name?.localPart === 'commentReference');
+}
+
+/**
+ * Where an empty range's markers go when other comments' empty ranges already stand at the caret:
+ * inside them, right after their starts, as Word nests a second comment made at the same place
+ * (start 0, start 1, end 1, reference 1, end 0, reference 0; CR-002 section 36). A start counts only
+ * when its comment's end is at the caret too, so a comment over text that begins there is not entered.
+ */
+function nestedIndex(owner: Element[], index: number): number {
+  let from = index;
+  while (isCommentMarker(owner[from - 1])) from--;
+  let to = index;
+  while (isCommentMarker(owner[to])) to++;
+  const endsHere = new Set(owner.slice(from, to).filter((e) => e.name?.localPart === 'commentRangeEnd').map((e) => String((e.value as { id?: unknown }).id)));
+  let at = from;
+  while (at < to && owner[at]!.name?.localPart === 'commentRangeStart' && endsHere.has(String((owner[at]!.value as { id?: unknown }).id))) at++;
+  return at > from ? at : index;
 }
 
 /** A paragraph of a comment: the `CommentText` style, opened by the annotation reference run. */
@@ -292,17 +324,21 @@ function placeAround(range: Range, id: number): void {
   const covered = range.end > range.start ? paragraph.segments().filter((s) => s.end > range.start && s.start < range.end) : [];
   const start = el.commentRangeStart(wmlFactory.createCommentRangeStart({ id }));
   const end = el.commentRangeEnd(wmlFactory.createCommentRangeEnd({ id }));
-  const reference = referenceRun(id);
   if (covered.length === 0) {
-    // an empty range or an empty paragraph: the reference run only, which is all Word requires
+    // An empty range or an empty paragraph: both range markers with nothing between them, then the
+    // reference run in the text's run properties, and a later comment at the same place nested inside
+    // the earlier - what Word writes (measured by Jason 2026-09-29, CR-002 section 36).
     const segments = paragraph.segments();
     const after = segments.find((s) => s.start >= range.start);
     const before = [...segments].reverse().find((s) => s.end <= range.start);
+    const text = after ?? before;
     const site = after ? markerSite(after, paragraph.p, false) : before ? markerSite(before, paragraph.p, true) : undefined;
-    if (site) insertAt(site.owner, site.index, [reference], site.parent);
-    else insertAt((paragraph.p.content ??= []) as Element[], paragraph.p.content!.length, [reference], paragraph.p);
+    const owner = site ? site.owner : (paragraph.p.content ??= []) as Element[];
+    const index = nestedIndex(owner, site ? site.index : owner.length);
+    insertAt(owner, index, [start, end, referenceRun(id, text?.run.rPr)], site ? site.parent : paragraph.p);
     return;
   }
+  const reference = referenceRun(id);
   const after = markerSite(covered[covered.length - 1]!, paragraph.p, true);
   insertAt(after.owner, after.index, [end, reference], after.parent);
   const before = markerSite(covered[0]!, paragraph.p, false);
@@ -401,6 +437,30 @@ export async function insertComment(range: Range, content: CommentContent, optio
   const id = commentId(parts, body, options);
   placeAround(range, id);
   return addComment(parts, body, id, paragraphs, undefined, options);
+}
+
+/**
+ * A comment's entry for markers the caller placed (CR-002 section 36, asked by the editor for its
+ * E4.e, which places a new comment's markers itself: a selection may span paragraphs, where
+ * `Range.insertComment` anchors in one). Everything `insertComment` writes but the markers: the
+ * `w:comment` with the given id, author, initials, date and paragraphs (the first with a
+ * `w14:paraId`); its `w15:commentEx` (`w15:done="0"`, and `w15:paraIdParent` for a reply); its
+ * `w16cid:commentId` where that part exists, and its `w16cex:commentExtensible` where that one does;
+ * and the author's `w15:person`. The comment parts are created as `insertComment` creates them, and
+ * the date follows section 29's rule (`w:date` on the local wall clock, `w16cex:dateUtc` the date
+ * given). The id must be unused in the comments part - markers naming it are expected, being the
+ * caller's - and is not checked against them; a comment with no markers is still a comment, which
+ * Word shows unanchored.
+ */
+export async function addCommentEntry(body: Body, entry: CommentEntry): Promise<Comment> {
+  const paragraphs = paragraphsOfContent(entry.content);
+  const parts = await commentPartsAccess().create(body);
+  const id = entry.id;
+  if (!Number.isInteger(id) || id < 0) throw new Docx4JException(`A comment id must be a non-negative integer, not ${id}`);
+  if ((parts.comments.comment ?? []).some((c) => c.id === id)) {
+    throw new Docx4JException(`The comment id ${id} is already in use in this document's comments part`);
+  }
+  return addComment(parts, body, id, paragraphs, entry.parent, entry);
 }
 
 /**

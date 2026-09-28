@@ -3,13 +3,13 @@ export { Body, type Address, type BlockElement, type Outline, type OutlineParagr
 export { Paragraph, type Alignment } from './Paragraph.mjs';
 export { Range } from './Range.mjs';
 export { BUILT_IN_STYLES, builtInOf, idOfBuiltIn, displayNameOf, styleNameOf, styleIdOf, type BuiltInStyle } from './styles.mjs';
-export { Comment } from './Comment.mjs';
+export { Comment, addCommentEntry } from './Comment.mjs';
 // lists (CR-002 phase H)
 export {
   List, ListItem, ListItemNotFoundError, NumberingFacade, listsOf, listLabelsOf, numberingEmulatorOf, levelOf,
   type ListLevelType, type ListNumbering, type ListBullet, type StartListOptions, type ListLabel,
 } from './List.mjs';
-export { type Author, type CommentContent, type CommentOptions, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
+export { type Author, type CommentContent, type CommentOptions, type CommentEntry, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
 export { Font, type UnderlineType, type RPrHolder, type FontTracking } from './Font.mjs';
 export { Table, TableRow, TableCell, cellOf } from './Table.mjs';
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture } from './InlinePicture.mjs';

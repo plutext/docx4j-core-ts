@@ -232,7 +232,7 @@ test('comments are returned in document order with replies nested; a range sees 
   assert.ok(first instanceof Paragraph);
 });
 
-test('anchors: an empty range gets a reference run only; cells and hyperlinks work too', async () => {
+test('anchors: an empty range gets its markers and a reference run, as Word writes them; cells and hyperlinks work too', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = pkg.body;
   const paragraph = body.insertParagraph('alpha beta', 'End');
@@ -240,8 +240,9 @@ test('anchors: an empty range gets a reference run only; cells and hyperlinks wo
   caret.start = 5;
   caret.end = 5;
   const atCaret = await caret.insertComment('at the caret');
-  assert.deepEqual(paragraph.p.content.map((e) => e.name.localPart), ['r', 'r', 'r'], 'no range markers, the run split at the offset');
-  assert.equal(paragraph.p.content[1].value.content[0].name.localPart, 'commentReference');
+  // both markers with nothing between them, then the reference run (CR-002 section 36)
+  assert.deepEqual(paragraph.p.content.map((e) => e.name.localPart), ['r', 'commentRangeStart', 'commentRangeEnd', 'r', 'r'], 'the run split at the offset');
+  assert.equal(paragraph.p.content[3].value.content[0].name.localPart, 'commentReference');
   assert.deepEqual(atCaret.getRange().map((r) => [r.start, r.end]), [[5, 5]]);
   assert.equal(paragraph.text, 'alpha beta');
 
@@ -356,4 +357,67 @@ test('a comment date as Word means it: w16cex:dateUtc when there, else w:date as
   const back = await WordprocessingMLPackage.load(await created.save());
   const plainBack = (await (await back.getBody()).getComments())[0];
   assert.equal(plainBack.creationDate.toISOString(), made.toISOString());
+});
+
+// CR-002 section 36, measured by Jason in Word 2026-09-29 (relayed by the editor): a second comment
+// made at the same caret nests inside the first, and each reference run carries the text's w:sz.
+test('comments at the same caret nest as Word writes them, the reference runs in the text\'s properties', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const [paragraph] = await pkg.body.insertXml('<w:p><w:r><w:rPr><w:sz w:val="28"/></w:rPr><w:t>alpha beta</w:t></w:r></w:p>', 'End');
+  const first = await paragraph.getRange('Start').insertComment('first');
+  const second = await paragraph.getRange('Start').insertComment('second');
+  const shape = paragraph.p.content.map((e) => {
+    const name = e.name.localPart;
+    if (name === 'r') {
+      const inner = e.value.content[0].name.localPart;
+      return inner === 'commentReference' ? `ref ${e.value.content[0].value.id} ${e.value.rPr.rStyle.val} sz ${e.value.rPr.sz?.val}` : 'text';
+    }
+    return `${name} ${e.value.id}`;
+  });
+  assert.deepEqual(shape, [
+    `commentRangeStart ${first.id}`, `commentRangeStart ${second.id}`, `commentRangeEnd ${second.id}`,
+    `ref ${second.id} CommentReference sz 28`, `commentRangeEnd ${first.id}`, `ref ${first.id} CommentReference sz 28`, 'text',
+  ]);
+  assert.equal(paragraph.text, 'alpha beta');
+  assert.deepEqual((await pkg.body.getComments()).map((c) => c.content), ['first', 'second']);
+  assert.deepEqual(second.getRange().map((r) => [r.start, r.end]), [[0, 0]]);
+});
+
+// CR-002 section 36: the entry for markers the caller placed, as the editor's export does for a
+// selection over several paragraphs.
+test('addCommentEntry writes a comment for markers the caller placed', async () => {
+  const { addCommentEntry } = await import('../dist/index.mjs');
+  const pkg = await WordprocessingMLPackage.createPackage();
+  await pkg.body.insertXml('<w:p><w:commentRangeStart w:id="7"/><w:r><w:t>first</w:t></w:r></w:p>'
+    + '<w:p><w:r><w:t>second</w:t></w:r><w:commentRangeEnd w:id="7"/><w:r><w:rPr><w:rStyle w:val="CommentReference"/></w:rPr><w:commentReference w:id="7"/></w:r></w:p>', 'End');
+  const made = new Date(Date.UTC(2026, 8, 29, 3, 0, 0));
+  const comment = await addCommentEntry(pkg.body, { id: 7, content: 'across two paragraphs', author: { name: 'Grace Hopper' }, date: made });
+  assert.equal(comment.id, 7);
+  assert.equal(comment.authorName, 'Grace Hopper');
+  assert.equal(comment.creationDate.toISOString(), made.toISOString());
+  assert.deepEqual(comment.getRange().map((r) => r.text), ['first', 'second']);
+  assert.deepEqual((await pkg.body.getComments()).map((c) => c.content), ['across two paragraphs']);
+
+  // the id is the caller's, and must be free in the comments part
+  await assert.rejects(addCommentEntry(pkg.body, { id: 7, content: 'again' }), /already in use/);
+  await assert.rejects(addCommentEntry(pkg.body, { id: -1, content: 'negative' }), /non-negative integer/);
+
+  // a reply names its parent in w15:commentEx
+  const reply = await addCommentEntry(pkg.body, { id: 8, content: 'the answer', author: { name: 'Alan Turing' }, parent: comment });
+  const extended = await pkg.getMainDocumentPart().commentsExtendedPart.getXml();
+  assert.match(extended, new RegExp(`w15:paraId="${reply.paraId}"[^>]*w15:paraIdParent="${comment.paraId}"|w15:paraIdParent="${comment.paraId}"[^>]*w15:paraId="${reply.paraId}"`));
+  assert.match(extended, /w15:done="0"/);
+  const people = await pkg.getMainDocumentPart().peoplePart.getXml();
+  assert.match(people, /w15:author="Grace Hopper"/);
+  assert.match(people, /w15:author="Alan Turing"/);
+
+  // in Word's document, which has the w16cid and w16cex parts: an entry in each, the UTC date given
+  const word = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
+  const body = await word.getBody();
+  const inWord = await addCommentEntry(body, { id: 900, content: 'in Word\'s document', date: made });
+  const saved = await word.save();
+  const extensible = new TextDecoder().decode(await partBytes(saved, 'word/commentsExtensible.xml'));
+  const ids = new TextDecoder().decode(await partBytes(saved, 'word/commentsIds.xml'));
+  assert.match(ids, new RegExp(`w16cid:paraId="${inWord.paraId}"`));
+  assert.match(extensible, /w16cex:dateUtc="2026-09-29T03:00:00Z"/);
 });
