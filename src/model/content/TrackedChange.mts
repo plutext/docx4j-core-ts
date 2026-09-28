@@ -182,6 +182,7 @@ export class TrackedChange {
         const paragraph = this.requireParagraph();
         restorePPr(paragraph.p, t.value.pPr);
         dropLevelIndent(paragraph);
+        writeRecordedLevel(paragraph.p);
         return;
       }
       case 'row':
@@ -253,6 +254,20 @@ function dropLevelIndent(paragraph: Paragraph): void {
   if (!level || !indentWithin(ind, level)) return;
   delete pPr.ind;
   pruneParagraphProperties(paragraph.p);
+}
+
+/**
+ * A restored `w:numPr` that names a list but no level is at level 0, and Word writes the 0: it
+ * restored the level recorded, not the current one, when the two differed (check 25's
+ * `25e-bullet-demote.docx`, recorded `numId 1` alone and current `ilvl 1`, rejected to `ilvl 0,
+ * numId 1`), and wrote `w:ilvl="0"` every time the record had none (check 18's section 9, 25b, 25f;
+ * CR-002 section 29).
+ */
+function writeRecordedLevel(p: wml.P): void {
+  const numPr = p.pPr?.numPr;
+  if (!numPr?.numId || Number(numPr.numId.val) === 0 || numPr.ilvl) return;
+  numPr.ilvl = { TYPE_NAME: 'org_docx4j_wml.PPrBase.NumPr.Ilvl', val: 0 };
+  linkParents(numPr.ilvl, numPr);
 }
 
 /** True when every attribute `ind` sets, `level` sets to the same value. */

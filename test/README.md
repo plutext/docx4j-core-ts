@@ -546,7 +546,10 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
       Reject > **Reject All Changes**, Ctrl+S.
 
    25e should record "Three."'s numbering with no `w:ilvl` and carry `w:ilvl="1"`; 25f then writes 1
-   (Word keeps the current level), or 0 or none (it writes the recorded one).
+   (Word keeps the current level), or 0 or none (it writes the recorded one). **Run 2026-09-28: Word
+   writes the recorded level.** 25e recorded `numId 1` alone (with `w:ind w:hanging="360"`) against a
+   current `ilvl 1, numId 2`; 25f restored `ilvl 0, numId 1` and no indent - the 0 written out, as in
+   every reject so far. CR-002 section 29.
 26. Paragraph formatting changed and changed back, tracked (CR-002 section 29, check 24's question
    for a paragraph, asked by the editor): does Word keep a `w:pPrChange` once the paragraph's
    properties are back to what it recorded? Check 24 found Word drops a run's `w:rPrChange` then;

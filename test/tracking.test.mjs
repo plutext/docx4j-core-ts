@@ -1075,9 +1075,9 @@ test('acceptAll and rejectAll over the check 18 document leave what Word left, l
       .filter((n) => n.nodeType === 1 && n.localName !== 'sectPr' && !/^(bookmarkStart|bookmarkEnd)$/.test(n.localName))
       .map((n) => {
         const pPr = Array.from(n.childNodes).find((c) => c.localName === 'pPr');
-        // ids, dates and session ids are Word's to renumber; a missing w:ilvl means level 0
+        // ids, dates and session ids are Word's to renumber
         const properties = pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '')
-          .replace(/ (w:id|w:date|w16du:dateUtc|w:rsid\w*|w14:\w+)="[^"]*"/g, '').replace('<w:ilvl w:val="0"/>', '') : '';
+          .replace(/ (w:id|w:date|w16du:dateUtc|w:rsid\w*|w14:\w+)="[^"]*"/g, '') : '';
         // the paragraph's w14:paraId: when a mark goes, Word keeps the second paragraph's
         return [n.localName, n.textContent, properties, n.getAttributeNS('http://schemas.microsoft.com/office/word/2010/wordml', 'paraId')];
       });
@@ -1121,21 +1121,24 @@ test('acceptAll and rejectAll leave nothing listed, over every revisions fixture
 // CR-002 section 29, check 25: Word, rejecting a list turned to bullets, drops a recorded indent the
 // level gives even in part (the level-0 items recorded only hanging=360 of the level's left=720
 // hanging=360), and keeps a level-2 item's level. A list-definition edit (25c) is not tracked at all.
-test('rejecting a list change drops a recorded indent the level gives, even in part, as Word does (check 25)', async () => {
+test('rejecting a list change writes the recorded level and drops a recorded indent the level gives, as Word does (check 25)', async () => {
   const read = async (name) => {
     const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/check25/${name}.docx`));
     await pkg.getBody();
     return pkg;
   };
-  // a missing w:ilvl means level 0: whether Word keeps the current level or writes the recorded one is still open
+  // the level as written: Word writes the recorded level, w:ilvl 0 where the record had none, even when
+  // the current level differs (25e: recorded numId 1 alone, current ilvl 1)
   const listProperties = (pkg) => pkg.body.paragraphs.filter((p) => p.p.pPr?.numPr).map((p) => {
     const { numPr, ind } = p.p.pPr;
-    return [p.text, Number(numPr.ilvl?.val ?? 0), Number(numPr.numId?.val), ind ? JSON.stringify(ind, (key, value) => (key === 'PARENT' || key === 'TYPE_NAME' ? undefined : value)) : null];
+    return [p.text, numPr.ilvl?.val, Number(numPr.numId?.val), ind ? JSON.stringify(ind, (key, value) => (key === 'PARENT' || key === 'TYPE_NAME' ? undefined : value)) : null];
   });
-  const pkg = await read('25a-bullets');
-  assert.equal(pkg.body.getTrackedChanges().length, 3);
-  pkg.body.rejectAll();
-  assert.deepEqual(listProperties(pkg), listProperties(await read('25b-bullets-reject')));
+  for (const [input, count, expected] of [['25a-bullets', 3, '25b-bullets-reject'], ['25e-bullet-demote', 1, '25f-bullet-demote-reject']]) {
+    const pkg = await read(input);
+    assert.equal(pkg.body.getTrackedChanges().length, count, input);
+    pkg.body.rejectAll();
+    assert.deepEqual(listProperties(pkg), listProperties(await read(expected)), `${input} rejected`);
+  }
 
   // an indent of its own - an attribute the level does not give - is restored
   const direct = await read('25a-bullets');

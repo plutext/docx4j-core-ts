@@ -2621,7 +2621,13 @@ restored `w:ilvl="2"` as recorded; the level-0 items again had no `w:ilvl` recor
 so the question stays open. It also widened the indent rule: those items recorded
 `w:ind w:hanging="360"` alone, part of their level's `left=720 hanging=360`, and Word dropped it too.
 The engine now drops a restored indent whose every attribute is the level's, and keeps one with an
-attribute of its own; with that, its `rejectAll()` matches `25b` but for the explicit `w:ilvl="0"`.)* `tracking.test.mjs` holds
+attribute of its own; with that, its `rejectAll()` matches `25b` but for the explicit `w:ilvl="0"`.)*
+*(25e/25f, run the same day: **Word writes the recorded level.** "Three." recorded `numId 1` with no
+`w:ilvl` against a current `ilvl 1, numId 2`, and was restored to `ilvl 0, numId 1` - the recorded
+level, and the 0 written out, as in all three rejects. The engine already restored the recorded
+level; it now writes the `w:ilvl="0"` too when the restored `w:numPr` names a list but no level, so
+its `rejectAll()` matches Word's files exactly for checks 18 and 25. The editor, which writes
+`ilvl 0` here, was right.)* `tracking.test.mjs` holds
 the paragraph ids and rows to Word's files and every revisions fixture to an empty list after
 either "all". Asked in the same message: whether Word keeps a `w:rPrChange` whose recorded properties equal the
 current ones (formatting changed and changed back), which the engine kept and the editor drops
