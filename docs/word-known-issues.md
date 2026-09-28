@@ -84,3 +84,19 @@ rejecting them produced a mangled table (five grid columns, `w:gridAfter`, spann
 inserted or deleted cell (`w:cellIns`, `w:cellDel`), a mark's `w:rPrChange` and a section break's
 `w:sectPrChange` came in intact. A test that needs Word's resolution of table-property revisions has
 to open a file (check 18), not insert one.
+
+## 5. A resolved comment is not kept in a compatibility-mode document
+
+**Found** 2026-09-29, current Word (Microsoft 365), by Jason, relayed by the editor (its ED-005
+section 12.23 item 7, where the saves are kept as fixtures; not measured in this repository).
+
+A comment thread marked resolved (`w15:done="1"` in `word/commentsExtended.xml`) showed as resolved
+in Word, but saving the document - a compatibility-mode document, as Word 2013 writes it - wrote
+`w15:done="0"`. It did so for the editor's file and for Word 2013's own serialisation of the same
+comments, which declares `mc:Ignorable="w14 w15 wp14"` on the comment parts, so the declarations are
+not the cause: current Word does not keep a resolved state it did not set itself in a
+compatibility-mode document, whoever wrote it. Word 15 honours `w15:done` in the same files.
+
+**What this package does.** Nothing different: it writes and reads `w15:done` as the format says.
+A caller that needs a thread to stay resolved through a save in current Word should not rely on a
+compatibility-mode document.
