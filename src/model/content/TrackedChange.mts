@@ -5,11 +5,13 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, childrenOf, W_NS } from './tree.mjs';
+import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS } from './tree.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
+import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
+import { deepCopy } from '@docx4j/generated-objects-ts';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
@@ -38,7 +40,23 @@ export type TrackedChangeTarget =
    * deleted paragraph's text and mark, a deletion across a mark, bold put on two runs of different
    * formatting. `pieces` are the single changes, in document order; `value` is the first's.
    */
-  | { kind: 'group'; revision: 'ins' | 'del' | 'format'; pieces: TrackedChange[]; value: wml.CTTrackChange };
+  | { kind: 'group'; revision: 'ins' | 'del' | 'format'; pieces: TrackedChange[]; value: wml.CTTrackChange }
+  /**
+   * A table's property records - `w:tblPrChange`, `w:tblGridChange`, `w:tblPrExChange`, and every
+   * `w:trPrChange` and `w:tcPrChange` in it - which Word writes as one set for one change and Office
+   * JS lists as one `Formatted` change (CR-002 section 35, checks 27 and 28). `value` is the table's
+   * record, else the first row's or cell's.
+   */
+  | { kind: 'tableProperties'; tbl: Element<wml.Tbl>; value: wml.CTTrackChange }
+  /** `w:tcPr/w:cellIns` or `w:tcPr/w:cellDel`: an inserted or deleted cell (section 35, check 27). */
+  | { kind: 'cell'; cell: 'ins' | 'del'; tc: Element<wml.Tc>; owner: Element[]; tr: wml.Tr; value: wml.CTTrackChange }
+  /** `w:pPr/w:rPr/w:rPrChange`: a paragraph mark's formatting, which groups with its runs' (check 27). */
+  | { kind: 'markProperties'; value: wml.ParaRPrChange }
+  /**
+   * `w:sectPr/w:sectPrChange`: a section's properties, at a paragraph's section break or the body's
+   * last section. `text` is the section's, as Office JS reports it (check 27: the text, then `\f`).
+   */
+  | { kind: 'sectionProperties'; sectPr: wml.SectPr; value: wml.CTSectPrChange; text: string };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -60,6 +78,7 @@ export class TrackedChange {
       case 'mark': return t.mark === 'ins' ? 'Added' : 'Deleted';
       case 'row': return t.row === 'ins' ? 'Added' : 'Deleted';
       case 'group': return t.revision === 'ins' ? 'Added' : t.revision === 'del' ? 'Deleted' : 'Formatted';
+      case 'cell': return t.cell === 'ins' ? 'Added' : 'Deleted';
       default: return 'Formatted';
     }
   }
@@ -85,7 +104,15 @@ export class TrackedChange {
   /** The markup this change is over (an extension): the `w:ins` element, the `w:rPrChange`, ... */
   get element(): object {
     const t = this.target;
-    return t.kind === 'run' ? t.element : t.kind === 'row' ? t.tr : t.kind === 'group' ? t.pieces[0]!.element : t.value;
+    switch (t.kind) {
+      case 'run': return t.element;
+      case 'row': return t.tr;
+      case 'group': return t.pieces[0]!.element;
+      case 'tableProperties': return t.tbl;
+      case 'cell': return t.tc;
+      case 'sectionProperties': return t.sectPr;
+      default: return t.value;
+    }
   }
 
   /** The text the change covers; `\r` for a paragraph mark, as Office JS gives it (check 22). */
@@ -93,7 +120,11 @@ export class TrackedChange {
     const t = this.target;
     switch (t.kind) {
       case 'mark': return '\r';
+      case 'markProperties': return '\r';
       case 'group': return t.pieces.map((piece) => piece.text).join('');
+      case 'tableProperties': return tableChangeText(t.tbl.value);
+      case 'cell': return tableRowText(t.tr);
+      case 'sectionProperties': return t.text;
       case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original' }).map((s) => s.text).join('');
       case 'runProperties': return textOf(t.run);
       case 'paragraphProperties': return this.paragraph?.text ?? '';
@@ -159,6 +190,22 @@ export class TrackedChange {
       case 'group':
         resolvePieces(t.pieces, 'accept');
         return;
+      case 'tableProperties':
+        acceptTable(t.tbl.value);
+        return;
+      case 'cell':
+        // an inserted cell stays, a deleted one goes (check 27)
+        if (t.cell === 'ins') delete t.tc.value.tcPr?.cellIns; else removeCell(t.tc, t.owner);
+        return;
+      case 'markProperties': {
+        const p = this.requireParagraph().p;
+        delete p.pPr?.rPr?.rPrChange;
+        pruneParagraphProperties(p);
+        return;
+      }
+      case 'sectionProperties':
+        delete t.sectPr.sectPrChange;
+        return;
     }
   }
 
@@ -194,6 +241,18 @@ export class TrackedChange {
         return;
       case 'group':
         resolvePieces(t.pieces, 'reject');
+        return;
+      case 'tableProperties':
+        rejectTable(t.tbl.value);
+        return;
+      case 'cell':
+        if (t.cell === 'del') delete t.tc.value.tcPr?.cellDel; else removeCell(t.tc, t.owner);
+        return;
+      case 'markProperties':
+        restoreMarkProperties(this.requireParagraph().p, t.value);
+        return;
+      case 'sectionProperties':
+        restoreSection(t.sectPr, t.value);
         return;
     }
   }
@@ -646,13 +705,14 @@ export function trackedChangesOfParagraph(paragraph: Paragraph): TrackedChange[]
 }
 
 /** The last revision on the mark of the paragraph before this one in its container, if any. */
-function markBefore(paragraph: Paragraph): { kind: 'ins' | 'del'; author: string } | undefined {
+function markBefore(paragraph: Paragraph): { kind: 'ins' | 'del' | 'format'; author: string } | undefined {
   const i = paragraph.container.indexOf(paragraph.element);
   const previous = i > 0 ? paragraph.container[i - 1] : undefined;
   if (!previous || typeNameOf(previous) !== 'org_docx4j_wml.P') return undefined;
   const rPr = (previous.value as wml.P).pPr?.rPr;
   if (rPr?.del) return { kind: 'del', author: rPr.del.author };
   if (rPr?.ins) return { kind: 'ins', author: rPr.ins.author };
+  if (rPr?.rPrChange) return { kind: 'format', author: rPr.rPrChange.author };
   return undefined;
 }
 
@@ -671,10 +731,27 @@ export function trackedChangeTokensOfParagraph(paragraph: Paragraph): TrackedCha
   if (pPrChange) out.push(new TrackedChange({ kind: 'paragraphProperties', value: pPrChange }, paragraph));
   tokensOfRunLevel(paragraph, (p.content ?? []) as Element[], out);
   const rPr = p.pPr?.rPr;
+  // a mark whose formatting changed is a piece, grouping with its runs' (check 27: "Before.\r")
+  if (rPr?.rPrChange) out.push(new TrackedChange({ kind: 'markProperties', value: rPr.rPrChange }, paragraph));
   if (rPr?.ins) out.push(new TrackedChange({ kind: 'mark', mark: 'ins', value: rPr.ins }, paragraph));
   if (rPr?.del) out.push(new TrackedChange({ kind: 'mark', mark: 'del', value: rPr.del }, paragraph));
-  if (!rPr?.ins && !rPr?.del) out.push(BREAK);
+  if (!rPr?.ins && !rPr?.del && !rPr?.rPrChange) out.push(BREAK);
+  const sectPr = p.pPr?.sectPr;
+  if (sectPr?.sectPrChange) {
+    out.push(new TrackedChange({ kind: 'sectionProperties', sectPr, value: sectPr.sectPrChange, text: `${sectionText(paragraph.container, paragraph.container.indexOf(paragraph.element) + 1)}\f` }, paragraph));
+  }
   return out;
+}
+
+/**
+ * The text of the section that ends at `end` (exclusive) in a container: its paragraphs' text, a `\r`
+ * between them, back to the previous section break.
+ */
+function sectionText(items: Element[], end: number): string {
+  let from = end - 1;
+  while (from > 0 && !(typeNameOf(items[from - 1]!) === 'org_docx4j_wml.P' && (items[from - 1]!.value as wml.P).pPr?.sectPr)) from--;
+  return items.slice(Math.max(from, 0), end).filter((el) => typeNameOf(el) === 'org_docx4j_wml.P')
+    .map((el) => textOfView(el.value as object, { view: 'accepted' })).join('\r');
 }
 
 function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[]): void {
@@ -717,7 +794,7 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   const t = change.target;
   if (t.kind === 'mark') return t.mark;
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
-  if (t.kind === 'runProperties') return 'format';
+  if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
   return undefined;
 }
 
@@ -759,4 +836,126 @@ export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner
   if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner }, undefined));
   if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner }, undefined));
   return out;
+}
+
+// --- CR-002 section 35: tables, cells, marks and sections --------------------------------------------
+
+/** The change a table's property records make, one per table, or undefined when they make none. */
+export function tablePropertiesChangeOf(tbl: Element<wml.Tbl>): TrackedChange | undefined {
+  const records = tableRecordsOf(tbl.value);
+  return records ? new TrackedChange({ kind: 'tableProperties', tbl, value: records.value }, undefined) : undefined;
+}
+
+/** A cell's own revision, `w:cellIns` or `w:cellDel`, or undefined. */
+export function cellChangeOf(tc: Element<wml.Tc>, owner: Element[], tr: wml.Tr): TrackedChange | undefined {
+  const tcPr = tc.value.tcPr;
+  if (tcPr?.cellIns) return new TrackedChange({ kind: 'cell', cell: 'ins', tc, owner, tr, value: tcPr.cellIns }, undefined);
+  if (tcPr?.cellDel) return new TrackedChange({ kind: 'cell', cell: 'del', tc, owner, tr, value: tcPr.cellDel }, undefined);
+  return undefined;
+}
+
+/** The change to the body's last section (`w:body/w:sectPr/w:sectPrChange`), its text the section's paragraphs'. */
+export function bodySectionChangeOf(container: { content?: Element[]; sectPr?: wml.SectPr }): TrackedChange | undefined {
+  const sectPr = container.sectPr;
+  if (!sectPr?.sectPrChange) return undefined;
+  const items = container.content ?? [];
+  return new TrackedChange({ kind: 'sectionProperties', sectPr, value: sectPr.sectPrChange, text: sectionText(items, items.length) }, undefined);
+}
+
+/**
+ * A cell taken out of its row, the cell before it (else after it) widened over its grid columns, as
+ * Word did rejecting an inserted cell and accepting a deleted one (check 27: `w:gridSpan` 2 and the
+ * two widths added).
+ */
+function removeCell(tc: Element<wml.Tc>, owner: Element[]): void {
+  const i = owner.indexOf(tc);
+  if (i < 0) return;
+  const cells = owner.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tc') as Element<wml.Tc>[];
+  const at = cells.indexOf(tc);
+  const neighbour = cells[at - 1] ?? cells[at + 1];
+  owner.splice(i, 1);
+  if (!neighbour) return;
+  const removed = tc.value.tcPr;
+  const kept = (neighbour.value.tcPr ??= { TYPE_NAME: 'org_docx4j_wml.TcPr' } as wml.TcPr);
+  const span = (tcPr: wml.TcPrInner | undefined): number => Number(tcPr?.gridSpan?.val ?? 1) || 1;
+  kept.gridSpan = { ...(kept.gridSpan ?? {}), val: span(kept) + span(removed) } as wml.TcPrInner.GridSpan;
+  if (kept.tcW?.type === 'dxa' && removed?.tcW?.type === 'dxa') {
+    kept.tcW = { ...kept.tcW, w: Number(kept.tcW.w ?? 0) + Number(removed.tcW.w ?? 0) } as wml.TblWidth;
+  }
+  linkParents(kept, neighbour.value);
+}
+
+/** A mark's formatting put back as its `w:rPrChange` recorded it, its own revisions (inserted, deleted, moved) kept. */
+function restoreMarkProperties(p: wml.P, change: wml.ParaRPrChange): void {
+  const rPr = p.pPr?.rPr;
+  if (!rPr) return;
+  const keep = ['ins', 'del', 'moveFrom', 'moveTo'];
+  const target = rPr as unknown as Record<string, unknown>;
+  for (const key of Object.keys(target)) if (key !== 'TYPE_NAME' && key !== 'PARENT' && !keep.includes(key)) delete target[key];
+  const original = rPrFromElements(change.rPr?.egrPrBase ?? []) as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(original)) if (key !== 'TYPE_NAME' && key !== 'PARENT') target[key] = value;
+  if (p.pPr) linkParents(rPr, p.pPr);
+  pruneParagraphProperties(p);
+}
+
+/**
+ * A section's properties put back as its `w:sectPrChange` recorded them. Word records only what
+ * changed, and rejecting laid those over the section, the rest left as it stood (check 18's saved
+ * file: the margins came back, the page size and columns stayed); a recorded `w:docGrid` of pitch 0
+ * stands for none, and Word wrote none (check 18, and check 27's section break).
+ */
+function restoreSection(sectPr: wml.SectPr, change: wml.CTSectPrChange): void {
+  const target = sectPr as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(change.sectPr ?? {})) {
+    if (key !== 'TYPE_NAME' && key !== 'PARENT') target[key] = deepCopy(value);
+  }
+  const grid = sectPr.docGrid as { linePitch?: unknown; type?: unknown; charSpace?: unknown } | undefined;
+  if (grid && Number(grid.linePitch ?? 0) === 0 && grid.type === undefined && grid.charSpace === undefined) delete sectPr.docGrid;
+  delete sectPr.sectPrChange;
+  linkParents(sectPr, (sectPr as { PARENT?: object }).PARENT);
+}
+
+/**
+ * What `acceptAll` and `rejectAll` resolve that is never listed: a `w:cellMerge`, which Office JS
+ * cannot list (check 27: `getTrackedChanges` throws); a `w:numberingChange`, which Word no longer
+ * writes and drops when one is put in, and whose record is the old number's text, so that a reject
+ * too can only drop it; and a table's records that change nothing. A merge rejected gets the merge it
+ * recorded back (docx4j's reading; unmeasured).
+ */
+export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): void {
+  const visit = (list: Element[] | undefined): void => {
+    for (const el of list ?? []) {
+      const tn = typeNameOf(el);
+      if (tn === 'org_docx4j_wml.P') {
+        const numPr = (el.value as wml.P).pPr?.numPr;
+        if (numPr?.numberingChange) delete numPr.numberingChange;
+        continue;
+      }
+      if (tn === 'org_docx4j_wml.Tbl') {
+        const tbl = el.value as wml.Tbl;
+        if (hasTableRecords(tbl) && !tableRecordsOf(tbl)) acceptTable(tbl);
+        for (const row of rowsOf(tbl)) {
+          for (const cell of cellsOf(row.element.value)) {
+            const tcPr = cell.element.value.tcPr;
+            if (tcPr?.cellMerge) resolveCellMerge(tcPr, what);
+            visit(childrenOf(cell.element.value));
+          }
+        }
+        continue;
+      }
+      const v = el.value;
+      if (typeof v === 'object' && v !== null) visit(childrenOf(v));
+    }
+  };
+  visit(items);
+}
+
+function resolveCellMerge(tcPr: wml.TcPr, what: 'accept' | 'reject'): void {
+  const change = tcPr.cellMerge!;
+  delete tcPr.cellMerge;
+  if (what === 'accept') return;
+  const orig = (change as { vMergeOrig?: string }).vMergeOrig;
+  if (orig === 'rest') tcPr.vMerge = { val: 'restart' } as wml.TcPrInner.VMerge;
+  else if (orig === 'cont') tcPr.vMerge = {} as wml.TcPrInner.VMerge;
+  else delete tcPr.vMerge;
 }

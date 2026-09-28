@@ -25,7 +25,7 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -427,12 +427,20 @@ export class Body {
         if (typeof v !== 'object' || v === null) continue;
         if (tn === 'org_docx4j_wml.Tbl') {
           into.push(BREAK);
+          // the table's property records, one change where the table stands (CR-002 section 35)
+          const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>);
+          if (tableChange) into.push(tableChange, BREAK);
           for (const row of rowsOf(v)) {
             // A row that is itself a revision reports as one change, as Office JS does: the
             // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
             // belongs to that change, which accepts or rejects it along with the row.
             const tokens: TrackedChangeToken[] = [];
-            for (const cell of cellsOf(row.element.value)) { visit(childrenOf(cell.element.value) ?? [], tokens); tokens.push(BREAK); }
+            for (const cell of cellsOf(row.element.value)) {
+              const cellChange = cellChangeOf(cell.element, cell.container, row.element.value);
+              if (cellChange) tokens.push(cellChange, BREAK);
+              visit(childrenOf(cell.element.value) ?? [], tokens);
+              tokens.push(BREAK);
+            }
             const inner = groupTouching(tokens);
             const rowChanges = trackedChangesOfRow(row.element, row.container, inner);
             for (const change of rowChanges.length > 0 ? rowChanges : inner) into.push(change, BREAK);
@@ -446,6 +454,9 @@ export class Body {
       }
     };
     visit(this.content, out);
+    // the body's last section, after everything in it
+    const section = bodySectionChangeOf(this.container as { content?: Element[]; sectPr?: wml.SectPr });
+    if (section) out.push(BREAK, section);
     return groupTouching(out);
   }
 
@@ -478,6 +489,8 @@ export class Body {
       if (left.length >= changes.length) break;
       changes = left;
     }
+    // and what is never listed: a cell merge, a numbering change, records that change nothing
+    resolveUnlisted(this.content, what);
     return count;
   }
 

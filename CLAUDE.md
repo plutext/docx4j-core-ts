@@ -82,7 +82,8 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
-src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it)
+src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it);
+                  tableRevisions.mts: a table's property revisions, listed as one change and resolved as Word does (CR-002 section 35)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
                   supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change
 src/index.mts     re-exports all of the above plus the objects facade

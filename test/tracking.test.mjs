@@ -770,7 +770,8 @@ for (const [scenario, half, action] of [
     const pkg = await loaded('revisions/revisions-word15.docx');
     const before = outsideTheMove(pkg);
     const changes = pkg.body.getTrackedChanges();
-    const move = changes.filter((c) => c.text.includes(MOVED));
+    // the section's change (section 35) holds the whole section's text, the moved words too: the halves are the run-level changes
+    const move = changes.filter((c) => c.target.kind === 'run' && c.text.includes(MOVED));
     assert.deepEqual(move.map((c) => c.type), ['Added', 'Deleted'], 'the move is listed as its two halves, destination first');
     move[half][action]();
 
@@ -1242,12 +1243,137 @@ test('touching formatting changes by one author are one change, as Office JS lis
     .filter((el) => el.name?.localPart === 'r')
     .map((r) => [(r.value.content ?? []).map((c) => c.value?.value ?? '').join(''), Boolean(r.value.rPr?.b), Boolean(r.value.rPr?.i)]);
   const pkg = await read('28a-changes');
-  // the two tables' property changes are section 35's, not listed yet
-  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.author, c.text]), [['Formatted', 'Author A', 'alpha beta']]);
+  // Office JS's listing, the two tables' property changes (section 35) with it
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.author, c.text]), [
+    ['Formatted', 'Author A', '1a\t1b\r\n2a\t2b\r\n3a\t3b\r\n'],
+    ['Formatted', 'Author A', 'x1\ty1\r\n'],
+    ['Formatted', 'Author A', 'alpha beta'],
+  ]);
   for (const [action, expected] of [['accept', '28a-accept-all'], ['reject', '28a-reject-all']]) {
     const edited = await read('28a-changes');
-    edited.body.getTrackedChanges()[0][action]();
+    edited.body.getTrackedChanges()[2][action]();
     assert.deepEqual(alpha(edited), alpha(await read(expected)), action);
-    assert.deepEqual(edited.body.getTrackedChanges(), [], `${action}: nothing left in the paragraph`);
+    assert.equal(edited.body.getTrackedChanges().length, 2, `${action}: the tables' changes left`);
+  }
+});
+
+// --- CR-002 section 35: the tracked changes that were not listed (checks 18, 27 and 28) ---
+
+/** A part's tables and body section, ids, dates and session ids aside, paragraphs as their text. */
+async function tablesAndSection(pkg) {
+  const clean = (s) => s.replace(/ xmlns:\w+="[^"]*"| w:(rsid\w*|date)="[^"]*"| w16du:dateUtc="[^"]*"| w14:\w+="[^"]*"|<w:proofErr [^>]*\/>/g, '')
+    .replace(/<w:p>.*?<\/w:p>|<w:p [^>]*>.*?<\/w:p>/g, (p) => `[${[...p.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('')}]`);
+  const xml = await pkg.getMainDocumentPart().getXml();
+  return {
+    tables: [...xml.matchAll(/<w:tbl>.*?<\/w:tbl>/gs)].map((m) => clean(m[0])),
+    section: clean(xml.match(/<w:sectPr[ >](?:(?!<w:sectPr).)*?<\/w:sectPr>\s*<\/w:body>/s)?.[0] ?? ''),
+  };
+}
+
+test('accept all and reject all resolve table and section property changes as Word did (checks 18 and 28)', async () => {
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/${name}.docx`));
+    await pkg.getBody();
+    return pkg;
+  };
+  for (const [source, accepted, rejected] of [['revisions-word15', 'check18/accept-all', 'check18/reject-all'], ['check28/28a-changes', 'check28/28a-accept-all', 'check28/28a-reject-all']]) {
+    for (const [action, word] of [['accept', accepted], ['reject', rejected]]) {
+      const pkg = await read(source);
+      pkg.body[`${action}All`]();
+      assert.deepEqual(await tablesAndSection(pkg), await tablesAndSection(await read(word)), `${source} ${action}All`);
+    }
+  }
+  // listed where they stand: the table's change once, the body's section last
+  const listing = (await read('revisions-word15')).body.getTrackedChanges().filter((c) => ['tableProperties', 'sectionProperties'].includes(c.target.kind));
+  assert.deepEqual(listing.map((c) => [c.target.kind, c.type, c.author]), [['tableProperties', 'Formatted', 'Author A'], ['sectionProperties', 'Formatted', 'Author A']]);
+  assert.equal(listing[0].text, 'Top left\tTop right\r\nBottom left\tBottom right\r\n');
+});
+
+test('table, cell, mark and section changes one at a time, as Office JS listed and resolved them (check 27)', async () => {
+  const A = 'w:author="Author A" w:date="2026-09-28T01:00:00Z"';
+  let nextId = 500;
+  const id = () => `w:id="${nextId++}"`;
+  const para = (text, pPr = '') => `<w:p>${pPr ? `<w:pPr>${pPr}</w:pPr>` : ''}<w:r><w:t xml:space="preserve">${text}</w:t></w:r></w:p>`;
+  const tc = (text, tcPr) => `<w:tc><w:tcPr>${tcPr}</w:tcPr>${para(text)}</w:tc>`;
+  const make = async (blocks) => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body>${blocks}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:body></w:document>`);
+    await pkg.getBody();
+    return pkg;
+  };
+  const listing = (pkg) => pkg.body.getTrackedChanges().map((c) => [c.target.kind, c.type, c.text]);
+
+  // a width change: Word records the old cells over a grid of the old and new edges together, and
+  // rejecting collapses it again (check 27, table-width: 2000/1152/853/1995/304/3152, spans 2, 3, 1)
+  const W3152 = '<w:tcW w:w="3152" w:type="dxa"/>';
+  const widthRow = (n) => `<w:tr>${tc(`a${n}`, `${W3152}<w:tcPrChange ${id()} ${A}><w:tcPr>${W3152}<w:gridSpan w:val="2"/></w:tcPr></w:tcPrChange>`)}`
+    + `${tc(`b${n}`, `${W3152}<w:tcPrChange ${id()} ${A}><w:tcPr>${W3152}<w:gridSpan w:val="3"/></w:tcPr></w:tcPrChange>`)}`
+    + `${tc(`c${n}`, `${W3152}<w:tcPrChange ${id()} ${A}><w:tcPr>${W3152}</w:tcPr></w:tcPrChange>`)}</w:tr>`;
+  const widths = para('Before.') + `<w:tbl><w:tblPr><w:tblW w:w="6000" w:type="dxa"/><w:tblPrChange ${id()} ${A}><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr></w:tblPrChange></w:tblPr>`
+    + `<w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2005"/><w:gridCol w:w="1995"/><w:tblGridChange ${id()}><w:tblGrid>`
+    + [2000, 1152, 853, 1995, 304, 3152].map((w) => `<w:gridCol w:w="${w}"/>`).join('') + '</w:tblGrid></w:tblGridChange></w:tblGrid>'
+    + widthRow(1) + widthRow(2) + '</w:tbl>' + para('After.');
+  const width = await make(widths);
+  assert.deepEqual(listing(width), [['tableProperties', 'Formatted', 'a1\tb1\tc1\r\na2\tb2\tc2\r\n']]);
+  width.body.getTrackedChanges()[0].reject();
+  const rejected = (await tablesAndSection(width)).tables[0];
+  assert.match(rejected, /<w:tblGrid><w:gridCol w:w="3152"\/><w:gridCol w:w="3152"\/><w:gridCol w:w="3152"\/><\/w:tblGrid>/);
+  assert.match(rejected, /<w:tblW w:type="auto" w:w="0"\/>/);
+  assert.equal(/gridSpan|Change/.test(rejected), false, 'no spans left, no records');
+
+  // a cell's shading: one row changed, the table's own records unchanged, listed with the row's text
+  const same = `<w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblPrChange ${id()} ${A}><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr></w:tblPrChange></w:tblPr>`
+    + `<w:tblGrid><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/><w:tblGridChange ${id()}><w:tblGrid><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/></w:tblGrid></w:tblGridChange></w:tblGrid>`;
+  const W3000 = '<w:tcW w:w="3000" w:type="dxa"/>';
+  const shaded = await make(para('Before.') + `<w:tbl>${same}<w:tr>${tc('a1', `${W3000}<w:shd w:val="clear" w:color="auto" w:fill="FFFF00"/><w:tcPrChange ${id()} ${A}><w:tcPr>${W3000}</w:tcPr></w:tcPrChange>`)}`
+    + `${tc('b1', `${W3000}<w:tcPrChange ${id()} ${A}><w:tcPr>${W3000}</w:tcPr></w:tcPrChange>`)}</w:tr><w:tr>${tc('a2', W3000)}${tc('b2', W3000)}</w:tr></w:tbl>` + para('After.'));
+  assert.deepEqual(listing(shaded), [['tableProperties', 'Formatted', 'a1\tb1\r\n']]);
+
+  // an inserted and a deleted cell: listed with the row's text; the cell kept or taken, the one
+  // before it spanning its column (check 27: w:gridSpan 2, w:tcW 6000)
+  const cellTable = (marker) => para('Before.') + `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/></w:tblGrid>`
+    + `<w:tr>${tc('a1', W3000)}${tc('b1', W3000)}${tc('c1', `${W3000}<w:${marker} ${id()} ${A}/>`)}</w:tr></w:tbl>` + para('After.');
+  const cellsOfRow = async (pkg) => [...(await tablesAndSection(pkg)).tables[0].matchAll(/<w:tc>(.*?)<\/w:tc>/g)].map((m) => m[1]);
+  for (const [marker, type, keep, take] of [['cellIns', 'Added', 'accept', 'reject'], ['cellDel', 'Deleted', 'reject', 'accept']]) {
+    const kept = await make(cellTable(marker));
+    assert.deepEqual(listing(kept), [['cell', type, 'a1\tb1\tc1\r\n']]);
+    kept.body.getTrackedChanges()[0][keep]();
+    assert.deepEqual(await cellsOfRow(kept), ['<w:tcPr><w:tcW w:type="dxa" w:w="3000"/></w:tcPr>[a1]', '<w:tcPr><w:tcW w:type="dxa" w:w="3000"/></w:tcPr>[b1]', '<w:tcPr><w:tcW w:type="dxa" w:w="3000"/></w:tcPr>[c1]'], `${marker} ${keep}`);
+    const taken = await make(cellTable(marker));
+    taken.body.getTrackedChanges()[0][take]();
+    assert.deepEqual(await cellsOfRow(taken), ['<w:tcPr><w:tcW w:type="dxa" w:w="3000"/></w:tcPr>[a1]', '<w:tcPr><w:tcW w:type="dxa" w:w="6000"/><w:gridSpan w:val="2"/></w:tcPr>[b1]'], `${marker} ${take}`);
+  }
+
+  // a mark made bold with its run: one change, "Before.\r" (check 27, mark-bold); accept keeps both
+  // bold, reject takes both off
+  const bold = `<w:p><w:pPr><w:rPr><w:b/><w:rPrChange ${id()} ${A}><w:rPr/></w:rPrChange></w:rPr></w:pPr><w:r><w:rPr><w:b/><w:rPrChange ${id()} ${A}><w:rPr/></w:rPrChange></w:rPr><w:t>Before.</w:t></w:r></w:p>` + para('After.');
+  const boldened = await make(bold);
+  assert.deepEqual(listing(boldened), [['group', 'Formatted', 'Before.\r']]);
+  for (const [action, bolded] of [['accept', true], ['reject', false]]) {
+    const pkg = await make(bold);
+    pkg.body.getTrackedChanges()[0][action]();
+    const p = pkg.body.paragraphs[0].p;
+    assert.deepEqual([Boolean(p.pPr?.rPr?.b), Boolean(p.content[0].value.rPr?.b), Boolean(p.pPr?.rPr?.rPrChange)], [bolded, bolded, false], action);
+  }
+
+  // a section break's properties: "The end of section one.\f"; reject lays the record over them
+  const sectioned = para('The end of section one.', `<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="708" w:footer="708" w:gutter="0"/><w:sectPrChange ${id()} ${A}><w:sectPr><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/><w:docGrid w:linePitch="0"/></w:sectPr></w:sectPrChange></w:sectPr>`) + para('Section two.');
+  const section = await make(sectioned);
+  assert.deepEqual(listing(section), [['sectionProperties', 'Formatted', 'The end of section one.\f']]);
+  section.body.getTrackedChanges()[0].reject();
+  const sectPr = section.body.paragraphs[0].p.pPr.sectPr;
+  assert.deepEqual([sectPr.pgSz.w, sectPr.pgMar.top, sectPr.docGrid, sectPr.sectPrChange], [11906, 1440, undefined, undefined]);
+
+  // never listed, resolved by "all": a cell merge (Office JS throws listing one) and a numbering change
+  const unlisted = para('Before.') + `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="3000"/></w:tblGrid>`
+    + `<w:tr>${tc('a1', `${W3000}<w:vMerge w:val="restart"/>`)}</w:tr><w:tr>${tc('', `${W3000}<w:vMerge/><w:cellMerge ${id()} ${A} w:vMerge="cont"/>`)}</w:tr></w:tbl>`
+    + para('Numbered.', `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/><w:numberingChange ${id()} ${A} w:original="%1."/></w:numPr>`);
+  for (const action of ['accept', 'reject']) {
+    const pkg = await make(unlisted);
+    assert.deepEqual(listing(pkg), []);
+    pkg.body[`${action}All`]();
+    const xml = await pkg.getMainDocumentPart().getXml();
+    assert.equal(/cellMerge|numberingChange/.test(xml), false, `${action}All: both gone`);
+    assert.equal(/<w:vMerge\/>/.test(xml), action === 'accept', `${action}All: the merge ${action === 'accept' ? 'kept' : 'undone'}`);
   }
 });
