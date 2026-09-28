@@ -179,8 +179,9 @@ export class TrackedChange {
         restoreRPr(t.run, rPrFromElements(t.value.rPr));
         return;
       case 'paragraphProperties': {
-        const p = this.requireParagraph().p;
-        restorePPr(p, t.value.pPr);
+        const paragraph = this.requireParagraph();
+        restorePPr(paragraph.p, t.value.pPr);
+        dropLevelIndent(paragraph);
         return;
       }
       case 'row':
@@ -224,6 +225,40 @@ function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
 /** The changes inside a row, last first, so that a paragraph join never disturbs one still to do. */
 function applyInner(inner: TrackedChange[], what: 'accept' | 'reject'): void {
   for (let i = inner.length - 1; i >= 0; i--) inner[i]![what]();
+}
+
+/**
+ * Word records a list paragraph's indent in `w:pPrChange` even where the list level gives it, and on
+ * reject writes no indent back: it restored "The first numbered item." to its numbered list with no
+ * `w:ind`, where the change recorded `left=720 hanging=360`, the level's own (`test/README.md` check
+ * 18, `reject-all.docx`, section 9; CR-002 section 29). So a restored `w:ind` equal to the indent of
+ * the level the restored `w:numPr` names is dropped, leaving the level to give it. The numbering part
+ * must have been read (`await pkg.getBody()` or `getPropertyResolver()` reads it); when it has not,
+ * the recorded indent is restored as it was.
+ */
+function dropLevelIndent(paragraph: Paragraph): void {
+  const pPr = paragraph.p.pPr;
+  const numPr = pPr?.numPr;
+  const ind = pPr?.ind;
+  if (!pPr || !numPr || !ind) return;
+  const part = (paragraph.parentBody.package_ as { numberingDefinitionsPart?: { getInd(numPr: wml.PPrBase.NumPr): wml.PPrBase.Ind | undefined } } | undefined)?.numberingDefinitionsPart;
+  let level: wml.PPrBase.Ind | undefined;
+  try {
+    level = part?.getInd(numPr);
+  } catch {
+    return;                                                             // not read: nothing to compare with
+  }
+  if (!level || !sameIndent(ind, level)) return;
+  delete pPr.ind;
+  pruneParagraphProperties(paragraph.p);
+}
+
+/** Two `w:ind` with the same attributes and values. */
+function sameIndent(a: wml.PPrBase.Ind, b: wml.PPrBase.Ind): boolean {
+  const own = (ind: wml.PPrBase.Ind): string[] => Object.entries(ind)
+    .filter(([key, value]) => key !== 'TYPE_NAME' && key !== 'PARENT' && value !== undefined)
+    .map(([key, value]) => `${key}=${String(value)}`).sort();
+  return own(a).join(' ') === own(b).join(' ');
 }
 
 /**

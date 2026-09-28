@@ -1058,3 +1058,38 @@ test('a revision date as Word means it: w16du:dateUtc when there, else w:date as
   await reloaded.getMainDocumentPart().getContents();
   assert.equal(reloaded.body.getTrackedChanges()[0].date.toISOString(), DATE.toISOString(), 'and after a save');
 });
+
+// CR-002 section 29: Word's check 18 files, accept all and reject all, over the whole document. Word
+// restores a list paragraph without the indent its w:pPrChange recorded when the list level gives it
+// (section 9); the engine drops such an indent when it can read the numbering part.
+test('acceptAll and rejectAll over the check 18 document leave what Word left, list indents included', async () => {
+  const { parseXml, serializeXml } = await import('../dist/index.mjs');
+  const blocksOf = async (pkg) => {
+    const body = parseXml(await pkg.getMainDocumentPart().getXml()).getElementsByTagNameNS(W, 'body')[0];
+    return Array.from(body.childNodes)
+      .filter((n) => n.nodeType === 1 && n.localName !== 'sectPr' && !/^(bookmarkStart|bookmarkEnd)$/.test(n.localName))
+      .map((n) => {
+        const pPr = Array.from(n.childNodes).find((c) => c.localName === 'pPr');
+        // ids, dates and session ids are Word's to renumber; a missing w:ilvl means level 0
+        const properties = pPr ? serializeXml(pPr).replace(/ xmlns:\w+="[^"]*"/g, '')
+          .replace(/ (w:id|w:date|w16du:dateUtc|w:rsid\w*|w14:\w+)="[^"]*"/g, '').replace('<w:ilvl w:val="0"/>', '') : '';
+        return [n.localName, n.textContent, properties];
+      });
+  };
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(name));
+    await pkg.getBody();                                                 // the property resolver reads numbering
+    return pkg;
+  };
+  for (const action of ['accept', 'reject']) {
+    const pkg = await read('revisions/revisions-word15.docx');
+    pkg.body[`${action}All`]();
+    assert.deepEqual(await blocksOf(pkg), await blocksOf(await read(`revisions/check18/${action}-all.docx`)), `${action}All`);
+  }
+
+  // without the numbering part read there is nothing to compare with, and the recorded indent comes back
+  const unread = await loaded('revisions/revisions-word15.docx');
+  unread.body.rejectAll();
+  const item = unread.body.paragraphs.find((p) => p.text === 'The first numbered item.');
+  assert.deepEqual([item.p.pPr.ind.left, item.p.pPr.ind.hanging], [720, 360]);
+});
