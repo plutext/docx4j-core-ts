@@ -2592,7 +2592,15 @@ UTC, so a Word-made revision's date is out by the author's offset, and the engin
 in UTC without `w16du:dateUtc`, so Word shows its revisions shifted the other way. The model keeps
 `w16du:dateUtc` through a re-marshal. Proposed, not scheduled: read `w16du:dateUtc` when present,
 else `w:date` as local time; write both, as Word does. It turns on the time zone of the process,
-which is why it waits for a decision.
+which is why it waits for a decision, which the editor will follow too (its ED-005 section 12.5 item
+12, docx4j-ts-editor 8ff3051: it reads and writes `w:date` as UTC as the engine does). Writing
+`w16du:dateUtc` is possible: the model has `CTTrackChange.dateUtc` (an `XmlCalendar`), and the
+facade's prefix table declares `w16du` on the root. But nothing adds `w16du` to `mc:Ignorable`, which
+Word's own documents list (check 22's: `w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du
+wp14`) and a created document lacks altogether. Under Markup Compatibility, a consumer that does not
+understand a namespace not declared ignorable must reject the markup, so writing the attribute needs
+that declaration ensured (the objects facade's job, a CR there) or has to be limited to documents
+that already declare it. Whether a given Word version would refuse it has not been checked.
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
