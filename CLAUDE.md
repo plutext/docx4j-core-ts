@@ -14,7 +14,7 @@ engine and is the spec for everything below.
 
 **Status:** CR-001 Phase A (packaging, parts, packages, MCE), CR-001 Phase B (`PropertyResolver`,
 list numbering `Emulator`, `RunFontSelector` and `IdentityPlusMapper`, held to docx4j's own
-answers by 45 parity goldens) and CR-002 phases B to I, the whole content API (`Body`,
+answers by 46 parity goldens) and CR-002 phases B to I, the whole content API (`Body`,
 `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
 the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
 search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
@@ -151,7 +151,7 @@ deep-equal after reload, flat OPC through the objects package's `unmarshalPackag
 A defect in a dependency is recorded as a test that **asserts the broken behaviour**, with the
 upstream commit in a comment, never as a skip: the arriving fix then announces itself by failing
 that assertion (CR-001 section 19).
-`test/golden/` holds 45 JSON goldens - what **docx4j itself** answers for each fixture
+`test/golden/` holds 46 JSON goldens - what **docx4j itself** answers for each fixture
 (effective properties, style resolutions, table styles, list labels and counters, the document
 font of every character), written by the Maven harness in `test/java/` and compared by
 `test/parity.test.mjs`, which unmarshals both sides and deep-equals object trees, never text.
@@ -210,8 +210,9 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   `model/listnumbering/`, `model/styles/` (`StyleUtil`, `PropertyCatalogue`), `fonts/`;
   `jaxb/McSelection.java` and `McMode.java` are the `mc:AlternateContent` reference (CR-021),
   `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
-  ported against `7fba7a150`, which is what the goldens record; build docx4j from that commit
-  before regenerating them, and never modify that checkout.
+  ported against `7fba7a150`; the goldens now record `a8d20c1cc` (`VERSION_17_3_0`, refreshed by the
+  weekly workflow on 2026-09-28 with every answer unchanged), so build docx4j from that commit before
+  regenerating them by hand, and never modify that checkout.
 
 ## Portfolio task registry
 

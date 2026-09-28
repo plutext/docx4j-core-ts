@@ -17,10 +17,10 @@ Read that first; this file is the review guide.
 
 | | |
 |---|---|
-| docx4j | branch `VERSION_17_1_1`, commit `7fba7a1507fc01fdd7f4dc2f79cdbd6988c044f7` (2026-09-19; after the batch 49 merge `d5809a1d8`, the three `w:numId` fixes and CR-021 phase 1) |
-| docx4j-core jar | `docx4j-core-17.1.1-SNAPSHOT.jar`, SHA-256 `1c2e2e42a2f50e70…` (a jar is not reproducible: an identical rebuild gives a new hash, which is why the weekly diff ignores this line) |
+| docx4j | branch `VERSION_17_3_0`, commit `a8d20c1cc0d168ec940ed9ed1b08a91c50ec492f` (2026-09-28), from the weekly parity workflow's refresh (pull request #1, merged 2026-09-29): every answer the same as at `7fba7a1507fc01fdd7f4dc2f79cdbd6988c044f7` (`VERSION_17_1_1`, 2026-09-19, which Phase B was ported against), and `invoice_Saxon_XPath2` added |
+| docx4j-core jar | `docx4j-core-17.3.0-SNAPSHOT.jar`, SHA-256 `ed92b2e826456394…` (a jar is not reproducible: an identical rebuild gives a new hash, which is why the weekly diff ignores this line) |
 | harness version | 3 (docx4j's own `McSelection` chooses the `mc:AlternateContent` branch; version 2 chose it, version 1 also used reflection for the parity accessors) |
-| fixtures | the 8 `.docx` in `test/fixtures/` and the 37 in `test/fixtures/parity/` (see `test/README.md` for their provenance) |
+| fixtures | the 9 `.docx` in `test/fixtures/` and the 37 in `test/fixtures/parity/` (see `test/README.md` for their provenance) |
 | fonts | docx4j's symbol, croscore, crosextra and theme2023 jars alone; the machine's own fonts are not discovered |
 
 ## Regenerating them
