@@ -393,6 +393,8 @@ export class Range {
       // the properties as they are now become w:rPrChange, unless this run is our own insertion
       if (tracking && !tracking.ownInsertions.has(run)) tracking.tracker.recordRPrChange(run.rPr);
       applyRunOptions(run.rPr, linked ? { style: HYPERLINK_STYLE, color: '' } : { style: '' });
+      if (tracking) tracking.tracker.settleRPrChange(run);
+      if (!run.rPr) continue;
       if (Object.keys(run.rPr).every((key) => key === 'TYPE_NAME')) delete run.rPr;
       else linkParents(run.rPr, run);
     }

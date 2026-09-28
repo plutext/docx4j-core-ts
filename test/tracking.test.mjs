@@ -1148,3 +1148,40 @@ test('rejecting a list change drops a recorded indent the level gives, even in p
   // does not track: 25c lists no change, and Reject All left 25d the same
   assert.equal((await read('25c-demote')).body.getTrackedChanges().length, 0);
 });
+
+// CR-002 section 29, check 24: Word keeps no formatting change once the formatting is back to what it
+// recorded, whoever changed it back (24b the same author, 24c another; 24e a character style cleared).
+test('a formatting change undone is no change at all, whoever undoes it, as Word does (check 24)', async () => {
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/check24/${name}.docx`));
+    await pkg.getBody();
+    return pkg;
+  };
+  const bodyXml = async (pkg) => (await pkg.getMainDocumentPart().getXml()).match(/<w:body>(.*?)<w:sectPr/)[1]
+    .replace(/ w:(rsid\w*|date)="[^"]*"| w16du:dateUtc="[^"]*"| w14:\w+="[^"]*"|<w:proofErr [^>]*\/>/g, '');
+  for (const [author, expected] of [['Author A', '24b-unbold'], ['Author B', '24c-unbold-by-b']]) {
+    const pkg = await read('24a-bold');                                  // "beta" bolded by Author A, tracked
+    pkg.author = { name: author };
+    await pkg.setChangeTrackingMode('TrackAll');
+    pkg.body.paragraphs[0].search('beta', { matchCase: true })[0].font.bold = false;
+    assert.equal(await bodyXml(pkg), await bodyXml(await read(expected)), `unbolded by ${author}`);
+    assert.deepEqual(pkg.body.getTrackedChanges(), []);
+  }
+
+  // undone in part, it is still a change: bold and italic, then bold off
+  const partial = await tracked(['alpha beta gamma']);
+  const word = () => partial.body.paragraphs[0].search('beta', { matchCase: true })[0];
+  word().font.bold = true;
+  word().font.italic = true;
+  word().font.bold = false;
+  assert.deepEqual(partial.body.getTrackedChanges().map((c) => c.type), ['Formatted']);
+
+  // a link made and removed under tracking restyles its runs and back: nothing is left to review
+  const linked = await tracked(['alpha beta gamma']);
+  const beta = () => linked.body.paragraphs[0].search('beta', { matchCase: true })[0];
+  beta().hyperlink = 'https://example.com/';
+  assert.ok(linked.body.getTrackedChanges().length > 0, 'the restyle is a formatting change');
+  beta().hyperlink = '';
+  assert.deepEqual(linked.body.getTrackedChanges(), []);
+  assert.equal((await xmlOf(linked)).includes('rPrChange'), false);
+});

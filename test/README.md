@@ -494,7 +494,10 @@ namespaces, content types or the zip writer, check by hand:
    | `24e-style-cleared.docx` | A | carrying on from 24d, select "gamma", Ctrl+Space |
 
    Note what Word's Review pane lists after each step. The question in each of 24b, 24c and 24e is
-   whether the run keeps a `w:rPrChange`.
+   whether the run keeps a `w:rPrChange`. **Run 2026-09-28 (Word 16.0.20326.20158): Word drops it,
+   all three times.** Bold then unbold by Author A, unbold by Author B of A's bold, and the Strong
+   style then Ctrl+Space each left the run with no `w:rPrChange` and no `w:rPr` - no revision by
+   anyone. CR-002 section 29.
 25. A rejected list change's level (CR-002 section 29, asked by the editor after its C5): check 18's
    section 9 recorded `w:numPr` with no `w:ilvl` in `w:pPrChange`, and Word's reject wrote
    `w:ilvl="0"` - but the current level was 0 as well, so Word may keep the current level or write

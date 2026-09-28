@@ -10,7 +10,7 @@ import {
   createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange,
   createDelText, createPPr, createParaRPr, createTrPr,
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
-import { rPrToElements } from '@docx4j/generated-objects-ts/builders/wml';
+import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf } from './tree.mjs';
 import type { Author } from './comments.mjs';
@@ -151,6 +151,15 @@ export function revisionDateOf(value: { date?: wml.XmlCalendar; dateUtc?: wml.Xm
   return new Date(cal.year, (cal.month ?? 1) - 1, cal.day ?? 1, cal.hour ?? 0, cal.minute ?? 0, cal.second ?? 0);
 }
 
+/** A run's properties compared as values: keys sorted, `PARENT`, `TYPE_NAME` and absent values left out. */
+function canonical(value: unknown): string {
+  return JSON.stringify(value, (key, v) => {
+    if (key === 'PARENT' || key === 'TYPE_NAME' || v === undefined) return undefined;
+    if (v && typeof v === 'object' && !Array.isArray(v)) return Object.fromEntries(Object.keys(v).sort().map((k) => [k, (v as Record<string, unknown>)[k]]));
+    return v;
+  });
+}
+
 /** The part a tracker writes into, as far as the tracker needs it: its tree, once unmarshalled. */
 export interface TrackedPart {
   readonly contents?: unknown;
@@ -286,6 +295,23 @@ export class ChangeTracker {
     const original = createCTRPrChangeRPr({ egrPrBase: rPrToElements(rPr) });
     rPr.rPrChange = createCTRPrChange({ ...this.markup(), rPr: original });
     linkParents(rPr.rPrChange, rPr);
+  }
+
+  /**
+   * After a tracked formatting write: the run's `w:rPrChange` goes when its properties are back to
+   * what it recorded, since Word keeps no formatting change that changes nothing, whoever changed the
+   * formatting back (`test/README.md` check 24: bold then unbold by the same author, and by another; a
+   * character style applied then cleared; CR-002 section 29). An `w:rPr` then left empty goes too, as
+   * Word writes none.
+   */
+  settleRPrChange(run: { rPr?: wml.RPr }): void {
+    const rPr = run.rPr;
+    const change = rPr?.rPrChange;
+    if (!rPr || !change) return;
+    const { rPrChange: _recorded, ...current } = rPr;
+    if (canonical(current) !== canonical(rPrFromElements(change.rPr?.egrPrBase ?? []))) return;
+    delete rPr.rPrChange;
+    if (Object.keys(rPr).every((key) => key === 'TYPE_NAME')) delete run.rPr;
   }
 
   /** Records the paragraph's properties as they are now in `w:pPrChange`, once. */

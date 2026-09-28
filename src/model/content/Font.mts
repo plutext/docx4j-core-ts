@@ -63,6 +63,7 @@ export class Font {
       // the properties as they are now become w:rPrChange, unless this run is our own insertion
       if (tracking && !tracking.ownInsertions.has(h)) tracking.tracker.recordRPrChange(h.rPr);
       applyRunOptions(h.rPr, opts);
+      if (tracking) tracking.tracker.settleRPrChange(h);
     }
   }
 
