@@ -2614,7 +2614,14 @@ fourth finding, Word's explicit `w:ilvl="0"` on a restored `w:numPr` that record
 editor reads as Word keeping the current level - the current level was 0, what a missing `w:ilvl`
 means, so the case cannot tell keeping the current level from writing 0. The editor agreed; `test/README.md`
 check 25 asks, with an item demoted to the third level in the same tracked change that bulleted it,
-so that the recorded numbering has no `w:ilvl` and the current one has 2. `tracking.test.mjs` holds
+so that the recorded numbering has no `w:ilvl` and the current one has 2. *(Run 2026-09-28: that case
+edited the list's definition instead - Bullets with only a caret, Tab at a list's first item - which
+Word does not track, so it is asked again as 25e/25f with the paragraph selected. The level-2 case
+restored `w:ilvl="2"` as recorded; the level-0 items again had no `w:ilvl` recorded and 0 current,
+so the question stays open. It also widened the indent rule: those items recorded
+`w:ind w:hanging="360"` alone, part of their level's `left=720 hanging=360`, and Word dropped it too.
+The engine now drops a restored indent whose every attribute is the level's, and keeps one with an
+attribute of its own; with that, its `rejectAll()` matches `25b` but for the explicit `w:ilvl="0"`.)* `tracking.test.mjs` holds
 the paragraph ids and rows to Word's files and every revisions fixture to an empty list after
 either "all". Asked in the same message, and not yet run: whether Word keeps a `w:rPrChange` whose
 recorded properties equal the current ones (formatting changed and changed back), which the engine

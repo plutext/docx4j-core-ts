@@ -231,10 +231,12 @@ function applyInner(inner: TrackedChange[], what: 'accept' | 'reject'): void {
  * Word records a list paragraph's indent in `w:pPrChange` even where the list level gives it, and on
  * reject writes no indent back: it restored "The first numbered item." to its numbered list with no
  * `w:ind`, where the change recorded `left=720 hanging=360`, the level's own (`test/README.md` check
- * 18, `reject-all.docx`, section 9; CR-002 section 29). So a restored `w:ind` equal to the indent of
- * the level the restored `w:numPr` names is dropped, leaving the level to give it. The numbering part
- * must have been read (`await pkg.getBody()` or `getPropertyResolver()` reads it); when it has not,
- * the recorded indent is restored as it was.
+ * 18, `reject-all.docx`, section 9), and check 25's level-0 items with none where it recorded only
+ * `hanging=360`, part of the level's `left=720 hanging=360` (`25b-bullets-reject.docx`; CR-002
+ * section 29). So a restored `w:ind` whose every attribute is the level's is dropped, leaving the level
+ * to give it; one with an attribute of its own - a genuinely direct indent - is restored. The numbering
+ * part must have been read (`await pkg.getBody()` or `getPropertyResolver()` reads it); when it has
+ * not, the recorded indent is restored as it was.
  */
 function dropLevelIndent(paragraph: Paragraph): void {
   const pPr = paragraph.p.pPr;
@@ -248,17 +250,15 @@ function dropLevelIndent(paragraph: Paragraph): void {
   } catch {
     return;                                                             // not read: nothing to compare with
   }
-  if (!level || !sameIndent(ind, level)) return;
+  if (!level || !indentWithin(ind, level)) return;
   delete pPr.ind;
   pruneParagraphProperties(paragraph.p);
 }
 
-/** Two `w:ind` with the same attributes and values. */
-function sameIndent(a: wml.PPrBase.Ind, b: wml.PPrBase.Ind): boolean {
-  const own = (ind: wml.PPrBase.Ind): string[] => Object.entries(ind)
-    .filter(([key, value]) => key !== 'TYPE_NAME' && key !== 'PARENT' && value !== undefined)
-    .map(([key, value]) => `${key}=${String(value)}`).sort();
-  return own(a).join(' ') === own(b).join(' ');
+/** True when every attribute `ind` sets, `level` sets to the same value. */
+function indentWithin(ind: wml.PPrBase.Ind, level: wml.PPrBase.Ind): boolean {
+  const attributes = Object.entries(ind).filter(([key, value]) => key !== 'TYPE_NAME' && key !== 'PARENT' && value !== undefined);
+  return attributes.length > 0 && attributes.every(([key, value]) => String((level as Record<string, unknown>)[key]) === String(value));
 }
 
 /**

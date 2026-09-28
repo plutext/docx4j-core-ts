@@ -1117,3 +1117,34 @@ test('acceptAll and rejectAll leave nothing listed, over every revisions fixture
     }
   }
 });
+
+// CR-002 section 29, check 25: Word, rejecting a list turned to bullets, drops a recorded indent the
+// level gives even in part (the level-0 items recorded only hanging=360 of the level's left=720
+// hanging=360), and keeps a level-2 item's level. A list-definition edit (25c) is not tracked at all.
+test('rejecting a list change drops a recorded indent the level gives, even in part, as Word does (check 25)', async () => {
+  const read = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/check25/${name}.docx`));
+    await pkg.getBody();
+    return pkg;
+  };
+  // a missing w:ilvl means level 0: whether Word keeps the current level or writes the recorded one is still open
+  const listProperties = (pkg) => pkg.body.paragraphs.filter((p) => p.p.pPr?.numPr).map((p) => {
+    const { numPr, ind } = p.p.pPr;
+    return [p.text, Number(numPr.ilvl?.val ?? 0), Number(numPr.numId?.val), ind ? JSON.stringify(ind, (key, value) => (key === 'PARENT' || key === 'TYPE_NAME' ? undefined : value)) : null];
+  });
+  const pkg = await read('25a-bullets');
+  assert.equal(pkg.body.getTrackedChanges().length, 3);
+  pkg.body.rejectAll();
+  assert.deepEqual(listProperties(pkg), listProperties(await read('25b-bullets-reject')));
+
+  // an indent of its own - an attribute the level does not give - is restored
+  const direct = await read('25a-bullets');
+  const one = direct.body.paragraphs.find((p) => p.text === 'One.');
+  one.p.pPr.pPrChange.pPr.ind.left = 999;
+  direct.body.rejectAll();
+  assert.equal(direct.body.paragraphs.find((p) => p.text === 'One.').p.pPr.ind?.left, 999);
+
+  // bullets clicked with a caret and Tab at a list's first item edited the list definition, which Word
+  // does not track: 25c lists no change, and Reject All left 25d the same
+  assert.equal((await read('25c-demote')).body.getTrackedChanges().length, 0);
+});

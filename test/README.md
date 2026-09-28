@@ -515,7 +515,23 @@ namespaces, content types or the zip writer, check by hand:
    The questions: what `w:pPrChange` records for "Two." in 25a (its level, 2, or none) and what 25b
    restores; and in 25c, whether "One."'s recorded numbering still has no `w:ilvl` while its current
    one has `w:ilvl="2"` - the case that separates the two readings - and whether 25d writes
-   `w:ilvl` 0, 2, or none.
+   `w:ilvl` 0, 2, or none. **Run 2026-09-28 (Word 16.0.20326.20158; `25-input.docx` was not kept).**
+   25a recorded the level-2 item's numbering with its `w:ilvl="2"` and its level's own indent, and
+   the level-0 items' with no `w:ilvl` and `w:ind w:hanging="360"` alone; 25b restored all three with
+   no indent and explicit `w:ilvl` (2, and 0 where the recorded had none - the current level being 0
+   again, so the question stays open). **25c did not do what was meant: no change was tracked.**
+   Bullets clicked with only a caret in "One." made level 0 of the list's own definition a bullet
+   (so "Three." turned too), and Tab at the start of a list's first item indented every level of the
+   definition by 1080; the paragraphs kept their numbering. Word does not track a list definition,
+   so the Review pane showed nothing and Reject All left 25d as 25c. The case is therefore asked
+   again, with the paragraph selected and its level set by name, both of which change the paragraph:
+   from a fresh copy of the input (made again as above if need be), tracking on, as Author A,
+   triple-click "Three." to select it, click Bullets, then, with it still selected, the arrow beside
+   Bullets > **Change List Level** > the second level; check that the Review pane shows a formatting
+   change on "Three.", and save `25e-bullet-demote.docx`; then Review > Reject > **Reject All
+   Changes** and save `25f-bullet-demote-reject.docx`. 25e should record "Three."'s numbering with
+   no `w:ilvl` and carry `w:ilvl="1"`; 25f then writes 1 (Word keeps the current level), or 0 or none
+   (it writes the recorded one).
 
 A small Node script for 1 to 3 is:
 
