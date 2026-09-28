@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, tracked changes the engine does not list (section, table, grid, row, cell, a mark's run properties), **proposed** 2026-09-28 at the editor's request, not scheduled.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, tracked changes the engine does not list (section, table, grid, row, cell, a mark's run properties), **proposed** 2026-09-28 at the editor's request, not scheduled. Section 36, a comment's entry for markers the caller placed and an empty range's markers, **proposed** 2026-09-29 at the editor's request, not scheduled.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -3097,3 +3097,44 @@ grid, rows and cells back; a row in the change (it has a `w:trPrChange` or a cel
 **Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
 files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
 the mark's run properties.
+
+## 36. A request from the editor's E4.e: a comment's entry for markers the caller placed (2026-09-29)
+
+*Proposed; not scheduled. Asked by the editor (its ED-005 proposal 30, accepted by Jason
+2026-09-29).*
+
+**1. `addCommentEntry`.** The editor places a new comment's markers itself when it exports: a
+selection may span paragraphs, and `Range.insertComment` anchors inside one (its markers go around
+the range in `range.paragraph`). It needs what `Comment.mts`'s private `addComment` does, without
+the markers: the `w:comment` with the caller's id, author, initials, date and paragraphs (the first
+with a `w14:paraId`); its `w15:commentEx` (`w15:done="0"`, `w15:paraIdParent` for a reply); its
+`w16cid:commentId` where that part exists and its `w16cex:commentExtensible` where that one does; and
+the author's `w15:person`. Proposed: `await addCommentEntry(body, { id, content, author?, initials?,
+date?, parent? }): Promise<Comment>` - exported beside `insertComment`, creating the comment parts
+as `insertComment` does, refusing an id as `insertComment`'s `options.id` does, and writing the date
+by section 29's rule for comments (`w:date` on the local wall clock, `w16cex:dateUtc` the date given).
+Until a release has it the editor carries a copy of 0.2.2's `addComment` (its UPSTREAM-11), whose
+dates are UTC, and drops it when it has the public form.
+
+**2. A comment on an empty range: Word writes its range markers too.** Measured by Jason in Word
+2026-09-29, relayed by the editor: a comment made at a caret (in the spaces before a paragraph's
+first word, which Word anchored at the paragraph's start) got a `w:commentRangeStart` and a
+`w:commentRangeEnd` with nothing between them, then its reference run; a second comment made the same
+way nested inside the first - `commentRangeStart 0, commentRangeStart 1, commentRangeEnd 1,
+reference run 1, commentRangeEnd 0, reference run 0`, then the text - and each reference run's
+`w:rPr` was `w:rStyle CommentReference` with the text's `w:sz`. The engine writes the reference run
+alone (`placeAround` when nothing is covered), and a second comment's after the first's:
+`reference 0, reference 1, text` (measured on main, 2026-09-29). Proposed: markers and reference run
+at the caret, a later comment at the same place nested inside the earlier, and the reference run
+taking the text's run properties with the `CommentReference` style. The editor writes empty ranges
+Word's way already, held to that XML.
+
+**3. For an Office JS parity note.** At a caret, Word's New Comment covers a word: inside a word,
+that word; between words, the word after the caret when the caret touches it, else the word before,
+however many spaces lie between. That is Word's own command; what Office JS's `insertComment` does
+on an empty range has not been measured (a Script Lab check would say), so the engine keeps
+anchoring at the caret.
+
+**Cost.** Half a day for `addCommentEntry`, which is `addComment` made public with its tests; two or
+three hours for the empty range's markers, nesting and the reference run's properties, with a test
+held to the XML above (Jason's saved file would make a better oracle, if there is one).
