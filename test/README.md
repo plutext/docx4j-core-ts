@@ -149,6 +149,12 @@ second opened as a `pkg:package` file.
 Saved output must open in Word without a repair prompt. After a change to marshalling,
 namespaces, content types or the zip writer, check by hand:
 
+**Saving each step of a check under its own name: Save As first, then make the change, then
+Ctrl+S.** Word's AutoSave writes a change back to the file that is open as soon as it is made, so
+"make the change, then Save As the new name" overwrites the file the step started from. Where a
+check below says "carrying on from", "from a fresh copy of" or "save as", do it in that order: open
+the starting file, File > Save As the step's file name, make the change, Ctrl+S.
+
 1. Round trip: load `fixtures/loadAndSave.docx`, save, open in Word. No repair prompt; comments,
    headers, footers, the chart and both images still there.
 2. Re-marshalled main part: as 1, but `await pkg.getMainDocumentPart().getContents()` before
@@ -527,14 +533,20 @@ namespaces, content types or the zip writer, check by hand:
    (so "Three." turned too), and Tab at the start of a list's first item indented every level of the
    definition by 1080; the paragraphs kept their numbering. Word does not track a list definition,
    so the Review pane showed nothing and Reject All left 25d as 25c. The case is therefore asked
-   again, with the paragraph selected and its level set by name, both of which change the paragraph:
-   from a fresh copy of the input (made again as above if need be), tracking on, as Author A,
-   triple-click "Three." to select it, click Bullets, then, with it still selected, the arrow beside
-   Bullets > **Change List Level** > the second level; check that the Review pane shows a formatting
-   change on "Three.", and save `25e-bullet-demote.docx`; then Review > Reject > **Reject All
-   Changes** and save `25f-bullet-demote-reject.docx`. 25e should record "Three."'s numbering with
-   no `w:ilvl` and carry `w:ilvl="1"`; 25f then writes 1 (Word keeps the current level), or 0 or none
-   (it writes the recorded one).
+   again, with the paragraph selected and its level set by name, both of which change the paragraph.
+   As **Author A** throughout:
+   1. If `25-input.docx` is gone, make it again: new blank document, tracking **off**, "One.", "Two."
+      and "Three." as a numbered list, the caret at the very start of "Two.", Tab twice; File > Save
+      As `25-input.docx`.
+   2. Open `25-input.docx`, File > **Save As** `25e-bullet-demote.docx` (before changing anything).
+   3. Turn Track Changes **on**. Triple-click "Three." to select it, click Bullets, then, with it
+      still selected, the arrow beside Bullets > **Change List Level** > the second level. Check that
+      the Review pane shows a formatting change on "Three.". Ctrl+S.
+   4. File > **Save As** `25f-bullet-demote-reject.docx` (before changing anything), then Review >
+      Reject > **Reject All Changes**, Ctrl+S.
+
+   25e should record "Three."'s numbering with no `w:ilvl` and carry `w:ilvl="1"`; 25f then writes 1
+   (Word keeps the current level), or 0 or none (it writes the recorded one).
 
 A small Node script for 1 to 3 is:
 
