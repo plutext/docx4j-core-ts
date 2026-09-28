@@ -576,6 +576,27 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    `26d-indented-back.docx`): Word drops it, all three times,** and writes no `w:pPr`: Ctrl+L removed
    the `w:jc`, Decrease Indent the `w:ind`, and B's undoing of A's change left no revision by either.
    CR-002 section 29.
+27. Tracked changes the engine does not list (CR-002 section 35), through Office JS: which of them
+   current Word writes, how Office JS lists them, and what accepting and rejecting each leaves. In a
+   **new blank document**, run the Script Lab snippet for 27 below (**Run the check**) and copy the
+   JSON back; nothing is typed by hand and nothing needs saving. The snippet switches tracking on and
+   off itself, so the user name does not matter. Two parts:
+   - **Word writes** (11 cases): a paragraph, a 3x3 table and a paragraph are put in untracked, then,
+     with tracking on, Office JS changes one thing - the table's alignment, width or style, a cell's
+     shading, width or vertical alignment, the first row's height, a column added or deleted, two
+     cells merged vertically, the first paragraph made bold (its mark too?), a paragraph made a list
+     item and moved a level down. What revision markup Word writes, if any, is the answer.
+   - **Written by hand** (10 cases): each kind of section 35's markup, by Author A, put in through
+     `insertOoxml` with tracking off - `w:tblPrChange`, `w:tblGridChange`, `w:trPrChange`,
+     `w:tcPrChange`, `w:cellIns`, `w:cellDel`, `w:cellMerge`, `w:numberingChange`, a mark's
+     `w:rPrChange`, and a section break's `w:sectPrChange`.
+
+   For every case, from a fresh start each time: the markup, what `getTrackedChanges()` lists (type,
+   author, text), then the first change accepted, the first rejected, all accepted and all rejected,
+   each with the markup after (a block unchanged from before shows as `=`) and what is still listed.
+   A case that throws records the error and the next goes on. The document is left holding the last
+   case; close it without saving. It needs WordApi 1.6; merging cells needs `Table.mergeCells`, and
+   the case records an error where the build lacks it.
 
 A small Node script for 1 to 3 is:
 
@@ -1269,6 +1290,169 @@ async function check() {
         entry[act] = { error: String(e && e.message || e) };
       }
     }
+  }
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 27 (Word, Office JS, WordApi 1.6), in a new blank document. The HTML
+tab is check 15's (a **Run the check** button and a text box). The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*|w16du:dateUtc)="[^"]*"/g, '');
+const REVISIONS = /<w:(\w+Change|cellIns|cellDel|cellMerge|ins|del)\b/g;
+
+// --- part A: Word writes the revision (tracking on, one Office JS change on a fresh table) ---
+const VALUES = [['a1', 'b1', 'c1'], ['a2', 'b2', 'c2'], ['a3', 'b3', 'c3']];
+async function freshTable(context) {
+  const body = context.document.body;
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+  await context.sync();
+  body.clear();
+  body.insertParagraph('Before.', 'Start');
+  body.insertTable(3, 3, 'End', VALUES);
+  body.insertParagraph('After.', 'End');
+  await context.sync();
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.trackAll;
+  const tables = body.tables;
+  tables.load('items');
+  await context.sync();
+  return tables.items[0];
+}
+const WORD_WRITES = {
+  'table-alignment': (c, t) => { t.alignment = 'Centered'; },
+  'table-width': (c, t) => { t.width = 300; },
+  'table-style': (c, t) => { t.styleBuiltIn = 'GridTable4_Accent1'; },
+  'cell-shading': (c, t) => { t.getCell(0, 0).shadingColor = '#FFFF00'; },
+  'cell-width': (c, t) => { t.getCell(0, 0).columnWidth = 150; },
+  'cell-valign': (c, t) => { t.getCell(0, 0).verticalAlignment = 'Center'; },
+  'row-height': (c, t) => { t.rows.getFirst().preferredHeight = 40; },
+  'add-column': (c, t) => { t.addColumns('End', 1, [['d1'], ['d2'], ['d3']]); },
+  'delete-column': (c, t) => { t.deleteColumns(1, 1); },
+  'merge-vertical': (c, t) => { if (typeof t.mergeCells !== 'function') throw new Error('Table.mergeCells is not in this build'); t.mergeCells(0, 0, 1, 0); },
+  'mark-bold': (c) => { c.document.body.paragraphs.getFirst().font.bold = true; },
+  'list-level': async (c) => {
+    const p = c.document.body.paragraphs.getLast();
+    p.startNewList();
+    await c.sync();
+    p.listItem.level = 1;
+  },
+};
+
+// --- part B: each kind written by hand, put in with tracking off ---
+const A = 'w:author="Author A" w:date="2026-09-28T01:00:00Z"';
+let nextId = 500;
+const id = () => `w:id="${nextId++}"`;
+const run = (s) => `<w:r><w:t xml:space="preserve">${s}</w:t></w:r>`;
+const p = (s, pPr = '') => `<w:p>${pPr ? `<w:pPr>${pPr}</w:pPr>` : ''}${run(s)}</w:p>`;
+const tc = (s, tcPr = '') => `<w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/>${tcPr}</w:tcPr>${p(s)}</w:tc>`;
+const tr = (cells, trPr = '') => `<w:tr>${trPr ? `<w:trPr>${trPr}</w:trPr>` : ''}${cells}</w:tr>`;
+const row = (n, trPr = '') => tr(tc(`a${n}`) + tc(`b${n}`) + tc(`c${n}`), trPr);
+const GRID = '<w:gridCol w:w="3000"/><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/>';
+const tbl = (rows, tblPr = '', gridExtra = '') => p('Before.')
+  + `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${tblPr}</w:tblPr><w:tblGrid>${GRID}${gridExtra}</w:tblGrid>${rows}</w:tbl>` + p('After.');
+const MARGINS = (m) => `<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="${m}" w:right="${m}" w:bottom="${m}" w:left="${m}" w:header="708" w:footer="708" w:gutter="0"/>`;
+const WRITTEN = {
+  'tblPrChange': tbl(row(1) + row(2) + row(3), `<w:jc w:val="center"/><w:tblPrChange ${id()} ${A}><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr></w:tblPrChange>`),
+  'tblGridChange': tbl(row(1) + row(2) + row(3), '', `<w:tblGridChange ${id()}><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="4000"/><w:gridCol w:w="3000"/></w:tblGrid></w:tblGridChange>`),
+  'trPrChange': tbl(row(1, `<w:trHeight w:val="600"/><w:trPrChange ${id()} ${A}><w:trPr/></w:trPrChange>`) + row(2) + row(3)),
+  'tcPrChange': tbl(tr(tc('a1', `<w:shd w:val="clear" w:color="auto" w:fill="FFFF00"/><w:tcPrChange ${id()} ${A}><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr></w:tcPrChange>`) + tc('b1') + tc('c1')) + row(2) + row(3)),
+  'cellIns': tbl(tr(tc('a1') + tc('b1') + tc('c1 inserted', `<w:cellIns ${id()} ${A}/>`)) + row(2) + row(3)),
+  'cellDel': tbl(tr(tc('a1') + tc('b1') + tc('c1 deleted', `<w:cellDel ${id()} ${A}/>`)) + row(2) + row(3)),
+  'cellMerge': tbl(tr(tc('a1', '<w:vMerge w:val="restart"/>') + tc('b1') + tc('c1')) + tr(tc('', `<w:vMerge/><w:cellMerge ${id()} ${A} w:vMerge="cont"/>`) + tc('b2') + tc('c2')) + row(3)),
+  'numberingChange': p('Before.') + p('A numbered item.', `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/><w:numberingChange ${id()} ${A} w:original="%1."/></w:numPr>`) + p('After.'),
+  'mark-rPrChange': p('Before.') + p('A paragraph whose mark was made bold.', `<w:rPr><w:b/><w:rPrChange ${id()} ${A}><w:rPr/></w:rPrChange></w:rPr>`) + p('After.'),
+  'sectPrChange': p('The end of section one.', `<w:sectPr>${MARGINS(720)}<w:sectPrChange ${id()} ${A}><w:sectPr>${MARGINS(1440)}</w:sectPr></w:sectPrChange></w:sectPr>`) + p('Section two.'),
+};
+const NUMBERING = `<w:numbering xmlns:w="${W}"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="1"/>`
+  + '<w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr></w:lvl>'
+  + '</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>';
+const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+const packageOf = (blocks) => `<pkg:package xmlns:pkg="${PKG}">`
+  + `<pkg:part pkg:name="/_rels/.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}"><w:body>${blocks}</w:body></w:document></pkg:xmlData></pkg:part>`
+  + `<pkg:part pkg:name="/word/_rels/document.xml.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/numbering.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml">'
+  + `<pkg:xmlData>${NUMBERING}</pkg:xmlData></pkg:part></pkg:package>`;
+async function freshWritten(context, blocks) {
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+  await context.sync();
+  context.document.body.clear();
+  context.document.body.insertOoxml(packageOf(blocks), 'Start');
+  await context.sync();
+}
+
+// --- recording ---
+async function blocks(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const main = all(doc, PKG, 'part').find((part) => part.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1).map(xml) : [];
+}
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text.slice(0, 80) })) };
+}
+async function measure(make) {
+  const entry = {};
+  for (const act of ['before', 'accept', 'reject', 'acceptAll', 'rejectAll']) {
+    try {
+      await Word.run(async (context) => {
+        await make(context);
+        await context.sync();
+        if (act === 'before') {
+          entry.markup = await blocks(context);
+          entry.revisions = [...entry.markup.join('').matchAll(REVISIONS)].map((m) => m[1]);
+          entry.listed = (await listed(context)).list;
+          return;
+        }
+        const { changes } = await listed(context);
+        if (changes.items.length === 0) { entry[act] = 'nothing listed'; return; }
+        if (act === 'accept') changes.items[0].accept();
+        else if (act === 'reject') changes.items[0].reject();
+        else if (act === 'acceptAll') changes.acceptAll();
+        else changes.rejectAll();
+        await context.sync();
+        const after = await blocks(context);
+        entry[act] = {
+          after: after.map((b, i) => (entry.markup && b === entry.markup[i] ? '=' : b)),
+          listedAfter: (await listed(context)).list,
+        };
+      });
+    } catch (e) {
+      entry[act] = { error: String(e && e.message || e) };
+    }
+  }
+  return entry;
+}
+
+async function check() {
+  const report = { host: Office.context.diagnostics, wordWrites: {}, written: {} };
+  for (const [name, op] of Object.entries(WORD_WRITES)) {
+    out.value = `running ${name}...`;
+    report.wordWrites[name] = await measure(async (context) => { const table = await freshTable(context); await op(context, table); });
+  }
+  for (const [name, markup] of Object.entries(WRITTEN)) {
+    out.value = `running ${name}...`;
+    report.written[name] = await measure((context) => freshWritten(context, markup));
   }
   out.value = JSON.stringify(report, null, 2);
 }

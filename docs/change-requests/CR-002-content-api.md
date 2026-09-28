@@ -3015,7 +3015,13 @@ later generally refuse to track cell insertion and deletion, and neither Word us
 `w:numberingChange` for a list change (both wrote a `w:pPrChange`, checks 18 and 25): a check would
 establish which of these current Word writes at all, and how it resolves them; kinds Word no longer
 writes could be resolved on docx4j's reading alone. A second, Script Lab, check would ask how Office
-JS lists table and cell property changes.
+JS lists table and cell property changes. *(Both are asked through Script Lab as `test/README.md`
+check 27, written 2026-09-28 at Jason's request to do as much as possible that way: eleven cases
+where Office JS makes one tracked table, cell, row, list or mark change and the markup Word writes is
+recorded, and ten where each kind is written by hand and put in untracked; each then listed,
+accepted and rejected one at a time and all at once. Only a section's properties cannot be changed
+through Office JS; check 18's files cover them. The object model binds every kind: each of the ten
+handwritten cases survives an unmarshal and marshal unchanged.)*
 
 **Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
 files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
