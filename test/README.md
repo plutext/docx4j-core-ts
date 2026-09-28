@@ -602,6 +602,29 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    list made in `list-level` (whose accept and reject threw) stayed on the body's last paragraph
    through part B and was listed there (in `tblPrChange` it was the only change listed); and its
    `revisions` summary came out empty although the markup holds the revisions.
+28. Check 27's three open questions (CR-002 section 35), by hand in one document:
+   `fixtures/revisions/check28/28-input.docx` (made by the engine; a copy is in the shared `__tmp/28/`).
+   Question 1: when a table changes, does Word write a `w:trPrChange` for rows that already have
+   properties of their own, and does rejecting keep those properties? Question 2: is a row's height
+   removed when the change is rejected from a **saved file**, not in the session? Question 3: are two
+   touching runs' formatting changes listed as one change or two? As **Author A** throughout (the
+   user name in File > Options > General, with "Always use these values regardless of sign in to
+   Office" ticked):
+   1. Open `28-input.docx`. File > **Save As** `28a-changes.docx`. Turn Track Changes **on**.
+   2. Table 1 (rows 1a to 3a): click in it, then the table's **Layout** tab > **Properties** > **Table**
+      tab > Alignment **Center** > OK.
+   3. Table 2 (x1 to y2): click in its first row, then the table's **Layout** tab > **Height** (Cell
+      Size group): type 1.5 cm, Enter.
+   4. In the last paragraph, select the words "alpha beta" (the italic "alpha" and the plain "beta")
+      and press Ctrl+B.
+   5. Ctrl+S. Then, with `28a-changes.docx` still open, run the Script Lab snippet for 28 below
+      (**Run the check**) and copy the JSON back: it only lists the changes.
+   6. Close the document. Open `28a-changes.docx` again, File > **Save As** `28b-reject-all.docx`,
+      then Review > Reject > **Reject All Changes**, Ctrl+S.
+   7. Close it. Open `28a-changes.docx` again, File > **Save As** `28c-accept-all.docx`, then Review >
+      Accept > **Accept All Changes**, Ctrl+S.
+
+   Save the four files into `fixtures/revisions/check28/` (or leave them in `__tmp/28/`).
 
 A small Node script for 1 to 3 is:
 
@@ -1461,4 +1484,20 @@ async function check() {
   }
   out.value = JSON.stringify(report, null, 2);
 }
+```
+
+And the Script Lab snippet for 28 (Word, Office JS, WordApi 1.6), run in `28a-changes.docx`. The
+HTML tab is check 15's (a **Run the check** button and a text box). The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => Word.run(async (context) => {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/author,items/text');
+  await context.sync();
+  out.value = JSON.stringify({
+    host: Office.context.diagnostics,
+    listed: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text })),
+  }, null, 2);
+}).catch((e) => { out.value = String(e && e.stack || e); }));
 ```

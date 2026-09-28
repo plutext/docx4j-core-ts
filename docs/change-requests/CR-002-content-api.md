@@ -3059,7 +3059,9 @@ unmeasured).
 
 **Still open, for a later check if wanted:** row properties that exist before a table change (does
 Word then write a `w:trPrChange`, and does reject keep them?); `w:trHeight` rejected from a saved file
-rather than in the session; and two touching runs' formatting changes, one change or two.
+rather than in the session; and two touching runs' formatting changes, one change or two. *(Asked
+as `test/README.md` check 28, 2026-09-28, in one document the engine made:
+`fixtures/revisions/check28/28-input.docx`.)*
 
 **Cost.** About a day and a half for the kinds check 18 covers, with their tests against its two
 files; half a day more, after the Word check, for the cell kinds, the legacy numbering form and
