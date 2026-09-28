@@ -153,7 +153,9 @@ namespaces, content types or the zip writer, check by hand:
 Ctrl+S.** Word's AutoSave writes a change back to the file that is open as soon as it is made, so
 "make the change, then Save As the new name" overwrites the file the step started from. Where a
 check below says "carrying on from", "from a fresh copy of" or "save as", do it in that order: open
-the starting file, File > Save As the step's file name, make the change, Ctrl+S.
+the starting file, File > Save As the step's file name, make the change, Ctrl+S. Where the cases
+all start from the same input (check 29 on), the copies are made beforehand, one per case and
+already named, so each case starts by opening its own file.
 
 1. Round trip: load `fixtures/loadAndSave.docx`, save, open in Word. No repair prompt; comments,
    headers, footers, the chart and both images still there.
@@ -642,8 +644,8 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
    inserted ("Cases c and d: ..." and "Case e: ..."). Before starting: Home > **Show/Hide** (the
    pilcrows showing) and Review > Display for Review > **All Markup**. The author is the user name in
    File > Options > General, with "Always use these values regardless of sign in to Office" ticked.
-   Each case starts from `29-input.docx`: open it, File > **Save As** the case's file name, set the
-   author and tracking as the table says, act, Ctrl+S, close.
+   Each case has its own copy of `29-input.docx`, already named, in `__tmp/29/`: open the case's
+   file, set the author and tracking as the table says, act, Ctrl+S, close.
 
    | File | Author | Track Changes | Do |
    |---|---|---|---|
