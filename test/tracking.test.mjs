@@ -269,19 +269,20 @@ test('getTrackedChanges over a Word fixture; accept and reject of each kind', as
 });
 
 test('accept and reject of a paragraph mark join the paragraphs, as docx4j AcceptTrackedChanges does', async () => {
+  // a paragraph's text and mark are one change, as Office JS lists them (CR-002 section 29, check 22)
   const deleted = await tracked(['one', 'two']);
   deleted.body.paragraphs[0].delete();
-  assert.equal(deleted.body.acceptAll(), 2);
+  assert.equal(deleted.body.acceptAll(), 1);
   assert.deepEqual(deleted.body.paragraphs.map((q) => q.text), ['two'], 'the deleted mark joined the two');
 
   const inserted = await tracked(['one']);
   inserted.body.insertParagraph('two', 'End');
-  assert.equal(inserted.body.rejectAll(), 2);
+  assert.equal(inserted.body.rejectAll(), 1);
   assert.deepEqual(inserted.body.paragraphs.map((q) => q.text), ['one'], 'the inserted paragraph went');
 
   const kept = await tracked(['one']);
   kept.body.insertParagraph('two', 'End');
-  assert.equal(kept.body.acceptAll(), 2);
+  assert.equal(kept.body.acceptAll(), 1);
   assert.deepEqual(kept.body.paragraphs.map((q) => q.text), ['one', 'two']);
   const xml = await xmlOf(kept);
   assert.equal(xml.includes('<w:ins'), false);
@@ -925,4 +926,92 @@ test('accepting and rejecting an edited, re-moved or broken move leaves what Wor
       assert.deepEqual(await moveSection(pkg), await moveSection(word), `14 ${side} ${action}`);
     }
   }
+});
+
+// --- CR-002 section 29, fix F: touching insertions or deletions are one change (checks 22, 23) ---
+
+/** Each paragraph: its accepted text, its original text, and the revision on its mark. */
+const paragraphsOf = (pkg) => pkg.body.paragraphs.map((p) => {
+  const rPr = p.p.pPr?.rPr;
+  return [p.text, p.getText({ view: 'original' }), rPr?.ins ? 'ins' : rPr?.del ? 'del' : ''];
+});
+const listingOf = (changes) => changes.map((c) => [c.type, c.author, c.text]);
+
+test('touching deletions, text and paragraph marks, are one change, as Office JS lists them (check 22)', async () => {
+  const file = 'revisions/check22/22-deleted.docx';
+  const pkg = await loaded(file);
+  assert.deepEqual(listingOf(pkg.body.getTrackedChanges()), [
+    ['Deleted', 'Author A', 'Two.\r'], ['Deleted', 'Author A', '\r'], ['Deleted', 'Author A', 'six.\rSeven '],
+  ]);
+  // a paragraph lists the changes that start in it, cut at its end
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.getTrackedChanges().map((c) => c.text)),
+    [[], ['Two.\r'], [], ['\r'], ['six.\r'], [], [], []]);
+
+  const original = paragraphsOf(pkg);
+  const lone = { accept: [...original], reject: [...original] };            // the JSON's, for the lone mark
+  lone.accept.splice(3, 2, ['Four.Five ', 'Four.Five six.', 'del']);
+  lone.reject.splice(3, 1, ['Four.', 'Four.', '']);
+  for (const action of ['accept', 'reject']) {
+    for (const [index, expected] of [[0, `22-${action}-whole`], [1, lone[action]], [2, `22-${action}-across`]]) {
+      const edited = await loaded(file);
+      edited.body.getTrackedChanges()[index][action]();
+      const word = typeof expected === 'string' ? paragraphsOf(await loaded(`revisions/check22/${expected}.docx`)) : expected;
+      assert.deepEqual(paragraphsOf(edited), word, `${action} ${index}`);
+      assert.equal(edited.body.getTrackedChanges().length, 2, `${action} ${index}: the other two left`);
+    }
+  }
+});
+
+test('what makes one change: kind and author, not date; insertions as deletions (check 23)', async () => {
+  const D1 = '2026-09-28T01:00:00Z';
+  const D2 = '2026-09-28T02:00:00Z';
+  let nextId = 100;
+  const who = (author, date) => `w:id="${nextId++}" w:author="Author ${author}" w:date="${date}"`;
+  const p = (inner, mark) => `<w:p>${mark ? `<w:pPr><w:rPr>${mark}</w:rPr></w:pPr>` : ''}${inner}</w:p>`;
+  const r = (text) => `<w:r><w:t xml:space="preserve">${text}</w:t></w:r>`;
+  const ins = (a, d, text) => `<w:ins ${who(a, d)}>${r(text)}</w:ins>`;
+  const del = (a, d, text) => `<w:del ${who(a, d)}><w:r><w:delText xml:space="preserve">${text}</w:delText></w:r></w:del>`;
+  const insMark = (a, d) => `<w:ins ${who(a, d)}/>`;
+  const delMark = (a, d) => `<w:del ${who(a, d)}/>`;
+  // [markup, Office JS's listing, the paragraphs after accepting the first change, after rejecting it]
+  const CASES = {
+    'ins-paragraph': [p(r('One.')) + p(ins('A', D1, 'Two.'), insMark('A', D1)) + p(r('Three.')),
+      [['Added', 'Author A', 'Two.\r']], ['One.', 'Two.', 'Three.'], ['One.', 'Three.']],
+    'ins-across': [p(r('Four ') + ins('A', D1, 'five.'), insMark('A', D1)) + p(ins('A', D1, 'Six ') + r('seven.')),
+      [['Added', 'Author A', 'five.\rSix ']], ['Four five.', 'Six seven.'], ['Four seven.']],
+    'ins-mark-alone': [p(r('Eight.'), insMark('A', D1)) + p(r('Nine.')),
+      [['Added', 'Author A', '\r']], ['Eight.', 'Nine.'], ['Eight.Nine.']],
+    'del-paragraph-dates': [p(r('One.')) + p(del('A', D1, 'Two.'), delMark('A', D2)) + p(r('Three.')),
+      [['Deleted', 'Author A', 'Two.\r']], ['One.', 'Three.'], ['One.', 'Two.', 'Three.']],
+    'del-paragraph-authors': [p(r('One.')) + p(del('A', D1, 'Two.'), delMark('B', D1)) + p(r('Three.')),
+      [['Deleted', 'Author A', 'Two.'], ['Deleted', 'Author B', '\r']], ['One.', '', 'Three.'], ['One.', 'Two.', 'Three.']],
+    'del-same': [p(r('Ten ') + del('A', D1, 'eleven ') + del('A', D1, 'twelve') + r('.')),
+      [['Deleted', 'Author A', 'eleven twelve']], ['Ten .'], ['Ten eleven twelve.']],
+    'del-dates': [p(r('Ten ') + del('A', D1, 'eleven ') + del('A', D2, 'twelve') + r('.')),
+      [['Deleted', 'Author A', 'eleven twelve']], ['Ten .'], ['Ten eleven twelve.']],
+    'del-authors': [p(r('Ten ') + del('A', D1, 'eleven ') + del('B', D1, 'twelve') + r('.')),
+      [['Deleted', 'Author A', 'eleven '], ['Deleted', 'Author B', 'twelve']], ['Ten .'], ['Ten eleven .']],
+    'del-then-ins': [p(r('Ten ') + del('A', D1, 'eleven') + ins('A', D1, 'twelve') + r('.')),
+      [['Deleted', 'Author A', 'eleven'], ['Added', 'Author A', 'twelve']], ['Ten twelve.'], ['Ten eleventwelve.']],
+  };
+  const make = async (blocks) => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body>${blocks}</w:body></w:document>`);
+    await pkg.getMainDocumentPart().getContents();
+    return pkg;
+  };
+  for (const [name, [blocks, listing, accepted, rejected]] of Object.entries(CASES)) {
+    const pkg = await make(blocks);
+    const changes = pkg.body.getTrackedChanges();
+    assert.deepEqual(listingOf(changes), listing, name);
+    for (const [action, expected] of [['accept', accepted], ['reject', rejected]]) {
+      const edited = await make(blocks);
+      edited.body.getTrackedChanges()[0][action]();
+      assert.deepEqual(edited.body.paragraphs.map((q) => q.text), expected, `${name} ${action}`);
+      assert.deepEqual(listingOf(edited.body.getTrackedChanges()), listing.slice(1), `${name} ${action}: the rest left`);
+    }
+  }
+  // a group's date is its first piece's (Office JS gave the run's, not the mark's an hour later)
+  const dated = (await make(CASES['del-paragraph-dates'][0])).body.getTrackedChanges()[0];
+  assert.equal(dated.date.toISOString(), new Date(D1).toISOString());
 });

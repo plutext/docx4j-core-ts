@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - all 2026-09-28.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **not released** (Jason is holding 0.2.3): section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28. Open: a revision's date (section 29, found by check 23).
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2552,13 +2552,47 @@ their text cut at its end: "Five six." gives `six.\r`, "Seven eight." nothing.
 The engine lists six: each deleted mark apart, **before** its paragraph's text, with text `""`, and
 each `w:del` apart. Resolving all six leaves what Word leaves, in any order; resolving one does less
 than Word's one change would, and a caller counting changes, or pairing them with Office JS's, gets a
-different answer. **Fix F, proposed:** `getTrackedChanges()` groups pieces that touch - `w:del`
-elements and deleted marks with nothing undeleted between them - into one change, in document order,
-its text with `\r` for each mark, and resolving it resolves every piece (the marks last, last
-first); `Paragraph.getTrackedChanges()` lists the groups that start in the paragraph. Not built yet:
-check 22 cannot say whether insertions group the same way, or whether a different date or author
-splits a group, and a guess there would move the listing twice. Check 23 asks, with markup it
-inserts itself.
+different answer. Check 22 could not say whether insertions group the same way, or whether a
+different date or author splits a group, so check 23 asked, with markup it inserted itself.
+
+*(Check 23, run 2026-09-28, Word 16.0.20326.20158, nine cases through Office JS.)* **One change is
+touching pieces of one kind by one author; the date does not matter.** An inserted paragraph lists as
+`Added "Two.\r"`, an insertion across a mark as `Added "five.\rSix "`, a lone inserted mark as
+`Added "\r"`, just as deletions do. A deleted paragraph whose mark is an hour younger than its text
+is still one change (`del-paragraph-dates`), and so are two touching `w:del` an hour apart, which
+Word keeps as two elements (`del-dates`; two with the same date it merged into one element on
+insertion, `del-same`). Another author splits: the mark by B apart from A's text
+(`del-paragraph-authors`, accepting A's leaving an empty paragraph with B's deleted mark), A's
+deletion apart from B's (`del-authors`). A deletion and an insertion that touch are two changes
+(`del-then-ins`). Resolving the first change resolved all of it and nothing else, every time. A
+group's `date` was its first piece's, the text's rather than the later mark's.
+
+**Fix F, implemented 2026-09-28 (unreleased).** `Body.getTrackedChanges()` groups touching
+insertions or deletions by one author - `w:ins` and `w:del` around runs, inserted and deleted
+paragraph marks - into one change, the new target kind `group` (its `pieces` the single changes,
+its `value` the first's), in document order; a paragraph mark is now listed after its paragraph's
+text and its `text` is `\r`, as Office JS gives it. Unrevised text, an unrevised mark, a table or a
+block-level content control keeps pieces apart; a bookmark or range end between paragraphs does not.
+Moves stay out of groups (Office JS cannot list them at all), and a formatting change is listed where
+it stands without breaking a group. Accepting or rejecting a group resolves its runs last first,
+then its marks last first. `Paragraph.getTrackedChanges()` lists the changes that start in the
+paragraph, cut at its end: a mark before it carrying on into it leaves the pieces it carries on to
+the paragraph before. A group of one piece is that piece, so a change that touches nothing is what it
+was. Not measured, and left as it was: a revision inside a revision (a deletion of inserted text),
+listed apart as before; and what Office JS does when a change cut at a paragraph's end is accepted
+from that paragraph (here it resolves the paragraph's part). `acceptAll()` and `rejectAll()` count
+changes, so their counts fall where pieces group. `tracking.test.mjs` holds the listing and every
+accept and reject to check 22's file and JSON and to check 23's nine cases.
+
+**Open, found by check 23: a revision's date.** Office JS gave `w:date="2026-09-28T01:00:00Z"` as
+`2026-09-27T15:00:00Z`: Word reads `w:date` as local wall-clock time, the `Z` notwithstanding, and
+writes it that way too, with the true UTC in `w16du:dateUtc` (check 22's files: `w:date` 10:54Z,
+`w16du:dateUtc` 00:54Z, Jason's time zone being UTC+10). `TrackedChange.date` reads `w:date` as
+UTC, so a Word-made revision's date is out by the author's offset, and the engine writes `w:date`
+in UTC without `w16du:dateUtc`, so Word shows its revisions shifted the other way. The model keeps
+`w16du:dateUtc` through a re-marshal. Proposed, not scheduled: read `w16du:dateUtc` when present,
+else `w:date` as local time; write both, as Word does. It turns on the time zone of the process,
+which is why it waits for a decision.
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it

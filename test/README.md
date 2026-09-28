@@ -470,7 +470,13 @@ namespaces, content types or the zip writer, check by hand:
    inserted mark (`ins-mark-alone`); a deleted paragraph whose mark is an hour younger than its text
    (`del-paragraph-dates`) or by another author (`del-paragraph-authors`); two touching `w:del` of
    the same author and date (`del-same`), an hour apart (`del-dates`), by two authors
-   (`del-authors`); and a deletion touching an insertion (`del-then-ins`).
+   (`del-authors`); and a deletion touching an insertion (`del-then-ins`). **Run 2026-09-28 (Word
+   16.0.20326.20158): one change is touching pieces of one kind by one author, whatever their
+   dates.** Insertions group as deletions do (`Two.\r`, `five.\rSix `, `\r`); an hour's difference
+   does not split, another author does, and a deletion and an insertion are two. `del-same`'s two
+   elements Word merged into one when inserting them. Office JS reported every `w:date` as local
+   time (01:00Z came back as 15:00Z the day before). CR-002 section 29, fix F, and its open item on
+   dates.
 
 A small Node script for 1 to 3 is:
 

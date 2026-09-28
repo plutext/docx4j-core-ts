@@ -25,7 +25,7 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
-import { type TrackedChange, trackedChangesOfRow } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -412,33 +412,41 @@ export class Body {
 
   // --- change tracking (CR-002 phase F) ---------------------------------------------------
 
-  /** Every tracked change in this body, in document order. */
+  /**
+   * Every tracked change in this body, in document order. Touching insertions or deletions by one
+   * author - a deleted paragraph's text and mark, a deletion across a mark - are one change, as
+   * Office JS lists them (CR-002 section 29, checks 22 and 23).
+   */
   getTrackedChanges(): TrackedChange[] {
-    const out: TrackedChange[] = [];
-    const visit = (items: Element[], into: TrackedChange[]): void => {
+    const out: TrackedChangeToken[] = [];
+    const visit = (items: Element[], into: TrackedChangeToken[]): void => {
       for (const el of items) {
         const tn = typeNameOf(el);
-        if (tn === 'org_docx4j_wml.P') { into.push(...new Paragraph(el as Element<wml.P>, items, this).getTrackedChanges()); continue; }
+        if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this))); continue; }
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (tn === 'org_docx4j_wml.Tbl') {
+          into.push(BREAK);
           for (const row of rowsOf(v)) {
             // A row that is itself a revision reports as one change, as Office JS does: the
             // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
             // belongs to that change, which accepts or rejects it along with the row.
-            const inner: TrackedChange[] = [];
-            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? [], inner);
+            const tokens: TrackedChangeToken[] = [];
+            for (const cell of cellsOf(row.element.value)) { visit(childrenOf(cell.element.value) ?? [], tokens); tokens.push(BREAK); }
+            const inner = groupTouching(tokens);
             const rowChanges = trackedChangesOfRow(row.element, row.container, inner);
-            into.push(...(rowChanges.length > 0 ? rowChanges : inner));
+            for (const change of rowChanges.length > 0 ? rowChanges : inner) into.push(change, BREAK);
           }
           continue;
         }
+        // a block-level content control or custom XML element keeps what is inside it apart; a
+        // marker between paragraphs (a bookmark or range end) keeps nothing apart
         const children = childrenOf(v);
-        if (children) visit(children, into);
+        if (children) { into.push(BREAK); visit(children, into); into.push(BREAK); }
       }
     };
     visit(this.content, out);
-    return out;
+    return groupTouching(out);
   }
 
   /**

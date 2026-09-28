@@ -30,7 +30,14 @@ export type TrackedChangeTarget =
    * `Body.getTrackedChanges` reports through the row rather than separately, as Office JS does:
    * one change per row. Accepting or rejecting the row applies them too.
    */
-  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[] };
+  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[] }
+  /**
+   * Touching insertions or deletions by one author - `w:ins` or `w:del` around runs and inserted or
+   * deleted paragraph marks, with nothing unrevised between them - which Office JS lists as one
+   * change (CR-002 section 29, checks 22 and 23): a deleted paragraph's text and mark, a deletion
+   * across a mark. `pieces` are the single changes, in document order; `value` is the first's.
+   */
+  | { kind: 'group'; revision: 'ins' | 'del'; pieces: TrackedChange[]; value: wml.CTTrackChange };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -51,6 +58,7 @@ export class TrackedChange {
       case 'run': return t.revision === 'ins' || t.revision === 'moveTo' ? 'Added' : 'Deleted';
       case 'mark': return t.mark === 'ins' ? 'Added' : 'Deleted';
       case 'row': return t.row === 'ins' ? 'Added' : 'Deleted';
+      case 'group': return t.revision === 'ins' ? 'Added' : 'Deleted';
       default: return 'Formatted';
     }
   }
@@ -59,7 +67,7 @@ export class TrackedChange {
     return this.target.value.author;
   }
 
-  /** `w:date`, when the markup carries one. */
+  /** `w:date`, when the markup carries one; a group's is its first piece's, as Office JS reports it. */
   get date(): Date | undefined {
     return dateOf(this.target.value.date);
   }
@@ -71,13 +79,16 @@ export class TrackedChange {
 
   /** The markup this change is over (an extension): the `w:ins` element, the `w:rPrChange`, ... */
   get element(): object {
-    return this.target.kind === 'run' ? this.target.element : this.target.kind === 'row' ? this.target.tr : this.target.value;
+    const t = this.target;
+    return t.kind === 'run' ? t.element : t.kind === 'row' ? t.tr : t.kind === 'group' ? t.pieces[0]!.element : t.value;
   }
 
-  /** The text the change covers; '' for a paragraph mark, whose range is the paragraph. */
+  /** The text the change covers; `\r` for a paragraph mark, as Office JS gives it (check 22). */
   get text(): string {
     const t = this.target;
     switch (t.kind) {
+      case 'mark': return '\r';
+      case 'group': return t.pieces.map((piece) => piece.text).join('');
       case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original' }).map((s) => s.text).join('');
       case 'runProperties': return textOf(t.run);
       case 'paragraphProperties': return this.paragraph?.text ?? '';
@@ -96,6 +107,12 @@ export class TrackedChange {
     if (t.kind === 'run') {
       const [start, end] = spanOf(p, t.element);
       return new Range(p, start, end);
+    }
+    if (t.kind === 'group') {
+      // a range is one paragraph's: the group's text in the paragraph it starts in
+      const here = t.pieces.filter((piece) => piece.target.kind === 'run' && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
+      if (here.length === 0) return t.pieces[0]!.getRange();
+      return new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
     }
     if (t.kind === 'runProperties') {
       const segs = p.segments().filter((s) => s.run === t.run);
@@ -134,6 +151,9 @@ export class TrackedChange {
         if (t.row === 'ins') { delete t.tr.value.trPr?.ins; applyInner(t.inner, 'accept'); }
         else remove(t.owner, t.tr as Element);
         return;
+      case 'group':
+        resolvePieces(t.pieces, 'accept');
+        return;
     }
   }
 
@@ -164,6 +184,9 @@ export class TrackedChange {
         // the w:del unwrapped, the deleted marks dropped); a rejected insertion takes it away
         if (t.row === 'del') { delete t.tr.value.trPr?.del; applyInner(t.inner, 'reject'); }
         else remove(t.owner, t.tr as Element);
+        return;
+      case 'group':
+        resolvePieces(t.pieces, 'reject');
         return;
     }
   }
@@ -197,6 +220,18 @@ function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
 /** The changes inside a row, last first, so that a paragraph join never disturbs one still to do. */
 function applyInner(inner: TrackedChange[], what: 'accept' | 'reject'): void {
   for (let i = inner.length - 1; i >= 0; i--) inner[i]![what]();
+}
+
+/**
+ * A group's pieces resolved: its runs last first, then its marks last first, so that a paragraph join
+ * never strands a piece still to do. Office JS and Word's Review tab resolve the group as one (checks
+ * 22 and 23), and so, piece by piece, does this.
+ */
+function resolvePieces(pieces: TrackedChange[], what: 'accept' | 'reject'): void {
+  const runs = pieces.filter((piece) => piece.target.kind !== 'mark');
+  const marks = pieces.filter((piece) => piece.target.kind === 'mark');
+  for (let i = runs.length - 1; i >= 0; i--) runs[i]![what]();
+  for (let i = marks.length - 1; i >= 0; i--) marks[i]![what]();
 }
 
 function remove(owner: Element[], element: Element): void {
@@ -516,36 +551,123 @@ function toPlainRevision(element: Element, owner: Element[], kind: 'ins' | 'del'
 
 // --- collecting ----------------------------------------------------------------------------
 
-/** The tracked changes of one paragraph, in document order. */
+/**
+ * The tracked changes of one paragraph, in document order, touching pieces grouped as Office JS
+ * groups them (`groupTouching`). Office JS lists the changes that start in the paragraph (check 22):
+ * pieces that carry on a change from the paragraph before - its inserted or deleted mark - are left
+ * to that paragraph, and a change running on into the next is cut at this paragraph's end.
+ */
 export function trackedChangesOfParagraph(paragraph: Paragraph): TrackedChange[] {
-  const out: TrackedChange[] = [];
+  const tokens = trackedChangeTokensOfParagraph(paragraph);
+  const before = markBefore(paragraph);
+  if (before) {
+    for (let i = 0; i < tokens.length;) {
+      const token = tokens[i]!;
+      if (token === BREAK) break;
+      const kind = groupable(token);
+      if (kind === undefined) { i++; continue; }
+      if (kind !== before.kind || token.author !== before.author) break;
+      tokens.splice(i, 1);
+    }
+  }
+  return groupTouching(tokens);
+}
+
+/** The last revision on the mark of the paragraph before this one in its container, if any. */
+function markBefore(paragraph: Paragraph): { kind: 'ins' | 'del'; author: string } | undefined {
+  const i = paragraph.container.indexOf(paragraph.element);
+  const previous = i > 0 ? paragraph.container[i - 1] : undefined;
+  if (!previous || typeNameOf(previous) !== 'org_docx4j_wml.P') return undefined;
+  const rPr = (previous.value as wml.P).pPr?.rPr;
+  if (rPr?.del) return { kind: 'del', author: rPr.del.author };
+  if (rPr?.ins) return { kind: 'ins', author: rPr.ins.author };
+  return undefined;
+}
+
+/** Between two tracked changes: something unrevised - text, a paragraph mark, a table - that keeps them apart. */
+export const BREAK = 'break' as const;
+export type TrackedChangeToken = TrackedChange | typeof BREAK;
+
+/**
+ * A paragraph's single changes in document order, its mark last, with a `BREAK` wherever unrevised
+ * content stands between two of them: `groupTouching` makes the groups from these.
+ */
+export function trackedChangeTokensOfParagraph(paragraph: Paragraph): TrackedChangeToken[] {
+  const out: TrackedChangeToken[] = [];
   const p = paragraph.p;
   const pPrChange = p.pPr?.pPrChange;
   if (pPrChange) out.push(new TrackedChange({ kind: 'paragraphProperties', value: pPrChange }, paragraph));
+  tokensOfRunLevel(paragraph, (p.content ?? []) as Element[], out);
   const rPr = p.pPr?.rPr;
   if (rPr?.ins) out.push(new TrackedChange({ kind: 'mark', mark: 'ins', value: rPr.ins }, paragraph));
   if (rPr?.del) out.push(new TrackedChange({ kind: 'mark', mark: 'del', value: rPr.del }, paragraph));
-  collectRunLevel(paragraph, (p.content ?? []) as Element[], out);
+  if (!rPr?.ins && !rPr?.del) out.push(BREAK);
   return out;
 }
 
-function collectRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChange[]): void {
+function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[]): void {
   for (const el of items) {
     const kind = revisionKindOf(el);
     if (kind !== undefined) {
+      // moved text is content Office JS cannot list (checks 16, 17), and is kept apart
+      const move = kind === 'moveFrom' || kind === 'moveTo';
+      if (move) out.push(BREAK);
       out.push(new TrackedChange({ kind: 'run', revision: kind, element: el, owner: items, value: el.value as wml.CTTrackChange }, paragraph));
+      if (move) out.push(BREAK);
       const nested = runItemsOf(el.value as object);
-      if (nested) collectRunLevel(paragraph, nested, out);
+      if (nested) {
+        // a revision inside a revision (a deletion of inserted text) was not measured: listed apart
+        const inner: TrackedChangeToken[] = [];
+        tokensOfRunLevel(paragraph, nested, inner);
+        if (inner.some((token) => token !== BREAK && token.target.kind === 'run')) out.push(BREAK, ...inner, BREAK);
+        else out.push(...inner.filter((token) => token !== BREAK));
+      }
       continue;
     }
     if (typeNameOf(el) === 'org_docx4j_wml.R') {
       const run = el.value as wml.R;
+      if ((run.content ?? []).length > 0) out.push(BREAK);
       if (run.rPr?.rPrChange) out.push(new TrackedChange({ kind: 'runProperties', run, value: run.rPr.rPrChange }, paragraph));
       continue;
     }
     const nested = runItemsOf(el.value as object);
-    if (nested) collectRunLevel(paragraph, nested, out);
+    if (nested) tokensOfRunLevel(paragraph, nested, out);
   }
+}
+
+/** What a piece groups as: a `w:ins` or `w:del` around runs, or an inserted or deleted mark. Moves and formatting do not group. */
+function groupable(change: TrackedChange): 'ins' | 'del' | undefined {
+  const t = change.target;
+  if (t.kind === 'mark') return t.mark;
+  if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
+  return undefined;
+}
+
+/**
+ * Tokens made into the changes Office JS lists: consecutive pieces of one kind (inserted or deleted)
+ * by one author, nothing unrevised between them, are one change (checks 22 and 23: text and marks
+ * alike, dates regardless; another author, or an insertion against a deletion, starts a new one). A
+ * change that does not group - formatting, a move - is listed where it stands and does not break a
+ * group. A group of one piece is that piece.
+ */
+export function groupTouching(tokens: TrackedChangeToken[]): TrackedChange[] {
+  const out: (TrackedChange | TrackedChange[])[] = [];
+  let open: TrackedChange[] | undefined;
+  for (const token of tokens) {
+    if (token === BREAK) { open = undefined; continue; }
+    const kind = groupable(token);
+    if (kind === undefined) { out.push(token); continue; }
+    const last = open?.[open.length - 1];
+    if (open && last && groupable(last) === kind && last.author === token.author) { open.push(token); continue; }
+    open = [token];
+    out.push(open);
+  }
+  return out.map((item) => {
+    if (!Array.isArray(item)) return item;
+    const first = item[0]!;
+    if (item.length === 1) return first;
+    return new TrackedChange({ kind: 'group', revision: groupable(first)!, pieces: item, value: first.target.value as wml.CTTrackChange }, first.paragraph);
+  });
 }
 
 /**
