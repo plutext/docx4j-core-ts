@@ -452,7 +452,25 @@ namespaces, content types or the zip writer, check by hand:
    (it lists the changes as Office JS does, whole and per paragraph, then accepts and rejects each
    of the first three from a fresh copy of the body, and puts the document back). The questions:
    is a deleted paragraph one change or two, is a lone deleted mark a change of its own, and what
-   does accepting or rejecting one of them take with it.
+   does accepting or rejecting one of them take with it. **Run 2026-09-28 (Word 16.0.20326.20158):
+   one change for deleted text and marks that touch.** Office JS listed three: `Deleted "Two.\r"`
+   (the paragraph's text and its mark), `Deleted "\r"` (the lone mark, which Word did mark), and
+   `Deleted "six.\rSeven "` (across the mark), a mark's text being `\r`. Accepting or rejecting one
+   resolved all of it, through Office JS and on the Review tab alike (the four saved files agree with
+   the JSON, run boundaries apart). `Paragraph.getTrackedChanges()` listed the changes starting in the
+   paragraph, cut at its end: "Five six." gave `six.\r`, "Seven eight." nothing. CR-002 section 29.
+23. What makes tracked changes one change (CR-002 section 29, after check 22): do an inserted
+   paragraph's text and mark list as one change, as a deleted one's do, and does a different date or
+   author split deletions that touch? In a **new blank document**, run the Script Lab snippet for 23
+   below (**Run the check**) and copy the JSON back; nothing is typed by hand. For each of nine cases
+   it empties the body, inserts the case's paragraphs through `insertOoxml` with tracking off (the
+   revisions written out, as check 17's were), lists the changes, then accepts the first one listed
+   and records the paragraphs and the list after; then does the same again rejecting it. The cases:
+   an inserted paragraph (`ins-paragraph`); an insertion across a mark (`ins-across`); a lone
+   inserted mark (`ins-mark-alone`); a deleted paragraph whose mark is an hour younger than its text
+   (`del-paragraph-dates`) or by another author (`del-paragraph-authors`); two touching `w:del` of
+   the same author and date (`del-same`), an hour apart (`del-dates`), by two authors
+   (`del-authors`); and a deletion touching an insertion (`del-then-ins`).
 
 A small Node script for 1 to 3 is:
 
@@ -1059,6 +1077,94 @@ async function check() {
     }
   }
   await Word.run(async (context) => { context.document.body.insertOoxml(original, 'Replace'); await context.sync(); });
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 23 (Word, Office JS, WordApi 1.6), in a new blank document. The HTML
+tab is check 15's (a **Run the check** button and a text box). The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+const D1 = '2026-09-28T01:00:00Z';
+const D2 = '2026-09-28T02:00:00Z';
+const A = (date) => `w:author="Author A" w:date="${date}"`;
+const B = (date) => `w:author="Author B" w:date="${date}"`;
+let nextId = 100;
+const id = () => `w:id="${nextId++}"`;
+const p = (inner, mark) => `<w:p>${mark ? `<w:pPr><w:rPr>${mark}</w:rPr></w:pPr>` : ''}${inner}</w:p>`;
+const r = (text) => `<w:r><w:t xml:space="preserve">${text}</w:t></w:r>`;
+const ins = (who, text) => `<w:ins ${id()} ${who}>${r(text)}</w:ins>`;
+const del = (who, text) => `<w:del ${id()} ${who}><w:r><w:delText xml:space="preserve">${text}</w:delText></w:r></w:del>`;
+const insMark = (who) => `<w:ins ${id()} ${who}/>`;
+const delMark = (who) => `<w:del ${id()} ${who}/>`;
+const CASES = {
+  'ins-paragraph': p(r('One.')) + p(ins(A(D1), 'Two.'), insMark(A(D1))) + p(r('Three.')),
+  'ins-across': p(r('Four ') + ins(A(D1), 'five.'), insMark(A(D1))) + p(ins(A(D1), 'Six ') + r('seven.')),
+  'ins-mark-alone': p(r('Eight.'), insMark(A(D1))) + p(r('Nine.')),
+  'del-paragraph-dates': p(r('One.')) + p(del(A(D1), 'Two.'), delMark(A(D2))) + p(r('Three.')),
+  'del-paragraph-authors': p(r('One.')) + p(del(A(D1), 'Two.'), delMark(B(D1))) + p(r('Three.')),
+  'del-same': p(r('Ten ') + del(A(D1), 'eleven ') + del(A(D1), 'twelve') + r('.')),
+  'del-dates': p(r('Ten ') + del(A(D1), 'eleven ') + del(A(D2), 'twelve') + r('.')),
+  'del-authors': p(r('Ten ') + del(A(D1), 'eleven ') + del(B(D1), 'twelve') + r('.')),
+  'del-then-ins': p(r('Ten ') + del(A(D1), 'eleven') + ins(A(D1), 'twelve') + r('.')),
+};
+const packageOf = (blocks) => `<pkg:package xmlns:pkg="${PKG}">`
+  + '<pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData>'
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}"><w:body>${blocks}</w:body></w:document></pkg:xmlData></pkg:part></pkg:package>`;
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+async function paragraphs(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const main = all(doc, PKG, 'part').find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  return body ? Array.from(body.childNodes).filter((n) => n.localName === 'p').map(xml) : [];
+}
+
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author,items/date');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, date: c.date, text: c.text })) };
+}
+
+async function check() {
+  const report = { host: Office.context.diagnostics, cases: {} };
+  for (const [name, blocks] of Object.entries(CASES)) {
+    const entry = (report.cases[name] = {});
+    for (const act of ['accept', 'reject']) {
+      try {
+        await Word.run(async (context) => {
+          context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+          context.document.body.clear();
+          context.document.body.insertOoxml(packageOf(blocks), 'Start');
+          await context.sync();
+          const { changes, list } = await listed(context);
+          if (act === 'accept') { entry.before = await paragraphs(context); entry.listed = list; }
+          const target = changes.items[0];
+          if (!target) { entry[act] = 'nothing listed'; return; }
+          if (act === 'accept') target.accept(); else target.reject();
+          await context.sync();
+          entry[act] = { after: await paragraphs(context), listedAfter: (await listed(context)).list };
+        });
+      } catch (e) {
+        entry[act] = { error: String(e && e.message || e) };
+      }
+    }
+  }
   out.value = JSON.stringify(report, null, 2);
 }
 ```

@@ -2533,10 +2533,32 @@ it is off.)*
 
 Not changed: a deleted paragraph's run deletion and mark deletion - plain `w:del`, not a broken move
 - are still two changes, where Word's Accept and Reject took them together in case 14. That changes
-what `getTrackedChanges()` lists, so it waits for its own check (`test/README.md` check 22).
+what `getTrackedChanges()` lists, so it waited for its own check, check 22, below.
 `tracking.test.mjs` holds A to E to Word's files: cases 01 to 04 typed with tracking on, 21a, 21b and
 21d with it off, accept and reject on nine of check 20's edited files, and case 14 resolved from its
 input on either side, each failing on the code before it.
+
+*(Check 22, run 2026-09-28, Word 16.0.20326.20158: in a new document "Two." deleted whole, the mark
+of "Four." deleted alone, and "six." to "Seven " deleted across a mark; listed through Office JS,
+resolved there and on the Review tab; five files in `test/fixtures/revisions/check22/`.)* Office JS
+lists **deleted text and deleted paragraph marks that touch as one change**, in document order, a
+mark's text being `\r`: `Deleted "Two.\r"`, `Deleted "\r"`, `Deleted "six.\rSeven "`. Accepting or
+rejecting one resolves all of it, through Office JS and by hand alike (the saved files agree with the
+JSON, run boundaries apart): "Two." gone or back, paragraph and all; the lone mark accepted joins
+"Four." to "Five six.", whose own mark stays deleted; the third leaves "Five eight.", or "Five six."
+and "Seven eight." back. `Paragraph.getTrackedChanges()` lists the changes starting in the paragraph,
+their text cut at its end: "Five six." gives `six.\r`, "Seven eight." nothing.
+
+The engine lists six: each deleted mark apart, **before** its paragraph's text, with text `""`, and
+each `w:del` apart. Resolving all six leaves what Word leaves, in any order; resolving one does less
+than Word's one change would, and a caller counting changes, or pairing them with Office JS's, gets a
+different answer. **Fix F, proposed:** `getTrackedChanges()` groups pieces that touch - `w:del`
+elements and deleted marks with nothing undeleted between them - into one change, in document order,
+its text with `\r` for each mark, and resolving it resolves every piece (the marks last, last
+first); `Paragraph.getTrackedChanges()` lists the groups that start in the paragraph. Not built yet:
+check 22 cannot say whether insertions group the same way, or whether a different date or author
+splits a group, and a guess there would move the listing twice. Check 23 asks, with markup it
+inserts itself.
 
 Check 21 asks, beside it, what Word does to text typed with tracking **off** inside
 another author's insertion, at its end, and inside a deletion: the engine keeps it in the `w:ins` it
