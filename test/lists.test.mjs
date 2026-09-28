@@ -1,7 +1,7 @@
 // CR-002 phase H: the list views (`List`, `ListItem`, and what they add to `Paragraph` and
 // `Body`), specified in CR-002 section 3.9 and built on CR-001 Phase B's `Emulator`.
 //
-// The strongest test here is the last one: for every paragraph of every story of all 45
+// The strongest test here is the last one: for every paragraph of every story of all 46
 // parity goldens, `paragraph.listItem?.listString` must be the label docx4j recorded and
 // `listItem.level` its `ilvl`. That holds the whole `listString` path - the story walk, the
 // text-box rule, the header/footer shared state - to docx4j's own answers.
@@ -418,8 +418,8 @@ async function storiesOf(pkg) {
   return out;
 }
 
-test('listString and level equal docx4j\'s labels on every paragraph of all 45 goldens', async () => {
-  assert.ok(goldenNames.length >= 45, `${goldenNames.length} goldens`);
+test('listString and level equal docx4j\'s labels on every paragraph of all 46 goldens', async () => {
+  assert.ok(goldenNames.length >= 46, `${goldenNames.length} goldens`);
   const differences = [];
   let checked = 0;
   let numbered = 0;
@@ -456,7 +456,7 @@ test('listString and level equal docx4j\'s labels on every paragraph of all 45 g
   }
 
   assert.deepEqual(differences, [], differences.slice(0, 20).join('\n'));
-  assert.equal(checked, 618, 'every paragraph of every story');
+  assert.equal(checked, 636, 'every paragraph of every story');
   assert.equal(numbered, 183, 'and the numbered ones docx4j recorded');
 });
 

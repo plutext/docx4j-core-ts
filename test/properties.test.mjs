@@ -3,7 +3,7 @@
 // The cases are docx4j's own, ported with their expected values: PropertyCatalogueTest,
 // StyleUtilMergeRulesTest, TogglePropertiesTest, PropertyResolverOrderTest,
 // PropertyResolverNoMutationTest and PropertyResolverTableStyleTest under
-// docx4j-core-tests/src/test/java/org/docx4j/model/.  Parity against docx4j over 45 real
+// docx4j-core-tests/src/test/java/org/docx4j/model/.  Parity against docx4j over 46 real
 // documents is test/parity.test.mjs; this file is the rules one at a time.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

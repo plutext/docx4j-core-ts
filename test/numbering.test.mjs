@@ -1,6 +1,6 @@
 // CR-001 Phase B step 3: list numbering (docx4j `org.docx4j.model.listnumbering`, CR-014).
 //
-// The parity test (test/parity.test.mjs) holds the whole model to docx4j's answers on 45
+// The parity test (test/parity.test.mjs) holds the whole model to docx4j's answers on 46
 // documents.  This file is the unit net under it: the formatter table, and the docx4j tests
 // whose documents or rules the parity fixtures do not reach - `LabelFormatterTest`,
 // `NumberingRestartTest` (probe P8), `NumberingStoriesTest` (P7), `StartOverrideTest`,

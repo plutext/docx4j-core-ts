@@ -101,7 +101,7 @@ function xmlStrings(value, into) {
 }
 
 test('parity goldens: present', () => {
-  assert.ok(names.length >= 45, `${names.length} goldens`);
+  assert.ok(names.length >= 46, `${names.length} goldens`);
 });
 
 for (const name of names) {
