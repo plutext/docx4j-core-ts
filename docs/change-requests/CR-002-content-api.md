@@ -3245,7 +3245,7 @@ control or a table follows), as it did before. Whether the holder was inserted o
 was cannot be told from the markup: a content control that was there before, typed into under
 tracking, holds only an insertion too, and must stay. What Word does with each is a Script Lab check
 to make before changing it, together with where Word puts the `w:ins` for a content control and a
-smart tag (item 4).
+smart tag (item 4): `test/README.md` check 30, written 2026-09-29, not yet run.
 
 `tracking.test.mjs` holds the replacement at the start, in the middle and at the end of another's
 insertion; `comments.test.mjs` holds `ensure` of the two styles, and a comment made afterwards finding
