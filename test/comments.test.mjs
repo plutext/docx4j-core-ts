@@ -421,3 +421,18 @@ test('addCommentEntry writes a comment for markers the caller placed', async () 
   assert.match(ids, new RegExp(`w16cid:paraId="${inWord.paraId}"`));
   assert.match(extensible, /w16cex:dateUtc="2026-09-29T03:00:00Z"/);
 });
+
+// CR-002 section 37: the editor adds the comment styles when a comment is made, before any save.
+test('styles.ensure splices the two comment styles', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  assert.deepEqual(await pkg.styles.ensure(['CommentText', 'CommentReference']), ['CommentText', 'CommentReference']);
+  assert.deepEqual(await pkg.styles.ensure(['CommentText', 'CommentReference']), [], 'a second call adds nothing');
+  const styles = await pkg.getMainDocumentPart().styleDefinitionsPart.getXml();
+  assert.match(styles, /<w:style (?=[^>]*w:type="paragraph")[^>]*w:styleId="CommentText"[^>]*>(?:(?!<\/w:style>).)*<w:basedOn w:val="Normal"\/>(?:(?!<\/w:style>).)*<w:sz w:val="20"\/>/s);
+  assert.match(styles, /<w:style (?=[^>]*w:type="character")[^>]*w:styleId="CommentReference"[^>]*>(?:(?!<\/w:style>).)*<w:sz w:val="16"\/>/s);
+  // and a comment made afterwards finds them there: nothing added twice
+  pkg.body.insertParagraph('text', 'End');
+  await pkg.body.paragraphs[0].insertComment('a comment');
+  const after = await pkg.getMainDocumentPart().styleDefinitionsPart.getXml();
+  assert.equal(after.split('w:styleId="CommentText"').length - 1, 1);
+});

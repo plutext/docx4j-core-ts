@@ -10,6 +10,7 @@ import { linkParents } from './tree.mjs';
 import { parseXml } from '../../xml/dom.mjs';
 import { DEFAULT_STYLES_XML } from '../../parts/wml/defaultStyles.mjs';
 import { SPLICEABLE_STYLES_XML } from '../../parts/wml/spliceableStyles.mjs';
+import { commentStyles } from '../../parts/wml/commentStyles.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { StyleDefinitionsPart, MainDocumentPart } from '../../parts/wml/index.mjs';
 
@@ -40,7 +41,9 @@ function styleSources(): Promise<StyleSources> {
     const read = async (xml: string): Promise<wml.Style[]> =>
       (await unmarshalNode<Jsonix.TypedNamedValue<wml.Styles>>(parseXml(xml))).value.style ?? [];
     const defaults = await read(DEFAULT_STYLES_XML);
-    return { defaults, all: [...defaults, ...(await read(SPLICEABLE_STYLES_XML))] };
+    // and Word's two comment styles, which the comment parts add when they are made, for a caller
+    // that makes the comment itself (CR-002 section 37)
+    return { defaults, all: [...defaults, ...(await read(SPLICEABLE_STYLES_XML)), ...commentStyles()] };
   })());
 }
 
@@ -121,7 +124,7 @@ function closureOf(wanted: readonly string[], present: readonly wml.Style[], sou
     seen.add(id);
     const template = source.find((s) => s.styleId === id);
     if (template === undefined) {
-      throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles nor the nine it comments out carry one. Define it yourself on the styles part.`);
+      throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles, the nine it comments out nor the two comment styles carry one. Define it yourself on the styles part.`);
     }
     // what it is based on and linked to must be there too, and before it reads better in the part
     for (const dependency of [template.basedOn?.val, template.link?.val]) {

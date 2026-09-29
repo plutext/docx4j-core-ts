@@ -831,7 +831,10 @@ export class Paragraph {
       const del = tracker.del(runs);
       owner.splice(at, 0, del);
       linkParents(del, (group[0]!.revision?.value ?? (group[0]!.run.value as { PARENT?: object }).PARENT ?? this.p) as object);
-      made.unshift({ owner, element: del, parent: (group[0]!.revision?.value ?? (del.value as { PARENT?: object }).PARENT ?? this.p) as object });
+      const revision = group[0]!.revision;
+      const anchor: Anchor = { owner, element: del, parent: (revision?.value ?? (del.value as { PARENT?: object }).PARENT ?? this.p) as object };
+      if (revision && revision.items === owner) anchor.revision = revision;
+      made.unshift(anchor);
     }
     return made;
   }
@@ -850,17 +853,31 @@ export class Paragraph {
     const holder = after?.revision;
     const index = holder && after ? holder.items.indexOf(after.runOwner[after.runIndex]!) : -1;
     if (!holder || index <= 0) return false;
+    return this.splitHolderAround(holder, index, item, nextId);
+  }
+
+  /**
+   * Moves a revision's items from `index` on into a copy of it - its attributes, a new `w:id` - and
+   * puts `item` between the two; with nothing from `index` on, `item` just goes after the revision.
+   * False, with nothing changed, where the revision's items cannot be told apart from its attributes.
+   */
+  private splitHolderAround(holder: RevisionHolderOf, index: number, item: Element, nextId: () => number): boolean {
     const value = holder.value as unknown as Record<string, unknown>;
     const itemsKey = Object.keys(value).find((key) => value[key] === holder.items);
     if (!itemsKey) return false;
+    const parent = (holder.value as { PARENT?: object }).PARENT ?? this.p;
+    const at = holder.owner.indexOf(holder.element) + 1;
+    if (index >= holder.items.length) {
+      holder.owner.splice(at, 0, item);
+      linkParents(item, parent);
+      return true;
+    }
     const copy: Record<string, unknown> = {};
     for (const [key, v] of Object.entries(value)) if (key !== itemsKey) copy[key] = v;
     copy.id = nextId();
     copy[itemsKey] = holder.items.splice(index);
     const second = { name: holder.element.name, value: copy } as Element;
-    const parent = (holder.value as { PARENT?: object }).PARENT ?? this.p;
-    const at2 = holder.owner.indexOf(holder.element) + 1;
-    holder.owner.splice(at2, 0, item, second);
+    holder.owner.splice(at, 0, item, second);
     linkParents(copy[itemsKey], copy);
     linkParents([item, second], parent);
     return true;
@@ -905,6 +922,12 @@ export class Paragraph {
     if (anchor) {
       const rPr = copyRPr(runsOf(anchor.element.value as object, { view: 'original' })[0]?.value.rPr);
       const ins = tracker.ins([runOf([textItem(text)], rPr)]);
+      // A replacement inside another's revision - an insertion, moved text - leaves its w:del in
+      // that revision; the new text is not put in it too, but the revision split after the deletion
+      // and the text between the halves, as for anything typed in it (check 21; the editor's finding
+      // on 0.3.0, CR-002 section 37).
+      const holder = anchor.revision;
+      if (holder && this.splitHolderAround(holder, holder.items.indexOf(anchor.element) + 1, ins as Element, () => tracker.nextId())) return;
       anchor.owner.splice(anchor.owner.indexOf(anchor.element) + 1, 0, ins);
       linkParents(ins, anchor.parent);
       return;
@@ -1005,6 +1028,8 @@ interface Anchor {
   owner: Element[];
   element: Element;
   parent: object;
+  /** The revision the `w:del` sits directly in - another author's insertion or moved text - if any. */
+  revision?: RevisionHolderOf;
 }
 
 export { W_NS };

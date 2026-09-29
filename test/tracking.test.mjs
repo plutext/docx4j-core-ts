@@ -1377,3 +1377,39 @@ test('table, cell, mark and section changes one at a time, as Office JS listed a
     assert.equal(/<w:vMerge\/>/.test(xml), action === 'accept', `${action}All: the merge ${action === 'accept' ? 'kept' : 'undone'}`);
   }
 });
+
+// CR-002 section 37, the editor's finding on 0.3.0: a tracked replacement inside another author's
+// insertion left the new w:ins nested in it; Word splits the insertion around it, as for anything
+// typed in it (check 21), the replacement's w:del staying in the first half.
+test('a tracked replacement inside another\'s insertion splits it around the new text, as Word does', async () => {
+  const shape = (p) => p.p.content.map((el) => {
+    const name = el.name.localPart;
+    if (name === 'r') return `r "${el.value.content.map((c) => c.value.value ?? '').join('')}"`;
+    const inner = (el.value.customXmlOrSmartTagOrSdt ?? []).map((i) => i.name.localPart === 'r'
+      ? `"${i.value.content.map((c) => c.value.value ?? '').join('')}"`
+      : `${i.name.localPart}(${i.value.author}) "${(i.value.customXmlOrSmartTagOrSdt ?? []).map((r) => r.value.content.map((c) => c.value.value ?? '').join('')).join('')}"`);
+    return `${name}(${el.value.author}) [${inner.join(', ')}]`;
+  });
+  const replaced = async (find) => {
+    const pkg = await loaded('tracked-changes.docx');
+    pkg.author = { name: 'Author C' };
+    await pkg.setChangeTrackingMode('TrackAll');
+    const p = pkg.body.paragraphs.find((q) => q.text.includes('An insertion'));
+    p.search(find, { matchCase: true })[0].insertText('W', 'Replace');
+    const ids = (await pkg.getMainDocumentPart().getXml()).match(/<w:(ins|del) w:id="\d+"/g).map((m) => m.match(/\d+/)[0]);
+    assert.equal(new Set(ids).size, ids.length, `${find}: every revision id unique`);
+    return shape(p).slice(1, 4);
+  };
+  // at its start: the editor's case
+  assert.deepEqual(await replaced('An'), [
+    'ins(Jason Harrop) [del(Author C) "An"]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) [" insertion"]',
+  ]);
+  // in its middle
+  assert.deepEqual(await replaced('ser'), [
+    'ins(Jason Harrop) ["An in", del(Author C) "ser"]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) ["tion"]',
+  ]);
+  // at its end the new text goes after it (check 21b)
+  assert.deepEqual((await replaced('insertion')).slice(0, 2), [
+    'ins(Jason Harrop) ["An ", del(Author C) "insertion"]', 'ins(Author C) ["W"]',
+  ]);
+});

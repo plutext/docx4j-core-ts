@@ -21,6 +21,7 @@ import {
 import { dateOf } from '../../model/content/tracking.mjs';
 // Loaded for its side effect: the Comment views register themselves with the content API.
 import '../../model/content/Comment.mjs';
+import { commentStyles } from './commentStyles.mjs';
 
 /** The comment parts of one document. */
 class DocumentCommentParts implements CommentParts {
@@ -180,28 +181,7 @@ async function ensureCommentStyles(main: MainDocumentPart): Promise<void> {
     linkParents(style, styles);
     pkg?.refreshPropertyResolver?.();
   };
-  if (!list.some((s) => s.styleId === COMMENT_TEXT_STYLE)) {
-    add(wmlFactory.createStyle({
-      type: 'paragraph', styleId: COMMENT_TEXT_STYLE,
-      name: wmlFactory.createStyleName({ val: 'annotation text' }),
-      basedOn: wmlFactory.createStyleBasedOn({ val: 'Normal' }),
-      uiPriority: wmlFactory.createStyleUiPriority({ val: 99 }),
-      semiHidden: wmlFactory.createBooleanDefaultTrue(),
-      unhideWhenUsed: wmlFactory.createBooleanDefaultTrue(),
-      rPr: wmlFactory.createRPr({ sz: wmlFactory.createHpsMeasure({ val: 20 }), szCs: wmlFactory.createHpsMeasure({ val: 20 }) }),
-    }));
-  }
-  if (!list.some((s) => s.styleId === COMMENT_REFERENCE_STYLE)) {
-    add(wmlFactory.createStyle({
-      type: 'character', styleId: COMMENT_REFERENCE_STYLE,
-      name: wmlFactory.createStyleName({ val: 'annotation reference' }),
-      basedOn: wmlFactory.createStyleBasedOn({ val: 'DefaultParagraphFont' }),
-      uiPriority: wmlFactory.createStyleUiPriority({ val: 99 }),
-      semiHidden: wmlFactory.createBooleanDefaultTrue(),
-      unhideWhenUsed: wmlFactory.createBooleanDefaultTrue(),
-      rPr: wmlFactory.createRPr({ sz: wmlFactory.createHpsMeasure({ val: 16 }), szCs: wmlFactory.createHpsMeasure({ val: 16 }) }),
-    }));
-  }
+  for (const style of commentStyles()) if (!list.some((s) => s.styleId === style.styleId)) add(style);
 }
 
 setCommentPartsAccess({
