@@ -3217,8 +3217,11 @@ table or block control. Rejecting the insertion left all of that behind, and the
 it. Everything inserted is walked now (`trackInsertedBlocks` in `tracking.mts`, which `Table`'s row
 insertion uses too): every paragraph's mark, every table's rows at any depth, every run in a `w:ins`,
 the `w:ins` going inside a run-level holder rather than around it. A hyperlink or a simple field cannot
-be in a `w:ins` at all (`CT_RunTrackChange` holds `EG_ContentRunContent` only); the editor reports Word
-nesting the others the same way. A run already in a revision - incoming markup with its own - is left
+be in a `w:ins` at all (`CT_RunTrackChange` holds `EG_ContentRunContent` only), so there the schema
+decides. An inline content control, a smart tag or custom XML can be in one, so wrapping the holder
+would be valid too; which Word writes is not measured (the editor's report of Word's form held for the
+hyperlink and the field only, as it corrected the same day), and is for the Script Lab check below.
+A run already in a revision - incoming markup with its own - is left
 as it came. The editor works around it until a release has this.
 
 **5. `insertOoxml` into a paragraph was not tracked at all.** A single incoming paragraph merged at a
@@ -3241,7 +3244,8 @@ stays, empty, and so does a paragraph whose rejected mark has no paragraph after
 control or a table follows), as it did before. Whether the holder was inserted or only its content
 was cannot be told from the markup: a content control that was there before, typed into under
 tracking, holds only an insertion too, and must stay. What Word does with each is a Script Lab check
-to make before changing it.
+to make before changing it, together with where Word puts the `w:ins` for a content control and a
+smart tag (item 4).
 
 `tracking.test.mjs` holds the replacement at the start, in the middle and at the end of another's
 insertion; `comments.test.mjs` holds `ensure` of the two styles, and a comment made afterwards finding

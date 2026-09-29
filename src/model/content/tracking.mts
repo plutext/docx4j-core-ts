@@ -373,7 +373,8 @@ export function trackInsertedParagraph(tracker: ChangeTracker, p: wml.P): void {
  * runs - at the top level and inside the run-level holders (a hyperlink, an inline content control's
  * content, a simple field, a smart tag, custom XML), where the `w:ins` goes inside the holder. A
  * hyperlink or a simple field cannot be in a `w:ins` (`CT_RunTrackChange` holds `EG_ContentRunContent`
- * only), and the editor reports Word nesting the others the same way. Before, only the top level was
+ * only); a content control, a smart tag or custom XML could be, and which of the two Word writes for
+ * them is not measured (CR-002 section 37). Before, only the top level was
  * wrapped, so that rejecting an inserted paragraph left a link's text behind (the editor's finding on
  * 0.3.0, CR-002 section 37).
  */
