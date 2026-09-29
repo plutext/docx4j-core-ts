@@ -22,7 +22,7 @@ export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWith
 export {
   ChangeTracker, trackerOf, calendarOf, dateOf, wordCalendarOf, revisionDateOf, copyRPr, markDeleted, markInserted, highestAnnotationId, MARKUP_TYPES,
   toDeletedText, toRestoredText, restoreRPr, restorePPr,
-  trackInsertedParagraph, trackInsertedTable, wrapNewRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
+  trackInsertedParagraph, trackInsertedTable, trackInsertedBlocks, wrapNewRuns, wrapInsertedRuns, paraRPrOf, rowPrOf, pruneParagraphProperties,
   type ChangeTrackingMode, type TrackingHost, type TrackingScope, type TrackedPart,
 } from './tracking.mjs';
 // The objects package's builders, re-exported so that one import serves the content API and the tree it works on.

@@ -24,7 +24,7 @@ import type { Bound } from './binder.mjs';
 export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentControl | Range | Bound;
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { type ChangeTracker, trackerOf, trackInsertedParagraph, trackInsertedTable } from './tracking.mjs';
+import { type ChangeTracker, trackerOf, trackInsertedBlocks } from './tracking.mjs';
 import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
@@ -334,12 +334,10 @@ export class Body {
     for (const el of elements) {
       linkParents(el, owner);
       const tn = typeNameOf(el);
-      if (tn === 'org_docx4j_wml.P') {
-        this.assignParaId(el.value as wml.P);
-        if (tracker) trackInsertedParagraph(tracker, el.value as wml.P);
-      } else if (tn === 'org_docx4j_wml.Tbl' && tracker) {
-        trackInsertedTable(tracker, el.value as wml.Tbl);
-      }
+      if (tn === 'org_docx4j_wml.P') this.assignParaId(el.value as wml.P);
+      // everything it holds is an insertion: the runs in its links and inline controls, the rows and
+      // nested tables of a table, a block control's content (CR-002 section 37)
+      if (tracker) trackInsertedBlocks(tracker, [el]);
     }
     const first = elements[0]!;
     return typeNameOf(first) === 'org_docx4j_wml.P' ? new Paragraph(first as Element<wml.P>, container, this) : { element: first, container };
@@ -442,7 +440,7 @@ export class Body {
               tokens.push(BREAK);
             }
             const inner = groupTouching(tokens);
-            const rowChanges = trackedChangesOfRow(row.element, row.container, inner);
+            const rowChanges = trackedChangesOfRow(row.element, row.container, inner, { element: el as Element<wml.Tbl>, container: items });
             for (const change of rowChanges.length > 0 ? rowChanges : inner) into.push(change, BREAK);
           }
           continue;

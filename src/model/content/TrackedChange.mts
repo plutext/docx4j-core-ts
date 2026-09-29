@@ -5,7 +5,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS } from './tree.mjs';
+import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS } from './tree.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
@@ -30,9 +30,10 @@ export type TrackedChangeTarget =
    * `w:trPr/w:ins` or `w:trPr/w:del`: a table row. `inner` is the revision markup the row's own
    * cells carry (the `w:ins` or `w:del` around their runs and on their paragraph marks), which
    * `Body.getTrackedChanges` reports through the row rather than separately, as Office JS does:
-   * one change per row. Accepting or rejecting the row applies them too.
+   * one change per row. Accepting or rejecting the row applies them too. `table` is the table the
+   * row is in, which goes with its last row.
    */
-  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[] }
+  | { kind: 'row'; row: 'ins' | 'del'; tr: Element<wml.Tr>; owner: Element[]; value: wml.CTTrackChange; inner: TrackedChange[]; table?: Located<wml.Tbl> }
   /**
    * Touching insertions, deletions or formatting changes by one author - `w:ins` or `w:del` around
    * runs and inserted or deleted paragraph marks, or runs' `w:rPrChange`, with nothing unrevised
@@ -185,7 +186,7 @@ export class TrackedChange {
         // an accepted insertion keeps the row, so its content's own w:ins must go with the
         // w:trPr/w:ins; an accepted deletion takes the row and everything in it away
         if (t.row === 'ins') { delete t.tr.value.trPr?.ins; pruneRowProperties(t.tr.value); applyInner(t.inner, 'accept'); }
-        else remove(t.owner, t.tr as Element);
+        else removeRow(t);
         return;
       case 'group':
         resolvePieces(t.pieces, 'accept');
@@ -237,7 +238,7 @@ export class TrackedChange {
         // a rejected deletion keeps the row, so its content comes back too (w:delText to w:t,
         // the w:del unwrapped, the deleted marks dropped); a rejected insertion takes it away
         if (t.row === 'del') { delete t.tr.value.trPr?.del; pruneRowProperties(t.tr.value); applyInner(t.inner, 'reject'); }
-        else remove(t.owner, t.tr as Element);
+        else removeRow(t);
         return;
       case 'group':
         resolvePieces(t.pieces, 'reject');
@@ -351,6 +352,16 @@ function resolvePieces(pieces: TrackedChange[], what: 'accept' | 'reject'): void
 function remove(owner: Element[], element: Element): void {
   const i = owner.indexOf(element);
   if (i >= 0) owner.splice(i, 1);
+}
+
+/**
+ * A row taken away, and its table with it when it was the last: a table has no revision of its own,
+ * so one whose rows were all inserted was inserted, and one whose rows were all deleted was deleted.
+ * A `w:tbl` left with no rows is not a table any more (CR-002 section 37).
+ */
+function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
+  remove(t.owner, t.tr as Element);
+  if (t.table && rowsOf(t.table.element.value).length === 0) remove(t.table.container, t.table.element as Element);
 }
 
 /** A `w:ins` or `w:moveTo` accepted: its runs take its place. */
@@ -830,11 +841,11 @@ export function groupTouching(tokens: TrackedChangeToken[]): TrackedChange[] {
  * The `w:trPr/w:ins` and `w:trPr/w:del` revisions of a table row. `inner` is the revision markup
  * of the row's own cells, which the row's change owns rather than reporting separately.
  */
-export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner: TrackedChange[] = []): TrackedChange[] {
+export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner: TrackedChange[] = [], table?: Located<wml.Tbl>): TrackedChange[] {
   const trPr = tr.value.trPr;
   const out: TrackedChange[] = [];
-  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner }, undefined));
-  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner }, undefined));
+  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner, table }, undefined));
+  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner, table }, undefined));
   return out;
 }
 

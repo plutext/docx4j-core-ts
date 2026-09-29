@@ -362,7 +362,7 @@ test('Table: addRows, insertRows, deleteRows, row delete and table delete are tr
   assert.equal(second.body.tables.length, 1, 'the table is still there');
   assert.deepEqual(t2.rows.map((r) => r.tr.trPr.del !== undefined), [true, true]);
   assert.equal(second.body.acceptAll(), 2);
-  assert.equal(second.body.tables[0].rowCount, 0);
+  assert.equal(second.body.tables.length, 0, 'its last row accepted away, the table goes with it (section 37)');
 
   // and a table inserted while tracking marks every row and paragraph
   const third = await tracked([]);
@@ -425,7 +425,7 @@ test('a deleted row marks its cells: w:delText, w:del on every paragraph mark, o
   assert.deepEqual(rowChanges.map((c) => c.type), ['Added', 'Deleted']);
   assert.equal(t3.rows[0].cells[0].body.paragraphs.length, 1, 'the cell keeps its paragraph');
   assert.equal(third.body.acceptAll(), 2);
-  assert.equal(third.body.tables[0].rowCount, 0);
+  assert.equal(third.body.tables.length, 0, 'no w:tbl without rows is left (section 37)');
 });
 
 test('a comment made while tracking is on is a comment, not an insertion', async () => {
@@ -1412,4 +1412,62 @@ test('a tracked replacement inside another\'s insertion splits it around the new
   assert.deepEqual((await replaced('insertion')).slice(0, 2), [
     'ins(Jason Harrop) ["An ", del(Author C) "insertion"]', 'ins(Author C) ["W"]',
   ]);
+});
+
+// CR-002 section 37, the editor's finding on 0.3.0 (its ED-005 section 12.27): inserted content was
+// tracked only at the top level, so that rejecting it left the text of a link, an inline control, a
+// field, a block control or a nested table in the document. Word puts the w:ins inside the holder.
+test('everything inserted under tracking is an insertion, in links, controls, fields and nested tables', async () => {
+  const inserted = '<w:p><w:r><w:t xml:space="preserve">before </w:t></w:r><w:hyperlink w:anchor="x" w:history="1"><w:r><w:t>link</w:t></w:r></w:hyperlink>'
+    + '<w:sdt><w:sdtPr/><w:sdtContent><w:r><w:t>control</w:t></w:r></w:sdtContent></w:sdt><w:fldSimple w:instr="PAGE"><w:r><w:t>7</w:t></w:r></w:fldSimple></w:p>'
+    + '<w:sdt><w:sdtPr/><w:sdtContent><w:p><w:r><w:t>in a block control</w:t></w:r></w:p></w:sdtContent></w:sdt>'
+    + '<w:tbl><w:tblPr/><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid><w:tr><w:tc><w:tcPr/>'
+    + '<w:tbl><w:tblPr/><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:tcPr/><w:p><w:r><w:t>nested</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p/></w:tc></w:tr></w:tbl>';
+  const words = ['>before <', '>link<', '>control<', '>7<', '>in a block control<', '>nested<'];
+  const make = async () => {
+    const pkg = await tracked(['kept']);
+    await pkg.body.insertXml(inserted, 'End');
+    return pkg;
+  };
+  const pkg = await make();
+  const xml = await xmlOf(pkg);
+  // no run with text outside a w:ins but the paragraph that was there
+  const outside = xml.replace(/<w:ins [^>]*>.*?<\/w:ins>/gs, '').match(/<w:t(?: [^>]*)?>[^<]+<\/w:t>/g);
+  assert.deepEqual(outside, ['<w:t>kept</w:t>']);
+  assert.match(xml, /<w:hyperlink [^>]*><w:ins /, 'the link\'s run: a w:ins inside the link, as Word writes it');
+  assert.match(xml, /<w:fldSimple [^>]*><w:ins /);
+  assert.equal((xml.match(/<w:trPr><w:ins /g) ?? []).length, 2, 'both rows, the nested table\'s too');
+  // rejected, none of it is left; accepted, all of it is, with no revision
+  const rejected = await make();
+  rejected.body.rejectAll();
+  const after = await xmlOf(rejected);
+  for (const word of words) assert.equal(after.includes(word), false, `rejected: ${word} gone`);
+  assert.equal(after.includes('<w:tbl>'), false, 'each table went with its last row');
+  const accepted = await make();
+  accepted.body.acceptAll();
+  const kept = await xmlOf(accepted);
+  for (const word of words) assert.ok(kept.includes(word), `accepted: ${word} kept`);
+  assert.equal(/<w:ins /.test(kept), false);
+});
+
+test('insertOoxml into a paragraph under tracking is an insertion, split into another\'s as typed text is', async () => {
+  const pkg = await tracked(['kept']);
+  const p = pkg.body.paragraphs[0];
+  await p.insertOoxml('<w:p><w:r><w:t>A</w:t></w:r><w:hyperlink w:anchor="x"><w:r><w:t>B</w:t></w:r></w:hyperlink></w:p>', 'End');
+  const xml = await xmlOf(pkg);
+  assert.match(xml, /<w:t>kept<\/w:t><\/w:r><w:ins [^>]*><w:r><w:t>A<\/w:t><\/w:r><\/w:ins><w:hyperlink [^>]*><w:ins [^>]*><w:r><w:t>B<\/w:t>/,
+    'the run in a w:ins, the link\'s run in one inside the link');
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.text]), [['Added', 'AB']]);
+  pkg.body.rejectAll();
+  assert.equal(pkg.body.paragraphs[0].text, 'kept');
+
+  // inside Bob's insertion, Ada's goes between its halves, as her typing would
+  const other = await tracked(['one ']);
+  other.author = { name: 'Bob' };
+  other.body.paragraphs[0].insertText('two three', 'End');
+  other.author = { name: 'Ada' };
+  const range = other.body.paragraphs[0].search('three')[0];
+  await range.insertOoxml('<w:p><w:r><w:t xml:space="preserve">and </w:t></w:r></w:p>', 'Before');
+  assert.deepEqual(other.body.getTrackedChanges().map((c) => [c.author, c.text]), [['Bob', 'two '], ['Ada', 'and '], ['Bob', 'three']]);
+  assert.equal(other.body.paragraphs[0].text, 'one two and three');
 });

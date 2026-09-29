@@ -22,7 +22,7 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, type TrackingHost } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -642,6 +642,20 @@ export class Paragraph {
    */
   insertItemsAt(offset: number, items: Element[]): void {
     if (items.length === 0) return;
+    const tracker = this.changeTracker;
+    if (tracker) {
+      // With tracking on, what goes in is an insertion: its runs in w:ins, in a link, a control or a
+      // field too, placed as typed text is - beside another's revision, or between its halves, never
+      // in it. Before, `insertOoxml` into a paragraph went in untracked (CR-002 section 37).
+      wrapInsertedRuns(tracker, items, this.p);
+      this.splitAt(offset);
+      const segs = this.segments();
+      const before = [...segs].reverse().find((s) => s.end <= offset);
+      const after = segs.find((s) => s.start >= offset);
+      tracker.assertEditable((before ?? after)?.revision);
+      this.placeInsertion(offset, items, before, after, () => tracker.nextId());
+      return;
+    }
     this.splitAt(offset);
     const segs = this.segments();
     const after = segs.find((s) => s.start >= offset);
@@ -847,7 +861,7 @@ export class Paragraph {
    * where the text there is not directly in the revision (in a hyperlink inside it, say): the caller
    * then does what it did before.
    */
-  private insertBetweenHalves(at: number, item: Element, nextId: () => number): boolean {
+  private insertBetweenHalves(at: number, item: Element | Element[], nextId: () => number): boolean {
     this.splitAt(at);
     const after = this.segments().find((s) => s.start >= at && s.revision);
     const holder = after?.revision;
@@ -861,15 +875,16 @@ export class Paragraph {
    * puts `item` between the two; with nothing from `index` on, `item` just goes after the revision.
    * False, with nothing changed, where the revision's items cannot be told apart from its attributes.
    */
-  private splitHolderAround(holder: RevisionHolderOf, index: number, item: Element, nextId: () => number): boolean {
+  private splitHolderAround(holder: RevisionHolderOf, index: number, item: Element | Element[], nextId: () => number): boolean {
     const value = holder.value as unknown as Record<string, unknown>;
     const itemsKey = Object.keys(value).find((key) => value[key] === holder.items);
     if (!itemsKey) return false;
     const parent = (holder.value as { PARENT?: object }).PARENT ?? this.p;
     const at = holder.owner.indexOf(holder.element) + 1;
+    const items = Array.isArray(item) ? item : [item];
     if (index >= holder.items.length) {
-      holder.owner.splice(at, 0, item);
-      linkParents(item, parent);
+      holder.owner.splice(at, 0, ...items);
+      linkParents(items, parent);
       return true;
     }
     const copy: Record<string, unknown> = {};
@@ -877,9 +892,9 @@ export class Paragraph {
     copy.id = nextId();
     copy[itemsKey] = holder.items.splice(index);
     const second = { name: holder.element.name, value: copy } as Element;
-    holder.owner.splice(at, 0, item, second);
+    holder.owner.splice(at, 0, ...items, second);
     linkParents(copy[itemsKey], copy);
-    linkParents([item, second], parent);
+    linkParents([...items, second], parent);
     return true;
   }
 
@@ -888,14 +903,15 @@ export class Paragraph {
    * range start of a move whose range opens just there, so that text typed at the start of moved
    * text is not inside the move (`test/README.md` check 20 case 03).
    */
-  private insertBesideRevision(holder: RevisionHolder, item: Element, side: 'before' | 'after'): void {
+  private insertBesideRevision(holder: RevisionHolder, item: Element | Element[], side: 'before' | 'after'): void {
     let index = holder.owner.indexOf(holder.element) + (side === 'after' ? 1 : 0);
     if (side === 'before' && (holder.kind === 'moveTo' || holder.kind === 'moveFrom')) {
       const marker = holder.kind === 'moveTo' ? 'moveToRangeStart' : 'moveFromRangeStart';
       while (index > 0 && holder.owner[index - 1]?.name?.localPart === marker) index--;
     }
-    holder.owner.splice(index, 0, item);
-    linkParents(item, (holder.value as { PARENT?: object }).PARENT ?? this.p);
+    const items = Array.isArray(item) ? item : [item];
+    holder.owner.splice(index, 0, ...items);
+    linkParents(items, (holder.value as { PARENT?: object }).PARENT ?? this.p);
   }
 
   /**
@@ -952,28 +968,37 @@ export class Paragraph {
     tracker.assertEditable(neighbour?.revision);
     const rPr = copyRPr(neighbour?.run.rPr ?? runsOf(this.p)[0]?.value.rPr);
     const ins = tracker.ins([runOf([textItem(text)], rPr)]);
+    this.placeInsertion(at, [ins as Element], before, after, () => tracker.nextId());
+  }
+
+  /**
+   * An insertion put at `at`, `before` and `after` being the segments either side of it once the runs
+   * are split there: never inside another's revision.
+   */
+  private placeInsertion(at: number, items: Element[], before: TextSegment | undefined, after: TextSegment | undefined, nextId: () => number): void {
     // Typed inside another's revision - a w:ins, a w:moveTo - the revision is split and the typist's
     // w:ins goes between its halves, as Word writes it (test/README.md check 20 case 01, check 21's
     // first run); before, it went to the revision's edge, putting the text in the wrong place.
     if (before?.revision && after?.revision && before.revision.element === after.revision.element
-      && this.insertBetweenHalves(at, ins as Element, () => tracker.nextId())) {
+      && this.insertBetweenHalves(at, items, nextId)) {
       return;
     }
     // at the start of a revision, beside it - and outside a move's range that opens there (case 03)
     if (!before && after?.revision) {
-      this.insertBesideRevision(after.revision, ins as Element, 'before');
+      this.insertBesideRevision(after.revision, items, 'before');
       return;
     }
+    const neighbour = before ?? after;
     if (neighbour) {
       const owner = neighbour.revision ? neighbour.revision.owner : neighbour.runOwner;
       const item = neighbour.revision ? neighbour.revision.element : neighbour.runOwner[neighbour.runIndex]!;
       const parent = (neighbour.revision ? neighbour.revision.value : neighbour.run) as { PARENT?: object };
-      owner.splice(owner.indexOf(item) + (neighbour === before ? 1 : 0), 0, ins);
-      linkParents(ins, parent.PARENT ?? this.p);
+      owner.splice(owner.indexOf(item) + (neighbour === before ? 1 : 0), 0, ...items);
+      linkParents(items, parent.PARENT ?? this.p);
     } else {
-      const content = (this.p.content ??= []);
-      if (at === 0) content.unshift(ins as never); else content.push(ins as never);
-      linkParents(ins, this.p);
+      const content = (this.p.content ??= []) as Element[];
+      if (at === 0) content.unshift(...items); else content.push(...items);
+      linkParents(items, this.p);
     }
   }
 

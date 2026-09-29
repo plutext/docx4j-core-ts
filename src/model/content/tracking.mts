@@ -12,7 +12,7 @@ import {
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf } from './tree.mjs';
+import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf, childrenOf, rowsOf, cellsOf } from './tree.mjs';
 import type { Author } from './comments.mjs';
 
 /** Office JS `Word.ChangeTrackingMode`. */
@@ -357,43 +357,78 @@ export class ChangeTracker {
 }
 
 /**
- * A whole paragraph inserted: the mark is marked inserted and every run of it goes into a
- * `w:ins`. Word, splitting a paragraph, marks the *first* paragraph's mark instead and leaves
- * the new one the original mark; marking the new paragraph's own mark is the same document once
+ * A whole paragraph inserted: the mark is marked inserted (unless it already is) and every run of it
+ * goes into a `w:ins` - the runs in its hyperlinks, inline content controls, fields and smart tags as
+ * well (`wrapNewRuns`). Word, splitting a paragraph, marks the *first* paragraph's mark instead and
+ * leaves the new one the original mark; marking the new paragraph's own mark is the same document once
  * accepted or rejected and keeps the edit to the element that was added (CR-002 section 13).
  */
 export function trackInsertedParagraph(tracker: ChangeTracker, p: wml.P): void {
-  tracker.markParagraphInserted(p);
+  if (!p.pPr?.rPr?.ins) tracker.markParagraphInserted(p);
   wrapNewRuns(tracker, p);
 }
 
-/** Every top-level run of the paragraph that is not already in a revision, wrapped in one `w:ins` per group. */
+/**
+ * Every run of the paragraph not already in a revision, wrapped in one `w:ins` per group of touching
+ * runs - at the top level and inside the run-level holders (a hyperlink, an inline content control's
+ * content, a simple field, a smart tag, custom XML), where the `w:ins` goes inside the holder. A
+ * hyperlink or a simple field cannot be in a `w:ins` (`CT_RunTrackChange` holds `EG_ContentRunContent`
+ * only), and the editor reports Word nesting the others the same way. Before, only the top level was
+ * wrapped, so that rejecting an inserted paragraph left a link's text behind (the editor's finding on
+ * 0.3.0, CR-002 section 37).
+ */
 export function wrapNewRuns(tracker: ChangeTracker, p: wml.P): void {
-  const content = p.content as Element[] | undefined;
-  if (!content) return;
-  for (let i = 0; i < content.length; i++) {
-    if (typeNameOf(content[i]!) !== 'org_docx4j_wml.R' || revisionKindOf(content[i]!) !== undefined) continue;
-    let j = i;
-    while (j < content.length && typeNameOf(content[j]!) === 'org_docx4j_wml.R' && revisionKindOf(content[j]!) === undefined) j++;
-    const runs = content.splice(i, j - i);
-    const ins = tracker.ins(runs);
-    content.splice(i, 0, ins);
-    linkParents(ins, p);
+  wrapInsertedRuns(tracker, p.content as Element[] | undefined, p);
+}
+
+/**
+ * `wrapNewRuns` over run-level items that are about to go into a paragraph (`Paragraph.insertItemsAt`):
+ * the runs among them, and those in their holders, wrapped in `w:ins`. `parent` is what the items'
+ * array belongs to.
+ */
+export function wrapInsertedRuns(tracker: ChangeTracker, items: Element[] | undefined, parent: object): void {
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!;
+    if (revisionKindOf(item) !== undefined) continue;                   // already a revision
+    if (typeNameOf(item) === 'org_docx4j_wml.R') {
+      let j = i;
+      while (j < items.length && typeNameOf(items[j]!) === 'org_docx4j_wml.R' && revisionKindOf(items[j]!) === undefined) j++;
+      const runs = items.splice(i, j - i);
+      const ins = tracker.ins(runs);
+      items.splice(i, 0, ins);
+      linkParents(ins, parent);
+      continue;
+    }
+    const value = item.value;
+    if (typeof value === 'object' && value !== null) {
+      const holder = (value as { sdtContent?: object }).sdtContent ?? value;
+      wrapInsertedRuns(tracker, childrenOf(value), holder);
+    }
   }
 }
 
-/** A whole table inserted: every row is marked inserted and every paragraph in it is an insertion. */
+/** A whole table inserted: every row is marked inserted and everything in its cells is an insertion (`trackInsertedBlocks`). */
 export function trackInsertedTable(tracker: ChangeTracker, tbl: wml.Tbl): void {
-  for (const row of (tbl.content ?? []) as Element[]) {
-    if (typeNameOf(row) !== 'org_docx4j_wml.Tr') continue;
-    const tr = row.value as wml.Tr;
-    tracker.markRowInserted(tr);
-    for (const cell of (tr.content ?? []) as Element[]) {
-      if (typeNameOf(cell) !== 'org_docx4j_wml.Tc') continue;
-      for (const block of ((cell.value as wml.Tc).content ?? []) as Element[]) {
-        if (typeNameOf(block) === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
-      }
-    }
+  for (const row of rowsOf(tbl)) {
+    const tr = row.element.value;
+    if (!tr.trPr?.ins) tracker.markRowInserted(tr);
+    for (const cell of cellsOf(tr)) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
+  }
+}
+
+/**
+ * Block content inserted, whatever it holds: a paragraph (`trackInsertedParagraph`), a table
+ * (`trackInsertedTable`: rows inside row-level content controls, nested tables in its cells), and a
+ * block-level content control's or custom XML element's content, recursively. What `Body.insertElement`
+ * and `Table.addRows` track new content by (CR-002 section 37).
+ */
+export function trackInsertedBlocks(tracker: ChangeTracker, items: Element[] | undefined): void {
+  for (const block of items ?? []) {
+    const tn = typeNameOf(block);
+    if (tn === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
+    else if (tn === 'org_docx4j_wml.Tbl') trackInsertedTable(tracker, block.value as wml.Tbl);
+    else if (typeof block.value === 'object' && block.value !== null) trackInsertedBlocks(tracker, childrenOf(block.value));
   }
 }
 

@@ -10,7 +10,7 @@ import type { Body } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
-import { type ChangeTracker, trackInsertedParagraph } from './tracking.mjs';
+import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -408,11 +408,8 @@ function markRowsDeleted(tracker: ChangeTracker, rows: TableRow[]): void {
 function markRowsInserted(tracker: ChangeTracker | undefined, rows: Element<wml.Tr>[]): void {
   if (!tracker) return;
   for (const row of rows) {
-    tracker.markRowInserted(row.value);
-    for (const cell of cellsOf(row.value)) {
-      for (const block of childrenOf(cell.element.value) ?? []) {
-        if (typeNameOf(block) === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
-      }
-    }
+    if (!row.value.trPr?.ins) tracker.markRowInserted(row.value);
+    // nested tables and block controls in a new row's cells too (CR-002 section 37)
+    for (const cell of cellsOf(row.value)) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
   }
 }
