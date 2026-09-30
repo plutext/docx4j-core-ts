@@ -24,8 +24,8 @@ import type { Bound } from './binder.mjs';
 export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentControl | Range | Bound;
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { type ChangeTracker, trackerOf, trackInsertedBlocks } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted } from './TrackedChange.mjs';
+import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -336,8 +336,8 @@ export class Body {
       const tn = typeNameOf(el);
       if (tn === 'org_docx4j_wml.P') this.assignParaId(el.value as wml.P);
       // everything it holds is an insertion: the runs in its links and inline controls, the rows and
-      // nested tables of a table, a block control's content (CR-002 section 37)
-      if (tracker) trackInsertedBlocks(tracker, [el]);
+      // nested tables of a table, a block control's content and the control itself (CR-002 section 37)
+      if (tracker) trackInsertedBlock(tracker, el, container);
     }
     const first = elements[0]!;
     return typeNameOf(first) === 'org_docx4j_wml.P' ? new Paragraph(first as Element<wml.P>, container, this) : { element: first, container };
@@ -418,9 +418,19 @@ export class Body {
   getTrackedChanges(): TrackedChange[] {
     const out: TrackedChangeToken[] = [];
     const visit = (items: Element[], into: TrackedChangeToken[]): void => {
-      for (const el of items) {
+      for (let i = 0; i < items.length; i++) {
+        const el = items[i]!;
         const tn = typeNameOf(el);
         if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this))); continue; }
+        // a block control or custom XML element that is itself an insertion (check 30): one piece,
+        // grouping with the insertions around and inside it, as Word lists them
+        const inserted = holderInsertionAt(items, i, undefined);
+        if (inserted) {
+          into.push(inserted);
+          visit(childrenOf(items[i + 1]!.value as object) ?? [], into);
+          i += 2;
+          continue;
+        }
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (tn === 'org_docx4j_wml.Tbl') {
@@ -725,6 +735,9 @@ export class Body {
     this.content.length = 0;
     this.content.push(sdt as Element);
     linkParents(sdt, this.container);
+    // under tracking the control itself is the insertion, its content what it was (check 30)
+    const tracker = this.changeTracker;
+    if (tracker) markHolderInserted(tracker, sdt as Element, this.content, () => {});
     return new ContentControl(sdt as Element<wml.SdtBlock>, this.content, this);
   }
 }

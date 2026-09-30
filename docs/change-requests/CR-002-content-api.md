@@ -2669,12 +2669,13 @@ back and drops the `w:pPrChange` when the paragraph is as it was - Office JS's p
 the same count. The setters and the list writes (`attachToList`, `detachFromList`, `ListItem.level`)
 all settle.
 
-**TODO (Jason, 2026-09-28: worth a check later).** With tracking **off**, `paragraph.alignment =
-'Left'` writes `w:jc="left"` and a zero left indent `w:ind w:left="0"`, where Word's Ctrl+L and
-Decrease Indent removed the direct values (measured only with tracking on, check 26). The editor's
-Ctrl+L does the same as the engine. A Word check would ask what Ctrl+L, Decrease Indent (and
-perhaps Office JS's `paragraph.alignment = "Left"`) write with tracking off, on a paragraph whose
-style already gives that value.
+**TODO (Jason, 2026-09-28: worth a check later), half answered 2026-09-30.** With tracking **off**,
+`paragraph.alignment = 'Left'` wrote `w:jc="left"` and a zero left indent `w:ind w:left="0"`, where
+Word's Ctrl+L and Decrease Indent removed the direct values (measured then only with tracking on,
+check 26). Jason measured Ctrl+L with tracking off in Word 2010 and Word 15 the same day (the
+editor's files; section 38 item 3): it removes the `w:jc`, so the alignment setter no longer writes
+a value the paragraph already inherits. Decrease Indent with tracking off is still unmeasured, and
+the left-indent setter still writes `w:ind w:left="0"`.
 
 **A revision's date, found by check 23.** Office JS gave `w:date="2026-09-28T01:00:00Z"` as
 `2026-09-27T15:00:00Z`: Word reads `w:date` as local wall-clock time, the `Z` notwithstanding, and
@@ -3181,7 +3182,8 @@ Word's own document's w16cid and w16cex parts; the three tests fail on the code 
 *The editor upgraded to 0.3.0 the same day (its ED-005 section 12.26): every known difference its
 agreement suite held against the engine now agrees, but for one finding; one request; one note.
 Items 1 and 2 **implemented 2026-09-29, unreleased**. Item 4, a second finding from its E4.f step F3
-(its ED-005 section 12.27 item 6), and items 5 and 6, found while fixing it, the same day, unreleased.*
+(its ED-005 section 12.27 item 6), and items 5 and 6, found while fixing it, the same day, unreleased.
+Item 7, what check 30 measured on 2026-09-30 and the change it made, the same day, unreleased.*
 
 **1. A tracked replacement inside another author's insertion nested the new `w:ins` in it.** Replacing
 "An" at the start of Jason Harrop's "An insertion" in `tracked-changes.docx`, as Author C, wrote
@@ -3219,8 +3221,8 @@ insertion uses too): every paragraph's mark, every table's rows at any depth, ev
 the `w:ins` going inside a run-level holder rather than around it. A hyperlink or a simple field cannot
 be in a `w:ins` at all (`CT_RunTrackChange` holds `EG_ContentRunContent` only), so there the schema
 decides. An inline content control, a smart tag or custom XML can be in one, so wrapping the holder
-would be valid too; which Word writes is not measured (the editor's report of Word's form held for the
-hyperlink and the field only, as it corrected the same day), and is for the Script Lab check below.
+would be valid too; which Word writes was not measured then (the editor's report of Word's form held
+for the hyperlink and the field only, as it corrected the same day), and item 7 has the answer.
 A run already in a revision - incoming markup with its own - is left
 as it came. The editor works around it until a release has this.
 
@@ -3238,14 +3240,70 @@ were all deleted was deleted. The row's change now knows its table, which goes w
 tests pinned the empty table (`rowCount` 0 after accepting a whole table's deletion); they now expect
 no table.
 
-**Left as it is: what a rejected insertion's holders leave.** Rejecting item 4's insertion removes every
-run, mark and row, but a `w:hyperlink`, `w:fldSimple` or inline `w:sdt` that held only inserted runs
-stays, empty, and so does a paragraph whose rejected mark has no paragraph after it to join (a block
-control or a table follows), as it did before. Whether the holder was inserted or only its content
-was cannot be told from the markup: a content control that was there before, typed into under
-tracking, holds only an insertion too, and must stay. What Word does with each is a Script Lab check
-to make before changing it, together with where Word puts the `w:ins` for a content control and a
-smart tag (item 4): `test/README.md` check 30, written 2026-09-29, not yet run.
+**7. What Word writes for an inserted content control, custom XML element or smart tag, and what
+rejecting leaves (check 30, run 2026-09-30).** Rejecting item 4's insertion removed every run, mark and
+row, but left a `w:hyperlink`, `w:fldSimple`, inline `w:sdt`, smart tag or custom XML element that
+held only inserted runs, empty, and a block control holding an empty paragraph. Whether the holder was
+inserted or only its content was could not be told from the markup - a control that was there before,
+typed into under tracking, holds only an insertion too, and must stay - so `test/README.md` check 30
+asked Word. Its answers, in full there:
+
+- Word marks a content control it inserts under tracking **as itself inserted**, with
+  `w:customXmlInsRangeStart` / `w:customXmlInsRangeEnd`: one start before the `w:sdt` whose end is the
+  first item of `w:sdtContent`, and a second start the last item of `w:sdtContent` whose end follows
+  the `w:sdt`; the runs' `w:ins` inside, where item 4 put it. Inline and block alike. Rejecting removes
+  the control. A control typed into that was there before has **no markers**, and rejecting keeps it,
+  emptied. So the markers are the distinction, and Word's own.
+- A **smart tag** goes into the `w:ins` beside the runs, its own runs plain, and rejecting removes it;
+  given item 4's form (the `w:ins` inside the tag), Word rewrote it into its own.
+- A **hyperlink** or a **field** has no form of its own: Word puts both into the one `w:ins` as
+  HYPERLINK / complex field runs (`w:fldChar`), which is why its `insertOoxml` turns a `w:anchor`
+  hyperlink into a field. Given item 4's form, Word left an **empty** `w:hyperlink` and an **empty**
+  PAGE field on reject - the engine's answer.
+- `insertOoxml` dropped a `w:customXml` element, so Word's form for one is not measured; the markers
+  are named for it, and the engine treats it as a control.
+- A table with the paragraph before it, whose mark was inserted, all goes, on both sides.
+
+The engine now writes Word's forms. `markHolderInserted` (`tracking.mts`) puts the two marker pairs
+around and inside a content control or custom XML element that `Body.insertElement`,
+`Paragraph.insertItemsAt` (`insertOoxml` into a paragraph) or `Table.addRows` inserts, at block and
+run level, with the ids in document order as Word's are; and `Range`, `Paragraph` and
+`Body.insertContentControl` put them around a new control under tracking, a new control over text in
+an insertion going **between the insertion's halves** with the text in a `w:ins` of its own inside it
+(Word's inserted-text-wrapped form; the halves are split as typing splits them). `wrapInsertedRuns`
+puts a smart tag into the `w:ins` with the runs. Row- and cell-level controls are walked through to
+their rows and cells and not marked (unmeasured, and `trackInsertedTable` sees rows, not their
+holders). `TrackedChange` has a `holder` target: the pattern of four markers around one element,
+listed as an `Added` piece where the element stands, grouping with the insertions around and inside
+it (Word lists an inserted block control with the paragraphs before and after it as one change, and
+the engine's markup as three), text `''` since the pieces inside carry it. Rejecting the piece takes
+the element away and puts its content in its place - nothing, for content inserted with it; the
+text, for text that was there and was wrapped (the markers' own meaning; not measured in Word) -
+and accepting takes the markers away. Markers in any other arrangement list nothing and are swept by
+`acceptAll` / `rejectAll`. Word's own markup, read in, lists and resolves the same way. A piece listed
+inside a holder that is unwrapped before it is resolved is still found: `remove` and `joinWithNext`
+look the element up by its `PARENT` when the list they were given no longer holds it.
+
+Found on the way: an **empty run-level control** reported its range at offset 0, so `insertText`
+into one (`ContentControl.insertText`, any location) put the text at the paragraph's start, outside
+the control. It is placed at the end of the text before the control now, and text goes into the
+control's content as a run (in a `w:ins` under tracking, before the control's trailing marker).
+
+The listing follows what part C measured too (the editor's E4.g question, 2026-09-30: its
+`review-for-word.docx` has one author's insertion running into a `w:hyperlink` and out, and Word's
+Reviewing Pane listed the link's text apart): Office JS gave **three** changes for one author's
+`w:ins` before, inside and after a `w:hyperlink`, a `w:fldSimple` and an inline `w:sdt` without the
+markers, and **one** over an inserted control with them and over Word's own one-`w:ins` forms. So a
+run holder that is not itself an insertion now keeps the insertions inside it apart from those
+outside (`tokensOfRunLevel`), and an inserted control does not. Fix F's rule, touching pieces of one
+kind and author are one change, stands; a holder boundary is not touching. A smart tag in Word's form
+sits inside the `w:ins`, so no boundary arises; a smart tag or custom XML element holding its own
+`w:ins` is treated as a holder (unmeasured: Word rewrote the one and dropped the other).
+
+What is left as it was: an emptied hyperlink or simple field stays after a reject, as Word leaves
+the engine's form; and `insertOoxml` into Word merges the last inserted paragraph's mark with the
+target's, so the `w:pPr/w:rPr/w:ins` the engine writes on it is lost there (Word's doing, seen in
+every Part C case).
 
 `tracking.test.mjs` holds the replacement at the start, in the middle and at the end of another's
 insertion; `comments.test.mjs` holds `ensure` of the two styles, and a comment made afterwards finding
@@ -3253,4 +3311,79 @@ them. Both tests fail on the code before this. For items 4 to 6, `tracking.test.
 with a link, an inline control and a field, a block control, and a table with a nested one, and checks
 that nothing of it is outside a `w:ins`, that rejecting leaves none of its text and no table, and that
 accepting keeps all of it with no revision; and it merges a paragraph with a link into another, and a
-run into another author's insertion. Each fails on the code before it.
+run into another author's insertion. Each fails on the code before it. For item 7 it holds the
+markers around an inserted inline control, block control and custom XML element (ids and order as
+Word writes them), the smart tag in the `w:ins`, one change listed across a block control, the
+control gone on reject and kept without markers on accept; an existing control typed into, kept and
+emptied on reject, the text inside it; a new control empty, over inserted text (between the
+insertion's halves) and over text that was there (reject leaves the text), and a paragraph wrapped in
+a block control; and Word's own check 30 markup read in, listed as one change, rejected away and
+accepted clean, with a stray marker pair left alone by the listing and swept by reject all.
+
+## 38. The editor's E4.g measurements in Word 2010 and Word 15 (2026-09-30)
+
+*Three findings the editor sent on 2026-09-30, measured by Jason in Word 2010 and Word 15 on the
+editor's `measure-base.docx` (its `packages/editor-model/test/fixtures/build/measure-base.mjs`; the
+saves `measure-word2010.docx` and `measure-word15.docx` in its `fixtures/review/`, also in the shared
+`M4600-Main/word-session/` and `Office 2013/word-session/`; its ED-005 section 9.2 item 2). The
+first two are verified here against `measure-word15.docx`'s `document.xml`. All three
+**implemented 2026-09-30, unreleased.***
+
+**1. A comment on part of a pending insertion keeps its anchor narrow.** With one word, "monthly",
+selected inside Claude's pending insertion "The tenant pays rent monthly in advance." and a comment
+added, both Words wrote the range start **inside** the `w:ins`, closed the `w:ins` at the range's
+end, put the end marker and the plain reference run after it, and opened a second `w:ins`, same
+author and date, new id, for the rest:
+
+```xml
+<w:ins w:id="1" w:author="Claude" ...><w:r><w:t xml:space="preserve">The tenant pays rent </w:t></w:r>
+<w:commentRangeStart w:id="2"/><w:r><w:t>monthly</w:t></w:r></w:ins><w:commentRangeEnd w:id="2"/>
+<w:r><w:rPr><w:rStyle w:val="CommentReference"/></w:rPr><w:commentReference w:id="2"/></w:r>
+<w:ins w:id="3" w:author="Claude" ...><w:r><w:t xml:space="preserve"> in advance.</w:t></w:r></w:ins>
+```
+
+Section 13's rule put both markers outside the revision, so that a comment made under tracking is
+no insertion of its own; the cost was that a comment on part of an insertion widened to the whole of
+it, which the editor's companion had come to warn its agent about (ED-005 section 12.29 item 3).
+Word shows the reference can stay out of the insertion with the anchor narrow. `placeAround`
+(`Comment.mts`) now writes Word's form when the commented text is in an insertion: the start inside
+the `w:ins` before the first commented run, the `w:ins` split after the last (`Paragraph.splitHolderAround`,
+the second half a new id) with the end marker and the reference run between the halves, or after the
+`w:ins` when the range ends with it. A deletion keeps the markers outside (unmeasured), and so does a
+move (its halves are not to be split). The listing then shows the insertion as two changes, split at
+the plain reference run, which is how Word's pane lists it (the editor's item 3, Word agreeing).
+Rejecting the insertion, or accepting a deletion, that holds a comment marker keeps the marker in its
+place (`removeRevision`), so the comment survives, collapsed where its text was; accepting leaves it on
+its word.
+
+**2. Deleting a heading's paragraph mark gives the next paragraph the heading's properties.** Word
+15, at Delete at the end of a Heading 2 paragraph followed by a Normal one with tracking on, marked
+the heading's mark deleted and wrote on the next paragraph `<w:pPr><w:pStyle w:val="Heading2"/>
+<w:pPrChange ...><w:pPr/></w:pPrChange></w:pPr>`: the joined line is a heading throughout in No
+Markup, and the record holds the paragraph's own (empty) properties. The Delete counterpart of check
+29's Enter; check 22's deleted marks were all between paragraphs of the same properties, which record
+nothing. `Paragraph.delete()` under tracking now does the same (`giveMarkPropertiesToNext`): the next
+paragraph takes this paragraph's properties (everything in `w:pPr` but the mark's `w:rPr`, a
+`w:sectPr` and the record) with a `w:pPrChange` recording its own, nothing when they are the same.
+Accepting joins into a paragraph with those properties and drops the record; rejecting restores the
+next paragraph's own. The deleted paragraphs of a deleted row (`markDeletedInPlace`) are not
+changed: unmeasured, and their cells are removed whole. What Word does on accepting markup without
+the record is unmeasured (the editor's guess: the joined paragraph keeps the second paragraph's
+properties); the engine's accept, with or without it, gives the surviving paragraph the next one's
+`w:pPr`, which with the record is the heading's.
+
+**3. Ctrl+L with tracking off removes a direct `w:jc` the style already gives.** On a paragraph
+centred by direct formatting whose style is left-aligned, both Words removed the `w:jc` and left no
+`w:pPr`, as with tracking on (check 26). Section 29's TODO is half answered: the alignment setter now
+drops the `w:jc` when the value asked for is what the paragraph resolves to without one
+(`inheritedAlignment`; measured for left over a left-aligned style, taken to hold for any value), and
+writes it otherwise; without a `PropertyResolver` it is written as asked. The editor writes
+`w:jc="left"` and will follow. Decrease Indent with tracking off, and the left-indent setter's
+`w:ind w:left="0"`, stay as they were, unmeasured.
+
+`tracking.test.mjs` holds the three: the comment on "monthly" in Word's form, on a whole insertion,
+and kept through reject all and accept all; the Heading 2 deleted before a Normal paragraph, the
+record, accept and reject, and the same-properties case recording nothing; and the alignment set
+centred then left with tracking off, leaving no `w:jc`, and right written. Each fails on the code
+before it.
+

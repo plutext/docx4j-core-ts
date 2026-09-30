@@ -304,11 +304,10 @@ function parentOf(element: Element): object | undefined {
 }
 
 /**
- * Where a marker for this segment's run goes: beside the run, but outside the `w:ins` or `w:del`
- * the run sits in, so that a comment made while change tracking is on is a comment and not an
- * insertion of its own (CR-002 section 13). Accepting or rejecting the revision then leaves the
- * comment where it is; the cost is that a comment on part of an insertion widens to the whole of
- * it, which is what Word shows anyway once the insertion is accepted.
+ * Where a marker for this segment's run goes when it is not put inside the revision the run sits
+ * in (`placeAround`): beside the run, but outside the `w:ins` or `w:del`, so that a comment made
+ * while change tracking is on is a comment and not an insertion of its own (CR-002 section 13).
+ * Accepting or rejecting the revision then leaves the comment where it is.
  */
 function markerSite(seg: TextSegment, fallback: object, after: boolean): { owner: Element[]; index: number; parent: object } {
   const item = seg.revision ? seg.revision.element : seg.runOwner[seg.runIndex]!;
@@ -339,10 +338,27 @@ function placeAround(range: Range, id: number): void {
     return;
   }
   const reference = referenceRun(id);
-  const after = markerSite(covered[covered.length - 1]!, paragraph.p, true);
-  insertAt(after.owner, after.index, [end, reference], after.parent);
-  const before = markerSite(covered[0]!, paragraph.p, false);
-  insertAt(before.owner, before.index, [start], before.parent);
+  const first = covered[0]!;
+  const last = covered[covered.length - 1]!;
+  // A comment on part of an insertion, as Word writes it (the editor's measure-word2010.docx and
+  // measure-word15.docx, 2026-09-30; CR-002 section 38): the range start inside the w:ins before the
+  // first commented run, the w:ins closed at the range's end - the rest of it a second w:ins with a
+  // new id - and the end marker and the plain reference run after it. So the anchor stays narrow
+  // and the reference is no insertion. Before, both markers went outside the w:ins, which widened
+  // the anchor to the whole insertion. A deletion or a move keeps the markers outside (a deletion's
+  // form is not measured; a move's halves are not to be split).
+  const inInsertion = (seg: TextSegment): boolean => seg.revision?.kind === 'ins';
+  if (inInsertion(last)) {
+    paragraph.splitHolderAround(last.revision!, last.runIndex + 1, [end, reference], () => paragraph.nextAnnotationId());
+  } else {
+    const after = markerSite(last, paragraph.p, true);
+    insertAt(after.owner, after.index, [end, reference], after.parent);
+  }
+  if (inInsertion(first)) insertAt(first.runOwner, first.runIndex, [start], first.revision!.value);
+  else {
+    const before = markerSite(first, paragraph.p, false);
+    insertAt(before.owner, before.index, [start], before.parent);
+  }
 }
 
 /** Writes the markers of a reply next to its parent's, as Word nests them. */

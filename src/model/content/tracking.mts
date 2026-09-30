@@ -7,7 +7,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy, deepCopyAsSync } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import {
-  createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange,
+  createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange, createCTMarkup,
   createDelText, createPPr, createParaRPr, createTrPr,
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
@@ -370,31 +370,37 @@ export function trackInsertedParagraph(tracker: ChangeTracker, p: wml.P): void {
 
 /**
  * Every run of the paragraph not already in a revision, wrapped in one `w:ins` per group of touching
- * runs - at the top level and inside the run-level holders (a hyperlink, an inline content control's
- * content, a simple field, a smart tag, custom XML), where the `w:ins` goes inside the holder. A
- * hyperlink or a simple field cannot be in a `w:ins` (`CT_RunTrackChange` holds `EG_ContentRunContent`
- * only); a content control, a smart tag or custom XML could be, and which of the two Word writes for
- * them is not measured (CR-002 section 37). Before, only the top level was
- * wrapped, so that rejecting an inserted paragraph left a link's text behind (the editor's finding on
- * 0.3.0, CR-002 section 37).
+ * runs - at the top level and inside the run-level holders, where Word's form decides (`test/README.md`
+ * check 30, CR-002 section 37 item 7): in a hyperlink or a simple field the `w:ins` goes inside, since
+ * neither can be in one (`CT_RunTrackChange` holds `EG_ContentRunContent` only); a smart tag goes
+ * *into* the `w:ins` with the runs beside it, its own runs plain; an inline content control or custom
+ * XML element keeps the `w:ins` inside and is itself marked inserted (`markHolderInserted`). Before,
+ * only the top level was wrapped, so that rejecting an inserted paragraph left a link's text behind
+ * (the editor's finding on 0.3.0, CR-002 section 37 item 4).
  */
 export function wrapNewRuns(tracker: ChangeTracker, p: wml.P): void {
   wrapInsertedRuns(tracker, p.content as Element[] | undefined, p);
 }
 
+/** True for what goes into a `w:ins` beside the runs: a run, or a smart tag (Word's form, check 30). */
+function wrapsAsRun(item: Element): boolean {
+  const tn = typeNameOf(item);
+  return (tn === 'org_docx4j_wml.R' || tn === 'org_docx4j_wml.CTSmartTagRun') && revisionKindOf(item) === undefined;
+}
+
 /**
  * `wrapNewRuns` over run-level items that are about to go into a paragraph (`Paragraph.insertItemsAt`):
- * the runs among them, and those in their holders, wrapped in `w:ins`. `parent` is what the items'
- * array belongs to.
+ * the runs among them, and those in their holders, wrapped in `w:ins`; a content control or custom
+ * XML element among them marked inserted. `parent` is what the items' array belongs to.
  */
 export function wrapInsertedRuns(tracker: ChangeTracker, items: Element[] | undefined, parent: object): void {
   if (!items) return;
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
     if (revisionKindOf(item) !== undefined) continue;                   // already a revision
-    if (typeNameOf(item) === 'org_docx4j_wml.R') {
+    if (wrapsAsRun(item)) {
       let j = i;
-      while (j < items.length && typeNameOf(items[j]!) === 'org_docx4j_wml.R' && revisionKindOf(items[j]!) === undefined) j++;
+      while (j < items.length && wrapsAsRun(items[j]!)) j++;
       const runs = items.splice(i, j - i);
       const ins = tracker.ins(runs);
       items.splice(i, 0, ins);
@@ -402,10 +408,15 @@ export function wrapInsertedRuns(tracker: ChangeTracker, items: Element[] | unde
       continue;
     }
     const value = item.value;
-    if (typeof value === 'object' && value !== null) {
-      const holder = (value as { sdtContent?: object }).sdtContent ?? value;
-      wrapInsertedRuns(tracker, childrenOf(value), holder);
+    if (typeof value !== 'object' || value === null) continue;
+    const holder = (value as { sdtContent?: object }).sdtContent ?? value;
+    if (HOLDER_TYPES.has(typeNameOf(item) ?? '')) {
+      const before = items.length;
+      markHolderInserted(tracker, item, items, () => wrapInsertedRuns(tracker, childrenOf(value), holder));
+      i += items.length - before;
+      continue;
     }
+    wrapInsertedRuns(tracker, childrenOf(value), holder);
   }
 }
 
@@ -421,16 +432,76 @@ export function trackInsertedTable(tracker: ChangeTracker, tbl: wml.Tbl): void {
 /**
  * Block content inserted, whatever it holds: a paragraph (`trackInsertedParagraph`), a table
  * (`trackInsertedTable`: rows inside row-level content controls, nested tables in its cells), and a
- * block-level content control's or custom XML element's content, recursively. What `Body.insertElement`
- * and `Table.addRows` track new content by (CR-002 section 37).
+ * block-level content control's or custom XML element's content, recursively, the element itself
+ * marked inserted (`markHolderInserted`; `owner` is the array holding `block`, which takes the
+ * markers). What `Body.insertElement` and `Table.addRows` track new content by (CR-002 section 37).
  */
+export function trackInsertedBlock(tracker: ChangeTracker, block: Element, owner: Element[]): void {
+  const tn = typeNameOf(block);
+  if (tn === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
+  else if (tn === 'org_docx4j_wml.Tbl') trackInsertedTable(tracker, block.value as wml.Tbl);
+  else if (typeof block.value !== 'object' || block.value === null) return;
+  else if (HOLDER_TYPES.has(tn ?? '')) markHolderInserted(tracker, block, owner, () => trackInsertedBlocks(tracker, childrenOf(block.value as object)));
+  else trackInsertedBlocks(tracker, childrenOf(block.value));
+}
+
+/** `trackInsertedBlock` over every item of a list, which is their owner. */
 export function trackInsertedBlocks(tracker: ChangeTracker, items: Element[] | undefined): void {
-  for (const block of items ?? []) {
-    const tn = typeNameOf(block);
-    if (tn === 'org_docx4j_wml.P') trackInsertedParagraph(tracker, block.value as wml.P);
-    else if (tn === 'org_docx4j_wml.Tbl') trackInsertedTable(tracker, block.value as wml.Tbl);
-    else if (typeof block.value === 'object' && block.value !== null) trackInsertedBlocks(tracker, childrenOf(block.value));
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    const before = items.length;
+    trackInsertedBlock(tracker, items[i]!, items);
+    i += items.length - before;                                        // past the markers just put in
   }
+}
+
+/**
+ * The elements Word marks inserted as a whole with `w:customXmlInsRangeStart` / `End`: a content
+ * control or a custom XML element (check 30 measured the control at run and block level; a smart tag
+ * goes into the `w:ins` instead, and a hyperlink or field has no form of its own). Row- and cell-level
+ * ones are listed for the reader: `trackInsertedTable` walks through them to the rows and cells, and
+ * does not mark them.
+ */
+export const HOLDER_TYPES: ReadonlySet<string> = new Set([
+  'org_docx4j_wml.SdtRun', 'org_docx4j_wml.SdtBlock', 'org_docx4j_wml.CTSdtRow', 'org_docx4j_wml.CTSdtCell',
+  'org_docx4j_wml.CTCustomXmlRun', 'org_docx4j_wml.CTCustomXmlBlock', 'org_docx4j_wml.CTCustomXmlRow', 'org_docx4j_wml.CTCustomXmlCell',
+]);
+
+/** The list a holder's content is in (`w:sdtContent`'s for a control, its own for custom XML), created when absent. */
+export function holderItemsOf(value: object): Element[] | undefined {
+  const v = value as { content?: Element[]; sdtContent?: { content?: Element[] } };
+  if (v.sdtContent) return (v.sdtContent.content ??= []);
+  if ('element' in v) return (v.content ??= []);                        // w:customXml carries w:element
+  return undefined;
+}
+
+/**
+ * A content control or custom XML element inserted under tracking, as Word writes it (check 30): a
+ * `w:customXmlInsRangeStart` before the element with its `w:customXmlInsRangeEnd` first inside its
+ * content, and a second start last inside with its end after the element. Rejecting takes the element
+ * away and leaves its content where it stood (`TrackedChange`'s `holder` target); without the markers
+ * an element holding only an insertion reads as one that was there before and was typed into, which
+ * rejecting keeps (check 30, existing-control-typed). `inside` tracks the content between the two
+ * pairs, so that the ids run in document order as Word's do.
+ */
+export function markHolderInserted(tracker: ChangeTracker, holder: Element, owner: Element[], inside: () => void): void {
+  const at = owner.indexOf(holder);
+  const items = holderItemsOf(holder.value as object);
+  if (at < 0 || !items) { inside(); return; }
+  const value = holder.value as { PARENT?: object; sdtContent?: object };
+  const first = tracker.markup();
+  const outerStart = el.customXmlInsRangeStart(createCTTrackChange(first)) as Element;
+  const innerEnd = el.customXmlInsRangeEnd(createCTMarkup({ id: first.id })) as Element;
+  owner.splice(at, 0, outerStart);
+  items.unshift(innerEnd);
+  inside();
+  const second = tracker.markup();
+  const innerStart = el.customXmlInsRangeStart(createCTTrackChange(second)) as Element;
+  const outerEnd = el.customXmlInsRangeEnd(createCTMarkup({ id: second.id })) as Element;
+  items.push(innerStart);
+  owner.splice(owner.indexOf(holder) + 1, 0, outerEnd);
+  linkParents([outerStart, outerEnd], value.PARENT);
+  linkParents([innerEnd, innerStart], value.sdtContent ?? value);
 }
 
 /** The paragraph mark's run properties (`w:pPr/w:rPr`), created when absent. */

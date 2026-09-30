@@ -12,6 +12,7 @@ import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_do
 import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
+import { markHolderInserted } from './tracking.mjs';
 import { searchPattern, findAll, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
@@ -231,9 +232,44 @@ export class Range {
       if (!items.includes(element)) items.push(element);
     }
     const at = owner.indexOf(items[0]!);
+    const tracker = paragraph.changeTracker;
+    const revision = segments[0]!.revision;
+    if (tracker && revision) {
+      // The runs are in a revision: the control goes between its halves, not in it, and the runs go
+      // into the control in a revision of the same kind and attributes with a new id - Word's form for
+      // inserted text wrapped in a new control (check 30, inserted-text-wrapped: the w:ins inside the
+      // control, the control's own markers outside it).
+      const index = revision.items.indexOf(items[0]!);
+      revision.items.splice(index, items.length);
+      const value = revision.value as unknown as Record<string, unknown>;
+      const itemsKey = Object.keys(value).find((key) => value[key] === revision.items)!;
+      const inner: Record<string, unknown> = {};
+      for (const [key, v] of Object.entries(value)) if (key !== itemsKey && key !== 'PARENT') inner[key] = v;
+      inner.id = tracker.nextId();
+      inner[itemsKey] = items;
+      const wrapped = { name: revision.element.name, value: inner } as Element;
+      linkParents(items, inner);
+      (sdt.value.sdtContent as { content?: Element[] }).content = [wrapped];
+      linkParents(wrapped, sdt.value.sdtContent);
+      const holderOwner = revision.owner;
+      const parent = (revision.value as { PARENT?: object }).PARENT ?? paragraph.p;
+      if (revision.items.length === 0) {
+        holderOwner.splice(holderOwner.indexOf(revision.element), 1, sdt as Element);                       // the whole revision wrapped
+        linkParents(sdt, parent);
+      } else if (index === 0) {
+        holderOwner.splice(holderOwner.indexOf(revision.element), 0, sdt as Element);                       // its start wrapped
+        linkParents(sdt, parent);
+      } else if (!paragraph.splitHolderAround(revision, index, sdt as Element, () => tracker.nextId())) {
+        throw new Docx4JException('This range is in a revision that cannot be split around a content control');
+      }
+      markHolderInserted(tracker, sdt as Element, holderOwner, () => {});
+      return new ContentControl(sdt, holderOwner, body);
+    }
     (sdt.value.sdtContent as { content?: Element[] }).content = items;
     owner.splice(at, items.length, sdt as Element);
     linkParents(sdt, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
+    // under tracking the control itself is the insertion, the runs in it what they were (check 30)
+    if (tracker) markHolderInserted(tracker, sdt as Element, owner, () => {});
     return new ContentControl(sdt, owner, body);
   }
 

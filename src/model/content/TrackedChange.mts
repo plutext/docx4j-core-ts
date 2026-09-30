@@ -9,7 +9,7 @@ import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, 
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
-import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties } from './tracking.mjs';
+import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties, HOLDER_TYPES, holderItemsOf } from './tracking.mjs';
 import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 
@@ -57,7 +57,18 @@ export type TrackedChangeTarget =
    * `w:sectPr/w:sectPrChange`: a section's properties, at a paragraph's section break or the body's
    * last section. `text` is the section's, as Office JS reports it (check 27: the text, then `\f`).
    */
-  | { kind: 'sectionProperties'; sectPr: wml.SectPr; value: wml.CTSectPrChange; text: string };
+  | { kind: 'sectionProperties'; sectPr: wml.SectPr; value: wml.CTSectPrChange; text: string }
+  /**
+   * A content control or custom XML element that is itself an insertion: `w:customXmlInsRangeStart`
+   * and `w:customXmlInsRangeEnd` around it, the end first inside its content, and a second pair the
+   * other way round at its end - Word's form for a control put in under tracking (check 30, CR-002
+   * section 37 item 7), which groups with the insertions around and inside it. `holder` is the
+   * `w:sdt` or `w:customXml`, `owner` the list holding it, `outer` the pair in that list and `inner`
+   * the pair in its content. Rejecting takes the element away and leaves its content where it
+   * stood; accepting takes the markers away. Its text is its content's, which the pieces inside
+   * report.
+   */
+  | { kind: 'holder'; holder: Element; owner: Element[]; outer: [Element, Element]; inner: [Element, Element]; value: wml.CTTrackChange };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -80,6 +91,7 @@ export class TrackedChange {
       case 'row': return t.row === 'ins' ? 'Added' : 'Deleted';
       case 'group': return t.revision === 'ins' ? 'Added' : t.revision === 'del' ? 'Deleted' : 'Formatted';
       case 'cell': return t.cell === 'ins' ? 'Added' : 'Deleted';
+      case 'holder': return 'Added';
       default: return 'Formatted';
     }
   }
@@ -112,6 +124,7 @@ export class TrackedChange {
       case 'tableProperties': return t.tbl;
       case 'cell': return t.tc;
       case 'sectionProperties': return t.sectPr;
+      case 'holder': return t.holder;
       default: return t.value;
     }
   }
@@ -168,7 +181,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'accept') || resolveRangelessHalf(this, 'accept'))) return;
-        if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else remove(t.owner, t.element);
+        if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else removeRevision(t);
         return;
       case 'mark':
         if (t.mark === 'ins') dropMark(this.paragraph, 'ins'); else joinWithNext(this.requireParagraph());
@@ -207,6 +220,10 @@ export class TrackedChange {
       case 'sectionProperties':
         delete t.sectPr.sectPrChange;
         return;
+      case 'holder':
+        // the element stays, the markers go (check 30: accept all leaves the control, no marker)
+        removeHolderMarkers(t);
+        return;
     }
   }
 
@@ -219,7 +236,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'reject') || resolveRangelessHalf(this, 'reject'))) return;
-        if (t.revision === 'ins' || t.revision === 'moveTo') remove(t.owner, t.element); else restoreDeleted(t);
+        if (t.revision === 'ins' || t.revision === 'moveTo') removeRevision(t); else restoreDeleted(t);
         return;
       case 'mark':
         if (t.mark === 'del') dropMark(this.paragraph, 'del'); else joinWithNext(this.requireParagraph(), true);
@@ -254,6 +271,12 @@ export class TrackedChange {
         return;
       case 'sectionProperties':
         restoreSection(t.sectPr, t.value);
+        return;
+      case 'holder':
+        // the element goes, its content stays where it stood: what is left of it after the pieces
+        // inside were rejected (nothing, for content inserted with it; check 30: reject all removes the
+        // control, and an existing control, which has no markers, stays)
+        unwrapHolder(t);
         return;
     }
   }
@@ -349,9 +372,64 @@ function resolvePieces(pieces: TrackedChange[], what: 'accept' | 'reject'): void
   for (let i = marks.length - 1; i >= 0; i--) marks[i]![what]();
 }
 
+/**
+ * The list an element is in now: `owner` as the change was listed, else the list its `PARENT` keeps -
+ * a piece listed inside a holder that was unwrapped since (its content moved out into the owner,
+ * check 30) is still found.
+ */
+function currentOwner(owner: Element[], element: Element): Element[] {
+  if (owner.includes(element)) return owner;
+  const parent = (element.value as { PARENT?: object } | undefined)?.PARENT;
+  const actual = parent ? runItemsOf(parent) ?? childrenOf(parent) : undefined;
+  return actual?.includes(element) ? actual : owner;
+}
+
 function remove(owner: Element[], element: Element): void {
-  const i = owner.indexOf(element);
-  if (i >= 0) owner.splice(i, 1);
+  const list = currentOwner(owner, element);
+  const i = list.indexOf(element);
+  if (i >= 0) list.splice(i, 1);
+}
+
+/** A holder's four insertion markers taken away; the element stays. */
+function removeHolderMarkers(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void {
+  remove(t.owner, t.outer[0]);
+  remove(t.owner, t.outer[1]);
+  const items = holderItemsOf(t.holder.value as object) ?? [];
+  remove(items, t.inner[0]);
+  remove(items, t.inner[1]);
+}
+
+/** A holder's insertion rejected: the markers go, and its content takes its place in the owner. */
+function unwrapHolder(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void {
+  removeHolderMarkers(t);
+  const owner = currentOwner(t.owner, t.holder);
+  const i = owner.indexOf(t.holder);
+  if (i < 0) return;
+  const items = holderItemsOf(t.holder.value as object) ?? [];
+  const moved = items.splice(0);                                       // the holder keeps nothing
+  owner.splice(i, 1, ...moved);
+  linkParents(moved, (t.holder.value as { PARENT?: object }).PARENT);
+}
+
+/**
+ * The insertion of a content control or custom XML element, when `items[i]` is a
+ * `w:customXmlInsRangeStart` and what follows is Word's form for one (check 30): the element, whose
+ * content starts with that marker's `w:customXmlInsRangeEnd` and ends with a second start, and that
+ * one's end right after the element. Anything else is not one (a marker on its own is left alone).
+ */
+export function holderInsertionAt(items: Element[], i: number, paragraph: Paragraph | undefined): TrackedChange | undefined {
+  const start = items[i]!;
+  if (start.name?.localPart !== 'customXmlInsRangeStart') return undefined;
+  const holder = items[i + 1];
+  const outerEnd = items[i + 2];
+  if (!holder || !outerEnd || !HOLDER_TYPES.has(typeNameOf(holder) ?? '') || outerEnd.name?.localPart !== 'customXmlInsRangeEnd') return undefined;
+  const inner = childrenOf(holder.value as object) ?? [];
+  const innerEnd = inner[0];
+  const innerStart = inner[inner.length - 1];
+  if (inner.length < 2 || !innerEnd || !innerStart || innerEnd.name?.localPart !== 'customXmlInsRangeEnd' || innerStart.name?.localPart !== 'customXmlInsRangeStart') return undefined;
+  const idOf = (marker: Element): unknown => (marker.value as { id?: unknown }).id;
+  if (idOf(innerEnd) !== idOf(start) || idOf(outerEnd) !== idOf(innerStart)) return undefined;
+  return new TrackedChange({ kind: 'holder', holder, owner: items, outer: [start, outerEnd], inner: [innerEnd, innerStart], value: start.value as wml.CTTrackChange }, paragraph);
 }
 
 /**
@@ -362,6 +440,20 @@ function remove(owner: Element[], element: Element): void {
 function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
   remove(t.owner, t.tr as Element);
   if (t.table && rowsOf(t.table.element.value).length === 0) remove(t.table.container, t.table.element as Element);
+}
+
+/**
+ * A revision taken away with its runs - a rejected insertion, an accepted deletion - keeps any
+ * comment range marker in it, in its place: Word writes a comment's range start inside the `w:ins`
+ * of the text it is on (CR-002 section 38), and the comment is not the revision's.
+ */
+function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>): void {
+  const owner = currentOwner(t.owner, t.element);
+  const i = owner.indexOf(t.element);
+  if (i < 0) return;
+  const kept = (runItemsOf(t.element.value as object) ?? []).filter((item) => item.name?.localPart === 'commentRangeStart' || item.name?.localPart === 'commentRangeEnd');
+  owner.splice(i, 1, ...kept);
+  linkParents(kept, (t.element.value as { PARENT?: object }).PARENT);
 }
 
 /** A `w:ins` or `w:moveTo` accepted: its runs take its place. */
@@ -400,7 +492,7 @@ function dropMark(paragraph: Paragraph | undefined, which: 'ins' | 'del'): void 
  * mark is simply dropped.
  */
 export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' | 'p'>, fallbackToPrevious = false): void {
-  const container = paragraph.container;
+  const container = currentOwner(paragraph.container, paragraph.element as Element);
   const i = container.indexOf(paragraph.element);
   const next = i >= 0 ? container[i + 1] : undefined;
   const p = paragraph.p;
@@ -766,7 +858,16 @@ function sectionText(items: Element[], end: number): string {
 }
 
 function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[]): void {
-  for (const el of items) {
+  for (let i = 0; i < items.length; i++) {
+    const el = items[i]!;
+    // an inline control or custom XML element that is itself an insertion: a piece, then what is in it
+    const inserted = holderInsertionAt(items, i, paragraph);
+    if (inserted) {
+      out.push(inserted);
+      tokensOfRunLevel(paragraph, childrenOf(items[i + 1]!.value as object) ?? [], out);
+      i += 2;
+      continue;
+    }
     const kind = revisionKindOf(el);
     if (kind !== undefined) {
       // moved text is content Office JS cannot list (checks 16, 17), and is kept apart
@@ -791,8 +892,13 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       else if ((run.content ?? []).length > 0) out.push(BREAK);
       continue;
     }
+    // a run holder that is not itself an insertion - a hyperlink, a field, a control or custom XML
+    // element that was there - keeps the insertions inside it apart from those outside: Office JS
+    // listed "before ", "link" and " after" as three changes over a w:ins in a w:hyperlink, and the same
+    // over a w:fldSimple and an unmarked inline w:sdt (check 30, part C), against one change over an
+    // inserted control (above) and over Word's own one-w:ins forms
     const nested = runItemsOf(el.value as object);
-    if (nested) tokensOfRunLevel(paragraph, nested, out);
+    if (nested) { out.push(BREAK); tokensOfRunLevel(paragraph, nested, out); out.push(BREAK); }
   }
 }
 
@@ -806,6 +912,7 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   if (t.kind === 'mark') return t.mark;
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
   if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
+  if (t.kind === 'holder') return 'ins';
   return undefined;
 }
 
@@ -931,15 +1038,22 @@ function restoreSection(sectPr: wml.SectPr, change: wml.CTSectPrChange): void {
  * cannot list (check 27: `getTrackedChanges` throws); a `w:numberingChange`, which Word no longer
  * writes and drops when one is put in, and whose record is the old number's text, so that a reject
  * too can only drop it; and a table's records that change nothing. A merge rejected gets the merge it
- * recorded back (docx4j's reading; unmeasured).
+ * recorded back (docx4j's reading; unmeasured). A `w:customXmlInsRangeStart` or `End` left without
+ * the form `holderInsertionAt` lists marks nothing that can be found, and goes either way.
  */
 export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): void {
   const visit = (list: Element[] | undefined): void => {
-    for (const el of list ?? []) {
+    if (!list) return;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const name = list[i]!.name?.localPart;
+      if (name === 'customXmlInsRangeStart' || name === 'customXmlInsRangeEnd') list.splice(i, 1);
+    }
+    for (const el of list) {
       const tn = typeNameOf(el);
       if (tn === 'org_docx4j_wml.P') {
         const numPr = (el.value as wml.P).pPr?.numPr;
         if (numPr?.numberingChange) delete numPr.numberingChange;
+        sweepMarkers((el.value as wml.P).content as Element[] | undefined);
         continue;
       }
       if (tn === 'org_docx4j_wml.Tbl') {
@@ -959,6 +1073,17 @@ export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): vo
     }
   };
   visit(items);
+}
+
+/** Stray `w:customXmlInsRangeStart` / `End` markers taken out of run-level content, through its holders and revisions. */
+function sweepMarkers(items: Element[] | undefined): void {
+  if (!items) return;
+  for (let i = items.length - 1; i >= 0; i--) {
+    const name = items[i]!.name?.localPart;
+    if (name === 'customXmlInsRangeStart' || name === 'customXmlInsRangeEnd') { items.splice(i, 1); continue; }
+    const v = items[i]!.value;
+    if (typeof v === 'object' && v !== null) sweepMarkers(runItemsOf(v));
+  }
 }
 
 function resolveCellMerge(tcPr: wml.TcPr, what: 'accept' | 'reject'): void {

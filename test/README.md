@@ -705,6 +705,66 @@ already named, so each case starts by opening its own file.
    inserted paragraph's mark rejected, its remains join the paragraph before); a block control left
    holding an empty paragraph, and an empty paragraph after it; a table, nested or not, removed with
    its last row, and one empty paragraph left after "Kept.".
+   **Run 2026-09-30 (Word 16.0.20326.20158), from a new snippet; the JSON is `fixtures/revisions/check30/result.json`.**
+   (Two earlier runs the same day from an older snippet came back with every `markup` empty and a
+   paragraph mark per XML tag of the package; a diagnostic, `diag30-script.js` in the shared folder,
+   showed `body.insertOoxml` at `End` working, tracked or not, so the snippet now opens with a `probe`
+   and records `markupRead` when a case's markup is empty. Two Word facts from the diagnostic: a
+   `w:hyperlink` with `w:anchor` comes back as a HYPERLINK **field**, and `Paragraph.insertOoxml`
+   rejects `After`.)
+
+   **Word inserts** (tracking on): the paragraph's mark inserted in `w:pPr/w:rPr`, its runs in **one**
+   `w:ins`, and the holders:
+   - *hyperlink* and *field*: the link (as a HYPERLINK field: `w:fldChar` runs) and the `w:fldSimple`
+     (as a complex field) go into that one `w:ins` with the runs; accepted, the link is a `w:hyperlink`
+     again, the field stays complex. Neither element has a form of its own in a `w:ins`.
+   - *control-inline* and *control-block*: the `w:ins` **inside** `w:sdtContent` (the engine's placement),
+     and the control itself marked inserted with `w:customXmlInsRangeStart` / `w:customXmlInsRangeEnd`:
+     one start **before** the `w:sdt` whose end is the **first** item of `w:sdtContent`, and a second start
+     the **last** item of `w:sdtContent` whose end follows the `w:sdt`; the two pairs' ids run in
+     document order with the `w:ins` ids (2, 3, 4).
+   - *smart-tag*: the `w:smartTag` goes **into** the one `w:ins` beside the runs, its own runs plain.
+   - *custom-xml*: `insertOoxml` dropped the `w:customXml` element; its runs came in as plain text.
+   - *table* and *nested-table*: `w:trPr/w:ins` on every row, nested ones too, every cell paragraph's
+     mark and runs inserted. Word also added `w:tblInd`, `w:tblCellMar`, `w:tblLook` and a `w:tblPrEx`
+     per row.
+   - The "(end of insertion)" paragraph took the body's last (untracked) mark, and Word added one
+     empty paragraph after it, so every reject-all left `"Kept."` and two empty paragraphs, nothing
+     else: **the emptied holders are all removed** - the link, field, both controls, smart tag, and a
+     table with the paragraph before it (whose mark was inserted). Accept all left everything, no
+     marker, no revision. `getTrackedChanges` listed each case as **one** change, the block control and
+     the table included (`"before the control\rin a block control\r(end of insertion)"`).
+
+   **Gestures**: `new-control-typed` and `inserted-text-wrapped` wrote the same markers around the new
+   control, the `w:ins` inside it; reject all removed control and text, accept all kept the control
+   with no marker. `existing-control-typed` (the control put in untracked, then typed into): **no
+   markers**, the `w:ins` inside; reject all **kept the control**, which shows its placeholder - and
+   Word left the placeholder run inside a `w:ins` of Author B's, so one `Added` change with empty text
+   was still listed (`docs/word-known-issues.md` entry 6). `field-inserted`: `w:ins` around the
+   field's begin and instruction runs and around its end run, the separator and result runs plain.
+   `link-on-inserted-text`: one `w:ins` around the HYPERLINK field runs; accepted, a `w:hyperlink` with
+   an `r:id`. Each gesture listed as one change.
+
+   **Engine markup** (f96fa6c, inserted untracked): every revision survived `insertOoxml`, but the last
+   paragraph's inserted mark, which took the target paragraph's plain one (the same in every case).
+   Word listed the hyperlink, field and inline control cases as **three** changes each (`"before "`,
+   `"link"`, `" after\r(end of insertion)"`: a holder that is not itself an insertion keeps the `w:ins`
+   inside it apart from those outside; its own forms, above, group as one - this is the editor's E4.g
+   question, and the engine's listing now splits the same way), the block control as three, the smart
+   tag and custom XML as one. Rejecting all left, in an empty paragraph after
+   "Kept.": an **empty `<w:hyperlink w:anchor="target"/>`**; an **empty PAGE field** (begin, instruction,
+   separate, end); the inline control, **kept**, showing its placeholder (`w:showingPlcHdr` and a run of
+   five spaces); the block control kept the same way, and an empty paragraph; nothing for the table
+   cases. The smart tag: Word had **rewritten** the engine's three `w:ins` as one around everything, the
+   `w:smartTag` inside it, and reject all removed it; the custom XML element was dropped on the way in.
+   So Word's answer to the engine's markup was the engine's own (an emptied holder stays), and the
+   difference is in what Word *writes*: the markers, and the smart tag inside the `w:ins`. **The engine
+   now writes both** (CR-002 section 37 item 7): a control or custom XML element it inserts under
+   tracking gets the marker pairs, is listed as a piece of the change and goes when the change is
+   rejected, leaving what was in it; a smart tag goes into the `w:ins`. A hyperlink or a field is left
+   as it was, empty, since Word leaves the engine's form the same way and has no form of its own for
+   them. What Word does with an *inserted* control whose markup carries no markers - stays, as an
+   existing one - is what the engine did before, and what it still does for a control that was there.
 
 A small Node script for 1 to 3 is:
 
@@ -1699,14 +1759,21 @@ const GESTURES = {
 };
 
 // --- recording ---
+// blocks.last says what the read saw, for a run whose markup comes back empty.
 async function blocks(context) {
   const ooxml = context.document.body.getOoxml();
   await context.sync();
-  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
-  const main = all(doc, PKG, 'part').find((part) => part.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const s = ooxml.value;
+  const doc = new DOMParser().parseFromString(s, 'application/xml');
+  const parts = all(doc, PKG, 'part');
+  const main = parts.find((part) => part.getAttributeNS(PKG, 'name') === '/word/document.xml');
   const body = main && all(main, W, 'body')[0];
+  const err = doc.getElementsByTagName('parsererror')[0];
+  blocks.last = { ooxmlLength: s.length, head: s.slice(0, 160), parseError: err ? err.textContent.slice(0, 200) : null,
+    parts: parts.map((part) => part.getAttributeNS(PKG, 'name')), bodyFound: !!body };
   return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1 && n.localName !== 'sectPr').map(xml) : [];
 }
+const withDiagnostics = (markup) => (markup.length ? { markup } : { markup, markupRead: blocks.last });
 async function listed(context) {
   const changes = context.document.body.getTrackedChanges();
   changes.load('items/type,items/text,items/author');
@@ -1722,7 +1789,7 @@ async function measure(make) {
         await make(context, first, act === 'before' ? entry : {});
         await context.sync();
         if (act === 'before') {
-          entry.markup = await blocks(context);
+          Object.assign(entry, withDiagnostics(await blocks(context)));
           entry.revisions = [...entry.markup.join('').matchAll(REVISIONS)].map((m) => m[1]);
           entry.listed = (await listed(context)).list;
           return;
@@ -1734,7 +1801,7 @@ async function measure(make) {
         const body = context.document.body;
         body.load('text');
         await context.sync();
-        entry[act] = { markup: await blocks(context), text: body.text, listedAfter: (await listed(context)).list };
+        entry[act] = { ...withDiagnostics(await blocks(context)), text: body.text, listedAfter: (await listed(context)).list };
       });
     } catch (e) {
       entry[act] = { error: String(e && e.message || e) };
@@ -1743,8 +1810,27 @@ async function measure(make) {
   return entry;
 }
 
+// The probe: the hyperlink fragment inserted at the end with tracking on, and what the read saw of it. A run
+// whose probe shows a paragraph mark per XML tag, or no blocks, is Word or the snippet's runtime, not the cases.
+async function probe() {
+  const sent = packageOf(FRAGMENTS.hyperlink);
+  return Word.run(async (context) => {
+    await fresh(context);
+    await track(context, true);
+    context.document.body.insertOoxml(sent, 'End');
+    await context.sync();
+    const markup = await blocks(context);
+    const body = context.document.body;
+    body.load('text');
+    await context.sync();
+    return { sentLength: sent.length, sentHead: sent.slice(0, 120), text: body.text, ...blocks.last, markup };
+  });
+}
+
 async function check() {
-  const report = { host: Office.context.diagnostics, wordInserts: {}, gestures: {}, engine: {} };
+  const report = { host: Office.context.diagnostics, probe: null, wordInserts: {}, gestures: {}, engine: {} };
+  out.value = 'probe...';
+  try { report.probe = await probe(); } catch (e) { report.probe = { error: String(e && e.message || e) }; }
   // Part A: the fragment put in with tracking ON - the markup Word writes for it, and what rejecting leaves
   for (const [name, fragment] of Object.entries(FRAGMENTS)) {
     out.value = `A ${name}...`;

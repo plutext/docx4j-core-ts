@@ -100,3 +100,22 @@ compatibility-mode document, whoever wrote it. Word 15 honours `w15:done` in the
 **What this package does.** Nothing different: it writes and reads `w15:done` as the format says.
 A caller that needs a thread to stay resolved through a save in current Word should not rely on a
 compatibility-mode document.
+
+## 6. Rejecting text typed into an existing content control leaves its placeholder in a `w:ins`
+
+**Found** 2026-09-30, Word 16.0.20326.20158 (Windows), through Office JS, `test/README.md` check 30
+(gesture `existing-control-typed`; the JSON is `test/fixtures/revisions/check30/result.json`).
+
+With tracking off, an empty rich text control was put at the end of "Kept."; with tracking on as
+Author B, text was typed into it (`insertText`, "Replace"), which Word tracked as a `w:ins` inside
+`w:sdtContent` with no marker on the control - the form that says the control was there before.
+Reject All Changes then, rightly, kept the control and put its placeholder back ("Click or tap here
+to enter text.", `w:showingPlcHdr`), but wrote the placeholder run **inside a `w:ins` of Author B's**,
+so that `getTrackedChanges()` still listed one `Added` change with empty text, and the document was
+not clean after rejecting everything. Accept All had no such leftover.
+
+**What this package does.** Rejecting the insertion removes the `w:ins` and leaves the control's
+content empty, with no placeholder run and nothing listed (`tracking.test.mjs`, "a control that was
+there before and is typed into under tracking stays, empty"); an empty control is Word's own state
+for one cleared by hand. Nothing is written to imitate the leftover.
+

@@ -192,10 +192,56 @@ test('insertParagraph marks the new mark inserted; delete() marks the mark delet
   assert.equal(body.paragraphs.length, 3, 'the paragraph is still there while the change is pending');
   assert.equal(body.getText({ view: 'original' }), 'one\ntwo\n');
 
+  assert.equal(xml.includes('pPrChange'), false, 'the next paragraph has the same properties: nothing recorded on it');
+
   // a paragraph this author inserted is taken back outright
   fresh.delete();
   assert.deepEqual(body.paragraphs.map((q) => q.text), ['one', '']);
   assert.throws(() => body.paragraphs[1].delete(), /already marked deleted/);
+
+  // a deleted mark gives the next paragraph this paragraph's properties, recorded as a w:pPrChange
+  // with its own as the original: Word at Delete at a Heading 2's end (the editor's measure-word15.docx,
+  // 2026-09-30; CR-002 section 38), and No Markup reads the joined line as a heading throughout
+  const make = async () => {
+    const h = await tracked(['A heading joined to the next paragraph', 'The body paragraph after the heading.']);
+    h.changeTrackingMode = 'Off';
+    h.body.paragraphs[0].styleBuiltIn = 'Heading2';
+    h.changeTrackingMode = 'TrackAll';
+    h.body.paragraphs[0].delete();
+    return h;
+  };
+  const heading = await make();
+  const hx = await xmlOf(heading);
+  assert.match(hx, at(/<w:p><w:pPr><w:pStyle w:val="Heading2"\/><w:rPr><w:del w:id="2"@UTC w:author="Ada" w:date="@DATE"\/><\/w:rPr><\/w:pPr><w:del w:id="1"[^>]*><w:r><w:delText>A heading joined to the next paragraph<\/w:delText><\/w:r><\/w:del><\/w:p>/));
+  assert.match(hx, at(/<w:p><w:pPr><w:pStyle w:val="Heading2"\/><w:pPrChange w:id="3"@UTC w:author="Ada" w:date="@DATE"><w:pPr\/><\/w:pPrChange><\/w:pPr><w:r><w:t>The body paragraph after the heading\.<\/w:t><\/w:r><\/w:p>/),
+    'the next paragraph in the heading\'s properties, its own (none) recorded');
+  assert.deepEqual(heading.body.getTrackedChanges().map((c) => [c.type, c.text]), [['Deleted', 'A heading joined to the next paragraph\r'], ['Formatted', 'The body paragraph after the heading.']]);
+  heading.body.acceptAll();
+  assert.deepEqual(heading.body.paragraphs.map((q) => [q.text, q.style]), [['The body paragraph after the heading.', 'Heading 2']]);
+  assert.equal((await xmlOf(heading)).includes('pPrChange'), false);
+  const back = await make();
+  back.body.rejectAll();
+  assert.deepEqual(back.body.paragraphs.map((q) => [q.text, q.style]), [['A heading joined to the next paragraph', 'Heading 2'], ['The body paragraph after the heading.', 'Normal']]);
+  assert.equal((await xmlOf(back)).includes('<w:pPrChange'), false);
+});
+
+test('alignment: a value the style already gives is not written, as Word\'s Ctrl+L removes it (tracking off and on)', async () => {
+  // the editor's measure-word2010.docx and measure-word15.docx, 2026-09-30 (tracking off) and check 26 (on)
+  const pkg = await untracked(['Centred by hand.']);
+  const p = pkg.body.paragraphs[0];
+  p.alignment = 'Centered';
+  assert.match(await xmlOf(pkg), /<w:pPr><w:jc w:val="center"\/><\/w:pPr>/);
+  p.alignment = 'Left';
+  assert.equal(p.alignment, 'Left');
+  assert.equal((await xmlOf(pkg)).includes('<w:jc'), false, 'no w:jc where Normal is left-aligned');
+  assert.equal(p.formatting({ direct: true }).alignment, 'Unknown', 'no direct value');
+  p.alignment = 'Right';
+  assert.match(await xmlOf(pkg), /<w:jc w:val="right"\/>/, 'a value the style does not give is written');
+  // and with tracking on, the same through the settle
+  const on = await tracked(['Centred by hand.']);
+  on.body.paragraphs[0].alignment = 'Centered';
+  on.body.paragraphs[0].alignment = 'Left';
+  assert.equal((await xmlOf(on)).includes('<w:pPr'), false, 'no w:pPr left at all (check 26)');
 });
 
 test('table rows: w:trPr/w:ins and w:trPr/w:del, and an inserted table marks every row', async () => {
@@ -442,15 +488,37 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   assert.equal(body.getTrackedChanges().length, 0);
   assert.equal((await body.getComments()).length, 1);
 
-  // and the markers stay outside a w:ins when the commented text is itself an insertion
+  // a comment on an insertion, as Word writes it (the editor's measure-word15.docx, CR-002 section 38):
+  // the range start inside the w:ins, the end marker and the reference run after it
   const inserted = await tracked(['before after']);
   const q = inserted.body.paragraphs[0];
   q.search('before')[0].insertText('NEW', 'Replace');
   await q.search('NEW')[0].insertComment('on the insertion');
   const insXml = await xmlOf(inserted);
-  assert.match(insXml, /<w:commentRangeStart w:id="0"\/><w:ins /, 'the range start is before the w:ins');
-  assert.match(insXml, /<\/w:ins><w:commentRangeEnd w:id="0"\/><w:r>/, 'the end and the reference run follow it, outside');
-  assert.equal(insXml.includes('<w:ins w:id="2"'), true, 'the insertion itself is still tracked');
+  assert.match(insXml, /<w:ins w:id="2"[^>]*><w:commentRangeStart w:id="0"\/><w:r><w:t>NEW<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r>/, 'the start inside, the end and the reference outside');
+  assert.equal(inserted.body.getTrackedChanges().length, 2, 'the deletion and the insertion; the comment is no change');
+  // on part of an insertion: the w:ins is closed at the range's end and the rest is a new one, so
+  // the anchor stays narrow (Word 2010 and Word 15 alike)
+  const part = await tracked(['Kept. ']);
+  const r = part.body.paragraphs[0];
+  r.insertText('The tenant pays rent monthly in advance.', 'End');
+  const onWord = await r.search('monthly')[0].insertComment('M1');
+  const partXml = await xmlOf(part);
+  assert.match(partXml, /<w:ins w:id="1"[^>]*><w:r><w:t xml:space="preserve">The tenant pays rent <\/w:t><\/w:r><w:commentRangeStart w:id="0"\/><w:r><w:t>monthly<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><w:ins w:id="2"[^>]*><w:r><w:t xml:space="preserve"> in advance\.<\/w:t><\/w:r><\/w:ins><\/w:p>/);
+  assert.equal(onWord.getRange()[0].text, 'monthly');
+  // the reference run, plain, keeps the two halves apart in the listing, as Word's pane lists them
+  // (the editor's ED-005 section 12.29 item 3, Word agreeing on its review-for-word.docx)
+  assert.deepEqual(part.body.getTrackedChanges().map((c) => c.text), ['The tenant pays rent monthly', ' in advance.']);
+  // rejecting the insertion keeps the comment, its markers where the text was; accepting leaves it on its word
+  const rejected = await tracked(['Kept. ']);
+  rejected.body.paragraphs[0].insertText('The tenant pays rent monthly in advance.', 'End');
+  await rejected.body.paragraphs[0].search('monthly')[0].insertComment('M1');
+  rejected.body.rejectAll();
+  assert.match(await xmlOf(rejected), /<w:t xml:space="preserve">Kept\. <\/w:t><\/w:r><w:commentRangeStart w:id="0"\/><w:commentRangeEnd w:id="0"\/><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><\/w:p>/);
+  assert.equal((await rejected.body.getComments()).length, 1);
+  part.body.acceptAll();
+  assert.equal((await part.body.getComments())[0].getRange()[0].text, 'monthly');
+  assert.equal((await xmlOf(part)).includes('<w:ins'), false);
   assert.equal(inserted.body.getTrackedChanges().filter((c) => c.target.kind === 'run').length, 2, 'still just the del and the ins');
   assert.equal((await inserted.body.getComments()).length, 1);
 });
@@ -1457,7 +1525,8 @@ test('insertOoxml into a paragraph under tracking is an insertion, split into an
   const xml = await xmlOf(pkg);
   assert.match(xml, /<w:t>kept<\/w:t><\/w:r><w:ins [^>]*><w:r><w:t>A<\/w:t><\/w:r><\/w:ins><w:hyperlink [^>]*><w:ins [^>]*><w:r><w:t>B<\/w:t>/,
     'the run in a w:ins, the link\'s run in one inside the link');
-  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.text]), [['Added', 'AB']]);
+  // the link keeps the insertion in it apart from the one outside, as Office JS lists them (check 30, part C)
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.text]), [['Added', 'A'], ['Added', 'B']]);
   pkg.body.rejectAll();
   assert.equal(pkg.body.paragraphs[0].text, 'kept');
 
@@ -1470,4 +1539,153 @@ test('insertOoxml into a paragraph under tracking is an insertion, split into an
   await range.insertOoxml('<w:p><w:r><w:t xml:space="preserve">and </w:t></w:r></w:p>', 'Before');
   assert.deepEqual(other.body.getTrackedChanges().map((c) => [c.author, c.text]), [['Bob', 'two '], ['Ada', 'and '], ['Bob', 'three']]);
   assert.equal(other.body.paragraphs[0].text, 'one two and three');
+});
+
+// CR-002 section 37 item 7: what Word writes for an inserted content control, custom XML element or
+// smart tag, and what rejecting leaves (test/README.md check 30, run 2026-09-30).
+test('an inserted content control is marked with customXmlInsRange pairs, listed as one change, and goes when rejected', async () => {
+  const make = async () => {
+    const pkg = await tracked(['Kept.']);
+    await pkg.body.insertXml('<w:p><w:r><w:t xml:space="preserve">before </w:t></w:r><w:sdt><w:sdtPr><w:tag w:val="inline"/><w:id w:val="101"/></w:sdtPr>'
+      + '<w:sdtContent><w:r><w:t>control</w:t></w:r></w:sdtContent></w:sdt><w:r><w:t xml:space="preserve"> after</w:t></w:r></w:p>', 'End');
+    return pkg;
+  };
+  const pkg = await make();
+  const xml = await xmlOf(pkg);
+  // Word's form (check 30, control-inline): a start before the control whose end is first inside it, a
+  // second start last inside whose end follows it, the runs' w:ins inside; the ids in document order
+  assert.match(xml, at(/<\/w:ins><w:customXmlInsRangeStart w:id="3"@UTC w:author="Ada" w:date="@DATE"\/><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:customXmlInsRangeEnd w:id="3"\/><w:ins w:id="4" [^>]*><w:r><w:t>control<\/w:t><\/w:r><\/w:ins><w:customXmlInsRangeStart w:id="5"@UTC w:author="Ada" w:date="@DATE"\/><\/w:sdtContent><\/w:sdt><w:customXmlInsRangeEnd w:id="5"\/><w:ins w:id="6" /));
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.author, c.text]), [['Added', 'Ada', 'before control after\r']]);
+  const [change] = pkg.body.getTrackedChanges();
+  assert.equal(change.target.kind, 'group');
+  assert.ok(change.target.pieces.some((piece) => piece.target.kind === 'holder'), 'the control\'s own insertion is a piece of the change');
+  // the same insertion through a hyperlink, a field and a control that was there: three changes each,
+  // as Office JS listed them over the engine's markup (check 30, part C; the editor's E4.g question)
+  for (const holder of ['<w:hyperlink w:anchor="x">', '<w:fldSimple w:instr="PAGE">', '<w:sdt><w:sdtPr><w:id w:val="7"/></w:sdtPr><w:sdtContent>']) {
+    const close = holder.startsWith('<w:sdt') ? '</w:sdtContent></w:sdt>' : holder.startsWith('<w:fld') ? '</w:fldSimple>' : '</w:hyperlink>';
+    const again = await tracked(['Kept.']);
+    await again.body.insertXml(`<w:p><w:r><w:t xml:space="preserve">before </w:t></w:r>${holder}<w:r><w:t>link</w:t></w:r>${close}<w:r><w:t xml:space="preserve"> after</w:t></w:r></w:p>`, 'End');
+    const texts = again.body.getTrackedChanges().map((c) => c.text);
+    if (holder.startsWith('<w:sdt')) assert.deepEqual(texts, ['before link after\r'], 'a control the engine inserts carries the markers: one change');
+    else assert.deepEqual(texts, ['before ', 'link', ' after\r'], holder);
+  }
+  // rejected: nothing of it is left, the control included (Word: "Kept." alone)
+  const rejected = await make();
+  assert.equal(rejected.body.rejectAll(), 1);
+  assert.deepEqual(rejected.body.paragraphs.map((p) => p.text), ['Kept.']);
+  assert.equal(/<w:sdt>|customXmlInsRange|<w:ins /.test(await xmlOf(rejected)), false);
+  // accepted: the control stays, no marker and no w:ins
+  const accepted = await make();
+  assert.equal(accepted.body.acceptAll(), 1);
+  const kept = await xmlOf(accepted);
+  assert.match(kept, /<w:r><w:t xml:space="preserve">before <\/w:t><\/w:r><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:r><w:t>control<\/w:t><\/w:r><\/w:sdtContent><\/w:sdt><w:r><w:t xml:space="preserve"> after<\/w:t><\/w:r>/);
+  assert.equal(/customXmlInsRange|<w:ins /.test(kept), false);
+});
+
+test('an inserted block control and custom XML element are marked the same way; a smart tag goes into the w:ins', async () => {
+  const pkg = await tracked(['Kept.']);
+  await pkg.body.insertXml('<w:p><w:r><w:t>before</w:t></w:r></w:p><w:sdt><w:sdtPr><w:id w:val="102"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>in a block control</w:t></w:r></w:p></w:sdtContent></w:sdt>'
+    + '<w:p><w:r><w:t xml:space="preserve">in </w:t></w:r><w:customXml w:element="thing" w:uri="urn:example"><w:r><w:t>custom</w:t></w:r></w:customXml>'
+    + '<w:smartTag w:uri="urn:schemas-microsoft-com:office:smarttags" w:element="City"><w:r><w:t>Sydney</w:t></w:r></w:smartTag><w:r><w:t xml:space="preserve"> after</w:t></w:r></w:p>', 'End');
+  const xml = await xmlOf(pkg);
+  assert.match(xml, /<\/w:p><w:customXmlInsRangeStart w:id="\d+" [^>]*\/><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:customXmlInsRangeEnd w:id="\d+"\/><w:p>.*?<\/w:p><w:customXmlInsRangeStart [^>]*\/><\/w:sdtContent><\/w:sdt><w:customXmlInsRangeEnd w:id="\d+"\/><w:p>/,
+    'the block control: markers around it and inside, at block level');
+  assert.match(xml, /<w:customXmlInsRangeStart [^>]*\/><w:customXml [^>]*><w:customXmlInsRangeEnd w:id="\d+"\/><w:ins [^>]*><w:r><w:t>custom<\/w:t><\/w:r><\/w:ins><w:customXmlInsRangeStart [^>]*\/><\/w:customXml><w:customXmlInsRangeEnd w:id="\d+"\/>/,
+    'custom XML: the same');
+  // the smart tag in the w:ins with the runs beside it, its own runs plain (check 30, smart-tag: what
+  // Word writes, and what it rewrites the engine's older form into)
+  assert.match(xml, /<w:customXmlInsRangeEnd w:id="\d+"\/><w:ins [^>]*><w:smartTag [^>]*><w:r><w:t>Sydney<\/w:t><\/w:r><\/w:smartTag><w:r><w:t xml:space="preserve"> after<\/w:t><\/w:r><\/w:ins><\/w:p>/);
+  // one change across the block control, as Word lists it ("before the control\rin a block control\r(end of insertion)")
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => c.text), ['before\rin a block control\rin customSydney after\r']);
+  pkg.body.rejectAll();
+  const after = await xmlOf(pkg);
+  for (const gone of ['<w:sdt>', '<w:customXml ', '<w:smartTag ', 'customXmlInsRange', '<w:ins ']) assert.equal(after.includes(gone), false, `${gone} gone`);
+  assert.equal(pkg.body.paragraphs.map((p) => p.text).join('|'), 'Kept.');
+});
+
+test('a control that was there before and is typed into under tracking stays, empty, when the typing is rejected', async () => {
+  // check 30, existing-control-typed: without the markers, the control is not part of the insertion
+  const pkg = await tracked(['Kept.']);
+  pkg.changeTrackingMode = 'Off';
+  const control = pkg.body.paragraphs[0].getRange('End').insertContentControl();
+  pkg.changeTrackingMode = 'TrackAll';
+  control.insertText('typed into an existing control', 'Replace');
+  assert.match(await xmlOf(pkg), /<w:t>Kept\.<\/w:t><\/w:r><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:ins [^>]*><w:r><w:t>typed into an existing control<\/w:t><\/w:r><\/w:ins><\/w:sdtContent><\/w:sdt><\/w:p>/,
+    'the text inside the control (before, an empty control put it at the paragraph start)');
+  assert.equal(control.getRange().start, 5, 'the empty control sat after "Kept."');
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => c.text), ['typed into an existing control']);
+  assert.equal((await xmlOf(pkg)).includes('customXmlInsRange'), false);
+  pkg.body.rejectAll();
+  assert.match(await xmlOf(pkg), /<w:t>Kept\.<\/w:t><\/w:r><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent\/><\/w:sdt><\/w:p>/, 'the control stays, emptied');
+});
+
+test('a new control under tracking - empty, over inserted text, over text that was there - is itself the insertion', async () => {
+  // check 30, new-control-typed: an empty control at the end, typed into
+  const typed = await tracked(['Kept.']);
+  const control = typed.body.paragraphs[0].getRange('End').insertContentControl();
+  control.insertText('typed in a new control', 'Replace');
+  assert.match(await xmlOf(typed), /<w:customXmlInsRangeStart [^>]*\/><w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:customXmlInsRangeEnd w:id="\d+"\/><w:ins [^>]*><w:r><w:t>typed in a new control<\/w:t><\/w:r><\/w:ins><w:customXmlInsRangeStart [^>]*\/><\/w:sdtContent><\/w:sdt><w:customXmlInsRangeEnd w:id="\d+"\/><\/w:p>/);
+  assert.deepEqual(typed.body.getTrackedChanges().map((c) => c.text), ['typed in a new control']);
+  typed.body.rejectAll();
+  assert.match(await xmlOf(typed), /<w:p[^>]*><w:r><w:t>Kept\.<\/w:t><\/w:r><\/w:p>/, 'control and text gone');
+  // inserted-text-wrapped: text inserted, then wrapped (Range.insertContentControl over a span)
+  const wrapped = await tracked(['Kept.']);
+  const range = wrapped.body.paragraphs[0].insertText(' inserted words', 'End');
+  range.insertContentControl();
+  assert.match(await xmlOf(wrapped), /<w:customXmlInsRangeStart [^>]*\/><w:sdt>.*?<w:sdtContent><w:customXmlInsRangeEnd w:id="\d+"\/><w:ins [^>]*><w:r><w:t xml:space="preserve"> inserted words<\/w:t><\/w:r><\/w:ins><w:customXmlInsRangeStart [^>]*\/><\/w:sdtContent><\/w:sdt><w:customXmlInsRangeEnd w:id="\d+"\/>/);
+  assert.deepEqual(wrapped.body.getTrackedChanges().map((c) => c.text), [' inserted words']);
+  wrapped.body.rejectAll();
+  assert.equal(wrapped.body.paragraphs[0].text, 'Kept.');
+  // over text that was there: rejecting takes the control away and leaves the text (the markers'
+  // own meaning; not measured in Word)
+  const plain = await tracked(['Kept. Wrapped.']);
+  plain.body.paragraphs[0].search('Wrapped.')[0].insertContentControl();
+  assert.equal(plain.body.getTrackedChanges().length, 1);
+  assert.equal(plain.body.getTrackedChanges()[0].target.kind, 'holder');
+  plain.body.rejectAll();
+  assert.equal(plain.body.paragraphs[0].text, 'Kept. Wrapped.');
+  assert.equal((await xmlOf(plain)).includes('<w:sdt>'), false);
+  // and accepted, the control stays with no marker
+  const kept = await tracked(['Kept. Wrapped.']);
+  kept.body.paragraphs[0].search('Wrapped.')[0].insertContentControl();
+  kept.body.acceptAll();
+  assert.match(await xmlOf(kept), /<w:sdt><w:sdtPr>.*?<\/w:sdtPr><w:sdtContent><w:r><w:t>Wrapped\.<\/w:t><\/w:r><\/w:sdtContent><\/w:sdt>/);
+  assert.equal((await xmlOf(kept)).includes('customXmlInsRange'), false);
+  // a paragraph wrapped in a block control (Paragraph.insertContentControl)
+  const block = await tracked(['Kept.', 'Wrapped.']);
+  block.body.paragraphs[1].insertContentControl();
+  assert.match(await xmlOf(block), /<\/w:p><w:customXmlInsRangeStart [^>]*\/><w:sdt>.*?<w:sdtContent><w:customXmlInsRangeEnd w:id="\d+"\/><w:p(?: [^>]*)?><w:r><w:t>Wrapped\.<\/w:t><\/w:r><\/w:p><w:customXmlInsRangeStart [^>]*\/><\/w:sdtContent><\/w:sdt><w:customXmlInsRangeEnd w:id="\d+"\/>/);
+  block.body.rejectAll();
+  assert.deepEqual(block.body.paragraphs.map((p) => p.text), ['Kept.', 'Wrapped.']);
+  assert.equal((await xmlOf(block)).includes('<w:sdt>'), false);
+});
+
+test('Word\'s own markup for a control inserted under tracking is listed as one change and rejects away (check 30)', async () => {
+  // what Word 16.0.20326 wrote for check 30's control-inline case, ids and dates as it wrote them
+  const word = '<w:p><w:pPr><w:rPr><w:ins w:id="0" w:author="Author B" w:date="2026-09-30T12:13:00Z"/></w:rPr></w:pPr><w:ins w:id="1" w:author="Author B" w:date="2026-09-30T12:13:00Z"><w:r><w:t xml:space="preserve">before </w:t></w:r></w:ins>'
+    + '<w:customXmlInsRangeStart w:id="2" w:author="Author B" w:date="2026-09-30T12:13:00Z"/><w:sdt><w:sdtPr><w:alias w:val="Inline"/><w:tag w:val="inline"/><w:id w:val="101"/></w:sdtPr><w:sdtContent><w:customXmlInsRangeEnd w:id="2"/>'
+    + '<w:ins w:id="3" w:author="Author B" w:date="2026-09-30T12:13:00Z"><w:r><w:t>control</w:t></w:r></w:ins><w:customXmlInsRangeStart w:id="4" w:author="Author B" w:date="2026-09-30T12:13:00Z"/></w:sdtContent></w:sdt><w:customXmlInsRangeEnd w:id="4"/>'
+    + '<w:ins w:id="5" w:author="Author B" w:date="2026-09-30T12:13:00Z"><w:r><w:t xml:space="preserve"> after</w:t></w:r></w:ins></w:p>';
+  const make = async () => {
+    const pkg = await untracked(['Kept.']);
+    await pkg.body.insertXml(word, 'End');
+    return pkg;
+  };
+  const pkg = await make();
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => [c.type, c.author, c.text]), [['Added', 'Author B', 'before control after\r']]);
+  pkg.body.rejectAll();
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['Kept.']);
+  assert.equal(/<w:sdt>|customXmlInsRange/.test(await xmlOf(pkg)), false);
+  const accepted = await make();
+  accepted.body.acceptAll();
+  const kept = await xmlOf(accepted);
+  assert.match(kept, /<w:sdtContent><w:r><w:t>control<\/w:t><\/w:r><\/w:sdtContent>/);
+  assert.equal(/customXmlInsRange|<w:ins /.test(kept), false);
+  // a marker pair on its own, in no such form, is left alone by the listing and swept by accept or reject all
+  const stray = await untracked(['Kept.']);
+  await stray.body.insertXml('<w:p><w:customXmlInsRangeStart w:id="9" w:author="Author B" w:date="2026-09-30T12:13:00Z"/><w:r><w:t>x</w:t></w:r><w:customXmlInsRangeEnd w:id="9"/></w:p>', 'End');
+  assert.equal(stray.body.getTrackedChanges().length, 0);
+  stray.body.rejectAll();
+  assert.equal((await xmlOf(stray)).includes('customXmlInsRange'), false);
+  assert.equal(stray.body.paragraphs[1].text, 'x');
 });

@@ -18,8 +18,8 @@ import {
   RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
 } from '../customxml/kinds.mjs';
 import { runsForValue, updateFromControl, PLACEHOLDER_TEXT } from '../customxml/bindings.mjs';
-import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, SDT_TYPES } from './tree.mjs';
+import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
+import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, runOf, SDT_TYPES } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
@@ -160,6 +160,7 @@ export class ContentControl {
     const span = this.runSpan();
     if (!span) throw new Docx4JException('This content control is not in a paragraph');
     const { paragraph, start, end } = span;
+    if (span.empty) return this.insertIntoEmpty(paragraph, text);
     if (location === 'Start') return paragraph.splice(start, start, text);
     if (location === 'End') return paragraph.splice(end, end, text);
     return paragraph.splice(start, end, text);
@@ -257,7 +258,7 @@ export class ContentControl {
   }
 
   /** The offsets a run-level control covers in its paragraph. */
-  private runSpan(): { paragraph: Paragraph; start: number; end: number } | undefined {
+  private runSpan(): { paragraph: Paragraph; start: number; end: number; empty?: true } | undefined {
     const paragraph = this.parentParagraph();
     if (!paragraph) return undefined;
     const inside = (run: object): boolean => {
@@ -270,16 +271,51 @@ export class ContentControl {
     };
     let start: number | undefined;
     let end = 0;
-    for (const seg of segmentsOf(paragraph.p)) {
+    const segs = segmentsOf(paragraph.p);
+    for (const seg of segs) {
       if (!inside(seg.run)) continue;
       if (start === undefined) start = seg.start;
       end = seg.end;
     }
     if (start === undefined) {
-      // an empty control: its position is where its runs would be
-      return { paragraph, start: 0, end: 0 };
+      // a control holding no text: its position is the end of the last text before it in the
+      // paragraph (before, it was reported at 0, and text put into it went to the paragraph's start)
+      let pos = 0;
+      let found = false;
+      const visit = (items: Element[] | undefined): void => {
+        for (const el of items ?? []) {
+          if (found) return;
+          if (el === (this.element as Element)) { found = true; return; }
+          const v = el.value;
+          if (typeof v !== 'object' || v === null) continue;
+          if (typeNameOf(el) === 'org_docx4j_wml.R') {
+            const last = segs.filter((seg) => seg.run === v).pop();
+            if (last) pos = last.end;
+          } else visit(runItemsOf(v));
+        }
+      };
+      visit(paragraph.p.content as Element[] | undefined);
+      return { paragraph, start: pos, end: pos, empty: true };
     }
     return { paragraph, start, end };
+  }
+
+  /**
+   * Text into a run control that holds no run: a new run in its content, in a `w:ins` under
+   * tracking (Word: check 30, new-control-typed), placed before the control's trailing insertion
+   * marker when it is itself an insertion.
+   */
+  private insertIntoEmpty(paragraph: Paragraph, text: string): Range {
+    const sdt = this.sdt;
+    const items = ((sdt.sdtContent ??= {} as { content?: Element[] }).content ??= []);
+    const run = runOf([textItem(text)]);
+    const tracker = paragraph.changeTracker;
+    const item: Element = tracker ? tracker.ins([run]) : run;
+    const at = items.findIndex((el) => el.name?.localPart === 'customXmlInsRangeStart');
+    items.splice(at < 0 ? items.length : at, 0, item);
+    linkParents(item, sdt.sdtContent);
+    const span = this.runSpan()!;
+    return new Range(paragraph, span.start, span.end);
   }
 
   // --- CR-002 phase E: the XML mapping, the typed kinds and the w:sdtPr properties ---

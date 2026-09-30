@@ -22,7 +22,7 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, type TrackingHost } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -197,8 +197,24 @@ export class Paragraph {
     const pPr = this.pPr();
     const val: wml.JcEnumeration | undefined = v === 'Left' ? 'left' : v === 'Centered' ? 'center' : v === 'Right' ? 'right' : v === 'Justified' ? 'both' : undefined;
     if (val === undefined) delete pPr.jc;
+    else if (this.inheritedAlignment() === v) delete pPr.jc;
     else pPr.jc = { val };
     this.settleFormatting();
+  }
+
+  /**
+   * The alignment the paragraph resolves to with no `w:jc` of its own: its style's, else the
+   * defaults'. Word's Ctrl+L on a centred paragraph whose style is left-aligned removes the `w:jc`
+   * rather than writing `w:jc="left"`, with tracking on (check 26) and off (the editor's
+   * `measure-word2010.docx` and `measure-word15.docx`, 2026-09-30; CR-002 section 38), so a value the
+   * paragraph already inherits is not written. Measured for left over a left-aligned style; taken to
+   * hold for any value. Undefined without a resolver, where the value is written as asked.
+   */
+  private inheritedAlignment(): Alignment | undefined {
+    const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: { getEffectivePPr(pPr: wml.PPr | undefined): wml.PPr } } | undefined)?.propertyResolverOrUndefined;
+    if (!resolver) return undefined;
+    const { jc: _jc, pPrChange: _change, PARENT: _parent, ...rest } = this.p.pPr as wml.PPr & { PARENT?: object };
+    return alignmentOf(resolver.getEffectivePPr(rest as wml.PPr), true) as Alignment;
   }
 
   /** Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). */
@@ -427,6 +443,38 @@ export class Paragraph {
       return;
     }
     tracker.markParagraphDeleted(this.p);
+    this.giveMarkPropertiesToNext(tracker);
+  }
+
+  /**
+   * A paragraph mark deleted under tracking gives the next paragraph this paragraph's properties,
+   * as a `w:pPrChange` on it recording its own: Word, at Delete at the end of a Heading 2 with a
+   * Normal paragraph after it, wrote the next paragraph `w:pStyle Heading2` with
+   * `<w:pPrChange><w:pPr/></w:pPrChange>`, and No Markup reads the joined line as a heading
+   * throughout (the editor's `measure-word15.docx`, 2026-09-30; CR-002 section 38). The Delete
+   * counterpart of check 29's Enter. Nothing where the two paragraphs' properties are the same
+   * (check 22's deleted marks). Accepting the mark then joins into a paragraph with these
+   * properties, and rejecting puts the next paragraph's back.
+   */
+  private giveMarkPropertiesToNext(tracker: ChangeTracker): void {
+    const i = this.index;
+    const next = i >= 0 ? this.container[i + 1] : undefined;
+    if (!next || typeNameOf(next) !== 'org_docx4j_wml.P') return;
+    const base = (pPr: wml.PPr | undefined): Record<string, unknown> => {
+      const out: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(pPr ?? {})) {
+        if (key !== 'TYPE_NAME' && key !== 'PARENT' && key !== 'rPr' && key !== 'sectPr' && key !== 'pPrChange' && value !== undefined) out[key] = value;
+      }
+      return out;
+    };
+    const source = base(this.p.pPr);
+    const nextP = next.value as wml.P;
+    if (canonical(source) === canonical(base(nextP.pPr))) return;
+    const target = new Paragraph(next as Element<wml.P>, this.container, this.parentBody).pPr();
+    tracker.recordPPrChange(target);
+    for (const key of Object.keys(base(target))) delete (target as Record<string, unknown>)[key];
+    for (const [key, value] of Object.entries(source)) (target as Record<string, unknown>)[key] = deepCopy(value);
+    linkParents(target, nextP);
   }
 
   /**
@@ -774,6 +822,9 @@ export class Paragraph {
     const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
     linkParents(sdt, (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container);
+    // under tracking the control itself is the insertion, the paragraph what it was (check 30)
+    const tracker = this.changeTracker;
+    if (tracker) markHolderInserted(tracker, sdt as Element, this.container, () => {});
     return new ContentControl(sdt as Element<wml.SdtBlock>, this.container, this.parentBody);
   }
 
@@ -874,8 +925,10 @@ export class Paragraph {
    * Moves a revision's items from `index` on into a copy of it - its attributes, a new `w:id` - and
    * puts `item` between the two; with nothing from `index` on, `item` just goes after the revision.
    * False, with nothing changed, where the revision's items cannot be told apart from its attributes.
+   * Internal: `Range.insertContentControl` uses it to put a new control between the halves of the
+   * insertion it wraps part of (check 30).
    */
-  private splitHolderAround(holder: RevisionHolderOf, index: number, item: Element | Element[], nextId: () => number): boolean {
+  splitHolderAround(holder: RevisionHolderOf, index: number, item: Element | Element[], nextId: () => number): boolean {
     const value = holder.value as unknown as Record<string, unknown>;
     const itemsKey = Object.keys(value).find((key) => value[key] === holder.items);
     if (!itemsKey) return false;
@@ -919,7 +972,8 @@ export class Paragraph {
    * is a package that keeps one, since a document has one id space; else one above every id in the
    * story.
    */
-  private nextAnnotationId(): number {
+  /** @internal `Comment` uses it to split an insertion at a comment's end. */
+  nextAnnotationId(): number {
     const pkg = this.parentBody.package_ as Partial<TrackingHost> | undefined;
     if (pkg && typeof pkg.markupRoots === 'function' && 'annotationIdFloor' in pkg) {
       return new ChangeTracker(pkg as TrackingHost, 'TrackAll').nextId();
