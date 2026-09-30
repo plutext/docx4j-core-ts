@@ -295,16 +295,30 @@ export class TrackedChange {
  * is all `w:delText`).
  */
 function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
-  const lines: string[] = [];
-  const visit = (items: Element[] | undefined): void => {
-    for (const el of items ?? []) {
-      if (typeNameOf(el) === 'org_docx4j_wml.P') { lines.push(textOfView(el.value as object, { view })); continue; }
-      const v = el.value;
-      if (typeof v === 'object' && v !== null) visit(childrenOf(v));
+  // Office JS's text for a row: its cells with a tab between them, then `\r\n`; a cell's paragraphs
+  // with `\r` between them, a nested table's rows each with their own `\r\n` and no separator of their
+  // own (checks 30 and 31: "row one\r\n", "nested\r\nouter cell\r\n")
+  const cellText = (tc: wml.Tc): string => {
+    let out = '';
+    let afterParagraph = false;
+    for (const el of childrenOf(tc) ?? []) {
+      const tn = typeNameOf(el);
+      if (tn === 'org_docx4j_wml.P') {
+        out += (afterParagraph ? '\r' : '') + textOfView(el.value as object, { view });
+        afterParagraph = true;
+      } else if (tn === 'org_docx4j_wml.Tbl') {
+        for (const row of rowsOf(el.value as wml.Tbl)) out += rowText(row.element.value, view);
+        afterParagraph = false;
+      } else if (typeof el.value === 'object' && el.value !== null) {
+        // a block control or custom XML element: what it holds, as if it were not there
+        for (const inner of childrenOf(el.value) ?? []) {
+          if (typeNameOf(inner) === 'org_docx4j_wml.P') { out += (afterParagraph ? '\r' : '') + textOfView(inner.value as object, { view }); afterParagraph = true; }
+        }
+      }
     }
+    return out;
   };
-  for (const cell of cellsOf(tr)) visit(childrenOf(cell.element.value));
-  return lines.join('\n');
+  return cellsOf(tr).map((cell) => cellText(cell.element.value)).join('\t') + '\r\n';
 }
 
 /** The changes inside a row, last first, so that a paragraph join never disturbs one still to do. */
@@ -913,6 +927,10 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
   if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
   if (t.kind === 'holder') return 'ins';
+  // an inserted or deleted row groups with rows and text touching it: Office JS lists an inserted
+  // table of three rows, with the inserted paragraphs before and after it, as one change, and rows
+  // added to a table that was there as one change per touching run of them (check 31)
+  if (t.kind === 'row') return t.row;
   return undefined;
 }
 

@@ -119,3 +119,31 @@ content empty, with no placeholder run and nothing listed (`tracking.test.mjs`, 
 there before and is typed into under tracking stays, empty"); an empty control is Word's own state
 for one cleared by hand. Nothing is written to imitate the leftover.
 
+## 7. Office JS leaves another author's inserted row out of the listing
+
+**Found** 2026-10-01, Word 16.0.20326.20158 (Windows), through Office JS, `test/README.md` check 31
+(engine case `engine-two-authors`; the JSON is `test/fixtures/revisions/check31/result.json`).
+
+A three-row table inserted whole, its first and third rows Author A's and its second Author B's
+(`w:trPr/w:ins`, every mark and run inserted, the same form for all three), between two paragraphs
+inserted by Author A. `body.getTrackedChanges()` listed Author A's two halves, `"before the table\rrow
+one\r\n"` and `"row three\r\n(end of insertion)"`, and **nothing for Author B's row**: the row is in
+the markup, `rejectAll()` removed it and `acceptAll()` kept it, but no `TrackedChange` was given for
+it. A reviewer working from the listing would not see B's row.
+
+**What this package does.** Lists it: `[A "row one\r\n", B "row two\r\n", A "row three\r\n"]` for that
+markup (`tracking.test.mjs`, "an inserted table groups with the rows and the inserted text touching
+it"). Whether Word's own Reviewing Pane shows the row has not been checked.
+
+## 8. `insertParagraph('Before')` on a table under tracking leaves the new mark plain
+
+**Found** 2026-10-01, the same run (check 31, gesture `text-then-rows`).
+
+With tracking on, `table.insertParagraph('typed before the table', 'Before')` wrote the paragraph's
+run in a `w:ins` but no `w:ins` on its mark (`<w:p><w:ins>...</w:ins></w:p>`, no `w:pPr`), so the new
+paragraph itself is not an insertion: rejecting everything left an empty paragraph between "Kept."
+and the table, and the listing kept the text apart from the rows added after it (a plain mark is a
+break). `insertParagraph('After')` on the table marked the mark inserted, as typing Enter does.
+
+**What this package does.** `Body.insertParagraph` and `Paragraph.insertParagraph` mark the new mark
+inserted wherever the paragraph goes (CR-002 section 13), so rejecting leaves nothing.

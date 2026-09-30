@@ -766,6 +766,55 @@ already named, so each case starts by opening its own file.
    them. What Word does with an *inserted* control whose markup carries no markers - stays, as an
    existing one - is what the engine did before, and what it still does for a control that was there.
 
+31. How Office JS lists an inserted table of several rows, with and without insertions touching it,
+   and rows added to a table that was there (the open question of CR-002 section 37 item 7: check 30's
+   one-row tables listed as one change with the paragraphs before and after them, where the engine and
+   the editor list a table and each row apart). In a **new blank document**, run the Script Lab snippet
+   for 31 below (**Run the check**) and copy the JSON back; nothing is typed by hand and nothing needs
+   saving. The tabs are in the shared `__tmp/31/` (`check31-script.js`, `check31.html`). Three parts,
+   every case from "Kept." and the body's last, empty paragraph, put in untracked:
+   - **Word inserts** (3 cases), tracking on, `body.insertOoxml` at the end: a paragraph, a three-row
+     table and a paragraph (`table-between`, check 30's table case with three rows); the three-row table
+     alone (`table-alone`); a two-row table, a paragraph and another two-row table (`two-tables`).
+   - **Gestures** (5 cases) on a three-row table put in untracked, tracking on: `table.addRows` of two
+     rows at the end, and at the start; one row after the first and one after the third (`rows-apart`);
+     a paragraph inserted before the table then a row at its start (`text-then-rows`); a row at the end
+     then a paragraph after the table (`rows-then-text`).
+   - **Engine markup** (4 cases, `@docx4j/core-ts` 426e7b5's forms), tracking off: `table-between` as
+     the engine writes it (every row `w:trPr/w:ins`, every mark and run inserted, one author); the same
+     with the middle row Author B's; two inserted rows after a plain one, plain paragraphs around; an
+     inserted first and last row around two plain ones.
+
+   For every case: the markup, what `getTrackedChanges()` lists (type, author, text), then reject all
+   and accept all with the markup, text and what is still listed. The questions: whether touching
+   inserted rows are one change or one per row; whether an inserted table groups with inserted text
+   before and after it (as check 30's one-row tables did); whether another author's row, or plain
+   rows between, keep them apart. The engine today lists `table-between` as five changes (the
+   paragraph, each row, the paragraph), `two-authors` as five, `rows-added` as two, `rows-apart` as
+   two; the editor lists rows apart too, and both follow the answer.
+
+   **Run 2026-10-01 (Word 16.0.20326.20158); the JSON is `fixtures/revisions/check31/result.json`.**
+   Rows group with whatever inserted content touches them, and a table boundary is no break:
+   - *table-between*: **one** change, `"before the table\rrow one\r\nrow two\r\nrow three\r\n(end of
+     insertion)"`; *table-alone*: one, `"row one\r\nrow two\r\nrow three\r\n"`; *two-tables*: one across
+     both tables and the paragraph between. A row's text is its cells and `\r\n`.
+   - *addRows* of two rows at the end, and at the start: one change each; *rows-apart*: two;
+     *rows-then-text*: **one**, `"new last\r\ntyped after the table\r"`; *text-then-rows*: **two** -
+     because `insertParagraph('Before')` on the table wrote the paragraph's runs in a `w:ins` but left
+     its **mark plain** (`docs/word-known-issues.md` entry 8; reject all left an empty paragraph), and a
+     plain mark keeps the text apart from the rows, as anywhere.
+   - Engine markup: *engine-table-between* one change, as Word's own; *engine-rows-added* one;
+     *engine-rows-apart* two; *engine-two-authors* **two**, Author A's halves - and Author B's row,
+     inserted like the others, was **not listed at all** (known issue 8's neighbour, entry 7), though
+     reject all removed it and accept all kept it.
+   - Every reject all and accept all left what the markup says, nothing listed after.
+
+   So the rule is check 22's, with rows as pieces: touching pieces of one kind and author are one
+   change, and neither a table nor a row is a boundary. **The engine's listing follows (CR-002
+   section 37 item 7): a row change groups with the rows and text touching it, a table's property
+   records stay apart, and a row's text is Office JS's.** The engine lists Author B's row where Office
+   JS did not.
+
 A small Node script for 1 to 3 is:
 
 ```js
@@ -1845,6 +1894,168 @@ async function check() {
   for (const [name, markup] of Object.entries(ENGINE)) {
     out.value = `C ${name}...`;
     report.engine[name] = await measure(async (c) => { c.document.body.insertOoxml(packageOf(markup), 'End'); });
+  }
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 31 (Word, Office JS, WordApi 1.6), in a new blank document. The HTML
+tab is check 30's. The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*|w16du:dateUtc)="[^"]*"/g, '');
+
+// Check 31: how Office JS lists an inserted table of several rows, with and without insertions
+// touching it, and rows added to a table that was there (CR-002 section 37 item 7's open question).
+const run = (s) => `<w:r><w:t xml:space="preserve">${s}</w:t></w:r>`;
+const p = (...items) => `<w:p>${items.join('')}</w:p>`;
+const row = (text) => `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr>${p(run(text))}</w:tc></w:tr>`;
+const BORDERS = '<w:tblBorders><w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>'
+  + '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/></w:tblBorders>';
+const table = (...rows) => `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${BORDERS}</w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid>${rows.join('')}</w:tbl>`;
+const THREE = table(row('row one'), row('row two'), row('row three'));
+const END = p(run('(end of insertion)'));
+const FRAGMENTS = {
+  'table-between': p(run('before the table')) + THREE + END,   // check 30's table case with three rows
+  'table-alone': THREE,                                         // nothing of the insertion touching it
+  'two-tables': table(row('a1'), row('a2')) + p(run('between')) + table(row('b1'), row('b2')) + END,
+};
+
+// Part C: the engine's markup (@docx4j/core-ts 426e7b5) for 'table-between', Author A; and variants.
+const A = (id) => `w:id="${id}" w:author="Author A" w:date="2026-10-01T11:00:00Z"`;
+const B = (id) => `w:id="${id}" w:author="Author B" w:date="2026-10-01T11:00:00Z"`;
+const insP = (who, markId, runId, text) => `<w:p><w:pPr><w:rPr><w:ins ${who(markId)}/></w:rPr></w:pPr><w:ins ${who(runId)}>${run(text)}</w:ins></w:p>`;
+const insRow = (who, rowId, markId, runId, text) => `<w:tr><w:trPr><w:ins ${who(rowId)}/></w:trPr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr>${insP(who, markId, runId, text)}</w:tc></w:tr>`;
+const ENGINE = {
+  'engine-table-between': insP(A, 1, 2, 'before the table') + table(insRow(A, 3, 4, 5, 'row one'), insRow(A, 6, 7, 8, 'row two'), insRow(A, 9, 10, 11, 'row three')) + insP(A, 12, 13, '(end of insertion)'),
+  'engine-two-authors': insP(A, 1, 2, 'before the table') + table(insRow(A, 3, 4, 5, 'row one'), insRow(B, 6, 7, 8, 'row two'), insRow(A, 9, 10, 11, 'row three')) + insP(A, 12, 13, '(end of insertion)'),
+  'engine-rows-added': p(run('Plain paragraph.')) + table(row('row one'), insRow(A, 1, 2, 3, 'row two'), insRow(A, 4, 5, 6, 'row three')) + p(run('Plain after.')),
+  'engine-rows-apart': p(run('Plain paragraph.')) + table(insRow(A, 1, 2, 3, 'new first'), row('row one'), row('row two'), insRow(A, 4, 5, 6, 'new last')) + p(run('Plain after.')),
+};
+
+const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+const packageOf = (blocks) => `<pkg:package xmlns:pkg="${PKG}">`
+  + `<pkg:part pkg:name="/_rels/.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}"><w:body>${blocks}</w:body></w:document></pkg:xmlData></pkg:part></pkg:package>`;
+
+async function fresh(context) {
+  const body = context.document.body;
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+  await context.sync();
+  body.clear();
+  body.insertParagraph('Kept.', 'Start');
+  await context.sync();
+}
+const track = async (context, on) => {
+  context.document.changeTrackingMode = on ? Word.ChangeTrackingMode.trackAll : Word.ChangeTrackingMode.off;
+  await context.sync();
+};
+// Part B's table that was there: "Kept.", then the three-row table, untracked
+async function existingTable(context) {
+  await fresh(context);
+  context.document.body.insertOoxml(packageOf(THREE), 'End');
+  await context.sync();
+  const table = context.document.body.tables.getFirst();
+  table.load('rowCount');
+  await context.sync();
+  return table;
+}
+
+// Part B: Office JS's own row insertions into a table that was there, tracking on
+const GESTURES = {
+  'addRows-end-two': async (c, table) => { table.addRows('End', 2, [['new one'], ['new two']]); },
+  'addRows-start-two': async (c, table) => { table.addRows('Start', 2, [['new one'], ['new two']]); },
+  'rows-apart': async (c, table) => {
+    table.rows.getFirst().insertRows('After', 1, [['new after first']]);
+    await c.sync();
+    table.rows.getFirst().getNext().getNext().getNext().insertRows('After', 1, [['new after third']]);
+  },
+  'text-then-rows': async (c, table) => {
+    // an inserted paragraph touching the table, and rows inserted at its start: one change or two?
+    table.insertParagraph('typed before the table', 'Before');
+    await c.sync();
+    table.addRows('Start', 1, [['new first']]);
+  },
+  'rows-then-text': async (c, table) => {
+    table.addRows('End', 1, [['new last']]);
+    await c.sync();
+    table.insertParagraph('typed after the table', 'After');
+  },
+};
+
+// --- recording (check 30's) ---
+async function blocks(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const s = ooxml.value;
+  const doc = new DOMParser().parseFromString(s, 'application/xml');
+  const parts = all(doc, PKG, 'part');
+  const main = parts.find((part) => part.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  const err = doc.getElementsByTagName('parsererror')[0];
+  blocks.last = { ooxmlLength: s.length, head: s.slice(0, 160), parseError: err ? err.textContent.slice(0, 200) : null,
+    parts: parts.map((part) => part.getAttributeNS(PKG, 'name')), bodyFound: !!body };
+  return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1 && n.localName !== 'sectPr').map(xml) : [];
+}
+const withDiagnostics = (markup) => (markup.length ? { markup } : { markup, markupRead: blocks.last });
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text.slice(0, 120) })) };
+}
+async function measure(make) {
+  const entry = {};
+  for (const act of ['before', 'rejectAll', 'acceptAll']) {
+    try {
+      await Word.run(async (context) => {
+        await make(context);
+        await context.sync();
+        if (act === 'before') {
+          Object.assign(entry, withDiagnostics(await blocks(context)));
+          entry.listed = (await listed(context)).list;
+          return;
+        }
+        const { changes } = await listed(context);
+        if (changes.items.length === 0) { entry[act] = 'nothing listed'; return; }
+        if (act === 'acceptAll') changes.acceptAll(); else changes.rejectAll();
+        await context.sync();
+        const body = context.document.body;
+        body.load('text');
+        await context.sync();
+        entry[act] = { ...withDiagnostics(await blocks(context)), text: body.text, listedAfter: (await listed(context)).list };
+      });
+    } catch (e) {
+      entry[act] = { error: String(e && e.message || e), debug: e && e.debugInfo ? JSON.stringify(e.debugInfo) : undefined };
+    }
+  }
+  return entry;
+}
+
+async function check() {
+  const report = { host: Office.context.diagnostics, wordInserts: {}, gestures: {}, engine: {} };
+  for (const [name, fragment] of Object.entries(FRAGMENTS)) {
+    out.value = `A ${name}...`;
+    report.wordInserts[name] = await measure(async (c) => { await fresh(c); await track(c, true); c.document.body.insertOoxml(packageOf(fragment), 'End'); });
+  }
+  for (const [name, gesture] of Object.entries(GESTURES)) {
+    out.value = `B ${name}...`;
+    report.gestures[name] = await measure(async (c) => { const table = await existingTable(c); await track(c, true); await gesture(c, table); });
+  }
+  for (const [name, markup] of Object.entries(ENGINE)) {
+    out.value = `C ${name}...`;
+    report.engine[name] = await measure(async (c) => { await fresh(c); c.document.body.insertOoxml(packageOf(markup), 'End'); });
   }
   out.value = JSON.stringify(report, null, 2);
 }

@@ -3300,6 +3300,23 @@ kind and author are one change, stands; a holder boundary is not touching. A sma
 sits inside the `w:ins`, so no boundary arises; a smart tag or custom XML element holding its own
 `w:ins` is treated as a holder (unmeasured: Word rewrote the one and dropped the other).
 
+Tables (check 31, run 2026-10-01, at Jason's word after check 30 showed its one-row `table` and
+`nested-table` cases as one change with the paragraphs around them): Office JS lists an inserted
+three-row table between two inserted paragraphs as **one** change, the table alone as one, two
+tables with a paragraph between as one, rows added to a table that was there as one change per
+touching run of them, a row added at the end with a paragraph typed after the table as one, and
+another author's row between as a break. So a row is a piece like any other: touching pieces of one
+kind and author are one change, and neither a table nor a row is a boundary. The engine's listing
+now groups a `row` change with the rows and the inserted text touching it (`groupable`, and
+`Body.getTrackedChanges` no longer puts a `BREAK` around a table or after a row that is a revision;
+a table's property records stay a change of their own, section 35), and a row's text is Office JS's:
+its cells with a tab between, then `\r\n`, a nested table's rows each with their own (check 30's
+"nested\r\nouter cell\r\n"). Two deleted rows of one table are one change now, where they were two.
+The editor lists rows apart and follows. Two things Office JS did that are not followed: it left
+Author B's row, inserted between Author A's two, out of the listing altogether (known issue 7), and
+its `insertParagraph('Before')` on a table under tracking left the new paragraph's mark plain
+(known issue 8), which is why that case listed as two.
+
 What is left as it was: an emptied hyperlink or simple field stays after a reject, as Word leaves
 the engine's form; and `insertOoxml` into Word merges the last inserted paragraph's mark with the
 target's, so the `w:pPr/w:rPr/w:ins` the engine writes on it is lost there (Word's doing, seen in

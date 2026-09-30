@@ -434,10 +434,13 @@ export class Body {
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (tn === 'org_docx4j_wml.Tbl') {
-          into.push(BREAK);
-          // the table's property records, one change where the table stands (CR-002 section 35)
+          // A table is no break of its own: an inserted or deleted row groups with the rows and the
+          // inserted text touching it, as Office JS lists them (check 31: a three-row table between two
+          // inserted paragraphs is one change; rows added at a table's end with a paragraph typed after
+          // it, one; a paragraph whose mark is plain before rows added at the start, two). Its property
+          // records are one change of their own where the table stands (CR-002 section 35), kept apart.
           const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>);
-          if (tableChange) into.push(tableChange, BREAK);
+          if (tableChange) into.push(BREAK, tableChange, BREAK);
           for (const row of rowsOf(v)) {
             // A row that is itself a revision reports as one change, as Office JS does: the
             // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
@@ -451,7 +454,8 @@ export class Body {
             }
             const inner = groupTouching(tokens);
             const rowChanges = trackedChangesOfRow(row.element, row.container, inner, { element: el as Element<wml.Tbl>, container: items });
-            for (const change of rowChanges.length > 0 ? rowChanges : inner) into.push(change, BREAK);
+            if (rowChanges.length > 0) into.push(...rowChanges);
+            else { into.push(BREAK); for (const change of inner) into.push(change, BREAK); }
           }
           continue;
         }

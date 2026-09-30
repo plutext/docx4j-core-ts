@@ -256,7 +256,8 @@ test('table rows: w:trPr/w:ins and w:trPr/w:del, and an inserted table marks eve
   const xml = await xmlOf(pkg);
   assert.match(xml, /<w:tr><w:trPr><w:del w:id="1"[^>]*\/><\/w:trPr>/);
   assert.match(xml, /<w:tr><w:trPr><w:ins w:id="2"[^>]*\/><\/w:trPr>/);
-  assert.deepEqual(body.getTrackedChanges().map((c) => [c.type, c.target.kind, c.text]), [['Deleted', 'row', 'r1'], ['Added', 'row', 'r2']]);
+  // a row's text as Office JS gives it: the cells, then \r\n (checks 30 and 31)
+  assert.deepEqual(body.getTrackedChanges().map((c) => [c.type, c.target.kind, c.text]), [['Deleted', 'row', 'r1\r\n'], ['Added', 'row', 'r2\r\n']]);
   assert.equal(body.acceptAll(), 2);
   assert.equal(body.text, 'r2');
 
@@ -407,7 +408,7 @@ test('Table: addRows, insertRows, deleteRows, row delete and table delete are tr
   t2.delete();
   assert.equal(second.body.tables.length, 1, 'the table is still there');
   assert.deepEqual(t2.rows.map((r) => r.tr.trPr.del !== undefined), [true, true]);
-  assert.equal(second.body.acceptAll(), 2);
+  assert.equal(second.body.acceptAll(), 1, 'two touching deleted rows are one change, as Office JS lists them (check 31)');
   assert.equal(second.body.tables.length, 0, 'its last row accepted away, the table goes with it (section 37)');
 
   // and a table inserted while tracking marks every row and paragraph
@@ -439,7 +440,7 @@ test('a deleted row marks its cells: w:delText, w:del on every paragraph mark, o
   // Office JS reports the row, not the markup inside it: one change (CR-002 section 13)
   const changes = body.getTrackedChanges();
   assert.deepEqual(changes.map((c) => [c.type, c.target.kind]), [['Deleted', 'row']]);
-  assert.equal(changes[0].text, 'a\nb');
+  assert.equal(changes[0].text, 'a\tb\r\n');
 
   // rejecting brings the row back, content readable
   body.rejectAll();
@@ -1688,4 +1689,48 @@ test('Word\'s own markup for a control inserted under tracking is listed as one 
   stray.body.rejectAll();
   assert.equal((await xmlOf(stray)).includes('customXmlInsRange'), false);
   assert.equal(stray.body.paragraphs[1].text, 'x');
+});
+
+test('an inserted table groups with the rows and the inserted text touching it, as Office JS lists them (check 31)', async () => {
+  const row = (text) => `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc></w:tr>`;
+  const table = (...rows) => `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid>${rows.join('')}</w:tbl>`;
+  const texts = (pkg) => pkg.body.getTrackedChanges().map((c) => [c.author, c.text]);
+  // table-between: a paragraph, three rows and a paragraph, one change ("before the table\rrow one\r\nrow two\r\nrow three\r\n(end of insertion)")
+  const between = await tracked(['Kept.']);
+  await between.body.insertXml('<w:p><w:r><w:t>before the table</w:t></w:r></w:p>' + table(row('row one'), row('row two'), row('row three')) + '<w:p><w:r><w:t>(end of insertion)</w:t></w:r></w:p>', 'End');
+  assert.deepEqual(texts(between), [['Ada', 'before the table\rrow one\r\nrow two\r\nrow three\r\n(end of insertion)\r']]);
+  assert.equal(between.body.rejectAll(), 1);
+  assert.deepEqual(between.body.paragraphs.map((p) => p.text), ['Kept.']);
+  assert.equal(between.body.tables.length, 0);
+  // table-alone: one change of three rows
+  const alone = await tracked(['Kept.']);
+  await alone.body.insertXml(table(row('row one'), row('row two'), row('row three')), 'End');
+  assert.deepEqual(texts(alone), [['Ada', 'row one\r\nrow two\r\nrow three\r\n']]);
+  // rows-then-text: a row added at the end and a paragraph after the table, one; rows apart, two
+  const then = await tracked(['Kept.']);
+  then.changeTrackingMode = 'Off';
+  await then.body.insertXml(table(row('row one'), row('row two'), row('row three')), 'End');
+  then.changeTrackingMode = 'TrackAll';
+  const t = then.body.tables[0];
+  t.addRows('End', 1, [['new last']]);
+  then.body.insertParagraph('typed after the table', 'End');
+  assert.deepEqual(texts(then), [['Ada', 'new last\r\ntyped after the table\r']]);
+  const apart = await tracked(['Kept.']);
+  apart.changeTrackingMode = 'Off';
+  await apart.body.insertXml(table(row('row one'), row('row two'), row('row three')), 'End');
+  apart.changeTrackingMode = 'TrackAll';
+  apart.body.tables[0].rows[0].insertRows('After', 1, [['new after first']]);
+  apart.body.tables[0].rows[3].insertRows('After', 1, [['new after third']]);
+  assert.deepEqual(texts(apart), [['Ada', 'new after first\r\n'], ['Ada', 'new after third\r\n']]);
+  // another author's row between keeps the halves apart; the engine lists it, where Office JS left it out (known issue 7)
+  const two = await untracked(['Kept.']);
+  const A = (id) => `w:id="${id}" w:author="Author A" w:date="2026-10-01T11:00:00Z"`;
+  const B = (id) => `w:id="${id}" w:author="Author B" w:date="2026-10-01T11:00:00Z"`;
+  const insRow = (who, ids, text) => `<w:tr><w:trPr><w:ins ${who(ids[0])}/></w:trPr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:rPr><w:ins ${who(ids[1])}/></w:rPr></w:pPr><w:ins ${who(ids[2])}><w:r><w:t>${text}</w:t></w:r></w:ins></w:p></w:tc></w:tr>`;
+  await two.body.insertXml(table(insRow(A, [1, 2, 3], 'row one'), insRow(B, [4, 5, 6], 'row two'), insRow(A, [7, 8, 9], 'row three')), 'End');
+  assert.deepEqual(texts(two), [['Author A', 'row one\r\n'], ['Author B', 'row two\r\n'], ['Author A', 'row three\r\n']]);
+  // a table's own property records stay a change of their own (section 35)
+  const props = await untracked(['Kept.']);
+  await props.body.insertXml(table(row('a')).replace('<w:tblPr>', '<w:tblPr><w:tblPrChange w:id="1" w:author="Author A" w:date="2026-10-01T11:00:00Z"><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/></w:tblPr></w:tblPrChange>'), 'End');
+  assert.deepEqual(props.body.getTrackedChanges().map((c) => c.target.kind), ['tableProperties']);
 });
