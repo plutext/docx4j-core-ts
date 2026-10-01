@@ -853,9 +853,13 @@ already named, so each case starts by opening its own file.
      Word's form), rejecting all, and accepting the deletion in the same shape (A3) each left no
      marker, no reference run, no comment in `body.getComments()` and **no comments part** in
      `getOoxml()`; accepting all (A1, A2) and rejecting all (A3) left the comment on its word. So
-     CR-002 section 38 item 1's rule - the markers stay, the comment survives collapsed - was wrong,
-     and the engine now removes the comment too (its entries from the parts when the comments are next
-     read or the package saved). Two things `insertOoxml` did on the way in: it moved A2's end marker
+     CR-002 section 38 item 1's rule - the markers stay, the comment survives collapsed - was wrong
+     for this form, and the engine now removes the comment too (its entries from the parts when the
+     comments are next read or the package saved). The same day the editor showed Word 2010 and Word
+     15 **keeping** a comment whose markers lay **outside** the rejected insertion (0.3.0's form, its
+     `review-for-word.docx` Reject All saves): the reference run alone, no range markers, the entry
+     kept. So the rule is by the start marker's place, and the engine keeps the outside form's comment
+     that way. Two things `insertOoxml` did on the way in: it moved A2's end marker
      out of the `w:ins`, into A1's form, and it dropped A1's inserted paragraph mark (the target mark
      wins, as in checks 30 and 31). And Office JS listed each of A1 and A2 as **one** change across the
      plain reference run between the two `w:ins` - where the editor's Word 15 Reviewing Pane had

@@ -459,14 +459,19 @@ function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
 
 /**
  * A revision taken away with its runs - a rejected insertion, an accepted deletion - and the comments
- * on it. Word writes a comment's range start inside the `w:ins` of the text it is on (CR-002 section
- * 38 item 1); when that text goes, Word removes the comment with it - its markers, its reference run
- * and its entry (check 32, run 2026-10-02: rejecting the insertion, rejecting all, and accepting the
- * deletion in the same shape, each left no comment). So a comment whose markers come out of the
- * revision with no text left between them is removed here: the markers and the reference now, the
- * entries in the comment parts when the comments are next read or the package saved
- * (`pendingCommentRemovals`). A comment with text left in its range - one that reached beyond the
- * revision - keeps its markers where the text was (not measured).
+ * on it, by where their markers were (CR-002 section 38 item 1):
+ * - Word writes a comment's range start inside the `w:ins` of the text it is on; when that text goes,
+ *   current Word removes the comment with it - markers, reference run and entry (check 32, run
+ *   2026-10-02: rejecting the insertion, rejecting all, and accepting the deletion in the same shape,
+ *   each left no comment). A comment whose start comes out of the revision with no text left in its
+ *   range is removed here: the markers and the reference now, the entries in the comment parts when
+ *   the comments are next read or the package saved (`pendingCommentRemovals`).
+ * - A comment whose markers lie outside the revision (this package's own form before 0.3.1, and any
+ *   file's) is kept when its text goes: Word 2010 and Word 15, rejecting all in the editor's
+ *   `review-for-word.docx`, left its reference run alone, the range markers dropped and the entry kept
+ *   (the editor's finding of 2026-10-02). The range markers go here, the reference and the entry stay.
+ * A comment with text left in its range keeps its markers where the text was (not measured), and
+ * current Word's answer for the outside form, and the older Words' for the inside one, are not measured.
  */
 function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragraph: Paragraph | undefined): void {
   const owner = currentOwner(t.owner, t.element);
@@ -476,23 +481,30 @@ function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragr
   // the comments whose range held the revision: a start inside it (Word's form), or one before it
   // with its end after it (the engine's own, the markers beside the runs)
   const idOf = (el: Element): unknown => (el.value as { id?: unknown }).id;
-  const spanning = new Set<unknown>(kept.filter((m) => m.name?.localPart === 'commentRangeStart').map(idOf));
+  const inside = new Set<unknown>(kept.filter((m) => m.name?.localPart === 'commentRangeStart').map(idOf));
+  const outside = new Set<unknown>();
   for (let s = 0; s < i; s++) {
     const el = owner[s]!;
     if (el.name?.localPart !== 'commentRangeStart') continue;
     const id = idOf(el);
-    if (owner.some((other, e) => e > i && other.name?.localPart === 'commentRangeEnd' && idOf(other) === id)) spanning.add(id);
+    if (owner.some((other, e) => e > i && other.name?.localPart === 'commentRangeEnd' && idOf(other) === id)) outside.add(id);
   }
   owner.splice(i, 1, ...kept);
   linkParents(kept, (t.element.value as { PARENT?: object }).PARENT);
   const body = paragraph?.parentBody;
   if (!body) return;
-  for (const id of spanning) {
+  for (const id of [...inside, ...outside]) {
     const start = owner.find((el) => el.name?.localPart === 'commentRangeStart' && idOf(el) === id);
     if (!start || !rangeIsEmpty(owner, start, id as number)) continue;
-    removeMarkers(body.container, id as number);
-    const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
-    pkg?.pendingCommentRemovals?.add(id as number);
+    if (inside.has(id)) {
+      removeMarkers(body.container, id as number);
+      const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+      pkg?.pendingCommentRemovals?.add(id as number);
+    } else {
+      // the range markers only: the reference run and the entry stay (Word 2010 and 15)
+      const end = owner.find((el) => el.name?.localPart === 'commentRangeEnd' && idOf(el) === id);
+      for (const marker of [end, start]) if (marker) owner.splice(owner.indexOf(marker), 1);
+    }
   }
 }
 

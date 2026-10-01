@@ -3371,15 +3371,24 @@ the second half a new id) with the end marker and the reference run between the 
 `w:ins` when the range ends with it. A deletion keeps the markers outside (unmeasured), and so does a
 move (its halves are not to be split). The listing then shows the insertion as two changes, split at
 the plain reference run, which is how Word's pane lists it (the editor's item 3, Word agreeing).
-**Corrected by check 32 (run 2026-10-02):** rejecting the insertion that holds the comment's text, or
-accepting the deletion that does, removes the comment in Word - markers, reference run and entry, the
-comments part gone when it was the last - and the engine now does the same (`removeRevision`
-removes the markers and the reference, and the entries go from the parts, replies included, when the
-comments are next read or the package is saved: `WordprocessingMLPackage.pendingCommentRemovals`,
-flushed by `commentsOf` and `saveTo`). Until the run the engine kept the markers, the comment
-collapsed where its text was; it still does so for a comment whose range reaches beyond the removed
-revision and keeps some text (not measured). Accepting the insertion, or rejecting the deletion,
-leaves the comment on its word, as Word does.
+**Corrected by check 32 (run 2026-10-02) and the editor's finding the same day:** what Word does
+with a comment whose text goes depends on where its markers were. With the range start **inside** the
+`w:ins` (Word's form, which the engine writes since this item) current Word (16.0.20430) removed the
+comment - markers, reference run and entry, the comments part gone when it was the last - on
+rejecting the insertion, rejecting all, and accepting a deletion in the same shape. With the markers
+**outside** the revision (the engine's form before this item, and so every file 0.3.0 wrote), Word 2010
+and Word 15, rejecting all in the editor's `review-for-word.docx`, **kept** the comment: its reference
+run alone at the start of the joined paragraph, the range markers dropped, the entry kept (the
+editor's `-word2010-rejected` and `-word15-rejected` saves, verified here). The engine does both
+(`removeRevision`): a comment whose start came out of the revision with no text left in its range is
+removed - the markers and the reference at once, the entries from the parts, replies included, when
+the comments are next read or the package is saved (`WordprocessingMLPackage.pendingCommentRemovals`,
+flushed by `commentsOf` and `saveTo`) - and one whose markers lay outside keeps its reference and its
+entry, the range markers dropped. Current Word on the outside form, and the older Words on the inside
+one, are not measured; a comment keeping some text beyond the revision keeps its markers (not
+measured). Accepting the insertion, or rejecting the deletion, leaves the comment on its word, as Word
+does. Until the run the engine kept the markers in both forms, the comment collapsed where its text
+was.
 
 **2. Deleting a heading's paragraph mark gives the next paragraph the heading's properties.** Word
 15, at Delete at the end of a Heading 2 paragraph followed by a Normal one with tracking on, marked

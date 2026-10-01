@@ -533,7 +533,19 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   part.body.acceptAll();
   assert.equal((await part.body.getComments())[0].getRange()[0].text, 'monthly');
   assert.equal((await xmlOf(part)).includes('<w:ins'), false);
-  // a comment on deleted text goes when the deletion is accepted (check 32, A3), and stays when it is rejected
+  // a comment on deleted text goes when the deletion is accepted, when its start marker was inside
+  // the w:del (Word's form, check 32 A3), and stays when the deletion is rejected
+  const inside = await tracked(['The tenant pays rent monthly in advance.']);
+  inside.changeTrackingMode = 'Off';
+  await inside.body.insertXml('<w:p><w:del w:id="11" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:delText xml:space="preserve">The tenant pays rent </w:delText></w:r><w:commentRangeStart w:id="7"/><w:r><w:delText>monthly</w:delText></w:r></w:del><w:commentRangeEnd w:id="7"/><w:r><w:rPr><w:rStyle w:val="CommentReference"/></w:rPr><w:commentReference w:id="7"/></w:r><w:del w:id="13" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:delText xml:space="preserve"> in advance.</w:delText></w:r></w:del><w:r><w:t>Kept after.</w:t></w:r></w:p>', 'End');
+  await inside.body.paragraphs[1].search('Kept after.')[0].insertComment('other');          // the comments part exists, 7 has no entry yet
+  assert.equal((await inside.body.getComments()).length, 1);
+  inside.body.acceptAll();
+  assert.equal(inside.body.paragraphs[1].text, 'Kept after.');
+  assert.equal((await xmlOf(inside)).includes('w:id="7"'), false, 'marker 7 and its reference gone');
+  // a comment whose markers lay outside the revision - this package's own form before 0.3.1 - stays
+  // as its reference alone, the range markers dropped, as Word 2010 and Word 15 left it on Reject All
+  // (the editor's review-for-word.docx saves; CR-002 section 38 item 1)
   const deleted = await tracked(['The tenant pays rent monthly in advance.']);
   deleted.changeTrackingMode = 'Off';
   await deleted.body.paragraphs[0].search('monthly')[0].insertComment('M1');
@@ -541,9 +553,10 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   deleted.body.paragraphs[0].search('rent monthly in')[0].delete();
   assert.equal((await deleted.body.getComments()).length, 1);
   deleted.body.acceptAll();
-  assert.equal((await deleted.body.getComments()).length, 0);
+  assert.equal((await deleted.body.getComments()).length, 1, 'the comment stays');
   assert.equal(deleted.body.paragraphs[0].text, 'The tenant pays  advance.');
-  assert.equal((await xmlOf(deleted)).includes('comment'), false);
+  assert.match(await xmlOf(deleted), /<w:t xml:space="preserve">The tenant pays <\/w:t><\/w:r><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><w:r><w:t xml:space="preserve"> advance\.<\/w:t>/, 'the reference alone, no range marker');
+  assert.equal((await xmlOf(deleted)).includes('commentRange'), false);
   const kept = await tracked(['The tenant pays rent monthly in advance.']);
   kept.changeTrackingMode = 'Off';
   await kept.body.paragraphs[0].search('monthly')[0].insertComment('M1');
