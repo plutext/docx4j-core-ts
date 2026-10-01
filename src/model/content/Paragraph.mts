@@ -593,7 +593,7 @@ export class Paragraph {
    * is removed, a run left empty is removed. Text is inserted into the w:t at `start`,
    * else into a new run with the formatting of the nearest run.
    */
-  splice(start: number, end: number, text: string): Range {
+  splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before'): Range {
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
@@ -601,7 +601,7 @@ export class Paragraph {
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
       const deletions = end > start ? this.deleteText(tracker, start, end) : [];
-      if (text.length > 0) this.insertTracked(tracker, start, text, deletions[deletions.length - 1]);
+      if (text.length > 0) this.insertTracked(tracker, start, text, deletions[deletions.length - 1], prefer);
       return new Range(this, start, start + text.length);
     }
     let segs = this.segments();
@@ -651,10 +651,14 @@ export class Paragraph {
       }
       const ending = segs.find((s) => s.editable && s.end === start);
       const starting = segs.find((s) => s.editable && s.start === start);
+      // `prefer` says which run takes text put exactly between two: the one ending there (typed text,
+      // `Paragraph.insertText`) or the one starting there (`Range.insertText('Before')`, which Office
+      // JS puts inside the link the range is on: check 32)
+      const [near, far] = prefer === 'after' ? [starting, ending] : [ending, starting];
       const target = (containing && !containing.revision ? containing : undefined)
-        ?? (ending && !ending.revision ? ending : undefined) ?? (starting && !starting.revision ? starting : undefined)
+        ?? (near && !near.revision ? near : undefined) ?? (far && !far.revision ? far : undefined)
         ?? containing;                                   // a revision that could not be split: extended, as before
-      const edge = target ? undefined : ending ?? starting;
+      const edge = target ? undefined : near ?? far;
       if (edge?.revision) {
         const run = runOf([textItem(text)], copyRPr(edge.run.rPr));
         this.insertBesideRevision(edge.revision, run, edge === ending ? 'after' : 'before');
@@ -668,11 +672,11 @@ export class Paragraph {
         // no w:t to extend: a new run next to the segment at `start`, with that run's formatting
         const before = [...segs].reverse().find((s) => s.end <= start);
         const after = segs.find((s) => s.start >= start);
-        const neighbour = before ?? after;
+        const neighbour = prefer === 'after' ? after ?? before : before ?? after;
         const firstRun = runsOf(this.p)[0]?.value.rPr;
         const rPr = neighbour?.run.rPr ? deepCopy(neighbour.run.rPr) : firstRun ? deepCopy(firstRun) : undefined;
         const run = runOf([textItem(text)], rPr);
-        if (before) before.runOwner.splice(before.runIndex + 1, 0, run);
+        if (neighbour === before && before) before.runOwner.splice(before.runIndex + 1, 0, run);
         else if (after) after.runOwner.splice(after.runIndex, 0, run);
         else {
           const content = (this.p.content ??= []);
@@ -988,7 +992,7 @@ export class Paragraph {
    * `w:ins` is extended rather than nested in another one, as Word does. `anchor` is the `w:del`
    * of a replacement, which the insertion must follow.
    */
-  private insertTracked(tracker: ChangeTracker, at: number, text: string, anchor?: Anchor): void {
+  private insertTracked(tracker: ChangeTracker, at: number, text: string, anchor?: Anchor, prefer: 'before' | 'after' = 'before'): void {
     if (anchor) {
       const rPr = copyRPr(runsOf(anchor.element.value as object, { view: 'original' })[0]?.value.rPr);
       const ins = tracker.ins([runOf([textItem(text)], rPr)]);
@@ -1006,7 +1010,8 @@ export class Paragraph {
     const segs = this.segments();
     const before = [...segs].reverse().find((s) => s.end <= at);
     const after = segs.find((s) => s.start >= at);
-    for (const [seg, side] of [[before, 'after'], [after, 'before']] as const) {
+    const sides = [[before, 'after'], [after, 'before']] as const;
+    for (const [seg, side] of prefer === 'after' ? [...sides].reverse() : sides) {
       if (!seg || !tracker.ownInsertion(seg.revision)) continue;
       if (seg.editable) {
         const t = seg.item.value as wml.Text;
@@ -1018,18 +1023,18 @@ export class Paragraph {
       }
       return;
     }
-    const neighbour = before ?? after;
+    const neighbour = prefer === 'after' ? after ?? before : before ?? after;
     tracker.assertEditable(neighbour?.revision);
     const rPr = copyRPr(neighbour?.run.rPr ?? runsOf(this.p)[0]?.value.rPr);
     const ins = tracker.ins([runOf([textItem(text)], rPr)]);
-    this.placeInsertion(at, [ins as Element], before, after, () => tracker.nextId());
+    this.placeInsertion(at, [ins as Element], before, after, () => tracker.nextId(), prefer);
   }
 
   /**
    * An insertion put at `at`, `before` and `after` being the segments either side of it once the runs
    * are split there: never inside another's revision.
    */
-  private placeInsertion(at: number, items: Element[], before: TextSegment | undefined, after: TextSegment | undefined, nextId: () => number): void {
+  private placeInsertion(at: number, items: Element[], before: TextSegment | undefined, after: TextSegment | undefined, nextId: () => number, prefer: 'before' | 'after' = 'before'): void {
     // Typed inside another's revision - a w:ins, a w:moveTo - the revision is split and the typist's
     // w:ins goes between its halves, as Word writes it (test/README.md check 20 case 01, check 21's
     // first run); before, it went to the revision's edge, putting the text in the wrong place.
@@ -1042,7 +1047,7 @@ export class Paragraph {
       this.insertBesideRevision(after.revision, items, 'before');
       return;
     }
-    const neighbour = before ?? after;
+    const neighbour = prefer === 'after' ? after ?? before : before ?? after;
     if (neighbour) {
       const owner = neighbour.revision ? neighbour.revision.owner : neighbour.runOwner;
       const item = neighbour.revision ? neighbour.revision.element : neighbour.runOwner[neighbour.runIndex]!;

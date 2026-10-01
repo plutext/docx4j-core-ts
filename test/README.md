@@ -815,6 +815,63 @@ already named, so each case starts by opening its own file.
    records stay apart, and a row's text is Office JS's.** The engine lists Author B's row where Office
    JS did not.
 
+32. Two rules neither side has measured (the editor's request of 2026-10-02, at Jason's word; its
+   ED-005 section 12.47 item 10 and 12.32 item 3): what rejecting a pending insertion that holds a
+   comment's word does to the comment (CR-002 section 38 item 1's rule: the markers stay, the
+   comment survives collapsed where its text was), and what Word writes for typing into a link that
+   was there. The tabs are in the shared `__tmp/32/` (`check32-script.js`, `check32.html`, three
+   buttons). In a **new blank document**:
+   - **Case A** (automated: **Run A and B-api**, copy the JSON back): three paragraphs, each put in
+     untracked through `insertOoxml` with its comment part ("On monthly." / "On beta."), from a fresh
+     start each time, then that one change rejected (A3: accepted), reject all, and accept all. A1 is
+     Word's own form from the editor's `measure-word15.docx` (the range start inside the `w:ins`, the
+     end marker and the reference after it); A2 the editor's (the end marker just inside the
+     `w:ins`); A3 is A1 with a `w:del` for the `w:ins` and a plain run after. Each snapshot records the
+     markup, the text, what is listed, `body.getComments()` with each comment's anchored text, and
+     the comments part. The same run does **B through the API**: the link paragraph put in untracked,
+     tracking on, then `insertText` of "x" after "le", "y" after "lexase" and "z" before it, a snapshot
+     after each.
+   - **Case B by hand**: click **Set up typing (B)**, which leaves "Read the lease today." with "lease"
+     an external link and tracking on; type **x** between "le" and "ase", **y** right after "lexase"
+     (before the space), **z** right before its "l"; click **Record typing (B)** and copy the JSON
+     back; then File > Save As `check32-typed.docx` into `__tmp/32/` (the saved file shows what Word
+     rewrites at save, as it rewrote `w:hyperlink` holders in check 30). Current Word is enough; Word
+     2010 or 15 only if an answer would change a rule.
+
+   The engine's answers for A (426e7b5): A1 lists "The tenant pays rent monthly" and " in advance.\r"
+   apart (the plain reference run between them); rejecting the first leaves the paragraph's inserted
+   mark, then `commentRangeStart`, `commentRangeEnd` and the reference run, then the second `w:ins`;
+   reject all leaves the markers and the reference at the end of "Kept."; accept all is the text with
+   the comment on "monthly". A2 the same shape. A3: accepting the deletion leaves the markers and the
+   reference before the second `w:del`; accept all leaves them before "Kept after."; reject all is the
+   text with the comment on "monthly". For B the engine writes typed text inside a `w:hyperlink` as a
+   `w:ins` inside it, at the link's start and end as in its middle.
+
+   **Run 2026-10-02 (Word 16.0.20430.20118); the JSON is `fixtures/revisions/check32/result.json`
+   (A and B-api) and `typed.json` (B by hand), the save `check32-typed.docx`.**
+   - **A: Word removes the comment with its text.** Rejecting the insertion that holds "monthly" (A1,
+     Word's form), rejecting all, and accepting the deletion in the same shape (A3) each left no
+     marker, no reference run, no comment in `body.getComments()` and **no comments part** in
+     `getOoxml()`; accepting all (A1, A2) and rejecting all (A3) left the comment on its word. So
+     CR-002 section 38 item 1's rule - the markers stay, the comment survives collapsed - was wrong,
+     and the engine now removes the comment too (its entries from the parts when the comments are next
+     read or the package saved). Two things `insertOoxml` did on the way in: it moved A2's end marker
+     out of the `w:ins`, into A1's form, and it dropped A1's inserted paragraph mark (the target mark
+     wins, as in checks 30 and 31). And Office JS listed each of A1 and A2 as **one** change across the
+     plain reference run between the two `w:ins` - where the editor's Word 15 Reviewing Pane had
+     split "lease" apart at a reference run (its ED-005 section 12.29 item 3) - so a run holding only
+     a comment reference no longer keeps pieces apart in the engine's listing either.
+   - **B: typed text goes into the link in its middle and outside it at either end; the API's goes
+     inside at all three.** The link came in as a HYPERLINK field (`w:fldChar` runs), as check 30
+     found. Typing "x" between "le" and "ase": `w:ins` inside, between the field's separate and end.
+     Typing "y" at the link's end: `w:ins` **after** the field's end run; "z" at its start: `w:ins`
+     **before** the field's begin run. `range.insertText('x', 'After')` on "le", `('y', 'After')` on
+     "lexase" and `('z', 'Before')` on it: each a `w:ins` **inside** the field. Three changes listed,
+     "z", "x", "y". The save kept the field form, `w16du:dateUtc` on each `w:ins`: with pending
+     insertions inside, Word does not write the link back as a `w:hyperlink`. The engine writes a
+     `w:ins` inside the `w:hyperlink` for all three, as the API does; `Range.insertText('Before')`
+     used to go outside at the link's start, and joins the run the range starts in now.
+
 A small Node script for 1 to 3 is:
 
 ```js
@@ -2057,6 +2114,215 @@ async function check() {
     out.value = `C ${name}...`;
     report.engine[name] = await measure(async (c) => { await fresh(c); c.document.body.insertOoxml(packageOf(markup), 'End'); });
   }
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 32 (Word, Office JS, WordApi 1.6; `body.getComments` is WordApi 1.4), in a
+new blank document. The HTML tab:
+
+```html
+<button id="run">Run A and B-api</button>
+<button id="setup">Set up typing (B)</button>
+<button id="record">Record typing (B)</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+const guard = (fn) => () => fn().catch((e) => { out.value = String(e.stack || e) + (e && e.debugInfo ? '\n' + JSON.stringify(e.debugInfo) : ''); });
+document.getElementById('run').addEventListener('click', guard(runAutomated));
+document.getElementById('setup').addEventListener('click', guard(setupTyping));
+document.getElementById('record').addEventListener('click', guard(recordTyping));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node)
+  .replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*|w16du:dateUtc)="[^"]*"/g, '');
+
+// Check 32. Case A: a pending insertion (or deletion) holding a comment's word, rejected (accepted);
+// case B: typing into a link that was there, with tracking on.
+const REF = (id) => `<w:r><w:rPr><w:rStyle w:val="CommentReference"/></w:rPr><w:commentReference w:id="${id}"/></w:r>`;
+const CASES_A = {
+  // A1: Word's own form (the editor's measure-word15.docx): the end marker and the reference after the w:ins
+  'A1-word-form': { word: 'monthly', comment: 2, act: 'reject', blocks:
+    `<w:p><w:pPr><w:rPr><w:ins w:id="10" w:author="Claude" w:date="2026-09-30T13:34:00Z"/></w:rPr></w:pPr><w:ins w:id="11" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:t xml:space="preserve">The tenant pays rent </w:t></w:r><w:commentRangeStart w:id="2"/><w:r><w:t>monthly</w:t></w:r></w:ins><w:commentRangeEnd w:id="2"/>${REF(2)}<w:ins w:id="13" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:t xml:space="preserve"> in advance.</w:t></w:r></w:ins></w:p>` },
+  // A2: the editor's form: the end marker just inside the first w:ins
+  'A2-editor-form': { word: 'beta', comment: 0, act: 'reject', blocks:
+    `<w:p><w:ins w:id="11" w:author="A" w:date="2026-10-01T09:45:00Z"><w:r><w:t xml:space="preserve">alpha </w:t></w:r><w:commentRangeStart w:id="0"/><w:r><w:t>beta</w:t></w:r><w:commentRangeEnd w:id="0"/></w:ins>${REF(0)}<w:ins w:id="12" w:author="A" w:date="2026-10-01T09:45:00Z"><w:r><w:t xml:space="preserve"> gamma </w:t></w:r></w:ins><w:r><w:t>Some text.</w:t></w:r></w:p>` },
+  // A3: a deletion in A1's shape, accepted
+  'A3-deletion': { word: 'monthly', comment: 2, act: 'accept', blocks:
+    `<w:p><w:del w:id="11" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:delText xml:space="preserve">The tenant pays rent </w:delText></w:r><w:commentRangeStart w:id="2"/><w:r><w:delText>monthly</w:delText></w:r></w:del><w:commentRangeEnd w:id="2"/>${REF(2)}<w:del w:id="13" w:author="Claude" w:date="2026-09-30T13:34:00Z"><w:r><w:delText xml:space="preserve"> in advance.</w:delText></w:r></w:del><w:r><w:t>Kept after.</w:t></w:r></w:p>` },
+};
+const COMMENTS = {
+  2: 'On monthly.',
+  0: 'On beta.',
+};
+// Case B's paragraph: an untracked external link on "lease"
+const LINK_PARAGRAPH = '<w:p><w:r><w:t xml:space="preserve">Read the </w:t></w:r><w:hyperlink r:id="rIdLink" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>lease</w:t></w:r></w:hyperlink><w:r><w:t xml:space="preserve"> today.</w:t></w:r></w:p>';
+
+const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+const commentsPart = (ids) => `<pkg:part pkg:name="/word/comments.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"><pkg:xmlData>`
+  + `<w:comments xmlns:w="${W}">` + ids.map((id) => `<w:comment w:id="${id}" w:author="Reviewer" w:initials="R" w:date="2026-10-02T09:00:00Z"><w:p><w:r><w:t>${COMMENTS[id]}</w:t></w:r></w:p></w:comment>`).join('') + '</w:comments></pkg:xmlData></pkg:part>';
+const packageOf = (blocks, { commentIds = [], link = false } = {}) => `<pkg:package xmlns:pkg="${PKG}">`
+  + `<pkg:part pkg:name="/_rels/.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" '
+  + `Type="${R}/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part>`
+  + `<pkg:part pkg:name="/word/_rels/document.xml.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+  + (commentIds.length ? `<Relationship Id="rIdComments" Type="${R}/comments" Target="comments.xml"/>` : '')
+  + (link ? `<Relationship Id="rIdLink" Type="${R}/hyperlink" Target="https://example.com/lease" TargetMode="External"/>` : '')
+  + '</Relationships></pkg:xmlData></pkg:part>'
+  + '<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}" xmlns:r="${R}"><w:body>${blocks}</w:body></w:document></pkg:xmlData></pkg:part>`
+  + (commentIds.length ? commentsPart(commentIds) : '') + '</pkg:package>';
+
+async function fresh(context) {
+  const body = context.document.body;
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+  await context.sync();
+  body.clear();
+  body.insertParagraph('Kept.', 'Start');
+  await context.sync();
+}
+const track = async (context, on) => {
+  context.document.changeTrackingMode = on ? Word.ChangeTrackingMode.trackAll : Word.ChangeTrackingMode.off;
+  await context.sync();
+};
+
+// --- recording (checks 30 and 31's, plus the comments) ---
+async function blocks(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const s = ooxml.value;
+  const doc = new DOMParser().parseFromString(s, 'application/xml');
+  const parts = all(doc, PKG, 'part');
+  const main = parts.find((part) => part.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  const comments = parts.find((part) => part.getAttributeNS(PKG, 'name') === '/word/comments.xml');
+  const err = doc.getElementsByTagName('parsererror')[0];
+  blocks.last = { ooxmlLength: s.length, parseError: err ? err.textContent.slice(0, 200) : null, parts: parts.map((part) => part.getAttributeNS(PKG, 'name')), bodyFound: !!body };
+  blocks.commentsPart = comments ? all(comments, W, 'comment').map((c) => ({ id: c.getAttributeNS(W, 'id'), text: c.textContent })) : null;
+  return body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1 && n.localName !== 'sectPr').map(xml) : [];
+}
+const withDiagnostics = (markup) => (markup.length ? { markup } : { markup, markupRead: blocks.last });
+async function listed(context) {
+  const changes = context.document.body.getTrackedChanges();
+  changes.load('items/type,items/text,items/author');
+  await context.sync();
+  return { changes, list: changes.items.map((c, i) => ({ i, type: c.type, author: c.author, text: c.text.slice(0, 120) })) };
+}
+async function comments(context) {
+  try {
+    const list = context.document.body.getComments();
+    list.load('items/content,items/authorName,items/resolved');
+    await context.sync();
+    const ranges = list.items.map((c) => { const r = c.getRange(); r.load('text'); return r; });
+    await context.sync();
+    return list.items.map((c, i) => ({ content: c.content, author: c.authorName, anchoredText: ranges[i].text }));
+  } catch (e) {
+    return { error: String(e && e.message || e) };
+  }
+}
+async function snapshot(context) {
+  const markup = await blocks(context);
+  const body = context.document.body;
+  body.load('text');
+  await context.sync();
+  return { ...withDiagnostics(markup), text: body.text, listed: (await listed(context)).list, comments: await comments(context), commentsPart: blocks.commentsPart };
+}
+
+// Case A: each form put in untracked; then that one change, reject all, accept all, each from a fresh start
+async function caseA(name, spec) {
+  const entry = {};
+  const pkg = packageOf(spec.blocks, { commentIds: [spec.comment] });
+  const put = async (context) => { await fresh(context); context.document.body.insertOoxml(pkg, 'End'); await context.sync(); };
+  for (const act of ['before', 'thatOne', 'rejectAll', 'acceptAll']) {
+    try {
+      await Word.run(async (context) => {
+        await put(context);
+        if (act === 'before') { entry.before = await snapshot(context); return; }
+        const { changes } = await listed(context);
+        if (changes.items.length === 0) { entry[act] = 'nothing listed'; return; }
+        if (act === 'thatOne') {
+          const target = changes.items.find((c) => c.text.includes(spec.word));
+          if (!target) { entry.thatOne = 'no change holds the word'; return; }
+          entry.thatOneWas = { type: target.type, text: target.text, action: spec.act };
+          if (spec.act === 'accept') target.accept(); else target.reject();
+        } else if (act === 'acceptAll') changes.acceptAll(); else changes.rejectAll();
+        await context.sync();
+        entry[act] = await snapshot(context);
+      });
+    } catch (e) {
+      entry[act] = { error: String(e && e.message || e), debug: e && e.debugInfo ? JSON.stringify(e.debugInfo) : undefined };
+    }
+  }
+  return entry;
+}
+
+// Case B through the API: insertText at the three places of the typing, tracking on
+async function caseBApi() {
+  const entry = {};
+  try {
+    await Word.run(async (context) => {
+      await fresh(context);
+      context.document.body.insertOoxml(packageOf(LINK_PARAGRAPH, { link: true }), 'End');
+      await context.sync();
+      entry.setup = await snapshot(context);
+      await track(context, true);
+      const p = context.document.body.paragraphs.getFirst().getNext();
+      // "x" in the middle of "lease": after "le"
+      p.search('le', { matchCase: true }).getFirst().insertText('x', 'After');
+      await context.sync();
+      entry.afterX = await snapshot(context);
+      // "y" at the link's end: after "lexase"
+      p.search('lexase', { matchCase: true }).getFirst().insertText('y', 'After');
+      await context.sync();
+      entry.afterY = await snapshot(context);
+      // "z" at its start: before "lexase"
+      p.search('lexase', { matchCase: true }).getFirst().insertText('z', 'Before');
+      await context.sync();
+      entry.afterZ = await snapshot(context);
+    });
+  } catch (e) {
+    entry.error = { error: String(e && e.message || e), debug: e && e.debugInfo ? JSON.stringify(e.debugInfo) : undefined };
+  }
+  return entry;
+}
+
+async function runAutomated() {
+  const report = { host: Office.context.diagnostics, caseA: {}, caseBApi: null };
+  for (const [name, spec] of Object.entries(CASES_A)) {
+    out.value = `A ${name}...`;
+    report.caseA[name] = await caseA(name, spec);
+  }
+  out.value = 'B api...';
+  report.caseBApi = await caseBApi();
+  out.value = JSON.stringify(report, null, 2);
+}
+
+// Case B by hand: the link paragraph, tracking on; type x, y, z; then Record.
+async function setupTyping() {
+  await Word.run(async (context) => {
+    await fresh(context);
+    context.document.body.insertOoxml(packageOf(LINK_PARAGRAPH, { link: true }), 'End');
+    await context.sync();
+    await track(context, true);
+  });
+  out.value = 'Ready: "Read the lease today." with "lease" a link, tracking ON (user name as set in File > Options).\n'
+    + '1. Click between "le" and "ase" in the link and type x.\n'
+    + '2. Click right after "lexase" (before the space) and type y.\n'
+    + '3. Click right before the "l" of "lexase" (after the space) and type z.\n'
+    + 'Then click "Record typing (B)" and copy the JSON back; then File > Save As check32-typed.docx into the shared __tmp/32/.';
+}
+async function recordTyping() {
+  const report = { host: Office.context.diagnostics, typed: null };
+  await Word.run(async (context) => { report.typed = await snapshot(context); });
   out.value = JSON.stringify(report, null, 2);
 }
 ```

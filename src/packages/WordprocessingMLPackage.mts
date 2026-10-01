@@ -23,6 +23,7 @@ import { DefaultXPathEngine, type XPathEngine } from '../model/customxml/xpath.m
 import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type TrackingHost, type TrackingScope } from '../model/content/tracking.mjs';
 import { NumberingFacade } from '../model/content/List.mjs';
 import { StylesFacade } from '../model/content/stylesFacade.mjs';
+import { flushPendingCommentRemovals } from '../model/content/Comment.mjs';
 import type { Bound } from '../model/content/binder.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
@@ -131,6 +132,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * `styles.ensure` (CR-002 section 25). `saveTo` ensures them; nothing is read before then.
    */
   private requiredStyles = new Set<string>();
+  /**
+   * Comments whose anchored text went with a rejected insertion or an accepted deletion: their
+   * markers are gone, their entries go from the comment parts when the comments are next read or
+   * the package is saved (check 32; `TrackedChange`). An extension.
+   */
+  readonly pendingCommentRemovals = new Set<number>();
   /**
    * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
    * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
@@ -546,6 +553,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     if (!(target instanceof WordprocessingMLPackage)) return;
     target.requireStyles(this.requiredStyles);
     target.author = { ...this.author };
+    for (const id of this.pendingCommentRemovals) target.pendingCommentRemovals.add(id);
     target.trackedChangeDate = this.trackedChangeDate;
     target.fonts.defaultTheme = this.fonts.defaultTheme;
     target.xpathEngine = this.xpathEngine;
@@ -553,6 +561,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
 
   override async saveTo<R>(sink: PartSink<R>): Promise<R> {
     if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
+    if (this.pendingCommentRemovals.size > 0) await flushPendingCommentRemovals(await this.getBody());
     if (this.requiredStyles.size > 0) {
       await this.styles.ensure([...this.requiredStyles]);
       this.requiredStyles.clear();

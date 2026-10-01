@@ -3293,7 +3293,9 @@ The listing follows what part C measured too (the editor's E4.g question, 2026-0
 `review-for-word.docx` has one author's insertion running into a `w:hyperlink` and out, and Word's
 Reviewing Pane listed the link's text apart): Office JS gave **three** changes for one author's
 `w:ins` before, inside and after a `w:hyperlink`, a `w:fldSimple` and an inline `w:sdt` without the
-markers, and **one** over an inserted control with them and over Word's own one-`w:ins` forms. So a
+markers, and **one** over an inserted control with them and over Word's own one-`w:ins` forms; and
+(check 32, Word 16.0.20430) **one** across a plain run holding only a comment reference between two
+`w:ins`, so a run with no text keeps nothing apart. So a
 run holder that is not itself an insertion now keeps the insertions inside it apart from those
 outside (`tokensOfRunLevel`), and an inserted control does not. Fix F's rule, touching pieces of one
 kind and author are one change, stands; a holder boundary is not touching. A smart tag in Word's form
@@ -3369,9 +3371,15 @@ the second half a new id) with the end marker and the reference run between the 
 `w:ins` when the range ends with it. A deletion keeps the markers outside (unmeasured), and so does a
 move (its halves are not to be split). The listing then shows the insertion as two changes, split at
 the plain reference run, which is how Word's pane lists it (the editor's item 3, Word agreeing).
-Rejecting the insertion, or accepting a deletion, that holds a comment marker keeps the marker in its
-place (`removeRevision`), so the comment survives, collapsed where its text was; accepting leaves it on
-its word.
+**Corrected by check 32 (run 2026-10-02):** rejecting the insertion that holds the comment's text, or
+accepting the deletion that does, removes the comment in Word - markers, reference run and entry, the
+comments part gone when it was the last - and the engine now does the same (`removeRevision`
+removes the markers and the reference, and the entries go from the parts, replies included, when the
+comments are next read or the package is saved: `WordprocessingMLPackage.pendingCommentRemovals`,
+flushed by `commentsOf` and `saveTo`). Until the run the engine kept the markers, the comment
+collapsed where its text was; it still does so for a comment whose range reaches beyond the removed
+revision and keeps some text (not measured). Accepting the insertion, or rejecting the deletion,
+leaves the comment on its word, as Word does.
 
 **2. Deleting a heading's paragraph mark gives the next paragraph the heading's properties.** Word
 15, at Delete at the end of a Heading 2 paragraph followed by a Normal one with tracking on, marked
@@ -3398,8 +3406,19 @@ writes it otherwise; without a `PropertyResolver` it is written as asked. The ed
 `w:jc="left"` and will follow. Decrease Indent with tracking off, and the left-indent setter's
 `w:ind w:left="0"`, stay as they were, unmeasured.
 
-`tracking.test.mjs` holds the three: the comment on "monthly" in Word's form, on a whole insertion,
-and kept through reject all and accept all; the Heading 2 deleted before a Normal paragraph, the
+**4. Text put before a range on a link goes into the link (check 32, case B).** Office JS's
+`range.insertText('z', 'Before')` on a link's text went inside the link, as `'After'` did; the engine
+put it outside at the link's start, since text at an offset joined the run ending there.
+`Range.insertText('Before')` and `('Start')` now join the run the range starts in (`Paragraph.splice`'s
+`prefer`), tracked or not; `Paragraph.insertText` and a range ending where the link starts are as they
+were. Typing at a link's start or end in Word goes outside the link (the editor's caret, not the
+engine's); inside it, a `w:ins` inside the holder, as the engine writes. Word serialises a link holding
+pending insertions as a HYPERLINK field, even at save.
+
+`tracking.test.mjs` holds the four: the comment on "monthly" in Word's form, on a whole insertion,
+removed by reject all and by an accepted deletion with the entry flushed on read and on save, kept
+by accept all and by a rejected deletion, and kept where its range reaches beyond the revision; and
+the three insertions into a link, tracked and plain; the Heading 2 deleted before a Normal paragraph, the
 record, accept and reject, and the same-properties case recording nothing; and the alignment set
 centred then left with tracking off, leaving no `w:jc`, and right written. Each fails on the code
 before it.

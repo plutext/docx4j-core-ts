@@ -514,6 +514,47 @@ export async function commentsOf(scope: Body | Paragraph | Range): Promise<Comme
   const body = paragraph ? paragraph.parentBody : (scope as Body);
   const parts = await commentPartsAccess().load(body);
   if (!parts) return [];
+  await flushPendingRemovals(body, parts);
+  const views = viewsOf(parts, body);
+  const ids = scope instanceof Range ? idsInRange(scope) : paragraph ? unique(markersOfParagraph(paragraph.element, paragraph.container).map((m) => m.id)) : commentIdsOf(body.container);
+  const inScope = new Set(ids);
+  const out: Comment[] = [];
+  for (const id of ids) {
+    const view = views.get(id);
+    if (!view) continue;
+    if (view.parent && inScope.has(view.parent.id)) continue;
+    out.push(view);
+  }
+  return out;
+}
+
+/**
+ * Comments whose anchored text went with a rejected insertion or an accepted deletion (check 32;
+ * `TrackedChange`'s `removeRevision`) had their markers removed then; their entries go here, with
+ * their replies, when the comments are next read or the package is saved (`WordprocessingMLPackage.saveTo`).
+ */
+export async function flushPendingCommentRemovals(body: Body): Promise<void> {
+  const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+  if (!pkg?.pendingCommentRemovals?.size) return;
+  const parts = await commentPartsAccess().load(body);
+  if (!parts) { pkg.pendingCommentRemovals.clear(); return; }
+  await flushPendingRemovals(body, parts);
+}
+
+async function flushPendingRemovals(body: Body, parts: CommentParts): Promise<void> {
+  const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+  const pending = pkg?.pendingCommentRemovals;
+  if (!pending?.size) return;
+  const views = viewsOf(parts, body);
+  for (const id of [...pending]) {
+    const view = views.get(id);
+    if (view) await view.delete();
+    pending.delete(id);
+  }
+}
+
+/** A `Comment` view per entry in the parts, replies linked to their parents. */
+function viewsOf(parts: CommentParts, body: Body): Map<number, Comment> {
   const views = new Map<number, Comment>();
   for (const comment of parts.comments.comment ?? []) {
     if (typeof comment.id === 'number' && !views.has(comment.id)) views.set(comment.id, new Comment(comment, parts, body));
@@ -528,16 +569,7 @@ export async function commentsOf(scope: Body | Paragraph | Range): Promise<Comme
     const parent = parentParaId === undefined ? undefined : byParaId.get(parentParaId);
     if (parent && parent !== view) parent.addReply(view);
   }
-  const ids = scope instanceof Range ? idsInRange(scope) : paragraph ? unique(markersOfParagraph(paragraph.element, paragraph.container).map((m) => m.id)) : commentIdsOf(body.container);
-  const inScope = new Set(ids);
-  const out: Comment[] = [];
-  for (const id of ids) {
-    const view = views.get(id);
-    if (!view) continue;
-    if (view.parent && inScope.has(view.parent.id)) continue;
-    out.push(view);
-  }
-  return out;
+  return views;
 }
 
 /** The comments a range touches: a comment whose markers overlap [start, end]. */

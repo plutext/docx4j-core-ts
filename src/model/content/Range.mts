@@ -102,7 +102,9 @@ export class Range {
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
     let r: Range;
     if (location === 'Replace') r = this.paragraph.splice(this.start, this.end, text);
-    else if (location === 'Before' || location === 'Start') r = this.paragraph.splice(this.start, this.start, text);
+    // text put before the range joins the run the range starts in - inside the link the range is on,
+    // as Office JS (check 32: insertText('Before') on a link's text went into the link, as 'After' did)
+    else if (location === 'Before' || location === 'Start') r = this.paragraph.splice(this.start, this.start, text, 'after');
     else r = this.paragraph.splice(this.end, this.end, text);
     // this range keeps covering the same text: a replacement resizes it, text before it shifts it, text after it leaves it
     if (location === 'Replace') this.end = this.start + text.length;

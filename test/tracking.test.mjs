@@ -507,19 +507,56 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   const partXml = await xmlOf(part);
   assert.match(partXml, /<w:ins w:id="1"[^>]*><w:r><w:t xml:space="preserve">The tenant pays rent <\/w:t><\/w:r><w:commentRangeStart w:id="0"\/><w:r><w:t>monthly<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><w:ins w:id="2"[^>]*><w:r><w:t xml:space="preserve"> in advance\.<\/w:t><\/w:r><\/w:ins><\/w:p>/);
   assert.equal(onWord.getRange()[0].text, 'monthly');
-  // the reference run, plain, keeps the two halves apart in the listing, as Word's pane lists them
-  // (the editor's ED-005 section 12.29 item 3, Word agreeing on its review-for-word.docx)
-  assert.deepEqual(part.body.getTrackedChanges().map((c) => c.text), ['The tenant pays rent monthly', ' in advance.']);
-  // rejecting the insertion keeps the comment, its markers where the text was; accepting leaves it on its word
+  // the reference run between the halves has no text and keeps nothing apart: one change, as Office JS
+  // listed Word's own form (check 32, A1)
+  assert.deepEqual(part.body.getTrackedChanges().map((c) => c.text), ['The tenant pays rent monthly in advance.']);
+  // rejecting the insertion removes the comment with its text, as Word does (check 32: nothing listed,
+  // no marker, no comment); accepting leaves it on its word
   const rejected = await tracked(['Kept. ']);
   rejected.body.paragraphs[0].insertText('The tenant pays rent monthly in advance.', 'End');
   await rejected.body.paragraphs[0].search('monthly')[0].insertComment('M1');
-  rejected.body.rejectAll();
-  assert.match(await xmlOf(rejected), /<w:t xml:space="preserve">Kept\. <\/w:t><\/w:r><w:commentRangeStart w:id="0"\/><w:commentRangeEnd w:id="0"\/><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><\/w:p>/);
-  assert.equal((await rejected.body.getComments()).length, 1);
+  assert.equal(rejected.body.rejectAll(), 1);
+  assert.match(await xmlOf(rejected), /<w:p[^>]*><w:r><w:t xml:space="preserve">Kept\. <\/w:t><\/w:r><\/w:p>/, 'no marker and no reference run left');
+  assert.deepEqual([...rejected.pendingCommentRemovals], [0], 'the entry goes when the comments are next read or the package saved');
+  assert.equal((await rejected.body.getComments()).length, 0);
+  assert.equal(rejected.pendingCommentRemovals.size, 0);
+  const saved = await WordprocessingMLPackage.load(await rejected.save());
+  assert.equal((await (await saved.getBody()).getComments()).length, 0);
+  assert.equal((await saved.getMainDocumentPart().getXml()).includes('comment'), false);
+  // the same through a save alone, the comments never read after the reject
+  const unread = await tracked(['Kept. ']);
+  unread.body.paragraphs[0].insertText('The tenant pays rent monthly in advance.', 'End');
+  await unread.body.paragraphs[0].search('monthly')[0].insertComment('M1');
+  unread.body.rejectAll();
+  const reloaded = await WordprocessingMLPackage.load(await unread.save());
+  assert.equal((await (await reloaded.getBody()).getComments()).length, 0);
   part.body.acceptAll();
   assert.equal((await part.body.getComments())[0].getRange()[0].text, 'monthly');
   assert.equal((await xmlOf(part)).includes('<w:ins'), false);
+  // a comment on deleted text goes when the deletion is accepted (check 32, A3), and stays when it is rejected
+  const deleted = await tracked(['The tenant pays rent monthly in advance.']);
+  deleted.changeTrackingMode = 'Off';
+  await deleted.body.paragraphs[0].search('monthly')[0].insertComment('M1');
+  deleted.changeTrackingMode = 'TrackAll';
+  deleted.body.paragraphs[0].search('rent monthly in')[0].delete();
+  assert.equal((await deleted.body.getComments()).length, 1);
+  deleted.body.acceptAll();
+  assert.equal((await deleted.body.getComments()).length, 0);
+  assert.equal(deleted.body.paragraphs[0].text, 'The tenant pays  advance.');
+  assert.equal((await xmlOf(deleted)).includes('comment'), false);
+  const kept = await tracked(['The tenant pays rent monthly in advance.']);
+  kept.changeTrackingMode = 'Off';
+  await kept.body.paragraphs[0].search('monthly')[0].insertComment('M1');
+  kept.changeTrackingMode = 'TrackAll';
+  kept.body.paragraphs[0].search('rent monthly in')[0].delete();
+  kept.body.rejectAll();
+  assert.equal((await kept.body.getComments())[0].getRange()[0].text, 'monthly');
+  // a comment reaching beyond the rejected insertion keeps its markers where the text was (not measured)
+  const beyond = await tracked(['Kept. Stays.']);
+  beyond.body.paragraphs[0].search('Kept.')[0].insertText(' NEW', 'After');
+  await beyond.body.paragraphs[0].search('NEW Stays')[0].insertComment('M1');
+  beyond.body.rejectAll();
+  assert.equal((await beyond.body.getComments())[0].getRange()[0].text, ' Stays');
   assert.equal(inserted.body.getTrackedChanges().filter((c) => c.target.kind === 'run').length, 2, 'still just the del and the ins');
   assert.equal((await inserted.body.getComments()).length, 1);
 });
@@ -1733,4 +1770,36 @@ test('an inserted table groups with the rows and the inserted text touching it, 
   const props = await untracked(['Kept.']);
   await props.body.insertXml(table(row('a')).replace('<w:tblPr>', '<w:tblPr><w:tblPrChange w:id="1" w:author="Author A" w:date="2026-10-01T11:00:00Z"><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/></w:tblPr></w:tblPrChange>'), 'End');
   assert.deepEqual(props.body.getTrackedChanges().map((c) => c.target.kind), ['tableProperties']);
+});
+
+test('text inserted before a range on a link goes into the link, as Office JS puts it (check 32, case B)', async () => {
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.author = { name: 'Author B' };
+    const p = pkg.body.insertParagraph('Read the lease today.', 'End');
+    p.search('lease')[0].hyperlink = 'https://example.com/lease';
+    pkg.changeTrackingMode = 'TrackAll';
+    return pkg;
+  };
+  // the three insertions of check 32's B-api, each a w:ins inside the w:hyperlink: "x" after "le",
+  // "y" after the link's text, "z" before it
+  const pkg = await make();
+  const p = pkg.body.paragraphs[0];
+  p.search('le')[0].insertText('x', 'After');
+  p.search('lexase')[0].insertText('y', 'After');
+  p.search('lexase')[0].insertText('z', 'Before');
+  assert.match(await xmlOf(pkg), /<w:t xml:space="preserve">Read the <\/w:t><\/w:r><w:hyperlink [^>]*><w:ins [^>]*><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>z<\/w:t><\/w:r><\/w:ins><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>le<\/w:t><\/w:r><w:ins [^>]*><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>x<\/w:t><\/w:r><\/w:ins><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>ase<\/w:t><\/w:r><w:ins [^>]*><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>y<\/w:t><\/w:r><\/w:ins><\/w:hyperlink><w:r><w:t xml:space="preserve"> today\.<\/w:t>/);
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => c.text), ['z', 'x', 'y'], 'three changes, the plain text between keeping them apart');
+  assert.equal(p.text, 'Read the zlexasey today.');
+  // and untracked the same: 'Before' joins the run the range starts in, 'After' the one it ends in
+  const plain = await make();
+  plain.changeTrackingMode = 'Off';
+  const q = plain.body.paragraphs[0];
+  q.search('lease')[0].insertText('z', 'Before');
+  q.search('lease')[0].insertText('y', 'After');
+  assert.match(await xmlOf(plain), /<w:hyperlink [^>]*><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>zleasey<\/w:t><\/w:r><\/w:hyperlink>/);
+  // a range ending where the link starts puts text after it outside the link, as before
+  const outside = await make();
+  outside.body.paragraphs[0].search('the ')[0].insertText('w', 'After');
+  assert.match(await xmlOf(outside), /<w:ins [^>]*><w:r><w:t>w<\/w:t><\/w:r><\/w:ins><w:hyperlink /);
 });

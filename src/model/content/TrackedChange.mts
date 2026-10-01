@@ -5,7 +5,8 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS } from './tree.mjs';
+import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf } from './tree.mjs';
+import { removeMarkers } from './comments.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
@@ -181,7 +182,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'accept') || resolveRangelessHalf(this, 'accept'))) return;
-        if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else removeRevision(t);
+        if (t.revision === 'ins' || t.revision === 'moveTo') unwrap(t); else removeRevision(t, this.paragraph);
         return;
       case 'mark':
         if (t.mark === 'ins') dropMark(this.paragraph, 'ins'); else joinWithNext(this.requireParagraph());
@@ -236,7 +237,7 @@ export class TrackedChange {
     switch (t.kind) {
       case 'run':
         if ((t.revision === 'moveFrom' || t.revision === 'moveTo') && (resolveMove(this, 'reject') || resolveRangelessHalf(this, 'reject'))) return;
-        if (t.revision === 'ins' || t.revision === 'moveTo') removeRevision(t); else restoreDeleted(t);
+        if (t.revision === 'ins' || t.revision === 'moveTo') removeRevision(t, this.paragraph); else restoreDeleted(t);
         return;
       case 'mark':
         if (t.mark === 'del') dropMark(this.paragraph, 'del'); else joinWithNext(this.requireParagraph(), true);
@@ -457,17 +458,63 @@ function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
 }
 
 /**
- * A revision taken away with its runs - a rejected insertion, an accepted deletion - keeps any
- * comment range marker in it, in its place: Word writes a comment's range start inside the `w:ins`
- * of the text it is on (CR-002 section 38), and the comment is not the revision's.
+ * A revision taken away with its runs - a rejected insertion, an accepted deletion - and the comments
+ * on it. Word writes a comment's range start inside the `w:ins` of the text it is on (CR-002 section
+ * 38 item 1); when that text goes, Word removes the comment with it - its markers, its reference run
+ * and its entry (check 32, run 2026-10-02: rejecting the insertion, rejecting all, and accepting the
+ * deletion in the same shape, each left no comment). So a comment whose markers come out of the
+ * revision with no text left between them is removed here: the markers and the reference now, the
+ * entries in the comment parts when the comments are next read or the package saved
+ * (`pendingCommentRemovals`). A comment with text left in its range - one that reached beyond the
+ * revision - keeps its markers where the text was (not measured).
  */
-function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>): void {
+function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragraph: Paragraph | undefined): void {
   const owner = currentOwner(t.owner, t.element);
   const i = owner.indexOf(t.element);
   if (i < 0) return;
   const kept = (runItemsOf(t.element.value as object) ?? []).filter((item) => item.name?.localPart === 'commentRangeStart' || item.name?.localPart === 'commentRangeEnd');
+  // the comments whose range held the revision: a start inside it (Word's form), or one before it
+  // with its end after it (the engine's own, the markers beside the runs)
+  const idOf = (el: Element): unknown => (el.value as { id?: unknown }).id;
+  const spanning = new Set<unknown>(kept.filter((m) => m.name?.localPart === 'commentRangeStart').map(idOf));
+  for (let s = 0; s < i; s++) {
+    const el = owner[s]!;
+    if (el.name?.localPart !== 'commentRangeStart') continue;
+    const id = idOf(el);
+    if (owner.some((other, e) => e > i && other.name?.localPart === 'commentRangeEnd' && idOf(other) === id)) spanning.add(id);
+  }
   owner.splice(i, 1, ...kept);
   linkParents(kept, (t.element.value as { PARENT?: object }).PARENT);
+  const body = paragraph?.parentBody;
+  if (!body) return;
+  for (const id of spanning) {
+    const start = owner.find((el) => el.name?.localPart === 'commentRangeStart' && idOf(el) === id);
+    if (!start || !rangeIsEmpty(owner, start, id as number)) continue;
+    removeMarkers(body.container, id as number);
+    const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+    pkg?.pendingCommentRemovals?.add(id as number);
+  }
+}
+
+/** True when nothing with text stands between a comment's range start and its end in the same list. */
+function rangeIsEmpty(owner: Element[], start: Element, id: number): boolean {
+  const from = owner.indexOf(start);
+  if (from < 0) return false;
+  for (let i = from + 1; i < owner.length; i++) {
+    const el = owner[i]!;
+    if (el.name?.localPart === 'commentRangeEnd' && (el.value as { id?: unknown }).id === id) return true;
+    if (hasText(el)) return false;
+  }
+  return false;                                                        // the end is elsewhere: text may be
+}
+
+function hasText(el: Element): boolean {
+  const v = el.value;
+  if (typeof v !== 'object' || v === null) return false;
+  if (typeNameOf(el) === 'org_docx4j_wml.R') return ((v as wml.R).content ?? []).some((item) => itemTextOf(item as Element) !== undefined);
+  const kind = revisionKindOf(el);
+  if (kind === 'del' || kind === 'moveFrom') return false;             // deleted text is no text in the accepted view
+  return (runItemsOf(v) ?? []).some(hasText);
 }
 
 /** A `w:ins` or `w:moveTo` accepted: its runs take its place. */
@@ -900,10 +947,12 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       continue;
     }
     if (typeNameOf(el) === 'org_docx4j_wml.R') {
-      // a run whose formatting changed is a piece of its own; one that did not keeps pieces apart
+      // a run whose formatting changed is a piece of its own; one that did not keeps pieces apart -
+      // if it has text: a run holding only a comment reference does not (check 32: one author's two
+      // w:ins with the reference run between them listed as one change)
       const run = el.value as wml.R;
       if (run.rPr?.rPrChange) out.push(new TrackedChange({ kind: 'runProperties', run, value: run.rPr.rPrChange }, paragraph));
-      else if ((run.content ?? []).length > 0) out.push(BREAK);
+      else if ((run.content ?? []).some((item) => itemTextOf(item as Element) !== undefined)) out.push(BREAK);
       continue;
     }
     // a run holder that is not itself an insertion - a hyperlink, a field, a control or custom XML
