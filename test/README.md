@@ -876,6 +876,27 @@ already named, so each case starts by opening its own file.
      `w:ins` inside the `w:hyperlink` for all three, as the API does; `Range.insertText('Before')`
      used to go outside at the link's start, and joins the run the range starts in now.
 
+33. Whether deleting a **whole** paragraph under tracking, text and mark, hands its properties to
+   the next paragraph as deleting its mark alone does (CR-002 section 38 item 2, measured in Word 15
+   for Delete at a heading's end; the editor's finding on 0.3.1, where the carry turned an agent's
+   new heading into body text). Open `fixtures/revisions/check33/33-input.docx` (made by the engine;
+   a copy is in the shared `__tmp/33/`): "Before the heading.", a Heading 2 "A heading deleted
+   whole", "The body paragraph after it.", "After.". In current Word, **File > Save As**
+   `33a-deleted.docx` first (AutoSave overwrites), user name Author A. Review > Track Changes **on**.
+   Triple-click the heading, which selects the whole paragraph with its mark, and press **Delete**.
+   Ctrl+S. Then Review > Accept > **Accept All Changes**, File > Save As `33b-accepted.docx`. Put
+   both files in `fixtures/revisions/check33/` (or leave them in `__tmp/33/`). The questions: in
+   `33a`, whether "The body paragraph after it." gained `w:pStyle Heading2` with a `w:pPrChange`
+   recording its own (as the mark-alone case did), or is untouched; and in `33b`, whether it is a
+   heading or body text. The engine (since 2026-10-02) carries nothing for a whole-paragraph delete,
+   so `33b`'s paragraph would be body text; if Word carries, the carry comes back for this case.
+   **Run 2026-10-02 (current Word), files in `fixtures/revisions/check33/`: Word carries nothing.**
+   `33a`: the heading's text in a `w:del` and its mark `w:pPr/w:rPr/w:del`, its `w:pStyle Heading2`
+   kept; "The body paragraph after it." untouched, no `w:pStyle`, no `w:pPrChange`. `33b`: the heading
+   gone, the body paragraph Normal. So the carry of CR-002 section 38 item 2 belongs to a mark deleted
+   alone, with text kept, and not to a paragraph deleted whole; the engine's withdrawal of it stands,
+   measured.
+
 A small Node script for 1 to 3 is:
 
 ```js

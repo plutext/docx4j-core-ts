@@ -22,7 +22,7 @@ import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } 
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, type TrackingHost } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, pruneParagraphProperties, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -200,6 +200,7 @@ export class Paragraph {
     else if (this.inheritedAlignment() === v) delete pPr.jc;
     else pPr.jc = { val };
     this.settleFormatting();
+    pruneParagraphProperties(this.p);                                  // no empty w:pPr left (the editor's finding on 0.3.1)
   }
 
   /**
@@ -443,38 +444,13 @@ export class Paragraph {
       return;
     }
     tracker.markParagraphDeleted(this.p);
-    this.giveMarkPropertiesToNext(tracker);
-  }
-
-  /**
-   * A paragraph mark deleted under tracking gives the next paragraph this paragraph's properties,
-   * as a `w:pPrChange` on it recording its own: Word, at Delete at the end of a Heading 2 with a
-   * Normal paragraph after it, wrote the next paragraph `w:pStyle Heading2` with
-   * `<w:pPrChange><w:pPr/></w:pPrChange>`, and No Markup reads the joined line as a heading
-   * throughout (the editor's `measure-word15.docx`, 2026-09-30; CR-002 section 38). The Delete
-   * counterpart of check 29's Enter. Nothing where the two paragraphs' properties are the same
-   * (check 22's deleted marks). Accepting the mark then joins into a paragraph with these
-   * properties, and rejecting puts the next paragraph's back.
-   */
-  private giveMarkPropertiesToNext(tracker: ChangeTracker): void {
-    const i = this.index;
-    const next = i >= 0 ? this.container[i + 1] : undefined;
-    if (!next || typeNameOf(next) !== 'org_docx4j_wml.P') return;
-    const base = (pPr: wml.PPr | undefined): Record<string, unknown> => {
-      const out: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(pPr ?? {})) {
-        if (key !== 'TYPE_NAME' && key !== 'PARENT' && key !== 'rPr' && key !== 'sectPr' && key !== 'pPrChange' && value !== undefined) out[key] = value;
-      }
-      return out;
-    };
-    const source = base(this.p.pPr);
-    const nextP = next.value as wml.P;
-    if (canonical(source) === canonical(base(nextP.pPr))) return;
-    const target = new Paragraph(next as Element<wml.P>, this.container, this.parentBody).pPr();
-    tracker.recordPPrChange(target);
-    for (const key of Object.keys(base(target))) delete (target as Record<string, unknown>)[key];
-    for (const [key, value] of Object.entries(source)) (target as Record<string, unknown>)[key] = deepCopy(value);
-    linkParents(target, nextP);
+    // Word, deleting a paragraph mark ALONE under tracking, gives the next paragraph this one's
+    // properties as a w:pPrChange (CR-002 section 38 item 2, the editor's measure-word15.docx), so
+    // that the joined line reads in them. This method deletes the whole paragraph, text and mark - the
+    // engine's only mark deletion, a Range being within one paragraph - and what Word writes for that
+    // is not measured (test/README.md check 33). 0.3.1 carried the properties here too, which turned
+    // an agent's new heading, put in after a paragraph it then deleted, into body text once accepted
+    // (the editor's finding on 0.3.1); until the check, nothing is carried.
   }
 
   /**

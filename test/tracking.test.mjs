@@ -199,11 +199,12 @@ test('insertParagraph marks the new mark inserted; delete() marks the mark delet
   assert.deepEqual(body.paragraphs.map((q) => q.text), ['one', '']);
   assert.throws(() => body.paragraphs[1].delete(), /already marked deleted/);
 
-  // a deleted mark gives the next paragraph this paragraph's properties, recorded as a w:pPrChange
-  // with its own as the original: Word at Delete at a Heading 2's end (the editor's measure-word15.docx,
-  // 2026-09-30; CR-002 section 38), and No Markup reads the joined line as a heading throughout
+  // deleting a whole paragraph carries nothing to the next one, as Word does (test/README.md check 33:
+  // the body paragraph untouched, Normal after Accept All); Word's carry of a deleted mark's properties
+  // (CR-002 section 38 item 2) is for a mark deleted alone with text kept, which this API cannot do,
+  // and 0.3.1's carry here turned an agent's new heading into body text (the editor's finding)
   const make = async () => {
-    const h = await tracked(['A heading joined to the next paragraph', 'The body paragraph after the heading.']);
+    const h = await tracked(['A heading deleted whole', 'The body paragraph after it.']);
     h.changeTrackingMode = 'Off';
     h.body.paragraphs[0].styleBuiltIn = 'Heading2';
     h.changeTrackingMode = 'TrackAll';
@@ -212,17 +213,14 @@ test('insertParagraph marks the new mark inserted; delete() marks the mark delet
   };
   const heading = await make();
   const hx = await xmlOf(heading);
-  assert.match(hx, at(/<w:p><w:pPr><w:pStyle w:val="Heading2"\/><w:rPr><w:del w:id="2"@UTC w:author="Ada" w:date="@DATE"\/><\/w:rPr><\/w:pPr><w:del w:id="1"[^>]*><w:r><w:delText>A heading joined to the next paragraph<\/w:delText><\/w:r><\/w:del><\/w:p>/));
-  assert.match(hx, at(/<w:p><w:pPr><w:pStyle w:val="Heading2"\/><w:pPrChange w:id="3"@UTC w:author="Ada" w:date="@DATE"><w:pPr\/><\/w:pPrChange><\/w:pPr><w:r><w:t>The body paragraph after the heading\.<\/w:t><\/w:r><\/w:p>/),
-    'the next paragraph in the heading\'s properties, its own (none) recorded');
-  assert.deepEqual(heading.body.getTrackedChanges().map((c) => [c.type, c.text]), [['Deleted', 'A heading joined to the next paragraph\r'], ['Formatted', 'The body paragraph after the heading.']]);
+  assert.match(hx, at(/<w:p><w:pPr><w:pStyle w:val="Heading2"\/><w:rPr><w:del w:id="2"@UTC w:author="Ada" w:date="@DATE"\/><\/w:rPr><\/w:pPr><w:del w:id="1"[^>]*><w:r><w:delText>A heading deleted whole<\/w:delText><\/w:r><\/w:del><\/w:p>/));
+  assert.match(hx, /<w:p><w:r><w:t>The body paragraph after it\.<\/w:t><\/w:r><\/w:p>/, 'the next paragraph untouched');
+  assert.equal(hx.includes('pPrChange'), false);
   heading.body.acceptAll();
-  assert.deepEqual(heading.body.paragraphs.map((q) => [q.text, q.style]), [['The body paragraph after the heading.', 'Heading 2']]);
-  assert.equal((await xmlOf(heading)).includes('pPrChange'), false);
+  assert.deepEqual(heading.body.paragraphs.map((q) => [q.text, q.style]), [['The body paragraph after it.', 'Normal']]);
   const back = await make();
   back.body.rejectAll();
-  assert.deepEqual(back.body.paragraphs.map((q) => [q.text, q.style]), [['A heading joined to the next paragraph', 'Heading 2'], ['The body paragraph after the heading.', 'Normal']]);
-  assert.equal((await xmlOf(back)).includes('<w:pPrChange'), false);
+  assert.deepEqual(back.body.paragraphs.map((q) => [q.text, q.style]), [['A heading deleted whole', 'Heading 2'], ['The body paragraph after it.', 'Normal']]);
 });
 
 test('alignment: a value the style already gives is not written, as Word\'s Ctrl+L removes it (tracking off and on)', async () => {
@@ -234,6 +232,7 @@ test('alignment: a value the style already gives is not written, as Word\'s Ctrl
   p.alignment = 'Left';
   assert.equal(p.alignment, 'Left');
   assert.equal((await xmlOf(pkg)).includes('<w:jc'), false, 'no w:jc where Normal is left-aligned');
+  assert.equal((await xmlOf(pkg)).includes('<w:pPr'), false, 'and no empty w:pPr left (the editor\'s finding on 0.3.1)');
   assert.equal(p.formatting({ direct: true }).alignment, 'Unknown', 'no direct value');
   p.alignment = 'Right';
   assert.match(await xmlOf(pkg), /<w:jc w:val="right"\/>/, 'a value the style does not give is written');

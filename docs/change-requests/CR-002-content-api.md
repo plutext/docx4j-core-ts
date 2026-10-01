@@ -3396,15 +3396,20 @@ the heading's mark deleted and wrote on the next paragraph `<w:pPr><w:pStyle w:v
 <w:pPrChange ...><w:pPr/></w:pPrChange></w:pPr>`: the joined line is a heading throughout in No
 Markup, and the record holds the paragraph's own (empty) properties. The Delete counterpart of check
 29's Enter; check 22's deleted marks were all between paragraphs of the same properties, which record
-nothing. `Paragraph.delete()` under tracking now does the same (`giveMarkPropertiesToNext`): the next
-paragraph takes this paragraph's properties (everything in `w:pPr` but the mark's `w:rPr`, a
-`w:sectPr` and the record) with a `w:pPrChange` recording its own, nothing when they are the same.
-Accepting joins into a paragraph with those properties and drops the record; rejecting restores the
-next paragraph's own. The deleted paragraphs of a deleted row (`markDeletedInPlace`) are not
-changed: unmeasured, and their cells are removed whole. What Word does on accepting markup without
-the record is unmeasured (the editor's guess: the joined paragraph keeps the second paragraph's
-properties); the engine's accept, with or without it, gives the surviving paragraph the next one's
-`w:pPr`, which with the record is the heading's.
+nothing. **Withdrawn from the engine on 2026-10-02, after 0.3.1:** `Paragraph.delete()` had been made
+to carry the properties the same way, but it deletes the whole paragraph, text and mark - the engine's
+only mark deletion, a `Range` being within one paragraph (section 7) - and what Word writes for a
+whole paragraph deleted is not measured (`test/README.md` check 33, written the same day). The
+editor found the carry turning an agent's heading into body text: its edit tool puts new blocks in
+after a paragraph and then deletes it, so the deleted paragraph's `w:pPr` went onto the agent's new
+first block with a `w:pPrChange` recording the block's own, and Accept All made the heading Normal
+(its ED-005 section 12.50, UPSTREAM-18). **Check 33 (run 2026-10-02, current Word) answered the
+same day: Word carries nothing for a whole paragraph deleted** - the next paragraph untouched, no
+`w:pPrChange`, and body text after Accept All - so the withdrawal is Word's rule for the only mark
+deletion the engine has, and the carry is the mark-alone case's, which it would take only if a
+mark-alone deletion were ever added. The deleted paragraphs of a deleted row (`markDeletedInPlace`)
+were never changed. The engine's accept of a deleted mark gives the surviving paragraph the next
+one's `w:pPr`, as before.
 
 **3. Ctrl+L with tracking off removes a direct `w:jc` the style already gives.** On a paragraph
 centred by direct formatting whose style is left-aligned, both Words removed the `w:jc` and left no
@@ -3423,6 +3428,10 @@ put it outside at the link's start, since text at an offset joined the run endin
 were. Typing at a link's start or end in Word goes outside the link (the editor's caret, not the
 engine's); inside it, a `w:ins` inside the holder, as the engine writes. Word serialises a link holding
 pending insertions as a HYPERLINK field, even at save.
+
+Also from the editor's run of 0.3.1 (its ED-005 section 12.50): with tracking off,
+`paragraph.alignment = 'Left'` over a left-aligned style left an empty `<w:pPr/>` behind where the
+`w:jc` had been; the setter prunes it now, as the tracked settle already did.
 
 `tracking.test.mjs` holds the four: the comment on "monthly" in Word's form, on a whole insertion,
 removed by reject all and by an accepted deletion with the entry flushed on read and on save, kept
