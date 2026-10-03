@@ -3471,3 +3471,43 @@ Not changed: `Range.insertContentControl` keeps the selected runs; the editor co
 map" from the two, and gets Word's replacement from the mapping. `customxml.test.mjs` holds the
 mapping over text, at a caret, over the value already, to an empty node (the placeholder), to a
 missing node (false, untouched) and by node.
+
+## 40. Requests from the editor after Word check 35 (2026-10-03)
+
+*Asked by the editor (its ED-005 section 12.58), from `test/README.md` check 35, parts 1 and 2,
+run by Jason in current Word and Word 2010 the same day. Not yet scheduled.*
+
+1. **A rich text control is mapped with `w15:dataBinding`.** Word's XML Mapping Pane maps a rich
+   text control that way (1a to 1d). A rich text control bound with `w:dataBinding` is plain text to
+   Word 15 and Word 2010 alike: shown from its node on open, given `<w:text/>` on saving, and an edit
+   written back as text (1f). `XmlMapping.setMapping` and `setMappingByNode` write `w:dataBinding`
+   on any control, rich text included, so a rich text control the engine maps becomes a plain text
+   control in Word. Asked: on a rich text control, write `w15:dataBinding`. `XmlMapping.dataBinding`
+   already reads both.
+   - Word puts the node's text into the control on mapping, as for plain text.
+   - An edit writes the control's content into the node as escaped Flat OPC, a whole `pkg:package`.
+   - `applyBindingTo` skips an explicit `w:richText` but fills an untyped control with the node's
+     text. Asked as well: never put a node's Flat OPC into a control as text. Word 2010 does, in
+     the inert plain text control Word 15 nests (1e), and shows the package as raw XML.
+2. **`w15` is not declared ignorable.** `Paragraph.insertContentControl('RepeatingSection')` on a
+   created package writes `w15:repeatingSection` with `xmlns:w15` declared but no `mc:Ignorable`.
+   Word 2010 knows no `w15`, and opens a part with it only when the prefix is ignorable, as Word 15's
+   own files declare it. The editor's save now declares it (its `exportedSdtPr`), and Word 2010
+   opened its file and dropped the `w15` elements on saving (`35e-word2010.docx`). The engine's
+   tracker already declares `w16du` this way (0.3.0). Asked: the same for any `w15` element the
+   engine writes. That covers the repeating section and its item, `w15:appearance`, `w15:color` and
+   `w15:dataBinding` (item 1).
+3. **No `PlaceholderText` style.** The engine writes placeholder runs in `PlaceholderText`
+   (`PLACEHOLDER_STYLE`, `bindings.mts`), and so does the editor. `styles.ensure('PlaceholderText')`
+   throws: "No definition to splice for the style PlaceholderText". A document made by the engine
+   has none, and Word 2010 drops a `w:rStyle` naming a style the part lacks when it saves. The
+   editor's placeholder runs lost it in `35e-word2010.docx`. Current Word's definition, from
+   `35a-word15.docx`:
+
+   ```xml
+   <w:style w:type="character" w:styleId="PlaceholderText"><w:name w:val="Placeholder Text"/><w:basedOn w:val="DefaultParagraphFont"/><w:uiPriority w:val="99"/><w:unhideWhenUsed/><w:rPr><w:color w:val="666666"/></w:rPr></w:style>
+   ```
+
+   Asked: carry it among the definitions `styles.ensure` splices, and ensure it wherever the engine
+   writes a placeholder. The editor would then ensure it at save when a placeholder is in the
+   document.

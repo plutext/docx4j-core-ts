@@ -1051,8 +1051,8 @@ already named, so each case starts by opening its own file.
    `XmlMapping.dataBinding` reads `w15:dataBinding` too. The editor binds a rich text control with
    `w:dataBinding` and shows the node's text in it.
 
-   **Part 1 run 2026-10-03 (current Word), `fixtures/revisions/check35/35a-word15.docx`; part 2 (Word
-   2010, revised above) to come.** Jason's notes, then the file:
+   **Part 1 run 2026-10-03 (current Word), `fixtures/revisions/check35/35a-word15.docx`; part 2 run
+   the same day (Word 2010), below.** Jason's notes, then the file:
    - **Rich text is mapped with `w15:dataBinding`** (canonical path, `w:prefixMappings=""`), with
      `w16sdtdh:storeItemChecksum` on 1a's. The pane's Insert Content Control offers Rich Text, Plain
      Text, Picture, Check Box, Combo Box, Drop-Down List and Date Picker.
@@ -1072,6 +1072,25 @@ already named, so each case starts by opening its own file.
    - **1f: a rich text control bound with `w:dataBinding` is taken as plain text:** on open it showed
      the node's "Bea", not "Old text"; Word added `<w:text/>` to it; " more" typed wrote "Bea more" to
      `bound`.
+
+   **Part 2 run 2026-10-03 (Word 2010), `35c-word2010.docx` (from `35a`) and `35e-word2010.docx`
+   (from the editor's `35d-editor.docx`, saved by Jason as `35e-Word2010.docx`).** Both opened
+   without complaint. Jason's notes on `35a`: "1a shows flatopc xml; 1b shows our '    edited' text;
+   1c and 1d both show the placeholder text; 1f 'Bea more'". The files:
+   - **Word 2010 drops every `w15:dataBinding` on saving** (1a to 1d in `35c`, 1a and 1b in `35e`),
+     with `w16sdtdh:storeItemChecksum`, and the `w15:repeatingSection` and its item in `35e`. The
+     controls stay, as rich text controls.
+   - **It honours the `w:dataBinding` Word 15 saved on 1e's inert control:** the plain text control
+     inside 1a shows `name`'s Flat OPC as text, split into runs by proofing. That is the "flatopc
+     xml" Jason saw.
+   - **It shows 1c's typed text as the placeholder:** the content Word 15 kept under
+     `w:showingPlcHdr` is replaced by the placeholder text.
+   - **It takes a rich text control with `w:dataBinding` as plain text, as Word 15 does:** 1f in `35e`
+     showed the node's "Bea" in place of "Old text", and gained `<w:text/>`.
+   - **It drops a `w:rStyle` naming a style the styles part lacks:** the editor's placeholder runs in
+     `35e` lost `PlaceholderText`, which `35d`'s styles part, the engine's, does not define. Word
+     15's save (`35a`) defines it, so `35c` kept it.
+   - The data part is as it was in each: `name` still Flat OPC in `35c`, "Ann" in `35e`.
 
 A small Node script for 1 to 3 is:
 
