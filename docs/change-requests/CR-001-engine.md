@@ -1529,7 +1529,8 @@ its class so that `state.mts` imports no part.
   everything that reads a font file. A later CR with `fontkit`; `addMapperSubstitutes` is the
   empty hook it plugs into, and `FontRegistry` the seam (section 15.3, departures 1 and 6).
 - **Table conditional formatting** (`w:tblStylePr` per `w:cnfStyle`): docx4j's own
-  `table-conditions` CR has not landed, so neither side has it (section 15.1).
+  `table-conditions` CR had not landed when this was written (section 15.1); it did as docx4j CR-030
+  on 2026-10-04, and CR-007 here is its port, proposed the same day.
 - **`activateStyle(styleId)` without a `KnownStyles.xml`**: the string form can only activate a
   style the package already holds (section 15.1, departure 2). The resource equivalent belongs
   with the content API's style creation.
@@ -1795,7 +1796,7 @@ same set):
   strings table as an index.
 - **`BestMatchingMapper`** over installed or embedded fonts, glyph coverage and font metrics
   (section 6.3 and 14.2 already said so); the `Mapper` interface is the seam.
-- **Table conditional formatting** in `getEffectiveTableStyle` (`docx4j/table-conditions`).
+- **Table conditional formatting** in `getEffectiveTableStyle` (`docx4j/table-conditions`, now docx4j CR-030; the port is CR-007).
 - **ZIP64** archives, which the zip container rejects.
 
 **Decided 2026-09-19 (Jason):** `docs/` and `examples/` stay GitHub-only; the npm package ships `dist`, the README (which links the guides), LICENSE and NOTICE, as `package.json`'s `files` already says.
