@@ -1051,6 +1051,27 @@ already named, so each case starts by opening its own file.
    `XmlMapping.dataBinding` reads `w15:dataBinding` too. The editor binds a rich text control with
    `w:dataBinding` and shows the node's text in it.
 
+   **Part 1 run 2026-10-03 (current Word), `fixtures/revisions/check35/35a-word15.docx`; part 2 (Word
+   2010) to come.** Jason's notes, then the file:
+   - **Rich text is mapped with `w15:dataBinding`** (canonical path, `w:prefixMappings=""`), with
+     `w16sdtdh:storeItemChecksum` on 1a's. The pane's Insert Content Control offers Rich Text, Plain
+     Text, Picture, Check Box, Combo Box, Drop-Down List and Date Picker.
+   - **The node's value wins on mapping:** 1a, holding "quick brown", showed "Ann". 1b, mapped to the
+     empty `rich1`, showed the placeholder and "became a single para": the saved file has 1b as a
+     run-level control at the start of the "1c." label's paragraph, its two paragraphs gone.
+   - **An edit writes the content as escaped Flat OPC:** after 1e, `name` holds a whole `pkg:package`
+     (document, styles, the glossary; about 51 KB) of 1a's content, the nested control included.
+   - **Typing in a mapped control showing its placeholder wrote nothing:** 1b ("     edited") and 1c
+     ("Hello **world**" and "Second line.", in the `PlaceholderText` style) keep `w:showingPlcHdr`,
+     and `rich1` and `rich2` are still empty, so 1d, mapped to `rich2`, shows the placeholder.
+   - **1e: the pane nests a plain text control inside the mapped 1a,** with the alert "The custom XML
+     node is already mapped to a rich text content control, so it can't be mapped to a plain text
+     content control." The nested control is saved with a `w:dataBinding` to `name` anyway, showing
+     its placeholder.
+   - **1f: a rich text control bound with `w:dataBinding` is taken as plain text:** on open it showed
+     the node's "Bea", not "Old text"; Word added `<w:text/>` to it; " more" typed wrote "Bea more" to
+     `bound`.
+
 A small Node script for 1 to 3 is:
 
 ```js
