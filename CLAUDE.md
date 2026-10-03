@@ -201,18 +201,19 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
 - `../docx4j`: the Java original. Releases live on `VERSION_x_y_z` branches (`master` is old);
   CR-001 was written against `VERSION_17_1_1`, renamed `VERSION_17_2_0` on 2026-09-21 when 17.1.1
   became the 17.2.0 release; development moved to `VERSION_17_3_0` on 2026-09-27 when 17.2.1 was
-  released, and that is the branch the parity workflow checks out (`VERSION_17_2_1` is frozen at the
-  release; `test/java/pom.xml` resolves the latest release for a hand-run, and the workflow reads
-  docx4j's `<revision>` instead). The classes being
+  released, and to `VERSION_17_3_1` on 2026-10-02 when 17.3.0 was released (tag `docx4j-17.3.0`,
+  `883a08e07`), and that is the branch the parity workflow checks out (the release branches are
+  frozen at their releases; `test/java/pom.xml` resolves the latest release for a hand-run, and the
+  workflow reads docx4j's `<revision>` instead). The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
   `model/listnumbering/`, `model/styles/` (`StyleUtil`, `PropertyCatalogue`), `fonts/`;
   `jaxb/McSelection.java` and `McMode.java` are the `mc:AlternateContent` reference (CR-021),
   `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
-  ported against `7fba7a150`; the goldens now record `a8d20c1cc` (`VERSION_17_3_0`, refreshed by the
-  weekly workflow on 2026-09-28 with every answer unchanged), so build docx4j from that commit before
-  regenerating them by hand, and never modify that checkout.
+  ported against `7fba7a150`; the goldens now record `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
+  the weekly workflow on 2026-09-28 with every answer unchanged), so build docx4j from that commit
+  before regenerating them by hand, and never modify that checkout.
 
 ## Portfolio task registry
 

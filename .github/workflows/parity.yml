@@ -1,5 +1,5 @@
 # CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
-# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_0, runs
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_1, runs
 # the harness (test/java/) over the same fixtures, and opens a pull request when any
 # golden differs, with the docx4j commits since the hash the goldens record in its body.
 #
@@ -24,13 +24,14 @@ jobs:
 
       # docx4j's development branch, which is where its answers move: VERSION_17_1_1 was
       # renamed VERSION_17_2_0 on 2026-09-21 (17.1.1 became the 17.2.0 release), and
-      # development moved to VERSION_17_3_0 on 2026-09-27 when 17.2.1 was released
-      # (VERSION_17_2_1 is frozen at that release).  Rename here when docx4j moves again.
-      - name: Check out docx4j (VERSION_17_3_0)
+      # development moved to VERSION_17_3_0 on 2026-09-27 when 17.2.1 was released, and to
+      # VERSION_17_3_1 on 2026-10-02 when 17.3.0 was released (the release branches are frozen
+      # at their releases).  Rename here when docx4j moves again.
+      - name: Check out docx4j (VERSION_17_3_1)
         uses: actions/checkout@v4
         with:
           repository: plutext/docx4j
-          ref: VERSION_17_3_0
+          ref: VERSION_17_3_1
           path: .docx4j
           fetch-depth: 0     # the pull request body lists the commits since the recorded hash
 
@@ -161,7 +162,7 @@ jobs:
             echo "body<<PARITY_EOF"
             echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
             echo
-            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_0\` is now at \`${{ steps.commits.outputs.new }}\`."
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_1\` is now at \`${{ steps.commits.outputs.new }}\`."
             echo
             echo "docx4j commits in between:"
             echo
@@ -181,6 +182,6 @@ jobs:
           base: main
           add-paths: test/golden
           commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
-          title: "Parity goldens differ from docx4j VERSION_17_3_0"
+          title: "Parity goldens differ from docx4j VERSION_17_3_1"
           body: ${{ steps.log.outputs.body }}
           delete-branch: true
