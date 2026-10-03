@@ -1,4 +1,6 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
+import type { CellContext } from '../properties/table.mjs';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
@@ -167,12 +169,25 @@ export class Paragraph {
    * changing it. Needs the package's resolver; see `Body.propertyResolver`.
    */
   get effectivePPr(): wml.PPr {
-    return this.parentBody.propertyResolver.getEffectivePPr(this.p.pPr);
+    return this.parentBody.propertyResolver.getEffectivePPr(this.p.pPr, this.cellContext);
   }
 
   /** The paragraph mark's effective run properties (docx4j `getEffectiveParagraphMarkRPr`). */
   get effectiveParagraphMarkRPr(): wml.RPr {
-    return this.parentBody.propertyResolver.getEffectiveParagraphMarkRPr(this.p.pPr);
+    return this.parentBody.propertyResolver.getEffectiveParagraphMarkRPr(this.p.pPr, this.cellContext);
+  }
+
+  /**
+   * Where this paragraph sits in a table, as far as its formatting goes (docx4j
+   * `PropertyResolver.cellContextOf`; CR-007): the table style its table resolves to and the
+   * conditional formats it is under. Undefined outside a table, and in a text box, note or comment
+   * reached from a cell. Every effective read of the paragraph and of its runs passes it, so a run
+   * in a header row the table style makes bold reads bold. Each read walks the table's rows; code
+   * resolving every paragraph of a large table should walk with a `TableContextTracker` instead.
+   * Needs the package's resolver, as the effective reads do.
+   */
+  get cellContext(): CellContext | undefined {
+    return this.parentBody.propertyResolver.cellContextOf(this.p);
   }
 
   /** The `w:pPr` a formatting read works from: the resolved one, or this paragraph's own. */
@@ -212,10 +227,11 @@ export class Paragraph {
    * hold for any value. Undefined without a resolver, where the value is written as asked.
    */
   private inheritedAlignment(): Alignment | undefined {
-    const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: { getEffectivePPr(pPr: wml.PPr | undefined): wml.PPr } } | undefined)?.propertyResolverOrUndefined;
+    const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: PropertyResolver } | undefined)?.propertyResolverOrUndefined;
     if (!resolver) return undefined;
     const { jc: _jc, pPrChange: _change, PARENT: _parent, ...rest } = this.p.pPr as wml.PPr & { PARENT?: object };
-    return alignmentOf(resolver.getEffectivePPr(rest as wml.PPr), true) as Alignment;
+    // in a table cell what is inherited includes the table style's (CR-007)
+    return alignmentOf(resolver.getEffectivePPr(rest as wml.PPr, resolver.cellContextOf(this.p)), true) as Alignment;
   }
 
   /** Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). */
@@ -258,7 +274,7 @@ export class Paragraph {
     const holders = (): wml.R[] => runsOf(this.p).map((r) => r.value);
     if (options?.direct === true) return new Font(holders, () => this.fontTracking());
     return new Font(holders, () => this.fontTracking(),
-      (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr),
+      (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr, this.cellContext),
       (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr));
   }
 
@@ -518,9 +534,10 @@ export class Paragraph {
     let same = canonical(current) === canonical(before);
     if (!same) {
       const rest = (props: Record<string, unknown>): string => canonical(Object.fromEntries(Object.entries(props).filter(([key]) => !FORMATTING_MEMBERS.has(key))));
-      const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: { getEffectivePPr(pPr: wml.PPr | undefined): wml.PPr } } | undefined)?.propertyResolverOrUndefined;
+      const resolver = (this.parentBody.package_ as { propertyResolverOrUndefined?: PropertyResolver } | undefined)?.propertyResolverOrUndefined;
+      const cell = resolver?.cellContextOf(this.p);
       same = resolver !== undefined && rest(current) === rest(before)
-        && canonical(formattingOf(resolver.getEffectivePPr(current as wml.PPr), true)) === canonical(formattingOf(resolver.getEffectivePPr(before as wml.PPr), true));
+        && canonical(formattingOf(resolver.getEffectivePPr(current as wml.PPr, cell), true)) === canonical(formattingOf(resolver.getEffectivePPr(before as wml.PPr, cell), true));
     }
     if (same) restorePPr(this.p, recorded);
   }

@@ -12,7 +12,7 @@ const dir = join(fixturesDir, 'parity');
 const names = (await readdir(dir)).filter((n) => n.endsWith('.docx')).sort();
 
 test('parity fixtures: present', () => {
-  assert.ok(names.length >= 37, `${names.length} fixtures`);
+  assert.ok(names.length >= 51, `${names.length} fixtures`);
 });
 
 for (const name of names) {

@@ -24,6 +24,7 @@
 // font falls to hAnsi in every branch.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
+import type { CellContext } from '../properties/table.mjs';
 import { themeFontOf, type ThemeFontLang, type ThemeSource } from './ThemeFonts.mjs';
 import { defaultThemeSetting, type DefaultTheme } from './defaultTheme.mjs';
 import { coverageGroupOf } from './FontFallback.mjs';
@@ -73,6 +74,11 @@ export interface RunFontSelectorSource {
 export interface SpansOptions {
   /** True where the caller has resolved the run's effective properties already. */
   rPrIsEffective?: boolean;
+  /**
+   * The paragraph's table context (`PropertyResolver.cellContextOf(p)`, or a tracker's), so a run
+   * in a table cell is resolved with its table style's formatting (CR-007; docx4j CR-030 phase 5).
+   */
+  cellContext?: CellContext | undefined;
 }
 
 /** `w:cs` and `w:rtl` are `ST_OnOff`: present without `w:val` means true, `w:val="0"` false. */
@@ -253,9 +259,9 @@ export class RunFontSelector {
 
   /** The run's effective properties, never undefined. */
   private effectiveRPr(pPr: wml.PPr | undefined, rPr: wml.RPr | undefined,
-    rPrIsEffective: boolean): wml.RPr {
+    rPrIsEffective: boolean, cellContext?: CellContext | undefined): wml.RPr {
     if (!rPrIsEffective && this.source.resolver !== undefined) {
-      return this.source.resolver.getEffectiveRPr(rPr, pPr) ?? {};
+      return this.source.resolver.getEffectiveRPr(rPr, pPr, cellContext) ?? {};
     }
     return rPr ?? {};
   }
@@ -338,10 +344,11 @@ export class RunFontSelector {
    * at least.
    *
    * @param rPrIsEffective true where the caller has resolved the run's properties already
+   * @param cellContext the paragraph's table context, where it is in a table cell (CR-007)
    */
   documentFontFor(pPr: wml.PPr | undefined, rPr: wml.RPr | undefined, codePoint: number,
-    rPrIsEffective = false): string {
-    const effective = this.effectiveRPr(pPr, rPr, rPrIsEffective);
+    rPrIsEffective = false, cellContext?: CellContext | undefined): string {
+    const effective = this.effectiveRPr(pPr, rPr, rPrIsEffective, cellContext);
     return this.fontOf(this.slotsOf(pPr, effective), codePoint) ?? this.defaultFont;
   }
 
@@ -360,7 +367,7 @@ export class RunFontSelector {
     const spans: FontSpan[] = [];
     if (text === undefined || text === null || text.length === 0) return spans;
 
-    const effective = this.effectiveRPr(pPr, rPr, options.rPrIsEffective === true);
+    const effective = this.effectiveRPr(pPr, rPr, options.rPrIsEffective === true, options.cellContext);
     const bold = isOn(effective.b);
     const italic = isOn(effective.i);
     const cs = isOn(effective.cs);

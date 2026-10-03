@@ -19,8 +19,9 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.2.1` (`pom.xml`'s `docx4j.version`: the latest
-release, overridable with `-Ddocx4j.version=...`) and the JAXB implementation and four font jars
+The harness resolves `org.docx4j:docx4j-core:17.3.1-SNAPSHOT` (`pom.xml`'s `docx4j.version`,
+overridable with `-Ddocx4j.version=...`; **harness version 4 needs docx4j CR-030's table context,
+which no release has yet**, so it does not compile against 17.3.0 or earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
 **docx4j's answers move on its development branch, `VERSION_17_3_1`** (`<revision>`
 `17.3.1-SNAPSHOT`, since 17.3.0 was released on 2026-10-02; `VERSION_17_3_0` is frozen at that
@@ -98,13 +99,19 @@ alphabetical, so a paragraph reads top to bottom). Five sections:
 | `header` | harness version, docx4j commit, docx4j version and jar hash, the date (the only value that changes between two runs), the fixture's name and byte size, the font environment, the `mc:Choice` prefixes (`mcPreferChoice`), and `notes` — anything the harness had to catch while producing this golden |
 | `styles` | `defaultParagraphStyleId`, the document defaults (`pPr`, `rPr`), the `w:docDefaults` element as the part states it, and `byId`: for every style id, its type, `basedOn`, whether it is a default, and `effectivePPr(styleId)` / `effectiveRPr(styleId)` |
 | `stories` | one entry per story — `main`, `header:<relId>`, `footer:<relId>`, `footnotes`, `endnotes`, `comments` — each with its part name and every `w:p` in document order |
-| `tables` | every `w:tbl` of the main story: `tblStyle`, `effectiveTableStyle`, `reachesDefaultTableStyle` |
+| `tables` | every `w:tbl` of the main story: `tblStyle`, `effectiveTableStyle`, `reachesDefaultTableStyle`, and since version 4 `context`: what `PropertyResolver.tableContext(tbl)` reads (`tableStyleId`, `namesStyle`, `look`, `rowBandSize`, `colBandSize`, `rowCount`, `colCount`) and per row its `conditions` (`rowConditions`) and per cell `conditions` and `formatsText` (`forCell`) |
 | `fonts` | the theme part and the default font it yields, `fontsInUse()`, `stylesInUse()`, and the `IdentityPlusMapper` decision per document font |
 
 A paragraph carries `index` (0-based within the story), `paraId` (`w14:paraId` or null),
 `pStyle` (the direct one or null), `text` (its first 80 characters, as a human check on the
 address), `effectivePPr`, `paragraphMarkRPr`, `numbering` and `runs`. A run carries `text`,
-`rStyle`, `deleted` (only when it is inside a `w:del`), `effectiveRPr` and `fontSpans`. A
+`rStyle`, `deleted` (only when it is inside a `w:del`), `effectiveRPr` and `fontSpans`. Since
+version 4 (core-ts CR-007, docx4j CR-030) a paragraph for which `cellContextOf(p)` is not null
+also carries `cell`: `tableStyleId`, `conditions` (`TableStyleConditions.key`, in precedence
+order), `textConditions` (the `w:tblStylePr` types which format text, in the order applied),
+`formatsText`, and the in-context `effectivePPr` and `paragraphMarkRPr`; each of its runs carries
+`effectiveRPrInCell`. The entries without a context are unchanged, and `styles` gains
+`appliesTableStyleSizeJcException`. A
 `numbering` is null where docx4j does not number the paragraph, and otherwise carries
 `numString`, `isBullet`, `numFont`, `ind`, `ilvl`, `numId`, `labelRPr`, `lvl`, `indResolved`
 (`NumberingDefinitionsPart.getInd`, which follows a level's linked style), `numRef` (docx4j's

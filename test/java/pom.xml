@@ -23,10 +23,11 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
-    <!-- The latest docx4j release, which is what a hand-run resolves from Maven Central.  Development
-         is on VERSION_17_3_1 (<revision> 17.3.1-SNAPSHOT), so to run against docx4j's head build that
-         branch and pass -Ddocx4j.version=17.3.1-SNAPSHOT, as the workflow does after reading its pom. -->
-    <docx4j.version>17.3.0</docx4j.version>
+    <!-- Harness version 4 (core-ts CR-007) calls docx4j CR-030's table context, which is in no release
+         yet: it is on VERSION_17_3_1 (<revision> 17.3.1-SNAPSHOT), so build that branch first, as the
+         README says and as the workflow does (it passes -Ddocx4j.version after reading docx4j's pom).
+         Against 17.3.0 or earlier the harness does not compile.  Make this the release once 17.3.1 ships. -->
+    <docx4j.version>17.3.1-SNAPSHOT</docx4j.version>
     <!-- the parity harness by default; -Dexec.mainClass=org.docx4j.parity.XPathHarness runs CR-006's
          XPath oracle instead (a property, since a mainClass fixed in the plugin configuration would
          win over the command line) -->

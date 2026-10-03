@@ -33,6 +33,7 @@ import { dirname, join } from 'node:path';
 import {
   parseXml, unmarshalNode, marshalString, WordprocessingMLPackage,
   HeaderPart, FooterPart, Emulator, NumberingStates,
+  TableContextTracker, TableStyleConditions, rowsOf, cellsOf,
 } from '../dist/index.mjs';
 import { fixturesDir, plain } from './helpers.mjs';
 
@@ -78,7 +79,7 @@ async function unmarshalFragment(xml) {
  *  its probe text to the markup being probed). */
 const XML_KEYS = new Set([
   'pPr', 'rPr', 'docDefaults',
-  'effectivePPr', 'effectiveRPr', 'paragraphMarkRPr',
+  'effectivePPr', 'effectiveRPr', 'paragraphMarkRPr', 'effectiveRPrInCell',
   'ind', 'indResolved', 'lvl', 'labelRPr',
   'effectiveTableStyle',
 ]);
@@ -101,7 +102,7 @@ function xmlStrings(value, into) {
 }
 
 test('parity goldens: present', () => {
-  assert.ok(names.length >= 46, `${names.length} goldens`);
+  assert.ok(names.length >= 60, `${names.length} goldens`);
 });
 
 for (const name of names) {
@@ -377,6 +378,11 @@ for (const name of names) {
       `${golden.header.fixture} defaultParagraphStyleId`);
     pPrItems.push({ label: 'documentDefaults pPr', ours: resolver.getDocumentDefaultPPr(), golden: golden.styles.documentDefaults.pPr });
     rPrItems.push({ label: 'documentDefaults rPr', ours: resolver.getDocumentDefaultRPr(), golden: golden.styles.documentDefaults.rPr });
+    // harness version 4 (CR-007): the [MS-DOCX] size and justification exception, read from the settings part
+    if (golden.styles.appliesTableStyleSizeJcException !== undefined
+      && resolver.appliesTableStyleSizeJcException() !== golden.styles.appliesTableStyleSizeJcException) {
+      report(`appliesTableStyleSizeJcException: ${resolver.appliesTableStyleSizeJcException()} != ${golden.styles.appliesTableStyleSizeJcException}`);
+    }
     for (const [styleId, entry] of Object.entries(golden.styles.byId)) {
       pPrItems.push({ label: `style ${styleId} effectivePPr`, ours: resolver.getEffectivePPr(styleId), golden: entry.effectivePPr });
       rPrItems.push({ label: `style ${styleId} effectiveRPr`, ours: resolver.getEffectiveRPr(styleId), golden: entry.effectiveRPr });
@@ -386,6 +392,10 @@ for (const name of names) {
     const stories = await storiesOf(pkg, golden);
     for (const [story, recorded] of Object.entries(golden.stories)) {
       const paragraphs = paragraphsOf(stories.get(story));
+      // the context of every paragraph the way a whole-document walk gets it (TableContextTracker),
+      // to be the same as cellContextOf's, which climbs the PARENT pointers of one paragraph
+      const tracked = new Map();
+      new TableContextTracker(resolver).walk(stories.get(story), (p, ctx) => tracked.set(p, ctx));
       if (paragraphs.length !== recorded.paragraphs.length) {
         const at = recorded.paragraphs.find((p, i) => (paragraphs[i]?.paraId ?? null) !== p.paraId);
         report(`${story}: ${paragraphs.length} paragraphs, the golden has ${recorded.paragraphs.length}`
@@ -398,6 +408,32 @@ for (const name of names) {
         const where = `${story}/${expected.index}`;
         pPrItems.push({ label: `${where} effectivePPr`, ours: resolver.getEffectivePPr(p.pPr), golden: expected.effectivePPr });
         rPrItems.push({ label: `${where} paragraphMarkRPr`, ours: resolver.getEffectiveParagraphMarkRPr(p.pPr), golden: expected.paragraphMarkRPr });
+        // the paragraph in its table cell (harness version 4, CR-007): docx4j's cellContextOf
+        const cell = resolver.cellContextOf(p);
+        const cellExpected = expected.cell ?? null;
+        const viaWalk = tracked.get(p);
+        if ((viaWalk === undefined) !== (cell === undefined)
+          || (cell !== undefined && (!cell.key.equals(viaWalk.key)
+            || TableStyleConditions.key(cell.conditions) !== TableStyleConditions.key(viaWalk.conditions)))) {
+          report(`${where} cell: cellContextOf gives ${cell}, the tracker ${viaWalk}`);
+        }
+        if ((cell === undefined) !== (cellExpected === null)) {
+          report(`${where} cell: ${cell === undefined ? 'no context here' : String(cell)}, docx4j ${cellExpected === null ? 'has none' : `has ${cellExpected.tableStyleId} ${cellExpected.conditions}`}`);
+        } else if (cell !== undefined) {
+          const ours = {
+            tableStyleId: cell.tableStyleId ?? null,
+            conditions: TableStyleConditions.key(cell.conditions),
+            textConditions: cell.textConditions.map((pr) => pr.type),
+            formatsText: cell.formatsText,
+          };
+          for (const key of Object.keys(ours)) {
+            if (JSON.stringify(ours[key]) !== JSON.stringify(cellExpected[key])) {
+              report(`${where} cell.${key}: ${JSON.stringify(ours[key])} != ${JSON.stringify(cellExpected[key])}`);
+            }
+          }
+          pPrItems.push({ label: `${where} cell effectivePPr`, ours: resolver.getEffectivePPr(p.pPr, cell), golden: cellExpected.effectivePPr });
+          rPrItems.push({ label: `${where} cell paragraphMarkRPr`, ours: resolver.getEffectiveParagraphMarkRPr(p.pPr, cell), golden: cellExpected.paragraphMarkRPr });
+        }
         const runs = runsOfParagraph(p);
         if (runs.length !== expected.runs.length) {
           report(`${where}: ${runs.length} runs, the golden has ${expected.runs.length}`);
@@ -409,6 +445,13 @@ for (const name of names) {
             ours: resolver.getEffectiveRPr(runs[r].rPr, p.pPr),
             golden: expected.runs[r].effectiveRPr,
           });
+          if (cell !== undefined && cellExpected !== null) {
+            rPrItems.push({
+              label: `${where} run ${r} effectiveRPrInCell`,
+              ours: resolver.getEffectiveRPr(runs[r].rPr, p.pPr, cell),
+              golden: expected.runs[r].effectiveRPrInCell,
+            });
+          }
         }
       }
     }
@@ -428,6 +471,28 @@ for (const name of names) {
         const reaches = resolver.reachesDefaultTableStyle(tables[i].tblPr);
         if (reaches !== expected.reachesDefaultTableStyle) {
           report(`table ${expected.index} reachesDefaultTableStyle: ${reaches} != ${expected.reachesDefaultTableStyle}`);
+        }
+        // the table as TableContext reads it (harness version 4, CR-007)
+        if (expected.context !== undefined) {
+          const context = resolver.tableContext(tables[i]);
+          const ours = {
+            tableStyleId: context.tableStyleId ?? null,
+            namesStyle: context.namesStyle,
+            look: { ...context.look },
+            rowBandSize: context.rowBandSize,
+            colBandSize: context.colBandSize,
+            rowCount: context.rowCount,
+            colCount: context.colCount,
+            rows: rowsOf(tables[i]).map((row) => ({
+              conditions: TableStyleConditions.key(context.rowConditions(row.element.value)),
+              cells: cellsOf(row.element.value).map((tc) => {
+                const cell = context.forCell(row.element.value, tc.element.value);
+                return { conditions: TableStyleConditions.key(cell.conditions), formatsText: cell.formatsText };
+              }),
+            })),
+          };
+          const difference = firstDifference(ours, expected.context);
+          if (difference) report(`table ${expected.index} context: ${difference}`);
         }
       }
     }

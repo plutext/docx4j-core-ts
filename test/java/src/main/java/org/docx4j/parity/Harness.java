@@ -80,7 +80,15 @@ import org.docx4j.wml.RunDel;
 import org.docx4j.wml.Style;
 import org.docx4j.wml.Styles;
 import org.docx4j.wml.Tbl;
+import org.docx4j.wml.Tc;
 import org.docx4j.wml.Text;
+import org.docx4j.wml.Tr;
+import org.docx4j.finders.TcFinder;
+import org.docx4j.model.table.CellContext;
+import org.docx4j.model.table.TableContext;
+import org.docx4j.model.table.TableModel;
+import org.docx4j.model.table.TableStyleConditions;
+import org.docx4j.wml.CTTblStylePr;
 
 public class Harness {
 
@@ -88,8 +96,15 @@ public class Harness {
 	 *  reached NumRef, the numbering counters and the table style chain by reflection;
 	 *  docx4j 17.1.1 (CR-001 batch 49) made all four public and version 2 calls them.
 	 *  Version 3 drops the harness's own mc:AlternateContent branch selection for
-	 *  docx4j's (CR-021 phase 1: TraversalUtil in McMode.READ over McSelection). */
-	static final String HARNESS_VERSION = "3";
+	 *  docx4j's (CR-021 phase 1: TraversalUtil in McMode.READ over McSelection).
+	 *  Version 4 (core-ts CR-007, docx4j CR-030; needs docx4j 17.3.1) adds the table
+	 *  context: styles.appliesTableStyleSizeJcException, each table's "context" (style
+	 *  id, look, band sizes, row and column counts, each row's and cell's conditions),
+	 *  and for a paragraph in a cell its "cell" (table style id, conditions, the
+	 *  in-context pPr and mark rPr) with "effectiveRPrInCell" on each of its runs.  The
+	 *  entries versions 1 to 3 wrote are unchanged: they are the answers without a
+	 *  context. */
+	static final String HARNESS_VERSION = "4";
 
 	/**
 	 * The {@code mc:Choice/@Requires} prefixes docx4j is told it understands
@@ -304,6 +319,7 @@ public class Harness {
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		StyleDefinitionsPart sdp = mdp.getStyleDefinitionsPart();
 		result.put("defaultParagraphStyleId", resolver.getDefaultParagraphStyleId());
+		result.put("appliesTableStyleSizeJcException", resolver.appliesTableStyleSizeJcException());
 
 		Map<String, Object> defaults = new LinkedHashMap<String, Object>();
 		defaults.put("pPr", xml(resolver.getDocumentDefaultPPr(), "pPr", PPr.class));
@@ -532,8 +548,36 @@ public class Harness {
 		} catch (Exception e) {
 			para.put("paragraphMarkRPr", error(e));
 		}
+		// the paragraph in its table cell (CR-030): null outside a table, and in a text box,
+		// note or comment reached from a cell
+		CellContext cell = null;
+		try {
+			cell = resolver.cellContextOf(p);
+		} catch (Exception e) {
+			note("cellContextOf: " + e);
+		}
+		if (cell != null) {
+			Map<String, Object> c = new LinkedHashMap<String, Object>();
+			c.put("tableStyleId", cell.getTableStyleId());
+			c.put("conditions", TableStyleConditions.key(cell.getConditions()));
+			List<Object> text = new ArrayList<Object>();
+			for (CTTblStylePr pr : cell.getTextConditions()) text.add(pr.getType().value());
+			c.put("textConditions", text);
+			c.put("formatsText", cell.formatsText());
+			try {
+				c.put("effectivePPr", xml(resolver.getEffectivePPr(pPr, cell), "pPr", PPr.class));
+			} catch (Exception e) {
+				c.put("effectivePPr", error(e));
+			}
+			try {
+				c.put("paragraphMarkRPr", xml(resolver.getEffectiveParagraphMarkRPr(pPr, cell), "rPr", RPr.class));
+			} catch (Exception e) {
+				c.put("paragraphMarkRPr", error(e));
+			}
+			para.put("cell", c);
+		}
 		para.put("numbering", numbering(pPr, state));
-		para.put("runs", runs(p, pPr));
+		para.put("runs", runs(p, pPr, cell));
 		return para;
 	}
 
@@ -639,33 +683,33 @@ public class Harness {
 
 	// ------------------------------------------------------------------------ runs
 
-	private List<Object> runs(P p, PPr pPr) {
+	private List<Object> runs(P p, PPr pPr, CellContext cell) {
 		List<Object> runs = new ArrayList<Object>();
-		collectRuns(p.getContent(), false, runs, pPr, 0);
+		collectRuns(p.getContent(), false, runs, pPr, cell, 0);
 		return runs;
 	}
 
 	/** Every w:r of the paragraph in order, those inside w:ins, w:hyperlink, w:sdt and
 	 *  w:smartTag included; a run inside w:del is flagged rather than dropped.  Nested
 	 *  paragraphs (a text box's) and their runs belong to those paragraphs. */
-	private void collectRuns(List<?> children, boolean deleted, List<Object> into, PPr pPr, int depth) {
+	private void collectRuns(List<?> children, boolean deleted, List<Object> into, PPr pPr, CellContext cell, int depth) {
 		if (children == null || depth > 60) return;
 		for (Object raw : children) {
 			Object o = XmlUtils.unwrap(raw);
 			if (o == null) continue;
 			if (o instanceof R) {
-				into.add(run((R) o, pPr, deleted));
+				into.add(run((R) o, pPr, cell, deleted));
 			} else if (o instanceof P || isTextBox(o)) {
 				continue;
 			} else if (o instanceof RunDel) {
-				collectRuns(childrenOf(o), true, into, pPr, depth + 1);
+				collectRuns(childrenOf(o), true, into, pPr, cell, depth + 1);
 			} else {
-				collectRuns(childrenOf(o), deleted, into, pPr, depth + 1);
+				collectRuns(childrenOf(o), deleted, into, pPr, cell, depth + 1);
 			}
 		}
 	}
 
-	private Map<String, Object> run(R r, PPr pPr, boolean deleted) {
+	private Map<String, Object> run(R r, PPr pPr, CellContext cell, boolean deleted) {
 
 		Map<String, Object> run = new LinkedHashMap<String, Object>();
 		String text = textOf(r);
@@ -680,6 +724,13 @@ public class Harness {
 			run.put("effectiveRPr", xml(effective, "rPr", RPr.class));
 		} catch (Exception e) {
 			run.put("effectiveRPr", error(e));
+		}
+		if (cell != null) {
+			try {
+				run.put("effectiveRPrInCell", xml(resolver.getEffectiveRPr(r.getRPr(), pPr, cell), "rPr", RPr.class));
+			} catch (Exception e) {
+				run.put("effectiveRPrInCell", error(e));
+			}
 		}
 		run.put("fontSpans", fontSpans(pPr, effective, text));
 		return run;
@@ -777,7 +828,55 @@ public class Harness {
 			table.put("effectiveTableStyle", error(e));
 		}
 		table.put("reachesDefaultTableStyle", reachesDefaultTableStyle(tbl));
+		try {
+			table.put("context", tableContext(tbl));
+		} catch (Exception e) {
+			table.put("context", error(e));
+		}
 		return table;
+	}
+
+	/** The table as CR-030's TableContext reads it: the style it resolves to, its look and
+	 *  band sizes, and the conditions each row and each cell is under (nested tables are
+	 *  tables of their own in this list). */
+	private Map<String, Object> tableContext(Tbl tbl) {
+		TableContext ctx = resolver.tableContext(tbl);
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put("tableStyleId", ctx.getTableStyleId());
+		m.put("namesStyle", ctx.namesStyle());
+		Map<String, Object> look = new LinkedHashMap<String, Object>();
+		look.put("firstRow", ctx.getLook().firstRow);
+		look.put("lastRow", ctx.getLook().lastRow);
+		look.put("firstColumn", ctx.getLook().firstColumn);
+		look.put("lastColumn", ctx.getLook().lastColumn);
+		look.put("hBand", ctx.getLook().hBand);
+		look.put("vBand", ctx.getLook().vBand);
+		m.put("look", look);
+		m.put("rowBandSize", ctx.getRowBandSize());
+		m.put("colBandSize", ctx.getColBandSize());
+		m.put("rowCount", ctx.getRowCount());
+		m.put("colCount", ctx.getColCount());
+		List<Object> rows = new ArrayList<Object>();
+		TableModel.TrFinder trFinder = new TableModel.TrFinder();
+		new TraversalUtil(tbl, trFinder);
+		for (Tr tr : trFinder.getTrList()) {
+			Map<String, Object> row = new LinkedHashMap<String, Object>();
+			row.put("conditions", TableStyleConditions.key(ctx.rowConditions(tr)));
+			List<Object> cells = new ArrayList<Object>();
+			TcFinder tcFinder = new TcFinder();
+			new TraversalUtil(tr, tcFinder);
+			for (Tc tc : tcFinder.tcList) {
+				CellContext cell = ctx.forCell(tr, tc);
+				Map<String, Object> c = new LinkedHashMap<String, Object>();
+				c.put("conditions", TableStyleConditions.key(cell.getConditions()));
+				c.put("formatsText", cell.formatsText());
+				cells.add(c);
+			}
+			row.put("cells", cells);
+			rows.add(row);
+		}
+		m.put("rows", rows);
+		return m;
 	}
 
 	/**

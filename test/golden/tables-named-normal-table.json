@@ -1,0 +1,700 @@
+{
+  "header": {
+    "harnessVersion": "4",
+    "docx4jCommit": "843ac12df",
+    "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "b58d718ef31f152a",
+    "date": "2026-10-03T21:49:04Z",
+    "fixture": "tables-named-normal-table.docx",
+    "fixtureBytes": 10657,
+    "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c173 cdr cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp wne wp wp14 wp15 wpc wpg wps xdr xdr14 xvml",
+    "notes": []
+  },
+  "styles": {
+    "defaultParagraphStyleId": "Normal",
+    "appliesTableStyleSizeJcException": false,
+    "documentDefaults": {
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+      "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+    },
+    "docDefaults": "<w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rPrDefault><w:rPr><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>",
+    "byId": {
+      "Caption": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "DefaultParagraphFont": {
+        "type": "character",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Emphasis": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:i/><w:iCs/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Grid2": {
+        "type": "table",
+        "basedOn": "TableNormal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Header": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tabs><w:tab w:pos=\"4680\" w:val=\"center\"/><w:tab w:pos=\"9360\" w:val=\"right\"/></w:tabs><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "HeaderChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading1": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"480\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"0\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading1Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:themeShade=\"BF\" w:val=\"365F91\"/><w:sz w:val=\"28\"/><w:szCs w:val=\"28\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading2": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"1\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading2Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"26\"/><w:szCs w:val=\"26\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading3": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"2\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading3Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading4": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:keepNext/><w:keepLines/><w:spacing w:after=\"200\" w:before=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:outlineLvl w:val=\"3\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Heading4Char": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Hyperlink": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:color w:themeColor=\"hyperlink\" w:val=\"0000FF\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:u w:val=\"single\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Normal": {
+        "type": "paragraph",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "NormalIndent": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:left=\"720\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "OtherNormal": {
+        "type": "table",
+        "basedOn": null,
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Subtitle": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:numPr><w:ilvl w:val=\"1\"/></w:numPr><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:ind w:left=\"86\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:spacing w:val=\"15\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "SubtitleChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:i/><w:iCs/><w:color w:themeColor=\"accent1\" w:val=\"4F81BD\"/><w:spacing w:val=\"15\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TableGrid": {
+        "type": "table",
+        "basedOn": "TableNormal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TableNormal": {
+        "type": "table",
+        "basedOn": null,
+        "isDefault": true,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "Title": {
+        "type": "paragraph",
+        "basedOn": "Normal",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:pBdr><w:bottom w:color=\"4F81BD\" w:space=\"4\" w:sz=\"8\" w:themeColor=\"accent1\" w:val=\"single\"/></w:pBdr><w:spacing w:after=\"300\" w:line=\"276\" w:lineRule=\"auto\"/><w:contextualSpacing/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text2\" w:themeShade=\"BF\" w:val=\"17365D\"/><w:spacing w:val=\"5\"/><w:kern w:val=\"28\"/><w:sz w:val=\"52\"/><w:szCs w:val=\"52\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      },
+      "TitleChar": {
+        "type": "character",
+        "basedOn": "DefaultParagraphFont",
+        "isDefault": false,
+        "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+        "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"majorHAnsi\" w:cstheme=\"majorBidi\" w:eastAsiaTheme=\"majorEastAsia\" w:hAnsiTheme=\"majorHAnsi\"/><w:color w:themeColor=\"text2\" w:themeShade=\"BF\" w:val=\"17365D\"/><w:spacing w:val=\"5\"/><w:kern w:val=\"28\"/><w:sz w:val=\"52\"/><w:szCs w:val=\"52\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+      }
+    }
+  },
+  "stories": {
+    "main": {
+      "part": "/word/document.xml",
+      "paragraphs": [
+        {
+          "index": 0,
+          "paraId": null,
+          "pStyle": null,
+          "text": "P01 (a) w:tblStyle OtherNormal, named Normal Table, not the default",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\" w:before=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "P01 ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "P01 ",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "(a) w:tblStyle OtherNormal, named Normal Table, not the default",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(a) w:tblStyle OtherNormal, named Normal Table, not the default",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(a) cell text",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "OtherNormal",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": false,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(a) cell text",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(a) cell text",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(a) other cell",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "OtherNormal",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": false,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(a) other cell",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(a) other cell",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "paraId": null,
+          "pStyle": null,
+          "text": "P02 (b) no w:tblStyle: the default table style, named My Default",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\" w:before=\"240\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "P02 ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "P02 ",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "(b) no w:tblStyle: the default table style, named My Default",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(b) no w:tblStyle: the default table style, named My Default",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(b) cell text",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableNormal",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(b) cell text",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(b) cell text",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(b) other cell",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableNormal",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(b) other cell",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(b) other cell",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "paraId": null,
+          "pStyle": null,
+          "text": "P03 (c) w:tblStyle Grid2, based on the default table style",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\" w:before=\"240\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "P03 ",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "P03 ",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            },
+            {
+              "text": "(c) w:tblStyle Grid2, based on the default table style",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(c) w:tblStyle Grid2, based on the default table style",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(c) cell text",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "Grid2",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(c) cell text",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(c) cell text",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(c) other cell",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "Grid2",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(c) other cell",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(c) other cell",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "paraId": null,
+          "pStyle": null,
+          "text": "(d) a body paragraph after the tables, the 12pt Serif control",
+          "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
+          "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "numbering": null,
+          "runs": [
+            {
+              "text": "(d) a body paragraph after the tables, the 12pt Serif control",
+              "rStyle": null,
+              "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:cs=\"Liberation Serif\" w:eastAsia=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "fontSpans": [
+                {
+                  "text": "(d) a body paragraph after the tables, the 12pt Serif control",
+                  "documentFont": "Liberation Serif",
+                  "bold": false,
+                  "italic": false,
+                  "cs": false,
+                  "rtl": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "tables": [
+    {
+      "index": 0,
+      "tblStyle": "OtherNormal",
+      "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:styleId=\"TableNormal\" w:type=\"table\"><w:name w:val=\"Normal Table\"/><w:tblPr><w:tblStyle w:val=\"OtherNormal\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"0\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"1\" w:noVBand=\"1\" w:val=\"0620\"/></w:tblPr></w:style>",
+      "reachesDefaultTableStyle": true,
+      "context": {
+        "tableStyleId": "OtherNormal",
+        "namesStyle": true,
+        "look": {
+          "firstRow": true,
+          "lastRow": false,
+          "firstColumn": false,
+          "lastColumn": false,
+          "hBand": false,
+          "vBand": false
+        },
+        "rowBandSize": 1,
+        "colBandSize": 1,
+        "rowCount": 1,
+        "colCount": 2,
+        "rows": [
+          {
+            "conditions": "firstRow",
+            "cells": [
+              {
+                "conditions": "firstRow",
+                "formatsText": false
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "tblStyle": null,
+      "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\"><w:rPr><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/></w:rPr><w:tblPr><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"0\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"1\" w:noVBand=\"1\" w:val=\"0620\"/></w:tblPr></w:style>",
+      "reachesDefaultTableStyle": false,
+      "context": {
+        "tableStyleId": "TableNormal",
+        "namesStyle": false,
+        "look": {
+          "firstRow": true,
+          "lastRow": false,
+          "firstColumn": false,
+          "lastColumn": false,
+          "hBand": false,
+          "vBand": false
+        },
+        "rowBandSize": 1,
+        "colBandSize": 1,
+        "rowCount": 1,
+        "colCount": 2,
+        "rows": [
+          {
+            "conditions": "firstRow",
+            "cells": [
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "tblStyle": "Grid2",
+      "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\"><w:rPr><w:rFonts w:ascii=\"Liberation Sans\" w:cs=\"Liberation Sans\" w:eastAsia=\"Liberation Sans\" w:hAnsi=\"Liberation Sans\"/><w:sz w:val=\"40\"/><w:szCs w:val=\"40\"/></w:rPr><w:tblPr><w:tblStyle w:val=\"Grid2\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"4\" w:val=\"single\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"0\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"1\" w:noVBand=\"1\" w:val=\"0620\"/></w:tblPr></w:style>",
+      "reachesDefaultTableStyle": false,
+      "context": {
+        "tableStyleId": "Grid2",
+        "namesStyle": true,
+        "look": {
+          "firstRow": true,
+          "lastRow": false,
+          "firstColumn": false,
+          "lastColumn": false,
+          "hBand": false,
+          "vBand": false
+        },
+        "rowBandSize": 1,
+        "colBandSize": 1,
+        "rowCount": 1,
+        "colCount": 2,
+        "rows": [
+          {
+            "conditions": "firstRow",
+            "cells": [
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "fonts": {
+    "themePart": "/word/theme/theme1.xml",
+    "defaultFont": "Liberation Serif",
+    "fontsInUse": [
+      "Liberation Sans",
+      "Liberation Serif"
+    ],
+    "stylesInUse": [
+      "DefaultParagraphFont",
+      "Grid2",
+      "Normal",
+      "OtherNormal",
+      "TableNormal"
+    ],
+    "mapping": {
+      "Liberation Sans": {
+        "source": "CLASS",
+        "via": "a face of the same class: SANS",
+        "physicalFont": "Arimo Regular"
+      },
+      "Liberation Serif": {
+        "source": "CLASS",
+        "via": "a face of the same class: SERIF",
+        "physicalFont": "Tinos Regular"
+      }
+    },
+    "mappingNote": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed"
+  }
+}

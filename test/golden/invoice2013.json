@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "3",
-    "docx4jCommit": "a8d20c1cc0d168ec940ed9ed1b08a91c50ec492f",
-    "docx4jVersion": "docx4j-core-17.3.0-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "ed92b2e826456394",
-    "date": "2026-09-28T13:06:49Z",
+    "harnessVersion": "4",
+    "docx4jCommit": "843ac12df",
+    "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "b58d718ef31f152a",
+    "date": "2026-10-03T21:49:03Z",
     "fixture": "invoice2013.docx",
     "fixtureBytes": 49797,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
@@ -13,6 +13,7 @@
   },
   "styles": {
     "defaultParagraphStyleId": "Normal",
+    "appliesTableStyleSizeJcException": true,
     "documentDefaults": {
       "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
       "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
@@ -257,12 +258,21 @@
           "text": "John Citizen",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "John Citizen",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "John Citizen",
@@ -283,12 +293,21 @@
           "text": "Contozo Inc",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "Contozo Inc",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "Contozo Inc",
@@ -309,12 +328,21 @@
           "text": "Unit 4",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "Unit 4",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "Unit 4",
@@ -335,12 +363,21 @@
           "text": "some street",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "some street",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "some street",
@@ -361,12 +398,21 @@
           "text": "Griffith   NSW  2680",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "Griffith",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "Griffith",
@@ -382,6 +428,7 @@
               "text": " ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": " ",
@@ -397,6 +444,7 @@
               "text": "  ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "  ",
@@ -412,6 +460,7 @@
               "text": "NSW",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "NSW",
@@ -427,6 +476,7 @@
               "text": " ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": " ",
@@ -442,6 +492,7 @@
               "text": " ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": " ",
@@ -457,6 +508,7 @@
               "text": "2680",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "2680",
@@ -477,6 +529,14 @@
           "text": "",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": []
         },
@@ -487,6 +547,14 @@
           "text": "",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": []
         },
@@ -497,12 +565,21 @@
           "text": "29 January 2015",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "29 January 2015",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-AU\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "29 January 2015",
@@ -523,6 +600,14 @@
           "text": "",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/><w:jc w:val=\"right\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": []
         },
@@ -665,12 +750,21 @@
           "text": "productcode",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstCol-firstRow-nwCell",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "productcode",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "productcode",
@@ -691,12 +785,21 @@
           "text": "description",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "description",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "description",
@@ -717,12 +820,21 @@
           "text": "quantity",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "quantity",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "quantity",
@@ -743,12 +855,21 @@
           "text": "price",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "firstRow",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "price",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "price",
@@ -769,12 +890,21 @@
           "text": "   ITEM1   ",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "band1Horz-firstCol",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -790,6 +920,7 @@
               "text": "ITEM1",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "ITEM1",
@@ -805,6 +936,7 @@
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -825,12 +957,21 @@
           "text": "   Some item   ",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "band1Horz",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -846,6 +987,7 @@
               "text": "Some item",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "Some item",
@@ -861,6 +1003,7 @@
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -881,12 +1024,21 @@
           "text": "   2   ",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "band1Horz",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -902,6 +1054,7 @@
               "text": "2",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "2",
@@ -917,6 +1070,7 @@
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -937,12 +1091,21 @@
           "text": "   $120   ",
           "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+          "cell": {
+            "tableStyleId": "TableGrid",
+            "conditions": "band1Horz",
+            "textConditions": [],
+            "formatsText": true,
+            "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
+            "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"
+          },
           "numbering": null,
           "runs": [
             {
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -958,6 +1121,7 @@
               "text": "$120",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "$120",
@@ -973,6 +1137,7 @@
               "text": "   ",
               "rStyle": null,
               "effectiveRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
+              "effectiveRPrInCell": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorHAnsi\" w:hAnsiTheme=\"minorHAnsi\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>",
               "fontSpans": [
                 {
                   "text": "   ",
@@ -1112,13 +1277,104 @@
       "index": 0,
       "tblStyle": "TableGrid",
       "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:styleId=\"TableNormal\" w:type=\"table\"><w:name w:val=\"Normal Table\"/><w:pPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr><w:tblPr><w:tblStyle w:val=\"TableGrid\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"1\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"0\" w:noVBand=\"1\" w:val=\"04A0\"/></w:tblPr></w:style>",
-      "reachesDefaultTableStyle": true
+      "reachesDefaultTableStyle": true,
+      "context": {
+        "tableStyleId": "TableGrid",
+        "namesStyle": true,
+        "look": {
+          "firstRow": true,
+          "lastRow": false,
+          "firstColumn": true,
+          "lastColumn": false,
+          "hBand": true,
+          "vBand": false
+        },
+        "rowBandSize": 1,
+        "colBandSize": 1,
+        "rowCount": 1,
+        "colCount": 2,
+        "rows": [
+          {
+            "conditions": "firstRow",
+            "cells": [
+              {
+                "conditions": "firstCol-firstRow-nwCell",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "index": 1,
       "tblStyle": "TableGrid",
       "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:styleId=\"TableNormal\" w:type=\"table\"><w:name w:val=\"Normal Table\"/><w:pPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr><w:tblPr><w:tblStyle w:val=\"TableGrid\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/><w:left w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/><w:bottom w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/><w:right w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/><w:insideH w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/><w:insideV w:color=\"000000\" w:space=\"0\" w:sz=\"4\" w:themeColor=\"text1\" w:val=\"single\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"1\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"0\" w:noVBand=\"1\" w:val=\"04A0\"/></w:tblPr></w:style>",
-      "reachesDefaultTableStyle": true
+      "reachesDefaultTableStyle": true,
+      "context": {
+        "tableStyleId": "TableGrid",
+        "namesStyle": true,
+        "look": {
+          "firstRow": true,
+          "lastRow": false,
+          "firstColumn": true,
+          "lastColumn": false,
+          "hBand": true,
+          "vBand": false
+        },
+        "rowBandSize": 1,
+        "colBandSize": 1,
+        "rowCount": 2,
+        "colCount": 4,
+        "rows": [
+          {
+            "conditions": "firstRow",
+            "cells": [
+              {
+                "conditions": "firstCol-firstRow-nwCell",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              },
+              {
+                "conditions": "firstRow",
+                "formatsText": true
+              }
+            ]
+          },
+          {
+            "conditions": "band1Horz",
+            "cells": [
+              {
+                "conditions": "band1Horz-firstCol",
+                "formatsText": true
+              },
+              {
+                "conditions": "band1Horz",
+                "formatsText": true
+              },
+              {
+                "conditions": "band1Horz",
+                "formatsText": true
+              },
+              {
+                "conditions": "band1Horz",
+                "formatsText": true
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "fonts": {

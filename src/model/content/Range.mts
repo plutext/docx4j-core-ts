@@ -82,7 +82,7 @@ export class Range {
     };
     if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking());
     return new Font(holders, () => this.paragraph.fontTracking(),
-      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr),
+      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr, this.paragraph.cellContext),
       (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr));
   }
 

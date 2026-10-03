@@ -6,16 +6,32 @@
 //   effectivePPr(direct)       = docDefaults.pPr ⊕ chainPPr(styleOf(direct)) ⊕ direct
 //   effectiveRPr(direct, pPr)  = docDefaults.rPr ⊕ chainRPr(styleOf(pPr)) ⊕ chainRPr(direct.rStyle) ⊕ direct
 //   paragraphMarkRPr(pPr)      = docDefaults.rPr ⊕ chainRPr(styleOf(pPr)) ⊕ pPr.rPr
-//   tableStyle(tblPr)          = built-in Normal Table (where its chain reaches the default
-//                                table style, or it names none) ⊕ the chain ⊕ tblPr
+//   tableStyle(tblPr)          = built-in Normal Table (where its chain reaches a style named
+//                                "Normal Table", or there is none) ⊕ the chain above that ⊕ tblPr
+//
+//   in a table cell, given its CellContext (CR-007, docx4j CR-030):
+//   effectivePPr(direct, ctx)  = docDefaults.pPr ⊕ table(ctx).pPr ⊕ chainPPr(styleOf(direct)) [⊕ jc exception] ⊕ direct
+//   effectiveRPr(direct, pPr, ctx)
+//                              = docDefaults.rPr ⊕ level(table(ctx).rPr, chainRPr(styleOf(pPr))) [⊕ size exception]
+//                                ⊕ chainRPr(direct.rStyle) ⊕ direct
+//   table(ctx)                 = the table style's own pPr/rPr, then its conditional formats which
+//                                apply, in ECMA-376-1 17.7.6 order
 //
 // where `styleOf(pPr)` is the paragraph's `w:pStyle` if it names a style that exists, else the
 // `w:default="1"` paragraph style (Word writes no `w:pStyle` for it and treats a missing style
 // as it), and `chainPPr`/`chainRPr` are a style's `w:basedOn` chain merged root-first *without*
 // the document defaults, cached per style id.  The merging itself is `styleUtil.mts`, driven by
-// the property catalogue.  Numbering level indents are folded in per layer; table styles are
-// not applied to paragraphs here (the resolver is handed a `w:pPr` and does not know the
-// table).
+// the property catalogue.  Numbering level indents are folded in per layer.
+//
+// **Tables** (CR-007).  A table style reaches a paragraph only where the caller hands the
+// resolver the paragraph's `CellContext` (`table.mts`): the overloads which take none know
+// nothing of tables.  The context comes from a `TableContextTracker` during a walk, or from
+// `cellContextOf(p)` for one paragraph, which costs a walk of its table per call; it is
+// undefined outside a table, and in a text box, note or comment reached from a cell.  Which
+// table style applies is decided by its *name*, as Word decides it, and [MS-DOCX]'s
+// `overrideTableStyleFontSizeAndJustification` exception applies below compatibility mode 15
+// only, where that setting is not on.  docx4j's synthetic style ids (`styleIdFor`,
+// `syntheticStyle`, `sourceStyleOf`) serve its HTML and FO XSLT pathways and are not ported.
 //
 // **Live objects.** What the style overloads and `getEffectivePPr(pPr)` return is cached and
 // shared: copy it before changing it.  The cached objects share no leaf with the styles part,
@@ -27,9 +43,10 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { log } from './log.mjs';
 import { NumberingDefinitions } from '../listnumbering/definitions.mjs';
 import {
-  applyPPrBase, applyRPr, applyStyle, applyStyleLevel, applyTblPr,
-  hasDirectFormattingPPr, hasDirectFormattingRPr, isCyclic,
+  applyPPr, applyPPrBase, applyRPr, applyStyle, applyStyleLevel, applyTblPr, applyToggles,
+  hasDirectFormattingPPr, hasDirectFormattingRPr, isCyclic, isEmptyStyle,
 } from './styleUtil.mjs';
+import { CellContext, TableContext, enclosingCellOf } from './table.mjs';
 
 /** The parts the resolver reads. Structural, so this module imports no part class. */
 export interface ResolverSource {
@@ -37,6 +54,11 @@ export interface ResolverSource {
   styles?: wml.Styles;
   /** The numbering part's `w:numbering`, or undefined. */
   numbering?: wml.Numbering;
+  /**
+   * The settings part's `w:settings`, or undefined: read for the compatibility mode and
+   * `overrideTableStyleFontSizeAndJustification` (CR-007). A document with none is in mode 12.
+   */
+  settings?: wml.CTSettings;
 }
 
 /** As much of an `XmlPart<T>` as the resolver uses. */
@@ -51,11 +73,62 @@ interface PackageLike {
   getMainDocumentPart(): {
     styleDefinitionsPart?: ReadablePart<wml.Styles>;
     numberingDefinitionsPart?: ReadablePart<wml.Numbering>;
+    documentSettingsPart?: ReadablePart<wml.CTSettings>;
   };
 }
 
 /** The cache key for "no style" (a styles part with no default paragraph style). */
 const NO_STYLE = '';
+
+/** An empty table style: what a table with no style to apply contributes. Shared, never changed. */
+const NO_TABLE_STYLE: wml.Style = Object.freeze({ TYPE_NAME: 'org_docx4j_wml.Style' }) as wml.Style;
+
+/** Word's compatibility mode where the document states none (docx4j `CompatibilityOptions.DEFAULT_MODE`). */
+const DEFAULT_COMPATIBILITY_MODE = 12;
+const WORD_COMPAT_URI = 'http://schemas.microsoft.com/office/word';
+
+/** A `w:compatSetting` of Word's own (`w:uri` its namespace), by name. */
+function wordCompatSetting(settings: wml.CTSettings | undefined, name: string): wml.CTCompatSetting | undefined {
+  return settings?.compat?.compatSetting?.find((cs) => cs.uri === WORD_COMPAT_URI && cs.name === name);
+}
+
+/** `compatibilityMode` (11, 12, 14 or 15); 12 where none is stated or it is unreadable. */
+function compatibilityModeOf(settings: wml.CTSettings | undefined): number {
+  const val = wordCompatSetting(settings, 'compatibilityMode')?.val;
+  if (val === undefined || val === null) return DEFAULT_COMPATIBILITY_MODE;
+  const text = String(val).trim();
+  // Integer.parseInt: an optional sign and decimal digits, nothing else
+  return /^[+-]?\d+$/.test(text) ? parseInt(text, 10) : DEFAULT_COMPATIBILITY_MODE;
+}
+
+/** Whether a Word compat setting is stated on (docx4j `CompatibilityOptions.setting(name, false)`). */
+function compatSettingOn(settings: wml.CTSettings | undefined, name: string): boolean {
+  const val = wordCompatSetting(settings, name)?.val;
+  if (val === undefined || val === null) return false;
+  const v = String(val).trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+}
+
+/** A two-level cache: (paragraph style, table style) and then the conditions' mask - a structured key, never a joined string. */
+class CompositionCache<T> {
+  private readonly byStyle = new Map<string, Map<string, Map<number, T>>>();
+
+  get(styleId: string | undefined, key: CellContext['key']): T | undefined {
+    return this.byStyle.get(styleId ?? NO_STYLE)?.get(key.tableStyleId ?? NO_STYLE)?.get(key.mask);
+  }
+
+  set(styleId: string | undefined, key: CellContext['key'], value: T): void {
+    let byTable = this.byStyle.get(styleId ?? NO_STYLE);
+    if (byTable === undefined) this.byStyle.set(styleId ?? NO_STYLE, byTable = new Map());
+    let byMask = byTable.get(key.tableStyleId ?? NO_STYLE);
+    if (byMask === undefined) byTable.set(key.tableStyleId ?? NO_STYLE, byMask = new Map());
+    byMask.set(key.mask, value);
+  }
+
+  clear(): void {
+    this.byStyle.clear();
+  }
+}
 
 /** 108 twips (0.08in): the left and right cell margin of Word's built-in Normal Table. */
 export const WORD_DEFAULT_CELL_MARGIN_TWIPS = 108;
@@ -91,6 +164,18 @@ export class PropertyResolver {
   /** The document defaults with the chain applied over them: what the style overloads return. */
   private readonly effectivePPrByStyle = new Map<string, wml.PPr>();
   private readonly effectiveRPrByStyle = new Map<string, wml.RPr>();
+
+  /** Each table style's `w:basedOn` chain merged, by id; styles only, so `refresh()` clears it. */
+  private readonly tableStyleChains = new Map<string, wml.Style>();
+  /**
+   * A paragraph style composed over a table level, document defaults included; by (paragraph
+   * style, table level). What the overloads with a context start from, as
+   * `getEffectivePPr(styleId)` is what they start from without one.
+   */
+  private readonly composedPPrCache = new CompositionCache<wml.PPr>();
+  private readonly composedRPrCache = new CompositionCache<wml.RPr>();
+  /** See {@link appliesTableStyleSizeJcException}; read once per `refresh()`. */
+  private tableStyleSizeJcException = true;
 
   /** Missing styles are logged once each per resolver. */
   private readonly missingLogged = new Set<string>();
@@ -134,10 +219,19 @@ export class PropertyResolver {
     const numberingPart = main.numberingDefinitionsPart;
     const privateStyles = stylesPart === undefined ? undefined : await stylesPart.readContents();
     const privateNumbering = numberingPart === undefined ? undefined : await numberingPart.readContents();
+    // the settings are read for two compatibility values (CR-007), privately, as the others are
+    const settingsPart = main.documentSettingsPart;
+    let privateSettings: wml.CTSettings | undefined;
+    try {
+      privateSettings = settingsPart === undefined ? undefined : await settingsPart.readContents();
+    } catch (e) {
+      log.warn(`The settings part could not be read; taking compatibility mode ${DEFAULT_COMPATIBILITY_MODE}: ${String(e)}`);
+    }
     return new PropertyResolver(
       () => ({
         styles: stylesPart?.isUnmarshalled === true ? stylesPart.contents : privateStyles,
         numbering: numberingPart?.isUnmarshalled === true ? numberingPart.contents : privateNumbering,
+        settings: settingsPart?.isUnmarshalled === true ? settingsPart.contents : privateSettings,
       }),
       () => stylesPart !== undefined && !stylesPart.isUnmarshalled,
     );
@@ -167,6 +261,11 @@ export class PropertyResolver {
       }
     }
     if (this.defaultParagraphStyleId === undefined) log.warn('No default paragraph style!!');
+
+    // [MS-DOCX] overrideTableStyleFontSizeAndJustification: see appliesTableStyleSizeJcException
+    const settings = this.source.settings;
+    this.tableStyleSizeJcException = compatibilityModeOf(settings) < 15
+      && !compatSettingOn(settings, 'overrideTableStyleFontSizeAndJustification');
 
     // private copies: the resolver's defaults are its own, so nothing below writes into the
     // styles part (until CR-015 phase 3 the w:sz 20 default went into the part, and a docx
@@ -228,6 +327,7 @@ export class PropertyResolver {
     this.chainRPrCache.clear();
     this.effectivePPrByStyle.clear();
     this.effectiveRPrByStyle.clear();
+    this.clearTableCaches();
     this.missingLogged.clear();
     this.source = this.provider();
     this.init();
@@ -392,7 +492,23 @@ export class PropertyResolver {
    * naming no style resolves as the default paragraph style does.
    */
   getEffectivePPr(styleId: string | undefined): wml.PPr;
-  getEffectivePPr(arg: wml.PPr | string | undefined): wml.PPr {
+  /**
+   * The paragraph properties which apply to a paragraph in a table cell: as
+   * `getEffectivePPr(pPr)`, with the table style's contribution (its own `w:pPr`, then the
+   * conditional formats the paragraph is under) between the document defaults and the
+   * paragraph's style, and [MS-DOCX]'s justification exception where it applies. An undefined
+   * context - a paragraph in no table - resolves exactly as `getEffectivePPr(pPr)`. A live
+   * object where the paragraph has no direct formatting: copy it before changing it.
+   */
+  getEffectivePPr(pPr: wml.PPr | undefined, cellContext: CellContext | undefined): wml.PPr;
+  getEffectivePPr(arg: wml.PPr | string | undefined, cellContext?: CellContext | undefined): wml.PPr {
+    if (cellContext !== undefined && cellContext.formatsText && typeof arg !== 'string') {
+      const composed = this.composedPPr(this.paragraphStyleOf(arg), cellContext);
+      if (!hasDirectFormattingPPr(arg)) return composed;
+      const effective = deepCopy(composed);
+      this.applyPPrLayer(arg, effective);
+      return effective;
+    }
     if (arg === undefined || typeof arg === 'string') return this.effectivePPrOfStyle(arg);
     const resolved = this.effectivePPrOfStyle(this.paragraphStyleOf(arg));
     if (!hasDirectFormattingPPr(arg)) return resolved;
@@ -429,8 +545,22 @@ export class PropertyResolver {
    * what it contributes with nothing under it. Undefined when no such style exists.
    */
   getEffectiveRPr(styleId: string): wml.RPr | undefined;
-  getEffectiveRPr(arg: wml.RPr | string | undefined, pPr?: wml.PPr | undefined): wml.RPr | undefined {
+  /**
+   * The run properties which apply to a run in a table cell: as `getEffectiveRPr(rPr, pPr)`,
+   * with the table style's run properties (its own, then its conditional formats') as a level
+   * of the style hierarchy beneath the paragraph style's - the toggle properties combine across
+   * the two (ECMA-376-1 17.7.3) - and [MS-DOCX]'s size exception where it applies. An undefined
+   * context resolves exactly as `getEffectiveRPr(rPr, pPr)`. A new object each call.
+   */
+  getEffectiveRPr(rPr: wml.RPr | undefined, pPr: wml.PPr | undefined, cellContext: CellContext | undefined): wml.RPr;
+  getEffectiveRPr(arg: wml.RPr | string | undefined, pPr?: wml.PPr | undefined,
+    cellContext?: CellContext | undefined): wml.RPr | undefined {
     if (typeof arg === 'string') return this.effectiveRPrOfStyle(arg);
+    if (cellContext !== undefined && cellContext.formatsText) {
+      const inTable = deepCopy(this.composedRPr(this.paragraphStyleOf(pPr), cellContext));
+      this.applyCharacterStyleAndDirect(arg, inTable);
+      return inTable;
+    }
     const effective = deepCopy(this.documentDefaultRPr);
     applyRPr<wml.RPr>(this.getChainRPr(this.paragraphStyleOf(pPr)), effective);
     this.applyCharacterStyleAndDirect(arg, effective);
@@ -475,7 +605,13 @@ export class PropertyResolver {
    * properties, then the `w:pPr`'s own `w:rPr`. What sizes an empty paragraph, and what a list
    * label starts from.
    */
-  getEffectiveParagraphMarkRPr(pPr: wml.PPr | undefined): wml.RPr {
+  getEffectiveParagraphMarkRPr(pPr: wml.PPr | undefined, cellContext?: CellContext | undefined): wml.RPr {
+    if (cellContext !== undefined && cellContext.formatsText) {
+      // in a table cell: the table level beneath the paragraph style's (CR-007)
+      const inTable = deepCopy(this.composedRPr(this.paragraphStyleOf(pPr), cellContext));
+      if (pPr?.rPr !== undefined) applyRPr<wml.RPr>(pPr.rPr, inTable);
+      return inTable;
+    }
     const effective = deepCopy(this.documentDefaultRPr);
     applyRPr<wml.RPr>(this.getChainRPr(this.paragraphStyleOf(pPr)), effective);
     if (pPr?.rPr !== undefined) applyRPr<wml.RPr>(pPr.rPr, effective);
@@ -493,27 +629,23 @@ export class PropertyResolver {
    * The table style which applies, merged root-first down its `w:basedOn` chain, then the
    * table's own `w:tblPr` over it.
    *
-   * Word's built-in "Normal Table" (`w:tblInd` 0; cell margins 108 twips left and right, 0 top
-   * and bottom) underlies a table naming no style and a table whose chain reaches the
-   * document's default table style - and it is the built-in that applies, not the document's
-   * definition of that style (measured, CR-015 probe styles-table-default). So the default
-   * style's own layer is skipped in favour of the built-in, and a chain that does not reach it
-   * starts from nothing.
+   * Word goes by the style's **name** (measured, docx4j CR-030 probes T1, T2 and T7). A style
+   * named "Normal Table" is Word's built-in Normal Table (`w:tblInd` 0; cell margins 108 twips
+   * left and right, 0 top and bottom), whatever its own definition says and whether or not it is
+   * the document's default: the built-in stands in for it, and the walk up the chain ends there.
+   * Every other style applies as written, with nothing beneath it: a chain which reaches no style
+   * so named starts from nothing, and the document's default table style, where it is named
+   * otherwise, applies as written to a table naming no style. The built-in also stands in for a
+   * style which is missing, and where the document has no default table style. (Until CR-007 the
+   * built-in was decided by the default table style's *id*, as docx4j did until 17.3.1.)
    *
    * A new `Style` each call, with a non-null `w:tblPr`.
    */
   getEffectiveTableStyle(tblPr: wml.CTTblPrBase | undefined): wml.Style {
-    const styleId = tblPr?.tblStyle?.val;
-    const chain = styleId === undefined ? [] : this.ancestry(styleId);
-    const builtIn = chain.length === 0
-      || (this.defaultTableStyleId !== undefined && chain.some((s) => s.styleId === this.defaultTableStyleId));
-
-    const result = builtIn ? this.builtInTableNormal() : emptyTableStyle();
-    for (const layer of chain) {
-      // the built-in stands in for the document's definition of the default table style
-      if (this.defaultTableStyleId !== undefined && layer.styleId === this.defaultTableStyleId) continue;
-      applyStyle(layer, result);
-    }
+    const styleId = this.getTableStyleIdOf(tblPr);
+    const result = this.builtInTableNormalUnderlies(styleId) ? this.builtInTableNormal() : emptyTableStyle();
+    const chain = this.getTableStyleChain(styleId);
+    if (chain !== NO_TABLE_STYLE) applyStyle(deepCopy(chain), result);
     if (tblPr !== undefined) {
       result.tblPr = applyTblPr(tblPr, result.tblPr);
     }
@@ -522,15 +654,185 @@ export class PropertyResolver {
   }
 
   /**
-   * Whether a table's style chain reaches the document's default table style - the flag
-   * {@link getEffectiveTableStyle} decides Word's built-in Normal Table by (a table naming no
-   * style counts as reaching it).
+   * Whether Word's built-in Normal Table underlies a table - the flag
+   * {@link getEffectiveTableStyle} decides by: the table's style chain (its own `w:tblStyle`,
+   * else the default table style) reaches a style *named* "Normal Table", or the style is
+   * missing, or there is none. Decided by name since CR-007; the method keeps docx4j's name
+   * from when it was decided by the default style's id.
    */
   reachesDefaultTableStyle(tblPr: wml.CTTblPrBase | undefined): boolean {
-    const styleId = tblPr?.tblStyle?.val;
-    const chain = styleId === undefined ? [] : this.ancestry(styleId);
-    return chain.length === 0
-      || (this.defaultTableStyleId !== undefined && chain.some((s) => s.styleId === this.defaultTableStyleId));
+    return this.builtInTableNormalUnderlies(this.getTableStyleIdOf(tblPr));
+  }
+
+  private builtInTableNormalUnderlies(styleId: string | undefined): boolean {
+    if (styleId === undefined) return true;
+    const chain = this.ancestry(styleId);
+    return chain.length === 0 || chain.some(isNamedNormalTable);
+  }
+
+  // ------------------------------------------------------------------ the table context (CR-007)
+
+  /**
+   * Whether [MS-DOCX]'s `overrideTableStyleFontSizeAndJustification` exception applies to this
+   * document: a default paragraph style's 12pt does not override the table style's size, nor its
+   * left justification the table style's, for paragraphs in tables. Measured with Word 365
+   * (docx4j CR-030 probes T5 and T6): it applies below compatibility mode 15 (a document stating
+   * no `compatibilityMode` is mode 12) where the setting is not on, and never in mode 15.
+   */
+  appliesTableStyleSizeJcException(): boolean {
+    return this.tableStyleSizeJcException;
+  }
+
+  /**
+   * The id of the table style a table resolves to: its own `w:tblStyle`, else the document's
+   * `w:default` table style, whatever its name; undefined where the table names none and the
+   * document has no default. (Whether that style contributes anything is
+   * {@link getTableStyleChain}'s question.)
+   */
+  getTableStyleIdOf(tblPr: wml.CTTblPrBase | undefined): string | undefined {
+    return tblPr?.tblStyle !== undefined ? tblPr.tblStyle.val : this.defaultTableStyleId;
+  }
+
+  /**
+   * A table style's `w:basedOn` chain merged root-first, conditional formats merged per
+   * condition, as it gives the paragraphs of its tables their text formatting. Word goes by the
+   * style's *name*: a style named "Normal Table" is Word's built-in, which gives text nothing
+   * whatever its own definition says, so the walk up the chain ends below it; every other style
+   * applies as written, the default table style included.
+   *
+   * Cached per id, and shared: read it, do not change it. An empty style for undefined, for a
+   * missing style, and for a chain which is "Normal Table" all the way down.
+   */
+  getTableStyleChain(styleId: string | undefined): wml.Style {
+    if (styleId === undefined) return NO_TABLE_STYLE;
+    const cached = this.tableStyleChains.get(styleId);
+    if (cached !== undefined) return cached;
+    const chain = this.ancestry(styleId);
+    let start = 0;
+    for (let i = chain.length - 1; i >= 0; i--) {
+      if (isNamedNormalTable(chain[i]!)) {
+        start = i + 1;
+        break;
+      }
+    }
+    let merged: wml.Style | undefined;
+    for (let i = start; i < chain.length; i++) {
+      const layer = chain[i]!;
+      // docx4j apply(Style, null): an empty layer leaves the destination as it is, null included
+      if (isEmptyStyle(layer)) continue;
+      merged = applyStyle(layer, merged ?? { TYPE_NAME: 'org_docx4j_wml.Style' });
+    }
+    const result = merged ?? NO_TABLE_STYLE;
+    this.tableStyleChains.set(styleId, result);
+    return result;
+  }
+
+  /**
+   * The context of a table, for the paragraphs in it: build one per table and hold it while
+   * walking the table (the resolver keeps none, since it reads the table's content).
+   */
+  tableContext(tbl: wml.Tbl): TableContext {
+    return new TableContext(tbl, this);
+  }
+
+  /**
+   * The table context of one paragraph, found through its `PARENT` pointers: the nearest
+   * enclosing cell, its row and its table, through whatever lies between (`w:sdt`,
+   * `w:customXml`, `w:smartTag`). Undefined where the paragraph is in no table, where a story
+   * begins before a cell is reached (a text box, a footnote, endnote or comment, a header, a
+   * footer, the body), or where the pointers are not there (unmarshalled content, and content
+   * the content API inserted, has them: `linkParents`).
+   *
+   * Each call builds a {@link TableContext}, a walk of the table's rows. That is right for "what
+   * formatting does this paragraph have"; code resolving every paragraph of a document walks it
+   * with a `TableContextTracker` instead, since calling this for each paragraph of a large table
+   * is quadratic.
+   */
+  cellContextOf(p: wml.P): CellContext | undefined {
+    const found = enclosingCellOf(p);
+    return found === undefined ? undefined : this.tableContext(found.tbl).forParagraph(found.tr, found.tc, p.pPr);
+  }
+
+  private clearTableCaches(): void {
+    this.tableStyleChains.clear();
+    this.composedPPrCache.clear();
+    this.composedRPrCache.clear();
+  }
+
+  /** The table level's `w:pPr`: the style's own, then its conditional formats'; undefined if none. */
+  private tableLevelPPr(ctx: CellContext): wml.PPr | undefined {
+    let out = applyPPr(ctx.tableStyle.pPr, undefined);
+    for (const pr of ctx.textConditions) out = applyPPr(pr.pPr, out);
+    return out;
+  }
+
+  /** The table level's `w:rPr`: the style's own, then its conditional formats'; undefined if none. */
+  private tableLevelRPr(ctx: CellContext): wml.RPr | undefined {
+    let out = applyRPr<wml.RPr>(ctx.tableStyle.rPr, undefined);
+    for (const pr of ctx.textConditions) out = applyRPr<wml.RPr>(pr.rPr, out);
+    return out;
+  }
+
+  /*
+   * The composition: document defaults, the table level over them, the paragraph style's chain
+   * over that (for the run properties a level of its own, the toggles combined), then the
+   * [MS-DOCX] exception. Cached per (paragraph style, table level).
+   */
+  private composedPPr(styleId: string | undefined, ctx: CellContext): wml.PPr {
+    const cached = this.composedPPrCache.get(styleId, ctx.key);
+    if (cached !== undefined) return cached;
+
+    const tableLevel = this.tableLevelPPr(ctx);
+    const composed = deepCopy(this.documentDefaultPPr);
+    if (tableLevel !== undefined) applyPPr(tableLevel, composed);
+    this.applyPPrLayer(this.getChainPPr(styleId), composed);
+    if (this.tableStyleSizeJcException && tableLevel?.jc !== undefined
+      && this.paragraphStyleGivesWay(styleId, false)) {
+      composed.jc = deepCopy(tableLevel.jc);
+    }
+    this.composedPPrCache.set(styleId, ctx.key, composed);
+    return composed;
+  }
+
+  private composedRPr(styleId: string | undefined, ctx: CellContext): wml.RPr {
+    const cached = this.composedRPrCache.get(styleId, ctx.key);
+    if (cached !== undefined) return cached;
+
+    const tableOnly = this.tableLevelRPr(ctx);
+    const tableLevel = deepCopy(this.documentDefaultRPr);
+    if (tableOnly !== undefined) applyRPr<wml.RPr>(tableOnly, tableLevel);
+    const paragraphLevel = this.getChainRPr(styleId);
+    const composed = deepCopy(tableLevel);
+    applyRPr<wml.RPr>(paragraphLevel, composed);
+    // the table and the paragraph style are two levels of the hierarchy: the twelve toggles
+    // combine across them rather than the paragraph's overriding (17.7.3)
+    applyToggles(paragraphLevel, tableLevel, this.documentDefaultRPr, composed);
+    if (this.tableStyleSizeJcException && tableOnly?.sz !== undefined
+      && this.paragraphStyleGivesWay(styleId, true)) {
+      composed.sz = deepCopy(tableOnly.sz);
+    }
+    this.composedRPrCache.set(styleId, ctx.key, composed);
+    return composed;
+  }
+
+  /**
+   * [MS-DOCX]'s exception, for a paragraph in a table whose style states a size (or a
+   * justification): the paragraph's style gives way to it if the style is the default paragraph
+   * style, or states no size (justification) of its own, and resolves to 12pt (left). A style of
+   * the paragraph's own which states one keeps it.
+   */
+  private paragraphStyleGivesWay(styleId: string | undefined, size: boolean): boolean {
+    const isDefault = styleId === undefined || styleId === this.defaultParagraphStyleId;
+    const express = this.getLiveStyle(styleId);
+    if (!isDefault && express !== undefined) {
+      if (size && express.rPr?.sz !== undefined) return false;
+      if (!size && express.pPr?.jc !== undefined) return false;
+    }
+    if (size) {
+      const effective = styleId === undefined ? undefined : this.effectiveRPrOfStyle(styleId);
+      return effective?.sz?.val === 24;
+    }
+    return this.effectivePPrOfStyle(styleId).jc?.val === 'left';
   }
 
   /** Word's built-in Normal Table, as a style: what it applies whatever the document's own definition says. */
@@ -601,6 +903,7 @@ export class PropertyResolver {
     this.chainRPrCache.clear();
     this.effectivePPrByStyle.clear();
     this.effectiveRPrByStyle.clear();
+    this.clearTableCaches();
 
     let ok = true;
     const basedOn = style.basedOn?.val;
@@ -613,6 +916,11 @@ export class PropertyResolver {
 
 function twips(w: number): wml.TblWidth {
   return { TYPE_NAME: 'org_docx4j_wml.TblWidth', type: 'dxa', w };
+}
+
+/** Google Docs (Nov 2014) writes table styles without a `w:name`. */
+function isNamedNormalTable(style: wml.Style): boolean {
+  return style.name?.val === 'Normal Table';
 }
 
 function emptyTableStyle(): wml.Style {

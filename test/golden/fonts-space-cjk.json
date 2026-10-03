@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "3",
-    "docx4jCommit": "a8d20c1cc0d168ec940ed9ed1b08a91c50ec492f",
-    "docx4jVersion": "docx4j-core-17.3.0-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "ed92b2e826456394",
-    "date": "2026-09-28T13:06:49Z",
+    "harnessVersion": "4",
+    "docx4jCommit": "843ac12df",
+    "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "b58d718ef31f152a",
+    "date": "2026-10-03T21:49:02Z",
     "fixture": "fonts-space-cjk.docx",
     "fixtureBytes": 6965,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
@@ -13,6 +13,7 @@
   },
   "styles": {
     "defaultParagraphStyleId": "Normal",
+    "appliesTableStyleSizeJcException": false,
     "documentDefaults": {
       "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"200\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr>",
       "rPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Carlito\" w:cs=\"Carlito\" w:eastAsia=\"Carlito\" w:hAnsi=\"Carlito\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"en-US\" w:val=\"en-US\"/></w:rPr>"

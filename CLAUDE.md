@@ -14,11 +14,15 @@ engine and is the spec for everything below.
 
 **Status:** CR-001 Phase A (packaging, parts, packages, MCE), CR-001 Phase B (`PropertyResolver`,
 list numbering `Emulator`, `RunFontSelector` and `IdentityPlusMapper`, held to docx4j's own
-answers by 46 parity goldens) and CR-002 phases B to I, the whole content API (`Body`,
+answers by the parity goldens, 60 since CR-007) and CR-002 phases B to I, the whole content API (`Body`,
 `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
 the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
 search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
-implemented; CR-002 phase A is the objects package's `builders/wml`. So are CR-001 Phases C and D
+implemented; CR-002 phase A is the objects package's `builders/wml`. CR-007 (table conditions in
+the `PropertyResolver`, the port of docx4j CR-030: `TableContext`, `CellContext`, the overloads
+taking one, 60 parity goldens; and the content API's effective reads passing `Paragraph.cellContext`)
+is implemented.
+So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine), and CR-006 (`selectObjects` and
 `Body.select`, XPath over the tree, held to docx4j by 46 XPath goldens). The editor's release requests are
@@ -72,7 +76,8 @@ src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink
 src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart (+CustomXmlDataStoragePart), RelationshipsPart,
                   Parts, Namespaces, PartRegistry; wml/ dml/ pml/ sml/ docProps/ customXml/ typed parts
 src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles and theme, body, outline, paragraphAt, getPropertyResolver/getNumberingEmulator/refresh), PresentationMLPackage, SpreadsheetMLPackage, registry
-src/model/properties/ PropertyResolver, the property catalogue (one entry per schema member) and the catalogue-driven half of StyleUtil (apply, applyStyleLevel and the toggle XOR, isEmpty, unset, hasDirectFormatting)
+src/model/properties/ PropertyResolver, the property catalogue (one entry per schema member) and the catalogue-driven half of StyleUtil (apply, applyStyleLevel and the toggle XOR, isEmpty, unset, hasDirectFormatting);
+                  tableStyleConditions.mts (namespace TableStyleConditions) and table.mts (TableContext, CellContext, TableContextTracker): a table style reaches a paragraph only through its CellContext (CR-007)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink), Font, Table (+TableRow, TableCell), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
@@ -124,7 +129,8 @@ Key mechanics:
   on everything inserted (`linkParents`). `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
-  direct. `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
+  direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
+  the table style and its conditional formats (CR-007). `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
   Fragments (`wml`), the element builders (`p`, `r`, `t`, `tbl`, `tr`, `tc`, `sdt`, `sdtPr`,
   `inlinePicture`), the run mapping (`applyRunOptions` / `readRunOptions`, `rPrToElements` /
   `rPrFromElements`), the `w:sdt` accessors (`sdtProperty`, `sdtKindOf`, `nextSdtId`) and
@@ -151,9 +157,9 @@ deep-equal after reload, flat OPC through the objects package's `unmarshalPackag
 A defect in a dependency is recorded as a test that **asserts the broken behaviour**, with the
 upstream commit in a comment, never as a skip: the arriving fix then announces itself by failing
 that assertion (CR-001 section 19).
-`test/golden/` holds 46 JSON goldens - what **docx4j itself** answers for each fixture
-(effective properties, style resolutions, table styles, list labels and counters, the document
-font of every character), written by the Maven harness in `test/java/` and compared by
+`test/golden/` holds 60 JSON goldens - what **docx4j itself** answers for each fixture
+(effective properties, style resolutions, table styles and contexts, each table paragraph's
+in-context properties, list labels and counters, the document font of every character), written by the Maven harness in `test/java/` and compared by
 `test/parity.test.mjs`, which unmarshals both sides and deep-equals object trees, never text.
 Regenerate by hand (build docx4j, then `mvn -q -o compile exec:java -Dfixtures=../fixtures
 -Dout=../golden -Ddocx4j.commit=<hash>` in `test/java`; each README says more);
@@ -211,8 +217,10 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   `model/listnumbering/`, `model/styles/` (`StyleUtil`, `PropertyCatalogue`), `fonts/`;
   `jaxb/McSelection.java` and `McMode.java` are the `mc:AlternateContent` reference (CR-021),
   `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
-  ported against `7fba7a150`; the goldens now record `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
-  the weekly workflow on 2026-09-28 with every answer unchanged), so build docx4j from that commit
+  ported against `7fba7a150`; the goldens recorded `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
+  the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, and now record
+  `843ac12df` (`VERSION_17_3_1`, CR-030 phase 5), harness version 4, which needs docx4j 17.3.1's
+  table context and does not compile against 17.3.0. Build docx4j from that commit
   before regenerating them by hand, and never modify that checkout.
 
 ## Portfolio task registry

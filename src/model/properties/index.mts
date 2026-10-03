@@ -14,4 +14,10 @@ export * from './styleUtil.mjs';
 export {
   PropertyResolver, headingLevelByName, WORD_DEFAULT_CELL_MARGIN_TWIPS, type ResolverSource,
 } from './PropertyResolver.mjs';
+export * as TableStyleConditions from './tableStyleConditions.mjs';
+export { type Condition, type Look } from './tableStyleConditions.mjs';
+export {
+  type TableStyleSource, type TableContextSource,
+  CellContextKey, CellContext, TableContext, TableContextTracker, enclosingCellOf,
+} from './table.mjs';
 export { setLogger, type Logger } from './log.mjs';

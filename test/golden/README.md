@@ -5,7 +5,7 @@ paragraph, run and table properties from `PropertyResolver`, the list label and 
 `Emulator`, and the document font of every character from `RunFontSelector`. They are the
 contract `@docx4j/core-ts` meets in CR-001 Phase B — steps 2, 3 and 4 made the TypeScript
 resolver, emulator and selector produce the same answers, and `test/parity.test.mjs` compares.
-**Every recorded answer is reproduced**: zero differences on all 45, over the effective
+**Every recorded answer is reproduced**: zero differences on all 60 (45 until 2026-09-28, 46 until CR-007), over the effective
 properties, the style resolutions, the table styles, the labels and counters, and the font
 spans.
 
@@ -170,3 +170,22 @@ an object of the part's own tree. **Zero differences.** The harness and the form
 Regenerate with `-Dexec.mainClass=org.docx4j.parity.XPathHarness -Dout=../golden/xpath` on the
 command above. Two runs differ only in the header's `date`, checked by running twice into two
 directories and diffing (2026-09-27).
+
+## CR-007: the table context (harness version 4, 2026-10-04)
+
+All 60 goldens were regenerated at harness version 4 from docx4j `VERSION_17_3_1` at
+`843ac12df0c1279308c02ce479ff8bdf7b29d808` (CR-030 phase 5; local, not pushed when this was
+written), jar `docx4j-core-17.3.1-SNAPSHOT.jar`, SHA-256 `b58d718ef31f152a…`. The provenance table
+above describes the 46 as they were before; **every answer those 46 recorded is unchanged** (checked
+by stripping the new keys and comparing all 46), and the new keys are additions:
+
+- `styles.appliesTableStyleSizeJcException`;
+- per table, `context` (the style it resolves to, the look, band sizes, row and column counts, each
+  row's and cell's conditions);
+- per paragraph in a table cell, `cell` (table style id, conditions, the in-context `effectivePPr`
+  and `paragraphMarkRPr`), and `effectiveRPrInCell` on its runs.
+
+Fourteen fixtures were added under `fixtures/parity/` (`test/README.md`): docx4j CR-030's twelve
+Word probes `tables-*.docx`, and `tables-conditions.docx` with `tables-conditions-mode12.docx`, made
+here for the condition arithmetic the probes do not reach (195 table paragraphs under 22 distinct
+condition sets each). Zero differences on all 60. The counts table above covers the first 45 only.
