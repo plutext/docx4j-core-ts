@@ -14,13 +14,13 @@ engine and is the spec for everything below.
 
 **Status:** CR-001 Phase A (packaging, parts, packages, MCE), CR-001 Phase B (`PropertyResolver`,
 list numbering `Emulator`, `RunFontSelector` and `IdentityPlusMapper`, held to docx4j's own
-answers by the parity goldens, 60 since CR-007) and CR-002 phases B to I, the whole content API (`Body`,
+answers by the parity goldens, 62 since CR-007) and CR-002 phases B to I, the whole content API (`Body`,
 `Paragraph`, `Range`, `Font`, `Table`, `InlinePicture`, `ContentControl` with `XmlMapping` and
 the typed kinds, `Comment`, `TrackedChange`, `List` and `ListItem`, custom XML parts with XPath,
 search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `./office-js`) are
 implemented; CR-002 phase A is the objects package's `builders/wml`. CR-007 (table conditions in
 the `PropertyResolver`, the port of docx4j CR-030: `TableContext`, `CellContext`, the overloads
-taking one, 60 parity goldens; and the content API's effective reads passing `Paragraph.cellContext`)
+taking one, 62 parity goldens; and the content API's effective reads passing `Paragraph.cellContext`)
 is implemented.
 So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
@@ -157,7 +157,7 @@ deep-equal after reload, flat OPC through the objects package's `unmarshalPackag
 A defect in a dependency is recorded as a test that **asserts the broken behaviour**, with the
 upstream commit in a comment, never as a skip: the arriving fix then announces itself by failing
 that assertion (CR-001 section 19).
-`test/golden/` holds 60 JSON goldens - what **docx4j itself** answers for each fixture
+`test/golden/` holds 62 JSON goldens - what **docx4j itself** answers for each fixture
 (effective properties, style resolutions, table styles and contexts, each table paragraph's
 in-context properties, list labels and counters, the document font of every character), written by the Maven harness in `test/java/` and compared by
 `test/parity.test.mjs`, which unmarshals both sides and deep-equals object trees, never text.
@@ -219,7 +219,7 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
   ported against `7fba7a150`; the goldens recorded `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, and now record
-  `843ac12df` (`VERSION_17_3_1`, CR-030 phase 5), harness version 4, which needs docx4j 17.3.1's
+  `0349796f9` (`VERSION_17_3_1`, CR-030 D11), harness version 4, which needs docx4j 17.3.1's
   table context and does not compile against 17.3.0. Build docx4j from that commit
   before regenerating them by hand, and never modify that checkout.
 

@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "4",
-    "docx4jCommit": "843ac12df",
+    "docx4jCommit": "0349796f9",
     "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "b58d718ef31f152a",
-    "date": "2026-10-03T21:51:21Z",
+    "docx4jCoreJarSha256": "0bd93ee753a6c426",
+    "date": "2026-10-03T23:41:40Z",
     "fixture": "tables-conditions-mode12.docx",
     "fixtureBytes": 6886,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
@@ -7188,7 +7188,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "NoText",
-            "conditions": "band1Horz-firstCol",
+            "conditions": "firstCol",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7223,7 +7223,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "NoText",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7546,7 +7546,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "TableNormal",
-            "conditions": "band1Horz-firstCol",
+            "conditions": "firstCol",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7581,7 +7581,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "TableNormal",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7712,7 +7712,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "Missing",
-            "conditions": "band1Horz-firstCol",
+            "conditions": "firstCol",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7747,7 +7747,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "Missing",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7878,7 +7878,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "NoText",
-            "conditions": "band1Horz-firstCol",
+            "conditions": "firstCol",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -7913,7 +7913,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:rFonts w:ascii=\"Liberation Serif\" w:hAnsi=\"Liberation Serif\"/><w:sz w:val=\"24\"/></w:rPr>",
           "cell": {
             "tableStyleId": "NoText",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": false,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"120\"/><w:jc w:val=\"left\"/></w:pPr>",
@@ -9152,8 +9152,8 @@
           "hBand": true,
           "vBand": false
         },
-        "rowBandSize": 1,
-        "colBandSize": 1,
+        "rowBandSize": 0,
+        "colBandSize": 0,
         "rowCount": 2,
         "colCount": 2,
         "rows": [
@@ -9171,14 +9171,14 @@
             ]
           },
           {
-            "conditions": "band1Horz",
+            "conditions": "",
             "cells": [
               {
-                "conditions": "band1Horz-firstCol",
+                "conditions": "firstCol",
                 "formatsText": false
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": false
               }
             ]
@@ -9202,8 +9202,8 @@
           "hBand": true,
           "vBand": false
         },
-        "rowBandSize": 1,
-        "colBandSize": 1,
+        "rowBandSize": 0,
+        "colBandSize": 0,
         "rowCount": 2,
         "colCount": 2,
         "rows": [
@@ -9221,14 +9221,14 @@
             ]
           },
           {
-            "conditions": "band1Horz",
+            "conditions": "",
             "cells": [
               {
-                "conditions": "band1Horz-firstCol",
+                "conditions": "firstCol",
                 "formatsText": false
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": false
               }
             ]
@@ -9252,8 +9252,8 @@
           "hBand": true,
           "vBand": false
         },
-        "rowBandSize": 1,
-        "colBandSize": 1,
+        "rowBandSize": 0,
+        "colBandSize": 0,
         "rowCount": 2,
         "colCount": 2,
         "rows": [
@@ -9271,14 +9271,14 @@
             ]
           },
           {
-            "conditions": "band1Horz",
+            "conditions": "",
             "cells": [
               {
-                "conditions": "band1Horz-firstCol",
+                "conditions": "firstCol",
                 "formatsText": false
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": false
               }
             ]
@@ -9302,8 +9302,8 @@
           "hBand": true,
           "vBand": false
         },
-        "rowBandSize": 1,
-        "colBandSize": 1,
+        "rowBandSize": 0,
+        "colBandSize": 0,
         "rowCount": 2,
         "colCount": 2,
         "rows": [
@@ -9321,14 +9321,14 @@
             ]
           },
           {
-            "conditions": "band1Horz",
+            "conditions": "",
             "cells": [
               {
-                "conditions": "band1Horz-firstCol",
+                "conditions": "firstCol",
                 "formatsText": false
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": false
               }
             ]

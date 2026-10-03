@@ -164,3 +164,22 @@ answers.
 - The editor's ED-003 limitation (table CSS merging no conditions per cell) is the editor's to
   lift: `Paragraph.cellContext`, or `resolver.tableContext(tbl).forCell(tr, tc)` for a cell's own
   conditions, is what it would use.
+
+## 7. docx4j's D11 followed: no band size, no banding (2026-10-04)
+
+Reported by the docx4j session the same day, after `9189ab6`: docx4j `0349796f9` (CR-030 D11, local
+on `VERSION_17_3_1` and not pushed when this was written) takes a band size stated nowhere - not by
+the table's `w:tblPr`, not by its style chain - as **no banding**, where it took 1. Measured there in
+Word with probes T9 and T10: Word's re-save writes no band bit and its PDF has no band formatting.
+The columns follow the rows' rule and were not probed.
+
+Ported: `TableStyleConditions.rowBandSize` and `colBandSize` return 0 for an absent size, and
+`atPosition` bands nothing at 0. `w:cnfStyle` caches stay authoritative, as in the Java. The goldens
+were regenerated at `0349796f9` (jar `0bd93ee753a6c426`, built from a `git archive` export): 20 of
+the 60 moved, in `rowBandSize`, `colBandSize` and `conditions` only, no effective property, and the
+two probes `tables-banding-band-size.docx` and `tables-banding-merged-row.docx` joined the fixtures,
+for 62 goldens. Zero differences.
+
+Until docx4j pushes `0349796f9`, the weekly workflow measures the pushed head, which still answers
+1 for an absent size, and will open a pull request moving these goldens back. Close it unmerged, or
+push docx4j first.

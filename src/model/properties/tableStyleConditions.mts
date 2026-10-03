@@ -110,14 +110,23 @@ function atLeastOne(v: number | undefined): number {
   return v === undefined || !(v >= 1) ? 1 : Math.trunc(v);
 }
 
-/** `w:tblStyleRowBandSize`, at least 1 (the default). */
+/**
+ * `w:tblStyleRowBandSize`, at least 1 where it is stated, and 0 where it is not: Word bands no
+ * row of a table whose style chain and own `w:tblPr` state no band size, whatever its `w:tblLook`
+ * and the style's band conditions (measured, docx4j CR-030 probes T9 and T10, D11: Word's re-save
+ * writes no band bit, and its PDF has no band formatting; a size stated by the table alone is
+ * enough). Until docx4j 0349796f9 an absent size was taken as 1.
+ */
 export function rowBandSize(tblPr: wml.CTTblPrBase | undefined): number {
-  return tblPr?.tblStyleRowBandSize === undefined ? 1 : atLeastOne(tblPr.tblStyleRowBandSize.val);
+  return tblPr?.tblStyleRowBandSize === undefined ? 0 : atLeastOne(tblPr.tblStyleRowBandSize.val);
 }
 
-/** `w:tblStyleColBandSize`, at least 1 (the default). */
+/**
+ * `w:tblStyleColBandSize`, as {@link rowBandSize} for the columns: 0, no vertical banding, where
+ * it is not stated. (By the rows' rule; the columns themselves were not probed in Word.)
+ */
 export function colBandSize(tblPr: wml.CTTblPrBase | undefined): number {
-  return tblPr?.tblStyleColBandSize === undefined ? 1 : atLeastOne(tblPr.tblStyleColBandSize.val);
+  return tblPr?.tblStyleColBandSize === undefined ? 0 : atLeastOne(tblPr.tblStyleColBandSize.val);
 }
 
 /** The bit order of a `w:cnfStyle` value (ECMA-376-1 17.18.6). */
@@ -177,7 +186,8 @@ export function gate(conditions: Set<Condition>, look: Look = DEFAULT_LOOK): Set
  *
  * Banding counts from the first row (column) which is not under a condition of its own: where
  * the look has `firstRow` on, row 1 is the first banded row; a last row (column) the look gives
- * its own condition is left out of the bands too. A band is `w:tblStyleRowBandSize` rows deep.
+ * its own condition is left out of the bands too. A band is `w:tblStyleRowBandSize` rows deep,
+ * and a size of 0 (none stated anywhere, see {@link rowBandSize}) bands nothing.
  * A cell spanning several columns is placed by its first column, and is in the last column
  * where its span reaches it.
  */
@@ -188,7 +198,7 @@ export function atPosition(look: Look, rowBand: number, colBand: number,
   const last = look.lastRow && rowCount > 0 && row === rowCount - 1;
   if (first) out.add('firstRow');
   if (last) out.add('lastRow');
-  if (look.hBand && !first && !last) {
+  if (look.hBand && rowBand > 0 && !first && !last) {
     const offset = look.firstRow ? 1 : 0;
     const band = Math.trunc((row - offset) / Math.max(1, rowBand));
     out.add(band % 2 === 0 ? 'band1Horz' : 'band2Horz');
@@ -198,7 +208,7 @@ export function atPosition(look: Look, rowBand: number, colBand: number,
   const lastCol = look.lastColumn && colCount > 0 && col + span - 1 >= colCount - 1;
   if (firstCol) out.add('firstCol');
   if (lastCol) out.add('lastCol');
-  if (look.vBand && !firstCol && !lastCol) {
+  if (look.vBand && colBand > 0 && !firstCol && !lastCol) {
     const offset = look.firstColumn ? 1 : 0;
     const band = Math.trunc((col - offset) / Math.max(1, colBand));
     out.add(band % 2 === 0 ? 'band1Vert' : 'band2Vert');

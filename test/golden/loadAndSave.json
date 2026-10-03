@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "4",
-    "docx4jCommit": "843ac12df",
+    "docx4jCommit": "0349796f9",
     "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "b58d718ef31f152a",
-    "date": "2026-10-03T21:49:03Z",
+    "docx4jCoreJarSha256": "0bd93ee753a6c426",
+    "date": "2026-10-03T23:41:39Z",
     "fixture": "loadAndSave.docx",
     "fixtureBytes": 55625,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
@@ -1274,7 +1274,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:kern w:val=\"2\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"zh-CN\" w:val=\"en-US\"/><w14:ligatures w14:val=\"standardContextual\"/></w:rPr>",
           "cell": {
             "tableStyleId": "TableGrid",
-            "conditions": "band1Horz-firstCol",
+            "conditions": "firstCol",
             "textConditions": [],
             "formatsText": true,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
@@ -1309,7 +1309,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:kern w:val=\"2\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"zh-CN\" w:val=\"en-US\"/><w14:ligatures w14:val=\"standardContextual\"/></w:rPr>",
           "cell": {
             "tableStyleId": "TableGrid",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": true,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
@@ -1344,7 +1344,7 @@
           "paragraphMarkRPr": "<w:rPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\"><w:rFonts w:asciiTheme=\"minorHAnsi\" w:cstheme=\"minorBidi\" w:eastAsiaTheme=\"minorEastAsia\" w:hAnsiTheme=\"minorHAnsi\"/><w:kern w:val=\"2\"/><w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:bidi=\"ar-SA\" w:eastAsia=\"zh-CN\" w:val=\"en-US\"/><w14:ligatures w14:val=\"standardContextual\"/></w:rPr>",
           "cell": {
             "tableStyleId": "TableGrid",
-            "conditions": "band1Horz",
+            "conditions": "",
             "textConditions": [],
             "formatsText": true,
             "effectivePPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr>",
@@ -2378,8 +2378,8 @@
           "hBand": true,
           "vBand": false
         },
-        "rowBandSize": 1,
-        "colBandSize": 1,
+        "rowBandSize": 0,
+        "colBandSize": 0,
         "rowCount": 2,
         "colCount": 3,
         "rows": [
@@ -2401,18 +2401,18 @@
             ]
           },
           {
-            "conditions": "band1Horz",
+            "conditions": "",
             "cells": [
               {
-                "conditions": "band1Horz-firstCol",
+                "conditions": "firstCol",
                 "formatsText": true
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": true
               },
               {
-                "conditions": "band1Horz",
+                "conditions": "",
                 "formatsText": true
               }
             ]

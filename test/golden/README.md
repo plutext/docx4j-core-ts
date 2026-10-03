@@ -189,3 +189,8 @@ Fourteen fixtures were added under `fixtures/parity/` (`test/README.md`): docx4j
 Word probes `tables-*.docx`, and `tables-conditions.docx` with `tables-conditions-mode12.docx`, made
 here for the condition arithmetic the probes do not reach (195 table paragraphs under 22 distinct
 condition sets each). Zero differences on all 60. The counts table above covers the first 45 only.
+
+**Regenerated again the same day at `0349796f9`** (docx4j CR-030 D11: a band size stated nowhere
+means no banding; jar SHA-256 `0bd93ee753a6c426…`), with docx4j's probes T9 and T10
+(`tables-banding-merged-row`, `tables-banding-band-size`) added: 62 goldens. Twenty of the 60 moved,
+in `rowBandSize`, `colBandSize` and `conditions` only. CR-007 section 7.
