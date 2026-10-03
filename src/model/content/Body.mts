@@ -11,7 +11,7 @@ import { Range } from './Range.mjs';
 import { Table, type TableRow, type TableCell } from './Table.mjs';
 import { ContentControl, collectControls, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
-import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
+import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { expandReplacement, type SearchOptions } from './search.mjs';
@@ -739,6 +739,7 @@ export class Body {
     this.content.length = 0;
     this.content.push(sdt as Element);
     linkParents(sdt, this.container);
+    declareSdtExtensions(this, sdt);
     // under tracking the control itself is the insertion, its content what it was (check 30)
     const tracker = this.changeTracker;
     if (tracker) markHolderInserted(tracker, sdt as Element, this.content, () => {});

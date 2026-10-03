@@ -17,7 +17,7 @@ import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
-import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
+import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
@@ -802,6 +802,7 @@ export class Paragraph {
     const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
     linkParents(sdt, (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container);
+    declareSdtExtensions(this.parentBody, sdt);
     // under tracking the control itself is the insertion, the paragraph what it was (check 30)
     const tracker = this.changeTracker;
     if (tracker) markHolderInserted(tracker, sdt as Element, this.container, () => {});

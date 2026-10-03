@@ -10,7 +10,7 @@ import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@doc
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { Namespaces } from '../../parts/Namespaces.mjs';
-import { controlIdScope, sdtKindFor } from '../customxml/insert.mjs';
+import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { markHolderInserted } from './tracking.mjs';
 import { searchPattern, findAll, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
@@ -216,6 +216,7 @@ export class Range {
     // The control is built empty first: `sdt` refuses a kind that cannot be run-level (a repeating
     // section), and that refusal must come before any run is split.
     const sdt = sdtOf([], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(body)), form: 'run' }) as Element<wml.SdtRun>;
+    declareSdtExtensions(body, sdt);
     if (this.start === this.end) {
       paragraph.insertItemsAt(this.start, [sdt as Element]);
       return new ContentControl(sdt, containerOf(sdt, paragraph), body);

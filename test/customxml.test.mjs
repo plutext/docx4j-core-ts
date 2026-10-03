@@ -537,3 +537,126 @@ test('setMapping puts the node\'s value into the control, as Word and Office JS 
   assert.equal(byNode.xmlMapping.setMappingByNode(node), true);
   assert.equal(byNode.text, 'Ann');
 });
+
+// CR-002 section 40, item 1 (test/README.md check 35, 2026-10-03): Word maps a rich text control with
+// w15:dataBinding; w:dataBinding on one makes it a plain text control to Word 15 and Word 2010.
+test('setMapping writes w15:dataBinding on a rich text control and w:dataBinding on the typed kinds (check 35)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  await pkg.customXmlParts.load();
+  const part = pkg.customXmlParts.add('<data><name>Ann</name><other>Bea</other></data>');
+  const p = pkg.body.insertParagraph('The quick brown fox.', 'End');
+  const rich = p.search('quick')[0].insertContentControl('RichText');
+  const plain = p.search('fox')[0].insertContentControl('PlainText');
+  assert.equal(rich.xmlMapping.setMapping('/data/name'), true);
+  assert.equal(plain.xmlMapping.setMapping('/data/other'), true);
+  // the node's text goes into the rich text control, as into a plain text one (1a)
+  assert.equal(rich.text, 'Ann');
+  assert.equal(rich.xmlMapping.isMapped, true);
+  assert.equal(rich.xmlMapping.xpath, '/data/name');
+  assert.equal(rich.xmlMapping.usesW15, true);
+  assert.equal(plain.xmlMapping.usesW15, false);
+  // mapping again replaces the binding, never leaving two
+  assert.equal(rich.xmlMapping.setMappingByNode(part.selectSingleNode('/data/other')), true);
+  assert.equal(rich.text, 'Bea');
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.equal(xml.match(/<w15:dataBinding /g).length, 1);
+  assert.match(xml, /<w15:dataBinding w:storeItemID="\{[0-9A-F-]+\}" w:xpath="\/data\[1\]\/other\[1\]"\/>/);
+  assert.equal(xml.match(/<w:dataBinding /g).length, 1, 'the plain text control alone');
+  // item 2: the w15 element makes the prefix ignorable, declared on the root
+  assert.match(xml, /<w:document [^>]*xmlns:w15="http:\/\/schemas.microsoft.com\/office\/word\/2012\/wordml"[^>]*mc:Ignorable="w15"/);
+
+  // a rich text control bound with w:dataBinding (0.3.1 and earlier, 1f) is rebound in w15, in place
+  const reloaded = await WordprocessingMLPackage.load(await pkg.save());
+  await reloaded.customXmlParts.load();
+  const again = (await reloaded.getBody()).contentControls[0];
+  assert.equal(again.xmlMapping.xpath, '/data[1]/other[1]', 'read back from w15:dataBinding');
+  again.xmlMapping.delete();
+  assert.equal(again.xmlMapping.isMapped, false);
+  again.putProperty({ name: { namespaceURI: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', localPart: 'dataBinding' },
+    value: { TYPE_NAME: 'org_docx4j_wml.CTDataBinding', xpath: '/data/name', storeItemID: again.parentBody.package_.customXmlParts.items[0].id } });
+  assert.equal(again.xmlMapping.isMapped, true);
+  assert.equal(again.xmlMapping.setMapping('/data/name'), true);
+  const rebound = await reloaded.getMainDocumentPart().getXml();
+  assert.equal(rebound.match(/<w15:dataBinding /g).length, 1);
+  assert.equal(rebound.match(/<w:dataBinding /g).length, 1, 'only the plain text control keeps w:dataBinding');
+  again.xmlMapping.delete();
+  assert.equal(again.xmlMapping.isMapped, false, 'delete removes the w15 binding');
+});
+
+// CR-002 section 40, item 1: a node holding a rich text control's content as Flat OPC is never put
+// into a control as text, nor overwritten with a control's text. 35a-word15.docx is Word's save of
+// check 35: `name` holds a whole pkg:package, 1a is mapped to it with w15:dataBinding, and the inert
+// plain text control Word nested in 1a (1e) is bound to the same node with w:dataBinding - the one
+// Word 2010 fills with the package as raw XML.
+test('a node holding Flat OPC is not put into a control as text (check 35)', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('revisions/check35/35a-word15.docx'));
+  await pkg.customXmlParts.load();
+  const body = await pkg.getBody();
+  const all = [];
+  const collect = (controls) => { for (const c of controls) { all.push(c); collect(c.contentControls); } };
+  collect(body.contentControls);
+  const onName = all.filter((c) => c.xmlMapping.isMapped && /name/.test(c.xmlMapping.xpath));
+  assert.ok(onName.length >= 2, '1a and the control nested in it');
+  assert.ok(onName.some((c) => c.type === 'PlainText'), 'the nested control is plain text, which applyBindings would fill');
+  const value = onName[0].xmlMapping.customXmlNode.text;
+  assert.match(value, /<pkg:package /);
+  const before = onName.map((c) => c.text);
+  await pkg.customXmlParts.applyBindings();
+  assert.deepEqual(onName.map((c) => c.text), before, 'no control took the package as text');
+  for (const c of all) assert.doesNotMatch(c.text, /pkg:package/);
+  // nor is the package overwritten with a control's text
+  await pkg.customXmlParts.updateFromContentControls();
+  assert.equal(onName[0].xmlMapping.customXmlNode.text, value);
+});
+
+// CR-002 section 40, item 2: Word 2010 opens a part holding a w15 element only when w15 is ignorable.
+test('a w15 element the engine writes lists w15 in mc:Ignorable (check 35)', async () => {
+  const rootOf = async (pkg) => /<w:document [^>]*>/.exec(await pkg.getMainDocumentPart().getXml())[0];
+  const section = await WordprocessingMLPackage.createPackage();
+  assert.doesNotMatch(await rootOf(section), /Ignorable/);
+  section.body.insertParagraph('Row', 'End').insertContentControl('RepeatingSection');
+  assert.match(await rootOf(section), /xmlns:w15="[^"]*"[^>]*mc:Ignorable="w15"/);
+  for (const set of [(c) => { c.appearance = 'Tags'; }, (c) => { c.color = '#FF0000'; }]) {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    const control = pkg.body.insertParagraph('Text', 'End').insertContentControl('PlainText');
+    assert.doesNotMatch(await rootOf(pkg), /Ignorable/, 'a control with no w15 element declares nothing');
+    set(control);
+    assert.match(await rootOf(pkg), /mc:Ignorable="w15"/);
+  }
+  // beside the tracker's w16du, and once
+  const tracked = await WordprocessingMLPackage.createPackage();
+  tracked.body.insertParagraph('Kept.', 'End');
+  await tracked.setChangeTrackingMode('TrackAll');
+  const control = tracked.body.paragraphs[0].insertContentControl('PlainText');
+  control.appearance = 'Tags';
+  control.color = '#00FF00';
+  const ignorable = /mc:Ignorable="([^"]*)"/.exec(await rootOf(tracked))[1].split(' ');
+  assert.deepEqual([...ignorable].sort(), ['w15', 'w16du']);
+});
+
+// CR-002 section 40, item 3: the PlaceholderText definition, from current Word (35a-word15.docx).
+test('styles.ensure splices PlaceholderText, and a placeholder the engine writes brings it at save (check 35)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  assert.deepEqual(await pkg.styles.ensure('PlaceholderText'), ['PlaceholderText']);
+  assert.deepEqual(await pkg.styles.ensure('PlaceholderText'), []);
+  assert.match(await pkg.getMainDocumentPart().styleDefinitionsPart.getXml(),
+    /<w:style w:styleId="PlaceholderText" w:type="character"><w:name w:val="Placeholder Text"\/><w:basedOn w:val="DefaultParagraphFont"\/><w:uiPriority w:val="99"\/><w:unhideWhenUsed\/><w:rPr><w:color w:val="666666"\/><\/w:rPr><\/w:style>/);
+
+  const stylesOf = async (bytes) => (await WordprocessingMLPackage.load(bytes)).getMainDocumentPart().styleDefinitionsPart.getXml();
+  // a control mapped to an empty node shows the placeholder: the style arrives with the save
+  const mapped = await WordprocessingMLPackage.createPackage();
+  await mapped.customXmlParts.load();
+  mapped.customXmlParts.add('<data><empty/></data>');
+  const control = mapped.body.insertParagraph('', 'End').getRange('End').insertContentControl('PlainText');
+  control.xmlMapping.setMapping('/data/empty');
+  assert.equal(control.isShowingPlaceholder, true);
+  assert.match(await stylesOf(await mapped.save()), /w:styleId="PlaceholderText"/);
+  // so does one set through placeholderText
+  const set = await WordprocessingMLPackage.createPackage();
+  set.body.insertParagraph('', 'End').getRange('End').insertContentControl('PlainText').placeholderText = 'Type a name';
+  assert.match(await stylesOf(await set.save()), /w:styleId="PlaceholderText"/);
+  // and a document with no placeholder gets none
+  const none = await WordprocessingMLPackage.createPackage();
+  none.body.insertParagraph('Text', 'End').insertContentControl('PlainText');
+  assert.doesNotMatch(await stylesOf(await none.save()), /w:styleId="PlaceholderText"/);
+});

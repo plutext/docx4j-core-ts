@@ -3,6 +3,7 @@
 // the w:sdtPr is the state.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
+import * as w15el from '@docx4j/generated-objects-ts/el/org_docx4j_w15';
 import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
@@ -12,6 +13,7 @@ import { applyBindingTo } from './bindings.mjs';
 
 /** The Word 2012 (w15) namespace; not imported from `ContentControl`, which imports this module. */
 const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
 /** What `XmlMapping` needs of `pkg.customXmlParts`, so that this module does not import the package. */
 export interface CustomXmlPartLookup {
@@ -21,7 +23,9 @@ export interface CustomXmlPartLookup {
 
 /**
  * A subset of Office JS `Word.XmlMapping`: the content control's data binding. `isMapped` is
- * whether the control has a `w:dataBinding`; `customXmlNode` evaluates the XPath now, so it needs
+ * whether the control has a `w:dataBinding` (or, on a rich text control or a repeating section,
+ * the `w15:dataBinding` Word writes there, which is what `setMapping` writes on one: CR-002
+ * section 40); `customXmlNode` evaluates the XPath now, so it needs
  * the XPath engine to be warm (`await pkg.customXmlParts.load()` once, CR-002 section 3.6).
  */
 export class XmlMapping {
@@ -102,15 +106,39 @@ export class XmlMapping {
     return true;
   }
 
-  /** Removes the binding (`w:dataBinding`); the control keeps the content it shows. */
+  /** Removes the binding (`w:dataBinding` and `w15:dataBinding`); the control keeps the content it shows. */
   delete(): void {
-    this.contentControl.removeProperty('dataBinding');
+    this.contentControl.removeProperty('dataBinding', W_NS);
+    this.contentControl.removeProperty('dataBinding', W15_NS);
   }
 
+  /**
+   * Whether the control's binding is `w15:dataBinding`, as Word 2013 and later write it: on a rich
+   * text control (one with `w:richText`, or with no kind element at all) and on a repeating
+   * section. `w:dataBinding` on a rich text control makes it a plain text control to Word 15 and
+   * Word 2010 alike - shown from its node on open, given `<w:text/>` on saving, an edit written
+   * back as text (`test/README.md` check 35, 1f; CR-002 section 40).
+   */
+  get usesW15(): boolean {
+    const type = this.contentControl.type;
+    return type === 'RichText' || type === 'RepeatingSection';
+  }
+
+  /** Writes the binding in the element the control's kind takes, replacing one in the other namespace where it stood. */
   private write(xpath: string, prefixMappings: string, storeItemID: string): void {
     const binding: wml.CTDataBinding = { TYPE_NAME: 'org_docx4j_wml.CTDataBinding', xpath, storeItemID };
     if (prefixMappings !== '') binding.prefixMappings = prefixMappings;
-    this.contentControl.putProperty(el.dataBinding(binding) as Element);
+    const w15 = this.usesW15;
+    const element = (w15 ? w15el.dataBinding(binding) : el.dataBinding(binding)) as Element;
+    const items = this.contentControl.sdt.sdtPr?.rPrOrAliasOrLock as Element[] | undefined;
+    const other = w15 ? W_NS : W15_NS;
+    const at = items?.findIndex((i) => i.name.localPart === 'dataBinding' && i.name.namespaceURI === other) ?? -1;
+    if (items && at >= 0) {
+      if (items.some((i) => i.name.localPart === 'dataBinding' && i.name.namespaceURI === element.name.namespaceURI)) items.splice(at, 1);
+      else items[at] = element;
+    }
+    // putProperty also lists w15 in the part's mc:Ignorable when the element is a w15 one
+    this.contentControl.putProperty(element);
   }
 
   /** The parts to try, the customer's data before Word's property stores. */

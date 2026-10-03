@@ -7,6 +7,9 @@
 //   npm run build && node scripts/make-check35-input.mjs
 //
 // writes test/fixtures/revisions/check35/35-input.docx.
+//
+// Since CR-002 section 40 (2026-10-04) `setMapping` writes `w15:dataBinding` on a rich text control, so
+// this script no longer reproduces 1f's `w:dataBinding`: the committed 35-input.docx is what Word was given.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { WordprocessingMLPackage } from '../dist/index.mjs';
 

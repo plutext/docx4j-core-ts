@@ -166,20 +166,29 @@ export interface TrackedPart {
 }
 
 /**
- * Makes sure the part's root lists `w16du` in `mc:Ignorable`, appending it when absent, so that
- * `w16du:dateUtc` may be written in it; the facade then declares the prefix. This is docx4j's
- * pattern - the writer of the content adds its prefix (`Paginate.declareW14Ignorable`) - and Jason's
- * decision (CR-002 section 29); objects CR-008 would do it for every writer. False when there is no
- * unmarshalled root to put it on. Every part a `Body` is over (document, header, footer, notes,
- * comments) has a root that binds `mc:Ignorable`.
+ * Makes sure the part's root lists a prefix in `mc:Ignorable`, appending it when absent, so that
+ * content in that prefix's namespace may be written in it; the facade then declares the prefix.
+ * This is docx4j's pattern - the writer of the content adds its prefix
+ * (`Paginate.declareW14Ignorable`) - and Jason's decision (CR-002 section 29); objects CR-008 would
+ * do it for every writer. False when there is no unmarshalled root to put it on. Every part a
+ * `Body` is over (document, header, footer, notes, comments) has a root that binds `mc:Ignorable`.
+ *
+ * The prefix must be the facade's conventional one for its namespace (`w15`, `w16du`): an
+ * application that does not know the namespace (Word 2010 and `w15`) opens the part only when the
+ * prefix is ignorable, as Word's own files declare it (CR-002 section 40).
  */
-function declareDateUtc(part: TrackedPart | undefined): boolean {
+export function declareIgnorable(part: TrackedPart | undefined, prefix: string): boolean {
   const contents = part?.contents as { value?: unknown } | undefined;
   if (!contents || typeof contents !== 'object') return false;
   const root = (contents.value && typeof contents.value === 'object' ? contents.value : contents) as { ignorable?: string };
-  const prefixes = (root.ignorable ?? '').split(/\s+/).filter((prefix) => prefix.length > 0);
-  if (!prefixes.includes('w16du')) root.ignorable = [...prefixes, 'w16du'].join(' ');
+  const prefixes = (root.ignorable ?? '').split(/\s+/).filter((p) => p.length > 0);
+  if (!prefixes.includes(prefix)) root.ignorable = [...prefixes, prefix].join(' ');
   return true;
+}
+
+/** `w16du` in the part's `mc:Ignorable`, so that `w16du:dateUtc` may be written in it. */
+function declareDateUtc(part: TrackedPart | undefined): boolean {
+  return declareIgnorable(part, 'w16du');
 }
 
 function element<T>(localPart: string, value: T): Element<T> {

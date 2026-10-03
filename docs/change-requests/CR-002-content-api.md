@@ -3475,7 +3475,8 @@ missing node (false, untouched) and by node.
 ## 40. Requests from the editor after Word check 35 (2026-10-03)
 
 *Asked by the editor (its ED-005 section 12.58), from `test/README.md` check 35, parts 1 and 2,
-run by Jason in current Word and Word 2010 the same day. Not yet scheduled.*
+run by Jason in current Word and Word 2010 the same day. **Implemented 2026-10-04, unreleased**
+(the note after the three items).*
 
 1. **A rich text control is mapped with `w15:dataBinding`.** Word's XML Mapping Pane maps a rich
    text control that way (1a to 1d). A rich text control bound with `w:dataBinding` is plain text to
@@ -3511,3 +3512,37 @@ run by Jason in current Word and Word 2010 the same day. Not yet scheduled.*
    Asked: carry it among the definitions `styles.ensure` splices, and ensure it wherever the engine
    writes a placeholder. The editor would then ensure it at save when a placeholder is in the
    document.
+
+**Implemented 2026-10-04** (at Jason's word; `customxml.test.mjs` holds a test per item).
+
+1. `XmlMapping.setMapping` and `setMappingByNode` write `w15:dataBinding` where `usesW15` says so:
+   on a rich text control, which is one with `w:richText` or with no kind element, and on a
+   repeating section, where Word 2013 writes it too. Every other kind keeps `w:dataBinding`. A
+   binding in the other element is replaced where it stood, so a rich text control bound with
+   `w:dataBinding` by 0.3.1 is put right by mapping it again, and `delete()` removes both forms.
+   `applyBindingTo` returns false for a node whose value is a Flat OPC package (`holdsFlatOpc`: the
+   value starts with a `package` element and names the `xmlPackage` namespace), whatever the
+   control's kind, and `updateFromControl` does not write a control's text over such a node. The
+   test runs both directions over Word's own `35a-word15.docx`, whose `name` node holds the package
+   and whose nested plain text control (1e) is the one Word 2010 fills with it.
+   - Not done: putting the package into the rich text control as content, which is what Word shows.
+     `insertOoxml` could carry it; nobody has asked.
+   - Not changed: a control with an explicit `w:richText` is still skipped in both directions, so
+     mapping one writes the binding and moves no text. An untyped one takes the node's text, as
+     1a did in Word. An edit to a mapped rich text control still writes its text to the node, not
+     Flat OPC.
+   - `scripts/make-check35-input.mjs` made 1f with `setMapping`; run again it would now write
+     `w15:dataBinding` there. The committed `35-input.docx` is the input Word was given.
+2. `declareIgnorable(part, prefix)` in `tracking.mts` is `declareDateUtc` generalised. It is called
+   for `w15` by `ContentControl.putProperty` when the element is a `w15` one (`appearance`,
+   `color`, `w15:dataBinding`) and by the three `insertContentControl`s when the new `w:sdtPr`
+   holds one (`declareSdtExtensions`: the repeating section and its item). A created package then
+   has `xmlns:w15` and `mc:Ignorable="w15"` on `w:document`, beside `w16du` when tracking wrote
+   that. Not covered: `w15` content a caller brings through `insertOoxml` or `insertXml`, and
+   `w14:checkbox`, which Word 2010 knows.
+3. `placeholderStyle()` (`parts/wml/placeholderStyle.mts`) is Word's definition above, among the
+   definitions `styles.ensure` splices. `ContentControl.setBoundContent` asks the package for it
+   (`requireStyles`, as a new hyperlink asks for `Hyperlink`) whenever it writes a placeholder,
+   which covers `applyBindings`, a mapping to an empty node and the `placeholderText` setter. The
+   style is spliced when the package is saved; `await pkg.styles.ensure('PlaceholderText')` has it
+   at once. A document that already defines it keeps its styles part byte for byte.

@@ -29,6 +29,17 @@ export interface BindingResult {
   skipped: number;
 }
 
+/**
+ * Whether a node's value is a Flat OPC package: what Word writes into the node of a mapped rich
+ * text control when its content is edited, a whole `pkg:package` as escaped text (`test/README.md`
+ * check 35). It is content, never a control's text - Word 2010 shows it as raw XML in a plain text
+ * control bound to the same node - so neither direction moves it as text (CR-002 section 40).
+ */
+export function holdsFlatOpc(value: string): boolean {
+  return /^\s*(<\?[^>]*\?>\s*)*<([\w.-]+:)?package[\s>]/.test(value)
+    && value.includes('http://schemas.microsoft.com/office/2006/xmlPackage');
+}
+
 function isTrue(value: string): boolean {
   const v = value.trim().toLowerCase();
   return v === 'true' || v === '1' || v === 'on' || v === 'yes';
@@ -127,8 +138,8 @@ function dateOf(value: string): Date | undefined {
 
 /**
  * Pushes the custom XML value into one control (docx4j BindingHandler's per-sdt work). Returns
- * false when nothing was written: no binding, no part, an XPath that selects nothing, or a kind
- * this phase does not handle (pictures, explicit rich text).
+ * false when nothing was written: no binding, no part, an XPath that selects nothing, a kind
+ * this phase does not handle (pictures, explicit rich text), or a node holding a Flat OPC package.
  */
 export function applyBindingTo(control: ContentControl): boolean {
   const mapping = control.xmlMapping;
@@ -142,6 +153,8 @@ export function applyBindingTo(control: ContentControl): boolean {
   // Explicit rich text is bound from flat OPC or XHTML in docx4j; deferred, as it is there for this route.
   if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
+  // A Flat OPC package is a rich text control's content, not text: no control is filled with it.
+  if (holdsFlatOpc(value)) return false;
 
   if (control.type === 'CheckBox') {
     const checkbox = control.checkboxContentControl;
@@ -199,6 +212,8 @@ export function updateFromControl(control: ContentControl): boolean {
   if (isContainer(control)) return false;
   // A control showing its placeholder holds no value.
   if (control.isShowingPlaceholder) return false;
+  // The node holds a rich text control's content as Flat OPC: text is not written over it.
+  if (holdsFlatOpc(node.text)) return false;
 
   let value = control.text;
   if (control.type === 'CheckBox') {

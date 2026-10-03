@@ -17,7 +17,8 @@ import {
   CheckboxContentControl, DatePickerContentControl, ListContentControl, PictureContentControl,
   RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
 } from '../customxml/kinds.mjs';
-import { runsForValue, updateFromControl, PLACEHOLDER_TEXT } from '../customxml/bindings.mjs';
+import { runsForValue, updateFromControl, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
+import { declareIgnorable } from './tracking.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
 import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, runOf, SDT_TYPES } from './tree.mjs';
 import type { Body } from './Body.mjs';
@@ -436,13 +437,18 @@ export class ContentControl {
     return sdtProperty(this.sdt.sdtPr, 'group') ? new GroupContentControl() : undefined;
   }
 
-  /** Adds or replaces a `w:sdtPr` child (extension). */
+  /**
+   * Adds or replaces a `w:sdtPr` child (extension). A `w15` element (`w15:appearance`, `w15:color`,
+   * `w15:dataBinding`, the repeating section) puts `w15` in the part's `mc:Ignorable`, as Word's own
+   * files have it: Word 2010 opens a part holding one only then (CR-002 section 40).
+   */
   putProperty(element: Element): void {
     const sdt = this.sdt as { sdtPr?: wml.SdtPr };
     sdt.sdtPr ??= {};
     const items = (sdt.sdtPr.rPrOrAliasOrLock ??= []);
     const at = items.findIndex((i) => i.name.localPart === element.name.localPart && i.name.namespaceURI === element.name.namespaceURI);
     if (at >= 0) items[at] = element as never; else items.push(element as never);
+    if (element.name.namespaceURI === W15_NS) declareIgnorable(this.parentBody.part, 'w15');
   }
 
   /** Removes a `w:sdtPr` child (extension). */
@@ -499,6 +505,12 @@ export class ContentControl {
       }
     }
     this.isShowingPlaceholder = showingPlaceholder;
+    // The placeholder run names the PlaceholderText style, which a document made here lacks: the
+    // package splices the definition in when it is saved, as it does a new hyperlink's style. Word
+    // 2010 drops a w:rStyle naming a style the part does not define (CR-002 section 40).
+    if (showingPlaceholder) {
+      (this.parentBody.package_ as { requireStyles?: (ids: string[]) => void } | undefined)?.requireStyles?.([PLACEHOLDER_STYLE]);
+    }
   }
 
   /** Shows a checkbox's glyph, as Word writes it: one run in the checkbox font (docx4j checkboxRun). */
