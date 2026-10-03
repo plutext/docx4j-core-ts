@@ -1015,21 +1015,20 @@ already named, so each case starts by opening its own file.
 
    **Ctrl+S.**
 
-   **Part 2, Word 2010**, which has no XML Mapping Pane (VBA's `XMLMapping` is its way in):
-   - Open `35-input.docx` and note what 1f shows. **Save As** `35b-word2010-vba.docx`, then Alt+F11,
-     Ctrl+G (the Immediate window), and run these two lines one at a time (each is one line). Copy
-     back what each prints, or the error message if one stops:
+   **Part 2, Word 2010** (revised 2026-10-03 after part 1: Word 2010 maps no rich text, so what
+   matters is whether it opens these files, the editor's round-trip oracle being Word 2010; no VBA):
+   - Open `35a-word15.docx`, Word 15's forms (`w15:dataBinding`, `w16sdtdh:storeItemChecksum`).
+     Note any message, and what 1a to 1f show. Type " 2010" at the end of 1f's text, and **File >
+     Save As** `35c-word2010.docx`.
+   - Open `35d-editor.docx` (in `__tmp/35/`, made from `35-input.docx` by the editor's
+     `test/fixtures/build/check35-for-word.mjs`). In it: 1a mapped to `name` with
+     `w15:dataBinding`, showing "Ann", and inside it a plain text control bound to `rich2`
+     (`w:dataBinding`, the placeholder); 1b mapped to `rich1` with `w15:dataBinding` (the
+     placeholder); 1f untouched; "After." in a `w15:repeatingSection`; `w15` listed in `mc:Ignorable`
+     by the editor's save. Note any message, and what 1a, 1b, 1f and "After." show. Type " 2010" at
+     the end of 1f's text, and **File > Save As** `35e-word2010.docx`.
 
-     ```
-     Set cc = ActiveDocument.SelectContentControlsByTitle("1a")(1): Debug.Print "1a type "; cc.Type; " mapped "; cc.XMLMapping.SetMapping("/data/name"); " | "; cc.Range.Text
-     Set cc = ActiveDocument.SelectContentControlsByTitle("1b")(1): Debug.Print "1b type "; cc.Type; " mapped "; cc.XMLMapping.SetMapping("/data/rich1"); " | "; cc.Range.Text
-     ```
-
-     Type " more" at the end of 1f's text, and **Ctrl+S**.
-   - Open `35a-word15.docx` and note what 1a to 1f show. Type " 2010" at the end of 1c's second line,
-     and **File > Save As** `35c-word2010.docx`.
-
-   Put the three files in `fixtures/revisions/check35/` (or leave them in `__tmp/35/`).
+   Put the files in `fixtures/revisions/check35/` (or leave them in `__tmp/35/`).
 
    The questions:
    - whether Word 15 writes a binding on a rich text control, as `w:dataBinding` or
@@ -1042,8 +1041,9 @@ already named, so each case starts by opening its own file.
    - whether the pane nests a plain text control inside a mapped rich text control (1e);
    - whether a rich text control bound with `w:dataBinding` (1f) is honoured: refreshed from its node
      on open, and written to its node by an edit, in Word 15 and in Word 2010;
-   - whether Word 2010 keeps Word 15's rich text bindings through a save, and what its edit writes
-     (`35c`).
+   - whether Word 2010 opens `35a` and the editor's `35d` without complaint, which `w15` bindings
+     survive its save, and whether it takes 1f's `w:dataBinding` on rich text as Word 15 does
+     (showing "Bea", writing " 2010" to `bound`).
 
    The engine today: `xmlMapping.setMapping` writes `w:dataBinding` on any control, rich text
    included, and `applyBindingTo` puts the node's text into an untyped control and skips one with
@@ -1052,7 +1052,7 @@ already named, so each case starts by opening its own file.
    `w:dataBinding` and shows the node's text in it.
 
    **Part 1 run 2026-10-03 (current Word), `fixtures/revisions/check35/35a-word15.docx`; part 2 (Word
-   2010) to come.** Jason's notes, then the file:
+   2010, revised above) to come.** Jason's notes, then the file:
    - **Rich text is mapped with `w15:dataBinding`** (canonical path, `w:prefixMappings=""`), with
      `w16sdtdh:storeItemChecksum` on 1a's. The pane's Insert Content Control offers Rich Text, Plain
      Text, Picture, Check Box, Combo Box, Drop-Down List and Date Picker.
