@@ -981,6 +981,76 @@ already named, so each case starts by opening its own file.
      into the control (CR-002 section 39). Its `Range.insertContentControl` still keeps the selected
      runs as they are; an insert-and-map in one step is the editor's to compose from the two.
 
+35. Rich text content controls mapped to custom XML (the editor's request of 2026-10-03, at Jason's
+   word, for its Data tab's bind; CR-002 phase E). Does Word let a rich text control carry a binding,
+   in which element (`w:dataBinding`, or `w15:dataBinding` as `invoice2013.docx`'s "terms" control
+   has it), and what goes into the control and into the node? Open
+   `fixtures/revisions/check35/35-input.docx` (made by the engine with
+   `scripts/make-check35-input.mjs`; a copy is in the shared `__tmp/35/`). Its custom XML part is
+   `<data><name>Ann</name><rich1/><rich2/><bound>Bea</bound></data>`, and it has a labelled paragraph
+   per case:
+   - "1a.": a run-level rich text control titled 1a around "quick **brown**";
+   - "1b.": a block-level rich text control titled 1b holding two paragraphs, "bold" in bold;
+   - "1c." and "1d.": an empty paragraph each, under the label;
+   - "1f.": a run-level rich text control titled 1f showing "Old text", bound with `w:dataBinding` to
+     `/data/bound` ("Bea"), as the engine's `setMapping` and the editor bind a rich text control.
+
+   **Part 1, current Word.** **File > Save As** `35a-word15.docx` first (AutoSave overwrites); Track
+   Changes **off**. First note what 1f shows: "Old text" or "Bea". Developer > **XML Mapping Pane**;
+   in its Custom XML Part list choose the part that shows `data`. Then, in order:
+   - 1a: the caret inside 1a's text; in the pane right-click **name** and choose **Map to Selected
+     Content Control**. Note what the control shows, and anything Word refuses or says.
+   - 1b: the caret inside 1b's first paragraph; right-click **rich1** > Map to Selected Content
+     Control. Note what it shows: its two paragraphs, a placeholder, or something else. Then type
+     " Edited." at the end of its second paragraph.
+   - 1c: the caret in the empty paragraph under "1c."; right-click **rich2** > **Insert Content
+     Control**, note which kinds the submenu offers, and choose **Rich Text**. In the new control type
+     `Hello `, then **Ctrl+B**, `world`, **Ctrl+B**, **Enter**, `Second line.`
+   - 1d: the caret in the empty paragraph under "1d."; right-click **rich2** > Insert Content Control
+     > **Rich Text**. Note what it shows: 1c's two paragraphs with "world" bold, their text alone, or
+     a placeholder.
+   - 1e: the caret inside 1a's control, mapped since 1a; right-click **name** > Insert Content Control
+     > **Plain Text**. Note whether Word nests a control in it, refuses, or says something.
+   - 1f: type " more" at the end of 1f's text.
+
+   **Ctrl+S.**
+
+   **Part 2, Word 2010**, which has no XML Mapping Pane (VBA's `XMLMapping` is its way in):
+   - Open `35-input.docx` and note what 1f shows. **Save As** `35b-word2010-vba.docx`, then Alt+F11,
+     Ctrl+G (the Immediate window), and run these two lines one at a time (each is one line). Copy
+     back what each prints, or the error message if one stops:
+
+     ```
+     Set cc = ActiveDocument.SelectContentControlsByTitle("1a")(1): Debug.Print "1a type "; cc.Type; " mapped "; cc.XMLMapping.SetMapping("/data/name"); " | "; cc.Range.Text
+     Set cc = ActiveDocument.SelectContentControlsByTitle("1b")(1): Debug.Print "1b type "; cc.Type; " mapped "; cc.XMLMapping.SetMapping("/data/rich1"); " | "; cc.Range.Text
+     ```
+
+     Type " more" at the end of 1f's text, and **Ctrl+S**.
+   - Open `35a-word15.docx` and note what 1a to 1f show. Type " 2010" at the end of 1c's second line,
+     and **File > Save As** `35c-word2010.docx`.
+
+   Put the three files in `fixtures/revisions/check35/` (or leave them in `__tmp/35/`).
+
+   The questions:
+   - whether Word 15 writes a binding on a rich text control, as `w:dataBinding` or
+     `w15:dataBinding`, and whether Word 2010's `SetMapping` refuses one (`False`, or an error);
+   - which side wins when a rich text control holding content is mapped: 1a to a node holding "Ann",
+     1b to an empty node. For a plain text control the node's value wins (check 34);
+   - what a mapped rich text control's edit writes to its node (1b, 1c, 1f): its text, or its content
+     as escaped WordprocessingML (a Flat OPC `pkg:package`, as `invoice2013.docx`'s "terms" node holds
+     it). And whether a second control mapped to the same node (1d) shows the formatting;
+   - whether the pane nests a plain text control inside a mapped rich text control (1e);
+   - whether a rich text control bound with `w:dataBinding` (1f) is honoured: refreshed from its node
+     on open, and written to its node by an edit, in Word 15 and in Word 2010;
+   - whether Word 2010 keeps Word 15's rich text bindings through a save, and what its edit writes
+     (`35c`).
+
+   The engine today: `xmlMapping.setMapping` writes `w:dataBinding` on any control, rich text
+   included, and `applyBindingTo` puts the node's text into an untyped control and skips one with
+   `w:richText` ("explicit rich text is bound from flat OPC or XHTML in docx4j; deferred").
+   `XmlMapping.dataBinding` reads `w15:dataBinding` too. The editor binds a rich text control with
+   `w:dataBinding` and shows the node's text in it.
+
 A small Node script for 1 to 3 is:
 
 ```js
