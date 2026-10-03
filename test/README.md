@@ -1063,7 +1063,8 @@ already named, so each case starts by opening its own file.
      (document, styles, the glossary; about 51 KB) of 1a's content, the nested control included.
    - **Typing in a mapped control showing its placeholder wrote nothing:** 1b ("     edited") and 1c
      ("Hello **world**" and "Second line.", in the `PlaceholderText` style) keep `w:showingPlcHdr`,
-     and `rich1` and `rich2` are still empty, so 1d, mapped to `rich2`, shows the placeholder.
+     and `rich1` and `rich2` are still empty, so 1d, mapped to `rich2`, shows the placeholder. The
+     typed text looked grey in Word (Jason): it stayed placeholder text.
    - **1e: the pane nests a plain text control inside the mapped 1a,** with the alert "The custom XML
      node is already mapped to a rich text content control, so it can't be mapped to a plain text
      content control." The nested control is saved with a `w:dataBinding` to `name` anyway, showing
