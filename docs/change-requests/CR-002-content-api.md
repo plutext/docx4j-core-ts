@@ -3441,3 +3441,33 @@ record, accept and reject, and the same-properties case recording nothing; and t
 centred then left with tracking off, leaving no `w:jc`, and right written. Each fails on the code
 before it.
 
+## 39. Mapping takes the node's value (Word check 34, 2026-10-03)
+
+*The editor's request of 2026-10-03, at Jason's word, for its Data tab's "bind": what Word writes
+when a plain text control is created already mapped to a custom XML node, and which side wins when
+a control holding text is mapped. `test/README.md` check 34, run the same day; **implemented
+2026-10-03, unreleased**.*
+
+What Word's XML Mapping Pane does (part 1, in full in the check): a run-level plain text control at
+a caret, a block-level one in an empty paragraph, the selected text replaced by the node's value
+over a selection - across two paragraphs the first paragraph's part only, not refused; with a
+picture, the picture kept and pushed to the paragraph's end; inside an existing control, a new one
+nested - the placeholder for an empty node, and under tracking the control marked inserted (check
+30's markers) with the selection deleted and the value inserted inside it. The binding is the
+canonical path (`/data[1]/name[1]`, `w:prefixMappings=""`), with `<w:text/>` and Word's default
+placeholder `w:docPart`.
+
+What mapping does to a control's text (part 2): Office JS has `ContentControl.xmlMapping` with the
+members this package's `XmlMapping` has, and its `setMapping` **puts the node's value into the
+control** - "quick brown" became "Ann", as did an empty control, the part unchanged - and the pane's
+Map to Selected Content Control does the same. This package's `setMapping` and `setMappingByNode`
+wrote the binding and moved no value, leaving the two apart until `applyBindings`; they now apply the
+binding to the control as they write it (`applyBindingTo`, the per-control half of `applyBindings`),
+so a control's text is the node's once mapped, whatever it held. A path that selects nothing still
+returns false and changes nothing. Office JS binds with the XPath as given and the first part the
+path selects in, as `setMapping` here already did; the canonical form is `setMappingByNode`'s.
+
+Not changed: `Range.insertContentControl` keeps the selected runs; the editor composes "insert and
+map" from the two, and gets Word's replacement from the mapping. `customxml.test.mjs` holds the
+mapping over text, at a caret, over the value already, to an empty node (the placeholder), to a
+missing node (false, untouched) and by node.

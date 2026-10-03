@@ -489,3 +489,51 @@ test('the XPath engine readies for the document it is given, not the global one'
   await engine.ready(parseXml('<a><b>one</b></a>'));
   assert.equal(engine.isReady, true);
 });
+
+// CR-002 section 39: what mapping does to the control's text (test/README.md check 34, 2026-10-03)
+test('setMapping puts the node\'s value into the control, as Word and Office JS do (check 34)', async () => {
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    await pkg.customXmlParts.load();
+    pkg.customXmlParts.add('<data><name>Ann</name><empty/></data>');
+    const p = pkg.body.insertParagraph('The quick brown fox.', 'End');
+    p.search('brown')[0].font.bold = true;
+    return pkg;
+  };
+  const xmlOf = async (pkg) => (await pkg.getMainDocumentPart().getXml()).replace(/ w14:\w+="[^"]*"/g, '');
+  // 2a: a control over "quick brown" (its second run bold), then the mapping: "Ann", the part unchanged
+  const a = await make();
+  const over = a.body.paragraphs[0].search('quick brown')[0].insertContentControl('PlainText');
+  assert.equal(over.xmlMapping.setMapping('/data/name'), true);
+  assert.equal(over.text, 'Ann');
+  assert.equal(a.body.paragraphs[0].text, 'The Ann fox.');
+  assert.match(await xmlOf(a), /<w:sdtPr><w:id w:val="\d+"\/><w:text\/><w:dataBinding w:storeItemID="\{[0-9A-F-]+\}" w:xpath="\/data\/name"\/><\/w:sdtPr><w:sdtContent><w:r><w:t>Ann<\/w:t><\/w:r><\/w:sdtContent>/);
+  assert.equal(a.customXmlParts.items[0].getXml().includes('<name>Ann</name>'), true, 'the node keeps its value');
+  // 2b: at a caret, and a control already holding the value
+  const b = await make();
+  const caret = b.body.paragraphs[0].search('quick')[0].getRange('End').insertContentControl('PlainText');
+  caret.xmlMapping.setMapping('/data/name');
+  assert.equal(caret.text, 'Ann');
+  assert.equal(b.body.paragraphs[0].text, 'The quickAnn brown fox.');
+  const c = await make();
+  const ann = c.body.paragraphs[0].search('quick brown')[0].insertContentControl('PlainText');
+  ann.insertText('Ann', 'Replace');
+  ann.xmlMapping.setMapping('/data/name');
+  assert.equal(ann.text, 'Ann');
+  // 1i: mapped to an empty node, the control shows its placeholder
+  const d = await make();
+  const empty = d.body.paragraphs[0].getRange('End').insertContentControl('PlainText');
+  assert.equal(empty.xmlMapping.setMapping('/data/empty'), true);
+  assert.equal(empty.isShowingPlaceholder, true);
+  // a path that selects nothing: false, and the control untouched
+  const e = await make();
+  const kept = e.body.paragraphs[0].search('quick brown')[0].insertContentControl('PlainText');
+  assert.equal(kept.xmlMapping.setMapping('/data/missing'), false);
+  assert.equal(kept.text, 'quick brown');
+  // setMappingByNode the same
+  const f = await make();
+  const byNode = f.body.paragraphs[0].search('quick brown')[0].insertContentControl('PlainText');
+  const node = f.customXmlParts.items[0].selectSingleNode('/data/name');
+  assert.equal(byNode.xmlMapping.setMappingByNode(node), true);
+  assert.equal(byNode.text, 'Ann');
+});

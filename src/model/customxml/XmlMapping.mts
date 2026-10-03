@@ -8,6 +8,7 @@ import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import type { CustomXmlPart, CustomXmlNode } from './CustomXmlPart.mjs';
 import { canonicalXPathOf } from './xpath.mjs';
+import { applyBindingTo } from './bindings.mjs';
 
 /** The Word 2012 (w15) namespace; not imported from `ContentControl`, which imports this module. */
 const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
@@ -74,7 +75,12 @@ export class XmlMapping {
    * Binds the control to what the XPath selects, as Word's own mapping does: the part is the one
    * given, else the one the control is already bound to, else the first custom XML part (the
    * built-in property stores last) in which the XPath selects a node. Returns false and changes
-   * nothing when nothing is selected, which is what Word reports.
+   * nothing when nothing is selected, which is what Word reports. **The node's value then goes into
+   * the control**, whatever text it held: Office JS's `setMapping` on a plain text control holding
+   * "quick brown", on an empty one and on one already holding the value, and Word's XML Mapping
+   * Pane mapping an existing control, each showed the node's "Ann" and left the part unchanged
+   * (`test/README.md` check 34, 2026-10-03; CR-002 section 39). Before, only the binding was
+   * written and the values stayed apart until `applyBindings`.
    */
   setMapping(xpath: string, prefixMappings?: string, part?: CustomXmlPart): boolean {
     const candidates = part ? [part] : this.candidates();
@@ -82,15 +88,17 @@ export class XmlMapping {
       const node = candidate.selectSingleNode(xpath, prefixMappings);
       if (!node) continue;
       this.write(xpath, prefixMappings ?? '', candidate.id);
+      applyBindingTo(this.contentControl);
       return true;
     }
     return false;
   }
 
-  /** Binds to a node: its canonical XPath and the prefixes that path needs, as Word writes them. */
+  /** Binds to a node: its canonical XPath and the prefixes that path needs, as Word writes them; the node's value goes into the control (check 34). */
   setMappingByNode(node: CustomXmlNode): boolean {
     const { xpath, prefixMappings } = canonicalXPathOf(node.node);
     this.write(xpath, prefixMappings, node.ownerPart.id);
+    applyBindingTo(this.contentControl);
     return true;
   }
 

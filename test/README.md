@@ -897,6 +897,90 @@ already named, so each case starts by opening its own file.
    alone, with text kept, and not to a paragraph deleted whole; the engine's withdrawal of it stands,
    measured.
 
+34. A plain text content control created already mapped to a custom XML node, and a control mapped to
+   a node whose value differs from its text (the editor's request of 2026-10-03, at Jason's word, for
+   its Data tab's "bind"; CR-002 phase E). Open `fixtures/revisions/check34/34-input.docx` (made by the
+   engine; a copy is in the shared `__tmp/34/`): a custom XML part `<data><name>Ann</name><empty/></data>`
+   and a labelled paragraph per case, "1a." to "2b.", "The quick **brown** fox." with "brown" bold;
+   1d's is the empty paragraph under its label, 1f's two paragraphs, 1g's holds a small picture, 1h's
+   an existing rich text control titled "Existing" (no footnote: a selection holding one is not
+   covered). In current Word, **File > Save As** `34a-mapped.docx` first (AutoSave overwrites);
+   user name Author A; Track Changes **off**. Developer > **XML Mapping Pane**; in its Custom XML
+   Part list choose the part whose name is `(no namespace)` or shows `data`. For each case put the
+   caret or selection in that case's paragraph, then in the pane right-click **name** (under data)
+   and choose **Insert Content Control > Plain Text**:
+   - 1a: the caret inside "quick" ("qu|ick"). 1b: between "quick" and "brown". 1c: at the paragraph's
+     end. 1d: in the empty paragraph.
+   - 1e: "quick brown" selected (the selection's first run plain, its second bold).
+   - 1f: a selection from "quick" in the first of the two paragraphs to "brown" in the second.
+   - 1g: a selection holding the picture ("here: " through the picture).
+   - 1h: the caret inside the existing control's text.
+   - 1i: the caret at the end of its paragraph, but right-click **empty** instead of name.
+   Note, as you go, what each control shows (its text, or a placeholder), and anything Word refused
+   or said. **Ctrl+S.** Then 1j: Track Changes **on**, "quick brown" selected in the "1j." paragraph,
+   name > Insert Content Control > Plain Text; **File > Save As** `34b-tracked.docx`. Put both files
+   in `fixtures/revisions/check34/` (or leave them in `__tmp/34/`).
+
+   **Part 2, the API.** Which side wins when a control that already has text is mapped: the node's
+   value into the control, or the control's text into the node? First the Script Lab probe (new
+   blank document; `__tmp/34/` `check34-script.js` and `check34.html`; **Run the check**, copy the
+   JSON back): it adds the part with `customXmlParts.add`, makes the control with
+   `insertContentControl('PlainText')` (falling back to rich text if the build refuses the type), and
+   looks for `ContentControl.xmlMapping`; if Office JS has no mapping API, which is likely, it says
+   so and the answer comes from VBA, which is the API the engine's `XmlMapping` mirrors. For that,
+   open `34-input.docx` again, **Save As** `34c-vba.docx`, Alt+F11, Ctrl+G (the Immediate window),
+   and run these three lines one at a time (each is one line; "2a." is paragraph 14, "2b." 15):
+
+   ```
+   Set r = ActiveDocument.Paragraphs(14).Range: r.Find.Execute FindText:="quick brown": Set cc = ActiveDocument.ContentControls.Add(wdContentControlText, r): cc.XMLMapping.SetMapping "/data/name": Debug.Print "2a control: "; cc.Range.Text; " | node: "; cc.XMLMapping.CustomXMLNode.Text
+   Set r = ActiveDocument.Paragraphs(15).Range: r.Find.Execute FindText:="quick": r.Collapse 0: Set cc = ActiveDocument.ContentControls.Add(wdContentControlText, r): cc.XMLMapping.SetMapping "/data/name": Debug.Print "2b caret control: "; cc.Range.Text; " | node: "; cc.XMLMapping.CustomXMLNode.Text
+   Set r = ActiveDocument.Paragraphs(15).Range: r.Find.Execute FindText:="brown": Set cc = ActiveDocument.ContentControls.Add(wdContentControlText, r): cc.Range.Text = "Ann": cc.XMLMapping.SetMapping "/data/name": Debug.Print "2b Ann control: "; cc.Range.Text; " | node: "; cc.XMLMapping.CustomXMLNode.Text
+   ```
+
+   Copy the Immediate window's three printed lines back, and **Ctrl+S** (the file then holds the
+   controls and the part as Word left them).
+
+   The engine today: `Range.insertContentControl('PlainText')` wraps the selected runs as they are,
+   formatting kept, and an empty control at a caret; a `Range` is within one paragraph, so 1f cannot
+   be asked of it; inside an existing control it nests a new one. `xmlMapping.setMapping('/data/name')`
+   writes the `w:dataBinding` and moves **no** value either way: the control keeps "quick brown" and
+   the node "Ann" until the caller runs `applyBindings` (node into controls) or
+   `updateFromContentControls` (controls into nodes). Whichever side Word's SetMapping takes, the
+   engine's `setMapping` will follow.
+
+   **Run 2026-10-03 (Word 16.0.20430.20118); files in `fixtures/revisions/check34/`: `34a-mapped.docx`,
+   `34b-tracked.docx`, `34c-vba.docx` (three plain text controls made by VBA, unmapped),
+   `34d-mapped-existing.docx`, `probe.json` (the Office JS probe's second run; `probe-first-run.json`
+   its first, which read an unloaded property before the mapping).**
+   - **Part 1.** Every insert made a plain text control showing the node's **"Ann"** (1i the
+     placeholder), with `w:dataBinding w:prefixMappings="" w:xpath="/data[1]/name[1]"` (the canonical
+     path), the part's `storeItemID`, `<w:text/>`, and Word's default placeholder `w:docPart`. 1a, 1b,
+     1c: a run-level control at the caret, the word split around it ("qu", control, "ick "), the
+     control's run plain. 1d: a **block-level** control around the empty paragraph, holding "Ann".
+     1e: the selection **replaced** by "Ann" in a plain run (the selection's first run was plain; a
+     bold first run is not measured). 1f: **not refused**: the control replaced the first paragraph's
+     selected text ("quick") and the second paragraph was left as it was. 1g: the selected text
+     replaced and the picture **kept, moved to the end of the paragraph** after " after it." (why it
+     could not be seen). 1h: a new mapped control **nested** inside the existing one, its text split
+     around it. 1i: `w:showingPlcHdr` and the placeholder run "Click or tap here to enter text." in
+     `PlaceholderText`. 1j, tracking on: the control marked inserted with `w:customXmlInsRangeStart` /
+     `End` (check 30's form), and inside it the selected runs in a `w:del` and "Ann" in a `w:ins`.
+   - **Part 2.** Office JS **has** `ContentControl.xmlMapping` (`setMapping`, `setMappingByNode`,
+     `delete`, `customXmlNode`, `customXmlPart`, `isMapped`, `prefixMappings`, `xpath`: the engine's
+     shape) and `insertContentControl('PlainText')` works (type `PlainText`, subtype
+     `PlainTextInline`). `setMapping('/data/name')` returned **true** and put the node's value into the
+     control - "quick brown" became "Ann", an empty control "Ann", "Ann" stayed - with the part
+     unchanged: **the node wins**. The binding is written with the XPath as given, `/data/name`, and
+     the `storeItemID` of the **first** part in which it selects a node (the probe added a part per
+     case, and the later cases bound to the first case's part). By hand, the pane's **Map to Selected
+     Content Control** on the VBA-made control holding "quick brown" (`34d`) did the same: "Ann", the
+     canonical path, the part unchanged. VBA's `XMLMapping.SetMapping` raised error 4198 in the
+     Immediate window and was not pursued; its `ContentControls.Add(wdContentControlText, range)`
+     refused a range already inside a plain text control, which is what the later 4198s were.
+   - **The engine follows:** `xmlMapping.setMapping` and `setMappingByNode` now put the node's value
+     into the control (CR-002 section 39). Its `Range.insertContentControl` still keeps the selected
+     runs as they are; an insert-and-map in one step is the editor's to compose from the two.
+
 A small Node script for 1 to 3 is:
 
 ```js
@@ -2348,6 +2432,128 @@ async function setupTyping() {
 async function recordTyping() {
   const report = { host: Office.context.diagnostics, typed: null };
   await Word.run(async (context) => { report.typed = await snapshot(context); });
+  out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 34's part 2 probe (Word, Office JS; `customXmlParts` is WordApi 1.4),
+in a new blank document. The HTML tab is check 30's. The Script tab:
+
+```js
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const PKG = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e) + (e && e.debugInfo ? '\n' + JSON.stringify(e.debugInfo) : ''); }));
+
+const all = (root, ns, name) => Array.from(root.getElementsByTagNameNS(ns, name));
+const xml = (node) => new XMLSerializer().serializeToString(node).replace(/ xmlns:\w+="[^"]*"/g, '').replace(/ (w14:\w+|w:rsid\w*)="[^"]*"/g, '');
+
+// Check 34, part 2: can Office JS map a content control to a custom XML node at all, and which side
+// wins when it does? Probes each API before using it and records what is missing.
+const DATA = '<data><name>Ann</name><empty/></data>';
+const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+const PARAGRAPH = '<w:p><w:r><w:t xml:space="preserve">The quick </w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>brown</w:t></w:r><w:r><w:t xml:space="preserve"> fox.</w:t></w:r></w:p>';
+const packageOf = (blocks) => `<pkg:package xmlns:pkg="${PKG}"><pkg:part pkg:name="/_rels/.rels" pkg:contentType="${RELS}"><pkg:xmlData>`
+  + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+  + '</pkg:xmlData></pkg:part><pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">'
+  + `<pkg:xmlData><w:document xmlns:w="${W}"><w:body>${blocks}</w:body></w:document></pkg:xmlData></pkg:part></pkg:package>`;
+
+async function markup(context) {
+  const ooxml = context.document.body.getOoxml();
+  await context.sync();
+  const doc = new DOMParser().parseFromString(ooxml.value, 'application/xml');
+  const parts = all(doc, PKG, 'part');
+  const main = parts.find((p) => p.getAttributeNS(PKG, 'name') === '/word/document.xml');
+  const body = main && all(main, W, 'body')[0];
+  const custom = parts.filter((p) => /customXml\/item\d+\.xml$/.test(p.getAttributeNS(PKG, 'name'))).map((p) => ({ name: p.getAttributeNS(PKG, 'name'), xml: new XMLSerializer().serializeToString(p).slice(0, 400) }));
+  return { blocks: body ? Array.from(body.childNodes).filter((n) => n.nodeType === 1 && n.localName !== 'sectPr').map(xml) : [], customXmlParts: custom };
+}
+async function partXml(context, id) {
+  try {
+    const part = context.document.customXmlParts.getItem(id);
+    const x = part.getXml();
+    await context.sync();
+    return x.value;
+  } catch (e) { return { error: String(e && e.message || e) }; }
+}
+async function fresh(context) {
+  context.document.changeTrackingMode = Word.ChangeTrackingMode.off;
+  context.document.body.clear();
+  await context.sync();
+  context.document.body.insertOoxml(packageOf(PARAGRAPH), 'Start');
+  await context.sync();
+}
+async function addPart(context) {
+  const parts = context.document.customXmlParts;
+  parts.load('items/id');
+  await context.sync();
+  const before = parts.items.map((p) => p.id);
+  const part = parts.add(DATA);
+  part.load('id,namespaceUri');
+  await context.sync();
+  return { id: part.id, namespaceUri: part.namespaceUri, partsBefore: before.length };
+}
+const describe = (cc) => {
+  const keys = [];
+  for (const k of ['xmlMapping', 'type', 'subtype', 'placeholderText', 'tag', 'title']) keys.push(k + ':' + typeof cc[k]);
+  return keys.join(' ');
+};
+async function mapCase(context, name, make) {
+  const entry = { name };
+  try {
+    await fresh(context);
+    entry.part = await addPart(context);
+    const cc = await make(context);
+    cc.load('text,type,subtype,tag,title');
+    await context.sync();
+    entry.controlBefore = { text: cc.text, type: cc.type, subtype: cc.subtype };
+    entry.api = describe(cc);
+    if (typeof cc.xmlMapping !== 'object' && typeof cc.xmlMapping !== 'function') {
+      entry.mapping = 'ContentControl.xmlMapping is not in this Office JS build';
+    } else {
+      const m = cc.xmlMapping;
+      entry.mappingApi = Object.getOwnPropertyNames(Object.getPrototypeOf(m)).join(',');
+      const r = m.setMapping('/data/name');
+      await context.sync();
+      entry.setMapping = r && typeof r.value !== 'undefined' ? r.value : String(r);
+      cc.load('text');
+      await context.sync();
+      entry.controlAfter = cc.text;
+    }
+    entry.markupAfter = await markup(context);
+    entry.partXmlAfter = await partXml(context, entry.part.id);
+  } catch (e) {
+    entry.error = { error: String(e && e.message || e), debug: e && e.debugInfo ? JSON.stringify(e.debugInfo) : undefined };
+  }
+  return entry;
+}
+async function check() {
+  const report = { host: Office.context.diagnostics, cases: [] };
+  await Word.run(async (context) => {
+    out.value = '2a...';
+    report.cases.push(await mapCase(context, '2a-selection', async (c) => {
+      const r = c.document.body.paragraphs.getFirst().search('quick brown').getFirst();
+      let cc;
+      try { cc = r.insertContentControl('PlainText'); await c.sync(); } catch (e) { report.plainTextError = String(e && e.message || e); cc = r.insertContentControl(); await c.sync(); }
+      return cc;
+    }));
+    out.value = '2b caret...';
+    report.cases.push(await mapCase(context, '2b-caret', async (c) => {
+      const r = c.document.body.paragraphs.getFirst().search('quick').getFirst().getRange('End');
+      let cc;
+      try { cc = r.insertContentControl('PlainText'); await c.sync(); } catch (e) { cc = r.insertContentControl(); await c.sync(); }
+      return cc;
+    }));
+    out.value = '2b Ann...';
+    report.cases.push(await mapCase(context, '2b-already-Ann', async (c) => {
+      const r = c.document.body.paragraphs.getFirst().search('quick brown').getFirst();
+      let cc;
+      try { cc = r.insertContentControl('PlainText'); await c.sync(); } catch (e) { cc = r.insertContentControl(); await c.sync(); }
+      cc.insertText('Ann', 'Replace');
+      await c.sync();
+      return cc;
+    }));
+  });
   out.value = JSON.stringify(report, null, 2);
 }
 ```
