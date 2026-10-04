@@ -1108,6 +1108,78 @@ already named, so each case starts by opening its own file.
      15's save (`35a`) defines it, so `35c` kept it.
    - The data part is as it was in each: `name` still Flat OPC in `35c`, "Ann" in `35e`.
 
+36. Extension content that is **not** declared ignorable (2026-10-04, at Jason's word; objects CR-008's
+   open question 2, and the premise of CR-002 section 40 item 2). Check 35 opened, in Word 2010, a
+   file whose `w15` content was declared (`mc:Ignorable="w15"`); nobody has opened one where it was
+   not. ECMA-376 Part 3 says a consumer that does not understand a namespace not declared ignorable
+   must treat the markup as an error. Does Word?
+
+   Four files, made by `scripts/make-check36-inputs.mjs`, in `fixtures/revisions/check36/` with copies
+   in the shared `__tmp/36/`. Each pair is alike but for the root's `mc:Ignorable`:
+   - `36a-w15-undeclared.docx`: a block content control titled 36 with
+     `<w15:appearance w15:val="tags"/>`; `xmlns:w15` declared, **no** `mc:Ignorable`;
+   - `36b-w15-declared.docx`: the same with `mc:Ignorable="w15"` (the control: check 35's form);
+   - `36c-w16du-undeclared.docx`: a tracked insertion ("inserted text", author Check 36) carrying
+     the attribute `w16du:dateUtc`; `xmlns:w16du` declared, **no** `mc:Ignorable`;
+   - `36d-w16du-declared.docx`: the same with `mc:Ignorable="w16du"`.
+
+   **Part 1, Word 2010**, which knows neither `w15` nor `w16du`. For each of the four files, in the
+   order a, b, c, d:
+   - Open it from `__tmp/36/` (double-click, or **File > Open**). Note **exactly** what Word does:
+     opens it with no message; shows a message (write down its words, and which button you pressed);
+     offers to recover or repair; or refuses to open it.
+   - If it opened: note whether the three paragraphs are there ("Check 36, 36x: ...", the control's
+     "Text in the content control." or "Kept text, then inserted text.", and "After."), and for
+     36c and 36d whether "inserted text" shows as a tracked insertion (**Review** tab; All Markup
+     or Final: Show Markup).
+   - If it opened: **File > Save As**, in `__tmp/36/`, the same name with `-word2010` added
+     (`36a-w15-undeclared-word2010.docx`, and so on). Close it.
+
+   **Part 2, current Word**, which knows both namespaces: open `36a-w15-undeclared.docx` and
+   `36c-w16du-undeclared.docx` only. Note any message. If each opens, **File > Save As** with
+   `-word365` added to the name (Save As first if AutoSave is on), and close it.
+
+   Leave the saved files in `__tmp/36/`.
+
+   The questions:
+   - whether Word 2010 opens extension content its root does not declare ignorable: an unknown
+     **element** in a `w:sdtPr` (36a) and an unknown **attribute** on a `w:ins` (36c), each against
+     its declared twin (36b, 36d);
+   - if it opens them, what its save keeps of the content, and whether its save differs between
+     the declared and undeclared file;
+   - whether current Word minds the missing declaration for namespaces it knows.
+
+   Why it matters: if Word 2010 refuses 36a or 36c, the objects package's CR-008 (the marshaller
+   declares every extension namespace a part uses) is a correctness fix, and `insertOoxml` and
+   `insertXml`, which declare nothing for content a caller brings, write files Word 2010 cannot
+   open. If it opens both, the declaration is tidiness and CR-008 stays a safeguard.
+
+   The engine today: it lists `w15` and `w16du` in `mc:Ignorable` for the elements and attributes it
+   writes itself (CR-002 sections 29 and 40), and nothing for inserted content.
+
+   **Run 2026-10-04 by Jason, Word 2010 and Word 365; the saves are in `fixtures/revisions/check36/`.**
+   - **Word 2010 refuses an undeclared extension element.** `36a` did not open: "problems with the
+     contents", an unspecified error at `document.xml` line 1 column 440, and no offer to repair.
+     Column 440 is the end of `<w15:appearance w15:val="tags"/>`. Its declared twin `36b` opened with
+     all three paragraphs.
+   - **Word 2010 tolerates an undeclared extension attribute.** `36c` opened, as `36d` did, and
+     "inserted text" showed as a tracked insertion in both.
+   - **Word 2010's saves drop what it does not know**, declared or not: `36b`'s control lost
+     `w15:appearance`, and the `w:ins` of `36c` and `36d` lost `w16du:dateUtc`; each root lists
+     `w14 wp14`. The two `w16du` saves do not differ in the insertion.
+   - **Word 365 does not mind the missing declaration** for namespaces it knows: `36a` and `36c`
+     opened without a message, and its saves keep the element and the attribute and write its own
+     full `mc:Ignorable` list.
+
+   So the declaration is required for an extension **element** and not, as far as this measures, for
+   an **attribute**: one element (`w15:appearance` in a `w:sdtPr`) and one attribute
+   (`w16du:dateUtc` on a `w:ins`) were tried, in Word 2010 only among the versions that know
+   neither. `insertOoxml` and `insertXml` bringing a `w15` element into a part that does not list
+   `w15` write a file Word 2010 cannot open. CR-002 section 40 item 2's premise is confirmed, and
+   objects CR-008 (its section 8) is the fix for every writer. **Fixed the same day** by
+   `@docx4j/generated-objects-ts` 0.3.1, which this package now requires: inserted content has its
+   extension namespaces declared.
+
 A small Node script for 1 to 3 is:
 
 ```js

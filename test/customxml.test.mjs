@@ -660,3 +660,25 @@ test('styles.ensure splices PlaceholderText, and a placeholder the engine writes
   none.body.insertParagraph('Text', 'End').insertContentControl('PlainText');
   assert.doesNotMatch(await stylesOf(await none.save()), /w:styleId="PlaceholderText"/);
 });
+
+// CR-002 section 40, item 2, for content a caller brings: objects CR-008 (0.3.1) lists every Office
+// extension namespace a marshalled part uses in mc:Ignorable. Word 2010 refuses a document whose
+// w15:appearance is not declared (test/README.md check 36), so this is what makes inserted content
+// openable there; before 0.3.1 insertOoxml and insertXml declared nothing.
+test('content brought in by insertOoxml has its extension namespaces declared ignorable (check 36)', async () => {
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du"';
+  const ignorableOf = async (pkg) => /mc:Ignorable="([^"]*)"/.exec(/<w:document [^>]*>/.exec(await pkg.getMainDocumentPart().getXml())[0])?.[1] ?? null;
+  // an element (check 36a's content) and an attribute (36c's)
+  const control = await WordprocessingMLPackage.createPackage();
+  control.body.insertParagraph('Kept.', 'End');
+  assert.equal(await ignorableOf(control), null, 'nothing to declare yet');
+  await control.body.insertOoxml(`<w:sdt ${NS}><w:sdtPr><w:id w:val="5"/><w15:appearance w15:val="tags"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>In a control</w:t></w:r></w:p></w:sdtContent></w:sdt>`, 'End');
+  assert.equal(await ignorableOf(control), 'w15');
+  assert.match(await control.getMainDocumentPart().getXml(), /<w15:appearance w15:val="tags"\/>/);
+  const revision = await WordprocessingMLPackage.createPackage();
+  await revision.body.insertOoxml(`<w:p ${NS}><w:ins w:id="1" w:author="A" w:date="2026-10-04T10:00:00Z" w16du:dateUtc="2026-10-04T00:00:00Z"><w:r><w:t>inserted</w:t></w:r></w:ins></w:p>`, 'End');
+  assert.equal(await ignorableOf(revision), 'w16du');
+  // and through a save
+  const again = await WordprocessingMLPackage.load(await control.save());
+  assert.equal(await ignorableOf(again), 'w15');
+});

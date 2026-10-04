@@ -3546,3 +3546,18 @@ run by Jason in current Word and Word 2010 the same day. **Implemented 2026-10-0
    which covers `applyBindings`, a mapping to an empty node and the `placeholderText` setter. The
    style is spliced when the package is saved; `await pkg.styles.ensure('PlaceholderText')` has it
    at once. A document that already defines it keeps its styles part byte for byte.
+
+**Word check 36 (2026-10-04) confirms item 2's premise.** Word 2010 refuses a document whose
+`w15:appearance` is not declared ignorable (an error at the element, no repair offered) and opens its
+declared twin; an undeclared `w16du:dateUtc` attribute it tolerates. `test/README.md` check 36. The
+part of item 2 left uncovered, content a caller brings through `insertOoxml` or `insertXml`, can
+therefore write a file Word 2010 cannot open. It is asked of the objects package as its CR-008
+section 8, which fixes it for every writer; nothing is patched here meanwhile.
+
+**Closed by `@docx4j/generated-objects-ts` 0.3.1 (2026-10-04),** which carries CR-008: the marshaller
+lists every Office extension namespace a part uses. The range here is `^0.3.1`. Verified against the
+checkout, the committed `eb2a5e0` and then the published tarball: the suite, and every XML part of
+the 183 fixture packages after a full unmarshal and save, 2849 parts, of which the only two that
+differ from 0.3.0 are check 36's undeclared files, now declared. `customxml.test.mjs` holds the
+inserted element and attribute. The engine's own `declareIgnorable` calls are kept: they say what
+each writer intends, and a prefix already listed is not listed again.

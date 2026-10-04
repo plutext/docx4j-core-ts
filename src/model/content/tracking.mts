@@ -169,8 +169,9 @@ export interface TrackedPart {
  * Makes sure the part's root lists a prefix in `mc:Ignorable`, appending it when absent, so that
  * content in that prefix's namespace may be written in it; the facade then declares the prefix.
  * This is docx4j's pattern - the writer of the content adds its prefix
- * (`Paginate.declareW14Ignorable`) - and Jason's decision (CR-002 section 29); objects CR-008 would
- * do it for every writer. False when there is no unmarshalled root to put it on. Every part a
+ * (`Paginate.declareW14Ignorable`) - and Jason's decision (CR-002 section 29). Since objects 0.3.1
+ * (its CR-008) the marshaller does it for every writer as well; these calls stay as the writer's
+ * own statement. False when there is no unmarshalled root to put it on. Every part a
  * `Body` is over (document, header, footer, notes, comments) has a root that binds `mc:Ignorable`.
  *
  * The prefix must be the facade's conventional one for its namespace (`w15`, `w16du`): an
