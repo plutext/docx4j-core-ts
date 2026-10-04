@@ -21,7 +21,7 @@ search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `
 implemented; CR-002 phase A is the objects package's `builders/wml`. CR-007 (table conditions in
 the `PropertyResolver`, the port of docx4j CR-030: `TableContext`, `CellContext`, the overloads
 taking one, 62 parity goldens; and the content API's effective reads passing `Paragraph.cellContext`)
-is implemented.
+is implemented, released in 0.3.2.
 So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine), and CR-006 (`selectObjects` and

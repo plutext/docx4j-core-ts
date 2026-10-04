@@ -1,6 +1,6 @@
 # CR-007: Table conditions in the `PropertyResolver`
 
-**Status:** Implemented 2026-10-04, unreleased: phase 1 (the resolver, held by the goldens; section
+**Status:** Implemented 2026-10-04 and **released as 0.3.2** the same day: phase 1 (the resolver, held by the goldens; section
 5) and phase 2 (the content API reads in context; section 6). Proposed 2026-10-04, on docx4j CR-030's
 hand-off (its section 9). CR-001 Phase B left table conditional formatting out (its sections 15.1 and 19) because
 docx4j did not have it; docx4j CR-030 (VERSION_17_3_1, phases 1 to 5 done 2026-10-03 and 2026-10-04,
