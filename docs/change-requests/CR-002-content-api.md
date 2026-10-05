@@ -3561,3 +3561,39 @@ the 183 fixture packages after a full unmarshal and save, 2849 parts, of which t
 differ from 0.3.0 are check 36's undeclared files, now declared. `customxml.test.mjs` holds the
 inserted element and attribute. The engine's own `declareIgnorable` calls are kept: they say what
 each writer intends, and a prefix already listed is not listed again.
+
+## 41. Word's built-in styles in `styles.ensure` (2026-10-06)
+
+*Asked by the editor (its ED-005 section 12.66, UPSTREAM-20), for Markdown pasted or opened and for a
+paste from Word.*
+
+`pkg.styles.ensure(ids)` splices from docx4j's default styles, the nine commented out of them, the
+two comment styles and `PlaceholderText` (sections 22.2, 37 and 40). Word's other built-ins throw
+"No definition to splice". The editor names some of them:
+
+- **Markdown** (the agent's `edit` and `insert`, and since ED-005 section 12.66 paste and Open of a
+  `.md` file): `##### ` and `###### ` headings (`Heading5`, `Heading6`); inline code and a code
+  block, in the styles Word gives HTML's `code` and `pre` (`HTMLCode`, `HTMLPreformatted`); a block
+  quote (`Quote`).
+- **A paste from Word** names `<h5>` and `<h6>`, `MsoQuote`, `MsoIntenseQuote` and
+  `MsoListParagraph`.
+
+In a document that lacks them, the agent's `#####` answered `style.not_found`, and a paste left the
+paragraphs plain.
+
+docx4j (Java) carries Word's definitions of 164 built-ins in `KnownStyles.xml`
+(`docx4j-core/src/main/resources/org/docx4j/openpackaging/parts/WordprocessingML/`), and
+`PropertyResolver.activateStyle(styleId)` adds one from there, with what it is based on.
+
+**Asked:** that `styles.ensure` fall back to `KnownStyles.xml` for an id its present sources lack,
+closing over `w:basedOn` and `w:link` as it does now. One correction to the file: its `Heading5`
+and `Heading6` carry a `w:numPr` naming `w:numId` 3, left over from the document they were taken
+from. A port should drop it, as the editor's copy does; a spliced heading would otherwise name a
+list the document may not have.
+
+**Meanwhile** the editor carries the eleven definitions it needs, copied from `KnownStyles.xml` with
+that `w:numPr` dropped. `knownstyles.mts`'s `ensureStylesIn` asks the engine first and splices its
+own copy only when the engine throws. The eleven are `Heading5`, `Heading6` and their `Char`
+styles, `Quote`, `IntenseQuote` and their `Char` styles, `ListParagraph`, `HTMLCode`,
+`HTMLPreformatted` and `HTMLPreformattedChar`. Once a release carries the fallback, the editor's
+copy goes.
