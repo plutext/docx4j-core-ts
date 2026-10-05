@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "a8d20c1cc0d168ec940ed9ed1b08a91c50ec492f",
-    "docx4jVersion": "docx4j-core-17.3.0-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "ed92b2e826456394",
-    "date": "2026-09-28T13:06:54Z",
+    "docx4jCommit": "ff2e6e40fa59802881ed51eb58ecfd8acb2ee0f2",
+    "docx4jVersion": "docx4j-core-17.3.1-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "ae5a78477fb8a306",
+    "date": "2026-10-05T13:49:54Z",
     "fixture": "numbering-override-rpr.docx",
     "fixtureBytes": 8578,
     "part": "/word/document.xml",
