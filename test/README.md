@@ -1183,13 +1183,21 @@ already named, so each case starts by opening its own file.
 A small Node script for 1 to 3 is:
 37. Escaped XHTML bound through an `od:xpath` entry (CR-005 section 8.2, 2026-10-08): the files are
    built by `fixtures/check37/build.mjs`, and its `README.md` says what to look for in Word 2010 and
-   Word 15. Not yet run.
+   Word 15. **Run 2026-10-08 (the saves beside the originals):** every control kept in both Words
+   with its content and tag, no `w:dataBinding` added to the XHTML controls, nothing restyled;
+   `html-binding.test.mjs` holds the saves. CR-005 section 8.2.
 
 38. Picture bindings (CR-005 section 9, 2026-10-08): a picture content control mapped to a base64
    node (does Word fill it on open; what does a picture changed by hand write to the node), and
    `od:Handler=picture` controls bound by the engine, floating without `width` and inline with
    `width=4500`, `width=auto` and in a table cell. Built by `fixtures/check38/build.mjs`; its
-   `README.md` says what to look for. Not yet run.
+   `README.md` says what to look for. **Run 2026-10-08 (the saves beside the originals):** both
+   Words fill a mapped picture control from its node on open (the template opened showing the node's
+   blue image, the placeholder part dropped from the save); Word 15 writes a picture changed by hand
+   back to the node as base64, exactly the new media part's bytes (Word 2010 not tried); the
+   `od:Handler` pictures, floating and inline, keep their new images, Word 2010 minding neither the
+   tag nor the anchor's `true`/`false` booleans; an SVG part is kept and pointed at by both, drawn as
+   a red cross, neither reading SVG. `picture-binding.test.mjs` holds the saves. CR-005 section 9.
 
 
 ```js

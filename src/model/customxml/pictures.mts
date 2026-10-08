@@ -16,13 +16,16 @@
 // (`xpathInjectImage`; REQ-062): at its natural size, scaled down to fit `width=N` twips or the
 // text width, whichever is smaller; `width=auto` the text width alone. A control in a table cell
 // fits the cell's width less its margins rather than the page's. An SVG value can replace a picture
-// (no size is needed) but not be placed as a new one. The reverse direction leaves both shapes
-// alone (section 9 item 4 says what a Word check must settle first).
+// (no size is needed) but not be placed as a new one. The reverse direction writes a mapped picture
+// control's image back to its node as base64, as Word 15 does (check 38); a tag-bound control is
+// never written back, as docx4j's is not.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import { find, type Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { addImage, addImagePart, writableWidthEmu } from '../content/InlinePicture.mjs';
+import { ImagePart } from '../../parts/BinaryPart.mjs';
+import { base64Decode, base64Encode } from '../../xml/dom.mjs';
 import { enclosingCellOf } from '../properties/table.mjs';
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
 import { tagParamsOf, selectEntryNode, PICTURE_HANDLER } from './opendope.mjs';
@@ -172,5 +175,39 @@ export function applyPictureHandlersTo(controls: ContentControl[], parts: Custom
     const outcome = applyPictureHandlerTo(control, parts);
     if (outcome.done) result.updated++; else result.skipped++;
     if (outcome.note) (result.notes ??= []).push(outcome.note);
+  }
+}
+
+/**
+ * The reverse direction for a mapped picture control (docx4j's `UpdateXmlFromDocumentSurface`
+ * skips pictures; Word 15 writes the picture back, check 38): the bytes of the image part the
+ * first `a:blip` embeds, as base64, into the node. Nothing is written when the node already holds
+ * those bytes (compared decoded, so Word's line-wrapped base64 counts as the same), when the
+ * control shows no picture, or when the blip's part is not an image part. Asynchronous, since a
+ * part's bytes may still be in the container.
+ */
+export async function updateFromPictureControl(control: ContentControl): Promise<boolean> {
+  const mapping = control.xmlMapping;
+  if (!mapping.isMapped || control.type !== 'Picture') return false;
+  const node = mapping.customXmlNode;
+  if (!node) return false;
+  const blip = firstBlipOf(control);
+  const source = control.parentBody.part;
+  if (!blip?.embed || !source) return false;
+  const part = source.relationshipsPart?.getPart(blip.embed);
+  if (!(part instanceof ImagePart)) return false;
+  const bytes = await part.getBytes();
+  const held = base64Decode(node.text);
+  if (held.length === bytes.length && held.every((b, i) => b === bytes[i])) return false;
+  node.text = base64Encode(bytes);
+  return true;
+}
+
+/** `updateFromContentControls`' picture pass: the mapped picture controls, counted into the result. */
+export async function updateFromPictureControls(controls: ContentControl[], result: BindingResult): Promise<void> {
+  for (const control of controls) {
+    if (control.type !== 'Picture' || !control.xmlMapping.isMapped) continue;
+    result.bound++;
+    if (await updateFromPictureControl(control)) result.updated++; else result.skipped++;
   }
 }

@@ -20,7 +20,7 @@ import type { CustomXmlPartLookup } from './XmlMapping.mjs';
 import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
 import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
-import { applyPictureHandlersTo } from './pictures.mjs';
+import { applyPictureHandlersTo, updateFromPictureControls } from './pictures.mjs';
 
 /**
  * What the collection needs of its package. A structural interface, so that this module does not
@@ -182,7 +182,11 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    */
   async updateFromContentControls(): Promise<BindingResult> {
     await this.load();
-    return updateFromControls(this.controlsOf(await this.host.getBoundBodies()));
+    const controls = this.controlsOf(await this.host.getBoundBodies());
+    const result = updateFromControls(controls);
+    // a mapped picture control's image back to its node, as Word 15 writes it (CR-005 section 9, check 38)
+    await updateFromPictureControls(controls, result);
+    return result;
   }
 
   private controlsOf(bodies: Body[]): ContentControl[] {

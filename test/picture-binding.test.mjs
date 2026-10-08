@@ -3,8 +3,8 @@
 // entry, with and without a width parameter. The node holds base64 image data.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WordprocessingMLPackage, addImage, base64Decode, pictureWidthOf, tagParamsOf } from '../dist/index.mjs';
-import { pngOf, bytesEqual } from './helpers.mjs';
+import { WordprocessingMLPackage, addImage, addImagePart, base64Decode, find, imageInfoOf, pictureWidthOf, tagParamsOf } from '../dist/index.mjs';
+import { pngOf, bytesEqual, fixture } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const EMU_PER_POINT = 12700;
@@ -81,14 +81,64 @@ test('(a) a picture content control with a w:dataBinding: the blip points at a n
   assert.match(await reloaded.getXml(), /<w:picture\/>/);
 });
 
-test('(a) the reverse direction leaves a picture control alone (unmeasured until Word check 38)', async () => {
+test('(a) the reverse direction writes the picture\'s bytes back to the node as base64, as Word 15 does; nothing when the node holds them already', async () => {
   const { pkg, body, data } = await document();
   const p = body.insertParagraph('', 'End');
   p.insertInlinePictureFromBase64(SMALL, 'End');
-  p.insertContentControl('Picture').xmlMapping.setMapping('/data/logo', '', data);
-  const result = await pkg.customXmlParts.updateFromContentControls();
-  assert.deepEqual(result, { bound: 1, updated: 0, skipped: 1 });
+  const control = p.insertContentControl('Picture');
+  control.xmlMapping.setMapping('/data/logo', '', data);
+  const unchanged = await pkg.customXmlParts.updateFromContentControls();
+  assert.deepEqual(unchanged, { bound: 1, updated: 0, skipped: 1 }, 'the control shows the node\'s image already');
   assert.equal(data.selectSingleNode('/data/logo').text, BLUE);
+  // the picture changed: the blip points at another part, as Word's Change Picture leaves it
+  const changed = addImagePart(pkg.getMainDocumentPart(), WIDE);
+  for (const blip of find(control.sdt.sdtContent, 'org_docx4j_dml.CTBlip')) blip.embed = changed.relId;
+  const written = await pkg.customXmlParts.updateFromContentControls();
+  assert.deepEqual(written, { bound: 1, updated: 1, skipped: 0 });
+  assert.ok(bytesEqual(base64Decode(data.selectSingleNode('/data/logo').text), base64Decode(WIDE)));
+  assert.deepEqual(await pkg.customXmlParts.updateFromContentControls(), { bound: 1, updated: 0, skipped: 1 });
+  const again = await WordprocessingMLPackage.load(await pkg.save());
+  await again.customXmlParts.load();
+  assert.ok(bytesEqual(base64Decode(again.customXmlParts.getItem(data.id).selectSingleNode('/data/logo').text), base64Decode(WIDE)));
+});
+
+test('Word check 38 (2026-10-08): both Words fill a mapped picture control from its node on open; Word 15 writes a changed picture back as base64', async () => {
+  // the template showed a red 200 x 100 placeholder with the node holding a blue 300 x 150 image; each save holds the node's image alone
+  for (const name of ['38a-picture-template-word2010.docx', '38a-picture-template-word15.docx']) {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`check38/${name}`));
+    await pkg.customXmlParts.load();
+    const control = (await pkg.getBody()).contentControls[0];
+    assert.equal(control.type, 'Picture', name);
+    const part = control.pictureContentControl.inlinePicture.imagePart();
+    const bytes = await part.getBytes();
+    assert.deepEqual([imageInfoOf(bytes).widthPx, imageInfoOf(bytes).heightPx], [300, 150], `${name}: the node's image, not the placeholder`);
+    assert.ok(bytesEqual(bytes, base64Decode(control.xmlMapping.customXmlNode.text)), name);
+    const media = [...pkg.parts.values()].filter((p) => p.partName.name.includes('/media/'));
+    assert.equal(media.length, 1, `${name}: the placeholder part dropped`);
+  }
+  // the picture changed by hand in Word 15: the node holds the new media part's bytes, so the engine's write-back has nothing to do
+  const pkg = await WordprocessingMLPackage.load(await fixture('check38/38a-picture-changed-word15.docx'));
+  await pkg.customXmlParts.load();
+  const control = (await pkg.getBody()).contentControls[0];
+  const part = control.pictureContentControl.inlinePicture.imagePart();
+  assert.equal(part.partName.name, '/word/media/image1.PNG');
+  const bytes = await part.getBytes();
+  assert.equal(bytes.length, 3415);
+  assert.ok(bytesEqual(bytes, base64Decode(control.xmlMapping.customXmlNode.text)));
+  assert.deepEqual(await pkg.customXmlParts.updateFromContentControls(), { bound: 1, updated: 0, skipped: 1 });
+});
+
+test('Word check 38 (2026-10-08): od:Handler pictures keep their images in both Words; an SVG part is kept and pointed at, drawn as a red cross by both', async () => {
+  for (const name of ['38b-handler-bound-word2010.docx', '38b-handler-bound-word15.docx']) {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`check38/${name}`));
+    const controls = (await pkg.getBody()).contentControls;
+    assert.equal(controls.length, 5, name);
+    const xml = await pkg.getMainDocumentPart().getXml();
+    assert.match(xml, /<wp:anchor /, `${name}: the floating picture survived`);
+    const formats = controls.map((c) => (c.form === 'Block' ? c.paragraphs.flatMap((p) => p.inlinePictures) : c.paragraphs[0].inlinePictures)[0]?.imageFormat);
+    assert.deepEqual(formats.slice(1), ['Png', 'Png', 'Png', 'Svg'], name);
+    assert.doesNotMatch(xml, /w:dataBinding/, name);
+  }
 });
 
 test('(b) od:Handler=picture without width: a floating picture keeps its anchor, wrapping, position and extent; only r:embed changes', async () => {

@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, unreleased; Word checks 37 and 38 pending
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, unreleased; Word checks 37 and 38 run 2026-10-08, both holding
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -408,6 +408,14 @@ As built (`src/model/customxml/xhtml.mts`, `opendope.mts`; `test/html-binding.te
    `w:dataBinding` written; a run-level control given the first paragraph, the rest noted; a
    missing entry and a missing parser left and noted. The suite: 775.
 
+**Word check 37, run 2026-10-08 by Jason in Word 2010 and Word 15** (the saves beside the originals
+in `test/fixtures/check37/`, commit e490163; compared part by part by the editor's session, and
+held by a test in `test/html-binding.test.mjs`): every control kept in both Words with its content -
+the block-level control's heading, bold, link, two-item list and table; the run-level control's
+first paragraph; the text-bound control showing the escaped markup as text - the tags intact, no
+`w:dataBinding` added to the XHTML controls, nothing restyled. Word rewrote its usual parts
+(`fontTable`, `webSettings`, `stylesWithEffects` in 2010, the custom XML parts renumbered).
+
 ## 9. Picture bindings (2026-10-08)
 
 The specification's section 9.3 binds a control to a node holding base64 image data; so does
@@ -474,12 +482,15 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    when `N` is smaller. docx4j's `BindingTraverserState` tracks the cell for XHTML images only
    (bind.xslt's v3.3.0 templates), so the cell cap here is an extension of REQ-062, asked for by the
    editor. A body whose container states no width (a header's) scales to `N` alone, or not at all.
-4. **The reverse direction.** `updateFromContentControls` leaves a picture control alone, as
-   docx4j's does; a tag-bound control is never written back. What Word writes to the node when a
-   person changes the picture in a mapped picture control - the new image's base64, or nothing -
-   is unmeasured, and so is whether Word fills such a control from the node on open at all: Word
-   check 38 asks both (`test/fixtures/check38/README.md`, its files from `build.mjs`). Writing the
-   first picture's bytes back as base64 waits on that answer rather than guessing it.
+4. **The reverse direction.** Built 2026-10-08 once check 38 (item 7) had measured it:
+   `updateFromContentControls` writes a mapped picture control's image back to its node as base64
+   - the bytes of the image part the first `a:blip` embeds (`updateFromPictureControl`, an
+   asynchronous pass after the text controls' since a part's bytes may still be in the container;
+   `updateFromControls` leaves the picture controls to it and does not count them), nothing when
+   the node holds those bytes already (compared decoded, so Word's line-wrapped base64 is the
+   same), when the control shows no picture, or when the blip's part is not an image part. docx4j's
+   `UpdateXmlFromDocumentSurface` skips pictures; Word 15 does not, so neither does this. A
+   tag-bound control is never written back, as docx4j's is not.
 5. **Held by** `test/picture-binding.test.mjs`: a picture control mapped and bound, the blip
    pointing at the new part, the drawing and extent kept, the template image left in the package,
    saved and reloaded with its `w:picture` and binding; the reverse direction leaving it; a floating
@@ -491,7 +502,9 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    added; a picture control whose node is not an image left and noted under its title; three cells
    of 1000 twips capping `width=4500` at 784, 700 and 900 twips (the default margins, the table's,
    the cell's own); and an SVG value replacing a picture, its part `image/svg+xml`, reloaded, while
-   `width=auto` over the same node is left and noted. The suite: 784.
+   `width=auto` over the same node is left and noted; the write-back of a changed picture, nothing
+   when the node holds it already, saved and reloaded; and Jason's check 38 saves (item 7). The
+   suite: 787.
 
 6. **SVG** (Jason's decision, 2026-10-08): `imageInfoOf` tells an SVG document by its root element
    (after an XML declaration, comments or a doctype) and gives it the `image/svg+xml` content type,
@@ -501,7 +514,26 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    refuses it. What Word makes of an `a:blip` that points straight at an SVG part is unmeasured:
    Word 2016 and later write SVG as an `asvg:svgBlip` extension beside a PNG `a:blip`, and Word 2010
    and 15 do not read SVG at all; check 38's 38b control 5 asks (`InlinePicture.imageFormat` reports
-   `Svg` for it either way).
+   `Svg` for it either way). *Check 38 answered (item 7): both Words keep the SVG part and the blip
+   pointing at it and draw a red cross, neither reading SVG; nothing broke. What to do with that -
+   keep it with the limitation stated, or want a PNG fallback beside it for Word 2016 and later - is
+   Jason's decision, pending; the editor recommends keeping it.*
+
+7. **Word check 38, run 2026-10-08 by Jason in Word 2010 and Word 15** (the saves beside the
+   originals in `test/fixtures/check38/`, commit e490163; read here part by part and held by two tests
+   in `test/picture-binding.test.mjs`):
+   - **Both Words fill a mapped picture control from its node on open.** `38a-picture-template`,
+     whose control showed a red 200 x 100 placeholder with the node holding a blue 300 x 150 image,
+     opened blue in both, and each save holds the node's bytes as the control's one media part, the
+     placeholder part dropped. Shape (a)'s bind matches what Word does for itself.
+   - **Word 15 writes a changed picture back to the node as base64.** In
+     `38a-picture-changed-word15` (Change Picture on the control, any image from disk) the node's
+     value decodes to exactly the new media part's bytes (3,415 bytes, a PNG Word named
+     `image1.PNG`). Item 4 is built on that. Word 2010's write-back was not run.
+   - The floating `od:Handler` picture and the three `width` ones keep their new images in both
+     Words, and Word 2010 opened the `wp:anchor` whose boolean attributes are written as
+     `true`/`false` without complaint.
+   - The SVG part: item 6.
 
 **Not done, by design:** the image part a control showed before is left in the package, as docx4j
 leaves it (removing unreferenced media is a job for a save-time sweep, if ever); EMF, WMF and TIFF

@@ -13,4 +13,4 @@ export { applyBindingsTo, applyBindingTo, updateFromControls, updateFromControl,
 export { controlIdScope, sdtKindFor, isRunLevel } from './insert.mjs';
 export { tagParamsOf, xpathsEntriesOf, selectEntryNode, OPENDOPE_XPATHS_NS, XHTML_CONTENT_TYPE, PICTURE_HANDLER, type XPathsEntry } from './opendope.mjs';
 export { applyXhtmlBindingTo, applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
-export { applyPictureHandlerTo, applyPictureHandlersTo, isPictureHandlerBound, bindPicture, pictureWidthOf, type PictureWidth, type PictureOutcome } from './pictures.mjs';
+export { applyPictureHandlerTo, applyPictureHandlersTo, isPictureHandlerBound, bindPicture, pictureWidthOf, updateFromPictureControl, updateFromPictureControls, type PictureWidth, type PictureOutcome } from './pictures.mjs';

@@ -218,8 +218,8 @@ export function updateFromControl(control: ContentControl): boolean {
   if (!mapping.isMapped) return false;
   const node = mapping.customXmlNode;
   if (!node) return false;
-  // A picture control is not written back: what Word writes to the node when a person changes the
-  // picture is unmeasured (CR-005 section 9.3, Word check 38); a tag-bound picture never is.
+  // A picture control is the asynchronous pass's (updateFromPictureControl, CR-005 section 9): its
+  // image's bytes go back to the node as base64, as Word 15 writes them (check 38).
   if (control.type === 'Picture') return false;
   if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
@@ -252,6 +252,8 @@ export function updateFromControls(controls: ContentControl[]): BindingResult {
   const result: BindingResult = { bound: 0, updated: 0, skipped: 0 };
   for (const control of controls) {
     if (!control.xmlMapping.isMapped) continue;
+    // counted by the picture pass, which reads the image part (CR-005 section 9)
+    if (control.type === 'Picture') continue;
     result.bound++;
     if (updateFromControl(control)) result.updated++; else result.skipped++;
   }

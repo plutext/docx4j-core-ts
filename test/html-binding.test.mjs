@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { WordprocessingMLPackage, tagParamsOf, xpathsEntriesOf, Namespaces } from '../dist/index.mjs';
+import { fixture } from './helpers.mjs';
 
 const parser = (html) => parseHTML(html).document;
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -84,4 +85,21 @@ test('left and noted: an entry the XPaths part lacks; no parser where the runtim
   assert.equal(r2.skipped, 1);
   assert.match(r2.notes[0], /needs an HTML parser/);
   assert.equal(bare.control.text, 'placeholder');
+});
+
+test('Word check 37 (2026-10-08): both Words keep the XHTML-bound controls, their content and tags, and add no w:dataBinding', async () => {
+  for (const name of ['37b-word2010.docx', '37b-bound-word15.docx']) {
+    const pkg = await WordprocessingMLPackage.load(await fixture(`check37/${name}`));
+    const main = pkg.getMainDocumentPart();
+    const controls = (await main.getBody()).contentControls;
+    assert.equal(controls.length, 3, name);
+    const block = controls.find((c) => c.tag === 'od:xpath=x1&od:ContentType=application/xhtml+xml');
+    assert.deepEqual(block.paragraphs.map((p) => p.text).slice(0, 2), ['Delivery terms', 'Goods are delivered within 14 days of the order, see the terms.'], name);
+    assert.equal(block.paragraphs[0].style, 'Heading 1', name);
+    assert.equal(block.tables.length, 1, name);
+    const inline = controls.find((c) => c.tag === 'od:xpath=x2&od:ContentType=application/xhtml+xml');
+    assert.equal(inline.text, 'First paragraph in italics', name);
+    const xml = await main.getXml();
+    assert.equal((xml.match(/w:dataBinding/g) ?? []).length, 1, `${name}: the text-bound control's binding alone`);
+  }
 });
