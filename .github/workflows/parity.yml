@@ -1,5 +1,5 @@
 # CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
-# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_1, runs
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_2, runs
 # the harness (test/java/) over the same fixtures, and opens a pull request when any
 # golden differs, with the docx4j commits since the hash the goldens record in its body.
 #
@@ -24,14 +24,15 @@ jobs:
 
       # docx4j's development branch, which is where its answers move: VERSION_17_1_1 was
       # renamed VERSION_17_2_0 on 2026-09-21 (17.1.1 became the 17.2.0 release), and
-      # development moved to VERSION_17_3_0 on 2026-09-27 when 17.2.1 was released, and to
-      # VERSION_17_3_1 on 2026-10-02 when 17.3.0 was released (the release branches are frozen
-      # at their releases).  Rename here when docx4j moves again.
-      - name: Check out docx4j (VERSION_17_3_1)
+      # development moved to VERSION_17_3_0 on 2026-09-27 when 17.2.1 was released, to
+      # VERSION_17_3_1 on 2026-10-02 when 17.3.0 was released, and to VERSION_17_3_2 on
+      # 2026-10-07 when 17.3.1 was released (the release branches are frozen at their
+      # releases).  Rename here when docx4j moves again.
+      - name: Check out docx4j (VERSION_17_3_2)
         uses: actions/checkout@v4
         with:
           repository: plutext/docx4j
-          ref: VERSION_17_3_1
+          ref: VERSION_17_3_2
           path: .docx4j
           fetch-depth: 0     # the pull request body lists the commits since the recorded hash
 
@@ -44,7 +45,7 @@ jobs:
       - name: The commit the goldens were made from, docx4j's head, and its version
         id: commits
         # docx4j's <revision> is what its build installs and what the harness must resolve
-        # (17.2.0 on the branch before this one, 17.3.0-SNAPSHOT on this one); read it from the checkout so
+        # (17.2.0 two branches back, 17.3.1-SNAPSHOT on the one before, 17.3.2-SNAPSHOT on this one); read it from the checkout so
         # the branch name above is the only thing to change when docx4j moves on.
         run: |
           old=$(node -e "const g=require('./test/golden/invoice.json'); process.stdout.write(g.header.docx4jCommit)")
@@ -109,7 +110,7 @@ jobs:
         # against and the commit is docx4j's head, which moves with every docx4j commit; none
         # is a difference in docx4j's answers, so all four header fields are ignored here (the
         # first runs on VERSION_17_2_0 flagged all 45 goldens on the commit alone, then on the
-        # jar name alone: 17.1.1-SNAPSHOT became 17.2.0, and 17.3.0-SNAPSHOT with this branch).  A golden that differs for a real
+        # jar name alone: 17.1.1-SNAPSHOT became 17.2.0, and 17.3.0-SNAPSHOT with VERSION_17_3_0).  A golden that differs for a real
         # reason carries its new header along when it is copied in.
         run: |
           differed=""
@@ -162,7 +163,7 @@ jobs:
             echo "body<<PARITY_EOF"
             echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
             echo
-            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_1\` is now at \`${{ steps.commits.outputs.new }}\`."
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_2\` is now at \`${{ steps.commits.outputs.new }}\`."
             echo
             echo "docx4j commits in between:"
             echo
@@ -182,6 +183,6 @@ jobs:
           base: main
           add-paths: test/golden
           commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
-          title: "Parity goldens differ from docx4j VERSION_17_3_1"
+          title: "Parity goldens differ from docx4j VERSION_17_3_2"
           body: ${{ steps.log.outputs.body }}
           delete-branch: true

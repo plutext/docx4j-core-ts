@@ -19,16 +19,18 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.3.1-SNAPSHOT` (`pom.xml`'s `docx4j.version`,
-overridable with `-Ddocx4j.version=...`; **harness version 4 needs docx4j CR-030's table context,
-which no release has yet**, so it does not compile against 17.3.0 or earlier) and the JAXB implementation and four font jars
+The harness resolves `org.docx4j:docx4j-core:17.3.1` (`pom.xml`'s `docx4j.version`, the latest
+release, on Maven Central since 2026-10-07; overridable with `-Ddocx4j.version=...`; **harness
+version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have**, so it
+does not compile against 17.3.0 or earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
-**docx4j's answers move on its development branch, `VERSION_17_3_1`** (`<revision>`
-`17.3.1-SNAPSHOT`, since 17.3.0 was released on 2026-10-02; `VERSION_17_3_0` is frozen at that
-release, as `VERSION_17_2_1` is at 17.2.1, and before them development was on `VERSION_17_2_0`,
-itself the renamed `VERSION_17_1_1`).
-So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_1` and pass
-`-Ddocx4j.version=17.3.1-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
+**docx4j's answers move on its development branch, `VERSION_17_3_2`** (`<revision>`
+`17.3.2-SNAPSHOT`, since 17.3.1 was released on 2026-10-07 from `VERSION_17_3_1`, commit
+`5cf47d752`, tag `docx4j-17.3.1`; the release branches are frozen at their releases:
+`VERSION_17_3_1` at 17.3.1, `VERSION_17_3_0` at 17.3.0, `VERSION_17_2_1` at 17.2.1, and before
+them development was on `VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
+So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_2` and pass
+`-Ddocx4j.version=17.3.2-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
 its pom. A released version number is a trap a SNAPSHOT was not: if nothing was installed locally,
 Maven takes Central's release and the harness measures that, not the head; the workflow builds
 first, and so must you:

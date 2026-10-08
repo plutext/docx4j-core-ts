@@ -1,0 +1,14 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "5cf47d7522ca385e0b16c452394b9f8eb341fd68",
+    "docx4jVersion": "docx4j-core-17.3.1.jar",
+    "docx4jCoreJarSha256": "f07a500a7eb59ca4",
+    "date": "2026-10-07T18:10:28Z",
+    "fixture": "tables-textbox-in-cell.docx",
+    "fixtureBytes": 11402,
+    "part": "/word/document.xml",
+    "alternateContent": 3,
+    "prefixes": {}
+  }
+}

@@ -133,7 +133,11 @@ answers.
 
 - **The harness now needs docx4j 17.3.1.** `test/java/pom.xml`'s default is `17.3.1-SNAPSHOT`; it
   does not compile against 17.3.0. The weekly workflow builds docx4j's pushed `VERSION_17_3_1`, so
-  it fails until docx4j pushes CR-030. Push docx4j first, or expect one red run.
+  it fails until docx4j pushes CR-030. Push docx4j first, or expect one red run. (2026-10-08:
+  docx4j 17.3.1 is on Maven Central since 2026-10-07 with CR-030 in it; the pom's default is now the
+  `17.3.1` release and the workflow checks out docx4j's next branch, `VERSION_17_3_2`. The same day
+  the 16 fixtures joined CR-006's XPath oracle, `test/golden/xpath/`, which this CR had left at 46:
+  the workflow's run of 2026-10-05 reported them missing, in pull request #2.)
 - **A behaviour change without a context:** `getEffectiveTableStyle` and `reachesDefaultTableStyle`
   answer differently for a document whose default table style is not named "Normal Table", or
   which has another style so named. None of the 46 earlier fixtures is one.

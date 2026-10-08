@@ -171,6 +171,17 @@ Regenerate with `-Dexec.mainClass=org.docx4j.parity.XPathHarness -Dout=../golden
 command above. Two runs differ only in the header's `date`, checked by running twice into two
 directories and diffing (2026-09-27).
 
+**2026-10-08: the 16 CR-007 table fixtures joined**, which CR-007 had added to the parity goldens
+but not to this oracle (the weekly workflow of 2026-10-05 reported them as `(new)` in pull request
+#2). They were made from the docx4j 17.3.1 release (`docx4j-core-17.3.1.jar`, SHA-256
+`f07a500a7eb59ca4…`, tag `docx4j-17.3.1` at `5cf47d7522ca385e0b16c452394b9f8eb341fd68`, the commit
+their headers record), and are the same answers, header fields aside, as the workflow's from
+`VERSION_17_3_1`'s head `ff2e6e40f`. The 46 above were left as they were: the same release
+reproduces every one of them too (checked the same day, all 108 goldens, header fields ignored).
+Now 62 goldens: 58 with hits, and four without, `tables-textbox-in-cell` (a text box in a cell is
+the point of that fixture) joining the three above; 11,320 hits in all, 9,785 elements, 1,381 text
+nodes and 154 attributes.
+
 ## CR-007: the table context (harness version 4, 2026-10-04)
 
 All 60 goldens were regenerated at harness version 4 from docx4j `VERSION_17_3_1` at

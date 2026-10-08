@@ -35,9 +35,10 @@ const goldens = await Promise.all(names.map(async (n) => JSON.parse(await readFi
 /**
  * The fixtures whose main part has an mc:AlternateContent - a text box, each of them - and so no
  * hits. Listed, so that a new fixture joining them is a decision rather than a silent loss of
- * coverage.
+ * coverage. tables-textbox-in-cell joined with CR-007's table fixtures (2026-10-08): its text box
+ * is the point of the fixture.
  */
-const EXCLUDED = ['loadAndSave.docx', 'numbering-stories-coretests.docx', 'numbering-stories.docx'];
+const EXCLUDED = ['loadAndSave.docx', 'numbering-stories-coretests.docx', 'numbering-stories.docx', 'tables-textbox-in-cell.docx'];
 
 async function fixtureBytes(name) {
   for (const path of [join(fixturesDir, name), join(fixturesDir, 'parity', name)]) {

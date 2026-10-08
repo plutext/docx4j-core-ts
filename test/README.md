@@ -115,8 +115,9 @@ a pull request when an answer changes.
 
 `golden/xpath/` holds CR-006's oracle, made by the same project's `XPathHarness` and read by
 `xpath-parity.test.mjs`: what docx4j's `getJAXBNodesViaXPath` selects for 47 expressions over each
-fixture's main document part, from the docx4j 17.2.1 release. `selectObjects` returns the same hits
-in the same order, with objects of the same classes, on all 43 fixtures that have hits.
+fixture's main document part, from the docx4j 17.2.1 release (the 46 of CR-006) and the 17.3.1
+release (the 16 table fixtures of CR-007, added 2026-10-08). `selectObjects` returns the same hits
+in the same order, with objects of the same classes, on all 58 fixtures that have hits.
 
 ## Word acceptance (manual)
 
@@ -1180,7 +1181,6 @@ already named, so each case starts by opening its own file.
    `@docx4j/generated-objects-ts` 0.3.1, which this package now requires: inserted content has its
    extension namespaces declared.
 
-A small Node script for 1 to 3 is:
 37. Escaped XHTML bound through an `od:xpath` entry (CR-005 section 8.2, 2026-10-08): the files are
    built by `fixtures/check37/build.mjs`, and its `README.md` says what to look for in Word 2010 and
    Word 15. **Run 2026-10-08 (the saves beside the originals):** every control kept in both Words
@@ -1202,6 +1202,7 @@ A small Node script for 1 to 3 is:
    rasterised, the SVG kept under `asvg:svgBlip`. `picture-binding.test.mjs` holds the saves.
    CR-005 section 9.
 
+A small Node script for 1 to 3 is:
 
 ```js
 import { writeFile, readFile } from 'node:fs/promises';
