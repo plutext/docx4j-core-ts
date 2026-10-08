@@ -12,6 +12,7 @@ export {
 export { type Author, type CommentContent, type CommentOptions, type CommentEntry, type CommentParts, type CommentPartsAccess, type CommentsExtensible, type CommentMarker, COMMENT_TEXT_STYLE, COMMENT_REFERENCE_STYLE, markersOf, markersOfParagraph, commentIdsOf } from './comments.mjs';
 export { Font, type UnderlineType, type RPrHolder, type FontTracking } from './Font.mjs';
 export { Table, TableRow, TableCell, cellOf } from './Table.mjs';
+export { layoutModeOf, textWidthTwips, gridWidthsOf, widthTypeOf, insertGridColumns, deleteGridColumns, gridRangeOf, type TableLayoutMode, type ColumnInsertion } from './tableColumns.mjs';
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, addImagePart, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture, type NewImagePart } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';

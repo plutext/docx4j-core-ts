@@ -1209,7 +1209,8 @@ already named, so each case starts by opening its own file.
    `w:tblW` past the margin (9,026 to 13,539); AutoFit to window keeps 100% and writes the cells as
    1666, 1667, 1667 pct over a grid of 3005, 3006, 3006; AutoFit to contents stays `auto` with a
    grid measured from the text (593, 222, 597). The editor's `check39.test.mts` holds its command
-   to the save; the engine's `addColumns` is CR-002 section 42's request. A Word 2010 save is
+   to the save; the engine's `addColumns` / `insertColumns`, implemented 2026-10-09 (CR-002
+   section 42.5), is held to the same save by `table-columns.test.mjs`. A Word 2010 save is
    optional.
 
 A small Node script for 1 to 3 is:

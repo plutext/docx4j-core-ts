@@ -11,6 +11,7 @@ import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
 import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
+import { insertGridColumns, deleteGridColumns, gridRangeOf, textWidthTwips, widthTypeOf, layoutModeOf, type TableLayoutMode } from './tableColumns.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -128,6 +129,51 @@ export class Table {
       const i = row.container.indexOf(row.element);
       if (i >= 0) row.container.splice(i, 1);
     }
+  }
+
+  /**
+   * Adds columns at the start or the end (Office JS `Table.addColumns`), the new cells taking the
+   * properties and width of the column beside them, in the table's layout mode as Word 365 writes
+   * it (CR-002 section 42, check 39): fixed copies the width and grows the table past the margin,
+   * AutoFit to window rescales the grid and writes the cells' percentages again, AutoFit to contents
+   * stays automatic. `values` is by row, then by new column. Returns the new cells per row, an
+   * extension (Office JS returns nothing); a row whose spanning cell grew instead has none. Tracked,
+   * the table change is recorded as Word records one and the new cells' text is an insertion.
+   */
+  addColumns(location: 'Start' | 'End', columnCount: number, values?: string[][]): TableCell[][] {
+    const at = location === 'Start' ? 0 : this.columnWidths().length;
+    const inserted = insertGridColumns(this.tbl, this.textWidth(), at, columnCount, values, location === 'Start' ? 'right' : 'left', this.changeTracker);
+    return this.cellViewsOf(inserted.cells);
+  }
+
+  /**
+   * Removes `columnCount` grid columns from `columnIndex` (one by default; Office JS
+   * `Table.deleteColumns`): a cell covering only those columns goes, one spanning further shrinks.
+   * Not tracked, as Word does not track a column deleted (section 42.3; known issues, entry 2).
+   */
+  deleteColumns(columnIndex: number, columnCount = 1): void {
+    deleteGridColumns(this.tbl, this.textWidth(), columnIndex, columnCount);
+    if ((this.tbl.tblGrid?.gridCol?.length ?? 0) === 0 || rowsOf(this.tbl).every((row) => cellsOf(row.element.value).length === 0)) this.delete();
+  }
+
+  /** Which of Word's three layout modes the table is in: fixed, AutoFit to window, or AutoFit to contents (extension). */
+  get layoutMode(): TableLayoutMode {
+    return layoutModeOf(this.tbl);
+  }
+
+  /** The section's text width in twips, for the window mode and a percentage width. */
+  textWidth(): number {
+    return textWidthTwips(this.parentBody.container as { sectPr?: wml.SectPr });
+  }
+
+  /** Views of new cells, row by row. */
+  cellViewsOf(cells: Element<wml.Tc>[][]): TableCell[][] {
+    const rows = this.rows;
+    return cells.map((rowCells, i) => {
+      const row = rows[i];
+      if (!row || rowCells.length === 0) return [];
+      return row.cells.filter((cell) => rowCells.includes(cell.element));
+    });
   }
 
   /** Removes the table from its container; tracked, every row is marked deleted instead. */
@@ -313,10 +359,41 @@ export class TableCell {
     const w = this.tc.tcPr?.tcW;
     return w?.type === 'dxa' ? (w.w ?? 0) / TWIPS_PER_POINT : 0;
   }
+  /**
+   * Written in the form the cell states, else its table, else twips (CR-002 section 42.2 item 4): a
+   * cell in percent takes the points as a share of the section's text width; `auto` becomes twips,
+   * a stated width being what was asked for.
+   */
   set width(points: number) {
+    const twips = Math.round(points * TWIPS_PER_POINT);
     const tcW = ((this.tc.tcPr ??= {}).tcW ??= {});
-    tcW.w = Math.round(points * TWIPS_PER_POINT);
-    tcW.type = 'dxa';
+    if (widthTypeOf(this.tc, this.parentTable.tbl) === 'pct') {
+      tcW.w = Math.round((twips * 5000) / this.parentTable.textWidth());
+      tcW.type = 'pct';
+    } else {
+      tcW.w = twips;
+      tcW.type = 'dxa';
+    }
+  }
+
+  /**
+   * New columns before or after this cell (Office JS `TableCell.insertColumns`), the new cells
+   * taking this cell's properties and width, as `Table.addColumns` does. Returns the new cells per
+   * row (extension).
+   */
+  insertColumns(location: 'Before' | 'After', columnCount: number, values?: string[][]): TableCell[][] {
+    const range = gridRangeOf(this.parentRow.tr, this.tc);
+    if (!range) throw new Docx4JException('This cell is not in its row');
+    const table = this.parentTable;
+    const inserted = insertGridColumns(table.tbl, table.textWidth(), location === 'Before' ? range.start : range.end, columnCount, values, location === 'Before' ? 'right' : 'left', table.changeTracker);
+    return table.cellViewsOf(inserted.cells);
+  }
+
+  /** Removes the grid columns this cell covers (Office JS `TableCell.deleteColumn`); not tracked, as Word does not track it. */
+  deleteColumn(): void {
+    const range = gridRangeOf(this.parentRow.tr, this.tc);
+    if (!range) throw new Docx4JException('This cell is not in its row');
+    this.parentTable.deleteColumns(range.start, range.end - range.start);
   }
 
   /** Office JS TableCell.columnWidth, the same value. */
