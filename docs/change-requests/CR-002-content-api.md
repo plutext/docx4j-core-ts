@@ -3686,7 +3686,7 @@ by what Office JS does (to measure).
 ### 42.5 As implemented (2026-10-09)
 
 `src/model/content/tableColumns.mts` holds the file knowledge, `Table.mts` the calls;
-`test/table-columns.test.mjs` holds it to check 39's save and check 40's (42.6). The suite: 798.
+`test/table-columns.test.mjs` holds it to check 39's save and check 40's (42.6). The suite: 800.
 
 1. **The calls**, in Office JS's shapes: `Table.addColumns('Start' | 'End', columnCount, values?)`,
    `TableCell.insertColumns('Before' | 'After', columnCount, values?)`, `Table.deleteColumns(columnIndex,
@@ -3704,10 +3704,13 @@ by what Office JS does (to measure).
    the container when the neighbour is in one. **The template is the column to the right of the
    boundary when there is one, else the left** (check 40: Insert Right in a narrow cell beside a
    wide one took the wide width, 40a1; Insert Right in a spanning cell took the column after it,
-   40b2; a first version here took the caret's side), and a new cell takes that cell's `w:tcPr`
-   less `gridSpan`, `vMerge`, `hMerge`, the cell markers and any `w:tcPrChange` - which of the two
-   neighbours' *properties* Word copies is not measured, the probes' cells being plain; it holds one
-   empty `w:p` as Word writes one, or the value's text.
+   40b2; a first version here took the caret's side), and a new cell takes from that cell its
+   **shading** (`w:shd`) and its width's form, and its paragraph's properties - the first
+   paragraph's `w:pPr`, the mark's run properties included (centred and bold, right-aligned and
+   italic in check 41) - and **not** its borders, vertical alignment, span, merges, markers or
+   record (check 41: Word left the thick red border and the bottom alignment behind, from either
+   side; what else of a `w:tcPr` Word copies - margins, text direction - is not measured, and
+   nothing else is copied here); it holds one empty `w:p` as Word writes one, or the value's text.
 3. **The widths, per mode** (42.2): the grid gains the neighbour's width per new column; **fixed**
    adds the same to a `w:tblW` in twips; **window** rescales the grid to the width it had
    **proportionally** (check 40a2: the shares Word wrote, 996/2002/2002, are the engine's to the
@@ -3731,19 +3734,25 @@ by what Office JS does (to measure).
    follows Office JS, the surface it mirrors. A first version here removed untracked with no
    record.
 5. **The tracked form** (42.3), written by the insert while changes are tracked, as Office JS's
-   `addColumns` writes it (check 40c): a `w:tblPrChange` with the properties as they were, a
-   `w:tcPrChange` on **every** cell - those that were there recording their properties, even where
-   nothing changed, as check 27 saw, and the new cells recording theirs as made - a
-   `w:tblGridChange` holding the grid **as it is after the change** (Word's record, both for a
-   column added and one removed; a first version here recorded the old grid), and the new cells'
-   runs in a `w:ins` with **no** mark insertion; no `w:cellIns`. A record already on the table or a
-   cell (an earlier pending change) is kept, so the original state stays the recorded one.
-   `getTrackedChanges` then lists one `tableProperties` change for the table (section 35's kind;
-   none where the records hold no difference, checks 24 and 26's rule, which a contents-mode add
-   is) and the text as insertions, which Office JS itself holds back until the table change is
-   accepted (check 27); accepting drops the records and keeps the column; rejecting puts the
-   recorded properties and cells back, the grid as recorded, and leaves the column, empty -
-   Word's Reject All left it the same way (section 29's measurement).
+   `addColumns` writes it (checks 40c and 41c): a `w:tblPrChange` with the properties as they
+   were, a `w:tcPrChange` on **every** cell - those that were there recording their properties,
+   even where nothing changed, as check 27 saw, and the new cells recording theirs as made - a
+   `w:tblGridChange`, and the new cells' runs in a `w:ins` with **no** mark insertion; no
+   `w:cellIns`. The recorded grid is the grid **as it is after the change** where nothing was
+   rescaled (fixed; a column removed; Word's record both ways, a first version here recorded the
+   old grid); where the columns were rescaled (AutoFit to window) it is the old and new column
+   edges together - the grid with the new column at its copied width, and the same rescaled,
+   merged - every cell's record spanning the merged columns its unscaled extent covers and a new
+   cell's recorded width the placeholder `1 pct`, exactly check 27's form and what Word wrote in
+   check 41c. **An AutoFit-to-contents add records nothing** (check 41c: no `w:tblPrChange`, no
+   `w:tcPrChange`, no grid record; the text insertions alone), nor does a contents-mode deletion
+   here, by the same reading. A record already on the table or a cell (an earlier pending change)
+   is kept, so the original state stays the recorded one. `getTrackedChanges` then lists one
+   `tableProperties` change for the table (section 35's kind) and the text as insertions, which
+   Office JS itself holds back until the table change is accepted (check 27); accepting drops the
+   records and keeps the column; rejecting puts the recorded properties and cells back over the
+   recorded grid, which `collapseGrid` folds to one column per cell again, and leaves the column,
+   empty - Word's Reject All left it the same way (section 29's measurement).
 6. **Held by:** the three insertions over check 39's probe, the fixed table equal to the save in
    `w:tblW`, grid and every `w:tcW`, the window table in `w:tblW` and every `w:tcW` with a grid of
    three summing to 9,026, the contents table in `w:tblW` and every `w:tcW`; adds at the start and
@@ -3768,5 +3777,14 @@ JSON beside the originals, each held by a test. What it settled, and what moved 
 | 40c: Office JS `deleteColumns(1, 1)`, tracking on | the cells gone, no `w:del`; `w:tblPrChange` (old width), `w:tcPrChange` on the remaining cells, `w:tblGridChange` holding the grid as after; listed `Formatted` | removed untracked, no record | as Word |
 | 40c: Office JS `addColumns('End', 1, ...)`, tracking on | the last column copied; `w:tblPrChange`, `w:tcPrChange` on every cell, the new ones included, `w:tblGridChange` holding the grid as after, the new text in `w:ins`, no mark insertion; listed `Formatted` only (the insertions held back, check 27) | the old grid recorded, no record on the new cells, the marks inserted | as Word |
 
-Still unmeasured: which neighbour's cell *properties* a new cell takes (both probes' cells were
-plain), and what Office JS lists for a contents-mode add, whose records hold no difference.
+**Check 41** (the same day, Jason: "let's measure those 2 things"; `test/fixtures/check41/`) took
+the two points that left:
+
+| Case | Word 365 | The engine before | Now |
+|---|---|---|---|
+| 41a: Insert Right from a yellow, centred, red-bordered, centred-bold column into a blue, bottom-aligned, green-bordered, right-italic one; 41b: Insert Left from the blue side | the same both times: the new cell blue, no border, no vertical alignment, its empty paragraph right-aligned with an italic mark - the right-hand cell's shading and paragraph properties | the right-hand cell's whole `w:tcPr` less span and merges, a plain paragraph | as Word: `w:shd` and the width's form, and the paragraph's `w:pPr` |
+| 41c: Office JS `addColumns('End')`, tracking on, AutoFit to contents | no record of any kind; `w:tcW auto` on the new cells; the grid Word's measurement; listed as two `Added` | records holding no difference (not listed, but written) | nothing recorded |
+| 41c: the same, AutoFit to window | `w:tblPrChange`, every cell's `w:tcPrChange` with its old share and a `w:gridSpan` of 2 over a seven-column recorded grid (the old edges, the new column appended at its copied width, and the rescaled edges, merged), the new cells recorded as `1 pct`; cells 1250 pct each; listed as one `Formatted` | the grid as after recorded, the new cells' made width | as Word: the merged-edge grid, the spans, the placeholder; the shares to the unit |
+
+Nothing of section 42 is unmeasured now but what a `w:tcPr` holds beyond shading, borders and
+alignment (margins, text direction, fit text), left uncopied.

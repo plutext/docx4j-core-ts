@@ -18,6 +18,10 @@
 // with tracking on, a column deleted loses its cells untracked but records the table change, a
 // column added records a `w:tcPrChange` on the new cells too and their text in a `w:ins` with no
 // mark insertion, and the `w:tblGridChange` holds the grid as it is after the change, both ways.
+// Check 41 (2026-10-09) added: a new cell takes the right-hand cell's shading and its paragraph's
+// properties, not its borders or vertical alignment; an AutoFit-to-contents add records nothing;
+// an AutoFit-to-window add records the grid of the old and new column edges together, the old
+// cells spanning their former extents over it, a new cell's width a placeholder (check 27's form).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { tc as cellElementOf } from '@docx4j/generated-objects-ts/builders/wml';
@@ -136,14 +140,30 @@ function ownerOfCells(tr: wml.Tr, container: Element[]): object {
   return tr;
 }
 
-/** The cell properties a new cell takes from the cell beside it: everything but its span, merges, markers and record. */
-const NOT_COPIED = ['gridSpan', 'vMerge', 'hMerge', 'tcPrChange', 'cellIns', 'cellDel', 'cellMerge', 'PARENT'];
+/**
+ * The cell properties a new cell takes from the cell to the right of the boundary: its width (the
+ * form; the value is written from the grid) and its shading, and nothing else - check 41 saw Word
+ * copy the shading and leave the borders and the vertical alignment behind.
+ */
+const COPIED = ['tcW', 'shd'];
 
 function cellPropertiesFrom(template: wml.Tc | undefined): wml.TcPr | undefined {
   if (!template?.tcPr) return undefined;
   const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(template.tcPr)) if (!NOT_COPIED.includes(key)) out[key] = deepCopy(value);
-  return out as wml.TcPr;
+  for (const [key, value] of Object.entries(template.tcPr)) if (COPIED.includes(key)) out[key] = deepCopy(value);
+  return Object.keys(out).length > 0 ? (out as wml.TcPr) : undefined;
+}
+
+/** The paragraph properties a new cell's paragraph takes: the template's first paragraph's, its mark's run properties included, less any revision (check 41: centred bold, right-aligned italic, as the neighbour's). */
+function paragraphPropertiesFrom(template: wml.Tc | undefined): wml.PPr | undefined {
+  const first = (childrenOf(template ?? {}) ?? []).find((item) => (item.value as { TYPE_NAME?: string } | null)?.TYPE_NAME === 'org_docx4j_wml.P');
+  const pPr = (first?.value as wml.P | undefined)?.pPr;
+  if (!pPr) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(pPr)) if (!['pPrChange', 'sectPr', 'PARENT'].includes(key)) out[key] = deepCopy(value);
+  const rPr = out.rPr as Record<string, unknown> | undefined;
+  if (rPr) for (const key of ['ins', 'del', 'rPrChange', 'moveFrom', 'moveTo']) delete rPr[key];
+  return Object.keys(out).length > 0 ? (out as wml.PPr) : undefined;
 }
 
 /** Where a new column's cells go in one row, and which cell they take their properties from. */
@@ -157,7 +177,7 @@ interface RowPlan {
   skipped?: RowMember;
 }
 
-/** The new cells of one row, each a `w:tc` of one paragraph with the template's properties. */
+/** The new cells of one row, each a `w:tc` of one paragraph with the template's shading and paragraph properties. */
 function newCells(count: number, values: string[] | undefined, template: wml.Tc | undefined): Element<wml.Tc>[] {
   const out: Element<wml.Tc>[] = [];
   for (let i = 0; i < count; i++) {
@@ -166,6 +186,9 @@ function newCells(count: number, values: string[] | undefined, template: wml.Tc 
     const cell = cellElementOf(text === '' ? [paragraphOf([]) as Element] : text) as Element<wml.Tc>;
     const tcPr = cellPropertiesFrom(template);
     if (tcPr) cell.value.tcPr = tcPr; else delete cell.value.tcPr;
+    const pPr = paragraphPropertiesFrom(template);
+    const paragraph = (childrenOf(cell.value) ?? []).find((item) => (item.value as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.P');
+    if (pPr && paragraph) { (paragraph.value as wml.P).pPr = pPr; linkParents(pPr, paragraph.value as object); }
     out.push(cell);
   }
   return out;
@@ -194,12 +217,13 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   if (gridIndex < 0 || gridIndex > old.length) throw new Docx4JException(`No column boundary ${gridIndex} in a grid of ${old.length} columns`);
   const mode = layoutModeOf(tbl);
   const copied = old[gridIndex < old.length ? gridIndex : old.length - 1]!;
-  let widths = [...old.slice(0, gridIndex), ...Array.from({ length: count }, () => copied), ...old.slice(gridIndex)];
-  if (mode === 'window') widths = rescaled(widths, old.reduce((a, b) => a + b, 0));
+  const unscaled = [...old.slice(0, gridIndex), ...Array.from({ length: count }, () => copied), ...old.slice(gridIndex)];
+  const widths = mode === 'window' ? rescaled(unscaled, old.reduce((a, b) => a + b, 0)) : unscaled;
 
   const rows = rowsOf(tbl).map((row) => row.element.value);
   const plans: RowPlan[] = rows.map((tr) => planRow(tr, gridIndex));
-  const record = tracker ? recordTable(tbl, rows, tracker) : undefined;
+  // an AutoFit-to-contents add changes no width, and Office JS records nothing for it (check 41c)
+  const record = tracker && mode !== 'contents' ? recordTable(tbl, rows, tracker) : undefined;
 
   const result: ColumnInsertion = { cells: [] };
   plans.forEach((plan, rowIndex) => {
@@ -218,7 +242,7 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   const tblW = tbl.tblPr?.tblW;
   if (mode === 'fixed' && tblW?.type === 'dxa') tblW.w = Number(tblW.w ?? 0) + copied * count;
   writeCellWidths(tbl, widths, mode === 'window' ? 'all' : result.cells.flat().map((c) => c.value));
-  if (record) record(result.cells.flat().map((c) => c.value));
+  if (record) record(result.cells.flat().map((c) => c.value), { unscaled, scaled: widths });
   return result;
 }
 
@@ -258,17 +282,26 @@ function writeCellWidths(tbl: wml.Tbl, widths: number[], which: 'all' | wml.Tc[]
   }
 }
 
+/** The grids a window-mode insert went through: the old widths with the new column at its copied width, and the same rescaled to the width the table had. */
+interface Rescale {
+  unscaled: number[];
+  scaled: number[];
+}
+
 /**
- * What Word records for a column added or removed through Office JS with tracking on (check 40c,
- * the form of section 35's table change): a `w:tblPrChange` with the properties as they were, a
- * `w:tcPrChange` on every cell with its properties as they were - a new cell's as made - and a
- * `w:tblGridChange` holding the grid **as it is after the change** (Word's own record; it keeps a
- * reject consistent with cells that have gone for good, or stayed). Taken before the change and
- * written after it, so that `TrackedChange` lists the whole as one table change and rejecting it
- * puts the recorded properties back. A record already there (an earlier pending change) is kept,
- * so the original state stays the recorded one.
+ * What Word records for a column added or removed through Office JS with tracking on (checks 40c
+ * and 41c, the form of section 35's table change): a `w:tblPrChange` with the properties as they
+ * were, a `w:tcPrChange` on every cell with its properties as they were - a new cell's as made -
+ * and a `w:tblGridChange` holding the grid **as it is after the change**. Where the change
+ * rescaled the columns (AutoFit to window), the recorded grid is instead the old and new column
+ * edges together - the unscaled grid's edges and the scaled grid's, merged - with every cell's
+ * record spanning the merged columns its unscaled extent covers, and a new cell's recorded width a
+ * placeholder (`1 pct`; check 27's form, as Word wrote it in check 41c), so that rejecting puts
+ * the old widths back over a grid that `collapseGrid` then folds. Taken before the change and
+ * written after it, so that `TrackedChange` lists the whole as one table change. A record already
+ * there (an earlier pending change) is kept, so the original state stays the recorded one.
  */
-function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): (added?: wml.Tc[]) => void {
+function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): (added?: wml.Tc[], rescale?: Rescale) => void {
   const tblPr = tbl.tblPr;
   const oldTblPr = tblPr && !tblPr.tblPrChange ? without(tblPr, ['tblPrChange']) : undefined;
   const recordGrid = !tbl.tblGrid?.tblGridChange;
@@ -277,22 +310,65 @@ function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): (add
     const tc = cell.element.value;
     if (!tc.tcPr?.tcPrChange) oldCells.push([tc, recordedCellProperties(tc)]);
   }
-  return (added: wml.Tc[] = []) => {
+  return (added: wml.Tc[] = [], rescale?: Rescale) => {
     if (oldTblPr && tbl.tblPr) {
       tbl.tblPr.tblPrChange = { TYPE_NAME: 'org_docx4j_wml.CTTblPrChange', ...tracker.markup(), tblPr: { TYPE_NAME: 'org_docx4j_wml.CTTblPrBase', ...oldTblPr } as wml.CTTblPrBase };
       linkParents(tbl.tblPr.tblPrChange, tbl.tblPr);
     }
+    const merged = rescale && rescale.unscaled.some((w, i) => w !== rescale.scaled[i]) ? mergedEdges(rescale.unscaled, rescale.scaled) : undefined;
     if (recordGrid && tbl.tblGrid) {
-      tbl.tblGrid.tblGridChange = { TYPE_NAME: 'org_docx4j_wml.CTTblGridChange', id: tracker.nextId(), tblGrid: { TYPE_NAME: 'org_docx4j_wml.TblGridBase', gridCol: (tbl.tblGrid.gridCol ?? []).map((col) => deepCopy(col)) } };
+      const gridCol = merged ? merged.widths.map((w) => ({ TYPE_NAME: 'org_docx4j_wml.TblGridCol', w } as wml.TblGridCol)) : (tbl.tblGrid.gridCol ?? []).map((col) => deepCopy(col));
+      tbl.tblGrid.tblGridChange = { TYPE_NAME: 'org_docx4j_wml.CTTblGridChange', id: tracker.nextId(), tblGrid: { TYPE_NAME: 'org_docx4j_wml.TblGridBase', gridCol } };
       linkParents(tbl.tblGrid.tblGridChange, tbl.tblGrid);
     }
+    const extents = merged ? cellExtents(tbl) : undefined;
     const cells: [wml.Tc, wml.TcPrInner][] = [...oldCells.filter(([tc]) => isInTable(tc, tbl)), ...added.map((tc) => [tc, recordedCellProperties(tc)] as [wml.Tc, wml.TcPrInner])];
     for (const [tc, old] of cells) {
       const tcPr = (tc.tcPr ??= {});
-      tcPr.tcPrChange = { TYPE_NAME: 'org_docx4j_wml.CTTcPrChange', ...tracker.markup(), tcPr: { TYPE_NAME: 'org_docx4j_wml.TcPrInner', ...old } as wml.TcPrInner };
+      const recorded: Record<string, unknown> = { ...old };
+      if (merged && extents) {
+        // over the merged grid: the columns the cell's unscaled extent covers
+        const extent = extents.get(tc);
+        if (extent) {
+          const span = merged.index(unscaledEdge(rescale!.unscaled, extent.end)) - merged.index(unscaledEdge(rescale!.unscaled, extent.start));
+          if (span > 1) recorded.gridSpan = { val: span }; else delete recorded.gridSpan;
+        }
+        if (added.includes(tc) && (recorded.tcW as wml.TblWidth | undefined)?.type === 'pct') recorded.tcW = { w: 1, type: 'pct' };
+      }
+      tcPr.tcPrChange = { TYPE_NAME: 'org_docx4j_wml.CTTcPrChange', ...tracker.markup(), tcPr: { TYPE_NAME: 'org_docx4j_wml.TcPrInner', ...recorded } as wml.TcPrInner };
       linkParents(tcPr.tcPrChange, tcPr);
     }
   };
+}
+
+/** The cumulative edge, in twips, of a column index over a grid. */
+function unscaledEdge(widths: number[], column: number): number {
+  return widths.slice(0, column).reduce((a, b) => a + b, 0);
+}
+
+/** The old and new grids' edges together, as merged columns, and where an edge falls among them. */
+function mergedEdges(unscaled: number[], scaled: number[]): { widths: number[]; index: (edge: number) => number } {
+  const edges = new Set<number>([0]);
+  let at = 0; for (const w of unscaled) { at += w; edges.add(at); }
+  at = 0; for (const w of scaled) { at += w; edges.add(at); }
+  const sorted = [...edges].sort((a, b) => a - b);
+  return { widths: sorted.slice(1).map((edge, i) => edge - sorted[i]!), index: (edge) => sorted.indexOf(edge) };
+}
+
+/** Each cell's column extent in the grid as it is now, through the rows' spans and skipped columns. */
+function cellExtents(tbl: wml.Tbl): Map<wml.Tc, { start: number; end: number }> {
+  const out = new Map<wml.Tc, { start: number; end: number }>();
+  for (const row of rowsOf(tbl)) {
+    const tr = row.element.value;
+    let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
+    for (const cell of cellsOf(tr)) {
+      const tc = cell.element.value;
+      const end = at + spanOf(tc);
+      out.set(tc, { start: at, end });
+      at = end;
+    }
+  }
+  return out;
 }
 
 /** A cell's properties as a record holds them: everything but the markers and an earlier record. */
@@ -325,7 +401,7 @@ export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: 
   const old = gridWidthsOf(tbl, textWidth);
   if (columnIndex < 0 || columnIndex + count > old.length) throw new Docx4JException(`No columns ${columnIndex} to ${columnIndex + count - 1} in a grid of ${old.length} columns`);
   const mode = layoutModeOf(tbl);
-  const record = tracker ? recordTable(tbl, rowsOf(tbl).map((row) => row.element.value), tracker) : undefined;
+  const record = tracker && mode !== 'contents' ? recordTable(tbl, rowsOf(tbl).map((row) => row.element.value), tracker) : undefined;
   const from = columnIndex;
   const to = columnIndex + count;
   const overlap = (start: number, end: number): number => Math.max(0, Math.min(end, to) - Math.max(start, from));

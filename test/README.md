@@ -1236,7 +1236,14 @@ already named, so each case starts by opening its own file.
    take when the two neighbouring columns differ in shading, vertical alignment, borders and
    paragraph formatting (Insert Right from the yellow side, Insert Left from the blue side); and,
    through Office JS with tracking on (`check41-script.js` in Script Lab), `addColumns` on an
-   AutoFit-to-contents table and an AutoFit-to-window one: what Word writes and lists. Not yet run.
+   AutoFit-to-contents table and an AutoFit-to-window one: what Word writes and lists. **Run
+   2026-10-09 in Word 365 (Jason; the saves and `41c-result.json` beside the originals):** the new
+   column takes the right-hand cell's shading and its paragraph's properties (right-aligned, an
+   italic mark) and not its borders or vertical alignment, from either side; Office JS's add on the
+   contents table recorded nothing and listed two `Added`; on the window table it recorded every
+   cell with its old share spanning a seven-column merged grid (check 27's form), the new cells as
+   `1 pct`, and listed one `Formatted`. The engine moved to all of it; CR-002 section 42.6,
+   `table-columns.test.mjs`.
 
 A small Node script for 1 to 3 is:
 
