@@ -3597,3 +3597,89 @@ own copy only when the engine throws. The eleven are `Heading5`, `Heading6` and 
 styles, `Quote`, `IntenseQuote` and their `Char` styles, `ListParagraph`, `HTMLCode`,
 `HTMLPreformatted` and `HTMLPreformattedChar`. Once a release carries the fallback, the editor's
 copy goes.
+
+## 42. A request from the editor after Word check 39: columns added, in Word's three layout modes (2026-10-09)
+
+*Asked by the editor (its ED-005 sections 12.78 and 12.79), after Jason asked whether its column
+work belongs in the engine. Not implemented.*
+
+The content API has `Table.addRows`, `Table.deleteRows`, `columnWidths()` and a cell's `width`,
+but no way to add a column: an agent or a script working through the engine cannot. The editor
+has a column command of its own over ProseMirror (`table.addColumns`), with the rules below
+in two places (its command and its export), held to Word 365's save by `check39.test.mts`
+(`test/fixtures/check39/` here, the same files). What the engine should own is the file
+knowledge: what Word writes.
+
+### 42.1 The calls
+
+Office JS's shapes, as the rest of this surface:
+
+- `Table.addColumns(insertLocation: 'Start' | 'End', columnCount: number, values?: string[][])`,
+  returning nothing in Office JS (the table's `rows` read back the cells); here the new
+  `TableCell`s per row would be a useful extension, as `addRows` returns rows.
+- `TableCell.insertColumns(insertLocation: 'Before' | 'After', columnCount: number, values?: string[][])`.
+- Lower priority, for symmetry: `Table.deleteColumns(columnIndex: number, columnCount?: number)`
+  and `TableCell.deleteColumn()`.
+
+`values` is by row, then by new column, as Office JS takes it. A new cell holds one empty
+paragraph, or the value's text, with the cell properties of the cell beside it (its `tcPr` less
+`gridSpan` and `vMerge`), so a shaded or bordered column continues as Word's Insert Right does.
+
+### 42.2 What Word writes per layout mode (check 39, Word 365)
+
+Word's three choices as its Table Properties states them, read from the file: `w:tblLayout
+fixed` is **fixed**; a `w:tblW` in percent is **AutoFit to window**; anything else is **AutoFit to
+contents** (docx4j's reading too, `docx4j-export-fo/docs/word-layout-rules.md` section 6). The
+probe is one two-column table of the text width per mode; Insert Right in the first cell wrote:
+
+| Mode | The new column | `w:tblW` | `w:tblGrid` | `w:tcW` |
+|---|---|---|---|---|
+| Fixed | copies the width beside the caret (4,513 twips) | grows with the grid, 9,026 to 13,539, past the margin | 4513, 4513, 4513 | 4513 dxa each |
+| Window | the table keeps 100%, the columns make room | 5000 pct, unchanged | 3005, 3006, 3006 | 1666, 1667, 1667 pct |
+| Contents | the table and its cells stay automatic | 0 auto, unchanged | 593, 222, 597 (Word's measurement of the text) | 0 auto each |
+
+What to take from it:
+
+1. **Fixed:** the new column's width is the neighbour's; the grid gains it; a `w:tblW` in twips
+   grows by it. Nothing is rescaled, and the table runs into the margin.
+2. **Window:** the grid is rescaled to the width it had. The probe's two columns were equal, so
+   it cannot tell a proportional rescale from an equal share; the editor keeps the proportional
+   one, and a second probe with unequal columns would settle it. The cells' `w:tcW` are their
+   share of the table in fiftieths of a percent, the cumulative shares floored (1666, 1667,
+   1667, not 1667 three times).
+3. **Contents:** `auto` throughout; the grid is Word's cache of its last layout pass, measured
+   from the text, which the engine cannot measure and need not: Word and docx4j measure afresh
+   at open. The engine writes a grid of the right shape (the neighbour's width copied, the rest
+   as they were) and leaves the measurement to the consumer.
+4. **The form of a cell's width** follows the cell's own `w:tcW` type, else the table's `w:tblW`
+   type, else twips. That is a rule for every writer of a cell width here, `TableCell.width`
+   included, which sets `dxa` today whatever the table states.
+5. **The text width** for the window case is the section's (`w:pgSz` less the margins and the
+   gutter), as `Body.mts` and `InlinePicture.mts` read it; A4 with 2.54 cm margins when there
+   is none (9,026 twips, `DEFAULT_WIDTH`).
+
+### 42.3 The tracked form
+
+Section 29's measurement table (the row "Column added, deleted; cells merged"): Word tracks a
+column added as the table change (a `w:tblPrChange`, a `w:tblGridChange` recording the old grid,
+a `w:tcPrChange` on every cell of every row) plus a `w:ins` on the new cells' text, no
+`w:cellIns`; its Reject All left the column, empty. The editor's command is untracked because
+its model holds none of that; the engine, which tracks inside `withTracking`, is the one place
+Word's tracked form can come from, and the agent's tools (docx4j-ts-editor `packages/editor-mcp`)
+would get a tracked column add through it. A column deleted is not tracked by Word (known issues,
+entry 2), so `deleteColumns` under tracking either refuses or removes untracked, to be decided
+by what Office JS does (to measure).
+
+### 42.4 Holding it, and what the editor does meanwhile
+
+- **Fixtures:** `test/fixtures/check39/` (the probe and Word 365's save, with a README); a test
+  runs the three insertions over the probe and compares `w:tblW`, the grid and the first row's
+  `w:tcW` against the save, the contents table by shape alone.
+- **The editor's side:** once a release carries the calls, `table.addColumns` gains an `api`
+  line (`Word.*` form), and its `api.test.mts` and `agreement.test.mts` hold the editor's export
+  to the engine's output over the same fixture, the standing pattern for every command with
+  an `api` line. The editor's ProseMirror half, its drawing of the three modes and its Table
+  properties dialog stay where they are.
+- **Not a move:** this is new engine code under this CR, not the editor's table code moved down
+  (ED-001 decision 26 covers a module moved whole; the editor's is tangled with ProseMirror).
+

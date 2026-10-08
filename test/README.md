@@ -1202,6 +1202,16 @@ already named, so each case starts by opening its own file.
    rasterised, the SVG kept under `asvg:svgBlip`. `picture-binding.test.mjs` holds the saves.
    CR-005 section 9.
 
+39. A column inserted in each of Word's table layout modes (CR-002 section 42, 2026-10-09): the
+   editor's probe (`fixtures/check39/`, built by docx4j-ts-editor's `table-autofit-probe.mjs`), one
+   two-column table per mode, Insert Right in the first cell of each. **Run 2026-10-09 in Word 365
+   (Jason; `table-autofit-probe-word365.docx`):** fixed copies the width beside the caret and grows
+   `w:tblW` past the margin (9,026 to 13,539); AutoFit to window keeps 100% and writes the cells as
+   1666, 1667, 1667 pct over a grid of 3005, 3006, 3006; AutoFit to contents stays `auto` with a
+   grid measured from the text (593, 222, 597). The editor's `check39.test.mts` holds its command
+   to the save; the engine's `addColumns` is CR-002 section 42's request. A Word 2010 save is
+   optional.
+
 A small Node script for 1 to 3 is:
 
 ```js
