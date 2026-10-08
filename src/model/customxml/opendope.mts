@@ -5,9 +5,12 @@
 // XPaths part (`http://opendope.org/xpaths`), whose entries name a data part, an XPath and its
 // prefix mappings, as a `w:dataBinding` would. Phase B (section 3) will read the rest of the parts.
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
+import type { CustomXmlNode } from './CustomXmlPart.mjs';
 
 export const OPENDOPE_XPATHS_NS = 'http://opendope.org/xpaths';
 export const XHTML_CONTENT_TYPE = 'application/xhtml+xml';
+/** The tag's `od:Handler` value for a picture (the specification's section 9.3; CR-005 section 9). */
+export const PICTURE_HANDLER = 'picture';
 
 /** The tag's parameters, `key=value` pairs separated by `&`, in order; a value is as written (the content type keeps its `/` and `+`). */
 export function tagParamsOf(tag: string): Map<string, string> {
@@ -46,4 +49,19 @@ export function xpathsEntriesOf(parts: CustomXmlPartLookup): Map<string, XPathsE
     out.set(id, { id, storeItemID: read('storeItemID'), xpath: read('xpath'), prefixMappings: read('prefixMappings') });
   }
   return out;
+}
+
+/**
+ * The node an `od:xpath` entry selects: the entry's XPath over the part its `storeItemID` names
+ * (the id compared without braces or case, as `getItem` does). What a tag-bound control's pass
+ * starts from; the note says why there is no node.
+ */
+export function selectEntryNode(entryId: string, parts: CustomXmlPartLookup): { node: CustomXmlNode } | { note: string } {
+  const entry = xpathsEntriesOf(parts).get(entryId);
+  if (!entry) return { note: `od:xpath=${entryId}: no such entry in the XPaths part` };
+  const part = parts.getItem(entry.storeItemID) ?? parts.items.find((p) => p.id.replace(/[{}]/g, '').toLowerCase() === entry.storeItemID.replace(/[{}]/g, '').toLowerCase());
+  if (!part) return { note: `od:xpath=${entryId}: no custom XML part ${entry.storeItemID}` };
+  const node = part.selectSingleNode(entry.xpath, entry.prefixMappings);
+  if (!node) return { note: `od:xpath=${entryId}: ${entry.xpath} selects nothing` };
+  return { node };
 }

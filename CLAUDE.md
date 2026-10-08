@@ -24,8 +24,9 @@ taking one, 62 parity goldens; and the content API's effective reads passing `Pa
 is implemented, released in 0.3.2.
 So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
-2010/2013 extension parts), CR-005 phase A (the FontoXPath engine), and CR-006 (`selectObjects` and
-`Body.select`, XPath over the tree, held to docx4j by 46 XPath goldens). The editor's release requests are
+2010/2013 extension parts), CR-005 phase A (the FontoXPath engine) and its sections 8 and 9 (escaped
+XHTML through the `html` module, and picture bindings; implemented 2026-10-08, unreleased), and CR-006 (`selectObjects` and
+`Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -86,7 +87,8 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
-                  XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler)
+                  XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler);
+                  opendope.mts (the tag's parameters, the XPaths part's entries), xhtml.mts and pictures.mts: the tag-bound passes, od:ContentType=application/xhtml+xml and od:Handler=picture (CR-005 sections 8 and 9)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it);
                   tableRevisions.mts: a table's property revisions, listed as one change and resolved as Word does (CR-002 section 35)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.

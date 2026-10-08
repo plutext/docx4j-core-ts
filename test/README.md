@@ -1181,6 +1181,16 @@ already named, so each case starts by opening its own file.
    extension namespaces declared.
 
 A small Node script for 1 to 3 is:
+37. Escaped XHTML bound through an `od:xpath` entry (CR-005 section 8.2, 2026-10-08): the files are
+   built by `fixtures/check37/build.mjs`, and its `README.md` says what to look for in Word 2010 and
+   Word 15. Not yet run.
+
+38. Picture bindings (CR-005 section 9, 2026-10-08): a picture content control mapped to a base64
+   node (does Word fill it on open; what does a picture changed by hand write to the node), and
+   `od:Handler=picture` controls bound by the engine, floating without `width` and inline with
+   `width=4500`, `width=auto` and in a table cell. Built by `fixtures/check38/build.mjs`; its
+   `README.md` says what to look for. Not yet run.
+
 
 ```js
 import { writeFile, readFile } from 'node:fs/promises';

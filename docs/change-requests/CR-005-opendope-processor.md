@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) implemented, unreleased; Word check 37 pending
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, unreleased; Word checks 37 and 38 pending
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -407,3 +407,91 @@ As built (`src/model/customxml/xhtml.mts`, `opendope.mts`; `test/html-binding.te
    bold, a link with its relationship and a list with a definition, saved and reloaded with no
    `w:dataBinding` written; a run-level control given the first paragraph, the rest noted; a
    missing entry and a missing parser left and noted. The suite: 775.
+
+## 9. Picture bindings (2026-10-08)
+
+The specification's section 9.3 binds a control to a node holding base64 image data; so does
+Word's own picture content control. Asked by the editor (docx4j-ts-editor ED-005 proposal 45,
+accepted and started by Jason 2026-10-08) as part 1 of that proposal, the engine's half; parts 2
+and 3 (pictures made in the editor, and its display) are the editor's. Two shapes:
+
+- **(a) Word's picture content control:** `w:sdtPr/w:picture` with a `w:dataBinding`. Word fills
+  the control's picture from the node when it opens the document. `applyBindingTo` had skipped
+  `control.type === 'Picture'` since CR-002 phase E ("deferred", its section 12).
+- **(b) `od:Handler=picture`:** a rich text control bound through the tag's `od:xpath` entry, with
+  no `w:dataBinding` (Word has no floating picture control, and a rich text control bound to the
+  node would be filled with the base64 as text), as the XHTML bind step reads it (section 8.2).
+
+**What docx4j does** (`bind.xslt`, `BindingTraverserXSLT`; the `width` parameter since 11.1.8,
+which the 8.1 XSLT the editor read does not have):
+
+- modes `picture3` (a) and `picture3richtext` (b, no `width`) copy `w:sdtContent` as it is but for
+  the first `a:blip`, whose `r:embed` becomes a relationship to a new image part made from the
+  node's bytes (`xpathInjectImageRelId`, `createImagePartReturnRelId`): the drawing keeps its
+  anchor, wrapping, position and extent (REQ-061). A picture control holding no `a:blip` falls
+  back to the pre-3.0 route below, sized from a `wp:extent` it does not have, so at the natural
+  size;
+- with `width=auto` or `width=N` on the tag (b), `w:sdtContent` is replaced by a `w:p`/`w:r`
+  holding a new `wp:inline` (`xpathInjectImage`, `BinaryPartAbstractImage.createImageInline`):
+  the image's natural size, scaled down when wider than the page's writable width or, with `N`,
+  than `N` twips when that is narrower (`CxCy.scale(imageInfo, page, maxWidth)`); `auto` passes
+  no maximum. A value that is neither is parsed as 0, which is `auto` (REQ-062);
+- the image part a control showed before stays in the package (a `TODO` in the Java);
+- `UpdateXmlFromDocumentSurface` leaves a picture control alone.
+
+**As built** (`src/model/customxml/pictures.mts`; `opendope.mts`'s `selectEntryNode` and
+`PICTURE_HANDLER`; `InlinePicture.mts`'s `addImagePart`, the part and relationship without a
+drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
+
+1. **Shape (a) in the text pass.** `applyBindingTo` binds a picture control through `bindPicture`
+   with `keep`: the first `a:blip` anywhere in the content points at a new image part and the
+   drawing is left as it is; a picture control holding no picture gets a new inline one at its
+   natural size (docx4j's fallback). `setMapping` applies as it writes (CR-002 section 39), so
+   mapping a picture control fills it at once. The node's value is base64, a data URL's prefix
+   dropped, decoded leniently as docx4j's MIME decoder does. A value that is not an image this
+   package reads (PNG, JPEG, GIF, BMP: `imageInfoOf`), or an empty node, leaves the control and is
+   noted in the result's `notes`, under the control's title, else its tag, else its id;
+   `applyBindingTo` takes an optional `notes` array for it, and `applyBindingsTo` sets
+   `result.notes` only when something was noted, as the XHTML pass does.
+2. **Shape (b), the picture pass**, `applyPictureHandlersTo`, runs after the text pass and before
+   the XHTML pass in `applyBindings`, over the controls whose tag has `od:Handler=picture` and an
+   `od:xpath`; synchronous, as nothing in it parses. The entry's node comes from `selectEntryNode`
+   (the lookup the XHTML pass does inline, now shared), the width from `pictureWidthOf`: absent
+   `keep`, `auto`, or `N` twips. With `keep` the first `a:blip` is pointed at the new part; a
+   control with none is left and noted (docx4j's `picture3richtext` would leave it silently).
+   Otherwise the control's content becomes one run holding a new inline picture (`addImage`):
+   in the first paragraph of a block-level control, whose properties are kept, or as a run-level
+   control's content (`setBoundContent`), the text the control held gone.
+3. **The width.** The natural size is the image's pixels over the resolution its header declares,
+   as `insertInlinePictureFromBase64` sizes a picture (docx4j converts pixels with its configured
+   DPI, not the image's: the same departure CR-002 phase C made). It is scaled down, the ratio
+   kept, when wider than the text width: the page's writable width (`writableWidthEmu`), or, for a
+   control in a table cell, the cell's `w:tcW` when stated in twips (`enclosingCellOf` through the
+   `PARENT` pointers; a percentage or `auto` width falls to the page's); `width=N` narrows that to
+   `N` twips when `N` is smaller. docx4j's `BindingTraverserState` tracks the cell for XHTML images
+   only (bind.xslt's v3.3.0 templates), so the cell cap here is an extension of REQ-062, asked for
+   by the editor; cell margins are not subtracted. A body whose container states no width (a
+   header's) scales to `N` alone, or not at all.
+4. **The reverse direction.** `updateFromContentControls` leaves a picture control alone, as
+   docx4j's does; a tag-bound control is never written back. What Word writes to the node when a
+   person changes the picture in a mapped picture control - the new image's base64, or nothing -
+   is unmeasured, and so is whether Word fills such a control from the node on open at all: Word
+   check 38 asks both (`test/fixtures/check38/README.md`, its files from `build.mjs`). Writing the
+   first picture's bytes back as base64 waits on that answer rather than guessing it.
+5. **Held by** `test/picture-binding.test.mjs`: a picture control mapped and bound, the blip
+   pointing at the new part, the drawing and extent kept, the template image left in the package,
+   saved and reloaded with its `w:picture` and binding; the reverse direction leaving it; a floating
+   picture (`wp:anchor`, inserted as Word writes one) bound without `width`, its XML the same but
+   for `r:embed`, saved and reloaded; `width=20` scaling a 4 x 3 image to 12700 EMU, `width=auto`
+   the natural size, `width=4500` a 6000-twip image to 4500 twips in a block-level control that
+   keeps its alignment; a 1000-twip cell capping `width=4500`; an empty node, a node that is not an
+   image, a missing entry and a tag-bound control with no `a:blip` each left and noted, no image part
+   added; and a picture control whose node is not an image left and noted under its title. The
+   suite: 783.
+
+**Not done, by design:** the image part a control showed before is left in the package, as docx4j
+leaves it (removing unreferenced media is a job for a save-time sweep, if ever); SVG, EMF, WMF and
+TIFF values are "not an image this package reads", since `imageInfoOf` has no header reader for
+them (they would need one to be sized; a `keep` bind needs only a content type, and could take them
+later); a mapped picture control whose node holds a data URL is read, which Word presumably does
+not do.

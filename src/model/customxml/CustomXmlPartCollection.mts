@@ -20,6 +20,7 @@ import type { CustomXmlPartLookup } from './XmlMapping.mjs';
 import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
 import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
+import { applyPictureHandlersTo } from './pictures.mjs';
 
 /**
  * What the collection needs of its package. A structural interface, so that this module does not
@@ -166,6 +167,8 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     await this.load();
     const controls = this.controlsOf(await this.host.getBoundBodies());
     const result = applyBindingsTo(controls);
+    // od:Handler=picture through the tag's od:xpath entry (CR-005 section 9): after the text bindings, which took the picture controls.
+    applyPictureHandlersTo(controls, this, result);
     // Escaped XHTML through the tag's od:xpath entry (CR-005 section 8.2): after the text bindings, asynchronous.
     if (this.host.xhtmlHost) await applyXhtmlBindingsTo(controls, this, this.host.xhtmlHost, result, options.html ?? {});
     else if (controls.some(isXhtmlBound)) (result.notes ??= []).push('XHTML-bound controls left: the collection has no package to make their lists, styles and links');

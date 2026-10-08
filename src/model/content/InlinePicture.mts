@@ -173,12 +173,21 @@ export interface NewPicture {
   relId: string;
 }
 
+/** A new image part, its relationship from the part it was added to, and what its header says. */
+export interface NewImagePart {
+  imagePart: ImagePart;
+  relId: string;
+  info: ImageInfo;
+}
+
 /**
  * Adds the image as a part of `source` (the main document part, or the header or footer the body
- * belongs to) with a relationship, and builds the run that shows it. docx4j:
- * `BinaryPartAbstractImage.createImagePart` then `createImageInline`.
+ * belongs to) with a relationship, and nothing else: docx4j `BinaryPartAbstractImage.createImagePart`
+ * (`BindingTraverserXSLT.createImagePartReturnRelId`, where a picture binding replaces an `r:embed`
+ * and keeps the drawing, CR-005 section 9). Throws, and adds nothing, when the bytes are not an
+ * image this package reads.
  */
-export function addImage(source: Part, base64: string, scope: object, maxCx: number | undefined, options: InlinePictureOptions = {}): NewPicture {
+export function addImagePart(source: Part, base64: string): NewImagePart {
   const pkg = source.package;
   if (!pkg) throw new Docx4JException('This part is not in a package yet; add it before adding an image');
   const bytes = base64Decode(base64);
@@ -186,6 +195,16 @@ export function addImage(source: Part, base64: string, scope: object, maxCx: num
   const imagePart = new ImagePart(freeImageName(pkg, info.extension), info.contentType);
   imagePart.setBytes(bytes);
   const rel = source.addTargetPart(imagePart);
+  return { imagePart, relId: rel.id, info };
+}
+
+/**
+ * Adds the image as a part of `source` with a relationship (`addImagePart`), and builds the run
+ * that shows it. docx4j: `BinaryPartAbstractImage.createImagePart` then `createImageInline`.
+ */
+export function addImage(source: Part, base64: string, scope: object, maxCx: number | undefined, options: InlinePictureOptions = {}): NewPicture {
+  const { imagePart, relId, info } = addImagePart(source, base64);
+  const rel = { id: relId };
   let { cx, cy } = naturalSizeEmu(info);
   if (options.width !== undefined) {
     const wanted = Math.round(options.width * EMU_PER_POINT);

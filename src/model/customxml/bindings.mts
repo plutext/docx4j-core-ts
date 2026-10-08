@@ -14,6 +14,7 @@ import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
+import { bindPicture } from './pictures.mjs';
 
 /** The style Word gives placeholder text, and the text docx4j's placeholder.xml carries. */
 export const PLACEHOLDER_STYLE = 'PlaceholderText';
@@ -27,7 +28,7 @@ export interface BindingResult {
   updated: number;
   /** Controls left alone: the part is missing, the XPath selects nothing, or the kind is not handled. */
   skipped: number;
-  /** What the XHTML pass left or dropped, one line each (CR-005 section 8.2; REQ-076). */
+  /** What the XHTML and picture passes left or dropped, one line each (CR-005 sections 8.2 and 9; REQ-076). */
   notes?: string[];
 }
 
@@ -141,17 +142,23 @@ function dateOf(value: string): Date | undefined {
 /**
  * Pushes the custom XML value into one control (docx4j BindingHandler's per-sdt work). Returns
  * false when nothing was written: no binding, no part, an XPath that selects nothing, a kind
- * this phase does not handle (pictures, explicit rich text), or a node holding a Flat OPC package.
+ * this phase does not handle (explicit rich text), a node holding a Flat OPC package, or a
+ * picture control whose node holds no image (`notes` says which; CR-005 section 9).
  */
-export function applyBindingTo(control: ContentControl): boolean {
+export function applyBindingTo(control: ContentControl, notes?: string[]): boolean {
   const mapping = control.xmlMapping;
   if (!mapping.isMapped) return false;
   const node = mapping.customXmlNode;
   if (!node) return false;
   const value = node.text.trim();
 
-  // A picture binding carries base64 image data; docx4j replaces the a:blip embed. Deferred (section 12).
-  if (control.type === 'Picture') return false;
+  // A picture control's node holds base64 image data: the picture's a:blip is pointed at a new
+  // image part and the drawing kept, as docx4j's bind.xslt mode picture3 does (CR-005 section 9).
+  if (control.type === 'Picture') {
+    const outcome = bindPicture(control, value, { kind: 'keep' }, control.title || control.tag || `picture control ${control.id}`);
+    if (outcome.note) notes?.push(outcome.note);
+    return outcome.done;
+  }
   // Explicit rich text is bound from flat OPC or XHTML in docx4j; deferred, as it is there for this route.
   if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
@@ -190,11 +197,13 @@ export function applyBindingTo(control: ContentControl): boolean {
 /** `applyBindings` over a list of controls. */
 export function applyBindingsTo(controls: ContentControl[]): BindingResult {
   const result: BindingResult = { bound: 0, updated: 0, skipped: 0 };
+  const notes: string[] = [];
   for (const control of controls) {
     if (!control.xmlMapping.isMapped) continue;
     result.bound++;
-    if (applyBindingTo(control)) result.updated++; else result.skipped++;
+    if (applyBindingTo(control, notes)) result.updated++; else result.skipped++;
   }
+  if (notes.length > 0) result.notes = notes;
   return result;
 }
 
@@ -209,6 +218,8 @@ export function updateFromControl(control: ContentControl): boolean {
   if (!mapping.isMapped) return false;
   const node = mapping.customXmlNode;
   if (!node) return false;
+  // A picture control is not written back: what Word writes to the node when a person changes the
+  // picture is unmeasured (CR-005 section 9.3, Word check 38); a tag-bound picture never is.
   if (control.type === 'Picture') return false;
   if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
   if (isContainer(control)) return false;
