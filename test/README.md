@@ -1230,6 +1230,14 @@ already named, so each case starts by opening its own file.
    the `w:tblGridChange` holding the grid as it is after the change in both. The engine moved to
    all of it; CR-002 section 42.6 has the table, `table-columns.test.mjs` the saves.
 
+41. Columns: the two points check 40 left (CR-002 section 42.6, 2026-10-09; Jason: "let's measure
+   those 2 things"). Three files from `fixtures/check41/build.mjs`, copies in the shared `__tmp/41/`,
+   its `README.md` saying what to do with each in Word 365: whose properties a new column's cells
+   take when the two neighbouring columns differ in shading, vertical alignment, borders and
+   paragraph formatting (Insert Right from the yellow side, Insert Left from the blue side); and,
+   through Office JS with tracking on (`check41-script.js` in Script Lab), `addColumns` on an
+   AutoFit-to-contents table and an AutoFit-to-window one: what Word writes and lists. Not yet run.
+
 A small Node script for 1 to 3 is:
 
 ```js
