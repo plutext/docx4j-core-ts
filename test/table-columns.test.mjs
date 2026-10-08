@@ -114,6 +114,15 @@ test('a cell spanning the boundary grows instead of a cell being inserted; a row
   assert.deepEqual(shape(table).grid, [3000, 3000, 3000, 3000]);
 });
 
+test('check 40b1\'s shape: a spanning cell widened in fixed mode takes the width it now covers', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('check40/40b1-span.docx'));
+  const table = (await pkg.getBody()).tables[0];
+  table.getCell(1, 0).insertColumns('After', 1);
+  assert.deepEqual(shape(table), { tblW: '12035 dxa', grid: [3009, 3009, 3009, 3008], rows: [['9027 dxa', '3008 dxa'], ['3009 dxa', '3009 dxa', '3009 dxa', '3008 dxa']] });
+  assert.equal(table.getCell(0, 0).tc.tcPr.gridSpan.val, 3);
+  assert.deepEqual(table.values[1], ['S2A', '', 'S2B', 'S2C']);
+});
+
 test('a table without a w:tblGrid gets one from its first row', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = pkg.body;

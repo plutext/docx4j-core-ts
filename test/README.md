@@ -1213,6 +1213,16 @@ already named, so each case starts by opening its own file.
    section 42.5), is held to the same save by `table-columns.test.mjs`. A Word 2010 save is
    optional.
 
+40. Columns: the three points section 42.5 left open (CR-002, 2026-10-09; asked by Jason: "let's
+   measure"). Five files from `fixtures/check40/build.mjs`, copies in the shared `__tmp/40/`, its
+   `README.md` saying what to do with each in Word 365: the AutoFit-to-window rescale with unequal
+   columns (Insert Right in the narrow cell, Insert Left in the wide one: proportional, as the
+   engine, or an equal share); Insert Right beside and inside a cell spanning two columns (does Word
+   widen the span, as the engine, or split it; what width the new column takes beside a span); and,
+   through Office JS with tracking on (`check40-script.js` in Script Lab), `deleteColumns` and
+   `addColumns`: whether the deletion tracks anything, and whether the add writes a `w:tcPrChange`
+   on the new cells. Not yet run.
+
 A small Node script for 1 to 3 is:
 
 ```js

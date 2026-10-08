@@ -3686,7 +3686,7 @@ by what Office JS does (to measure).
 ### 42.5 As implemented (2026-10-09)
 
 `src/model/content/tableColumns.mts` holds the file knowledge, `Table.mts` the calls;
-`test/table-columns.test.mjs` holds it to check 39's save. The suite: 795.
+`test/table-columns.test.mjs` holds it to check 39's save. The suite: 796.
 
 1. **The calls**, in Office JS's shapes: `Table.addColumns('Start' | 'End', columnCount, values?)`,
    `TableCell.insertColumns('Before' | 'After', columnCount, values?)`, `Table.deleteColumns(columnIndex,
@@ -3703,6 +3703,7 @@ by what Office JS does (to measure).
    boundary - to its left for an insert after a cell or at the end, to its right before a cell or at
    the start - and a new cell takes its `w:tcPr` less `gridSpan`, `vMerge`, `hMerge`, the cell
    markers and any `w:tcPrChange`; it holds one empty `w:p` as Word writes one, or the value's text.
+   A widened spanning cell stated in twips is written the width it now covers.
 3. **The widths, per mode** (42.2): the grid gains the neighbour's width per new column; **fixed**
    adds the same to a `w:tblW` in twips; **window** rescales the grid to the width it had (floors,
    the remainder to the largest fractions, earlier columns first; Word's own grid, 3005/3006/3006
@@ -3738,6 +3739,9 @@ by what Office JS does (to measure).
    gone with its last columns; the width setter's forms; and the tracked form, listed, accepted
    and rejected.
 
-**Open:** the window-mode rescale for unequal columns (proportional here; a probe with unequal
-columns would say whether Word shares equally instead), Insert Right beside a spanning cell, and
-deletion under Office JS's tracking - each a Word check if wanted.
+**Open, asked as Word check 40** (2026-10-09, Jason: "let's measure"; `test/fixtures/check40/`,
+five files from its `build.mjs`, a Script Lab snippet for the Office JS part, the README saying
+what the engine writes for each case meanwhile): the window-mode rescale for unequal columns
+(proportional here; an equal share is the other reading), Insert Right beside and inside a
+spanning cell (the span widened here), and deletion and addition under Office JS's tracking
+(whether the deletion tracks anything; whether the add writes a `w:tcPrChange` on the new cells).

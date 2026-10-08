@@ -196,10 +196,11 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   const record = tracker ? recordTable(tbl, rows, tracker) : undefined;
 
   const result: ColumnInsertion = { cells: [] };
+  const widened: wml.Tc[] = [];
   plans.forEach((plan, rowIndex) => {
     const tr = plan.tr;
     if (plan.skipped) { plan.skipped.value.val = Number(plan.skipped.value.val ?? 0) + count; result.cells.push([]); return; }
-    if (plan.widen) { setSpan(plan.widen, spanOf(plan.widen) + count); result.cells.push([]); return; }
+    if (plan.widen) { setSpan(plan.widen, spanOf(plan.widen) + count); widened.push(plan.widen); result.cells.push([]); return; }
     const cells = newCells(count, values?.[rowIndex], plan.template);
     plan.container!.splice(plan.at!, 0, ...cells);
     const owner = ownerOfCells(tr, plan.container!);
@@ -212,7 +213,8 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   writeGrid(tbl, widths);
   const tblW = tbl.tblPr?.tblW;
   if (mode === 'fixed' && tblW?.type === 'dxa') tblW.w = Number(tblW.w ?? 0) + copied * count;
-  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : result.cells.flat().map((c) => c.value));
+  // the new cells' widths, and a widened cell's, which now covers more of the grid
+  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : [...result.cells.flat().map((c) => c.value), ...widened]);
   if (record) record();
   return result;
 }
