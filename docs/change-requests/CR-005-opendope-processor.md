@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module, 2026-10-08) in progress, its bind step next
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) implemented, unreleased; Word check 37 pending
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -364,17 +364,46 @@ decision 26): the converter is moved, never copied, and the editor imports it ba
    hyperlink given and withheld; vertical and horizontal merges and a header row. `tsconfig`'s
    `es2019` target has no iterable DOM collections: the walk uses `Array.from`.
 
-### 8.2 The bind step (next)
+### 8.2 The bind step (implemented 2026-10-08)
 
-`applyBindingsTo` handles a control whose tag says `application/xhtml+xml`: the node's string
-value is the markup (unescaped by the XML parser already); the converter and `blocksToXml` make
-the content with the document's styles as the lookup, the list definitions made and the
-relationships added for what `needsOf` names; a block-level control is given the blocks, a
-run-level one the first paragraph's inline content with the rest reported (docx4j's
-`BindingTraverserXSLT.convertXHTML`, which refuses block content in a run-level control; REQ-076,
-REC-009); the control's own run properties apply where the markup states none, as the text
-binding's do. The processor drops `w:dataBinding` from such a control once bound, as docx4j's
-`bind.xslt` does, since Word would otherwise replace the content with the escaped string on open
-(to be measured: check 37). The reverse direction (`UpdateXmlFromDocumentSurface`) leaves such a
-control alone, as docx4j's does. The parser comes through the bind's options; without one in a
-runtime that has no `DOMParser`, the control is left and reported.
+An XHTML-bound control carries **no `w:dataBinding`**: Word allows none on a block-level
+control, and block content needs one, so docx4j's `bind.xslt` reads the XPath from the tag's
+`od:xpath` entry (the XPaths part) and copies `w:sdtPr` as it is; Word, finding no binding, leaves
+the content alone on open. The bind step handles a control whose tag says
+`od:ContentType=application/xhtml+xml` and names an `od:xpath` entry: the entry's XPath over its
+part gives the node, whose string value is the markup (unescaped by the XML parser already); the
+converter and `blocksToXml` make the content with the document's styles as the lookup, the list
+definitions made and the relationships added for what `needsOf` names; a block-level control is
+given the blocks, a run-level one the first paragraph's inline content with the rest reported
+(docx4j's `BindingTraverserXSLT.convertXHTML`, which refuses block content in a run-level control;
+REQ-076, REC-009); the control's own run properties apply where the markup states none, as the
+text binding's do. The reverse direction (`UpdateXmlFromDocumentSurface`) leaves such a control
+alone, as docx4j's does. The parser comes through the bind's options; without one in a runtime
+that has no `DOMParser`, the control is left and reported. What Word 2010 and 15 show for such a
+file before and after the bind: check 37.
+
+As built (`src/model/customxml/xhtml.mts`, `opendope.mts`; `test/html-binding.test.mjs`):
+
+1. **`applyBindings({ html: { parser } })`** runs the XHTML pass after the text bindings, over the
+   same controls. A control is XHTML-bound when its tag has `od:ContentType=application/xhtml+xml`
+   and an `od:xpath`; its `xmlMapping.isMapped` is false, so the text pass never touches it.
+   `opendope.mts` reads the tag's parameters (`tagParamsOf`) and the XPaths part's entries
+   (`xpathsEntriesOf`, the first custom XML part in `http://opendope.org/xpaths`); phase B will
+   read the rest of the parts. The result's new `notes` say what was left and why (no entry, no
+   part, nothing selected, no parser) and what was dropped (the converter's counts; a run-level
+   control's blocks after the first), one line each.
+2. **The document first:** `styles.ensure` for the built-ins the markup names (a failure counted,
+   not thrown), `numbering.newList` per list key (bullets each their own, numbered lists one
+   definition then `restart`), a hyperlink relationship per address on the control's part with
+   the `Hyperlink` style required at save, as `Range.hyperlink` does. The parsed fragment's
+   elements are wrapped (`{ name, value }`), so the pass reads through the wrapper (`innerOf`).
+3. **The content:** a block-level control takes every block; a run-level one (`SdtRun`, as
+   `Range.insertContentControl` makes it; a paragraph's own `insertContentControl` wraps the
+   paragraph as Office JS's does) takes the first paragraph's runs and hyperlinks. The control's
+   `w:sdtPr/w:rPr` goes onto every run without properties of its own. `isShowingPlaceholder` is
+   cleared. The package is the collection's `xhtmlHost`; a collection built without one leaves
+   such controls and notes it.
+4. **Held by:** the tag and the part read; a block-level control given a heading in its style,
+   bold, a link with its relationship and a list with a definition, saved and reloaded with no
+   `w:dataBinding` written; a run-level control given the first paragraph, the rest noted; a
+   missing entry and a missing parser left and noted. The suite: 775.

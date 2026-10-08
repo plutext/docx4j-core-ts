@@ -27,6 +27,8 @@ export interface BindingResult {
   updated: number;
   /** Controls left alone: the part is missing, the XPath selects nothing, or the kind is not handled. */
   skipped: number;
+  /** What the XHTML pass left or dropped, one line each (CR-005 section 8.2; REQ-076). */
+  notes?: string[];
 }
 
 /**

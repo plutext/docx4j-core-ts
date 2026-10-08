@@ -11,3 +11,5 @@ export {
 } from './kinds.mjs';
 export { applyBindingsTo, applyBindingTo, updateFromControls, updateFromControl, runsForValue, formatDate, holdsFlatOpc, PLACEHOLDER_STYLE, PLACEHOLDER_TEXT, type BindingResult } from './bindings.mjs';
 export { controlIdScope, sdtKindFor, isRunLevel } from './insert.mjs';
+export { tagParamsOf, xpathsEntriesOf, OPENDOPE_XPATHS_NS, XHTML_CONTENT_TYPE, type XPathsEntry } from './opendope.mjs';
+export { applyXhtmlBindingTo, applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';

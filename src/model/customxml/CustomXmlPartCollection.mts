@@ -19,6 +19,7 @@ import { CustomXmlPart, type CustomXmlPartOwner } from './CustomXmlPart.mjs';
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
 import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
+import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
 
 /**
  * What the collection needs of its package. A structural interface, so that this module does not
@@ -33,6 +34,8 @@ export interface CustomXmlHost {
   boundBodies(): Body[];
   /** Where a new custom XML part's relationship goes: the main document part (Word drops parts related from the package alone). */
   customXmlRelationshipSource(): Part;
+  /** The package, for the XHTML pass (list definitions, styles, relationships); absent, XHTML controls are left and noted. */
+  readonly xhtmlHost?: XhtmlHost;
 }
 
 /** A subset of Office JS `Word.CustomXmlPartCollection`. */
@@ -159,9 +162,14 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    * which is what Word does when it opens the document. Unmarshals the main document part (and the
    * headers and footers it has) and parses the custom XML parts.
    */
-  async applyBindings(): Promise<BindingResult> {
+  async applyBindings(options: { html?: XhtmlBindingOptions } = {}): Promise<BindingResult> {
     await this.load();
-    return applyBindingsTo(this.controlsOf(await this.host.getBoundBodies()));
+    const controls = this.controlsOf(await this.host.getBoundBodies());
+    const result = applyBindingsTo(controls);
+    // Escaped XHTML through the tag's od:xpath entry (CR-005 section 8.2): after the text bindings, asynchronous.
+    if (this.host.xhtmlHost) await applyXhtmlBindingsTo(controls, this, this.host.xhtmlHost, result, options.html ?? {});
+    else if (controls.some(isXhtmlBound)) (result.notes ??= []).push('XHTML-bound controls left: the collection has no package to make their lists, styles and links');
+    return result;
   }
 
   /**
