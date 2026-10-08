@@ -139,6 +139,18 @@ test('Word check 38 (2026-10-08): od:Handler pictures keep their images in both 
     assert.deepEqual(formats.slice(1), ['Png', 'Png', 'Png', 'Svg'], name);
     assert.doesNotMatch(xml, /w:dataBinding/, name);
   }
+  // Word 365 reads the bare SVG blip and, saving, writes its own form: a PNG it rasterised as the a:blip,
+  // the SVG part kept under the asvg:svgBlip extension (CR-005 section 9 item 6)
+  const pkg = await WordprocessingMLPackage.load(await fixture('check38/38b-handler-bound-word365.docx'));
+  const main = pkg.getMainDocumentPart();
+  const control = (await main.getBody()).contentControls[4];
+  assert.equal(control.tag, 'od:xpath=x3&od:Handler=picture');
+  const picture = control.paragraphs[0].inlinePictures[0];
+  assert.equal(picture.imageFormat, 'Png');
+  const [, extension] = /<a:blip r:embed="rId\d+"><a:extLst><a:ext uri="\{96DAC541-7B7A-43D3-8B79-37D633B846F1\}"><asvg:svgBlip [^>]*r:embed="(rId\d+)"\/><\/a:ext><\/a:extLst><\/a:blip>/.exec(await control.getXml());
+  const svg = main.relationshipsPart.getPart(extension);
+  assert.equal(svg.contentType, 'image/svg+xml');
+  assert.equal((await svg.getBytes()).length, 188, 'the engine\'s SVG, byte for byte');
 });
 
 test('(b) od:Handler=picture without width: a floating picture keeps its anchor, wrapping, position and extent; only r:embed changes', async () => {

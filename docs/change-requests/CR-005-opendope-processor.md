@@ -514,10 +514,15 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    refuses it. What Word makes of an `a:blip` that points straight at an SVG part is unmeasured:
    Word 2016 and later write SVG as an `asvg:svgBlip` extension beside a PNG `a:blip`, and Word 2010
    and 15 do not read SVG at all; check 38's 38b control 5 asks (`InlinePicture.imageFormat` reports
-   `Svg` for it either way). *Check 38 answered (item 7): both Words keep the SVG part and the blip
-   pointing at it and draw a red cross, neither reading SVG; nothing broke. What to do with that -
-   keep it with the limitation stated, or want a PNG fallback beside it for Word 2016 and later - is
-   Jason's decision, pending; the editor recommends keeping it.*
+   `Svg` for it either way). *Check 38 answered (item 7): Word 2010 and Word 15 keep the SVG part
+   and the blip pointing at it and draw a red cross, neither reading SVG; nothing broke. **Word 365
+   reads the bare form**: it showed the orange circle, and its save (`38b-handler-bound-word365`,
+   Jason, 2026-10-08) rewrote the drawing into Word's own form - a PNG it rasterised itself
+   (`image3.png`, 3,367 bytes) as the `a:blip`, the engine's SVG part kept byte for byte under
+   the `asvg:svgBlip` extension (`{96DAC541-7B7A-43D3-8B79-37D633B846F1}`). So no fallback is
+   needed from this package for a Word that reads SVG, which makes its own; the limitation is Word
+   2010 and 15, which show a red cross. Held by the check 38 test. The editor recommends keeping it
+   as it is; Jason's decision stands on that measurement.*
 
 7. **Word check 38, run 2026-10-08 by Jason in Word 2010 and Word 15** (the saves beside the
    originals in `test/fixtures/check38/`, commit e490163; read here part by part and held by two tests
@@ -533,7 +538,7 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    - The floating `od:Handler` picture and the three `width` ones keep their new images in both
      Words, and Word 2010 opened the `wp:anchor` whose boolean attributes are written as
      `true`/`false` without complaint.
-   - The SVG part: item 6.
+   - The SVG part: item 6, including Word 365's save of the same file.
 
 **Not done, by design:** the image part a control showed before is left in the package, as docx4j
 leaves it (removing unreferenced media is a job for a save-time sweep, if ever); EMF, WMF and TIFF

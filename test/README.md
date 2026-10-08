@@ -1197,7 +1197,10 @@ A small Node script for 1 to 3 is:
    back to the node as base64, exactly the new media part's bytes (Word 2010 not tried); the
    `od:Handler` pictures, floating and inline, keep their new images, Word 2010 minding neither the
    tag nor the anchor's `true`/`false` booleans; an SVG part is kept and pointed at by both, drawn as
-   a red cross, neither reading SVG. `picture-binding.test.mjs` holds the saves. CR-005 section 9.
+   a red cross, neither reading SVG. **Word 365** (`38b-handler-bound-word365.docx`, the same day)
+   showed the SVG's orange circle, and its save rewrote the blip into Word's form: a PNG it
+   rasterised, the SVG kept under `asvg:svgBlip`. `picture-binding.test.mjs` holds the saves.
+   CR-005 section 9.
 
 
 ```js
