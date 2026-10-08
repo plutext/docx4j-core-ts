@@ -133,26 +133,28 @@ export class Table {
 
   /**
    * Adds columns at the start or the end (Office JS `Table.addColumns`), the new cells taking the
-   * properties and width of the column beside them, in the table's layout mode as Word 365 writes
-   * it (CR-002 section 42, check 39): fixed copies the width and grows the table past the margin,
-   * AutoFit to window rescales the grid and writes the cells' percentages again, AutoFit to contents
-   * stays automatic. `values` is by row, then by new column. Returns the new cells per row, an
-   * extension (Office JS returns nothing); a row whose spanning cell grew instead has none. Tracked,
-   * the table change is recorded as Word records one and the new cells' text is an insertion.
+   * properties and width of the column beside them - the one to the right of the boundary when
+   * there is one, else the left - in the table's layout mode as Word 365 writes it (CR-002 section
+   * 42, checks 39 and 40): fixed copies the width and grows the table past the margin, AutoFit to
+   * window rescales the grid and writes the cells' percentages again, AutoFit to contents stays
+   * automatic. `values` is by row, then by new column. Returns the new cells per row, an extension
+   * (Office JS returns nothing); a row whose skipped columns grew instead has none. Tracked, the
+   * table change is recorded as Office JS records one and the new cells' text is an insertion.
    */
   addColumns(location: 'Start' | 'End', columnCount: number, values?: string[][]): TableCell[][] {
     const at = location === 'Start' ? 0 : this.columnWidths().length;
-    const inserted = insertGridColumns(this.tbl, this.textWidth(), at, columnCount, values, location === 'Start' ? 'right' : 'left', this.changeTracker);
+    const inserted = insertGridColumns(this.tbl, this.textWidth(), at, columnCount, values, this.changeTracker);
     return this.cellViewsOf(inserted.cells);
   }
 
   /**
    * Removes `columnCount` grid columns from `columnIndex` (one by default; Office JS
    * `Table.deleteColumns`): a cell covering only those columns goes, one spanning further shrinks.
-   * Not tracked, as Word does not track a column deleted (section 42.3; known issues, entry 2).
+   * Tracked, the cells still go and the table change is recorded, as Office JS's deletion leaves
+   * it (section 42.3; check 40c; Word's own is not tracked at all, known issues entry 2).
    */
   deleteColumns(columnIndex: number, columnCount = 1): void {
-    deleteGridColumns(this.tbl, this.textWidth(), columnIndex, columnCount);
+    deleteGridColumns(this.tbl, this.textWidth(), columnIndex, columnCount, this.changeTracker);
     if ((this.tbl.tblGrid?.gridCol?.length ?? 0) === 0 || rowsOf(this.tbl).every((row) => cellsOf(row.element.value).length === 0)) this.delete();
   }
 
@@ -385,11 +387,11 @@ export class TableCell {
     const range = gridRangeOf(this.parentRow.tr, this.tc);
     if (!range) throw new Docx4JException('This cell is not in its row');
     const table = this.parentTable;
-    const inserted = insertGridColumns(table.tbl, table.textWidth(), location === 'Before' ? range.start : range.end, columnCount, values, location === 'Before' ? 'right' : 'left', table.changeTracker);
+    const inserted = insertGridColumns(table.tbl, table.textWidth(), location === 'Before' ? range.start : range.end, columnCount, values, table.changeTracker);
     return table.cellViewsOf(inserted.cells);
   }
 
-  /** Removes the grid columns this cell covers (Office JS `TableCell.deleteColumn`); not tracked, as Word does not track it. */
+  /** Removes the grid columns this cell covers (Office JS `TableCell.deleteColumn`); tracked as `Table.deleteColumns` is. */
   deleteColumn(): void {
     const range = gridRangeOf(this.parentRow.tr, this.tc);
     if (!range) throw new Docx4JException('This cell is not in its row');

@@ -1221,7 +1221,14 @@ already named, so each case starts by opening its own file.
    widen the span, as the engine, or split it; what width the new column takes beside a span); and,
    through Office JS with tracking on (`check40-script.js` in Script Lab), `deleteColumns` and
    `addColumns`: whether the deletion tracks anything, and whether the add writes a `w:tcPrChange`
-   on the new cells. Not yet run.
+   on the new cells. **Run 2026-10-09 in Word 365 (Jason; the saves and `40c-result.json` beside
+   the originals):** the new column copies the column to the right of the boundary (the wide one
+   in 40a1, column 3 in 40b2), the rescale is proportional (40a2's shares are the engine's to the
+   unit); a boundary inside a spanning cell puts the new cell before it, the span kept (40b1);
+   Office JS's deletion removes the cells untracked but records the table change, and its add
+   records a `w:tcPrChange` on the new cells too, their text in a `w:ins` with no mark insertion,
+   the `w:tblGridChange` holding the grid as it is after the change in both. The engine moved to
+   all of it; CR-002 section 42.6 has the table, `table-columns.test.mjs` the saves.
 
 A small Node script for 1 to 3 is:
 

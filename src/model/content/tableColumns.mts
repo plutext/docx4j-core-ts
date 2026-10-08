@@ -12,12 +12,18 @@
 //   contents  `auto` throughout; the grid is Word's cache of its last measurement, which a consumer
 //             measures afresh at open, so the grid here is only of the right shape.
 // A cell's width is written in the form the cell states, else the table's, else twips.
+// Check 40 (2026-10-09) settled the rest: the new column copies the column to the right of the
+// boundary when there is one, else the left; the window rescale is proportional; a boundary inside
+// a cell spanning columns puts the new cell before that cell, its span kept; and through Office JS
+// with tracking on, a column deleted loses its cells untracked but records the table change, a
+// column added records a `w:tcPrChange` on the new cells too and their text in a `w:ins` with no
+// mark insertion, and the `w:tblGridChange` holds the grid as it is after the change, both ways.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { tc as cellElementOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, rowsOf, cellsOf, childrenOf, linkParents, paragraphOf } from './tree.mjs';
-import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
+import { type ChangeTracker, wrapInsertedRuns } from './tracking.mjs';
 
 /** The default text width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 export const DEFAULT_TEXT_WIDTH = 9026;
@@ -147,8 +153,6 @@ interface RowPlan {
   container?: Element[];
   at?: number;
   template?: wml.Tc;
-  /** A cell whose span covers the boundary grows by the count instead. */
-  widen?: wml.Tc;
   /** The row's skipped columns before or after its cells grow by the count instead. */
   skipped?: RowMember;
 }
@@ -173,39 +177,39 @@ export interface ColumnInsertion {
 }
 
 /**
- * Inserts `count` grid columns at `gridIndex` (0 to the column count), the new cells taking the
- * properties and width of the column beside the boundary: the one to its left (an insert after a
- * cell, or at the end) or to its right (before a cell, or at the start). A cell spanning the
- * boundary grows by the count; a row's `w:gridBefore` or `w:gridAfter` covering it grows the same
- * way. `values` is by row, then by new column. While changes are tracked the table change is
- * recorded as Word records one (section 42.3): the old properties, grid and every cell's
- * properties, and the new cells' text inserted.
+ * Inserts `count` grid columns at `gridIndex` (0 to the column count). The new column copies the
+ * width of the column to the right of the boundary when there is one, else the left (check 40:
+ * Insert Right in a narrow cell beside a wide one took the wide width; Insert Right in a spanning
+ * cell took the column after it), and each row's new cell takes the properties of the cell on the
+ * same side, less its span and merges. A cell spanning the boundary keeps its span and the new
+ * cell goes before it (check 40b1); a row's `w:gridBefore` or `w:gridAfter` covering the boundary
+ * grows instead. `values` is by row, then by new column. While changes are tracked the table
+ * change is recorded as Word's Office JS records one (check 40c): the old properties, every
+ * cell's properties - the new cells' as made - the grid as it is after, and the new cells' text in
+ * a `w:ins`, with no mark insertion.
  */
-export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: number, count: number, values: string[][] | undefined, neighbour: 'left' | 'right', tracker: ChangeTracker | undefined): ColumnInsertion {
+export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: number, count: number, values: string[][] | undefined, tracker: ChangeTracker | undefined): ColumnInsertion {
   if (!Number.isInteger(count) || count < 1) throw new Docx4JException(`columnCount must be a positive integer, not ${count}`);
   const old = gridWidthsOf(tbl, textWidth);
   if (gridIndex < 0 || gridIndex > old.length) throw new Docx4JException(`No column boundary ${gridIndex} in a grid of ${old.length} columns`);
   const mode = layoutModeOf(tbl);
-  const neighbourColumn = Math.min(old.length - 1, Math.max(0, neighbour === 'left' ? gridIndex - 1 : gridIndex));
-  const copied = old[neighbourColumn]!;
+  const copied = old[gridIndex < old.length ? gridIndex : old.length - 1]!;
   let widths = [...old.slice(0, gridIndex), ...Array.from({ length: count }, () => copied), ...old.slice(gridIndex)];
   if (mode === 'window') widths = rescaled(widths, old.reduce((a, b) => a + b, 0));
 
   const rows = rowsOf(tbl).map((row) => row.element.value);
-  const plans: RowPlan[] = rows.map((tr) => planRow(tr, gridIndex, neighbour));
+  const plans: RowPlan[] = rows.map((tr) => planRow(tr, gridIndex));
   const record = tracker ? recordTable(tbl, rows, tracker) : undefined;
 
   const result: ColumnInsertion = { cells: [] };
-  const widened: wml.Tc[] = [];
   plans.forEach((plan, rowIndex) => {
     const tr = plan.tr;
     if (plan.skipped) { plan.skipped.value.val = Number(plan.skipped.value.val ?? 0) + count; result.cells.push([]); return; }
-    if (plan.widen) { setSpan(plan.widen, spanOf(plan.widen) + count); widened.push(plan.widen); result.cells.push([]); return; }
     const cells = newCells(count, values?.[rowIndex], plan.template);
     plan.container!.splice(plan.at!, 0, ...cells);
     const owner = ownerOfCells(tr, plan.container!);
     for (const cell of cells) linkParents(cell, owner);
-    if (tracker) for (const cell of cells) trackInsertedBlocks(tracker, childrenOf(cell.value));
+    if (tracker) for (const cell of cells) for (const block of childrenOf(cell.value) ?? []) wrapInsertedRuns(tracker, childrenOf(block.value as object), block.value as object);
     result.cells.push(cells);
   });
 
@@ -213,33 +217,28 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   writeGrid(tbl, widths);
   const tblW = tbl.tblPr?.tblW;
   if (mode === 'fixed' && tblW?.type === 'dxa') tblW.w = Number(tblW.w ?? 0) + copied * count;
-  // the new cells' widths, and a widened cell's, which now covers more of the grid
-  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : [...result.cells.flat().map((c) => c.value), ...widened]);
-  if (record) record();
+  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : result.cells.flat().map((c) => c.value));
+  if (record) record(result.cells.flat().map((c) => c.value));
   return result;
 }
 
-/** Where the boundary falls in a row: before a cell, inside a spanning cell, in its skipped columns, or after its last cell. */
-function planRow(tr: wml.Tr, gridIndex: number, neighbour: 'left' | 'right'): RowPlan {
+/** Where the boundary falls in a row: at or inside a cell (the new cells go before it), in its skipped columns, or after its last cell. */
+function planRow(tr: wml.Tr, gridIndex: number): RowPlan {
   const before = rowMember(tr, 'gridBefore');
   const after = rowMember(tr, 'gridAfter');
   const skippedBefore = Number(before?.value.val ?? 0);
-  if (before && (gridIndex < skippedBefore || (gridIndex === skippedBefore && neighbour === 'left' && skippedBefore > 0))) return { tr, skipped: before };
+  if (before && gridIndex < skippedBefore) return { tr, skipped: before };
   const cells = cellsOf(tr);
   let at = skippedBefore;
-  for (let i = 0; i < cells.length; i++) {
-    const cell = cells[i]!;
+  for (const cell of cells) {
     const tc = cell.element.value;
     const end = at + spanOf(tc);
-    if (gridIndex === at) {
-      const previous = i > 0 ? cells[i - 1]!.element.value : undefined;
-      return { tr, container: cell.container, at: cell.container.indexOf(cell.element), template: neighbour === 'left' && previous ? previous : tc };
-    }
-    if (gridIndex > at && gridIndex < end) return { tr, widen: tc };
+    // at the cell's start, or inside its span (check 40b1: the span kept, the new cell before it)
+    if (gridIndex >= at && gridIndex < end) return { tr, container: cell.container, at: cell.container.indexOf(cell.element), template: tc };
     at = end;
   }
   const skippedAfter = Number(after?.value.val ?? 0);
-  if (after && (gridIndex < at + skippedAfter || (gridIndex === at && neighbour === 'right' && skippedAfter > 0))) return { tr, skipped: after };
+  if (after && gridIndex < at + skippedAfter) return { tr, skipped: after };
   const last = cells[cells.length - 1];
   if (!last) return { tr, container: (tr.content ??= []) as Element[], at: (tr.content as Element[]).length, template: undefined };
   return { tr, container: last.container, at: last.container.indexOf(last.element) + 1, template: last.element.value };
@@ -260,37 +259,50 @@ function writeCellWidths(tbl: wml.Tbl, widths: number[], which: 'all' | wml.Tc[]
 }
 
 /**
- * What Word records for a table change (section 42.3, from section 29's measurement): a
- * `w:tblPrChange` with the properties as they were, a `w:tblGridChange` with the old grid, and a
- * `w:tcPrChange` on every existing cell with its old properties - taken before the change and
+ * What Word records for a column added or removed through Office JS with tracking on (check 40c,
+ * the form of section 35's table change): a `w:tblPrChange` with the properties as they were, a
+ * `w:tcPrChange` on every cell with its properties as they were - a new cell's as made - and a
+ * `w:tblGridChange` holding the grid **as it is after the change** (Word's own record; it keeps a
+ * reject consistent with cells that have gone for good, or stayed). Taken before the change and
  * written after it, so that `TrackedChange` lists the whole as one table change and rejecting it
- * puts the recorded table back. A record already there (an earlier pending change) is kept, so
- * the original state stays the recorded one.
+ * puts the recorded properties back. A record already there (an earlier pending change) is kept,
+ * so the original state stays the recorded one.
  */
-function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): () => void {
+function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): (added?: wml.Tc[]) => void {
   const tblPr = tbl.tblPr;
   const oldTblPr = tblPr && !tblPr.tblPrChange ? without(tblPr, ['tblPrChange']) : undefined;
-  const oldGrid = tbl.tblGrid && !tbl.tblGrid.tblGridChange ? (tbl.tblGrid.gridCol ?? []).map((col) => deepCopy(col)) : undefined;
+  const recordGrid = !tbl.tblGrid?.tblGridChange;
   const oldCells: [wml.Tc, wml.TcPrInner][] = [];
   for (const tr of rows) for (const cell of cellsOf(tr)) {
     const tc = cell.element.value;
-    if (!tc.tcPr?.tcPrChange) oldCells.push([tc, without(tc.tcPr, [...NOT_COPIED.filter((k) => k !== 'gridSpan' && k !== 'vMerge' && k !== 'hMerge'), 'PARENT']) as wml.TcPrInner]);
+    if (!tc.tcPr?.tcPrChange) oldCells.push([tc, recordedCellProperties(tc)]);
   }
-  return () => {
+  return (added: wml.Tc[] = []) => {
     if (oldTblPr && tbl.tblPr) {
       tbl.tblPr.tblPrChange = { TYPE_NAME: 'org_docx4j_wml.CTTblPrChange', ...tracker.markup(), tblPr: { TYPE_NAME: 'org_docx4j_wml.CTTblPrBase', ...oldTblPr } as wml.CTTblPrBase };
       linkParents(tbl.tblPr.tblPrChange, tbl.tblPr);
     }
-    if (oldGrid && tbl.tblGrid) {
-      tbl.tblGrid.tblGridChange = { TYPE_NAME: 'org_docx4j_wml.CTTblGridChange', id: tracker.nextId(), tblGrid: { TYPE_NAME: 'org_docx4j_wml.TblGridBase', gridCol: oldGrid } };
+    if (recordGrid && tbl.tblGrid) {
+      tbl.tblGrid.tblGridChange = { TYPE_NAME: 'org_docx4j_wml.CTTblGridChange', id: tracker.nextId(), tblGrid: { TYPE_NAME: 'org_docx4j_wml.TblGridBase', gridCol: (tbl.tblGrid.gridCol ?? []).map((col) => deepCopy(col)) } };
       linkParents(tbl.tblGrid.tblGridChange, tbl.tblGrid);
     }
-    for (const [tc, old] of oldCells) {
+    const cells: [wml.Tc, wml.TcPrInner][] = [...oldCells.filter(([tc]) => isInTable(tc, tbl)), ...added.map((tc) => [tc, recordedCellProperties(tc)] as [wml.Tc, wml.TcPrInner])];
+    for (const [tc, old] of cells) {
       const tcPr = (tc.tcPr ??= {});
       tcPr.tcPrChange = { TYPE_NAME: 'org_docx4j_wml.CTTcPrChange', ...tracker.markup(), tcPr: { TYPE_NAME: 'org_docx4j_wml.TcPrInner', ...old } as wml.TcPrInner };
       linkParents(tcPr.tcPrChange, tcPr);
     }
   };
+}
+
+/** A cell's properties as a record holds them: everything but the markers and an earlier record. */
+function recordedCellProperties(tc: wml.Tc): wml.TcPrInner {
+  return without(tc.tcPr, ['tcPrChange', 'cellIns', 'cellDel', 'cellMerge']) as wml.TcPrInner;
+}
+
+/** Whether a cell is still in the table (a deleted column's cells are not). */
+function isInTable(tc: wml.Tc, tbl: wml.Tbl): boolean {
+  return rowsOf(tbl).some((row) => cellsOf(row.element.value).some((cell) => cell.element.value === tc));
 }
 
 function without(value: object | undefined, keys: string[]): Record<string, unknown> {
@@ -303,14 +315,17 @@ function without(value: object | undefined, keys: string[]): Record<string, unkn
  * Removes `count` grid columns from `columnIndex`: a cell covering only removed columns goes, one
  * spanning further shrinks, a row's skipped columns shrink; the grid loses the columns, a `w:tblW`
  * in twips loses their width, and in window mode the grid is rescaled to the width it had and the
- * cells' percentages written again. Not tracked: Word does not track a column deleted (known
- * issues, entry 2), so a tracked document's deletion is as untracked as Word's own.
+ * cells' percentages written again. While changes are tracked the cells still go, untracked, as
+ * Word's own Delete Columns and Office JS's `deleteColumns` leave them (known issues, entry 2;
+ * check 40c), and the table change is recorded as Office JS records it: the old properties, the
+ * remaining cells' properties, the grid as it is after.
  */
-export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: number, count: number): void {
+export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: number, count: number, tracker: ChangeTracker | undefined): void {
   if (!Number.isInteger(count) || count < 1) throw new Docx4JException(`columnCount must be a positive integer, not ${count}`);
   const old = gridWidthsOf(tbl, textWidth);
   if (columnIndex < 0 || columnIndex + count > old.length) throw new Docx4JException(`No columns ${columnIndex} to ${columnIndex + count - 1} in a grid of ${old.length} columns`);
   const mode = layoutModeOf(tbl);
+  const record = tracker ? recordTable(tbl, rowsOf(tbl).map((row) => row.element.value), tracker) : undefined;
   const from = columnIndex;
   const to = columnIndex + count;
   const overlap = (start: number, end: number): number => Math.max(0, Math.min(end, to) - Math.max(start, from));
@@ -343,6 +358,7 @@ export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: 
   const tblW = tbl.tblPr?.tblW;
   if (tblW?.type === 'dxa') tblW.w = Math.max(0, Number(tblW.w ?? 0) - removed);
   writeCellWidths(tbl, widths, mode === 'window' ? 'all' : shrunkCells(tbl));
+  if (record) record();
 }
 
 /** The cells whose span no longer matches their stated twips width: those that shrank. */

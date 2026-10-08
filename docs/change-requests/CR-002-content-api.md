@@ -3686,7 +3686,7 @@ by what Office JS does (to measure).
 ### 42.5 As implemented (2026-10-09)
 
 `src/model/content/tableColumns.mts` holds the file knowledge, `Table.mts` the calls;
-`test/table-columns.test.mjs` holds it to check 39's save. The suite: 796.
+`test/table-columns.test.mjs` holds it to check 39's save and check 40's (42.6). The suite: 798.
 
 1. **The calls**, in Office JS's shapes: `Table.addColumns('Start' | 'End', columnCount, values?)`,
    `TableCell.insertColumns('Before' | 'After', columnCount, values?)`, `Table.deleteColumns(columnIndex,
@@ -3697,19 +3697,24 @@ by what Office JS does (to measure).
    are exported for a caller working on the tree.
 2. **Where the new cells go.** The boundary is a grid column index; each row is read against the
    grid through its cells' `w:gridSpan` and its `w:gridBefore`/`w:gridAfter`. At a cell's start the
-   new cells go before it; inside a spanning cell the span grows by the count; in a row's skipped
-   columns the skip grows; past a row's last cell they go after it. A cell-level content control's
-   content is the container when the neighbour is in one. The template is the column beside the
-   boundary - to its left for an insert after a cell or at the end, to its right before a cell or at
-   the start - and a new cell takes its `w:tcPr` less `gridSpan`, `vMerge`, `hMerge`, the cell
-   markers and any `w:tcPrChange`; it holds one empty `w:p` as Word writes one, or the value's text.
-   A widened spanning cell stated in twips is written the width it now covers.
+   new cells go before it; inside a spanning cell they go before that cell too and its span is
+   kept (check 40b1: Word shifts the span right rather than widening it; a first version here
+   widened it); strictly inside a row's skipped columns the skip grows, at their edge the cell goes
+   in the row; past a row's last cell they go after it. A cell-level content control's content is
+   the container when the neighbour is in one. **The template is the column to the right of the
+   boundary when there is one, else the left** (check 40: Insert Right in a narrow cell beside a
+   wide one took the wide width, 40a1; Insert Right in a spanning cell took the column after it,
+   40b2; a first version here took the caret's side), and a new cell takes that cell's `w:tcPr`
+   less `gridSpan`, `vMerge`, `hMerge`, the cell markers and any `w:tcPrChange` - which of the two
+   neighbours' *properties* Word copies is not measured, the probes' cells being plain; it holds one
+   empty `w:p` as Word writes one, or the value's text.
 3. **The widths, per mode** (42.2): the grid gains the neighbour's width per new column; **fixed**
-   adds the same to a `w:tblW` in twips; **window** rescales the grid to the width it had (floors,
-   the remainder to the largest fractions, earlier columns first; Word's own grid, 3005/3006/3006
-   summing to 9,017, is its layout's measurement and not reproduced) and writes every cell's
-   percentage again as the cumulative floored shares (1666/1667/1667, as the save); **contents**
-   changes nothing but the grid's shape. A new cell's width is written in the form it takes (42.2
+   adds the same to a `w:tblW` in twips; **window** rescales the grid to the width it had
+   **proportionally** (check 40a2: the shares Word wrote, 996/2002/2002, are the engine's to the
+   unit; an equal share would have been 1666/1667/1667; floors, the remainder to the largest
+   fractions, earlier columns first; Word's own grid, 3005/3006/3006 or 1797/3610/3610 summing to
+   9,017, is its layout's measurement and not reproduced) and writes every cell's percentage again
+   as the cumulative floored shares; **contents** changes nothing but the grid's shape. A new cell's width is written in the form it takes (42.2
    item 4): the neighbour's `w:tcW` type, else the table's `w:tblW` type, else twips; `auto` stays
    `auto`. A table with no `w:tblGrid` gets one from its first row (stated twips, else equal columns
    over the text width). `TableCell.width` now writes percent on a cell in percent (the points as a
@@ -3717,19 +3722,28 @@ by what Office JS does (to measure).
 4. **Deletion.** The cells covering only the removed columns go, a spanning cell shrinks, a row's
    skipped columns shrink, the grid loses the columns and a `w:tblW` in twips their width; window
    mode rescales and rewrites the shares; a cell in twips whose span shrank is written from the
-   grid. The last columns gone, the table goes. **Not tracked**, since Word does not track a column
-   deleted (known issues, entry 2): a tracked document's deletion is as untracked as Word's own.
-   What Office JS does there is still unmeasured, and this is the decision taken meanwhile.
-5. **The tracked form** (42.3), written by the insert while changes are tracked: a `w:tblPrChange`
-   with the properties as they were, a `w:tblGridChange` with the old grid, a `w:tcPrChange` on
-   every cell that was there (recording its properties, even where nothing changed, as check 27
-   saw Word do), the new cells' paragraph marks inserted and their runs in a `w:ins`; no
-   `w:cellIns`. A record already on the table or a cell (an earlier pending change) is kept, so the
-   original state stays the recorded one. `getTrackedChanges` then lists one `tableProperties`
-   change for the table (section 35's kind) and the text as insertions; accepting drops the
-   records and keeps the column; rejecting puts the recorded properties, grid and cells back and
-   leaves the column, empty - Word's Reject All left it the same way (section 29's measurement).
-   Whether Word writes a `w:tcPrChange` on the new cells too is unmeasured; none is written here.
+   grid. The last columns gone, the table goes. **Tracked, the cells still go, untracked, and the
+   table change is recorded** (check 40c: Office JS's `deleteColumns` with tracking on removed the
+   cells - no `w:del`, no `w:cellDel` - and wrote a `w:tblPrChange` with the old width, a
+   `w:tcPrChange` on every remaining cell and a `w:tblGridChange` holding the grid *as it is
+   after*; `getTrackedChanges` listed one `Formatted` change for the table, the remaining cells'
+   text). Word's own Delete Columns writes nothing at all (known issues, entry 2); the engine
+   follows Office JS, the surface it mirrors. A first version here removed untracked with no
+   record.
+5. **The tracked form** (42.3), written by the insert while changes are tracked, as Office JS's
+   `addColumns` writes it (check 40c): a `w:tblPrChange` with the properties as they were, a
+   `w:tcPrChange` on **every** cell - those that were there recording their properties, even where
+   nothing changed, as check 27 saw, and the new cells recording theirs as made - a
+   `w:tblGridChange` holding the grid **as it is after the change** (Word's record, both for a
+   column added and one removed; a first version here recorded the old grid), and the new cells'
+   runs in a `w:ins` with **no** mark insertion; no `w:cellIns`. A record already on the table or a
+   cell (an earlier pending change) is kept, so the original state stays the recorded one.
+   `getTrackedChanges` then lists one `tableProperties` change for the table (section 35's kind;
+   none where the records hold no difference, checks 24 and 26's rule, which a contents-mode add
+   is) and the text as insertions, which Office JS itself holds back until the table change is
+   accepted (check 27); accepting drops the records and keeps the column; rejecting puts the
+   recorded properties and cells back, the grid as recorded, and leaves the column, empty -
+   Word's Reject All left it the same way (section 29's measurement).
 6. **Held by:** the three insertions over check 39's probe, the fixed table equal to the save in
    `w:tblW`, grid and every `w:tcW`, the window table in `w:tblW` and every `w:tcW` with a grid of
    three summing to 9,026, the contents table in `w:tblW` and every `w:tcW`; adds at the start and
@@ -3739,9 +3753,20 @@ by what Office JS does (to measure).
    gone with its last columns; the width setter's forms; and the tracked form, listed, accepted
    and rejected.
 
-**Open, asked as Word check 40** (2026-10-09, Jason: "let's measure"; `test/fixtures/check40/`,
-five files from its `build.mjs`, a Script Lab snippet for the Office JS part, the README saying
-what the engine writes for each case meanwhile): the window-mode rescale for unequal columns
-(proportional here; an equal share is the other reading), Insert Right beside and inside a
-spanning cell (the span widened here), and deletion and addition under Office JS's tracking
-(whether the deletion tracks anything; whether the add writes a `w:tcPrChange` on the new cells).
+### 42.6 Word check 40 (2026-10-09): the three open points measured
+
+Asked by Jason ("let's measure"); `test/fixtures/check40/`, five files from its `build.mjs` and a
+Script Lab snippet, run the same day in Word 365 (16.0.20430.20118), the saves and the Office JS
+JSON beside the originals, each held by a test. What it settled, and what moved in the engine:
+
+| Case | Word 365 | The engine before | Now |
+|---|---|---|---|
+| 40a1: window table, columns 3,000 and 6,026, Insert Right in the narrow cell | cells 996 / 2002 / 2002 pct, grid 1797 / 3610 / 3610 | 1247 / 1247 / 2506 (the narrow neighbour copied) | the column to the right of the boundary is copied: 996 / 2002 / 2002, the shares to the unit |
+| 40a2: the same, Insert Left in the wide cell | the same as 40a1 | 996 / 2002 / 2002 | unchanged: the rescale is proportional, as built (an equal share would be 1666 / 1667 / 1667) |
+| 40b1: fixed, row 1 a cell spanning columns 1 and 2; Insert Right in row 2's first cell | a new cell **before** the spanning cell, its span kept at 2; grid 3009 / 3009 / 3009 / 3008; `w:tblW` 12,035 | the span widened to 3 | as Word: the new cell before the spanning cell |
+| 40b2: Insert Right in the spanning cell | the new column 3,008 wide (column 3, to the right of the boundary); `w:tblW` 12,034 | 3,009 (column 2) | as Word |
+| 40c: Office JS `deleteColumns(1, 1)`, tracking on | the cells gone, no `w:del`; `w:tblPrChange` (old width), `w:tcPrChange` on the remaining cells, `w:tblGridChange` holding the grid as after; listed `Formatted` | removed untracked, no record | as Word |
+| 40c: Office JS `addColumns('End', 1, ...)`, tracking on | the last column copied; `w:tblPrChange`, `w:tcPrChange` on every cell, the new ones included, `w:tblGridChange` holding the grid as after, the new text in `w:ins`, no mark insertion; listed `Formatted` only (the insertions held back, check 27) | the old grid recorded, no record on the new cells, the marks inserted | as Word |
+
+Still unmeasured: which neighbour's cell *properties* a new cell takes (both probes' cells were
+plain), and what Office JS lists for a contents-mode add, whose records hold no difference.

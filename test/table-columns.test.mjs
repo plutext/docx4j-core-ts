@@ -75,7 +75,7 @@ test('addColumns at the start and the end, insertColumns before and after, with 
   assert.equal(back.rows[0].cellCount, 7);
 });
 
-test('the new cell takes the neighbour\'s properties, less its span and merges, and its width in the neighbour\'s form; fixed mode copies the width and grows the table', async () => {
+test('the new cell copies the column to the right of the boundary, else the left (check 40): its properties less span and merges, its width in its form; fixed mode grows the table by it', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = pkg.body;
   await body.insertXml(`<w:tbl><w:tblPr><w:tblW w:w="6000" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="4000"/></w:tblGrid>`
@@ -83,44 +83,63 @@ test('the new cell takes the neighbour\'s properties, less its span and merges, 
     + `<w:tr><w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/><w:vMerge/></w:tcPr><w:p/></w:tc></w:tr></w:tbl>`, 'End');
   const table = body.tables[0];
   assert.equal(table.layoutMode, 'fixed');
-  const [[yellow]] = table.getCell(0, 0).insertColumns('After', 1);
-  assert.equal(yellow.tc.tcPr.shd.fill, 'FFFF00', 'the shading continues');
+  // after the shaded cell: the column to the right (4,000, the merged one) is copied, less its vMerge, and not the shading
+  const [[afterShaded], [belowIt]] = table.getCell(0, 0).insertColumns('After', 1);
+  assert.equal(afterShaded.tc.tcPr.shd, undefined, 'the right-hand neighbour has no shading');
+  assert.equal(afterShaded.tc.tcPr.vMerge, undefined);
+  assert.equal(belowIt.tc.tcPr.vMerge, undefined);
+  assert.deepEqual(shape(table), { tblW: '10000 dxa', grid: [2000, 4000, 4000], rows: [['2000 dxa', '4000 dxa', '4000 dxa'], ['2000 dxa', '4000 dxa', '4000 dxa']] });
+  // before the shaded cell: it is the column to the right, so its shading and alignment continue
+  const [[yellow]] = table.getCell(0, 0).insertColumns('Before', 1);
+  assert.equal(yellow.tc.tcPr.shd.fill, 'FFFF00');
   assert.equal(yellow.tc.tcPr.vAlign.val, 'center');
-  assert.equal(yellow.tc.tcPr.vMerge, undefined);
-  assert.deepEqual(shape(table), { tblW: '8000 dxa', grid: [2000, 2000, 4000], rows: [['2000 dxa', '2000 dxa', '4000 dxa'], ['2000 dxa', '2000 dxa', '4000 dxa']] });
-  // after the merged column: the new cells take the merged cell's width, not its vMerge
-  const [[afterMerge], [belowMerge]] = table.getCell(0, 2).insertColumns('After', 1);
-  assert.equal(afterMerge.tc.tcPr.vMerge, undefined);
-  assert.equal(belowMerge.tc.tcPr.vMerge, undefined);
   assert.deepEqual(shape(table).grid, [2000, 2000, 4000, 4000]);
   assert.equal(shape(table).tblW, '12000 dxa');
+  // at the end there is no column to the right: the last is copied
+  table.addColumns('End', 1);
+  assert.deepEqual(shape(table).grid, [2000, 2000, 4000, 4000, 4000]);
 });
 
-test('a cell spanning the boundary grows instead of a cell being inserted; a row\'s skipped columns grow', async () => {
+test('a boundary inside a spanning cell puts the new cell before it, the span kept (check 40b1); at the edge of a row\'s skipped columns the cell goes in; strictly inside them they grow', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = pkg.body;
   await body.insertXml(`<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/></w:tblGrid>`
     + `<w:tr><w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr><w:p><w:r><w:t>wide</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc></w:tr>`
     + `<w:tr><w:trPr><w:gridBefore w:val="1"/></w:trPr><w:tc><w:p><w:r><w:t>d</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>e</w:t></w:r></w:p></w:tc></w:tr>`
-    + `<w:tr><w:tc><w:p><w:r><w:t>f</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>g</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>h</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`, 'End');
+    + `<w:tr><w:trPr><w:gridBefore w:val="2"/></w:trPr><w:tc><w:p><w:r><w:t>f</w:t></w:r></w:p></w:tc></w:tr>`
+    + `<w:tr><w:tc><w:p><w:r><w:t>g</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>h</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>i</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`, 'End');
   const table = body.tables[0];
-  // after column 0: inside the first row's span, at the second row's skipped column's edge, before g in the third
-  const added = table.getCell(2, 0).insertColumns('After', 1, [['-'], ['-'], ['new']]);
-  assert.deepEqual(added.map((cells) => cells.map((c) => c.text)), [[], [], ['new']]);
-  assert.equal(table.getCell(0, 0).tc.tcPr.gridSpan.val, 3, 'the spanning cell grew');
-  assert.deepEqual(table.values, [['wide', 'c'], ['d', 'e'], ['f', 'new', 'g', 'h']]);
-  const skipped = table.rows[1].tr.trPr.cnfStyleOrDivIdOrGridBefore.find((i) => i.name.localPart === 'gridBefore');
-  assert.equal(skipped.value.val, 2, 'the skipped columns grew');
+  // after column 0: inside the first row's span; at the second row's skipped edge; inside the third row's skipped columns; before h in the fourth
+  const added = table.getCell(3, 0).insertColumns('After', 1, [['x'], ['y'], ['-'], ['new']]);
+  assert.deepEqual(added.map((cells) => cells.map((c) => c.text)), [['x'], ['y'], [], ['new']]);
+  assert.equal(table.getCell(0, 1).tc.tcPr.gridSpan.val, 2, 'the span is kept, the new cell before it');
+  assert.deepEqual(table.values, [['x', 'wide', 'c'], ['y', 'd', 'e'], ['f'], ['g', 'new', 'h', 'i']]);
+  const skipped = (row) => table.rows[row].tr.trPr.cnfStyleOrDivIdOrGridBefore.find((i) => i.name.localPart === 'gridBefore').value.val;
+  assert.equal(skipped(1), 1, 'at the edge of the skipped columns the new cell is in the row');
+  assert.equal(skipped(2), 3, 'strictly inside them, the skipped columns grow');
   assert.deepEqual(shape(table).grid, [3000, 3000, 3000, 3000]);
 });
 
-test('check 40b1\'s shape: a spanning cell widened in fixed mode takes the width it now covers', async () => {
-  const pkg = await WordprocessingMLPackage.load(await fixture('check40/40b1-span.docx'));
-  const table = (await pkg.getBody()).tables[0];
-  table.getCell(1, 0).insertColumns('After', 1);
-  assert.deepEqual(shape(table), { tblW: '12035 dxa', grid: [3009, 3009, 3009, 3008], rows: [['9027 dxa', '3008 dxa'], ['3009 dxa', '3009 dxa', '3009 dxa', '3008 dxa']] });
-  assert.equal(table.getCell(0, 0).tc.tcPr.gridSpan.val, 3);
-  assert.deepEqual(table.values[1], ['S2A', '', 'S2B', 'S2C']);
+test('Word check 40 (2026-10-09): the four hand insertions, held to Word 365\'s saves', async () => {
+  const cases = [
+    ['40a1-window-unequal.docx', '40a1-word365.docx', (t) => t.getCell(0, 0).insertColumns('After', 1)],
+    ['40a2-window-unequal.docx', '40a2-word365.docx', (t) => t.getCell(0, 1).insertColumns('Before', 1)],
+    ['40b1-span.docx', '40b1-word365.docx', (t) => t.getCell(1, 0).insertColumns('After', 1)],
+    ['40b2-span.docx', '40b2-word365.docx', (t) => t.getCell(0, 0).insertColumns('After', 1)],
+  ];
+  for (const [original, saved, act] of cases) {
+    const table = (await (await WordprocessingMLPackage.load(await fixture(`check40/${original}`))).getBody()).tables[0];
+    act(table);
+    const word = shape((await (await WordprocessingMLPackage.load(await fixture(`check40/${saved}`))).getBody()).tables[0]);
+    const engine = shape(table);
+    if (original.startsWith('40a')) {
+      // window mode: the table's width, every cell's share and the values as Word wrote them; the grid is Word's measurement (9,017 against 9,026)
+      assert.deepEqual({ ...engine, grid: engine.grid.length }, { ...word, grid: word.grid.length }, original);
+      assert.deepEqual(word.rows[0], ['996 pct', '2002 pct', '2002 pct'], `${original}: the wide column copied (the one to the right of the boundary), the rescale proportional`);
+    } else {
+      assert.deepEqual(engine, word, original);
+    }
+  }
 });
 
 test('a table without a w:tblGrid gets one from its first row', async () => {
@@ -172,48 +191,103 @@ test('TableCell.width is written in the form the cell or its table states: perce
   assert.equal(contents.getCell(0, 0).width, 100);
 });
 
-test('tracked: a column added is the table change Word records plus the new cells\' text inserted; accepted the records go, rejected the recorded table comes back and the column stays, empty', async () => {
+test('tracked: a column added is the table change Office JS records (check 40c): the old properties, every cell\'s properties the new ones included, the grid as after, the text inserted with no mark insertion; accepted the records go, rejected the recorded table comes back and the column stays, empty', async () => {
   const make = async () => {
     const pkg = await WordprocessingMLPackage.createPackage();
     pkg.author = { name: 'Ada' };
     pkg.trackedChangeDate = DATE;
     const body = pkg.body;
     const table = body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
+    table.tbl.tblPr.tblLayout = { type: 'fixed' };
     await body.insertXml('<w:p><w:r><w:t>after</w:t></w:r></w:p>', 'End');
     pkg.changeTrackingMode = 'TrackAll';
     return { pkg, body, table };
   };
   const { pkg, body, table } = await make();
-  const before = JSON.parse(JSON.stringify(shape(table)));
   table.getCell(0, 0).insertColumns('After', 1, [['new'], ['']]);
   assert.deepEqual(table.values, [['a', 'new', 'b'], ['c', '', 'd']]);
   const tbl = table.tbl;
   assert.equal(tbl.tblPr.tblPrChange.author, 'Ada');
-  assert.deepEqual(tbl.tblGrid.tblGridChange.tblGrid.gridCol.map((c) => c.w), before.grid, 'the old grid recorded');
-  assert.equal(tbl.tblGrid.gridCol.length, 3);
+  assert.equal(tbl.tblPr.tblPrChange.tblPr.tblW.w, 9027, 'the old width recorded');
+  assert.equal(tbl.tblPr.tblW.w, 9027 + 4514, 'fixed: the table grows by the copied column');
+  assert.deepEqual(tbl.tblGrid.gridCol.map((c) => c.w), [4513, 4514, 4514], 'the column to the right of the boundary copied');
+  assert.deepEqual(tbl.tblGrid.tblGridChange.tblGrid.gridCol.map((c) => c.w), [4513, 4514, 4514], 'the record holds the grid as it is after, as Word writes it');
   const cells = table.rows.flatMap((r) => r.cells);
-  assert.deepEqual(cells.map((c) => c.tc.tcPr?.tcPrChange !== undefined), [true, false, true, true, false, true], 'every cell that was there records its properties');
-  assert.ok(table.getCell(0, 1).paragraphs[0].p.pPr.rPr.ins, 'the new cell\'s paragraph mark is an insertion');
+  assert.deepEqual(cells.map((c) => c.tc.tcPr?.tcPrChange !== undefined), [true, true, true, true, true, true], 'every cell records its properties, the new ones included');
+  assert.equal(table.getCell(0, 1).paragraphs[0].p.pPr, undefined, 'no mark insertion on the new cell\'s paragraph');
   const xml = await pkg.getMainDocumentPart().getXml();
   assert.match(xml, /<w:tblPrChange w:id="\d+"[^>]*w:author="Ada"[^>]*><w:tblPr>/);
-  assert.match(xml, /<w:tc><w:tcPr><w:tcW [^>]*\/><\/w:tcPr><w:p><w:pPr><w:rPr><w:ins [^>]*\/><\/w:rPr><\/w:pPr><\/w:p><\/w:tc>/, 'an empty new cell: an empty paragraph, its mark inserted');
-  assert.match(xml, /<w:tblGridChange w:id="\d+"><w:tblGrid><w:gridCol w:w="4513"\/><w:gridCol w:w="4514"\/><\/w:tblGrid><\/w:tblGridChange>/);
-  assert.match(xml, /<w:ins [^>]*><w:r><w:t>new<\/w:t><\/w:r><\/w:ins>/);
+  assert.match(xml, /<w:tblGridChange w:id="\d+"><w:tblGrid><w:gridCol w:w="4513"\/><w:gridCol w:w="4514"\/><w:gridCol w:w="4514"\/><\/w:tblGrid><\/w:tblGridChange>/);
+  assert.match(xml, /<w:p><w:ins [^>]*><w:r><w:t>new<\/w:t><\/w:r><\/w:ins><\/w:p>/);
+  assert.match(xml, /<w:tc><w:tcPr><w:tcW [^>]*\/><w:tcPrChange [^>]*><w:tcPr><w:tcW [^>]*\/><\/w:tcPr><\/w:tcPrChange><\/w:tcPr><w:p\/><\/w:tc>/, 'an empty new cell: an empty paragraph, its properties recorded');
   assert.doesNotMatch(xml, /w:cellIns/);
   const changes = body.getTrackedChanges();
   assert.ok(changes.some((c) => c.target.kind === 'tableProperties' && c.type === 'Formatted'), changes.map((c) => c.target.kind).join(','));
-  assert.ok(changes.some((c) => c.type === 'Added' && c.text.startsWith('new')), 'the new cell\'s text is an insertion (grouped with its mark)');
+  assert.ok(changes.some((c) => c.type === 'Added' && c.text === 'new'), 'the new cell\'s text is an insertion');
 
   // accepted: the records go, the column and its text stay
   assert.ok(body.acceptAll() > 0);
   assert.deepEqual(table.values, [['a', 'new', 'b'], ['c', '', 'd']]);
   assert.doesNotMatch(await pkg.getMainDocumentPart().getXml(), /PrChange|GridChange|<w:ins /);
 
-  // rejected: the recorded properties, grid and cells come back; the column stays, empty (Word's Reject All, section 29)
+  // rejected: the recorded properties and cells come back, the grid as recorded; the column stays, empty (Word's Reject All, section 29)
   const fresh = await make();
   fresh.table.getCell(0, 0).insertColumns('After', 1, [['new'], ['']]);
   assert.ok(fresh.body.rejectAll() > 0);
   assert.deepEqual(fresh.table.values, [['a', '', 'b'], ['c', '', 'd']]);
-  assert.deepEqual(fresh.table.tbl.tblGrid.gridCol.map((c) => c.w), before.grid);
+  assert.deepEqual(fresh.table.tbl.tblGrid.gridCol.map((c) => c.w), [4513, 4514, 4514]);
+  assert.equal(fresh.table.tbl.tblPr.tblW.w, 9027, 'the recorded width back');
   assert.doesNotMatch(await fresh.pkg.getMainDocumentPart().getXml(), /PrChange|GridChange|<w:ins /);
+});
+
+test('tracked: a column deleted loses its cells untracked and records the table change, as Office JS does (check 40c); rejected, the recorded width comes back', async () => {
+  const D = `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="9026" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="3009"/><w:gridCol w:w="3009"/><w:gridCol w:w="3008"/></w:tblGrid>`
+    + ['1', '2'].map((n) => `<w:tr>${['A', 'B', 'C'].map((c, i) => `<w:tc><w:tcPr><w:tcW w:w="${i === 2 ? 3008 : 3009}" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>D${n}${c}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`).join('') + '</w:tbl>';
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.author = { name: 'Author A' };
+    pkg.trackedChangeDate = DATE;
+    const body = pkg.body;
+    await body.insertXml(D, 'End');
+    pkg.changeTrackingMode = 'TrackAll';
+    return { pkg, body, table: body.tables[0] };
+  };
+  const { pkg, body, table } = await make();
+  table.deleteColumns(1);
+  assert.deepEqual(table.values, [['D1A', 'D1C'], ['D2A', 'D2C']], 'the cells are gone');
+  assert.deepEqual(shape(table), { tblW: '6017 dxa', grid: [3009, 3008], rows: [['3009 dxa', '3008 dxa'], ['3009 dxa', '3008 dxa']] });
+  assert.equal(table.tbl.tblPr.tblPrChange.tblPr.tblW.w, 9026, 'the old width recorded');
+  assert.deepEqual(table.tbl.tblGrid.tblGridChange.tblGrid.gridCol.map((c) => c.w), [3009, 3008], 'the grid as after, as Word records it');
+  assert.ok(table.rows.flatMap((r) => r.cells).every((c) => c.tc.tcPr.tcPrChange), 'every remaining cell records its properties');
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.doesNotMatch(xml, /<w:del |cellDel/);
+  assert.deepEqual(body.getTrackedChanges().map((c) => [c.target.kind, c.type, c.text]), [['tableProperties', 'Formatted', 'D1A\tD1C\r\nD2A\tD2C\r\n']], 'listed as Office JS lists it');
+  assert.equal(body.acceptAll(), 1);
+  assert.doesNotMatch(await pkg.getMainDocumentPart().getXml(), /PrChange|GridChange/);
+  const fresh = await make();
+  fresh.table.deleteColumns(1);
+  assert.equal(fresh.body.rejectAll(), 1);
+  assert.equal(fresh.table.tbl.tblPr.tblW.w, 9026, 'the recorded width back; the cells stay gone');
+  assert.deepEqual(fresh.table.values, [['D1A', 'D1C'], ['D2A', 'D2C']]);
+});
+
+test('Word check 40c (2026-10-09): the engine\'s tracked delete and add over the Office JS file, held to Word 365\'s save', async () => {
+  const records = (t) => ({
+    tblW: t.tbl.tblPr.tblW.w, oldTblW: t.tbl.tblPr.tblPrChange?.tblPr.tblW.w,
+    grid: t.tbl.tblGrid.gridCol.map((c) => c.w), recordedGrid: t.tbl.tblGrid.tblGridChange?.tblGrid.gridCol.map((c) => c.w),
+    rows: t.rows.map((r) => r.cells.map((c) => ({ w: c.tc.tcPr.tcW.w, recorded: c.tc.tcPr.tcPrChange?.tcPr.tcW.w, text: c.text, ins: JSON.stringify(c.tc.content ?? []).includes('"localPart":"ins"') }))),
+  });
+  const pkg = await WordprocessingMLPackage.load(await fixture('check40/40c-officejs.docx'));
+  pkg.author = { name: 'Author A' };
+  const body = await pkg.getBody();
+  pkg.changeTrackingMode = 'TrackAll';
+  const [d, e] = body.tables;
+  d.deleteColumns(1, 1);
+  e.addColumns('End', 1, [['E1D'], ['E2D']]);
+  const word = (await (await WordprocessingMLPackage.load(await fixture('check40/40c-word365.docx'))).getBody()).tables;
+  assert.deepEqual(records(d), records(word[0]), 'table D, the column deleted');
+  assert.deepEqual(records(e), records(word[1]), 'table E, the column added');
+  assert.ok(records(e).rows[0][3].ins && records(e).rows[0][3].recorded === 3008);
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.doesNotMatch(xml, /<w:pPr><w:rPr><w:ins /, 'no mark insertion on the new cells, as Word');
 });
