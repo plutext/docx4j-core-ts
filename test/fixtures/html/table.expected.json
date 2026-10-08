@@ -1,0 +1,196 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "5. A simple table"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A three-by-three table with a header row:"
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "rows": [
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Name"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Quantity"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Price"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Widget"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "3.50"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Gadget"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "10"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "12.00"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ]
+      ],
+      "style": "TableGrid"
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A plain paragraph after the table."
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 12,
+    "lists": 0,
+    "tables": 1,
+    "dropped": {
+      "spacing": 9
+    },
+    "stylesWanted": []
+  }
+}

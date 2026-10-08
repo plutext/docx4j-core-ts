@@ -1,0 +1,99 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "3. A bulleted list"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "First bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Second bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 1,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "A nested bullet under the second"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 1,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Another nested bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Third bullet, back at the first level"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A plain paragraph after the list."
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 7,
+    "lists": 1,
+    "tables": 0,
+    "dropped": {},
+    "stylesWanted": []
+  }
+}

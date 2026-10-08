@@ -1,0 +1,49 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "6. What the editor drops on paste"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "jc": "center",
+      "ind": {
+        "start": 720
+      },
+      "inlines": [
+        {
+          "text": "This paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so.",
+          "fontName": "Arial",
+          "fontSize": 14,
+          "color": "#FF0000"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "This one has a "
+        },
+        {
+          "text": "highlighted word.",
+          "highlight": "#FFFF00"
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 3,
+    "lists": 0,
+    "tables": 0,
+    "dropped": {},
+    "stylesWanted": []
+  }
+}

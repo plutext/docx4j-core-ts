@@ -1,0 +1,56 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "1. Headings and body text"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "A second-level heading"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Body text under the second-level heading, one plain sentence."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading3",
+      "inlines": [
+        {
+          "text": "A third-level heading"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Body text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own."
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 5,
+    "lists": 0,
+    "tables": 0,
+    "dropped": {},
+    "stylesWanted": []
+  }
+}

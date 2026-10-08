@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module, 2026-10-08) in progress, its bind step next
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -320,3 +320,61 @@ through this engine and a throw through the default one in every one of them. Th
 constructor form: the module given either way answers as the imported one does, and a module that
 is not `fontoxpath` is refused at the constructor. The nodenext consumer check exercises both
 forms, so the declaration has to admit them.
+
+## 8. Escaped XHTML: the HTML module, and the bind step (2026-10-08)
+
+The specification's section 9 binds a node whose string value is XHTML markup, stored escaped as
+the node's text, through a control whose tag carries `od:ContentType=application/xhtml+xml`. Item
+4 of section 3 had put it out of scope "until an XHTML importer exists here". One does now, by the
+editor's proposal (docx4j-ts-editor ED-005 proposal 44, accepted by Jason 2026-10-08) and his
+decision as the copyright owner to move the editor's converter down under Apache-2.0 (its ED-001
+decision 26): the converter is moved, never copied, and the editor imports it back from a release.
+
+### 8.1 The `html` module (`@docx4j/core-ts/html`)
+
+1. **`convert.mts`**: `convertHtml(html, lookup, { parser })` walks an HTML document to an
+   intermediate form (`PasteBlock`: paragraphs with a style id, a list key and level, alignment,
+   indents and space before, and inlines - runs with the six marks, a font, a size, a colour, a
+   highlight, a character style or a link's address; tables with cells spanning rows and columns,
+   widths in twips, a header row) and a report of what it kept and dropped, counted by kind.
+   Written for Word's clipboard HTML and any XHTML; what it keeps and drops is the editor's
+   ED-003 section 8.3 and its notes (`view/paste.ts`'s head). `clipboardMarkup` strips a
+   `CF_HTML` header, `isTerminalHtml` tells a terminal's capture, `styleLookupOf(entries,
+   tableStyleIds)` is the document's answer to a style name. **The parser is the caller's**: a
+   browser's `DOMParser` by default; in Node, jsdom's or linkedom's (`linkedom`, ISC, is this
+   package's test dependency). A bare fragment - the text between Word's markers, a data node's
+   XHTML - is wrapped in `html` and `body` by a browser and not by a light DOM, so the walk's
+   root is the first of the body, an `html` element and the document itself that holds an
+   element (`rootOf`).
+2. **`elements.mts`**: `blocksToXml(blocks, { numId, relId })` writes the form as a `w:p` /
+   `w:tbl` fragment for `contentOf` or `Body.insertXml` (the prefixes undeclared, as those take
+   it): run properties in the schema's order, a tab and a line break as runs of their own, the
+   runs of one address under one `w:hyperlink` in the `Hyperlink` character style with no direct
+   colour (as `Range.hyperlink` leaves a link), indents as `w:left`, `w:right`, `w:hanging` or
+   `w:firstLine`, a table's grid from its first row's widths where every cell states one, else
+   Word's text width shared equally, a cell spanning columns with its `gridSpan`, one spanning rows
+   with `w:vMerge w:val="restart"` and a continuation cell in each row below (HTML lists no cell
+   there), a header row's `w:tblHeader`. `needsOf(blocks)` lists what the document must give
+   first - a definition per list key, a relationship per link address - and a list or link the
+   resolvers do not answer is a plain paragraph or plain text.
+3. **Tests** (`test/html.test.mjs`): the editor's corpus, fourteen captures from Word 15 and a
+   terminal under `test/fixtures/html/` with their conversions pinned (`UPDATE_HTML=1`
+   regenerates), unchanged by the move; every capture built, parsed by the engine and inserted
+   into a new document, its paragraphs read back after a save; a list's numbering and a link's
+   hyperlink given and withheld; vertical and horizontal merges and a header row. `tsconfig`'s
+   `es2019` target has no iterable DOM collections: the walk uses `Array.from`.
+
+### 8.2 The bind step (next)
+
+`applyBindingsTo` handles a control whose tag says `application/xhtml+xml`: the node's string
+value is the markup (unescaped by the XML parser already); the converter and `blocksToXml` make
+the content with the document's styles as the lookup, the list definitions made and the
+relationships added for what `needsOf` names; a block-level control is given the blocks, a
+run-level one the first paragraph's inline content with the rest reported (docx4j's
+`BindingTraverserXSLT.convertXHTML`, which refuses block content in a run-level control; REQ-076,
+REC-009); the control's own run properties apply where the markup states none, as the text
+binding's do. The processor drops `w:dataBinding` from such a control once bound, as docx4j's
+`bind.xslt` does, since Word would otherwise replace the content with the escaped string on open
+(to be measured: check 37). The reverse direction (`UpdateXmlFromDocumentSurface`) leaves such a
+control alone, as docx4j's does. The parser comes through the bind's options; without one in a
+runtime that has no `DOMParser`, the control is left and reported.

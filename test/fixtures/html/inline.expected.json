@@ -1,0 +1,100 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "2. Inline formatting"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "This paragraph has "
+        },
+        {
+          "text": "bold",
+          "bold": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "italic",
+          "italic": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "underlined",
+          "underline": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "struck through",
+          "strike": true
+        },
+        {
+          "text": ", a super"
+        },
+        {
+          "text": "script",
+          "vertAlign": "superscript"
+        },
+        {
+          "text": " and a sub"
+        },
+        {
+          "text": "script",
+          "vertAlign": "subscript"
+        },
+        {
+          "text": " run, then "
+        },
+        {
+          "text": "bold italic together",
+          "bold": true,
+          "italic": true
+        },
+        {
+          "text": "."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A line break follows this text"
+        },
+        {
+          "br": true
+        },
+        {
+          "text": "and this is the same paragraph after it, then a tab"
+        },
+        {
+          "tab": true
+        },
+        {
+          "text": "and text after the tab."
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 3,
+    "lists": 0,
+    "tables": 0,
+    "dropped": {},
+    "stylesWanted": []
+  }
+}

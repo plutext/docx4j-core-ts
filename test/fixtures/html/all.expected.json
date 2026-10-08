@@ -1,0 +1,562 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": "Title",
+      "inlines": [
+        {
+          "text": "Paste samples for the docx4j editor"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Each numbered section below is one capture: select from its heading to the line before the next heading, copy, and save the clipboard HTML as paste/README.md says. The last capture is the whole document."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "1. Headings and body text"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "A second-level heading"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Body text under the second-level heading, one plain sentence."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading3",
+      "inlines": [
+        {
+          "text": "A third-level heading"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Body text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "2. Inline formatting"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "This paragraph has "
+        },
+        {
+          "text": "bold",
+          "bold": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "italic",
+          "italic": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "underlined",
+          "underline": true
+        },
+        {
+          "text": ", "
+        },
+        {
+          "text": "struck through",
+          "strike": true
+        },
+        {
+          "text": ", a super"
+        },
+        {
+          "text": "script",
+          "vertAlign": "superscript"
+        },
+        {
+          "text": " and a sub"
+        },
+        {
+          "text": "script",
+          "vertAlign": "subscript"
+        },
+        {
+          "text": " run, then "
+        },
+        {
+          "text": "bold italic together",
+          "bold": true,
+          "italic": true
+        },
+        {
+          "text": "."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A line break follows this text"
+        },
+        {
+          "br": true
+        },
+        {
+          "text": "and this is the same paragraph after it, then a tab"
+        },
+        {
+          "tab": true
+        },
+        {
+          "text": "and text after the tab."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "3. A bulleted list"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "First bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Second bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 1,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "A nested bullet under the second"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 1,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Another nested bullet"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "Third bullet, back at the first level"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A plain paragraph after the list."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "4. A numbered list"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo2",
+        "level": 0,
+        "bullet": false
+      },
+      "inlines": [
+        {
+          "text": "First item"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo2",
+        "level": 0,
+        "bullet": false
+      },
+      "inlines": [
+        {
+          "text": "Second item"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo2",
+        "level": 1,
+        "bullet": false
+      },
+      "inlines": [
+        {
+          "text": "A nested item under the second"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo2",
+        "level": 1,
+        "bullet": false
+      },
+      "inlines": [
+        {
+          "text": "Another nested item"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "lfo2",
+        "level": 0,
+        "bullet": false
+      },
+      "inlines": [
+        {
+          "text": "Third item, back at the first level"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A plain paragraph after the list."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "5. A simple table"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A three-by-three table with a header row:"
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "rows": [
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Name"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Quantity"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Price"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Widget"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "3.50"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Gadget"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "10"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "12.00"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1,
+            "width": 3009
+          }
+        ]
+      ],
+      "style": "TableGrid"
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "A plain paragraph after the table."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading1",
+      "inlines": [
+        {
+          "text": "6. What the editor drops on paste"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "jc": "center",
+      "ind": {
+        "start": 720
+      },
+      "inlines": [
+        {
+          "text": "This paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so.",
+          "fontName": "Arial",
+          "fontSize": 14,
+          "color": "#FF0000"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "This one has a "
+        },
+        {
+          "text": "highlighted word.",
+          "highlight": "#FFFF00"
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 39,
+    "lists": 2,
+    "tables": 1,
+    "dropped": {
+      "spacing": 9
+    },
+    "stylesWanted": []
+  }
+}

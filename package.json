@@ -37,6 +37,10 @@
     "./xpath-fonto": {
       "types": "./dist/model/customxml/xpath-fonto.d.mts",
       "import": "./dist/model/customxml/xpath-fonto.mjs"
+    },
+    "./html": {
+      "types": "./dist/html/index.d.mts",
+      "import": "./dist/html/index.mjs"
     }
   },
   "files": [
@@ -84,6 +88,7 @@
   },
   "devDependencies": {
     "fontoxpath": "^3.34.0",
+    "linkedom": "^0.18.13",
     "typescript": "~5.6.3",
     "xpath": "^0.0.34"
   },

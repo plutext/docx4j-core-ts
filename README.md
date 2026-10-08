@@ -46,7 +46,9 @@ A part that is never touched is written back byte for byte; `getContents()` (or 
 it) marks a part for re-marshalling. `mc:AlternateContent` is resolved when a part is
 unmarshalled, as Word does on open (`{ mcePreprocess: false }` to keep it). Subpaths
 `@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately,
-`/office-js` the `Word` shim (below), and `/node` the one Node-only piece (the unzipped-directory
+`/office-js` the `Word` shim (below), `/html` HTML to WordprocessingML (a converter to an
+intermediate form and a builder from it, CR-005 section 8; the HTML parser is yours, a browser's
+`DOMParser` by default), and `/node` the one Node-only piece (the unzipped-directory
 container; nothing else in the package imports a `node:` builtin, so a browser or add-in bundle
 never sees one).
 

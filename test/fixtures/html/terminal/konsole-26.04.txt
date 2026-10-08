@@ -1,0 +1,6 @@
+wl-paste --list-types
+STRING
+text/plain;charset=utf-8
+TEXT
+text/plain
+UTF8_STRING
