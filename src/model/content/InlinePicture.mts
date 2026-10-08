@@ -9,7 +9,7 @@ import type * as pic from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_p
 import { inlinePicture } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentTypes, IMAGE_CONTENT_TYPES_BY_EXTENSION } from '../../opc/ContentTypes.mjs';
-import { base64Decode, base64Encode } from '../../xml/dom.mjs';
+import { base64Decode, base64Encode, decodeXmlText } from '../../xml/dom.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import type { Part } from '../../parts/Part.mjs';
@@ -42,7 +42,9 @@ export interface ImageInfo {
  * The size and kind of an image, from its header: PNG (IHDR and pHYs), JPEG (SOFn and the JFIF
  * APP0 densities), GIF (the logical screen descriptor) and BMP (the DIB header, with its pixels
  * per metre). docx4j reads these through XML Graphics Commons' ImageInfo; this is the same
- * information, and the same 96 dpi default when a file declares none.
+ * information, and the same 96 dpi default when a file declares none. An SVG document is told by
+ * its root element and has no pixel size (both 0): it can be the part behind an existing picture
+ * (CR-005 section 9, a binding that keeps the drawing) but not be placed as a new one.
  */
 export function imageInfoOf(bytes: Uint8Array): ImageInfo {
   const png = pngInfo(bytes);
@@ -53,8 +55,20 @@ export function imageInfoOf(bytes: Uint8Array): ImageInfo {
   if (gif) return gif;
   const bmp = bmpInfo(bytes);
   if (bmp) return bmp;
+  const svg = svgInfo(bytes);
+  if (svg) return svg;
   const head = Array.from(bytes.subarray(0, 8)).map((b) => b.toString(16).padStart(2, '0')).join(' ');
-  throw new Docx4JException(`Unsupported image format (first bytes ${head}); PNG, JPEG, GIF and BMP are read here`);
+  throw new Docx4JException(`Unsupported image format (first bytes ${head}); PNG, JPEG, GIF, BMP and SVG are read here`);
+}
+
+/** An SVG document: an XML declaration, comments and a doctype allowed before the `svg` root. */
+function svgInfo(b: Uint8Array): ImageInfo | undefined {
+  if (b.length < 5) return undefined;
+  let head: string;
+  try { head = decodeXmlText(b.subarray(0, Math.min(b.length, 4096))); } catch { return undefined; }
+  const body = head.replace(/^\uFEFF/, '').replace(/<\?xml[^>]*\?>/, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<!DOCTYPE[^>]*>/i, '').trimStart();
+  if (!/^<(\w+:)?svg[\s>]/.test(body)) return undefined;
+  return { contentType: ContentTypes.IMAGE_SVG, extension: 'svg', widthPx: 0, heightPx: 0, dpiX: DEFAULT_DPI, dpiY: DEFAULT_DPI };
 }
 
 function be16(b: Uint8Array, at: number): number { return (b[at]! << 8) | b[at + 1]!; }
@@ -203,7 +217,12 @@ export function addImagePart(source: Part, base64: string): NewImagePart {
  * that shows it. docx4j: `BinaryPartAbstractImage.createImagePart` then `createImageInline`.
  */
 export function addImage(source: Part, base64: string, scope: object, maxCx: number | undefined, options: InlinePictureOptions = {}): NewPicture {
-  const { imagePart, relId, info } = addImagePart(source, base64);
+  const bytes = base64Decode(base64);
+  const info = imageInfoOf(bytes);
+  if (info.widthPx === 0 || info.heightPx === 0) {
+    throw new Docx4JException(`A ${info.extension.toUpperCase()} image has no pixel size to place it at; PNG, JPEG, GIF and BMP can be placed`);
+  }
+  const { imagePart, relId } = addImagePart(source, base64);
   const rel = { id: relId };
   let { cx, cy } = naturalSizeEmu(info);
   if (options.width !== undefined) {

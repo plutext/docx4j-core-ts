@@ -9,12 +9,14 @@
 //                               /data/logo, a blue 300 x 150 image; the control shows a red 200 x 100 placeholder
 //   38a-picture-bound.docx      the same after the engine's bind: the control shows the blue image, the drawing
 //                               (its extent, the placeholder's) kept
-//   38b-handler-template.docx   four rich text controls tagged od:xpath=..&od:Handler=picture, no w:dataBinding:
+//   38b-handler-template.docx   five rich text controls tagged od:xpath=..&od:Handler=picture, no w:dataBinding:
 //                               a floating red placeholder (no width), two text placeholders (width=4500 and
-//                               width=auto) and one in a 3000-twip table cell (width=4500)
+//                               width=auto), one in a 3000-twip table cell (width=4500), and an inline red
+//                               placeholder bound to an SVG node (no width)
 //   38b-handler-bound.docx      the same after applyBindings(): the floating picture shows the blue image at the
-//                               same place and size; the others hold a new inline picture of the wide green image
+//                               same place and size; 2 to 4 hold a new inline picture of the wide green image
 //                               (800 x 200, 12000 twips) scaled to 4500 twips, the text width, and the cell's width
+//                               less its margins; 5's blip points at an image/svg+xml part
 // Open each in Word 2010 and Word 15, look, save beside them as README.md says.
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -30,6 +32,8 @@ const RED = pngOf(200, 100, [220, 40, 40]);
 const BLUE = pngOf(300, 150, [40, 70, 220]);
 /** /data/wide: 800 x 200 px, 8.33 x 2.08 in (12000 x 3000 twips), wider than the page's text. */
 const WIDE = pngOf(800, 200, [40, 160, 60]);
+/** /data/svg: an orange circle on a grey square, as SVG; Word 2016 and later read SVG parts, Word 2010 and 15 do not. */
+const SVG = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100"><rect width="200" height="100" fill="#dddddd"/><circle cx="100" cy="50" r="40" fill="#f08020"/></svg>').toString('base64');
 
 /** A paragraph holding a floating picture (wp:anchor), as Word writes one, over an image relationship. */
 function anchoredParagraphXml(relId, cx, cy, id) {
@@ -66,9 +70,9 @@ async function handlerControls() {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = await pkg.getBody();
   const main = pkg.getMainDocumentPart();
-  const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide></data>`);
+  const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide><svg>${SVG}</svg></data>`);
   const entry = (id, xpath) => `<xpath id="${id}"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="${xpath}" w:prefixMappings=""/></xpath>`;
-  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}</xpaths>`);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}${entry('x3', '/data/svg')}</xpaths>`);
   await pkg.customXmlParts.load();
   body.insertParagraph('Check 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them).', 'End');
   body.insertParagraph('1. A floating red placeholder (200 x 100) in a rich text control, no width parameter. After the bind, the same floating picture shows the blue 300 x 150 image, at the same place and size:', 'End');
@@ -86,11 +90,17 @@ async function handlerControls() {
   const auto = body.insertParagraph('picture placeholder (width=auto)', 'End').insertContentControl('RichText');
   auto.tag = 'od:xpath=x2&od:Handler=picture&width=auto';
   auto.title = 'width=auto';
-  body.insertParagraph('4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell:', 'End');
+  body.insertParagraph('4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell less its margins (108 twips each side: 2784 twips, 1.93 inches):', 'End');
   await body.insertXml(`<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="3000" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="3000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>cell placeholder</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`, 'End');
   const cell = body.search('cell placeholder')[0].insertContentControl('RichText');
   cell.tag = 'od:xpath=x2&od:Handler=picture&width=4500';
   cell.title = 'in a cell';
+  body.insertParagraph('5. An inline red placeholder bound to an SVG node, no width: after the bind the same drawing shows an orange circle on grey, if this Word reads an SVG part pointed at directly by a:blip (no PNG fallback is written):', 'End');
+  const svgHolder = body.insertParagraph('', 'End');
+  svgHolder.insertInlinePictureFromBase64(RED, 'End', { name: 'svg-placeholder.png' });
+  const svg = svgHolder.insertContentControl('RichText');
+  svg.tag = 'od:xpath=x3&od:Handler=picture';
+  svg.title = 'SVG, no width';
   body.insertParagraph('After the controls.', 'End');
   return pkg;
 }

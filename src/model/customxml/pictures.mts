@@ -15,8 +15,9 @@
 // With a `width` parameter on the tag the content is replaced by a new inline picture
 // (`xpathInjectImage`; REQ-062): at its natural size, scaled down to fit `width=N` twips or the
 // text width, whichever is smaller; `width=auto` the text width alone. A control in a table cell
-// fits the cell's width rather than the page's. The reverse direction leaves both shapes alone
-// (section 9.3 says what a Word check must settle first).
+// fits the cell's width less its margins rather than the page's. An SVG value can replace a picture
+// (no size is needed) but not be placed as a new one. The reverse direction leaves both shapes
+// alone (section 9 item 4 says what a Word check must settle first).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import { find, type Element } from '../content/tree.mjs';
@@ -73,16 +74,38 @@ function firstBlipOf(control: ContentControl): dml.CTBlip | undefined {
   return undefined;
 }
 
+/** A width stated in twips (`dxa`, or no type), else undefined. */
+function twipsOf(width: wml.TblWidth | undefined): number | undefined {
+  return width && typeof width.w === 'number' && width.w >= 0 && (width.type === undefined || width.type === 'dxa') ? width.w : undefined;
+}
+
 /**
- * The width a new picture must fit, in EMU: the cell's `w:tcW` when the control is in a table
- * cell and the width is stated in twips (a percentage or `auto` falls to the page), else the
- * page's text width; narrowed to `width=N`. Undefined where nothing states a width (a header's
- * body has no `w:sectPr`): the natural size then.
+ * Word's default cell margins, 108 twips left and right (the `Normal Table` style's
+ * `w:tblCellMar`, which every table inherits), taken where neither the cell nor the table states
+ * one; a table style stating other margins is not read.
+ */
+const DEFAULT_CELL_MARGIN_TWIPS = 108;
+
+/** The cell's left and right margins together, in twips: `w:tcMar`, else the table's `w:tblCellMar`, else Word's defaults. */
+function cellMarginsTwips(tc: wml.Tc, tbl: wml.Tbl): number {
+  const own = tc.tcPr?.tcMar;
+  const table = tbl.tblPr?.tblCellMar;
+  const left = twipsOf(own?.left) ?? twipsOf(table?.left ?? table?.start) ?? DEFAULT_CELL_MARGIN_TWIPS;
+  const right = twipsOf(own?.right) ?? twipsOf(table?.right ?? table?.end) ?? DEFAULT_CELL_MARGIN_TWIPS;
+  return left + right;
+}
+
+/**
+ * The width a new picture must fit, in EMU: the cell's `w:tcW` less its margins when the control
+ * is in a table cell and the width is stated in twips (a percentage or `auto` falls to the page),
+ * else the page's text width; narrowed to `width=N`. Undefined where nothing states a width (a
+ * header's body has no `w:sectPr`): the natural size then.
  */
 function maxWidthEmu(control: ContentControl, width: PictureWidth): number | undefined {
   const cell = enclosingCellOf(control.element.value as unknown as wml.P);
-  const tcW = cell?.tc.tcPr?.tcW;
-  const cellEmu = tcW && typeof tcW.w === 'number' && tcW.w > 0 && (tcW.type === undefined || tcW.type === 'dxa') ? tcW.w * EMU_PER_TWIP : undefined;
+  const tcW = cell ? twipsOf(cell.tc.tcPr?.tcW) : undefined;
+  const inner = cell && tcW !== undefined ? tcW - cellMarginsTwips(cell.tc, cell.tbl) : undefined;
+  const cellEmu = inner !== undefined && inner > 0 ? inner * EMU_PER_TWIP : undefined;
   const text = cellEmu ?? writableWidthEmu(control.parentBody.container);
   if (width.kind === 'twips') {
     const wanted = width.twips * EMU_PER_TWIP;
@@ -98,9 +121,10 @@ function maxWidthEmu(control: ContentControl, width: PictureWidth): number | und
  * fallback), a tag-bound control holding none is left and noted. Otherwise the control's content
  * becomes one run holding a new inline picture, sized as `PictureWidth` says, in the first
  * paragraph of a block-level control (its properties kept) or as a run-level control's content.
- * An empty value, a value that is not an image this package reads (PNG, JPEG, GIF, BMP), and a
- * body with no part each leave the control as it was, with a note. The image part the control
- * showed before stays in the package, as docx4j leaves it.
+ * An empty value, a value that is not an image this package reads (PNG, JPEG, GIF, BMP; SVG where
+ * the drawing is kept, since it has no pixel size to place a new picture at), and a body with no
+ * part each leave the control as it was, with a note. The image part the control showed before
+ * stays in the package, as docx4j leaves it.
  */
 export function bindPicture(control: ContentControl, value: string, width: PictureWidth, label: string): PictureOutcome {
   const base64 = base64Of(value);

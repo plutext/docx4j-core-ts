@@ -14,6 +14,8 @@ const SMALL = pngOf(4, 3, [255, 0, 0]);
 const BLUE = pngOf(6, 3, [0, 0, 255]);
 /** 400 x 3 px: 3810000 x 28575 EMU, 6000 twips wide. */
 const WIDE = pngOf(400, 3, [0, 128, 0]);
+/** An SVG document, which has no pixel size. */
+const SVG = Buffer.from('<?xml version="1.0"?>\n<!-- a mark -->\n<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="blue"/></svg>').toString('base64');
 
 /** A paragraph holding a floating picture (wp:anchor), as Word writes one, over an image relationship. */
 function anchoredParagraphXml(relId, cx, cy, id) {
@@ -30,9 +32,9 @@ function anchoredParagraphXml(relId, cx, cy, id) {
 async function document() {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = await pkg.getBody();
-  const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide><empty></empty><text>not an image</text></data>`);
+  const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide><empty></empty><text>not an image</text><svg>${SVG}</svg></data>`);
   const entry = (id, xpath) => `<xpath id="${id}"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="${xpath}" w:prefixMappings=""/></xpath>`;
-  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}${entry('x3', '/data/empty')}${entry('x4', '/data/text')}</xpaths>`);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}${entry('x3', '/data/empty')}${entry('x4', '/data/text')}${entry('x5', '/data/svg')}</xpaths>`);
   await pkg.customXmlParts.load();
   return { pkg, body, data };
 }
@@ -147,15 +149,38 @@ test('(b) width=N: the content becomes an inline picture at its natural size, sc
   assert.equal(controls[2].paragraphs[0].inlinePictures[0].width * EMU_PER_POINT, 4500 * 635);
 });
 
-test('(b) in a table cell, width=N fits the cell\'s width when that is narrower', async () => {
+test('(b) in a table cell, width=N fits the cell\'s width less its margins when that is narrower: Word\'s 108-twip defaults, the table\'s w:tblCellMar, the cell\'s own w:tcMar', async () => {
   const { pkg, body } = await document();
-  await body.insertXml(`<w:tbl><w:tblPr><w:tblW w:w="1000" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`, 'End');
-  const control = body.search('cell')[0].insertContentControl('RichText');
-  control.tag = 'od:xpath=x2&od:Handler=picture&width=4500';
+  const cell = (tcPr, tblPr = '') => `<w:tbl><w:tblPr>${tblPr}<w:tblW w:w="1000" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/>${tcPr}</w:tcPr><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`;
+  await body.insertXml(cell(''), 'End');
+  await body.insertXml(cell('', '<w:tblCellMar><w:left w:w="200" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>'), 'End');
+  await body.insertXml(cell('<w:tcMar><w:left w:w="50" w:type="dxa"/><w:right w:w="50" w:type="dxa"/></w:tcMar>', '<w:tblCellMar><w:left w:w="200" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>'), 'End');
+  for (const range of body.search('cell')) range.insertContentControl('RichText').tag = 'od:xpath=x2&od:Handler=picture&width=4500';
   const result = await pkg.customXmlParts.applyBindings();
-  assert.deepEqual(result, { bound: 1, updated: 1, skipped: 0 });
-  const picture = body.tables[0].getCell(0, 0).body.paragraphs[0].inlinePictures[0];
-  assert.equal(picture.width * EMU_PER_POINT, 1000 * 635);
+  assert.deepEqual(result, { bound: 3, updated: 3, skipped: 0 });
+  const widths = body.tables.map((t) => Math.round(t.getCell(0, 0).body.paragraphs[0].inlinePictures[0].width * EMU_PER_POINT));
+  assert.deepEqual(widths, [(1000 - 216) * 635, (1000 - 300) * 635, (1000 - 100) * 635]);
+});
+
+test('an SVG value replaces a picture (the drawing kept, the part image/svg+xml) but cannot be placed as a new one', async () => {
+  const { pkg, body, data } = await document();
+  const p = body.insertParagraph('', 'End');
+  p.insertInlinePictureFromBase64(SMALL, 'End');
+  const control = p.insertContentControl('Picture');
+  assert.equal(control.xmlMapping.setMapping('/data/svg', '', data), true);
+  const picture = control.pictureContentControl.inlinePicture;
+  assert.equal(picture.imageFormat, 'Svg');
+  assert.equal(picture.imagePart().partName.name, '/word/media/image1.svg');
+  assert.ok(bytesEqual(await picture.imagePart().getBytes(), base64Decode(SVG)));
+  body.insertParagraph('inline', 'End');
+  const inline = body.search('inline')[0].insertContentControl('RichText');
+  inline.tag = 'od:xpath=x5&od:Handler=picture&width=auto';
+  const result = await pkg.customXmlParts.applyBindings();
+  assert.deepEqual(result, { bound: 2, updated: 1, skipped: 1, notes: [result.notes[0]] });
+  assert.match(result.notes[0], /od:xpath=x5: not an image this package reads \(A SVG image has no pixel size/);
+  assert.equal(inline.text, 'inline');
+  const again = await WordprocessingMLPackage.load(await pkg.save());
+  assert.equal((await again.getBody()).contentControls[0].pictureContentControl.inlinePicture.imageFormat, 'Svg');
 });
 
 test('left and noted: an empty node, a node that is not an image, a missing entry, a tag-bound control with no picture to replace', async () => {
@@ -170,7 +195,7 @@ test('left and noted: an empty node, a node that is not an image, a missing entr
   assert.equal(result.updated, 0);
   assert.equal(result.skipped, 4);
   assert.match(result.notes[0], /od:xpath=x3: the node is empty/);
-  assert.match(result.notes[1], /od:xpath=x4: not an image this package reads/);
+  assert.match(result.notes[1], /od:xpath=x4: not an image this package reads \(Unsupported image format/);
   assert.match(result.notes[2], /od:xpath=x9: no such entry/);
   assert.match(result.notes[3], /od:xpath=x1: the control holds no a:blip/);
   for (const [control, label] of [[empty, 'empty'], [text, 'text'], [missing, 'missing'], [noBlip, 'noblip']]) assert.equal(control.text, label);

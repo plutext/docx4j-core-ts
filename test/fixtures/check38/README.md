@@ -13,8 +13,8 @@ image data:
 |---|---|
 | `38a-picture-template.docx` | (a) as authored: the control shows a **red 200 x 100** placeholder; its node holds a **blue 300 x 150** image |
 | `38a-picture-bound.docx` | (a) after the engine's bind: the control shows the blue image inside the placeholder's drawing (2.08 x 1.04 in, the placeholder's size) |
-| `38b-handler-template.docx` | (b) as authored: a floating red placeholder (control 1), two text placeholders (2 and 3) and one in a 3000-twip table cell (4) |
-| `38b-handler-bound.docx` | (b) after `applyBindings()`: 1 shows the blue image floating at the same place and size; 2 a wide green image (800 x 200) scaled to 3.125 in; 3 the same scaled to the text width; 4 the same fitted to the cell |
+| `38b-handler-template.docx` | (b) as authored: a floating red placeholder (control 1), two text placeholders (2 and 3), one in a 3000-twip table cell (4), and an inline red placeholder bound to an SVG node (5) |
+| `38b-handler-bound.docx` | (b) after `applyBindings()`: 1 shows the blue image floating at the same place and size; 2 a wide green image (800 x 200) scaled to 3.125 in; 3 the same scaled to the text width; 4 the same fitted to the cell less its margins (1.93 in); 5's drawing points at an `image/svg+xml` part |
 
 ## What to do, in Word 2010 and in Word 15
 
@@ -34,12 +34,17 @@ What to look for:
   control alone.
 - **38a bound.** Blue on open in both Words; does the save keep the control, its binding and the
   image?
-- **38b template.** Controls 1 to 4 unchanged (the red floating placeholder beside its text; the
-  three placeholder texts). Does either Word complain about the tag, or alter a control on save?
+- **38b template.** Controls 1 to 5 unchanged (the red floating placeholder beside its text; the
+  three placeholder texts; the inline red placeholder). Does either Word complain about the tag, or
+  alter a control on save?
 - **38b bound.** Control 1: the blue image floating where the red one was, the same size (2.08 x
   1.04 in), the text wrapping around it on both sides. Control 2: a green image 3.125 in wide.
-  Control 3: the green image as wide as the text area. Control 4: the green image 2.08 in wide,
-  inside the cell. Do both Words open the file without a message (the floating picture's `wp:anchor`
+  Control 3: the green image as wide as the text area. Control 4: the green image 1.93 in wide,
+  inside the cell with its margins. Control 5: the drawing is the placeholder's (2.08 x 1.04 in),
+  pointing at an SVG part with no PNG fallback: what does each Word show there - the orange circle
+  on grey, a red cross or empty frame, or a message on open? (Word 2016 and later read SVG, through
+  an `asvg:svgBlip` extension beside a PNG `a:blip`; a bare SVG `a:blip` is the engine's form here,
+  unmeasured.) Do both Words open the file without a message (the floating picture's `wp:anchor`
   attributes are written as `true`/`false`, which Word itself writes as `1`/`0`)? Does the save keep
   every picture at its size?
 

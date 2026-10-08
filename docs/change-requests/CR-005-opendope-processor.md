@@ -467,11 +467,13 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    DPI, not the image's: the same departure CR-002 phase C made). It is scaled down, the ratio
    kept, when wider than the text width: the page's writable width (`writableWidthEmu`), or, for a
    control in a table cell, the cell's `w:tcW` when stated in twips (`enclosingCellOf` through the
-   `PARENT` pointers; a percentage or `auto` width falls to the page's); `width=N` narrows that to
-   `N` twips when `N` is smaller. docx4j's `BindingTraverserState` tracks the cell for XHTML images
-   only (bind.xslt's v3.3.0 templates), so the cell cap here is an extension of REQ-062, asked for
-   by the editor; cell margins are not subtracted. A body whose container states no width (a
-   header's) scales to `N` alone, or not at all.
+   `PARENT` pointers; a percentage or `auto` width falls to the page's) **less its left and right
+   margins** - the cell's `w:tcMar`, else the table's `w:tblCellMar`, else Word's 108 twips each
+   side, the `Normal Table` style's, a table style stating others not being read (Jason's decision,
+   2026-10-08, after this section first left the margins in); `width=N` narrows that to `N` twips
+   when `N` is smaller. docx4j's `BindingTraverserState` tracks the cell for XHTML images only
+   (bind.xslt's v3.3.0 templates), so the cell cap here is an extension of REQ-062, asked for by the
+   editor. A body whose container states no width (a header's) scales to `N` alone, or not at all.
 4. **The reverse direction.** `updateFromContentControls` leaves a picture control alone, as
    docx4j's does; a tag-bound control is never written back. What Word writes to the node when a
    person changes the picture in a mapped picture control - the new image's base64, or nothing -
@@ -486,12 +488,24 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    the natural size, `width=4500` a 6000-twip image to 4500 twips in a block-level control that
    keeps its alignment; a 1000-twip cell capping `width=4500`; an empty node, a node that is not an
    image, a missing entry and a tag-bound control with no `a:blip` each left and noted, no image part
-   added; and a picture control whose node is not an image left and noted under its title. The
-   suite: 783.
+   added; a picture control whose node is not an image left and noted under its title; three cells
+   of 1000 twips capping `width=4500` at 784, 700 and 900 twips (the default margins, the table's,
+   the cell's own); and an SVG value replacing a picture, its part `image/svg+xml`, reloaded, while
+   `width=auto` over the same node is left and noted. The suite: 784.
+
+6. **SVG** (Jason's decision, 2026-10-08): `imageInfoOf` tells an SVG document by its root element
+   (after an XML declaration, comments or a doctype) and gives it the `image/svg+xml` content type,
+   the `svg` extension and no pixel size. `addImagePart` therefore accepts one, so a bind that keeps
+   the drawing points the `a:blip` at an SVG part; `addImage` refuses one ("has no pixel size to
+   place it at"), so a `width` bind over an SVG node is left and noted, as `insertInlinePictureFromBase64`
+   refuses it. What Word makes of an `a:blip` that points straight at an SVG part is unmeasured:
+   Word 2016 and later write SVG as an `asvg:svgBlip` extension beside a PNG `a:blip`, and Word 2010
+   and 15 do not read SVG at all; check 38's 38b control 5 asks (`InlinePicture.imageFormat` reports
+   `Svg` for it either way).
 
 **Not done, by design:** the image part a control showed before is left in the package, as docx4j
-leaves it (removing unreferenced media is a job for a save-time sweep, if ever); SVG, EMF, WMF and
-TIFF values are "not an image this package reads", since `imageInfoOf` has no header reader for
-them (they would need one to be sized; a `keep` bind needs only a content type, and could take them
-later); a mapped picture control whose node holds a data URL is read, which Word presumably does
-not do.
+leaves it (removing unreferenced media is a job for a save-time sweep, if ever); EMF, WMF and TIFF
+values are "not an image this package reads", since `imageInfoOf` has no header reader for them
+(a `keep` bind needs only a content type, and could take them as it takes SVG, once asked for); a
+mapped picture control whose node holds a data URL is read, which Word presumably does not do; no
+PNG fallback is made for an SVG, there being no rasteriser here.
