@@ -11,11 +11,12 @@ import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
 import * as model from '@docx4j/core-ts/model';
 import { Word, NotSupportedError, toApiScript, type ShimmedDocument } from '@docx4j/core-ts/office-js';
 import { FontoXPathEngine } from '@docx4j/core-ts/xpath-fonto';
+import { convertHtml, blocksToXml, needsOf, styleLookupOf } from '@docx4j/core-ts/html';
 
 export async function consume(): Promise<string> {
   const pkg: WordprocessingMLPackage = await WordprocessingMLPackage.createPackage();
   const name: PartName = PartName.of('/word/document.xml');
-  void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink];
+  void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink, convertHtml, blocksToXml, needsOf, styleLookupOf];
   pkg.xpathEngine = new FontoXPathEngine();
   // the browser form: the application imports fontoxpath itself and hands it over
   pkg.xpathEngine = new FontoXPathEngine(await import('fontoxpath'));

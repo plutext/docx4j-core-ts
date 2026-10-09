@@ -176,7 +176,7 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
 - ES modules only (`"type": "module"`, `.mts` sources built to `dist/*.mjs` with `.d.mts`). Unlike
   the objects package there are no UMD files here, so `"type": "module"` is fine.
 - Public paths are the `exports` map only (`.`, `./opc`, `./parts`, `./packages`, `./model`,
-  `./office-js`, `./node`, `./xpath-fonto`). Keep them stable; add subpaths deliberately. **`./node` is the only
+  `./office-js`, `./node`, `./xpath-fonto`, `./html`). Keep them stable; add subpaths deliberately. **`./node` is the only
   one that may import a `node:` builtin** (`DirectoryPartStore`); nothing else under `src/` may,
   so a browser or add-in bundle never sees one. There is no `@types/node`: what that module uses
   is declared in `src/node/node-builtins.d.mts`.
