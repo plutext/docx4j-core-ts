@@ -3565,7 +3565,7 @@ each writer intends, and a prefix already listed is not listed again.
 ## 41. Word's built-in styles in `styles.ensure` (2026-10-06)
 
 *Asked by the editor (its ED-005 section 12.66, UPSTREAM-20), for Markdown pasted or opened and for a
-paste from Word.*
+paste from Word. **Implemented 2026-10-09** at Jason's word, for 0.4.0; the note at the end.*
 
 `pkg.styles.ensure(ids)` splices from docx4j's default styles, the nine commented out of them, the
 two comment styles and `PlaceholderText` (sections 22.2, 37 and 40). Word's other built-ins throw
@@ -3597,6 +3597,24 @@ own copy only when the engine throws. The eleven are `Heading5`, `Heading6` and 
 styles, `Quote`, `IntenseQuote` and their `Char` styles, `ListParagraph`, `HTMLCode`,
 `HTMLPreformatted` and `HTMLPreformattedChar`. Once a release carries the fallback, the editor's
 copy goes.
+
+**Implemented 2026-10-09.** `src/parts/wml/knownStyles.mts` carries docx4j's `KnownStyles.xml`
+verbatim (164 styles; docx4j `VERSION_17_3_2`, the file last changed at `752e200eb`), and
+`styles.ensure` looks there last, after the defaults, the nine spliceable styles, the comment
+styles and `PlaceholderText`, closing over `w:basedOn` and `w:link` as before (`Heading5` brings
+`Heading5Char`; `Quote` brings `QuoteChar`). The `w:numPr` the file left on its styles is dropped
+as they are read - not only on `Heading5` and `Heading6`: every heading carries one naming
+`w:numId` 3 (an outline list of the document the file was taken from), `ListBullet` to
+`ListNumber5` name lists 4 to 13, `Subtitle`, `TOCHeading`, `ArticleSection` and two more name
+others, and no numbering definition comes with the file - so a known style never names a list
+the document lacks, and a list style comes through as the indented paragraph style it is
+without its numbering, which a caller gives it through `pkg.numbering`. The document's own
+definition wins as before; an id none of the sources carry still throws, the message naming
+`KnownStyles.xml` among them. `test/known-styles.test.mjs`: the editor's eleven and a sample of
+the rest; `Heading5` spliced with its `Char`, the file's definition less its `w:numPr`, a
+paragraph styled with it saved and reloaded; the HTML code styles and `Quote`; a document's own
+`Quote` kept; `ListBullet` without its numbering; the unknown id refused. Closes the editor's
+UPSTREAM-20 when 0.4.0 is installed.
 
 ## 42. A request from the editor after Word check 39: columns added, in Word's three layout modes (2026-10-09)
 

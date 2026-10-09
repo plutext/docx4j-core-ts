@@ -12,6 +12,7 @@ import { DEFAULT_STYLES_XML } from '../../parts/wml/defaultStyles.mjs';
 import { SPLICEABLE_STYLES_XML } from '../../parts/wml/spliceableStyles.mjs';
 import { commentStyles } from '../../parts/wml/commentStyles.mjs';
 import { placeholderStyle } from '../../parts/wml/placeholderStyle.mjs';
+import { KNOWN_STYLES_XML } from '../../parts/wml/knownStyles.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { StyleDefinitionsPart, MainDocumentPart } from '../../parts/wml/index.mjs';
 
@@ -28,7 +29,9 @@ export interface StylePackageLike {
  * the defaults `createPackage()` writes, and then the nine styles docx4j's own `styles.xml` carries
  * **commented out** - which is why a created document has no `FootnoteText` although the file
  * appears to contain one, and why this facade exists (CR-002 section 22.2) - with Word's two comment
- * styles and its `PlaceholderText` after them.
+ * styles and its `PlaceholderText` after them, and last Word's 164 built-ins as docx4j's
+ * `KnownStyles.xml` carries them (CR-002 section 41: `Heading5`, `Quote`, `HTMLCode`, ...), the
+ * list numbering some of them name dropped, since no numbering definition comes with them.
  */
 let sources: Promise<StyleSources> | undefined;
 
@@ -45,8 +48,15 @@ function styleSources(): Promise<StyleSources> {
     const defaults = await read(DEFAULT_STYLES_XML);
     // and Word's two comment styles, which the comment parts add when they are made, for a caller
     // that makes the comment itself (CR-002 section 37), and Word's PlaceholderText, which a
-    // placeholder run names (CR-002 section 40)
-    return { defaults, all: [...defaults, ...(await read(SPLICEABLE_STYLES_XML)), ...commentStyles(), placeholderStyle()] };
+    // placeholder run names (CR-002 section 40); then the known styles (section 41), each without
+    // the w:numPr the file left on the headings and list styles: it names a w:numId of the document
+    // the file was taken from, which the document being spliced into need not have, and a heading
+    // spliced with it would join a list that is not there (the editor's copy drops it the same way)
+    const known = (await read(KNOWN_STYLES_XML)).map((style) => {
+      if (style.pPr?.numPr) delete style.pPr.numPr;
+      return style;
+    });
+    return { defaults, all: [...defaults, ...(await read(SPLICEABLE_STYLES_XML)), ...commentStyles(), placeholderStyle(), ...known] };
   })());
 }
 
@@ -67,8 +77,10 @@ export class StylesFacade {
    *
    * A style already in the document is left exactly as it is - the document's own definition wins
    * over the default, always, since a consumer must not silently restyle a document it was asked to
-   * add a footnote to. An id the defaults do not carry throws a `Docx4JException` naming it: the
-   * caller asked for a definition nothing here has, and inventing one would be worse than saying so.
+   * add a footnote to. An id none of the sources carry - the defaults, the nine spliceable styles,
+   * the comment and placeholder styles, and Word's built-ins from docx4j's `KnownStyles.xml`
+   * (section 41) - throws a `Docx4JException` naming it: the caller asked for a definition nothing
+   * here has, and inventing one would be worse than saying so.
    * The whole closure is worked out before anything is written, so a call that throws has changed
    * nothing (CR-002 section 31).
    *
@@ -127,7 +139,7 @@ function closureOf(wanted: readonly string[], present: readonly wml.Style[], sou
     seen.add(id);
     const template = source.find((s) => s.styleId === id);
     if (template === undefined) {
-      throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles, the nine it comments out, the two comment styles nor PlaceholderText carry one. Define it yourself on the styles part.`);
+      throw new Docx4JException(`No definition to splice for the style ${id}: neither docx4j's default styles, the nine it comments out, the two comment styles, PlaceholderText nor Word's built-ins in docx4j's KnownStyles.xml carry one. Define it yourself on the styles part.`);
     }
     // what it is based on and linked to must be there too, and before it reads better in the part
     for (const dependency of [template.basedOn?.val, template.link?.val]) {
