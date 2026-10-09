@@ -42,7 +42,7 @@ async function template() {
   body.insertParagraph('text binding placeholder', 'End');
   const textControl = body.search('text binding placeholder')[0].insertContentControl('PlainText');
   const data = pkg.customXmlParts.add(`<data><body>${escape(BLOCK)}</body><inline>${escape(INLINE)}</inline></data>`);
-  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="x1"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="/data/body" w:prefixMappings=""/></xpath><xpath id="x2"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="/data/inline" w:prefixMappings=""/></xpath></xpaths>`);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="x1"><dataBinding storeItemID="${data.id}" xpath="/data/body" prefixMappings=""/></xpath><xpath id="x2"><dataBinding storeItemID="${data.id}" xpath="/data/inline" prefixMappings=""/></xpath></xpaths>`);
   block.tag = 'od:xpath=x1&od:ContentType=application/xhtml+xml';
   block.title = 'XHTML block';
   inline.tag = 'od:xpath=x2&od:ContentType=application/xhtml+xml';

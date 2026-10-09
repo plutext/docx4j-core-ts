@@ -24,7 +24,12 @@ export function tagParamsOf(tag: string): Map<string, string> {
   return out;
 }
 
-/** An XPaths part entry: `<xpath id="x1"><dataBinding w:storeItemID w:xpath w:prefixMappings/></xpath>`. */
+/**
+ * An XPaths part entry: `<xpath id="x1"><dataBinding storeItemID xpath prefixMappings/></xpath>`.
+ * The attributes are unqualified (`xpaths.xsd`: `attributeFormDefault="unqualified"`; docx4j's
+ * `org.opendope.xpaths.Xpaths` and its invoice.docx write them so); a `w:`-qualified form, which
+ * this package's own check 37 and 38 files were made with, is read as well.
+ */
 export interface XPathsEntry {
   id: string;
   storeItemID: string;
@@ -45,7 +50,7 @@ export function xpathsEntriesOf(parts: CustomXmlPartLookup): Map<string, XPathsE
     const id = entry.getAttribute('id');
     const binding = entry.getElementsByTagNameNS(OPENDOPE_XPATHS_NS, 'dataBinding')[0];
     if (!id || !binding) continue;
-    const read = (name: string): string => binding.getAttributeNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', name) ?? binding.getAttribute(`w:${name}`) ?? '';
+    const read = (name: string): string => binding.getAttribute(name) || binding.getAttributeNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', name) || binding.getAttribute(`w:${name}`) || '';
     out.set(id, { id, storeItemID: read('storeItemID'), xpath: read('xpath'), prefixMappings: read('prefixMappings') });
   }
   return out;

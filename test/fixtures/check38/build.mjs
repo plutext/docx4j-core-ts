@@ -71,7 +71,7 @@ async function handlerControls() {
   const body = await pkg.getBody();
   const main = pkg.getMainDocumentPart();
   const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide><svg>${SVG}</svg></data>`);
-  const entry = (id, xpath) => `<xpath id="${id}"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="${xpath}" w:prefixMappings=""/></xpath>`;
+  const entry = (id, xpath) => `<xpath id="${id}"><dataBinding storeItemID="${data.id}" xpath="${xpath}" prefixMappings=""/></xpath>`;
   pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}${entry('x3', '/data/svg')}</xpaths>`);
   await pkg.customXmlParts.load();
   body.insertParagraph('Check 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them).', 'End');

@@ -33,7 +33,7 @@ async function document() {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = await pkg.getBody();
   const data = pkg.customXmlParts.add(`<data><logo>${BLUE}</logo><wide>${WIDE}</wide><empty></empty><text>not an image</text><svg>${SVG}</svg></data>`);
-  const entry = (id, xpath) => `<xpath id="${id}"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="${xpath}" w:prefixMappings=""/></xpath>`;
+  const entry = (id, xpath) => `<xpath id="${id}"><dataBinding storeItemID="${data.id}" xpath="${xpath}" prefixMappings=""/></xpath>`;
   pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths">${entry('x1', '/data/logo')}${entry('x2', '/data/wide')}${entry('x3', '/data/empty')}${entry('x4', '/data/text')}${entry('x5', '/data/svg')}</xpaths>`);
   await pkg.customXmlParts.load();
   return { pkg, body, data };

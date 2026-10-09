@@ -389,7 +389,14 @@ As built (`src/model/customxml/xhtml.mts`, `opendope.mts`; `test/html-binding.te
    and an `od:xpath`; its `xmlMapping.isMapped` is false, so the text pass never touches it.
    `opendope.mts` reads the tag's parameters (`tagParamsOf`) and the XPaths part's entries
    (`xpathsEntriesOf`, the first custom XML part in `http://opendope.org/xpaths`); phase B will
-   read the rest of the parts. The result's new `notes` say what was left and why (no entry, no
+   read the rest of the parts. *Corrected 2026-10-09 (the editor's finding, its ED-005 section
+   12.87): the entry's `dataBinding` attributes are **unqualified** - `xpaths.xsd` says
+   `attributeFormDefault="unqualified"`, and docx4j's `invoice.docx` writes
+   `<dataBinding storeItemID="{...}" xpath="/invoice[1]/customer[1]/name[1]"/>` - where the reader
+   had taken only a `w:`-qualified form, the one this package's check 37 and 38 files were made
+   with, so a docx4j-made or editor-made template's entries went unread. The reader now takes the
+   unqualified attributes first and the qualified ones after; the tests and the check builders
+   write the schema's form, the check files already made stay as they are and are read.* The result's new `notes` say what was left and why (no entry, no
    part, nothing selected, no parser) and what was dropped (the converter's counts; a run-level
    control's blocks after the first), one line each.
 2. **The document first:** `styles.ensure` for the built-ins the markup names (a failure counted,

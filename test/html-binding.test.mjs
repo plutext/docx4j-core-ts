@@ -18,10 +18,22 @@ async function template(markup, { run = false, entry = 'x1' } = {}) {
   // A run-level control is made over a text range (a paragraph's own insertContentControl wraps the paragraph, as Office JS's does).
   const control = run ? body.search('placeholder')[0].insertContentControl('RichText') : body.insertContentControl('RichText');
   const data = pkg.customXmlParts.add(`<data><body>${escape(markup)}</body><other>x</other></data>`);
-  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="x1"><dataBinding xmlns:w="${W}" w:storeItemID="${data.id}" w:xpath="/data/body" w:prefixMappings=""/></xpath></xpaths>`);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="x1"><dataBinding storeItemID="${data.id}" xpath="/data/body" prefixMappings=""/></xpath></xpaths>`);
   control.tag = `od:xpath=${entry}&od:ContentType=application/xhtml+xml`;
   return { pkg, body, control };
 }
+
+test('the XPaths part\'s binding attributes are the schema\'s unqualified ones; the w:-qualified form of the first check files is read too', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const unqualified = pkg.customXmlParts.add('<xpaths xmlns="http://opendope.org/xpaths"><xpath id="u"><dataBinding storeItemID="{11111111-1111-1111-1111-111111111111}" xpath="/a/b" prefixMappings="xmlns:ns0=\'urn:x\'"/></xpath></xpaths>');
+  await pkg.customXmlParts.load();
+  const entries = xpathsEntriesOf(pkg.customXmlParts);
+  assert.deepEqual(entries.get('u'), { id: 'u', storeItemID: '{11111111-1111-1111-1111-111111111111}', xpath: '/a/b', prefixMappings: "xmlns:ns0='urn:x'" });
+  pkg.customXmlParts.removePart(unqualified);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="q"><dataBinding xmlns:w="${W}" w:storeItemID="{22222222-2222-2222-2222-222222222222}" w:xpath="/c/d" w:prefixMappings=""/></xpath></xpaths>`);
+  await pkg.customXmlParts.load();
+  assert.deepEqual(xpathsEntriesOf(pkg.customXmlParts).get('q'), { id: 'q', storeItemID: '{22222222-2222-2222-2222-222222222222}', xpath: '/c/d', prefixMappings: '' });
+});
 
 test('the tag and the XPaths part are read', async () => {
   assert.deepEqual([...tagParamsOf('od:xpath=x1&od:ContentType=application/xhtml+xml')], [['od:xpath', 'x1'], ['od:ContentType', 'application/xhtml+xml']]);
