@@ -278,6 +278,11 @@ export class Body {
     const rows = Array.from({ length: rowCount }, (_, r) => Array.from({ length: columnCount }, (_, c) => values?.[r]?.[c] ?? ''));
     const width = writableWidthTwips(this.container as { sectPr?: wml.SectPr });
     const element = tableOf(rows, width ? { width } : {}) as Element<wml.Tbl>;
+    // Word's own default (Insert Table, fixed column width Auto; the editor's check 42, Word 365): an
+    // automatic table width, no w:tblLayout, the cells in twips sharing the text width - the grid and
+    // cells the builder wrote, the table's width made automatic (CR-002 section 42.5 item 7).
+    const tblPr = (element.value.tblPr ??= {});
+    tblPr.tblW = { w: 0, type: 'auto' };
     this.insertElement(element as Element, location);
     return new Table(element, this.content, this);
   }

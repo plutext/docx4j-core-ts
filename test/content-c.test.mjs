@@ -30,6 +30,11 @@ test('table: insertTable, values, rows and cells, addRows, deleteRows, header ro
   assert.equal(table.rows[0].cellCount, 3);
   // the grid is the section's text width (A4 less 2.54 cm margins)
   assert.deepEqual(table.columnWidths().reduce((a, b) => a + b, 0), 11907 - 1440 - 1440);
+  // Word's default form (the editor's check 42, Word 365): an automatic table width, no layout element, cells in twips
+  assert.deepEqual(table.tbl.tblPr.tblW, { w: 0, type: 'auto' });
+  assert.equal(table.tbl.tblPr.tblLayout, undefined);
+  assert.equal(table.layoutMode, 'contents');
+  assert.deepEqual(table.rows[0].cells.map((c) => c.tc.tcPr.tcW.type), ['dxa', 'dxa', 'dxa']);
 
   const cell = table.getCell(1, 1);
   assert.ok(cell instanceof TableCell);

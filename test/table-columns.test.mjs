@@ -203,6 +203,7 @@ test('tracked: a column added is the table change Office JS records (check 40c):
     const body = pkg.body;
     const table = body.insertTable(2, 2, 'End', [['a', 'b'], ['c', 'd']]);
     table.tbl.tblPr.tblLayout = { type: 'fixed' };
+    table.tbl.tblPr.tblW = { w: 9027, type: 'dxa' };
     await body.insertXml('<w:p><w:r><w:t>after</w:t></w:r></w:p>', 'End');
     pkg.changeTrackingMode = 'TrackAll';
     return { pkg, body, table };

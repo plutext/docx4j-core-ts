@@ -3753,6 +3753,12 @@ by what Office JS does (to measure).
    records and keeps the column; rejecting puts the recorded properties and cells back over the
    recorded grid, which `collapseGrid` folds to one column per cell again, and leaves the column,
    empty - Word's Reject All left it the same way (section 29's measurement).
+7. **`Body.insertTable` writes Word's default form** (2026-10-09, before the release, from the
+   editor's check 42 in Word 365, Insert Table with its defaults: `w:tblW w:w="0" w:type="auto"`,
+   no `w:tblLayout`, the cells in twips sharing the text width, `Table Grid` as the style): the
+   builder's grid and cells, and the table's width made automatic where it had been the text
+   width in twips. No style is set (what Office JS's `insertTable` gives a table is unmeasured;
+   `Table.style` sets one). `layoutMode` reads it as AutoFit to contents, as Word's dialog does.
 6. **Held by:** the three insertions over check 39's probe, the fixed table equal to the save in
    `w:tblW`, grid and every `w:tcW`, the window table in `w:tblW` and every `w:tcW` with a grid of
    three summing to 9,026, the contents table in `w:tblW` and every `w:tcW`; adds at the start and
