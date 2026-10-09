@@ -2774,6 +2774,16 @@ release at the end; the move fix (section 29) is out. What landed, in order:
 | 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
 | - | XPath over the tree | CR-006 | `7368f8c` | CR-006 section 5's docx4j oracle followed after the review: 46 XPath goldens, zero differences (CR-006 section 9.1) |
 
+**0.4.0 was released on 2026-10-09** (tag `0.4.0` at `1c76afa`, published by `push-to-npm.yml`
+from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag,
+and a clean consumer install smoke-tested) with sections 41 and 42 (Word's built-in styles in
+`styles.ensure`; columns in Word's three layout modes, checks 39 to 41), `Body.insertTable` in
+Word's default form, CR-005 sections 8 and 9 (the `html` module and the XHTML bind step; picture
+bindings, checks 37 and 38), the XPaths reader taking the schema's unqualified attributes, and
+parity on docx4j `VERSION_17_3_2`. The editor was asked before the version was fixed (no API
+changes wanted) and ran its four verifications and its whole suite against the tag before the
+publish; `Body.insertTable`'s form was the one divergence it found, fixed before the tag.
+
 **0.2.2 followed the same day** with section 29 (a move accepted or rejected whole, from Word's Review
 tab by hand, since Office JS cannot list a move), section 25's case F (Word's rule for a link over
 part of another), section 32 item 1 (the grapheme filter) and section 34 (`noteAnnotationIds`, and
