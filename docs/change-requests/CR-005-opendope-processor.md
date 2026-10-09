@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, unreleased; Word checks 37 and 38 run 2026-10-08, both holding
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)

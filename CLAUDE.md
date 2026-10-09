@@ -21,11 +21,13 @@ search, `replaceText`, `insertOoxml`, addresses, `outline`; the `Word` shim on `
 implemented; CR-002 phase A is the objects package's `builders/wml`. CR-007 (table conditions in
 the `PropertyResolver`, the port of docx4j CR-030: `TableContext`, `CellContext`, the overloads
 taking one, 62 parity goldens; and the content API's effective reads passing `Paragraph.cellContext`)
-is implemented, released in 0.3.2.
+is implemented, released in 0.3.2. CR-002 section 41 (`styles.ensure` falling back to Word's built-ins
+from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three table layout
+modes, held to Word 365's saves, checks 39 to 41) are implemented, released in 0.4.0 (2026-10-09).
 So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine) and its sections 8 and 9 (escaped
-XHTML through the `html` module, and picture bindings; implemented 2026-10-08, unreleased), and CR-006 (`selectObjects` and
+XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0), and CR-006 (`selectObjects` and
 `Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
