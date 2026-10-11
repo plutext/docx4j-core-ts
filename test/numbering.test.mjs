@@ -4,8 +4,8 @@
 // documents.  This file is the unit net under it: the formatter table, and the docx4j tests
 // whose documents or rules the parity fixtures do not reach - `LabelFormatterTest`,
 // `NumberingRestartTest` (probe P8), `NumberingStoriesTest` (P7), `StartOverrideTest`,
-// `IsLglTest`, `ListNumberIndTest`, `StyleLinkedLevelTest` and `DefaultStyleNumberedTest`,
-// each named where it is ported.
+// `IsLglTest`, `ListNumberIndTest`, `StyleLinkedLevelTest`, `DefaultStyleNumberedTest` and
+// `LevelWithoutIlvlTest`, each named where it is ported.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -715,6 +715,80 @@ test('ParityAccessorsTest: a dangling numId and a missing level from a style nam
   const tooDeep = Emulator.numRefFor(styled, await pPrOf('<w:pPr><w:pStyle w:val="TooDeep"/></w:pPr>'));
   assert.equal(tooDeep.notNumbered, true);
   assert.equal(tooDeep.reason, "no w:lvl 3 in w:num 7 (from style 'TooDeep')");
+});
+
+// ---------------------------------------------------------------- a w:lvl without w:ilvl
+
+/** The levels are told apart by their labels: "A1.", "Ba)", "Ci]", and "DI>" for a second level 0. */
+function lvl(ilvl, format) {
+  const numFmt = ['decimal', 'lowerLetter', 'lowerRoman', 'upperRoman'];
+  const lvlText = ['A%1.', 'B%2)', 'C%3]', 'D%1&gt;'];
+  return `<w:lvl${ilvl === undefined ? '' : ` w:ilvl="${ilvl}"`}>`
+    + `<w:start w:val="1"/><w:numFmt w:val="${numFmt[format]}"/>`
+    + `<w:lvlText w:val="${lvlText[format]}"/><w:lvlJc w:val="left"/>`
+    + `<w:pPr><w:ind w:left="${720 * (format % 3 + 1)}" w:hanging="360"/></w:pPr></w:lvl>`;
+}
+
+/** The labels of paragraphs at w:ilvl 0, 1, 2, 1, 0 in one w:num over these levels; "" for none. */
+async function labelsOver(...lvls) {
+  const pkg = await packageWith(
+    `<w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="multilevel"/>${lvls.join('')}</w:abstractNum>`
+    + '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>');
+  return [0, 1, 2, 1, 0].map((ilvl) => Emulator.getNumber(pkg, undefined, '1', String(ilvl))?.numString ?? '');
+}
+
+/**
+ * docx4j `LevelWithoutIlvlTest` (issue 593, f6b87cd2f on VERSION_17_3_3), case for case: a
+ * `w:lvl` without `w:ilvl` (required by the schema, but some producer omits it) is read as
+ * Word reads it, level 0 with none of its content, so paragraphs at level 0 get no number; a
+ * level with no definition gets none either; a later definition of a level replaces an earlier
+ * one, empty or not.  The labels are Word 365's, probes 593-a to 593-f (2026-10-11).
+ */
+test('LevelWithoutIlvlTest: Word reads a w:lvl without w:ilvl as an empty level 0', async () => {
+  const warnings = [];
+  setLogger({ warn: (m) => warnings.push(m) });
+  try {
+    // noLevelHasIlvl
+    assert.deepEqual(await labelsOver(lvl(undefined, 0), lvl(undefined, 1), lvl(undefined, 2)),
+      ['', '', '', '', '']);
+    assert.ok(warnings.includes('w:lvl without w:ilvl: read as an empty level 0, as Word does'), warnings.join('\n'));
+
+    // oneLevelLacksIlvl: the second w:lvl, read as level 0, replaces the first
+    assert.deepEqual(await labelsOver(lvl('0', 0), lvl(undefined, 1), lvl('2', 2)),
+      ['', '', 'Ci]', '', '']);
+
+    // laterLevelZeroReplacesTheEmptyOne
+    assert.deepEqual(await labelsOver(lvl(undefined, 1), lvl('0', 0), lvl('2', 2)),
+      ['A1.', '', 'Ci]', '', 'A2.']);
+  } finally {
+    setLogger();
+  }
+
+  // laterDefinitionOfALevelWins
+  assert.deepEqual(await labelsOver(lvl('0', 0), lvl('0', 3), lvl('1', 1), lvl('2', 2)),
+    ['DI>', 'Ba)', 'Ci]', 'Bb)', 'DII>']);
+
+  // levelsKeyedByIlvlNotPosition
+  const word = ['A1.', 'Ba)', 'Ci]', 'Bb)', 'A2.'];
+  assert.deepEqual(await labelsOver(lvl('0', 0), lvl('1', 1), lvl('2', 2)), word);
+  assert.deepEqual(await labelsOver(lvl('2', 2), lvl('1', 1), lvl('0', 0)), word);
+});
+
+test('LevelWithoutIlvlTest: the empty level 0 has no indent, and the document is left as it is', async () => {
+  setLogger({ warn() { /* the substitution warns; the test above asserts it */ } });
+  try {
+    const pkg = await packageWith(
+      `<w:abstractNum w:abstractNumId="0">${lvl('0', 0)}${lvl(undefined, 1)}</w:abstractNum>`
+      + '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>');
+    // the stand-in replaces the explicit level 0 and is read instead of the w:lvl: no w:ind
+    // (Word's re-save writes level 0 with none)
+    assert.equal(pkg.numberingDefinitionsPart.getIndOf('1', '0'), undefined);
+    // documentLeftAsItIs
+    const numbering = await pkg.numberingDefinitionsPart.getContents();
+    assert.equal(numbering.abstractNum[0].lvl[1].ilvl, undefined);
+  } finally {
+    setLogger();
+  }
 });
 
 // ---------------------------------------------------------------- the round trip

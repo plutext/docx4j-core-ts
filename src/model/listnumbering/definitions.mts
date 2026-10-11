@@ -12,6 +12,7 @@
 // Built from the tree the part holds - which the `PropertyResolver` reads with
 // `readContents()`, so a document whose labels are only *read* still saves byte for byte.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { log } from '../properties/log.mjs';
 import type { NumberingIndents } from '../properties/styleUtil.mjs';
 import type { Counter, NumberingState } from './state.mjs';
@@ -278,6 +279,17 @@ export class LevelDefinition {
 }
 
 /**
+ * What Word makes of a `w:lvl` without `w:ilvl`: level 0, with no number. docx4j
+ * `ListLevel.emptyLevelZero`; the document's own `w:lvl` is left as it is.
+ */
+function emptyLevelZero(): wml.Lvl {
+  const lvl = f.createLvl({ ilvl: 0 });
+  lvl.numFmt = f.createNumFmt({ val: 'none' });
+  lvl.lvlText = f.createLvlLvlText({ val: '' });
+  return lvl;
+}
+
+/**
  * One `w:abstractNum`: its levels, and - where it carries `w:numStyleLink` - the numbering style
  * whose definition it takes them from. docx4j `AbstractListNumberingDefinition`.
  */
@@ -308,6 +320,13 @@ export class AbstractListDefinition {
 
   /** Adds (or replaces) the level read from this `w:lvl`. docx4j `readLevel`. */
   readLevel(lvl: wml.Lvl): void {
+    if ((lvl.ilvl as number | undefined) === undefined) {
+      // w:ilvl is required.  Word reads a w:lvl without it as level 0 and keeps none of its
+      // content - no number, no indent - and a later level 0 replaces it as usual (docx4j
+      // ListLevel, issue 593 at f6b87cd2f: probes 593-a and 593-b, Word 365, 2026-10-11)
+      log.warn('w:lvl without w:ilvl: read as an empty level 0, as Word does');
+      lvl = emptyLevelZero();
+    }
     const level = new LevelDefinition(String(lvl.ilvl), lvl);
     // the REFERENCING abstract list: a w:numStyleLink definition counts on its own (P2)
     level.abstractNumId = this.id;
