@@ -309,7 +309,7 @@ test('toggles: through the resolver, at the paragraph-style to character-style b
 /**
  * docx4j's `PropertyResolverOrderTest` styles part: docDefaults Calibri 11pt lang en-US;
  * Normal (default) 14pt Times New Roman; H based on Normal, Arial 20pt; character styles S
- * (w:b) and DefaultParagraphFont.
+ * (w:b), Small (Trebuchet MS 9pt, the one a paragraph mark names) and DefaultParagraphFont.
  */
 const ORDER_STYLES = `
   <w:docDefaults>
@@ -322,7 +322,9 @@ const ORDER_STYLES = `
   <w:style w:type="paragraph" w:styleId="H"><w:name w:val="H"/><w:basedOn w:val="Normal"/>
     <w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="40"/></w:rPr></w:style>
   <w:style w:type="character" w:styleId="S"><w:name w:val="S"/><w:basedOn w:val="DefaultParagraphFont"/>
-    <w:rPr><w:b w:val="true"/></w:rPr></w:style>`;
+    <w:rPr><w:b w:val="true"/></w:rPr></w:style>
+  <w:style w:type="character" w:styleId="Small"><w:name w:val="Small"/><w:basedOn w:val="DefaultParagraphFont"/>
+    <w:rPr><w:rFonts w:ascii="Trebuchet MS" w:hAnsi="Trebuchet MS"/><w:sz w:val="18"/></w:rPr></w:style>`;
 
 async function orderResolver() {
   return PropertyResolver.fromSource({ styles: await unmarshalStyles(ORDER_STYLES) });
@@ -410,6 +412,30 @@ test('order: the paragraph mark formats the mark, not the runs', async () => {
 
   assert.equal(sz(resolver.getEffectiveParagraphMarkRPr({})), 28, 'a mark with no rPr is the run baseline');
   assert.equal(sz(resolver.getEffectiveParagraphMarkRPr(undefined)), 28);
+});
+
+/**
+ * docx4j `theParagraphMarksCharacterStyleIsResolvedThenItsDirectFormatting` (fb2a764f7, 17.3.2):
+ * the mark's `w:rStyle` is a level over the paragraph style, as a run's is, then the mark's
+ * direct formatting.  docx4j's corpus 9698: cells ending in empty paragraphs whose mark names a
+ * 9pt character style, which Word lays at 9pt.
+ */
+test('order: the paragraph mark\'s character style is resolved, then its direct formatting', async () => {
+  const resolver = await orderResolver();
+  const marked = await pPrOf('<w:rPr><w:rStyle w:val="Small"/><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr>');
+  const mark = resolver.getEffectiveParagraphMarkRPr(marked);
+  assert.equal(sz(mark), 18, 'the mark\'s character style gives its size (9698: an empty paragraph\'s line)');
+  assert.equal(mark.rFonts.ascii, 'Times New Roman', 'the mark\'s direct font wins over the style\'s');
+  assert.equal(mark.rStyle.val, 'Small', 'the w:rStyle is still carried, as docx4j copies it');
+  assert.equal(sz(resolver.getEffectiveParagraphMarkRPr(marked, undefined)), 18, 'the cell-context overload too');
+
+  const sized = await pPrOf('<w:rPr><w:rStyle w:val="Small"/><w:sz w:val="40"/></w:rPr>');
+  assert.equal(sz(resolver.getEffectiveParagraphMarkRPr(sized)), 40, 'direct size over the style\'s');
+
+  const missing = await pPrOf('<w:rPr><w:rStyle w:val="Missing"/></w:rPr>');
+  assert.equal(sz(resolver.getEffectiveParagraphMarkRPr(missing)), 28, 'a missing character style is ignored');
+
+  assert.equal(sz(resolver.getEffectiveRPr(undefined, marked)), 28, 'the runs are not touched by the mark\'s style');
 });
 
 test('order: the no-paragraph overload uses the default paragraph style', async () => {

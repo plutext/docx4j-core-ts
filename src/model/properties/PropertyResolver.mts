@@ -602,20 +602,39 @@ export class PropertyResolver {
 
   /**
    * The run properties of the paragraph mark: document defaults, the paragraph style's run
-   * properties, then the `w:pPr`'s own `w:rPr`. What sizes an empty paragraph, and what a list
-   * label starts from.
+   * properties, the mark's character style, then the `w:pPr`'s own `w:rPr`. What sizes an empty
+   * paragraph, and what a list label starts from.
    */
   getEffectiveParagraphMarkRPr(pPr: wml.PPr | undefined, cellContext?: CellContext | undefined): wml.RPr {
     if (cellContext !== undefined && cellContext.formatsText) {
       // in a table cell: the table level beneath the paragraph style's (CR-007)
       const inTable = deepCopy(this.composedRPr(this.paragraphStyleOf(pPr), cellContext));
-      if (pPr?.rPr !== undefined) applyRPr<wml.RPr>(pPr.rPr, inTable);
+      if (pPr?.rPr !== undefined) this.applyMarkRPr(pPr.rPr, inTable);
       return inTable;
     }
     const effective = deepCopy(this.documentDefaultRPr);
     applyRPr<wml.RPr>(this.getChainRPr(this.paragraphStyleOf(pPr)), effective);
-    if (pPr?.rPr !== undefined) applyRPr<wml.RPr>(pPr.rPr, effective);
+    if (pPr?.rPr !== undefined) this.applyMarkRPr(pPr.rPr, effective);
     return effective;
+  }
+
+  /**
+   * The paragraph mark's character style (`w:pPr/w:rPr/w:rStyle`) as a level over what is
+   * beneath it, then the mark's direct formatting: the order {@link applyCharacterStyleAndDirect}
+   * gives a run. docx4j `applyMarkRPr`, since 17.3.2 (fb2a764f7: until then the mark's
+   * `w:rStyle` was copied as an attribute and never resolved, so an empty paragraph whose mark
+   * names a 9pt character style was sized at its paragraph style's 12pt).
+   */
+  private applyMarkRPr(mark: wml.ParaRPr, effective: wml.RPr): void {
+    const runStyleId = mark.rStyle?.val;
+    if (runStyleId !== undefined) {
+      if (this.getLiveStyle(runStyleId) === undefined) {
+        this.logMissing(runStyleId);
+      } else {
+        applyStyleLevel(this.getChainRPr(runStyleId), effective, this.documentDefaultRPr);
+      }
+    }
+    applyRPr<wml.RPr>(mark, effective);
   }
 
   /** Whether the run states any formatting of its own (docx4j's deprecated `hasDirectRPrFormatting`). */

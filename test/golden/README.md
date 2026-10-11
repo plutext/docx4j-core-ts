@@ -205,3 +205,14 @@ condition sets each). Zero differences on all 60. The counts table above covers 
 means no banding; jar SHA-256 `0bd93ee753a6c426…`), with docx4j's probes T9 and T10
 (`tables-banding-merged-row`, `tables-banding-band-size`) added: 62 goldens. Twenty of the 60 moved,
 in `rowBandSize`, `colBandSize` and `conditions` only. CR-007 section 7.
+
+## docx4j 17.3.2 (2026-10-12)
+
+All 62 goldens and the 62 under `xpath/` were regenerated from the docx4j 17.3.2 release on Maven
+Central (`docx4j-core-17.3.2.jar`, SHA-256 `b484633603f75151…`, tag `docx4j-17.3.2` at
+`856afc5dace914815b6092fd549bc28e5ba7014d`, a descendant of `0349796f9`), harness version 4,
+with a scratch Maven repository. Header fields aside, two answers moved, both a paragraph mark's
+`paragraphMarkRPr` where the mark names a character style (`NumberingIndents`, a `PageNumber`
+mark at 12pt where it was 8pt; `fonts-modesOfApplication`, a `SubtleReference` mark): docx4j
+`fb2a764f7` resolves the mark's `w:rStyle` as a level, which this package now does too. Every
+other answer, and every XPath hit, is unchanged. CR-001 section 22.

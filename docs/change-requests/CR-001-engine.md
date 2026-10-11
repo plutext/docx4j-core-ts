@@ -2493,3 +2493,37 @@ of loss it cannot see:
 
 An inventory of unmarshal losses is not an inventory of losses, and a test built on one should say
 which it is.
+
+## 22. docx4j 17.3.2, the parity branch moved to `VERSION_17_3_3`, and two docx4j fixes ported (2026-10-12)
+
+docx4j released 17.3.2 on 2026-10-09 (Maven Central; tag `docx4j-17.3.2` at `856afc5da`) and moved
+development to `VERSION_17_3_3` (`<revision>` `17.3.3-SNAPSHOT`); `VERSION_17_3_2` is frozen at the
+release. `.github/workflows/parity.yml` now checks out `VERSION_17_3_3`, and `test/java/pom.xml`'s
+default is the 17.3.2 release, as section 20 set the pattern.
+
+**The goldens moved this time, and the branch move did not cause it.** The workflow had last run
+on 2026-10-05, against `VERSION_17_3_1`; it was pointed at `VERSION_17_3_2` on 2026-10-08 and had
+not run since, while that branch took docx4j's commits up to the release. Running the harness
+against the 17.3.2 release jars (scratch Maven repository; 62 goldens and 62 XPath goldens) and
+comparing as the workflow does, header fields ignored, two goldens differ, in one field each: a
+paragraph mark's `paragraphMarkRPr` where the mark names a character style. The next weekly run
+would have opened a drift pull request on either branch.
+
+Over `0349796f9..origin/VERSION_17_3_3`, every commit touching a class this package ports
+(`model/PropertyResolver.java`, `model/listnumbering/`, `model/styles/`, `model/table/`, `fonts/`,
+`openpackaging/`, `jaxb/`, `XmlUtils`) was read:
+
+| docx4j | what | here |
+|---|---|---|
+| `fb2a764f7` (17.3.2) | `getEffectiveParagraphMarkRPr`, both overloads: the mark's `w:rStyle` is resolved as a level over the paragraph style, as a run's is, then the mark's direct formatting; until then it was copied as an attribute and never read (corpus 9698: an empty cell paragraph at its mark's 9pt, not 12pt) | **ported**: `PropertyResolver.applyMarkRPr`; docx4j's `PropertyResolverOrderTest` case in `test/properties.test.mjs`; the two goldens that moved |
+| `f6b87cd2f` (17.3.3, issue 593) | a `w:lvl` without `w:ilvl` (required by the schema) is read as Word reads it, an empty level 0 (`numFmt` none, empty `lvlText`, nothing else), so a later level 0 replaces it and paragraphs at level 0 get no number; measured in Word 365, probes 593-a to 593-f | **ported**: `AbstractListDefinition.readLevel` substitutes the empty level and warns, the document's `w:lvl` left as it is. Here such a level did not throw, as docx4j's did, but was keyed `"undefined"`, so the level stayed unread and an explicit level 0 before it was kept. docx4j's `LevelWithoutIlvlTest`, all six cases, in `test/numbering.test.mjs`. No fixture reaches it |
+| `900b6a212` (17.3.2) | below mode 15, [MS-DOCX]'s size exception applies wherever the table style formats text at all (`CellContext.styleFormatsText`: its own `w:pPr`/`w:rPr` or any conditional format, applicable or not), giving the table level's size, the docDefaults' where the style states none and the docDefaults do | **not ported yet**: a CR-007 follow-up (docx4j CR-030 section 5.3). No golden reaches it, so parity passes without it, but a document that does would get a different answer here |
+| `cbe42ac9f` | `TableStyleConditions.colBandSize`: comment only (probe T11 confirms the rule) | nothing to port |
+| `12b3530ca`, `19ec762ee` (CR-033) | the `PartProvider` service for loading parts | not ported: a Java service-loader hook |
+| `808812c73`, `8b4817174`, `d390c1a4e`, `3e05db3af`, `484acdc22`, `d2a9690c1`, `a356572b0`, `2a7d957a0`, `5ec4e3ff9` | PDF output's font faces: italic shear, the `+nobold` alias, `ccmp`, the symbol faces, glyph fallback | not ported: physical-face and layout choices downstream of the document font, which is what `RunFontSelector` answers here and what the goldens record (unchanged) |
+| `a00b4c936`, `6c1f8fad2` | `McSelection` for PDF text-box placement; image streams closed after a TOC update | not ported: PDF and I/O |
+
+The goldens were regenerated from the release and taken in full, so every header records
+`856afc5da`, the 17.3.2 jar and its hash (`test/golden/README.md`). Parity and XPath parity are zero
+differences on all 124. Each port was checked both ways: its tests (and, for `fb2a764f7`, the two
+goldens) fail on the code before it.
