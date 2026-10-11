@@ -30,7 +30,9 @@
 // undefined outside a table, and in a text box, note or comment reached from a cell.  Which
 // table style applies is decided by its *name*, as Word decides it, and [MS-DOCX]'s
 // `overrideTableStyleFontSizeAndJustification` exception applies below compatibility mode 15
-// only, where that setting is not on.  docx4j's synthetic style ids (`styleIdFor`,
+// only, where that setting is not on; its size half wherever the table style formats text at
+// all (`CellContext.styleFormatsText`), giving the table level's size, the document defaults'
+// where the style states none and they state one.  docx4j's synthetic style ids (`styleIdFor`,
 // `syntheticStyle`, `sourceStyleOf`) serve its HTML and FO XSLT pathways and are not ported.
 //
 // **Live objects.** What the style overloads and `getEffectivePPr(pPr)` return is cached and
@@ -176,6 +178,12 @@ export class PropertyResolver {
   private readonly composedRPrCache = new CompositionCache<wml.RPr>();
   /** See {@link appliesTableStyleSizeJcException}; read once per `refresh()`. */
   private tableStyleSizeJcException = true;
+  /**
+   * Whether the document's own `w:docDefaults` state a size, rather than the 10pt the resolver
+   * makes explicit where they do not: the size exception takes the document defaults' size only
+   * where they state one. Read once per `refresh()`.
+   */
+  private docDefaultsStateSize = false;
 
   /** Missing styles are logged once each per resolver. */
   private readonly missingLogged = new Set<string>();
@@ -275,6 +283,7 @@ export class PropertyResolver {
       ? { TYPE_NAME: 'org_docx4j_wml.PPr' } : deepCopy(docDefaults.pPrDefault.pPr);
     this.documentDefaultRPr = docDefaults?.rPrDefault?.rPr === undefined
       ? { TYPE_NAME: 'org_docx4j_wml.RPr' } : deepCopy(docDefaults.rPrDefault.rPr);
+    this.docDefaultsStateSize = this.documentDefaultRPr.sz !== undefined;
     if (this.documentDefaultRPr.sz === undefined) {
       // Word's default made explicit: 10pt where nothing states a size (measured, CR-015 probe
       // styles-no-size-anywhere: identical to an explicit 10pt run)
@@ -502,7 +511,7 @@ export class PropertyResolver {
    */
   getEffectivePPr(pPr: wml.PPr | undefined, cellContext: CellContext | undefined): wml.PPr;
   getEffectivePPr(arg: wml.PPr | string | undefined, cellContext?: CellContext | undefined): wml.PPr {
-    if (cellContext !== undefined && cellContext.formatsText && typeof arg !== 'string') {
+    if (this.composes(cellContext) && typeof arg !== 'string') {
       const composed = this.composedPPr(this.paragraphStyleOf(arg), cellContext);
       if (!hasDirectFormattingPPr(arg)) return composed;
       const effective = deepCopy(composed);
@@ -556,7 +565,7 @@ export class PropertyResolver {
   getEffectiveRPr(arg: wml.RPr | string | undefined, pPr?: wml.PPr | undefined,
     cellContext?: CellContext | undefined): wml.RPr | undefined {
     if (typeof arg === 'string') return this.effectiveRPrOfStyle(arg);
-    if (cellContext !== undefined && cellContext.formatsText) {
+    if (this.composes(cellContext)) {
       const inTable = deepCopy(this.composedRPr(this.paragraphStyleOf(pPr), cellContext));
       this.applyCharacterStyleAndDirect(arg, inTable);
       return inTable;
@@ -606,7 +615,7 @@ export class PropertyResolver {
    * paragraph, and what a list label starts from.
    */
   getEffectiveParagraphMarkRPr(pPr: wml.PPr | undefined, cellContext?: CellContext | undefined): wml.RPr {
-    if (cellContext !== undefined && cellContext.formatsText) {
+    if (this.composes(cellContext)) {
       // in a table cell: the table level beneath the paragraph style's (CR-007)
       const inTable = deepCopy(this.composedRPr(this.paragraphStyleOf(pPr), cellContext));
       if (pPr?.rPr !== undefined) this.applyMarkRPr(pPr.rPr, inTable);
@@ -772,6 +781,16 @@ export class PropertyResolver {
     return found === undefined ? undefined : this.tableContext(found.tbl).forParagraph(found.tr, found.tc, p.pPr);
   }
 
+  /**
+   * Whether a paragraph in this context is composed over its table level: where the table style
+   * gives it text formatting, or, under [MS-DOCX]'s size exception, where the style formats text
+   * anywhere ({@link CellContext.styleFormatsText}). docx4j `composes` (900b6a212, 17.3.2).
+   */
+  private composes(cellContext: CellContext | undefined): cellContext is CellContext {
+    return cellContext !== undefined && (cellContext.formatsText
+      || (this.tableStyleSizeJcException && cellContext.styleFormatsText));
+  }
+
   private clearTableCaches(): void {
     this.tableStyleChains.clear();
     this.composedPPrCache.clear();
@@ -826,19 +845,30 @@ export class PropertyResolver {
     // the table and the paragraph style are two levels of the hierarchy: the twelve toggles
     // combine across them rather than the paragraph's overriding (17.7.3)
     applyToggles(paragraphLevel, tableLevel, this.documentDefaultRPr, composed);
-    if (this.tableStyleSizeJcException && tableOnly?.sz !== undefined
+    // The size the table level gives is its own where the table style states one, else the
+    // document defaults' where they state one: Word applies the exception wherever the table
+    // style formats text at all, not only where it states a size (docx4j 900b6a212, measured on
+    // its table-style-size-trigger probes: in mode 12, with docDefaults 11pt and Normal 12pt, a
+    // table style with only a w:pPr, only an rPr colour, or only a firstRow format sets its
+    // table's paragraphs at 11pt; with none of these, at Normal's 12pt).  But where neither the
+    // table style nor the docDefaults state a size, Normal keeps its 12pt, not the 10pt Word
+    // falls back to (docx4j's corpus documents 10244 and 12723).
+    const tableStatesSize = tableOnly?.sz !== undefined;
+    if (this.tableStyleSizeJcException && ctx.styleFormatsText && tableLevel.sz !== undefined
+      && (tableStatesSize || this.docDefaultsStateSize)
       && this.paragraphStyleGivesWay(styleId, true)) {
-      composed.sz = deepCopy(tableOnly.sz);
+      composed.sz = deepCopy(tableLevel.sz);
     }
     this.composedRPrCache.set(styleId, ctx.key, composed);
     return composed;
   }
 
   /**
-   * [MS-DOCX]'s exception, for a paragraph in a table whose style states a size (or a
-   * justification): the paragraph's style gives way to it if the style is the default paragraph
-   * style, or states no size (justification) of its own, and resolves to 12pt (left). A style of
-   * the paragraph's own which states one keeps it.
+   * [MS-DOCX]'s exception, for a paragraph in a table whose style formats text (for the size: the
+   * style need not state one, since docx4j 17.3.2) or states a justification: the paragraph's
+   * style gives way to it if the style is the default paragraph style, or states no size
+   * (justification) of its own, and resolves to 12pt (left). A style of the paragraph's own which
+   * states one keeps it.
    */
   private paragraphStyleGivesWay(styleId: string | undefined, size: boolean): boolean {
     const isDefault = styleId === undefined || styleId === this.defaultParagraphStyleId;

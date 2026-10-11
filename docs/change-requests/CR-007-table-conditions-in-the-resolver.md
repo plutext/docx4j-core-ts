@@ -187,3 +187,42 @@ for 62 goldens. Zero differences.
 Until docx4j pushes `0349796f9`, the weekly workflow measures the pushed head, which still answers
 1 for an absent size, and will open a pull request moving these goldens back. Close it unmerged, or
 push docx4j first.
+
+## 8. docx4j 900b6a212 followed: the size exception wherever the table style formats text (2026-10-12)
+
+Found reviewing docx4j's commits up to the 17.3.2 release (CR-001 section 22). docx4j `900b6a212`
+(2026-10-06, released in 17.3.2; CR-030 section 5.3's follow-up) changes what brings [MS-DOCX]'s
+size exception into play. T5 and T6's table style states a size, so they could not say what Word
+does where it does not. docx4j's table-style-size-trigger probes (its CR-001 batch 53, corpus
+document 1912; mode 12, docDefaults 11pt, Normal 12pt) settle it: Table Grid with its usual `w:pPr`,
+a style with only a `w:pPr`, only an `w:rPr` colour, or only a `firstRow` format (its second row
+too) all set their tables at 11pt. Table Grid without the `w:pPr`, and a style with none of these,
+leave Normal's 12pt. So the exception applies wherever the table style formats text **at all**,
+and gives the table level's size: the style's own, else the document defaults'. It does so only
+where one of them states a size. Where neither does, Normal keeps its 12pt, not Word's fallback
+10pt (docx4j's corpus documents 10244 and 12723). The justification half is unchanged.
+
+Ported as docx4j wrote it:
+
+- `CellContext.styleFormatsText`: the style's own `w:pPr` or `w:rPr`, or any conditional format
+  with one, applicable here or not. `formatsText` is unchanged.
+- The resolver composes a cell's paragraph over its table level where `formatsText` holds, or,
+  under the exception, where `styleFormatsText` does (`composes`, used by `getEffectivePPr`,
+  `getEffectiveRPr` and `getEffectiveParagraphMarkRPr` with a context). Where only the second holds,
+  the table level contributes nothing but the size, so the paragraph properties come out as they
+  would without the context.
+- `composedRPr` takes the table level's size (the style's where stated, else the docDefaults') under
+  the exception where the style formats text and either the style or the document's own
+  `w:docDefaults` state a size (`docDefaultsStateSize`, read per `refresh()`, as against the 10pt
+  the resolver makes explicit). `paragraphStyleGivesWay` is unchanged: the paragraph's style still
+  gives way only if it is the default, or states no size, and resolves to 12pt.
+
+No golden reaches the rule: the goldens of CR-001 section 22 are docx4j 17.3.2's, which has it, and
+parity was zero before the port as after. So the test is docx4j's
+`TableContextResolutionTest.theExceptionWhereTheTableStyleFormatsTextWithoutASize`, ported to
+`test/table-context.test.mjs` with its document and its four runs (mode 12 and 15, with and without
+a docDefaults size), and the paragraph mark checked beside each run. It fails on the resolver before
+the port (24 where Word gives 22).
+
+Also in the range: docx4j `cbe42ac9f` (probe T11) measured the columns that section 7 said were not
+probed. They follow the rows' rule, as ported. That commit changed only a comment.

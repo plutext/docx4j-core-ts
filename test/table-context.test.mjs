@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, PropertyResolver, ZipPartStore, TableContextTracker, TableStyleConditions,
-  CellContext, enclosingCellOf,
+  CellContext, enclosingCellOf, parseXml, unmarshalNode,
 } from '../dist/index.mjs';
 import { fixture, bytesEqual, plain } from './helpers.mjs';
 
@@ -157,6 +157,88 @@ test('the table style is decided by name: Normal Table is Word\'s built-in where
   assert.equal(resolver.getEffectiveRPr(firstRun(b.p).rPr, b.p.pPr, b.ctx).sz.val, 40);
   assert.equal(resolver.reachesDefaultTableStyle(undefined), false);
   assert.equal(resolver.getTableStyleChain(undefined).TYPE_NAME, 'org_docx4j_wml.Style');
+});
+
+const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+
+/**
+ * docx4j's table-style-size-trigger probes' document (its CR-001 batch 53, corpus document
+ * 1912): docDefaults 11pt, Normal 12pt, one two-row table per table style.
+ */
+const TRIGGER_STYLES = `<w:styles ${W}>`
+  + '<w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="22"/></w:rPr></w:rPrDefault></w:docDefaults>'
+  + '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/>'
+  + '<w:rPr><w:sz w:val="24"/></w:rPr></w:style>'
+  + '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/></w:style>'
+  + '<w:style w:type="table" w:styleId="TableGrid"><w:name w:val="Table Grid"/><w:basedOn w:val="TableNormal"/>'
+  + '<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:style>'
+  + '<w:style w:type="table" w:styleId="PlainGrid"><w:name w:val="PlainGrid"/><w:basedOn w:val="TableNormal"/>'
+  + '<w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/></w:tblBorders></w:tblPr></w:style>'
+  + '<w:style w:type="table" w:styleId="RPrColour"><w:name w:val="RPrColour"/><w:basedOn w:val="TableNormal"/>'
+  + '<w:rPr><w:color w:val="1F3864"/></w:rPr></w:style>'
+  + '<w:style w:type="table" w:styleId="FirstRowOnly"><w:name w:val="FirstRowOnly"/><w:basedOn w:val="TableNormal"/>'
+  + '<w:tblStylePr w:type="firstRow"><w:rPr><w:b/></w:rPr></w:tblStylePr></w:style>'
+  + '<w:style w:type="table" w:styleId="Nothing"><w:name w:val="Nothing"/><w:basedOn w:val="TableNormal"/></w:style>'
+  + '</w:styles>';
+
+const TRIGGER_TABLES = ['TableGrid', 'PlainGrid', 'RPrColour', 'FirstRowOnly', 'Nothing'];
+
+function triggerDocument() {
+  const p = (text) => `<w:p><w:r><w:t>${text}</w:t></w:r></w:p>`;
+  const tc = (content) => `<w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr>${content}</w:tc>`;
+  let out = `<w:document ${W}><w:body>`;
+  for (const style of TRIGGER_TABLES) {
+    out += `<w:tbl><w:tblPr><w:tblStyle w:val="${style}"/>`
+      + '<w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>'
+      + '</w:tblPr><w:tblGrid><w:gridCol w:w="3000"/></w:tblGrid>'
+      + `<w:tr>${tc(p(`${style} row 1`))}</w:tr><w:tr>${tc(p(`${style} row 2`))}</w:tr></w:tbl>${p(`after ${style}`)}`;
+  }
+  return `${out}</w:body></w:document>`;
+}
+
+/**
+ * docx4j `TableContextResolutionTest.theExceptionWhereTheTableStyleFormatsTextWithoutASize`
+ * (900b6a212, 17.3.2): below mode 15 the size exception applies wherever the table style formats
+ * text at all - a w:pPr, an rPr without a size, a conditional format, whether or not it applies
+ * to the row - and gives the table level's size, the docDefaults' where the style states none. A
+ * style which formats no text leaves Normal's 12pt. In mode 15 every table takes Normal's.
+ * Measured in Word by docx4j: the table-style-size-trigger probes. And where the docDefaults state
+ * no size either, Normal keeps its 12pt (docx4j's corpus documents 10244 and 12723).
+ */
+test('the size exception wherever the table style formats text, without stating a size', async () => {
+  for (const docDefaultsSize of [true, false]) {
+    for (const mode of [12, 15]) {
+      const stylesXml = docDefaultsSize ? TRIGGER_STYLES
+        : TRIGGER_STYLES.replace('<w:rPrDefault><w:rPr><w:sz w:val="22"/></w:rPr></w:rPrDefault>', '');
+      const styles = (await unmarshalNode(parseXml(stylesXml))).value;
+      const settings = (await unmarshalNode(parseXml(`<w:settings ${W}><w:compat>`
+        + `<w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="${mode}"/>`
+        + '</w:compat></w:settings>'))).value;
+      const resolver = PropertyResolver.fromSource({ styles, settings });
+      const body = (await unmarshalNode(parseXml(triggerDocument()))).value.body;
+      const paragraphs = new Map();
+      new TableContextTracker(resolver).walk(body, (p, ctx) => paragraphs.set(textOf(p), { p, ctx }));
+
+      for (const style of TRIGGER_TABLES) {
+        const formats = style !== 'PlainGrid' && style !== 'Nothing';
+        const expected = mode === 12 && formats && docDefaultsSize ? 22 : 24;
+        for (const row of [' row 1', ' row 2']) {
+          const { p, ctx } = paragraphs.get(style + row);
+          const where = `mode ${mode}${docDefaultsSize ? '' : ', no docDefaults size'}, ${style}${row}`;
+          assert.equal(ctx.styleFormatsText, formats, where);
+          assert.equal(resolver.getEffectiveRPr(firstRun(p).rPr, p.pPr, ctx).sz.val, expected, where);
+          // docx4j's paragraph mark overload composes the same way (not measured on its own)
+          assert.equal(resolver.getEffectiveParagraphMarkRPr(p.pPr, ctx).sz.val, expected, `${where}, the mark`);
+        }
+      }
+      // FirstRowOnly's second row is under no condition with text formatting, and still comes in
+      assert.equal(paragraphs.get('FirstRowOnly row 2').ctx.formatsText, false);
+
+      const after = paragraphs.get('after TableGrid');
+      assert.equal(after.ctx, undefined);
+      assert.equal(resolver.getEffectiveRPr(firstRun(after.p).rPr, after.p.pPr, after.ctx).sz.val, 24, 'outside a table, Normal\'s');
+    }
+  }
 });
 
 test('TableStyleConditions: the look, the cnfStyle bits and the key', () => {

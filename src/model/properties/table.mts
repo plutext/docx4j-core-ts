@@ -68,9 +68,21 @@ export class CellContext {
   /**
    * Whether the table style gives this paragraph anything at all: its own `w:pPr` or `w:rPr`, or
    * a conditional format with one. Where it does not, resolving with this context gives the same
-   * answer as resolving without one.
+   * answer as resolving without one - except under [MS-DOCX]'s size exception, for which see
+   * {@link styleFormatsText}.
    */
   readonly formatsText: boolean;
+  /**
+   * Whether the table style formats text anywhere: its own `w:pPr` or `w:rPr`, or a conditional
+   * format with one, whether or not that condition holds for this paragraph. Below compatibility
+   * mode 15 this, not what applies here, is what brings [MS-DOCX]'s size exception into play:
+   * measured on docx4j's table-style-size-trigger probes (its corpus document 1912), a table
+   * style with only a `w:pPr`, only an `w:rPr` colour, or only a `firstRow` format sets every row
+   * of its table at the document defaults' size where Normal states 12pt - the `firstRow`
+   * format's second row included - while a style with none of these leaves Normal's 12pt.
+   * docx4j `styleFormatsText()` (900b6a212, 17.3.2).
+   */
+  readonly styleFormatsText: boolean;
   /** What the table level's composition depends on. A value, for keying caches. */
   readonly key: CellContextKey;
 
@@ -92,7 +104,10 @@ export class CellContext {
       }
     }
     this.textConditions = text;
-    this.formatsText = text.length > 0 || !isEmptyPPr(tableStyle.pPr) || !isEmptyRPr(tableStyle.rPr);
+    const own = !isEmptyPPr(tableStyle.pPr) || !isEmptyRPr(tableStyle.rPr);
+    this.formatsText = text.length > 0 || own;
+    this.styleFormatsText = own
+      || (tableStyle.tblStylePr ?? []).some((pr) => pr !== undefined && pr !== null && formatsText(pr));
     this.key = new CellContextKey(tableStyleId, named);
   }
 
