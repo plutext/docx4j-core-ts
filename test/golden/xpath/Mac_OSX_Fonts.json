@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "856afc5da",
-    "docx4jVersion": "docx4j-core-17.3.2.jar",
-    "docx4jCoreJarSha256": "b484633603f75151",
-    "date": "2026-10-11T23:17:04Z",
+    "docx4jCommit": "2e381ef26",
+    "docx4jVersion": "docx4j-core-17.3.3-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "f805ae4be89897e3",
+    "date": "2026-10-11T23:52:13Z",
     "fixture": "Mac_OSX_Fonts.docx",
     "fixtureBytes": 22011,
     "part": "/word/document.xml",

@@ -24,7 +24,7 @@ taking one, 62 parity goldens; and the content API's effective reads passing `Pa
 is implemented, released in 0.3.2. CR-002 section 41 (`styles.ensure` falling back to Word's built-ins
 from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three table layout
 modes, held to Word 365's saves, checks 39 to 41) are implemented, released in 0.4.0 (2026-10-09).
-So are CR-001 Phases C and D
+So is CR-008 phase 1 (docx4j CR-034's colour merge rules in the catalogue, 2026-10-12). So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine) and its sections 8 and 9 (escaped
 XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0), and CR-006 (`selectObjects` and
@@ -226,8 +226,9 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   `jaxb/mc-preprocessor.xslt` the load-time one. The schemas are `xsd/ROOT.xsd`. Phase B was
   ported against `7fba7a150`; the goldens recorded `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, then `0349796f9`
-  (`VERSION_17_3_1`, CR-030 D11), and now record `856afc5da`, the 17.3.2 release from Maven Central
-  (CR-001 section 22), harness version 4, which needs docx4j 17.3.1's table context and does not
+  (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
+  section 22), and now record `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge; local in docx4j
+  when taken, CR-008 section 6), harness version 4, which needs docx4j 17.3.1's table context and does not
   compile against 17.3.0. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.
 

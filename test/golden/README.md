@@ -216,3 +216,14 @@ with a scratch Maven repository. Header fields aside, two answers moved, both a 
 mark at 12pt where it was 8pt; `fonts-modesOfApplication`, a `SubtleReference` mark): docx4j
 `fb2a764f7` resolves the mark's `w:rStyle` as a level, which this package now does too. Every
 other answer, and every XPath hit, is unchanged. CR-001 section 22.
+
+## docx4j 2e381ef26: CR-034's colour merge (2026-10-12)
+
+All 62 goldens and the 62 under `xpath/` regenerated at docx4j `2e381ef26` (CR-034 phase 2,
+`VERSION_17_3_3`, local and not pushed when this was written), built from a `git archive` export
+with a scratch Maven repository: jar `docx4j-core-17.3.3-SNAPSHOT.jar`, SHA-256
+`f805ae4be89897e3…`, harness version 4. Header fields aside, two answers moved, both from a colour
+now inheriting as one: `fonts-modesOfApplication` (main paragraph 5, run 3: the `effectiveRPr`
+colour loses `Heading1`'s `themeShade`) and `invoice2013` (table 0: the `effectiveTableStyle`
+borders take the table's own `color="auto"` over `TableGrid`'s `themeColor`). No XPath hit moved.
+CR-008 section 6.
