@@ -208,6 +208,73 @@ test('merge: w:lang, w:u and w:tblpPr inherit per attribute', async () => {
   assert.deepEqual([u.u.val, u.u.color], ['double', 'FF0000']);
 });
 
+// docx4j StyleUtilMergeRulesTest's three CR-034 cases (2e381ef26): a colour inherits as one.
+// Word draws a theme reference over the value beside it, so a run's plain red under a style's
+// accent1 must not keep the reference. (docx4j's areEqual assertions have no counterpart here:
+// the areEqual overloads are not ported, styleUtil.mts.)
+
+test('merge: a colour stating a value replaces an inherited theme reference (CR-034)', async () => {
+  const destination = {};
+  applyRPr(await rPrOf('<w:color w:val="0F4761" w:themeColor="accent1" w:themeShade="BF"/>'), destination);
+  applyRPr(await rPrOf('<w:color w:val="FF0000"/>'), destination);
+  assert.equal(destination.color.val, 'FF0000');
+  assert.equal(destination.color.themeColor, undefined);
+  assert.equal(destination.color.themeShade, undefined);
+});
+
+test('merge: a w:color stating only a theme reference is not empty, and replaces a value (CR-034)', async () => {
+  const themeOnly = await rPrOf('<w:color w:themeColor="accent2"/>');
+  assert.equal(isEmptyRPr(themeOnly), false);
+  assert.equal(hasDirectFormattingRPr(themeOnly), true);
+  const alone = {};
+  applyRPr(themeOnly, alone);
+  assert.equal(alone.color.themeColor, 'accent2');
+
+  const merged = {};
+  applyRPr(await rPrOf('<w:color w:val="FF0000"/>'), merged);
+  applyRPr(themeOnly, merged);
+  assert.equal(merged.color.val, undefined);
+  assert.equal(merged.color.themeColor, 'accent2');
+
+  // a tint alone still inherits on its own
+  applyRPr(await rPrOf('<w:color w:themeTint="99"/>'), merged);
+  assert.equal(merged.color.themeColor, 'accent2');
+  assert.equal(merged.color.themeTint, '99');
+});
+
+test('merge: the shading\'s fill, a border\'s and an underline\'s colours inherit as one (CR-034)', async () => {
+  const shaded = {};
+  applyRPr(await rPrOf('<w:shd w:val="clear" w:color="auto" w:fill="156082" w:themeFill="accent1"/>'), shaded);
+  applyRPr(await rPrOf('<w:shd w:fill="FFFF00"/>'), shaded);
+  assert.equal(shaded.shd.fill, 'FFFF00');
+  assert.equal(shaded.shd.themeFill, undefined);
+  assert.equal(shaded.shd.color, 'auto', 'the pattern colour is its own');
+  assert.equal(shaded.shd.val, 'clear');
+
+  // and the fill group is its own too: a direct w:shd stating no fill leaves the inherited
+  // w:themeFill (CR-015's rule, unchanged)
+  const kept = {};
+  applyPPrBase(await pPrOf('<w:shd w:val="clear" w:color="auto" w:fill="156082" w:themeFill="accent1"/>'), kept);
+  applyPPrBase(await pPrOf('<w:shd w:val="clear" w:color="FF0000"/>'), kept);
+  assert.deepEqual([kept.shd.color, kept.shd.fill, kept.shd.themeFill], ['FF0000', '156082', 'accent1']);
+
+  const bordered = {};
+  applyRPr(await rPrOf('<w:bdr w:val="single" w:sz="4" w:color="156082" w:themeColor="accent1"/>'), bordered);
+  applyRPr(await rPrOf('<w:bdr w:color="FF0000"/>'), bordered);
+  assert.equal(bordered.bdr.color, 'FF0000');
+  assert.equal(bordered.bdr.themeColor, undefined);
+  assert.equal(bordered.bdr.val, 'single');
+
+  const underlined = {};
+  applyRPr(await rPrOf('<w:u w:val="single" w:color="156082" w:themeColor="accent1"/>'), underlined);
+  applyRPr(await rPrOf('<w:u w:color="FF0000"/>'), underlined);
+  assert.equal(underlined.u.val, 'single');
+  assert.equal(underlined.u.color, 'FF0000');
+  assert.equal(underlined.u.themeColor, undefined);
+
+  assert.equal(isEmptyRPr(await rPrOf('<w:u w:themeColor="accent4"/>')), false);
+});
+
 test('merge: w:tabs are cumulative and w:val="clear" removes', async () => {
   const destination = {};
   applyPPrBase(await pPrOf('<w:tabs><w:tab w:val="left" w:pos="284"/><w:tab w:val="left" w:pos="6804"/><w:tab w:val="right" w:pos="10348"/></w:tabs>'), destination);

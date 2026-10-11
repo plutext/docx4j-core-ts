@@ -77,9 +77,12 @@ function attr<V>(source: V | undefined, destination: V | undefined): V | undefin
   return source === undefined ? destination : source;
 }
 
-/** docx4j `StyleUtil.apply(STThemeColor, STThemeColor)`: `none` does not override. */
-function themeColor(source: wml.STThemeColor | undefined, destination: wml.STThemeColor | undefined): wml.STThemeColor | undefined {
-  return emptyThemeColor(source) ? destination : source;
+/**
+ * docx4j `StyleUtil.statesColour`: a colour's value or theme reference is stated, so the colour
+ * inherits as one (docx4j CR-034, 2e381ef26; see {@link mergeColor}).
+ */
+function statesColour(val: string | undefined, theme: wml.STThemeColor | undefined): boolean {
+  return !emptyString(val) || !emptyThemeColor(theme);
 }
 
 /** A merge with no per-attribute rule: a copy of the source where it has one, else the inherited. */
@@ -130,12 +133,21 @@ export function isEmptyRFonts(value: wml.RFonts | undefined): boolean {
       && emptyString(value.hAnsi) && value.hAnsiTheme === undefined);
 }
 
+/**
+ * A `w:color` stating only a theme colour is not empty: it is inherited, where until docx4j CR-034
+ * (2e381ef26) it was dropped.
+ */
 export function isEmptyColor(value: wml.Color | undefined): boolean {
-  return value === undefined || emptyString(value.val);
+  return value === undefined
+    || (emptyString(value.val) && value.themeColor === undefined
+      && emptyString(value.themeTint) && emptyString(value.themeShade));
 }
 
+/** The underline's colour attributes count, the theme ones too (docx4j CR-034, 2e381ef26). */
 export function isEmptyU(value: wml.U | undefined): boolean {
-  return value === undefined || (value.val === undefined && emptyString(value.color));
+  return value === undefined
+    || (value.val === undefined && emptyString(value.color) && value.themeColor === undefined
+      && emptyString(value.themeTint) && emptyString(value.themeShade));
 }
 
 export function isEmptyHighlight(value: wml.Highlight | undefined): boolean {
@@ -345,27 +357,46 @@ export const mergeRFonts: Merge<wml.RFonts> = (source, destination) => {
   return out;
 };
 
+/**
+ * A colour inherits as one (docx4j CR-034, 2e381ef26): where the source states a value or a theme
+ * reference, its value, theme colour, tint and shade replace the destination's together. Word
+ * draws a theme reference over the value written beside it, so taken one by one, a run's
+ * `w:val="FF0000"` under a style's `w:themeColor="accent1"` would keep the style's reference and
+ * draw accent1, where Word draws red. A tint or shade stated alone still inherits on its own. The
+ * same holds for the colours of `w:u`, `w:shd` (its pattern colour and its fill) and the borders.
+ * (Attribute by attribute until then, CR-015 phase 1.)
+ */
 export const mergeColor: Merge<wml.Color> = (source, destination) => {
   if (isEmptyColor(source)) return destination;
   const s = source as wml.Color;
   const out = (destination ?? {}) as wml.Color;
-  out.themeColor = themeColor(s.themeColor, out.themeColor);
-  out.themeShade = attr(s.themeShade, out.themeShade);
-  out.themeTint = attr(s.themeTint, out.themeTint);
-  out.val = attr(s.val, out.val) as string;
+  if (statesColour(s.val, s.themeColor)) {
+    out.val = s.val as string;
+    out.themeColor = s.themeColor;
+    out.themeTint = s.themeTint;
+    out.themeShade = s.themeShade;
+  } else {
+    out.themeShade = attr(s.themeShade, out.themeShade);
+    out.themeTint = attr(s.themeTint, out.themeTint);
+  }
   return out;
 };
 
-/** `w:val` and the colour attributes each inherit on their own (CR-015 phase 1). */
+/** `w:val` and the colour inherit on their own (CR-015 phase 1), the colour as one ({@link mergeColor}). */
 export const mergeU: Merge<wml.U> = (source, destination) => {
   if (isEmptyU(source)) return destination;
   const s = source as wml.U;
   const out = destination ?? {};
   out.val = attr(s.val, out.val);
-  out.color = attr(s.color, out.color);
-  out.themeColor = themeColor(s.themeColor, out.themeColor);
-  out.themeTint = attr(s.themeTint, out.themeTint);
-  out.themeShade = attr(s.themeShade, out.themeShade);
+  if (statesColour(s.color, s.themeColor)) {
+    out.color = s.color;
+    out.themeColor = s.themeColor;
+    out.themeTint = s.themeTint;
+    out.themeShade = s.themeShade;
+  } else {
+    out.themeTint = attr(s.themeTint, out.themeTint);
+    out.themeShade = attr(s.themeShade, out.themeShade);
+  }
   return out;
 };
 
@@ -384,16 +415,27 @@ export const mergeShd: Merge<wml.CTShd> = (source, destination) => {
   if (isEmptyShd(source)) return destination;
   const s = source as wml.CTShd;
   const out = (destination ?? {}) as wml.CTShd;
-  out.color = attr(s.color, out.color);
-  out.fill = attr(s.fill, out.fill);
   out.val = attr(s.val, out.val) as wml.STShd;
-  out.themeTint = attr(s.themeTint, out.themeTint);
-  out.themeShade = attr(s.themeShade, out.themeShade);
-  out.themeFillTint = attr(s.themeFillTint, out.themeFillTint);
-  out.themeFillShade = attr(s.themeFillShade, out.themeFillShade);
-  // the enums only when the source states them (until CR-015 a null source cleared them)
-  out.themeColor = themeColor(s.themeColor, out.themeColor);
-  out.themeFill = themeColor(s.themeFill, out.themeFill);
+  // the pattern colour and the fill each inherit as one (see mergeColor), so a direct w:shd
+  // stating no fill still leaves an inherited w:themeFill (CR-015)
+  if (statesColour(s.color, s.themeColor)) {
+    out.color = s.color;
+    out.themeColor = s.themeColor;
+    out.themeTint = s.themeTint;
+    out.themeShade = s.themeShade;
+  } else {
+    out.themeTint = attr(s.themeTint, out.themeTint);
+    out.themeShade = attr(s.themeShade, out.themeShade);
+  }
+  if (statesColour(s.fill, s.themeFill)) {
+    out.fill = s.fill;
+    out.themeFill = s.themeFill;
+    out.themeFillTint = s.themeFillTint;
+    out.themeFillShade = s.themeFillShade;
+  } else {
+    out.themeFillTint = attr(s.themeFillTint, out.themeFillTint);
+    out.themeFillShade = attr(s.themeFillShade, out.themeFillShade);
+  }
   return out;
 };
 
@@ -401,13 +443,19 @@ export const mergeBorder: Merge<wml.CTBorder> = (source, destination) => {
   if (isEmptyBorder(source)) return destination;
   const s = source as wml.CTBorder;
   const out = (destination ?? {}) as wml.CTBorder;
-  out.color = attr(s.color, out.color);
   out.space = attr(s.space, out.space);
   out.sz = attr(s.sz, out.sz);
-  out.themeColor = themeColor(s.themeColor, out.themeColor);
-  out.themeShade = attr(s.themeShade, out.themeShade);
-  out.themeTint = attr(s.themeTint, out.themeTint);
   out.val = attr(s.val, out.val) as wml.STBorder;
+  // the colour inherits as one (see mergeColor)
+  if (statesColour(s.color, s.themeColor)) {
+    out.color = s.color;
+    out.themeColor = s.themeColor;
+    out.themeTint = s.themeTint;
+    out.themeShade = s.themeShade;
+  } else {
+    out.themeShade = attr(s.themeShade, out.themeShade);
+    out.themeTint = attr(s.themeTint, out.themeTint);
+  }
   return out;
 };
 

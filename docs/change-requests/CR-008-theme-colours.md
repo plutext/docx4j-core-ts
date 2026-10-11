@@ -1,8 +1,8 @@
 # CR-008: Theme colours - the merge rules docx4j CR-034 changed, and its colour resolver
 
-**Status:** Proposed 2026-10-12, on docx4j CR-034's hand-off (the docx4j session, 2026-10-12). Not
-scheduled; Jason decides. Phase 1 (the merge rules) is small and parity-bound; phase 2 (the
-resolver) is new scope.
+**Status:** Proposed 2026-10-12, on docx4j CR-034's hand-off (the docx4j session, 2026-10-12).
+Phase 1 (the merge rules) implemented 2026-10-12, at Jason's request relayed by the docx4j-python
+session (section 6); phase 2 (the resolver) is new scope, not scheduled.
 
 ## 1. Why
 
@@ -80,4 +80,44 @@ proposed until a consumer describes TOC formatting.
 
 ## 5. Decisions
 
-None yet.
+- **2026-10-12: phase 1 scheduled**, at Jason's request, relayed by the docx4j-python session, which
+  ported the same rules the same day (its CR-009 phase A, `e0b68b9` and `a849af9`) and reads this
+  repository's goldens from the sibling checkout. It asked for the goldens at docx4j `2e381ef26` or
+  later, regenerated in a commit of their own.
+
+## 6. Phase 1 as implemented (2026-10-12)
+
+`catalogue.mts` follows `StyleUtil` at docx4j `2e381ef26` (`VERSION_17_3_3`, local and not pushed
+when this was written):
+
+- `isEmptyColor` and `isEmptyU` count `themeColor`, `themeTint` and `themeShade`, as docx4j's
+  `isEmpty(Color)` and `isEmpty(U)` do (`themeColor` counts unless absent, as in the Java, where
+  `statesColour` below treats `none` as not stated).
+- `statesColour(value, theme)`: the value is not empty, or the theme reference is neither absent
+  nor `none`. Where it holds, `mergeColor`, `mergeU` (its colour; `w:val` still on its own),
+  `mergeShd` (the pattern colour group and the fill group, each on its own) and `mergeBorder` (its
+  colour) replace value, reference, tint and shade together, absent ones included. Otherwise only
+  a stated tint or shade is taken. The per-attribute `themeColor` helper is gone.
+- docx4j's `areEqual(Color)` and `areEqual(U)` changed too, and have no counterpart here (the
+  `areEqual` overloads are not ported, `styleUtil.mts`).
+
+Tests: docx4j's three `StyleUtilMergeRulesTest` cases in `test/properties.test.mjs`, less their
+`areEqual` assertions, plus CR-015's rule that a direct `w:shd` stating no fill leaves an inherited
+`w:themeFill`. All three fail on the catalogue before the port.
+
+**The goldens** were regenerated at `2e381ef26` (built from a `git archive` export with a scratch
+Maven repository; jar `docx4j-core-17.3.3-SNAPSHOT.jar`, SHA-256 `f805ae4be89897e3…`), all 62 and
+the 62 XPath goldens, and taken in full, in a commit of their own. Header fields aside, two
+answers moved, the two docx4j-python had measured: `fonts-modesOfApplication`, main[5] run 3,
+whose `effectiveRPr` colour (`SubtleReference`'s plain `accent2` `C0504D`) no longer carries
+`Heading1`'s `themeShade` `BF`; and `invoice2013`, table 0, whose `effectiveTableStyle` borders
+take the table's own `color="auto"` in place of `TableGrid`'s `themeColor` `text1` on all six
+edges. No XPath hit moved. Parity is zero on all 124. Between `856afc5da` and `2e381ef26` the
+classes ported here changed only by this commit, issue 593 (ported, CR-001 section 22) and
+`8928aacc5` (line endings), and nothing after `2e381ef26` on the local branch touches them.
+
+**A departure from section 2:** that section said to regenerate once docx4j pushes. The goldens are
+at an unpushed commit because docx4j-python asked for them now. As in CR-007 section 7, until
+docx4j pushes `2e381ef26` the weekly workflow measures the pushed `VERSION_17_3_3`, which has the
+attribute-by-attribute merge, and will open a pull request moving these two answers back. Close it
+unmerged, or push docx4j first.
