@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "856afc5da",
-    "docx4jVersion": "docx4j-core-17.3.2.jar",
-    "docx4jCoreJarSha256": "b484633603f75151",
-    "date": "2026-10-11T23:17:04Z",
+    "docx4jCommit": "88ce2aacb6d0acb1f10423d331a6b2c48a8cc12b",
+    "docx4jVersion": "docx4j-core-17.3.3-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "41ff5716c4264a09",
+    "date": "2026-10-12T14:37:46Z",
     "fixture": "tables-banding-merged-row.docx",
     "fixtureBytes": 10713,
     "part": "/word/document.xml",

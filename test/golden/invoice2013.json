@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "4",
-    "docx4jCommit": "856afc5da",
-    "docx4jVersion": "docx4j-core-17.3.2.jar",
-    "docx4jCoreJarSha256": "b484633603f75151",
-    "date": "2026-10-11T23:17:00Z",
+    "docx4jCommit": "88ce2aacb6d0acb1f10423d331a6b2c48a8cc12b",
+    "docx4jVersion": "docx4j-core-17.3.3-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "41ff5716c4264a09",
+    "date": "2026-10-12T14:37:37Z",
     "fixture": "invoice2013.docx",
     "fixtureBytes": 49797,
     "mapping": "the docx4j font jars alone (docx4j.fonts.discoverPhysicalFonts.enabled=false, docx4j.fonts.discoverJarFonts.enabled=true, the symbol, croscore, crosextra and theme2023 jars on the classpath): CR-016 phase 0c's -Dfidelity.fonts=jars environment, so the mapping does not depend on what this machine has installed",
@@ -1276,7 +1276,7 @@
     {
       "index": 0,
       "tblStyle": "TableGrid",
-      "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:styleId=\"TableNormal\" w:type=\"table\"><w:name w:val=\"Normal Table\"/><w:pPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr><w:tblPr><w:tblStyle w:val=\"TableGrid\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:themeColor=\"text1\" w:val=\"none\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"1\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"0\" w:noVBand=\"1\" w:val=\"04A0\"/></w:tblPr></w:style>",
+      "effectiveTableStyle": "<w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:styleId=\"TableNormal\" w:type=\"table\"><w:name w:val=\"Normal Table\"/><w:pPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr><w:tblPr><w:tblStyle w:val=\"TableGrid\"/><w:tblW w:type=\"auto\" w:w=\"0\"/><w:tblInd w:type=\"dxa\" w:w=\"0\"/><w:tblBorders><w:top w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/><w:left w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/><w:bottom w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/><w:right w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/><w:insideH w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/><w:insideV w:color=\"auto\" w:space=\"0\" w:sz=\"0\" w:val=\"none\"/></w:tblBorders><w:tblCellMar><w:top w:type=\"dxa\" w:w=\"0\"/><w:left w:type=\"dxa\" w:w=\"108\"/><w:bottom w:type=\"dxa\" w:w=\"0\"/><w:right w:type=\"dxa\" w:w=\"108\"/></w:tblCellMar><w:tblLook w:firstColumn=\"1\" w:firstRow=\"1\" w:lastColumn=\"0\" w:lastRow=\"0\" w:noHBand=\"0\" w:noVBand=\"1\" w:val=\"04A0\"/></w:tblPr></w:style>",
       "reachesDefaultTableStyle": true,
       "context": {
         "tableStyleId": "TableGrid",
