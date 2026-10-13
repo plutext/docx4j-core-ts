@@ -618,6 +618,99 @@ test('Range.hyperlink: reads what Word wrote', async () => {
   for (const link of links) assert.match(link, /^https?:\/\/|^#/, link);
 });
 
+// CR-002 section 43: the docx4j-python session's report on Range.hyperlink (its CR-003 section 21.3
+// items 5 to 8), and the same slice in insertContentControl. Every refusal comes before anything
+// changes; a wrapper takes everything from the first run to the last; a tracked deletion between the
+// runs is refused; a link over runs in an insertion goes between its halves.
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+async function packageWithBody(blocks) {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const main = pkg.getMainDocumentPart();
+  await main.getContents();
+  main.setXml(`<w:document xmlns:w="${W_NS}"><w:body>${blocks}</w:body></w:document>`);
+  await main.getContents();
+  return pkg;
+}
+
+const bodyOf = async (pkg) => (await pkg.getMainDocumentPart().getXml()).replace(/^.*<w:body>|<\/w:body>.*$/gs, '');
+const relationshipsOf = async (pkg) => new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/_rels/document.xml.rels'));
+const WRAPPERS = [
+  ['Range.hyperlink', (range) => { range.hyperlink = 'https://example.com/'; }],
+  ['insertContentControl', (range) => range.insertContentControl()],
+];
+
+test('Range.hyperlink: a refused link changes nothing - the links it touches, the relationships, the runs', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const p = pkg.body.insertParagraph('see this page now', 'End');
+  p.search('this page')[0].insertContentControl();
+  p.search('this')[0].hyperlink = 'https://example.com/inside';
+  const before = await bodyOf(pkg);
+  const relationships = await relationshipsOf(pkg);
+
+  // "see this" crosses the control's edge: refused, as before, but now before anything changes
+  assert.throws(() => { p.search('see this')[0].hyperlink = 'https://example.com/across'; }, /more than one run holder/);
+  assert.equal(await bodyOf(pkg), before, 'the paragraph as it was: the inner link kept, no run split');
+  assert.equal(await relationshipsOf(pkg), relationships, 'no orphan relationship');
+  assert.equal(p.search('this')[0].hyperlink, 'https://example.com/inside');
+});
+
+test('Range.hyperlink and insertContentControl wrap what lies between the runs with them', async () => {
+  for (const [name, wrap] of WRAPPERS) {
+    const pkg = await packageWithBody('<w:p><w:r><w:t xml:space="preserve">alpha be</w:t></w:r><w:bookmarkStart w:id="0" w:name="mark"/>'
+      + '<w:r><w:t xml:space="preserve">ta gamma</w:t></w:r><w:bookmarkEnd w:id="0"/></w:p>');
+    const p = pkg.body.paragraphs[0];
+    wrap(p.search('beta')[0]);
+    // until section 43 the bookmark went and "ta" was left in two places: "alpha betata gamma"
+    assert.equal(p.text, 'alpha beta gamma', name);
+    assert.match(await bodyOf(pkg),
+      /<w:t>be<\/w:t><\/w:r><w:bookmarkStart w:id="0" w:name="mark"\/><w:r>(<w:rPr>.*?<\/w:rPr>)?<w:t>ta<\/w:t><\/w:r><\/(w:hyperlink|w:sdtContent)>/, name);
+  }
+});
+
+test('a range around a tracked deletion is refused by both wrappers, before anything changes', async () => {
+  for (const [name, wrap] of WRAPPERS) {
+    const pkg = await packageWithBody('<w:p><w:r><w:t xml:space="preserve">alpha be</w:t></w:r>'
+      + '<w:del w:id="5" w:author="A" w:date="2026-10-12T00:00:00Z"><w:r><w:delText>XX</w:delText></w:r></w:del>'
+      + '<w:r><w:t xml:space="preserve">ta gamma</w:t></w:r></w:p>');
+    const before = await bodyOf(pkg);
+    // the deletion has no text in the range's, so it was not seen: it went, and "ta" was doubled
+    assert.throws(() => wrap(pkg.body.paragraphs[0].search('beta')[0]), /tracked deletion/, name);
+    assert.equal(await bodyOf(pkg), before, name);
+  }
+});
+
+test('Range.hyperlink over text in an insertion: between its halves, holding an insertion of its own', async () => {
+  const pkg = await packageWithBody('<w:p><w:r><w:t xml:space="preserve">kept </w:t></w:r>'
+    + '<w:ins w:id="1" w:author="A" w:date="2026-10-12T00:00:00Z"><w:r><w:t>new text here</w:t></w:r></w:ins></w:p>');
+  const p = pkg.body.paragraphs[0];
+  p.search('text')[0].hyperlink = 'https://example.com/';
+  const xml = await bodyOf(pkg);
+  // a w:hyperlink cannot be in a w:ins: put there, it marshalled with an xsi:type
+  assert.ok(!xml.includes('xsi:type'), xml);
+  const form = /<w:ins w:id="1"[^>]*><w:r><w:t xml:space="preserve">new <\/w:t><\/w:r><\/w:ins><w:hyperlink [^>]*><w:ins w:id="(\d+)" w:author="A"[^>]*><w:r><w:rPr><w:rStyle w:val="Hyperlink"\/><\/w:rPr><w:t>text<\/w:t><\/w:r><\/w:ins><\/w:hyperlink><w:ins w:id="(\d+)" w:author="A"[^>]*><w:r><w:t xml:space="preserve"> here<\/w:t><\/w:r><\/w:ins>/.exec(xml);
+  assert.ok(form, xml);
+  assert.equal(new Set(['1', form[1], form[2]]).size, 3, 'each insertion its own w:id');
+
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getMainDocumentPart().getContents();
+  assert.equal(back.body.paragraphs[0].text, 'kept new text here');
+  assert.equal(back.body.paragraphs[0].search('text')[0].hyperlink, 'https://example.com/');
+
+  // the same for text typed under tracking and then linked, the case the engine itself makes
+  const typed = await WordprocessingMLPackage.createPackage();
+  typed.body.insertParagraph('kept', 'End');
+  typed.author = { name: 'Ada' };
+  await typed.setChangeTrackingMode('TrackAll');
+  const para = typed.body.paragraphs[0];
+  para.insertText(' and a link', 'End');
+  para.search('link')[0].hyperlink = 'https://example.com/';
+  const tracked = await bodyOf(typed);
+  assert.ok(!tracked.includes('xsi:type'), tracked);
+  assert.match(tracked, /<w:hyperlink [^>]*><w:ins [^>]*w:author="Ada"[^>]*><w:r>.*?<w:t>link<\/w:t><\/w:r><\/w:ins><\/w:hyperlink>/);
+  assert.equal(para.search('link')[0].hyperlink, 'https://example.com/');
+});
+
 // CR-002 section 22.2: pkg.styles.ensure(ids) splices in a style the document lacks, with what it
 // is based on and linked to. The need is sharper than it looks: docx4j's own styles.xml - which
 // createPackage writes verbatim - carries nine definitions COMMENTED OUT, the six note styles among

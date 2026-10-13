@@ -3,7 +3,7 @@ import { Font } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
-import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, type TextViewOptions } from './tree.mjs';
+import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
@@ -221,52 +221,40 @@ export class Range {
       paragraph.insertItemsAt(this.start, [sdt as Element]);
       return new ContentControl(sdt, containerOf(sdt, paragraph), body);
     }
+    // Every refusal before anything changes (CR-002 section 43): until then the runs were split first.
+    const covered = coveredSegments(paragraph, this.start, this.end);
+    if (covered.length === 0) throw new Docx4JException('This range covers no run');
+    const coveredOwner = covered[0]!.runOwner;
+    if (covered.some((s) => s.runOwner !== coveredOwner)) {
+      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
+    }
+    refuseTrackedDeletion(coveredOwner, covered);
+    const tracker = paragraph.changeTracker;
+    const coveredRevision = revisionHolding(covered[0]!, coveredOwner);
+    if (tracker && coveredRevision && itemsKeyOf(coveredRevision) === undefined) {
+      throw new Docx4JException('This range is in a revision that cannot be split around a content control');
+    }
+
     paragraph.splitAt(this.start);
     paragraph.splitAt(this.end);
     const segments = paragraph.segments().filter((s) => s.start >= this.start && s.end <= this.end);
-    if (segments.length === 0) throw new Docx4JException('This range covers no run');
     const owner = segments[0]!.runOwner;
-    if (segments.some((s) => s.runOwner !== owner)) {
-      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
-    }
-    const items: Element[] = [];
-    for (const segment of segments) {
-      const element = owner[segment.runIndex] as Element;
-      if (!items.includes(element)) items.push(element);
-    }
-    const at = owner.indexOf(items[0]!);
-    const tracker = paragraph.changeTracker;
-    const revision = segments[0]!.revision;
+    const { at, items } = wrappedItems(owner, segments);
+    const revision = revisionHolding(segments[0]!, owner);
     if (tracker && revision) {
       // The runs are in a revision: the control goes between its halves, not in it, and the runs go
       // into the control in a revision of the same kind and attributes with a new id - Word's form for
       // inserted text wrapped in a new control (check 30, inserted-text-wrapped: the w:ins inside the
       // control, the control's own markers outside it).
-      const index = revision.items.indexOf(items[0]!);
-      revision.items.splice(index, items.length);
-      const value = revision.value as unknown as Record<string, unknown>;
-      const itemsKey = Object.keys(value).find((key) => value[key] === revision.items)!;
-      const inner: Record<string, unknown> = {};
-      for (const [key, v] of Object.entries(value)) if (key !== itemsKey && key !== 'PARENT') inner[key] = v;
-      inner.id = tracker.nextId();
-      inner[itemsKey] = items;
-      const wrapped = { name: revision.element.name, value: inner } as Element;
-      linkParents(items, inner);
+      revision.items.splice(at, items.length);
+      const wrapped = revisionAround(revision, items, tracker.nextId());
       (sdt.value.sdtContent as { content?: Element[] }).content = [wrapped];
       linkParents(wrapped, sdt.value.sdtContent);
-      const holderOwner = revision.owner;
-      const parent = (revision.value as { PARENT?: object }).PARENT ?? paragraph.p;
-      if (revision.items.length === 0) {
-        holderOwner.splice(holderOwner.indexOf(revision.element), 1, sdt as Element);                       // the whole revision wrapped
-        linkParents(sdt, parent);
-      } else if (index === 0) {
-        holderOwner.splice(holderOwner.indexOf(revision.element), 0, sdt as Element);                       // its start wrapped
-        linkParents(sdt, parent);
-      } else if (!paragraph.splitHolderAround(revision, index, sdt as Element, () => tracker.nextId())) {
+      if (!placeInRevision(paragraph, revision, at, sdt as Element, () => tracker.nextId())) {
         throw new Docx4JException('This range is in a revision that cannot be split around a content control');
       }
-      markHolderInserted(tracker, sdt as Element, holderOwner, () => {});
-      return new ContentControl(sdt, holderOwner, body);
+      markHolderInserted(tracker, sdt as Element, revision.owner, () => {});
+      return new ContentControl(sdt, revision.owner, body);
     }
     (sdt.value.sdtContent as { content?: Element[] }).content = items;
     owner.splice(at, items.length, sdt as Element);
@@ -331,12 +319,17 @@ export class Range {
       start = Math.min(start, span[0]);
       end = Math.max(end, span[1]);
     }
-    this.removeHyperlinks();
-    if (value === '') return;
-
     const hash = value.indexOf('#');
     const address = hash === -1 ? value : value.slice(0, hash);
     const location = hash === -1 ? '' : value.slice(hash + 1);
+    // Every refusal comes before anything changes, judged on what the range would hold once the links
+    // it touches were unwrapped (CR-002 section 43). Until then the setter unwrapped them, added the
+    // relationship and split the runs before it refused, so a refused call left the links gone, an
+    // orphan relationship and split runs (found by the docx4j-python session).
+    if (value !== '') this.refuseUnlinkable(start, end, address);
+    this.removeHyperlinks();
+    if (value === '') return;
+
     // w:history="1" is what Word writes on every hyperlink it makes, and what docx4j writes when
     // it builds one (MainDocumentPart.addHyperlink): "add the target to the viewed hyperlinks"
     // (ECMA-376 17.16.22). Readers do not depend on it, but a document holding one holder from
@@ -349,24 +342,73 @@ export class Range {
     paragraph.splitAt(start);
     paragraph.splitAt(end);
     const segments = paragraph.segments().filter((seg) => seg.start >= start && seg.end <= end);
-    if (segments.length === 0) throw new Docx4JException('This range covers no run');
     const owner = segments[0]!.runOwner;
-    if (segments.some((seg) => seg.runOwner !== owner)) {
-      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
+    const { at, items } = wrappedItems(owner, segments);
+    const revision = revisionHolding(segments[0]!, owner);
+    let runsParent: object = holder.value;
+    if (revision) {
+      // A w:hyperlink cannot be in a w:ins or w:moveTo (CT_RunTrackChange holds EG_ContentRunContent
+      // only), so over runs in one, tracked or not, the link goes between the revision's halves and the
+      // runs into it in a revision of the same kind and attributes with a new id, as a content control
+      // over inserted text does (CR-002 section 43; the docx4j-python session's form). Until then the
+      // link went into the revision, which marshalled with an xsi:type. Word's own form for a link set
+      // on inserted text is a HYPERLINK field in the one w:ins (check 30, link-on-inserted-text), which
+      // this setter's getter would not read back.
+      revision.items.splice(at, items.length);
+      const inner = revisionAround(revision, items, paragraph.nextAnnotationId());
+      holder.value.content = [inner] as never;
+      linkParents(inner, holder.value);
+      if (!placeInRevision(paragraph, revision, at, holder as Element, () => paragraph.nextAnnotationId())) {
+        throw new Docx4JException('This range is in a revision that cannot be split around a hyperlink');
+      }
+      runsParent = inner.value as object;
+    } else {
+      holder.value.content = items as never;
+      owner.splice(at, items.length, holder as Element);
+      linkParents(holder, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
     }
-    const items: Element[] = [];
-    for (const segment of segments) {
-      const element = owner[segment.runIndex] as Element;
-      if (!items.includes(element)) items.push(element);
-    }
-    const at = owner.indexOf(items[0]!);
-    holder.value.content = items as never;
-    owner.splice(at, items.length, holder as Element);
-    linkParents(holder, (segments[0]!.run as { PARENT?: object }).PARENT ?? paragraph.p);
     this.restyle(holder.value, true);
-    mergeTextRuns(holder.value.content as Element[], holder.value);
+    mergeTextRuns(items, runsParent);
     (paragraph.parentBody.package_ as { requireStyles?: (ids: string[]) => void } | undefined)
       ?.requireStyles?.([HYPERLINK_STYLE]);
+  }
+
+  /**
+   * Refuses, before anything changes, a link the setter could not make over [start, end): one with an
+   * address on a range with no part, over no run, over runs in more than one holder, or around a
+   * tracked deletion - each judged as the range would stand once the links it touches were unwrapped,
+   * their runs then in the list holding them.
+   */
+  private refuseUnlinkable(start: number, end: number, address: string): void {
+    const paragraph = this.paragraph;
+    if (address !== '' && !paragraph.parentBody.part) {
+      throw new Docx4JException('This range has no part, so a hyperlink cannot be related to it');
+    }
+    const touched = hyperlinkHolders(paragraph).filter((h) => this.touches(h)) as Element[];
+    const unwrapsInto = new Map<Element[], Element[]>();
+    for (const holder of touched) {
+      const inner = runItemsOf(holder.value as object) as Element[] | undefined;
+      if (inner) unwrapsInto.set(inner, containerOf(holder, paragraph));
+    }
+    const ownerOnceUnwrapped = (owner: Element[]): Element[] => {
+      let o = owner;
+      for (let guard = 0; guard < 100 && unwrapsInto.has(o); guard++) o = unwrapsInto.get(o)!;
+      return o;
+    };
+    const covered = coveredSegments(paragraph, start, end);
+    if (covered.length === 0) throw new Docx4JException('This range covers no run');
+    const owner = ownerOnceUnwrapped(covered[0]!.runOwner);
+    if (covered.some((seg) => ownerOnceUnwrapped(seg.runOwner) !== owner)) {
+      throw new Docx4JException('This range spans more than one run holder (a hyperlink or a tracked change); wrap a narrower span');
+    }
+    const unwrapped = new Set(touched);
+    const flatten = (items: Element[]): Element[] => items.flatMap((item) => (unwrapped.has(item)
+      ? flatten((runItemsOf(item.value as object) ?? []) as Element[]) : [item]));
+    refuseTrackedDeletion(flatten(owner), covered);
+    const revision = revisionHolding(covered[0]!, owner);
+    if (revision && itemsKeyOf(revision) === undefined) {
+      throw new Docx4JException('This range is in a revision that cannot be split around a hyperlink');
+    }
   }
 
   /** The first `w:hyperlink` this range touches, if any. */
@@ -525,6 +567,87 @@ function hyperlinkHolders(paragraph: Paragraph): Element<wml.P.Hyperlink>[] {
 }
 
 /** The run-level array holding an element, after `insertItemsAt` put it somewhere in the paragraph. */
+/**
+ * The segments a range covers, read before its runs are split at its edges: those inside it, and those
+ * a split would cut, whose inner part then is. What `segments()` gives inside the range once it is
+ * split, so that a wrapper's refusals can come before anything changes.
+ */
+function coveredSegments(paragraph: Paragraph, start: number, end: number): TextSegment[] {
+  return paragraph.segments().filter((s) => (s.start >= start && s.end <= end) || (s.start < end && s.end > start));
+}
+
+/**
+ * The items a range's runs are wrapped in place of: everything from the first run it covers to the
+ * last, in the one list holding them, so that what lies between - a bookmark, a comment's range, a
+ * proofing mark - goes into the wrapper with them. Until CR-002 section 43 as many items were taken as
+ * there were runs, from the first, which dropped what lay between and left a run in two places.
+ */
+function wrappedItems(owner: Element[], segments: TextSegment[]): { at: number; items: Element[] } {
+  const indexes = segments.map((s) => owner.indexOf(s.runOwner[s.runIndex] as Element)).filter((i) => i >= 0);
+  const at = Math.min(...indexes);
+  return { at, items: owner.slice(at, Math.max(...indexes) + 1) };
+}
+
+/**
+ * Refuses a range with a tracked deletion (or text moved away) between its runs: having no text in
+ * the range's, it would be wrapped unseen, and a range spanning a tracked change is refused (CR-002
+ * section 43).
+ */
+function refuseTrackedDeletion(items: Element[], segments: TextSegment[]): void {
+  const indexes = segments.map((s) => items.indexOf(s.runOwner[s.runIndex] as Element)).filter((i) => i >= 0);
+  if (indexes.length === 0) return;
+  for (const item of items.slice(Math.min(...indexes), Math.max(...indexes) + 1)) {
+    const kind = revisionKindOf(item);
+    if (kind === 'del' || kind === 'moveFrom') {
+      throw new Docx4JException('This range spans a tracked deletion; wrap the text on either side of it');
+    }
+  }
+}
+
+/** The `w:ins` or `w:moveTo` a segment's run is directly in, when `owner` is its own item list. */
+function revisionHolding(segment: TextSegment, owner: Element[]): RevisionHolder | undefined {
+  return segment.revision !== undefined && segment.revision.items === owner ? segment.revision : undefined;
+}
+
+/** The key under which a revision's value holds its items, or undefined where none does. */
+function itemsKeyOf(revision: RevisionHolder): string | undefined {
+  const value = revision.value as unknown as Record<string, unknown>;
+  return Object.keys(value).find((key) => value[key] === revision.items);
+}
+
+/** A revision of the same kind and attributes as `revision`, with a new id, holding `items`. */
+function revisionAround(revision: RevisionHolder, items: Element[], id: number): Element {
+  const value = revision.value as unknown as Record<string, unknown>;
+  const itemsKey = itemsKeyOf(revision)!;
+  const inner: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value)) if (key !== itemsKey && key !== 'PARENT') inner[key] = v;
+  inner.id = id;
+  inner[itemsKey] = items;
+  linkParents(items, inner);
+  return { name: revision.element.name, value: inner } as Element;
+}
+
+/**
+ * Puts `item` where items from `index` on were taken out of `revision`: in its place where it holds
+ * nothing now, before it where they were its first, else between its halves. False where the revision
+ * cannot be split.
+ */
+function placeInRevision(paragraph: Paragraph, revision: RevisionHolder, index: number, item: Element, nextId: () => number): boolean {
+  const owner = revision.owner;
+  const parent = (revision.value as { PARENT?: object }).PARENT ?? paragraph.p;
+  if (revision.items.length === 0) {
+    owner.splice(owner.indexOf(revision.element), 1, item);                       // the whole revision wrapped
+    linkParents(item, parent);
+    return true;
+  }
+  if (index === 0) {
+    owner.splice(owner.indexOf(revision.element), 0, item);                       // its start wrapped
+    linkParents(item, parent);
+    return true;
+  }
+  return paragraph.splitHolderAround(revision, index, item, nextId);
+}
+
 function containerOf(element: Element, paragraph: Paragraph): Element[] {
   const seek = (items: Element[] | undefined): Element[] | undefined => {
     if (!items) return undefined;

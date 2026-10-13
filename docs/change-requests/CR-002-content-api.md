@@ -3822,3 +3822,53 @@ the two points that left:
 
 Nothing of section 42 is unmeasured now but what a `w:tcPr` holds beyond shading, borders and
 alignment (margins, text direction, fit text), left uncopied.
+
+## 43. `Range.hyperlink` and `insertContentControl`: refusals first, the whole slice, and a link over inserted text (2026-10-12)
+
+Reported by the docx4j-python session at Jason's request, from its own port (its CR-003 section 21.3
+items 5 to 8, commit `738d536`). Each was reproduced here on 0.4.0's code before the fix:
+
+1. **A refused hyperlink had already changed the document.** The setter unwrapped the links the range
+   touched, added the relationship and split the runs, and only then refused a range over no run or
+   over runs in more than one holder. Linking "see this" across the edge of a content control holding
+   a link on "this" was refused, but left "this" unlinked, an orphan relationship and split runs.
+2. **What lay between the runs was dropped, and a run doubled.** Both wrappers replaced as many items
+   as there were runs, from the first run on, instead of the slice from the first run to the last. A
+   `w:bookmarkStart` between the runs of "be|ta" went, and "ta" stayed outside the wrapper as well as
+   in it: "alpha beta gamma" read "alpha betata gamma". `insertContentControl` did the same (found here,
+   not in the report).
+3. **A link over text in an insertion went into the `w:ins`.** A `w:hyperlink` cannot be there
+   (`CT_RunTrackChange` holds `EG_ContentRunContent` only), and the model marshalled it with an
+   `xsi:type`. The engine makes this case itself: text typed under tracking, then linked.
+4. **A tracked deletion between the runs was not seen.** A `w:del` has no text in the accepted view,
+   so the one-holder check passed. Then item 2's slice lost the deletion and doubled a run, against
+   the rule that a range spanning a tracked change is refused.
+
+Fixed, in `Range.mts`:
+
+- **Every refusal before anything changes.** `refuseUnlinkable` runs before the unwrap, the
+  relationship and the splits. It judges the range as it would stand once the touched links were
+  unwrapped (their runs then in the list holding them): a part for an address, a run covered
+  (`coveredSegments`, which reads the segments a split would cut as covered), one holder for every
+  run, no tracked deletion between them, and a revision that can be split. `insertContentControl`
+  makes the same checks before its splits.
+- **The whole slice.** `wrappedItems` takes everything from the first run covered to the last, so a
+  bookmark, a comment's range or a proofing mark between them goes into the wrapper (`w:hyperlink` and
+  `w:sdtContent` both hold `EG_PContent`).
+- **A tracked deletion or moved-away text between the runs is refused** (`refuseTrackedDeletion`), by
+  both wrappers, as the docx4j-python session refuses it.
+- **A link over runs in a `w:ins` or `w:moveTo` goes between the revision's halves**, the runs in it
+  inside a revision of the same kind and attributes with a new `w:id`, tracked or not. This is the
+  docx4j-python session's form, and the one `insertContentControl` already wrote over inserted text
+  (section 37 item 7). Word's own form for a link set on inserted text is a HYPERLINK field inside the
+  one `w:ins` (check 30, `link-on-inserted-text`). That form has no `w:hyperlink` for this getter to
+  read, so it is not used. Check 30 measured how Word treats this form when it comes in: three changes
+  listed, and an empty `w:hyperlink` left on reject. The id comes from `nextAnnotationId`, so no tracker
+  is needed. The revision helpers `revisionAround` and `placeInRevision` are shared with
+  `insertContentControl`, whose revision branch also now applies only where the run is directly in the
+  revision. Before, a run in a hyperlink inside an insertion took a `-1` index there.
+
+Tests: four in `test/content.test.mjs`, after the hyperlink tests. The refusal leaves the body and the
+relationships as they were, and the inner link reads its address. The bookmark case and the deletion
+case run for both wrappers. The link over inserted text is checked both untracked and typed under
+tracking, with a round trip. All four fail on the code before the fix. Not released.
