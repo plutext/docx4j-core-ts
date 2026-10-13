@@ -74,3 +74,105 @@ resolved fills only.
 ## 5. Decisions
 
 None yet.
+
+## 6. Noted, not in scope: editing a chart's data (docx4j CR-035 phase 4)
+
+Handed off by the docx4j session on 2026-10-12, for information only; nothing is proposed. docx4j
+`b7a811bbf` (`VERSION_17_3_3`, unpushed when handed off; CR-035 sections 4.4, 8 (D10 to D12) and 11)
+completes CR-035 with `org.docx4j.model.chart.ChartDataEditor`. It can set a value, a blank, an
+error, a category or a series name, add and remove categories and series, and refresh the caches.
+Each edit keeps the cells, the table, the chart's references and its caches in step, with the
+cell writers `org.xlsx4j.model.CellRef`, `AreaRef`, `SheetCells` and `Tables` underneath. Every
+rule was measured from Excel's own edits. The oracle is 21 before/after pairs saved from Excel,
+under `docx4j-core-tests/src/test/resources/charts/edit/` (`e1` to `e7`, `r1` to `r14`, each with a
+`.txt` of the edit), compared part by part by `ChartDataEditorTest` (27 tests). Some things are
+refused rather than guessed: resizing a table with a totals row or without a header row, adding a
+bubble chart's series, and data on more than one sheet.
+
+Relevant here only if this package ports chart editing, which would come after this CR's read
+model. The pairs would then be its oracle, as the JSON goldens are this CR's. Also in docx4j, from
+phase 3 (`326b88bd2`): `ChartTable`, a chart described as a title and a table with categories down
+and series across.
+
+
+## 7. Noted, not in scope: chart authoring (docx4j CR-036)
+
+Handed off by the docx4j session on 2026-10-12 for the backlog. Nothing is proposed. docx4j CR-036
+(`docs/developer/change-requests/CR-036-chart-authoring-edit-docx-pptx-create.md`, its section 9
+names this package) creates charts and edits their data in every host. Phase 1 (`88ce2aacb`, pushed)
+edits a chart's data in docx and pptx and keeps the embedded workbook live in its
+`EmbeddedPackagePart`.
+
+Phase 2 (`334d80f07`, `VERSION_17_3_3`, unpushed when handed off) creates charts in xlsx, in
+`org.docx4j.model.chart`:
+
+- **`ChartType`**: twelve types, each with its template and Excel's default style id. They are
+  column and bar (clustered, stacked, stacked 100%), line, line with markers, pie, doughnut, area
+  and scatter.
+- **`ChartDefinition`**: shaped like POI's XDDF and built of groups. Its categories are all text,
+  all numbers or all dates. It sets the title, legend, axis titles and number formats, and data
+  labels, and `fromData` gives it `setData`'s shape.
+- **`ChartCreator`**:
+  - `inSheet` places a chart from a definition.
+  - `fromCells` places one over a range, read as Excel reads it.
+  - A seeded `Random` reproduces a workbook's ids.
+- **`ChartSettings`**: the same settings, written on any existing chart.
+- **Excel's templates**: one per type, plus a date axis, eight style parts and a colours part,
+  kept byte for byte under `docx4j-core/src/main/resources/org/docx4j/model/chart/templates/`.
+- **Cell writers**: `Tables.create` and `SheetCells.setNumberFormat`.
+
+The rules a port would have to reproduce are CR-036 section 11's phase 2 findings 1 to 6. Among
+them:
+
+- Excel's text properties for each style.
+- The date axis, with its base time unit taken from the dates.
+- When the legend is shown or hidden, by series count.
+- Each pie series repeats the first series' `c:dPt`.
+- How `fromCells` decides the header row and column, and which way the series run.
+- Excel's spelling of the built-in date formats in the cache.
+
+The oracle is the Excel-made workbooks under `docx4j-core-tests/src/test/resources/charts/authoring/`
+(`p1-*`, `p2-*`, `p6-*`, with `.txt` files of their series formulas). `ChartCreatorTest` compares
+106 charts against them part by part, leaving the ids aside, and Excel opened 108 without repair.
+
+Phase 3 (`9ca75ced2`, unpushed when handed off, and handed off the same day) creates charts in docx
+and pptx, and deletes them. CR-036 is done with it. The API is on `ChartCreator`:
+
+- `inDocument` returns a `w:r` holding the `wp:inline`.
+- `inNewParagraph` adds a paragraph holding the chart.
+- `inSlide` adds a `p:graphicFrame` to the slide.
+- `delete(ChartRef)` works in all three hosts.
+
+The rules, measured on what Word and PowerPoint write:
+
+- **The embedded workbook** is Word's own for each type, and PowerPoint's is the same, shipped byte
+  for byte. Its table has no `autoFilter` and no `tableStyleInfo` name. Creation empties it, writes
+  the data at A1 with the xlsx writer, and gives it fresh uids.
+- **A docx chart** is Excel's template plus Word's host step:
+  - `c:printSettings` is removed.
+  - `c:externalData` points at the embedded workbook, with `c:autoUpdate` 0.
+  - A scatter series' line width is halved.
+  - Each of a pie's points gets a `c16:uniqueId`.
+- **A pptx chart** is PowerPoint's own chart part and style part for each type.
+- **The legend** is the template's, whatever the data. Excel's rules for showing it apply only when
+  the host is an xlsx.
+- **Ids and names**: Word's `wp:docPr` id is random and unused, named "Chart n". PowerPoint's frame
+  id is the slide's highest plus one. The chart parts and `Microsoft_Excel_Worksheet*.xlsx` are named
+  as Office names them, and the workbook is typed by an `xlsx` Default.
+- **Deleting a chart** removes the run or the frame, the chart part, its style, colours and workbook,
+  and their overrides. The `xlsx` Default goes with the last workbook.
+
+The oracles are `charts/authoring/p3-*.docx` and `p4-*.pptx`, plus `p3-no-chart.docx` for deletion.
+`ChartCreatorHostTest` finds all 24 type and host cases identical to Office's, leaving the ids aside.
+
+Phase 3 also touched two classes this package ports, with no change to what they do by default:
+
+- `io3/Save` and `SaveToZipFile` now call `DocPropsCorePart.writeTimes()`. It writes
+  `dcterms:modified`, and `dcterms:created` on a new package, only where the new
+  `docx4j.dcterms.write` property is true. The default is false.
+- `DrawingPropsIdTracker` gained `generateRandomId(Random)`, and `generateId` is unchanged.
+
+Nothing here follows either.
+
+This package would come to it after this CR's read model, if at all. It reads the same chart parts,
+and `SpreadsheetMLPackage` is the xlsx host. No consumer has asked.

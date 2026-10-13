@@ -68,6 +68,35 @@ Consumers: the editor's rendering of theme colours (it asked nothing yet), `Font
 effective read (today it reports the `w:color` value, which for a theme colour is Word's cached
 value or `auto`). Estimate: two days with the vectors; not before a consumer asks.
 
+**Follow-up handed off 2026-10-13: luminance rounding** (docx4j `691620fb7`, pushed; CR-034
+section 11, "Follow-up: luminance rounding"). A port of the resolver takes this rule with it. It
+applies where a colour's last transform that is not an alpha transform is `lum`, `lumOff` or
+`lumMod`. For such a colour, `DrawingMLColors.transform` and `ColorMath` now:
+
+- compute `lumMod` as `l * val / 100000.0`, in that order;
+- convert back with the Foley-van Dam form (`ColorMath.hslToRgbFoley`). Here `m2` is
+  `l <= 0.5 ? l*(1+s) : l + s - l*s` and `m1` is `2l - m2`. Each channel is `hue(m1, m2, h + 1/3 | h |
+  h - 1/3)`, where `hue` first takes `h -= floor(h)` and then returns
+  `h < 1/6 ? m1+(m2-m1)*6h : h < 1/2 ? m2 : h < 2/3 ? m1+(m2-m1)*(2/3-h)*6 : m1`;
+- round each channel half down, `ceil(clamp01(v)*255 - 0.5)` (`ColorMath.channelHalfDown`).
+
+Every other transform still converts with `hslToRgb` and rounds half up. `WordColors` and
+`SpreadsheetColors` are unchanged.
+
+The exact form matters because luminance results often land on exactly half a unit, and Office
+rounds those halves both ways. With these expressions in this order, the direction follows the
+floating-point error, which predicts 29 of the 30 halves in CR-034's P3 readings. A port must keep
+the same double arithmetic and the same order of operations, with no algebraic simplification and
+no early rounding. JS numbers are IEEE doubles like Java's, so the same expressions in the same
+order should give the same bits.
+
+`readings.tsv` is unchanged. Against it, the luminance and picker cases of P3
+(`tc-p3-transforms.docx` and `.pptx`) are exact in 97 of 98 in each host, up from 85. The one
+still off is T239 (`tx2` with `lumMod` 25000), whose red computes as 3.5000000000000018 where Office
+gives 3. docx4j's `ThemeColourProbesTest` holds the luminance families to at most one case off
+(`Tally.luminanceOff() <= 1`), the bar a vector test here would take. A case where it shows: an
+Excel chart style's `tx1` text with `lumMod` 50000 and `lumOff` 50000 is `7F7F7F`, not `808080`.
+
 ## 4. Noted, not in scope: a hyperlinked TOC's entries
 
 Coming in docx4j, not yet committed: Word draws the entries of a hyperlinked TOC (runs in a
@@ -121,3 +150,9 @@ at an unpushed commit because docx4j-python asked for them now. As in CR-007 sec
 docx4j pushes `2e381ef26` the weekly workflow measures the pushed `VERSION_17_3_3`, which has the
 attribute-by-attribute merge, and will open a pull request moving these two answers back. Close it
 unmerged, or push docx4j first.
+
+Later on 2026-10-12 docx4j pushed `VERSION_17_3_3` to `88ce2aacb`, which contains `2e381ef26`, so the
+weekly run will not open that pull request. The thirteen commits after `2e381ef26` don't touch
+the classes ported here. They are charts (CR-035 phases 2 to 4, CR-036 phase 1), the
+`xlsx4j` cell writers, output-side work (HTML, and section 4's TOC hyperlink style as an output
+preprocess step, `c24c676ad`), and line endings in `EmbeddedPackagePart`.
