@@ -1,0 +1,1438 @@
+{
+  "blocks": [
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "The key transitions are 11G → DDR3, 13G → DDR4, and 16G → DDR5. Intel's Xeon naming also changed significantly at Dell PowerEdge 14G."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "PowerEdge generations 10–16: Xeon and memory mapping"
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "rows": [
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Dell generation"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Introduction"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Intel Xeon families"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Architecture / codename"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "RAM"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "10G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2006–08"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon 5000/5100/5300/5400 series"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Woodcrest, Clovertown, Harpertown"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR2 / FB-DIMM"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "11G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2009"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon 5500, 5600"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Nehalem, Westmere"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR3"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "12G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2012"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon E5-2600, E5-2600 v2"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Sandy Bridge-EP, Ivy Bridge-EP"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR3"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "13G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2014"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon E5-2600 v3, v4"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Haswell-EP, Broadwell-EP"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "14G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2017"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon Scalable 1st and 2nd Gen (Bronze/Silver/Gold/Platinum)"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Skylake-SP, Cascade Lake-SP"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "15G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2021"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon Scalable 3rd Gen"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Ice Lake-SP"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "16G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2023"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Xeon Scalable 4th and 5th Gen"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Sapphire Rapids, Emerald Rapids"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR5"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ]
+      ],
+      "style": null
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "These are the mainstream dual-socket Intel platforms; entry-level Xeon E systems, four-socket servers and AMD models have some differences."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Dell Australia"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "+3"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": []
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "Typical models and memory speeds"
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "rows": [
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Generation"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Example 2U server"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "Typical maximum DDR speed"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "PCIe generation"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "10G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R900*"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR2-667"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "1.x / 2.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "11G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R710"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR3-1333"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "2.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "12G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R720"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR3-1866 (v2)"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "3.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "13G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R730"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4-2400 (v4)"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "3.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "14G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R740"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4-2933 (2nd Gen)"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "3.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "15G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R750"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR4-3200"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "4.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ],
+        [
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "16G"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "R760"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "DDR5-4800 / 5600"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          },
+          {
+            "blocks": [
+              {
+                "kind": "paragraph",
+                "style": null,
+                "inlines": [
+                  {
+                    "text": "5.0"
+                  }
+                ]
+              }
+            ],
+            "colspan": 1,
+            "rowspan": 1
+          }
+        ]
+      ],
+      "style": null
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Actual memory speed depends on CPU SKU, DIMM type, population and BIOS configuration. *R900 is a four-socket example; the R700 naming sequence starts at 11G."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "Understanding the model numbers"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "From 10G onward, Dell's three-digit PowerEdge naming generally encodes the generation in the middle digit:"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R710 = 11G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R720 = 12G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R730 = 13G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R740 = 14G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R750 = 15G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "R760 = 16G"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "The first digit broadly identifies the server class, while the final digit is typically 0 for Intel and 5 for AMD."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "Dell Australia"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": []
+    },
+    {
+      "kind": "paragraph",
+      "style": "Heading2",
+      "inlines": [
+        {
+          "text": "Practical implications for used servers"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "For buying older PowerEdge hardware, I'd distinguish four platforms:"
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "12G (R720): Inexpensive DDR3 and Xeon E5 v2. PCIe 3.0. Suitable for inexpensive storage and experimentation."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "13G (R730): DDR4 and E5 v3/v4. A useful low-cost platform, particularly where memory capacity and PCIe slots matter."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "14G (R740): First and second-generation Xeon Scalable, including Xeon Gold 6140. DDR4, still PCIe 3.0."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "15G (R750): Ice Lake Xeons, eight DDR4 memory channels per CPU versus six on 14G, and PCIe 4.0. A significant platform improvement."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "list": {
+        "key": "list1",
+        "level": 0,
+        "bullet": true
+      },
+      "inlines": [
+        {
+          "text": "16G (R760): DDR5, PCIe 5.0 and substantially greater memory bandwidth."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "One particularly important distinction: a Xeon Gold 6140 is a first-generation Xeon Scalable processor, intended for 14G-class platforms, not an R720 or R730."
+        }
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "style": null,
+      "inlines": [
+        {
+          "text": "For a cost-sensitive GPU/inference server, 13G or 14G can still be attractive, whereas 15G becomes substantially more interesting when PCIe bandwidth or CPU-to-memory throughput matters."
+        }
+      ]
+    }
+  ],
+  "report": {
+    "paragraphs": 100,
+    "lists": 1,
+    "tables": 2,
+    "dropped": {
+      "images": 2
+    },
+    "stylesWanted": [
+      "Heading2"
+    ]
+  }
+}

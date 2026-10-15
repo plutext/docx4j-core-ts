@@ -1,0 +1,70 @@
+The key transitions are 11G → DDR3, 13G → DDR4, and 16G → DDR5. Intel's Xeon naming also changed significantly at Dell PowerEdge 14G.
+
+## PowerEdge generations 10–16: Xeon and memory mapping
+
+| Dell generation | Introduction | Intel Xeon families                                         | Architecture / codename           | RAM            |
+| --------------- | ------------ | ----------------------------------------------------------- | --------------------------------- | -------------- |
+| 10G             | 2006–08      | Xeon 5000/5100/5300/5400 series                             | Woodcrest, Clovertown, Harpertown | DDR2 / FB-DIMM |
+| 11G             | 2009         | Xeon 5500, 5600                                             | Nehalem, Westmere                 | DDR3           |
+| 12G             | 2012         | Xeon E5-2600, E5-2600 v2                                    | Sandy Bridge-EP, Ivy Bridge-EP    | DDR3           |
+| 13G             | 2014         | Xeon E5-2600 v3, v4                                         | Haswell-EP, Broadwell-EP          | DDR4           |
+| 14G             | 2017         | Xeon Scalable 1st and 2nd Gen (Bronze/Silver/Gold/Platinum) | Skylake-SP, Cascade Lake-SP       | DDR4           |
+| 15G             | 2021         | Xeon Scalable 3rd Gen                                       | Ice Lake-SP                       | DDR4           |
+| 16G             | 2023         | Xeon Scalable 4th and 5th Gen                               | Sapphire Rapids, Emerald Rapids   | DDR5           |
+
+These are the mainstream dual-socket Intel platforms; entry-level Xeon E systems, four-socket servers and AMD models have some differences.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.dell.com\&sz=32)
+
+Dell Australia
+
++3
+
+
+
+## Typical models and memory speeds
+
+| Generation | Example 2U server | Typical maximum DDR speed | PCIe generation |
+| ---------- | ----------------- | ------------------------- | --------------- |
+| 10G        | R900\*            | DDR2-667                  | 1.x / 2.0       |
+| 11G        | R710              | DDR3-1333                 | 2.0             |
+| 12G        | R720              | DDR3-1866 (v2)            | 3.0             |
+| 13G        | R730              | DDR4-2400 (v4)            | 3.0             |
+| 14G        | R740              | DDR4-2933 (2nd Gen)       | 3.0             |
+| 15G        | R750              | DDR4-3200                 | 4.0             |
+| 16G        | R760              | DDR5-4800 / 5600          | 5.0             |
+
+Actual memory speed depends on CPU SKU, DIMM type, population and BIOS configuration. \*R900 is a four-socket example; the R700 naming sequence starts at 11G.
+
+## Understanding the model numbers
+
+From 10G onward, Dell's three-digit PowerEdge naming generally encodes the generation in the middle digit:
+
+- R710 = 11G
+- R720 = 12G
+- R730 = 13G
+- R740 = 14G
+- R750 = 15G
+- R760 = 16G
+
+The first digit broadly identifies the server class, while the final digit is typically `0` for Intel and `5` for AMD.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.dell.com\&sz=32)
+
+Dell Australia
+
+
+
+## Practical implications for used servers
+
+For buying older PowerEdge hardware, I'd distinguish four platforms:
+
+- 12G (R720): Inexpensive DDR3 and Xeon E5 v2. PCIe 3.0. Suitable for inexpensive storage and experimentation.
+- 13G (R730): DDR4 and E5 v3/v4. A useful low-cost platform, particularly where memory capacity and PCIe slots matter.
+- 14G (R740): First and second-generation Xeon Scalable, including Xeon Gold 6140. DDR4, still PCIe 3.0.
+- 15G (R750): Ice Lake Xeons, eight DDR4 memory channels per CPU versus six on 14G, and PCIe 4.0. A significant platform improvement.
+- 16G (R760): DDR5, PCIe 5.0 and substantially greater memory bandwidth.
+
+One particularly important distinction: a Xeon Gold 6140 is a first-generation Xeon Scalable processor, intended for 14G-class platforms, not an R720 or R730.
+
+For a cost-sensitive GPU/inference server, 13G or 14G can still be attractive, whereas 15G becomes substantially more interesting when PCIe bandwidth or CPU-to-memory throughput matters.

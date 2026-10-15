@@ -78,6 +78,25 @@ test('every capture builds: the fragment parses to as many blocks as the form ha
   }
 });
 
+test("ChatGPT's answer (2026-10-15): the note after a table, a span holding a span per word, is one paragraph; pinned", async () => {
+  // Captured by `wl-paste -t text/html` from chatgpt.com in Chromium (README): every word its own span, a paragraph's
+  // worth of them under a bare span after a table, where the walk had made a paragraph of each word.
+  const html = (await readFile(join(corpus, 'chatgpt', 'chatgpt-answer.html'))).toString('utf8');
+  const result = convertHtml(html, styleLookupOf([]), options);
+  const texts = result.blocks.map((b) => (b.kind === 'paragraph' ? b.inlines.map((i) => ('text' in i ? i.text : '\n')).join('') : '[table]'));
+  const note = texts.indexOf('Actual memory speed depends on CPU SKU, DIMM type, population and BIOS configuration. *R900 is a four-socket example; the R700 naming sequence starts at 11G.');
+  assert.ok(note > 0, 'the note is one paragraph');
+  assert.equal(texts[note - 1], '[table]');
+  assert.equal(texts[note + 1], 'Understanding the model numbers');
+  assert.ok(!texts.includes('Actual'), 'no one-word paragraph');
+  const count = (blocks) => blocks.reduce((n, b) => n + (b.kind === 'paragraph' ? 1 : b.rows.flat().reduce((m, c) => m + count(c.blocks), 0)), 0);
+  assert.equal(result.report.paragraphs, count(result.blocks));   // the cells' paragraphs counted with the rest
+  const path = join(corpus, 'chatgpt', 'chatgpt-answer.expected.json');
+  const json = JSON.stringify(result, null, 2) + '\n';
+  if (process.env['UPDATE_HTML']) { await writeFile(path, json); return; }
+  assert.deepEqual(JSON.parse(json), JSON.parse(await readFile(path, 'utf8')));
+});
+
 test('a list gets its numbering, a link its hyperlink in Word\'s look, and neither without the document\'s answer', async () => {
   const lookup = await lookupFor(await samples());
   const html = '<ul><li>one</li><li>two</li></ul><p>See <a href="https://example.org/x">the site</a> and <a href="mailto:a@b.c">mail</a>.</p>';

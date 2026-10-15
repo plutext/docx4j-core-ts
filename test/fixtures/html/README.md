@@ -64,3 +64,16 @@ as its plain text (`isTerminalHtml`); the converter alone would make a paragraph
 A copy made inside Claude Code carried `text/plain` alone the same day, `/copy` and a selection
 alike, whatever Konsole's setting (its type names suggest Claude Code puts it on the clipboard
 itself; not confirmed), so it needs no rule.
+
+## ChatGPT (2026-10-15)
+
+`chatgpt/chatgpt-answer.html` is what chatgpt.com in Chromium put on the clipboard as `text/html` for
+an answer selected and copied with Ctrl+C, saved by `wl-paste -t text/html` on 2026-10-15 (the same
+copy's `text/plain`, Markdown, beside it as `.txt`, and the page's `chromium/x-source-url` as
+`.url`). Every word is a `span` of its own; a heading, a paragraph and a cell hold them in a `p` or
+`h2`, but the note after a table stands in a bare `span` straight under the fragment, a `span` per
+word inside it. The walk had made a paragraph of each word there (the editor showed the note one
+word per line); text and inline elements met under a container are now one paragraph together, to
+the next block or the container's end, as a browser lays them out. The answer's citation chips
+("Dell Australia", "+3", a favicon dropped and counted) and an empty `p` after them are in the
+copy and stay in the conversion, pinned in `chatgpt-answer.expected.json`.

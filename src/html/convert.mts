@@ -474,29 +474,52 @@ function tableFrom(el: Element, w: Walk): PasteTable {
   return { kind: 'table', rows, style: w.tableStyle };
 }
 
-/** Block-level content in document order: paragraphs, headings, list items, tables; containers descended into. */
+/** Elements a line holds: gathered with the text beside them into one paragraph when they stand under a container. */
+const INLINE_TAGS = new Set(['span', 'a', 'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'ins', 'sub', 'sup', 'code', 'font', 'small', 'big', 'mark', 'abbr', 'cite', 'q', 'kbd', 'var', 'samp', 'tt', 'time', 'label', 'wbr', 'br']);
+/** What makes an inline element a container after all: a block inside it (`<span><p>` in Word's HTML, `<a><div>`). */
+const BLOCK_INSIDE = 'p,h1,h2,h3,h4,h5,h6,li,pre,blockquote,ul,ol,dl,table,div,section,article,header,footer,nav,aside,main,figure,figcaption,hr,img';
+
+/**
+ * Block-level content in document order: paragraphs, headings, list items, tables; containers descended into.
+ * Text and inline elements met under a container (a cell without a paragraph; ChatGPT's note after a table, a
+ * `span` holding a `span` per word) are one paragraph together, up to the next block or the container's end,
+ * as a browser lays them out: a paragraph per text node had made a paragraph of every word.
+ */
 function walkBlocks(parent: Node, out: PasteBlock[], w: Walk): void {
-  const pending: { inlines: PasteInline[] } | null = null;
-  void pending;
+  let pending: PasteInline[] | null = null;
+  const flush = (): void => {
+    if (pending === null) return;
+    while (pending.length > 0 && 'br' in pending[pending.length - 1]!) pending.pop();
+    trimEdges(pending);
+    if (pending.length > 0) { out.push({ kind: 'paragraph', style: null, inlines: pending }); w.report.paragraphs++; }
+    pending = null;
+  };
   for (const node of Array.from(parent.childNodes)) {
     if (node.nodeType === 3) {
-      // Bare text under a container (a cell without a paragraph): its own paragraph.
-      const text = (node.textContent ?? '').replace(/[ \t\r\n]+/g, ' ').trim();
-      if (text !== '') { out.push({ kind: 'paragraph', style: null, inlines: [{ text }] }); w.report.paragraphs++; }
+      if (pending === null && (node.textContent ?? '').trim() === '') continue;   // the markup's own line ends between blocks
+      pending ??= [];
+      walkInline(node, pending, {}, w, false);
       continue;
     }
     if (node.nodeType !== 1) continue;
     const el = node as Element;
     const tag = el.tagName.toLowerCase();
     if (tag === 'script' || tag === 'style' || tag === 'head' || tag === 'meta' || tag === 'link' || tag === 'title' || tag === 'o:p') continue;
+    if (INLINE_TAGS.has(tag) && el.querySelector(BLOCK_INSIDE) === null) {
+      if (tag === 'br' && pending === null) continue;   // a break between blocks starts no paragraph
+      pending ??= [];
+      walkInline(el, pending, {}, w, false);
+      continue;
+    }
+    flush();
     if (tag === 'p' || HEADING.test(tag) || tag === 'li' || tag === 'pre' || tag === 'blockquote' && el.querySelector('p') === null) { out.push(paragraphFrom(el, w)); continue; }
     if (tag === 'ul' || tag === 'ol') { w.listStack.push(tag === 'ul'); walkBlocks(el, out, w); w.listStack.pop(); continue; }
-    if (tag === 'table') { if (w.listStack.length === 0 || true) out.push(tableFrom(el, w)); continue; }
+    if (tag === 'table') { out.push(tableFrom(el, w)); continue; }
     if (tag === 'img') { w.drop('images'); continue; }
-    if (tag === 'br') continue;
-    // A container (div, body, html, span at block level, blockquote with paragraphs, td outside a table): its blocks.
+    // A container (div, body, html, a span holding blocks, blockquote with paragraphs, td outside a table): its blocks.
     walkBlocks(el, out, w);
   }
+  flush();
 }
 
 /**

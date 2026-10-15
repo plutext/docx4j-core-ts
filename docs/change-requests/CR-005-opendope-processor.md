@@ -363,6 +363,15 @@ decision 26): the converter is moved, never copied, and the editor imports it ba
    into a new document, its paragraphs read back after a save; a list's numbering and a link's
    hyperlink given and withheld; vertical and horizontal merges and a header row. `tsconfig`'s
    `es2019` target has no iterable DOM collections: the walk uses `Array.from`.
+4. **Loose inline content is one paragraph** (2026-10-15, found by the editor pasting a ChatGPT
+   answer): text and inline elements (`span`, `a`, `b`, `code` and the rest; a `br` among them a line
+   break, one between blocks nothing) met under a container are gathered into one paragraph, up to
+   the next block element or the container's end, as a browser lays them out. The walk had made a
+   paragraph of each text node, so a note ChatGPT writes as a bare `span` holding a `span` per word
+   came out one word per paragraph. An inline element holding a block (`<span><p>` in Word's HTML)
+   is still a container. Word's captures convert as before; `test/fixtures/html/chatgpt/` holds the
+   capture and its conversion. The editor takes it with the release that carries it (no fallback,
+   Jason's decision).
 
 ### 8.2 The bind step (implemented 2026-10-08)
 
