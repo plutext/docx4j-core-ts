@@ -124,3 +124,46 @@ test('every namespace the object model has a module for is understood', async ()
   }
   assert.deepEqual(missing, [], `add these to UNDERSTOOD_NAMESPACES, or record why not:\n${missing.join('\n')}`);
 });
+
+// CR-009 section 8: Office gates a chartex chart's frame with a later chartex namespace than the
+// chart's own - Requires="cx1" (2015/9/8) for a waterfall or a histogram, "cx2" (2015/10/21) for a
+// funnel - though nothing in the Choice is in it. Before they were understood the Fallback was
+// taken, and a save that re-marshalled the part wrote the chart as its fallback picture (Word,
+// PowerPoint) or as Excel's "not available" box. docx4j's three waterfalls (its charts/ fixtures).
+const elementForm = (n) => {
+  if (n.nodeType === 3) return n.nodeValue.trim() ? JSON.stringify(n.nodeValue) : '';
+  if (n.nodeType !== 1) return '';
+  const attrs = [...n.attributes].filter((a) => a.name !== 'xmlns' && !a.name.startsWith('xmlns:'))
+    .map((a) => `{${a.namespaceURI ?? ''}}${a.localName}=${JSON.stringify(a.value)}`).sort();
+  return `<{${n.namespaceURI}}${n.localName} ${attrs.join(' ')}>${[...n.childNodes].map(elementForm).join('')}</>`;
+};
+const CX = 'http://schemas.microsoft.com/office/drawing/2014/chartex';
+for (const [file, name] of [['waterfall.docx', 'word/document.xml'], ['waterfall.xlsx', 'xl/drawings/drawing1.xml'], ['waterfall.pptx', 'ppt/slides/slide1.xml']]) {
+  test(`a chartex frame behind Requires="cx1" keeps its chart through a save: charts/${file}`, async () => {
+    const bytes = await fixture(`charts/${file}`);
+    const source = parseXml(new TextDecoder().decode(new ZipPartStore(bytes).loadSync(name)));
+    const choice = source.getElementsByTagNameNS(MCE_NS, 'Choice')[0];
+    assert.equal(choice.getAttribute('Requires'), 'cx1');
+    const frame = [...choice.childNodes].find((c) => c.nodeType === 1);
+
+    const pkg = await OpcPackage.load(bytes);
+    await pkg.unmarshalAll();
+    const store = new ZipPartStore(await pkg.save());
+    const saved = parseXml(new TextDecoder().decode(store.loadSync(name)));
+    assert.equal(saved.getElementsByTagNameNS(MCE_NS, 'AlternateContent').length, 0, 'the branch was chosen on load');
+    const frames = [...saved.getElementsByTagNameNS(frame.namespaceURI, frame.localName)].map(elementForm);
+    assert.ok(frames.includes(elementForm(frame)), `the Choice's ${frame.nodeName} is written back whole`);
+    const chart = saved.getElementsByTagNameNS(CX, 'chart');
+    assert.equal(chart.length, 1, 'cx:chart, not the Fallback');
+    const rels = store.loadSync(name.replace(/([^/]+)$/, '_rels/$1.rels'));
+    const id = chart[0].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+    assert.match(new TextDecoder().decode(rels), new RegExp(`Id="${id}"[^>]*chartEx|chartEx[^>]*Id="${id}"`), 'its relationship still names the chartEx part');
+  });
+}
+
+test('a funnel\'s frame, behind Requires="cx2", is taken too', () => {
+  const doc = parseXml(`<w:r xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex"><mc:AlternateContent><mc:Choice Requires="cx2"><w:drawing><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="${CX}"><cx:chart xmlns:cx="${CX}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId4"/></a:graphicData></a:graphic></w:drawing></mc:Choice><mc:Fallback><w:drawing><w:t>picture</w:t></w:drawing></mc:Fallback></mc:AlternateContent></w:r>`);
+  assert.equal(resolveAlternateContent(doc), 1);
+  assert.equal(doc.getElementsByTagNameNS(CX, 'chart').length, 1);
+  assert.equal(doc.getElementsByTagNameNS(W, 't').length, 0);
+});

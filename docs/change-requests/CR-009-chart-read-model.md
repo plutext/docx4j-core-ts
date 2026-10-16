@@ -176,3 +176,45 @@ Nothing here follows either.
 
 This package would come to it after this CR's read model, if at all. It reads the same chart parts,
 and `SpreadsheetMLPackage` is the xlsx host. No consumer has asked.
+
+## 8. A chartex chart lost on save, and kept (found 2026-10-14, fixed 2026-10-17)
+
+Found while checking objects `5b43f6c` for release, and fixed at Jason's word. It is the question
+section 2 left open: whether a Choice's `cx` content comes typed or stays DOM. Until this fix it came
+as neither, because the Choice wasn't taken.
+
+- **The case.** Word, Excel and PowerPoint write a chartex chart's frame in `mc:AlternateContent`.
+  The Choice requires a later chartex namespace than the chart's own: `Requires="cx1"` (2015/9/8)
+  for a waterfall or a histogram, `"cx2"` (2015/10/21) for a funnel. The Fallback is a picture of
+  the chart in Word and PowerPoint, and in Excel a shape whose text says the chart isn't available.
+  Neither namespace was in `UNDERSTOOD_NAMESPACES`, so loading took the Fallback. Any save that
+  re-marshalled the part then wrote the picture or the shape in the chart's place, with no
+  `cx:chart`. That happens after `unmarshalAll`, and in a docx after `getBody`. The chartEx part
+  stayed in the package with nothing pointing to it. Measured on docx4j's five chartex files: the
+  three waterfalls under `charts/` and the two histogram workbooks under `charts/chartex/`.
+- **The Choice.** Nothing in it is in the namespace it requires. The frame's `a:graphicData` holds
+  a `cx:chart` of the 2014 namespace, which the model binds: it loads typed, as `CTRelId`. Nothing
+  binds the 2015 namespaces (docx4j has no schema for them), but the Choice round-trips whole. The
+  check compared each element's namespace, name, attributes and children, leaving prefix
+  declarations aside. It covered docx4j's five files and all 251 chartex files in the test
+  resources of Plutext-Enterprise-Java-11's `docx4j-Enterprise-ChartEx` module (239 `cx1`, 12
+  `cx2`), read in place and not copied here.
+- **Fixed** in `src/opc/mce/understood.mts`: the two namespaces are a hand-kept group of their own.
+  Any later chartex namespace is left out, since no file seen gates a Choice with one.
+- **The cost.** As with every Choice taken, the save writes the Choice alone, without the
+  `mc:AlternateContent` or its Fallback (CR-001 section 21). A consumer that doesn't understand
+  `cx1` then has nothing to draw there, where it had the picture before.
+- **Tests,** in `mce.test.mjs`:
+  - Each of docx4j's waterfalls is loaded, unmarshalled and saved. They are copied into
+    `test/fixtures/charts/` from docx4j `f9708f5b3` (docx, pptx) and `e560d03f3` (xlsx), both
+    pushed. The saved frame equals the Choice's, `cx:chart` is there, and its relationship still
+    names the chartEx part.
+  - A built funnel Choice tests `cx2`.
+  - All four fail without the two namespaces. The suite passes 826 of 826.
+- **What moved.** Load, `unmarshalAll` and save of 456 fixtures (8,153 parts) were hashed before
+  and after. Five parts differ: the hosts of the five chartex frames, each now keeping its Choice.
+- **Found, not fixed.** The content API lists every inline drawing as an `InlinePicture`, a chart
+  included. On an ordinary `c:chart` (`loadAndSave.docx`), and now on a chartex one, `imageFormat`
+  throws a TypeError (`Cannot read properties of undefined (reading 'blip')`) rather than saying
+  the drawing isn't a picture. Before the fix the waterfall's `InlinePicture` was its Fallback
+  picture, and its reads worked.

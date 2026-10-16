@@ -4,10 +4,11 @@
 //
 // It is the defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts
 // (0.3.0), which `mce.test.mjs` asserts so that the next regeneration announces an addition, plus
-// two groups of hand-kept entries, each marked below: namespaces no module *defaults* to but which
-// the model binds anyway (attributes, or elements a module of another namespace declares), and the
+// three groups of hand-kept entries, each marked below: namespaces no module *defaults* to but which
+// the model binds anyway (attributes, or elements a module of another namespace declares), the
 // slicer namespaces of CR-004 phase B, whose content the model does not bind at all but carries
-// through as DOM.
+// through as DOM, and the chartex namespaces Office gates a chart's frame with, which nothing in the
+// Choice uses (CR-009 section 8).
 export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
   'http://schemas.openxmlformats.org/package/2006/relationships',
@@ -126,4 +127,15 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/drawing/2010/slicer',
   'http://schemas.microsoft.com/office/drawing/2012/slicer',
   'http://schemas.microsoft.com/office/drawing/2012/timeslicer',
+
+  // Office's chartex charts (CR-009 section 8). Word, Excel and PowerPoint gate a chartex frame with
+  // a later chartex namespace than the chart's own: Requires="cx1" (2015/9/8) for a waterfall or a
+  // histogram, "cx2" (2015/10/21) for a funnel. Nothing in the Choice is in it: the frame's
+  // a:graphicData holds a cx:chart of the 2014 namespace, which the model binds. Nothing binds these
+  // two (docx4j has no schema for them), but the Choice round-trips whole, and the Fallback is only a
+  // picture of the chart, or in Excel a box saying the chart is not available, so leaving it would
+  // lose the chart on any save that re-marshals the part. Office's other chartex namespaces are not
+  // here: no file seen gates a Choice with one.
+  'http://schemas.microsoft.com/office/drawing/2015/9/8/chartex',
+  'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
 ]);

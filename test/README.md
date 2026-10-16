@@ -66,6 +66,11 @@ All and Reject All saves of it (`cr043-accept-all`, `cr043-reject-all`). They ar
 `w:tblHeader w:val="on"` and its Source Code style `w:wordWrap w:val="off"`, ST_OnOff spellings
 that @docx4j/jsonix 3.4.0 refused. It is the fixture of `load.test.mjs`'s on/off case.
 
+`charts/waterfall.docx`, `.xlsx` and `.pptx` are docx4j's `docx4j-core-tests/src/test/resources/charts/`
+files of those names (`f9708f5b3`, the xlsx `e560d03f3`; its `charts/README.md` describes them): a
+waterfall chart made by Office, whose frame is in an `mc:AlternateContent` with `Requires="cx1"`. They
+are the fixtures of `mce.test.mjs`'s chartex case (CR-009 section 8).
+
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
 JPEG header (SOI, a JFIF APP0 at 300 dpi, SOF0, EOI) for the header reader.
