@@ -2527,3 +2527,26 @@ The goldens were regenerated from the release and taken in full, so every header
 `856afc5da`, the 17.3.2 jar and its hash (`test/golden/README.md`). Parity and XPath parity are zero
 differences on all 124. Each port was checked both ways: its tests (and, for `fb2a764f7`, the two
 goldens) fail on the code before it.
+
+## 23. The font tables regenerated at docx4j `84d0f8a5b` (2026-10-13)
+
+The generated font tables (section 15's generated data, `npm run generate:fonts`) had recorded
+`7fba7a150` since Phase B. The parity goldens can't notice when they fall behind: a golden maps only
+the fonts its fixture uses. Two of docx4j's changes since then were missed:
+
+| docx4j | what | here |
+|---|---|---|
+| `1af3088b3` (17.3.3, CR-037 phase 2) | the theme2023 jar carries Intos Narrow (OFL, four styles), and `font-substitutes.xml` names `Intos Narrow Regular` as Aptos Narrow's metric substitute, ahead of Arimo. Aptos Narrow is Excel 365's minor font. | the row regenerated; the four faces added to `JAR_FONTS` in `registry.mts`, without which the default registry could not find the substitute. Their names are the name table's full name and family, laid out as Intos Display's are |
+| `e9cbe4a21` | `MicrosoftFonts.xml` lists Book Antiqua's bold, italic and bold italic files, so `hasBoldFace('Book Antiqua')` is true and it gets no `+nobold` alias | regenerated: 42 families with a bold face, up from 41 |
+
+The generator ran on a shared clone of docx4j checked out at `84d0f8a5b`, the head of
+`VERSION_17_3_3` on GitHub, so the headers record a pushed commit. The tables are otherwise
+unchanged: `103c65134` changed only `word-line-metrics.properties`' metrics for Cambria Math, which
+the generator doesn't read (it reads the family names). `b70cf62f8` added Intos Narrow's
+`<clone>` entry, which the generator doesn't read either, and `409aade38` changed only `@since`
+comments.
+
+Tests: `fonts.test.mjs` asserts Aptos Narrow maps to Intos Narrow as a `METRIC_CLONE`
+(`MetricallyCompatibleSubstituteTest`) and that Book Antiqua has a bold face (`NoBoldFaceTest`).
+Both fail on the tables before. No golden maps Aptos Narrow or Book Antiqua, and parity is still
+zero on all 124.

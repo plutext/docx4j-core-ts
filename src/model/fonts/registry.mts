@@ -62,7 +62,9 @@ export const EMPTY_FONT_REGISTRY: FontRegistry = new SimpleFontRegistry();
  * classpath): Liberation's croscore metric clones, crosextra's Carlito and Caladea, the
  * theme2023 stand-ins for Word 365's Aptos, and the symbol jar's DejaVu Serif and Noto
  * Sans Symbols.  This is the environment CR-016 phase 0c measured and the parity goldens
- * record, so the default mapping here is reproducible against them.
+ * record, so the default mapping here is reproducible against them.  The four Intos Narrow faces,
+ * theme2023's stand-in for Aptos Narrow, came with docx4j 17.3.3 (`1af3088b3`); their names are
+ * the name table's full name and family, laid out as Intos Display's are.
  */
 const JAR_FONTS: readonly (readonly [string, string])[] = [
   ['Akasia Black', 'Akasia'],
@@ -101,6 +103,10 @@ const JAR_FONTS: readonly (readonly [string, string])[] = [
   ['Intos Display Bold Italic', 'Intos Display'],
   ['Intos Display Italic', 'Intos Display'],
   ['Intos Display Regular', 'Intos Display'],
+  ['Intos Narrow Bold', 'Intos Narrow'],
+  ['Intos Narrow Bold Italic', 'Intos Narrow'],
+  ['Intos Narrow Italic', 'Intos Narrow'],
+  ['Intos Narrow Regular', 'Intos Narrow'],
   ['Noto Sans Symbols 2 Regular', 'Noto Sans Symbols 2'],
   ['Noto Sans Symbols Bold', 'Noto Sans Symbols'],
   ['Noto Sans Symbols Regular', 'Noto Sans Symbols'],

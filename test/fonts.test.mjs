@@ -494,6 +494,8 @@ test('NoBoldFaceTest: a family with no bold face of its own', async () => {
   assert.equal(hasBoldFace('Segoe UI Semibold'), false);
   assert.equal(hasBoldFace('Arial Black'), false, 'the registry entry has no bold child');
   assert.equal(hasBoldFace('Some Unknown Family'), true);
+  // MicrosoftFonts.xml lists Book Antiqua's bold, italic and bold italic files since docx4j e9cbe4a21
+  assert.equal(hasBoldFace('Book Antiqua'), true);
 
   const reg = registry(SANS, SERIF);
   const m = new IdentityPlusMapper(reg);
@@ -548,12 +550,15 @@ test('MetricallyCompatibleSubstituteTest: serifs get a serif and sans a sans', a
   assertOneOf('Cambria', 'caladea', 'liberation serif');
   assertOneOf('Aptos', 'akasia', 'carlito');
   assertOneOf('Aptos Display', 'intos display', 'carlito');
+  // Excel 365's minor font, whose clone the theme2023 jar carries since docx4j 1af3088b3
+  assertOneOf('Aptos Narrow', 'intos narrow');
 
   // the pair whose secondary substitutes were once swapped: neither becomes the other's class
   assert.ok(!substitute('Times New Roman').includes('sans'), 'Times New Roman became a sans');
   assert.ok(!substitute('Arial').includes('serif'), 'Arial became a serif');
   // and the sources the table's quality words give
   assert.equal(m.getDecision('Times New Roman').source, 'METRIC_CLONE');
+  assert.equal(m.getDecision('Aptos Narrow').source, 'METRIC_CLONE');
   assert.equal(m.getDecision('Cambria').source, 'MEASURED_STAND_IN');
   assert.equal(m.getDecision('Consolas').source, 'CLASS');
 });
