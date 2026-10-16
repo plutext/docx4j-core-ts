@@ -239,11 +239,20 @@ docx4j repositories, in `../docx4j-portfolio/tasks.yaml` (ids `<repo>/<CR>[.<pha
 repository's key is `core-ts`).
 
 - When a CR's status changes (a phase lands; a CR is proposed, deferred or abandoned) or its
-  dependencies change, update the matching entry in `tasks.yaml` in the same session (`status`,
-  `depends_on`; add an entry for a new CR or phase).
-- Then run `python3 ../docx4j-portfolio/scripts/tasks.py check`. It reports `CHANGED` for each CR
-  whose Status line was edited; once the registry entry agrees, run `tasks.py accept` (and
-  `tasks.py graph` if dependencies changed).
+  dependencies change, the matching entry in `tasks.yaml` changes in the same session (`status`,
+  `depends_on`; a new entry for a new CR or phase).
+- Since 2026-10-17 (Jason) this repository does not edit `../docx4j-portfolio/tasks.yaml`,
+  `scripts/status-snapshots.yaml` or `docs/dependencies.md` itself. Send the change to the session
+  working in `../docx4j-portfolio` (find it with ListAgents by that directory, not by its name's
+  suffix, which changes): the entry id, the new `status`, `depends_on` and `notes` (or the whole
+  entry), and any CR Status line to re-baseline. That session applies it, runs `tasks.py check`,
+  `graph` and `accept`, and commits.
+- Only when no session is running in `../docx4j-portfolio`, make the change from this session:
+  edit the files, run `python3 ../docx4j-portfolio/scripts/tasks.py check` (it reports `CHANGED`
+  for each CR whose Status line was edited; once the registry entry agrees, `tasks.py accept`,
+  which baselines every repository's changed lines, and `tasks.py graph` if dependencies changed),
+  and commit there only your own hunks, through a temporary index from `HEAD`, never the shared
+  index.
 - Before starting a CR or phase, check `python3 ../docx4j-portfolio/scripts/tasks.py blocked`: it
   may be waiting on work in another repository. The portfolio rule of 2026-09-15 (XSL-FO fidelity
   work in `../docx4j` before porting docx4j code) was lifted for CR-001 Phase B on 2026-09-19
