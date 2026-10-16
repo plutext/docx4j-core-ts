@@ -25,7 +25,7 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, storyRootOf } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -452,13 +452,13 @@ export class Body {
             // belongs to that change, which accepts or rejects it along with the row.
             const tokens: TrackedChangeToken[] = [];
             for (const cell of cellsOf(row.element.value)) {
-              const cellChange = cellChangeOf(cell.element, cell.container, row.element.value);
+              const cellChange = cellChangeOf(cell.element, cell.container, row.element.value, this);
               if (cellChange) tokens.push(cellChange, BREAK);
               visit(childrenOf(cell.element.value) ?? [], tokens);
               tokens.push(BREAK);
             }
             const inner = groupTouching(tokens);
-            const rowChanges = trackedChangesOfRow(row.element, row.container, inner, { element: el as Element<wml.Tbl>, container: items });
+            const rowChanges = trackedChangesOfRow(row.element, row.container, inner, { element: el as Element<wml.Tbl>, container: items }, this);
             if (rowChanges.length > 0) into.push(...rowChanges);
             else { into.push(BREAK); for (const change of inner) into.push(change, BREAK); }
           }
@@ -498,16 +498,20 @@ export class Body {
    * pass that resolves nothing ends it.
    */
   private resolveAll(what: 'accept' | 'reject'): number {
-    let changes = this.getTrackedChanges();
-    const count = changes.length;
-    while (changes.length > 0) {
-      for (let i = changes.length - 1; i >= 0; i--) changes[i]![what]();
-      const left = this.getTrackedChanges();
-      if (left.length >= changes.length) break;
-      changes = left;
-    }
-    // and what is never listed: a cell merge, a numbering change, records that change nothing
-    resolveUnlisted(this.content, what);
+    let count = 0;
+    // one resolution for the lot, so the bookmarks are read before the first and after the last
+    resolving(this.package_, storyRootOf(this), () => {
+      let changes = this.getTrackedChanges();
+      count = changes.length;
+      while (changes.length > 0) {
+        for (let i = changes.length - 1; i >= 0; i--) changes[i]![what]();
+        const left = this.getTrackedChanges();
+        if (left.length >= changes.length) break;
+        changes = left;
+      }
+      // and what is never listed: a cell merge, a numbering change, records that change nothing
+      resolveUnlisted(this.content, what);
+    });
     return count;
   }
 

@@ -49,6 +49,17 @@ move's `w:name`, which is what CR-002 section 29 is measured on (check 16). It s
 of its own so that neither Java harness makes a golden of it. `revisions/check18/` holds what Word
 made of it in check 18 - one action each through the Review tab, on a fresh copy, saved by Jason
 2026-09-28 - the oracle of `tracking.test.mjs`'s move tests.
+`revisions/review/` holds three of the docx4j-ts-editor's Word saves from its E4.g session (its
+`packages/editor-model/test/fixtures/review/`, at its `1c90869`, 2026-09-30):
+`review-for-word-word15.docx`, the editor's review file saved untouched by Word 15, and Word 15's
+Accept All and Reject All saves of the same file (`-accepted`, `-rejected`). They are the oracle of
+`tracking.test.mjs`'s footnote case (CR-002 section 44).
+`revisions/cr043/` holds three files from docx4j's CR-043 phase 0 probe (its
+`docx4j-core-tests/src/test/resources/revisions/cr043/`, at its `5e895232f`; Word 16.0.20326,
+2026-10-16, driven through Word's object model by its `cr043-probe.ps1`): `cr043-tracked.docx`, the
+probe's tracked edits on a base document (its `cr043-log.txt` lists each case), and Word's Accept
+All and Reject All saves of it (`cr043-accept-all`, `cr043-reject-all`). They are the oracle of
+`tracking.test.mjs`'s bookmark case (CR-002 section 45).
 
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a

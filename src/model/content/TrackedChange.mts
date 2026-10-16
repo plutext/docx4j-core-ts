@@ -9,6 +9,7 @@ import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, 
 import { removeMarkers } from './comments.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
+import type { Body } from './Body.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties, HOLDER_TYPES, holderItemsOf } from './tracking.mjs';
 import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
@@ -69,7 +70,15 @@ export type TrackedChangeTarget =
    * stood; accepting takes the markers away. Its text is its content's, which the pieces inside
    * report.
    */
-  | { kind: 'holder'; holder: Element; owner: Element[]; outer: [Element, Element]; inner: [Element, Element]; value: wml.CTTrackChange };
+  | { kind: 'holder'; holder: Element; owner: Element[]; outer: [Element, Element]; inner: [Element, Element]; value: wml.CTTrackChange }
+  /**
+   * A field Word inserted under tracking, in its own form: a `w:ins` around the field's begin and
+   * instruction runs and another around its end, the separator and the result between them plain
+   * (check 30, `field-inserted`). Office JS lists it as one `Added` change whose text is the result's,
+   * and Word's Reject All took the whole field away, the result with it (CR-002 section 44). `span` is
+   * the items of `owner` from the first `w:ins` to the last.
+   */
+  | { kind: 'field'; span: Element[]; owner: Element[]; value: wml.CTTrackChange };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -81,6 +90,8 @@ export class TrackedChange {
     readonly target: TrackedChangeTarget,
     /** The paragraph the change is in; undefined for a row revision. */
     readonly paragraph: Paragraph | undefined,
+    /** The body a change without a paragraph (a row, a cell) is in, for the notes it may take away. */
+    readonly body?: Body,
   ) {}
 
   /** Office JS `Word.ChangeTrackingState`. */
@@ -93,6 +104,7 @@ export class TrackedChange {
       case 'group': return t.revision === 'ins' ? 'Added' : t.revision === 'del' ? 'Deleted' : 'Formatted';
       case 'cell': return t.cell === 'ins' ? 'Added' : 'Deleted';
       case 'holder': return 'Added';
+      case 'field': return 'Added';
       default: return 'Formatted';
     }
   }
@@ -126,6 +138,7 @@ export class TrackedChange {
       case 'cell': return t.tc;
       case 'sectionProperties': return t.sectPr;
       case 'holder': return t.holder;
+      case 'field': return t.span[0]!;
       default: return t.value;
     }
   }
@@ -142,6 +155,8 @@ export class TrackedChange {
       case 'sectionProperties': return t.text;
       case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original' }).map((s) => s.text).join('');
       case 'runProperties': return textOf(t.run);
+      // the field's result: its instruction is no text, as Office JS reports it (check 30: "1")
+      case 'field': return segmentsOf({ content: t.span }, { view: 'accepted' }).map((s) => s.text).join('');
       case 'paragraphProperties': return this.paragraph?.text ?? '';
       // a deleted row's content is `w:delText` inside `w:del`, which the accepted view skips:
       // its text is what the row said before, as for a run deletion
@@ -161,9 +176,13 @@ export class TrackedChange {
     }
     if (t.kind === 'group') {
       // a range is one paragraph's: the group's text in the paragraph it starts in
-      const here = t.pieces.filter((piece) => (piece.target.kind === 'run' || piece.target.kind === 'runProperties') && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
+      const here = t.pieces.filter((piece) => (piece.target.kind === 'run' || piece.target.kind === 'runProperties' || piece.target.kind === 'field') && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
       if (here.length === 0) return t.pieces[0]!.getRange();
       return new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
+    }
+    if (t.kind === 'field') {
+      const start = acceptedOffsetOf(p.p, t.span[0]!);
+      return new Range(p, start, start + this.text.length);
     }
     if (t.kind === 'runProperties') {
       const segs = p.segments().filter((s) => s.run === t.run);
@@ -178,6 +197,10 @@ export class TrackedChange {
    * Either half of a move keeps the whole move, as Word's Review tab does (CR-002 section 29).
    */
   accept(): void {
+    resolving(this.package_, storyRootOf(this.body_), () => this.acceptHere());
+  }
+
+  private acceptHere(): void {
     const t = this.target;
     switch (t.kind) {
       case 'run':
@@ -225,6 +248,11 @@ export class TrackedChange {
         // the element stays, the markers go (check 30: accept all leaves the control, no marker)
         removeHolderMarkers(t);
         return;
+      case 'field':
+        for (const el of t.span) {
+          if (revisionKindOf(el) === 'ins') unwrap({ kind: 'run', revision: 'ins', element: el, owner: currentOwner(t.owner, el), value: el.value as wml.CTTrackChange });
+        }
+        return;
     }
   }
 
@@ -233,6 +261,10 @@ export class TrackedChange {
    * Either half of a move rejects the whole move, as Word's Review tab does (CR-002 section 29).
    */
   reject(): void {
+    resolving(this.package_, storyRootOf(this.body_), () => this.rejectHere());
+  }
+
+  private rejectHere(): void {
     const t = this.target;
     switch (t.kind) {
       case 'run':
@@ -279,7 +311,20 @@ export class TrackedChange {
         // control, and an existing control, which has no markers, stays)
         unwrapHolder(t);
         return;
+      case 'field':
+        removeField(t, this.paragraph);
+        return;
     }
+  }
+
+  /** The body the change is in. */
+  private get body_(): Body | undefined {
+    return this.paragraph?.parentBody ?? this.body;
+  }
+
+  /** The package the change is in, which keeps the notes whose references it took away. */
+  private get package_(): unknown {
+    return this.body_?.package_;
   }
 
   private requireParagraph(): Paragraph {
@@ -402,7 +447,210 @@ function currentOwner(owner: Element[], element: Element): Element[] {
 function remove(owner: Element[], element: Element): void {
   const list = currentOwner(owner, element);
   const i = list.indexOf(element);
-  if (i >= 0) list.splice(i, 1);
+  if (i < 0) return;
+  discarding(element);
+  list.splice(i, 1);
+}
+
+// --- what goes with removed content: notes (CR-002 section 44) and bookmarks (section 45) ----------
+
+/** The ids of the footnotes and endnotes whose references removed content took with it. */
+export interface NoteRemovals { footnote: Set<number>; endnote: Set<number> }
+
+/**
+ * A resolution in progress: where `discarding` records the notes (its package's `pendingNoteRemovals`),
+ * the tree its bookmarks are read in (the change's part), and those bookmarks as they were before the
+ * first removal.
+ */
+interface Resolution { notes: NoteRemovals | undefined; root: object | undefined; before?: Map<string, BookmarkState> }
+
+let resolution: Resolution | undefined;
+
+/**
+ * Runs `resolve`, then takes away what went with the content it removed:
+ * - **Notes**: Word took a footnote from the notes part when its reference went with the content
+ *   around it, accepting a deletion and rejecting an insertion alike (the editor's `review-for-word`
+ *   saves, Word 15 and Word 2010); the entries go when the package is saved
+ *   (`WordprocessingMLPackage.pendingNoteRemovals`).
+ * - **Bookmarks**: Word removed a bookmark whole when its end went with a deletion it accepted, and
+ *   when the insertion it was put around went with a reject (docx4j CR-043's probe, C11 and C11b, Word
+ *   16.0.20326). docx4j's rule from the two (its CR-043 section 3.2) is followed here: a bookmark with a
+ *   marker in removed content goes whole, its other marker too, even with content left beside it; so
+ *   does one with content between its markers that is left with none, a deletion it was around accepted
+ *   among them (U15); and one that was empty before, as `_GoBack` is, stays. Those three are not measured.
+ * A change resolved inside another's (a row's cells, a group's pieces, `acceptAll`'s changes) shares the
+ * outer resolution, so the bookmarks are read twice for the lot, and not at all when nothing is removed.
+ */
+export function resolving(pkg: unknown, root: object | undefined, resolve: () => void): void {
+  const notes = (pkg as { pendingNoteRemovals?: NoteRemovals } | undefined)?.pendingNoteRemovals;
+  const outer = resolution;
+  if (outer) {
+    outer.root ??= root;
+    const previous = outer.notes;
+    outer.notes = notes ?? previous;
+    try {
+      resolve();
+    } finally {
+      outer.notes = previous;
+    }
+    return;
+  }
+  resolution = { notes, root };
+  try {
+    resolve();
+    const done = resolution;
+    if (done.root && done.before) dropBookmarksBroken(done.root, done.before);
+  } finally {
+    resolution = undefined;
+  }
+}
+
+/** The tree a body's bookmarks are read in: its part's, so a marker in another cell or paragraph is found. */
+export function storyRootOf(body: Body | undefined): object | undefined {
+  if (!body) return undefined;
+  return body.part?.isUnmarshalled ? body.part.contents as object : body.container;
+}
+
+/** Called before content is removed (or a paragraph mark joins two): records its notes, and the bookmarks as they stand. */
+function discarding(element?: Element): void {
+  if (!resolution) return;
+  if (resolution.root) resolution.before ??= bookmarksIn(resolution.root);
+  if (element && resolution.notes) noteReferencesIn(element, resolution.notes);
+}
+
+/** A bookmark as a tree holds it: which of its markers stand, and whether content stands between them. */
+interface BookmarkState { start: boolean; end: boolean; filled: boolean }
+
+const MATH_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
+
+/** Run content that is something in the text: a character, a drawing, a field character, a note's reference. */
+const FILLS = new Set(['tab', 'br', 'cr', 'noBreakHyphen', 'softHyphen', 'sym', 'ptab', 'drawing', 'pict', 'object',
+  'fldChar', 'footnoteReference', 'endnoteReference', 'commentReference', 'footnoteRef', 'endnoteRef', 'annotationRef',
+  'separator', 'continuationSeparator', 'pgNum', 'dayShort', 'monthShort', 'yearShort', 'dayLong', 'monthLong', 'yearLong',
+  'contentPart', 'ruby']);
+
+/** Of those, the ones that can hold a story of their own (a text box), and so bookmarks: walked into. */
+const HOLDS_CONTENT = new Set(['drawing', 'pict', 'object', 'ruby', 'contentPart']);
+
+const TEXTS = new Set(['t', 'delText', 'instrText', 'delInstrText']);
+
+/** Properties, which hold no bookmark and no content: not walked. */
+const PROPERTIES = new Set(['PARENT', 'TYPE_NAME', 'name', 'otherAttributes', 'pPr', 'rPr', 'tblPr', 'tblPrEx', 'tblGrid', 'trPr', 'tcPr', 'sectPr', 'sdtPr', 'sdtEndPr']);
+
+/**
+ * Every bookmark in a tree, by id, in document order. Deleted and inserted content both count as
+ * content, and so does a paragraph's mark, so a bookmark over a paragraph boundary is not empty.
+ */
+function bookmarksIn(root: object): Map<string, BookmarkState> {
+  const marks = new Map<string, BookmarkState>();
+  let open: BookmarkState[] = [];
+  const fill = (): void => { for (const state of open) state.filled = true; open = []; };
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    const el = o as Element;
+    const local = el.name?.localPart;
+    if (local === 'bookmarkStart' || local === 'bookmarkEnd') {
+      const id = String((el.value as { id?: unknown } | undefined)?.id);
+      let state = marks.get(id);
+      if (!state) marks.set(id, state = { start: false, end: false, filled: false });
+      if (local === 'bookmarkStart') { state.start = true; open.push(state); }
+      else { state.end = true; open = open.filter((other) => other !== state); }
+      return;
+    }
+    if (local !== undefined && (el.name.namespaceURI === W_NS || el.name.namespaceURI === MATH_NS)) {
+      if (TEXTS.has(local)) {
+        if (String((el.value as { value?: unknown } | undefined)?.value ?? '') !== '') fill();
+        return;
+      }
+      if (FILLS.has(local)) {
+        fill();
+        if (!HOLDS_CONTENT.has(local)) return;
+      }
+    }
+    for (const key in o) if (!PROPERTIES.has(key)) visit((o as Record<string, unknown>)[key]);
+    if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.P') fill();
+  };
+  visit(root);
+  return marks;
+}
+
+/**
+ * The bookmarks whole before and broken now - a marker gone, or emptied - taken away, both markers.
+ * One broken already, or gone whole with the content it was in, is left as it is.
+ */
+function dropBookmarksBroken(root: object, before: Map<string, BookmarkState>): void {
+  if (before.size === 0) return;
+  const after = bookmarksIn(root);
+  const drop = new Set<string>();
+  for (const [id, was] of before) {
+    if (!was.start || !was.end) continue;
+    const now = after.get(id);
+    if (!now) continue;
+    if (!now.start || !now.end || (was.filled && !now.filled)) drop.add(id);
+  }
+  if (drop.size === 0) return;
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) {
+      for (let i = o.length - 1; i >= 0; i--) {
+        const el = o[i] as Element | undefined;
+        const local = el?.name?.localPart;
+        if ((local === 'bookmarkStart' || local === 'bookmarkEnd') && drop.has(String((el!.value as { id?: unknown } | undefined)?.id))) o.splice(i, 1);
+        else visit(el);
+      }
+      return;
+    }
+    for (const key in o) if (!PROPERTIES.has(key)) visit((o as Record<string, unknown>)[key]);
+  };
+  visit(root);
+}
+
+/** Adds the ids of the `w:footnoteReference` and `w:endnoteReference` elements anywhere in a tree to `into`. */
+function noteReferencesIn(tree: unknown, into: NoteRemovals): void {
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    const local = (o as { name?: { localPart?: string } }).name?.localPart;
+    if (local === 'footnoteReference' || local === 'endnoteReference') {
+      const id = Number(((o as { value?: { id?: unknown } }).value)?.id);
+      if (Number.isInteger(id)) into[local === 'footnoteReference' ? 'footnote' : 'endnote'].add(id);
+      return;
+    }
+    for (const [key, value] of Object.entries(o)) if (key !== 'PARENT') visit(value);
+  };
+  visit(tree);
+}
+
+/** What `flushPendingNoteRemovals` needs of the main document part. */
+interface NotesHost {
+  getContents(): Promise<unknown>;
+  footnotesPart?: { getContents(): Promise<wml.CTFootnotes> };
+  endnotesPart?: { getContents(): Promise<wml.CTEndnotes> };
+}
+
+/**
+ * The notes `pending` holds taken out of the notes parts, each unless a reference to it still stands in
+ * the main document (an accepted move keeps the reference its source had, say); then `pending` is
+ * empty. A note's entry goes, Word's separators never: their ids are never referenced. The notes parts
+ * are read only when something is pending, so a save with none leaves them untouched. Word's own save
+ * also renumbers the notes left (the editor's `review-for-word` saves); their ids stay here.
+ */
+export async function flushPendingNoteRemovals(main: NotesHost, pending: NoteRemovals): Promise<void> {
+  if (pending.footnote.size === 0 && pending.endnote.size === 0) return;
+  const standing: NoteRemovals = { footnote: new Set(), endnote: new Set() };
+  noteReferencesIn(await main.getContents(), standing);
+  const prune = (notes: wml.CTFtnEdn[] | undefined, ids: Set<number>, kept: Set<number>): void => {
+    if (!notes) return;
+    for (let i = notes.length - 1; i >= 0; i--) {
+      const note = notes[i]!;
+      if ((note.type === undefined || note.type === 'normal') && ids.has(Number(note.id)) && !kept.has(Number(note.id))) notes.splice(i, 1);
+    }
+  };
+  if (pending.footnote.size > 0 && main.footnotesPart) prune((await main.footnotesPart.getContents()).footnote, pending.footnote, standing.footnote);
+  if (pending.endnote.size > 0 && main.endnotesPart) prune((await main.endnotesPart.getContents()).endnote, pending.endnote, standing.endnote);
+  pending.footnote.clear();
+  pending.endnote.clear();
 }
 
 /** A holder's four insertion markers taken away; the element stays. */
@@ -448,6 +696,72 @@ export function holderInsertionAt(items: Element[], i: number, paragraph: Paragr
 }
 
 /**
+ * An inserted field rejected (Word's form, check 30 `field-inserted`): the `w:ins` pieces and the plain
+ * runs between them go, last first so that a comment's range is judged once the field's text is gone;
+ * a bookmark, a comment's range or a proofing mark between them stays where it stood.
+ */
+function removeField(t: Extract<TrackedChangeTarget, { kind: 'field' }>, paragraph: Paragraph | undefined): void {
+  for (let i = t.span.length - 1; i >= 0; i--) {
+    const el = t.span[i]!;
+    if (revisionKindOf(el) === 'ins') removeRevision({ kind: 'run', revision: 'ins', element: el, owner: currentOwner(t.owner, el), value: el.value as wml.CTTrackChange }, paragraph);
+    else if (typeNameOf(el) === 'org_docx4j_wml.R') remove(t.owner, el);
+  }
+}
+
+/**
+ * Word's form for a field inserted under tracking, when `items[i]` starts it: a `w:ins` that opens a
+ * field (a `w:fldChar` begin it does not end), then plain runs - the separator and the result - and
+ * markers, then a `w:ins` by the same author in which that field ends (check 30, `field-inserted`:
+ * begin and instruction in one, the end run in the other). Another revision, a run whose formatting
+ * changed, a run holder, or a field that ends in a plain run is not this form, and is listed as before.
+ * A field wholly inside one `w:ins` needs nothing of this: that `w:ins` already takes it whole.
+ */
+export function insertedFieldAt(items: Element[], i: number, paragraph: Paragraph | undefined): TrackedChange | undefined {
+  const first = items[i]!;
+  if (revisionKindOf(first) !== 'ins') return undefined;
+  const author = (first.value as wml.CTTrackChange).author;
+  let depth = 0;
+  // the fldChars of an element's runs in order: 'closed' when the field the span opened ends
+  const scan = (el: Element): 'open' | 'closed' | 'other' => {
+    const runs = typeNameOf(el) === 'org_docx4j_wml.R' ? [el] : runItemsOf(el.value as object) ?? [];
+    for (const run of runs) {
+      if (typeNameOf(run) !== 'org_docx4j_wml.R') continue;
+      for (const item of (run.value as wml.R).content ?? []) {
+        if ((item as Element).name?.localPart !== 'fldChar') continue;
+        const type = ((item as Element).value as wml.FldChar).fldCharType;
+        if (type === 'begin') depth++;
+        else if (type === 'end') {
+          depth--;
+          if (depth < 0) return 'other';
+          if (depth === 0) return 'closed';
+        }
+      }
+    }
+    return 'open';
+  };
+  if (scan(first) !== 'open' || depth === 0) return undefined;
+  for (let j = i + 1; j < items.length; j++) {
+    const el = items[j]!;
+    const kind = revisionKindOf(el);
+    if (kind === 'ins') {
+      if ((el.value as wml.CTTrackChange).author !== author) return undefined;
+      const state = scan(el);
+      if (state === 'other') return undefined;
+      if (state === 'closed') return new TrackedChange({ kind: 'field', span: items.slice(i, j + 1), owner: items, value: first.value as wml.CTTrackChange }, paragraph);
+      continue;
+    }
+    if (kind !== undefined) return undefined;
+    const v = el.value;
+    if (typeNameOf(el) === 'org_docx4j_wml.R') {
+      if ((v as wml.R).rPr?.rPrChange || scan(el) !== 'open') return undefined;
+      continue;
+    }
+    if (typeof v === 'object' && v !== null && runItemsOf(v)) return undefined;
+  }
+  return undefined;
+}
+
+/**
  * A row taken away, and its table with it when it was the last: a table has no revision of its own,
  * so one whose rows were all inserted was inserted, and one whose rows were all deleted was deleted.
  * A `w:tbl` left with no rows is not a table any more (CR-002 section 37).
@@ -489,6 +803,7 @@ function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragr
     const id = idOf(el);
     if (owner.some((other, e) => e > i && other.name?.localPart === 'commentRangeEnd' && idOf(other) === id)) outside.add(id);
   }
+  discarding(t.element);
   owner.splice(i, 1, ...kept);
   linkParents(kept, (t.element.value as { PARENT?: object }).PARENT);
   const body = paragraph?.parentBody;
@@ -565,6 +880,7 @@ function dropMark(paragraph: Paragraph | undefined, which: 'ins' | 'del'): void 
  * mark is simply dropped.
  */
 export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' | 'p'>, fallbackToPrevious = false): void {
+  discarding();
   const container = currentOwner(paragraph.container, paragraph.element as Element);
   const i = container.indexOf(paragraph.element);
   const next = i >= 0 ? container[i + 1] : undefined;
@@ -941,6 +1257,13 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       i += 2;
       continue;
     }
+    // a field Word inserted, its separator and result plain between two insertions: one piece
+    const field = insertedFieldAt(items, i, paragraph);
+    if (field && field.target.kind === 'field') {
+      out.push(field);
+      i += field.target.span.length - 1;
+      continue;
+    }
     const kind = revisionKindOf(el);
     if (kind !== undefined) {
       // moved text is content Office JS cannot list (checks 16, 17), and is kept apart
@@ -987,7 +1310,7 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   if (t.kind === 'mark') return t.mark;
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
   if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
-  if (t.kind === 'holder') return 'ins';
+  if (t.kind === 'holder' || t.kind === 'field') return 'ins';
   // an inserted or deleted row groups with rows and text touching it: Office JS lists an inserted
   // table of three rows, with the inserted paragraphs before and after it, as one change, and rows
   // added to a table that was there as one change per touching run of them (check 31)
@@ -1027,11 +1350,11 @@ export function groupTouching(tokens: TrackedChangeToken[]): TrackedChange[] {
  * The `w:trPr/w:ins` and `w:trPr/w:del` revisions of a table row. `inner` is the revision markup
  * of the row's own cells, which the row's change owns rather than reporting separately.
  */
-export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner: TrackedChange[] = [], table?: Located<wml.Tbl>): TrackedChange[] {
+export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner: TrackedChange[] = [], table?: Located<wml.Tbl>, body?: Body): TrackedChange[] {
   const trPr = tr.value.trPr;
   const out: TrackedChange[] = [];
-  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner, table }, undefined));
-  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner, table }, undefined));
+  if (trPr?.ins) out.push(new TrackedChange({ kind: 'row', row: 'ins', tr, owner, value: trPr.ins, inner, table }, undefined, body));
+  if (trPr?.del) out.push(new TrackedChange({ kind: 'row', row: 'del', tr, owner, value: trPr.del, inner, table }, undefined, body));
   return out;
 }
 
@@ -1044,10 +1367,10 @@ export function tablePropertiesChangeOf(tbl: Element<wml.Tbl>): TrackedChange | 
 }
 
 /** A cell's own revision, `w:cellIns` or `w:cellDel`, or undefined. */
-export function cellChangeOf(tc: Element<wml.Tc>, owner: Element[], tr: wml.Tr): TrackedChange | undefined {
+export function cellChangeOf(tc: Element<wml.Tc>, owner: Element[], tr: wml.Tr, body?: Body): TrackedChange | undefined {
   const tcPr = tc.value.tcPr;
-  if (tcPr?.cellIns) return new TrackedChange({ kind: 'cell', cell: 'ins', tc, owner, tr, value: tcPr.cellIns }, undefined);
-  if (tcPr?.cellDel) return new TrackedChange({ kind: 'cell', cell: 'del', tc, owner, tr, value: tcPr.cellDel }, undefined);
+  if (tcPr?.cellIns) return new TrackedChange({ kind: 'cell', cell: 'ins', tc, owner, tr, value: tcPr.cellIns }, undefined, body);
+  if (tcPr?.cellDel) return new TrackedChange({ kind: 'cell', cell: 'del', tc, owner, tr, value: tcPr.cellDel }, undefined, body);
   return undefined;
 }
 
@@ -1070,6 +1393,7 @@ function removeCell(tc: Element<wml.Tc>, owner: Element[]): void {
   const cells = owner.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tc') as Element<wml.Tc>[];
   const at = cells.indexOf(tc);
   const neighbour = cells[at - 1] ?? cells[at + 1];
+  discarding(tc);
   owner.splice(i, 1);
   if (!neighbour) return;
   const removed = tc.value.tcPr;

@@ -3872,3 +3872,140 @@ Tests: four in `test/content.test.mjs`, after the hyperlink tests. The refusal l
 relationships as they were, and the inner link reads its address. The bookmark case and the deletion
 case run for both wrappers. The link over inserted text is checked both untracked and typed under
 tracking, with a round trip. All four fail on the code before the fix. Not released.
+
+## 44. Accepting and rejecting, two departures from Word: an inserted field, and a note whose reference goes (2026-10-16)
+
+Both were found while answering the docx4j session's questions for its CR-043 (accepting and
+rejecting tracked changes in docx4j-core). The second was the docx4j session's finding, from Word's
+saves. Both were reproduced on main before the fix, and fixed at Jason's word.
+
+1. **A field Word inserted under tracking.** Word's form (check 30, gestures `field-inserted`, Word
+   16.0.20326.20158) is one `w:ins` around the field's begin and instruction runs and another around
+   its end run, with the separator and the result run plain between them.
+   - Office JS listed one `Added` change, text "1" (the result).
+   - Word's Reject All took the whole field away, separator and result included, and left "Kept.".
+     Accept All kept the field.
+   - The engine listed two `Added` changes with empty text. Rejecting removed only the two insertions
+     and left "Kept.1": the separator and the result, with no begin or end.
+2. **A footnote whose reference goes with removed content.** In the editor's `review-for-word` file as
+   Word 15 saved it, note 1's reference is inside a `w:ins` and note 2's inside a `w:del`.
+   - Word's Accept All left only note 1 in `footnotes.xml`, and its Reject All only note 2. Word
+     2010's saves agree.
+   - Word's save also renumbered the remaining note to 1.
+   - The engine removed the reference with its run and left the note in the part, referenced from
+     nowhere.
+
+Fixed, in `TrackedChange.mts`:
+
+- **The field is one change** (`kind: 'field'`, `insertedFieldAt`). The form it recognises:
+  - a `w:ins` that opens a field and does not close it;
+  - then plain runs and markers;
+  - then a `w:ins` by the same author in which that field ends.
+
+  The change's text and range are the result's (the instruction is not text), and it groups as an
+  insertion.
+  - Rejecting removes the insertions and the plain runs between them, last first, so that a comment's
+    range is judged once the field's text is gone (section 38 item 1's rule). A bookmark, a comment's
+    range or a proofing mark between them stays where it stood.
+  - Accepting unwraps the insertions.
+  - Anything else is not this form and is listed as before: another revision or author in between, a
+    run whose formatting changed, a run holder, or a field that ends in a plain run.
+  - A field wholly inside one `w:ins` needed no change, since that `w:ins` already takes it whole.
+- **A note goes with its reference.**
+  - While a change is accepted or rejected, whatever it removes is searched for `w:footnoteReference`
+    and `w:endnoteReference`. That covers a `w:ins` or `w:del` with its runs, a row, a cell, a move's
+    other half, and the inserted field. The ids found go into the package's new `pendingNoteRemovals`,
+    an extension beside `pendingCommentRemovals`.
+  - The entries go from the notes parts when the package is saved, each unless a reference to it still
+    stands in the main document. An accepted move whose destination still references a note keeps it.
+  - The notes parts are read only when something is pending. Separators are never removed.
+  - The remaining notes keep their ids; Word's save renumbers them, and nothing here does.
+  - A row or cell change has no paragraph to reach the package through, so it now carries the body
+    it is in: `TrackedChange.body`, a new optional third constructor argument, which
+    `trackedChangesOfRow` and `cellChangeOf` take.
+
+An endnote is taken the same way. The docx4j session's CR-043 phase 0 probe (Word 16.0.20326,
+2026-10-16, its `docx4j-core-tests/src/test/resources/revisions/cr043/`, cases C12 and C12b, committed
+there in `5e895232f`) measured it: an endnote whose reference was deleted went on Accept All, and an
+inserted one went on Reject All. Run on that probe's file, the engine's acceptAll and rejectAll leave
+the same endnotes as Word's saves.
+
+Tests: three in `test/tracking.test.mjs`, after check 30's control tests.
+
+- The field case runs on Word's own markup from `check30/result.json`. The listing equals Office JS's.
+  Reject all, and the one change rejected on its own, leave Word's reject-all markup, and accept all
+  leaves Word's accept-all markup. A field whose end is plain is listed as before.
+- The footnote case runs on the editor's three Word 15 files, copied into
+  `test/fixtures/revisions/review/`. After acceptAll or rejectAll and a save, the notes' texts and the
+  number of references are Word's.
+- A built package:
+  - a note with two references, one of them deleted, is kept;
+  - a note in an accepted deleted row goes;
+  - an endnote whose reference is deleted goes;
+  - reject all keeps them all.
+
+All three fail on the code before the fix. Not released.
+
+## 45. Accepting and rejecting: a bookmark goes whole with the content it marked (2026-10-16)
+
+Found by running the engine's acceptAll and rejectAll on the tracked file of docx4j's CR-043 phase 0
+probe and comparing the result with Word's saves of the same file. The probe ran in Word 16.0.20326 on
+2026-10-16; its files are docx4j's `docx4j-core-tests/src/test/resources/revisions/cr043/`, committed
+in `5e895232f` on `VERSION_17_3_3`, which was local in docx4j when this was written. Fixed at Jason's word.
+
+- **C11, a bookmarked word deleted.** Word wrote the bookmark's start before the `w:del` and its end
+  inside it. Word's Accept All removed the bookmark, both markers. The engine removed the end with the
+  `w:del` and left the start, which is half a bookmark.
+- **C11b, a bookmark put on inserted text.** Both markers are outside the `w:ins`. Word's Reject All
+  removed the bookmark. The engine left both markers, with nothing between them.
+- Each of Word's saves kept the other bookmark over its text.
+
+The rule is docx4j CR-043's (section 3.2): a bookmark with its start or its end inside removed content,
+or around content that goes and is left empty by it, is removed whole, and a bookmark that was empty
+before stays. Word measured the two cases above. The rest is docx4j's reading, followed here so that the
+two ports agree:
+
+- a bookmark that loses a marker goes even when content is left beside it (not measured);
+- a bookmark around a deletion that is accepted goes (docx4j's U15, by symmetry with C11b);
+- a point bookmark, its start and end together as Word's `_GoBack` is, stays.
+
+Fixed, in `TrackedChange.mts`:
+
+- Section 44's scope for notes (`collectingNotes`) is now `resolving`: one resolution for a change and
+  every change resolved inside it. `Body.acceptAll` and `rejectAll` run all their changes in one.
+- Before the first removal the bookmarks of the change's part are read. A removal is anything
+  `discarding` sees, and also a paragraph join. For each id the reading records which markers stand and
+  whether content stands between them. Content is text (deleted and inserted alike), a tab, a break, a
+  symbol, a drawing, a field character, a note's reference, and a paragraph's mark, so a bookmark over a
+  paragraph boundary is not empty.
+- When the resolution ends the bookmarks are read again. A bookmark that was whole before and has lost a
+  marker, or had content and has none, loses both markers. One already broken before, or gone whole
+  with the content it was in, is left alone.
+- The whole part is read, not the body, so a marker in another paragraph or cell is found. A resolution
+  that removes nothing reads nothing.
+- The cost is two walks of the part, skipping properties, for each resolution that removes something. On
+  a 20,000-paragraph document, accepting one deletion on its own took 26 ms; listing the changes took 12 ms.
+
+Tests: two in `test/tracking.test.mjs`, after section 44's.
+
+- Word's case runs on the probe's tracked file and Word's two saves, copied into
+  `test/fixtures/revisions/cr043/` (byte for byte as in `5e895232f`). After acceptAll and after
+  rejectAll, the engine's bookmarks, and the text each covers, are Word's.
+- Built markup holds five bookmarks: one losing its end with text beside it, one around a deletion, a
+  point bookmark, one around a deletion and text, and one from a paragraph into an insertion in the
+  next. They are checked after accept all, after reject all, and after one deletion accepted on its own.
+
+Both fail with the bookmark pass disabled. Not released.
+
+**Measured, not fixed.** The same comparison found two further departures; they are recorded here, and
+nothing is scheduled.
+
+- **Math.** The engine does not see revisions inside `m:oMath`. On docx4j's
+  `tracked-changes-equations.docx` (its `docx4j-core-tests/src/test/resources/`) it lists no change and
+  leaves 39 revision elements. Word marks an inserted structure such as `m:sSup` by a `w:ins` in its
+  `m:ctrlPr`. Word's Reject All removed such a structure whole; its Accept All kept the structure and
+  dropped the marker.
+- **Stories.** `Body.acceptAll` resolves its own story, the API being shaped on Office JS's `body`.
+  Word's Accept All (`Document.AcceptAllRevisions`, as the probe called it) resolved every story. On
+  the probe's file the engine leaves the changes in a text box (C22, inside `w:txbxContent`) and in the
+  endnotes' text (C21's, and the text of C12b's inserted endnote).

@@ -1,8 +1,10 @@
 // CR-002 phase F: change tracking and replaceText.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WordprocessingMLPackage, ZipPartStore, ChangeTracker, highestAnnotationId } from '../dist/index.mjs';
-import { fixture, bytesEqual } from './helpers.mjs';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { WordprocessingMLPackage, ZipPartStore, ChangeTracker, highestAnnotationId, unmarshalString } from '../dist/index.mjs';
+import { fixture, fixturesDir, bytesEqual } from './helpers.mjs';
 
 const DATE = new Date(Date.UTC(2026, 8, 16, 10, 30, 0));
 /** A date as Word writes `w:date`: local wall-clock time, with a `Z` (CR-002 section 29, check 23). */
@@ -1738,6 +1740,162 @@ test('Word\'s own markup for a control inserted under tracking is listed as one 
   stray.body.rejectAll();
   assert.equal((await xmlOf(stray)).includes('customXmlInsRange'), false);
   assert.equal(stray.body.paragraphs[1].text, 'x');
+});
+
+// CR-002 section 44: what Word writes for a field inserted under tracking, and what it lists and leaves
+// (test/README.md check 30, gestures."field-inserted", Word 16.0.20326.20158)
+test('a field Word inserted under tracking is one change, its result the text, and rejects away whole (check 30)', async () => {
+  const word = JSON.parse(await readFile(join(fixturesDir, 'revisions/check30/result.json'), 'utf8')).gestures['field-inserted'];
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const make = async (blocks = word.markup) => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setContents((await unmarshalString(`<w:document xmlns:w="${W}"><w:body>${blocks.join('')}</w:body></w:document>`)).value);
+    return pkg;
+  };
+  const blocksOf = async (pkg) => (await pkg.getMainDocumentPart().getXml()).match(/<w:body>(.*)<\/w:body>/s)[1].match(/<w:p\/>|<w:p>.*?<\/w:p>/gs);
+  // Word's markup: a w:ins around the begin and the instruction, another around the end, the separator and "1" plain
+  const pkg = await make();
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => ({ type: c.type, author: c.author, text: c.text })),
+    word.listed.map(({ type, author, text }) => ({ type, author, text })));
+  const [change] = pkg.body.getTrackedChanges();
+  assert.equal(change.target.kind, 'field');
+  assert.equal(change.getRange().text, '1');
+  pkg.body.rejectAll();
+  assert.deepEqual(await blocksOf(pkg), word.rejectAll.markup, 'Word\'s reject all took the field away, its result too');
+  const accepted = await make();
+  accepted.body.acceptAll();
+  assert.deepEqual(await blocksOf(accepted), word.acceptAll.markup);
+  const one = await make();
+  one.body.getTrackedChanges()[0].reject();
+  assert.deepEqual(await blocksOf(one), word.rejectAll.markup, 'the one change rejected on its own');
+  // a field whose end is plain is not this form: its insertion is listed and resolved on its own, as before
+  const plainEnd = await make([word.markup[0].replace(/<w:ins w:id="1"[^>]*>(<w:r><w:fldChar w:fldCharType="end"\/><\/w:r>)<\/w:ins>/, '$1')]);
+  assert.deepEqual(plainEnd.body.getTrackedChanges().map((c) => [c.target.kind, c.text]), [['run', '']]);
+});
+
+// CR-002 section 44: a note goes with its reference. In the editor's review-for-word file Word 15 saved
+// (its packages/editor-model/test/fixtures/review/, 1c90869), note 1's reference is inside a w:ins and
+// note 2's inside a w:del; Word's Accept All left note 1 alone, its Reject All note 2 alone (Word 2010
+// the same), each renumbered 1 by Word's save.
+test('accepting or rejecting all takes a footnote out of its part when its reference goes, as Word 15 did', async () => {
+  const notesOf = async (pkg) => [...(await pkg.getMainDocumentPart().footnotesPart.getXml()).matchAll(/<w:footnote\b([^>]*)>(.*?)<\/w:footnote>/gs)]
+    .filter(([, attributes]) => !/w:type="(separator|continuationSeparator|continuationNotice)"/.test(attributes))
+    .map(([, , inner]) => [...inner.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('').trim());
+  const referencesOf = async (pkg) => [...(await pkg.getMainDocumentPart().getXml()).matchAll(/<w:footnoteReference\b/g)].length;
+  for (const [what, saved] of [['acceptAll', 'review-for-word-word15-accepted.docx'], ['rejectAll', 'review-for-word-word15-rejected.docx']]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('revisions/review/review-for-word-word15.docx'));
+    (await pkg.getBody())[what]();
+    const back = await WordprocessingMLPackage.load(await pkg.save());
+    const word = await WordprocessingMLPackage.load(await fixture(`revisions/review/${saved}`));
+    assert.deepEqual(await notesOf(back), await notesOf(word), what);
+    assert.equal(await referencesOf(back), await referencesOf(word), what);
+  }
+});
+
+test('a note whose reference still stands is kept, and a row\'s or an endnote\'s goes with it', async () => {
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const part = (name, type, xml) => `<pkg:part pkg:name="${name}" pkg:contentType="${type}"><pkg:xmlData>${xml}</pkg:xmlData></pkg:part>`;
+  const note = (kind, id, text) => `<w:${kind} w:id="${id}"><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:${kind}>`;
+  const separators = (kind) => `<w:${kind} w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:${kind}><w:${kind} w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:${kind}>`;
+  const ref = (kind, id) => `<w:r><w:${kind}Reference w:id="${id}"/></w:r>`;
+  const del = (inner) => `<w:del w:id="90" w:author="Author A" w:date="2026-10-16T00:00:00Z">${inner}</w:del>`;
+  const body = [
+    // note 1: one reference deleted, another plain - it stays
+    `<w:p><w:r><w:t>One</w:t></w:r>${del(ref('footnote', 1))}</w:p>`,
+    `<w:p><w:r><w:t>Again</w:t></w:r>${ref('footnote', 1)}</w:p>`,
+    // note 2: in a deleted row
+    `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid>`
+      + `<w:tr><w:tc><w:p><w:r><w:t>kept row</w:t></w:r></w:p></w:tc></w:tr>`
+      + `<w:tr><w:trPr><w:del w:id="91" w:author="Author A" w:date="2026-10-16T00:00:00Z"/></w:trPr><w:tc><w:p><w:pPr><w:rPr><w:del w:id="92" w:author="Author A" w:date="2026-10-16T00:00:00Z"/></w:rPr></w:pPr>${del('<w:r><w:delText>gone</w:delText></w:r>' + ref('footnote', 2))}</w:p></w:tc></w:tr></w:tbl>`,
+    // endnote 1: deleted
+    `<w:p><w:r><w:t>End</w:t></w:r>${del(ref('endnote', 1))}</w:p>`,
+  ].join('');
+  const flat = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">'
+    + part('/_rels/.rels', 'application/vnd.openxmlformats-package.relationships+xml', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="word/document.xml"/></Relationships>`)
+    + part('/word/_rels/document.xml.rels', 'application/vnd.openxmlformats-package.relationships+xml', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/footnotes" Target="footnotes.xml"/><Relationship Id="rId2" Type="${REL}/endnotes" Target="endnotes.xml"/></Relationships>`)
+    + part('/word/document.xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml', `<w:document ${W}><w:body>${body}</w:body></w:document>`)
+    + part('/word/footnotes.xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml', `<w:footnotes ${W}>${separators('footnote')}${note('footnote', 1, 'Still referenced.')}${note('footnote', 2, 'In the deleted row.')}</w:footnotes>`)
+    + part('/word/endnotes.xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml', `<w:endnotes ${W}>${separators('endnote')}${note('endnote', 1, 'Deleted with its reference.')}</w:endnotes>`)
+    + '</pkg:package>';
+  const ids = async (pkg, kind) => [...(await pkg.getMainDocumentPart()[`${kind}sPart`].getXml()).matchAll(new RegExp(`<w:${kind}\\b[^>]*w:id="(-?\\d+)"`, 'g'))].map((m) => Number(m[1])).sort((a, b) => a - b);
+  const pkg = await WordprocessingMLPackage.load(flat);
+  (await pkg.getBody()).acceptAll();
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  assert.deepEqual(await ids(back, 'footnote'), [-1, 0, 1], 'note 1 still referenced, note 2 gone with its row, the separators kept');
+  assert.deepEqual(await ids(back, 'endnote'), [-1, 0]);
+  // rejected, every reference comes back and every note stays
+  const rejected = await WordprocessingMLPackage.load(flat);
+  (await rejected.getBody()).rejectAll();
+  const kept = await WordprocessingMLPackage.load(await rejected.save());
+  assert.deepEqual(await ids(kept, 'footnote'), [-1, 0, 1, 2]);
+  assert.deepEqual(await ids(kept, 'endnote'), [-1, 0, 1]);
+});
+
+// CR-002 section 45: a bookmark goes whole with the content it marked. docx4j's CR-043 probe (its
+// docx4j-core-tests resources revisions/cr043/, 5e895232f; Word 16.0.20326, through Word's object model)
+// bookmarked a word and deleted it (C11: the start before the w:del, the end inside it) and put a bookmark
+// on inserted text (C11b: both markers outside the w:ins). Word's Accept All took c11_deleted away whole,
+// its Reject All c11b_inserted; each left the other bookmark over its text.
+const bookmarksOf = async (pkg) => {
+  const xml = await pkg.getMainDocumentPart().getXml();
+  const tags = [...xml.matchAll(/<w:bookmark(Start|End)\b([^>]*)>/g)].map((m) => ({ kind: m[1], id: m[2].match(/w:id="([^"]*)"/)?.[1], name: m[2].match(/w:name="([^"]*)"/)?.[1], at: m.index }));
+  const starts = tags.filter((t) => t.kind === 'Start');
+  const ends = tags.filter((t) => t.kind === 'End');
+  const out = {};
+  for (const start of starts) {
+    const end = ends.find((e) => e.id === start.id);
+    out[start.name] = end ? [...xml.slice(start.at, end.at).matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('') : '(no end)';
+  }
+  for (const end of ends) if (!starts.some((s) => s.id === end.id)) out[`end ${end.id}`] = '(no start)';
+  return out;
+};
+
+test('accepting or rejecting all takes a bookmark away whole with the content it marked, as Word did (CR-043 probe, C11 and C11b)', async () => {
+  for (const [what, saved] of [['acceptAll', 'cr043-accept-all.docx'], ['rejectAll', 'cr043-reject-all.docx']]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('revisions/cr043/cr043-tracked.docx'));
+    (await pkg.getBody())[what]();
+    const word = await WordprocessingMLPackage.load(await fixture(`revisions/cr043/${saved}`));
+    assert.deepEqual(await bookmarksOf(pkg), await bookmarksOf(word), what);
+  }
+  assert.deepEqual(await bookmarksOf(await WordprocessingMLPackage.load(await fixture('revisions/cr043/cr043-accept-all.docx'))), { c11b_inserted: 'C11b INSERTED WORDS' });
+});
+
+test('a bookmark with a marker in removed content, or emptied by a removal, goes whole; one empty before stays', async () => {
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const D = 'w:author="Author A" w:date="2026-10-16T00:00:00Z"';
+  const r = (text) => `<w:r><w:t xml:space="preserve">${text}</w:t></w:r>`;
+  const del = (id, inner) => `<w:del w:id="${id}" ${D}>${inner}</w:del>`;
+  const start = (id, name) => `<w:bookmarkStart w:id="${id}" w:name="${name}"/>`;
+  const end = (id) => `<w:bookmarkEnd w:id="${id}"/>`;
+  const body = [
+    // its end inside the deletion, text beside it outside: docx4j's reading, the bookmark goes whole
+    `<w:p>${r('Beside: ')}${start(1, 'beside')}${r('kept ')}${del(11, `<w:r><w:delText>gone</w:delText></w:r>${end(1)}`)}</w:p>`,
+    // around a deletion and nothing else: emptied when it is accepted (docx4j CR-043 U15)
+    `<w:p>${r('Around: ')}${start(2, 'around')}${del(12, '<w:r><w:delText>deleted</w:delText></w:r>')}${end(2)}${r(' after')}</w:p>`,
+    // empty before, beside a deletion: stays
+    `<w:p>${r('Point: ')}${start(3, 'point')}${end(3)}${del(13, '<w:r><w:delText>x</w:delText></w:r>')}</w:p>`,
+    // around a deletion and text: keeps its text
+    `<w:p>${r('Wider: ')}${start(4, 'wider')}${r('kept ')}${del(14, '<w:r><w:delText>gone</w:delText></w:r>')}${r(' too')}${end(4)}</w:p>`,
+    // from one paragraph to an insertion in the next: the start goes with the end when the insertion is rejected
+    `<w:p>${r('Across: ')}${start(5, 'across')}${r('first')}</w:p>`,
+    `<w:p>${r('Next: ')}<w:ins w:id="15" ${D}>${r('inserted')}${end(5)}</w:ins>${r(' plain')}</w:p>`,
+  ].join('');
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setContents((await unmarshalString(`<w:document xmlns:w="${W}"><w:body>${body}</w:body></w:document>`)).value);
+    return pkg;
+  };
+  const accepted = await make();
+  accepted.body.acceptAll();
+  assert.deepEqual(await bookmarksOf(accepted), { point: '', wider: 'kept  too', across: 'firstNext: inserted' });
+  const rejected = await make();
+  rejected.body.rejectAll();
+  assert.deepEqual(await bookmarksOf(rejected), { beside: 'kept gone', around: 'deleted', point: '', wider: 'kept gone too' });
+  // one change accepted on its own
+  const one = await make();
+  one.body.getTrackedChanges().find((c) => c.text === 'deleted').accept();
+  assert.deepEqual(Object.keys(await bookmarksOf(one)).sort(), ['across', 'beside', 'point', 'wider']);
 });
 
 test('an inserted table groups with the rows and the inserted text touching it, as Office JS lists them (check 31)', async () => {

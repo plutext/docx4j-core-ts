@@ -28,7 +28,7 @@ import type { Bound } from '../model/content/binder.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
-import type { TrackedChange } from '../model/content/TrackedChange.mjs';
+import { type TrackedChange, type NoteRemovals, flushPendingNoteRemovals } from '../model/content/TrackedChange.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
 import type { PartSink } from '../opc/PartStore.mjs';
 // Registers the comment parts with the content API (CR-002 phase G); no cycle: the model half
@@ -138,6 +138,13 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * the package is saved (check 32; `TrackedChange`). An extension.
    */
   readonly pendingCommentRemovals = new Set<number>();
+  /**
+   * Footnotes and endnotes whose references went with content a tracked change took away (a rejected
+   * insertion, an accepted deletion, a row or cell, a move's other half): their entries go from the
+   * notes parts when the package is saved, each unless a reference to it still stands, as Word took
+   * them (CR-002 section 44; `TrackedChange`). An extension.
+   */
+  readonly pendingNoteRemovals: NoteRemovals = { footnote: new Set<number>(), endnote: new Set<number>() };
   /**
    * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
    * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
@@ -554,6 +561,8 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     target.requireStyles(this.requiredStyles);
     target.author = { ...this.author };
     for (const id of this.pendingCommentRemovals) target.pendingCommentRemovals.add(id);
+    for (const id of this.pendingNoteRemovals.footnote) target.pendingNoteRemovals.footnote.add(id);
+    for (const id of this.pendingNoteRemovals.endnote) target.pendingNoteRemovals.endnote.add(id);
     target.trackedChangeDate = this.trackedChangeDate;
     target.fonts.defaultTheme = this.fonts.defaultTheme;
     target.xpathEngine = this.xpathEngine;
@@ -562,6 +571,8 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   override async saveTo<R>(sink: PartSink<R>): Promise<R> {
     if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
     if (this.pendingCommentRemovals.size > 0) await flushPendingCommentRemovals(await this.getBody());
+    const notes = this.pendingNoteRemovals;
+    if (notes.footnote.size + notes.endnote.size > 0) await flushPendingNoteRemovals(this.getMainDocumentPart(), notes);
     if (this.requiredStyles.size > 0) {
       await this.styles.ensure([...this.requiredStyles]);
       this.requiredStyles.clear();
