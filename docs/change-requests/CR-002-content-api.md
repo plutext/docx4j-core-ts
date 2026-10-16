@@ -4009,3 +4009,107 @@ nothing is scheduled.
   Word's Accept All (`Document.AcceptAllRevisions`, as the probe called it) resolved every story. On
   the probe's file the engine leaves the changes in a text box (C22, inside `w:txbxContent`) and in the
   endnotes' text (C21's, and the text of C12b's inserted endnote).
+
+## 46. Accepting and rejecting: the parts only removed content referenced (D7, fixed) and a row indent rejected (C23, recorded) (2026-10-17)
+
+Both came from docx4j's agreement run, its CR-043 section 14, which compared docx4j's, this package's
+and docx4j-python's accept and reject with Word's on the CR-043 probe (section 45 describes the probe's
+files). This session confirmed both on its own build on 2026-10-16. Jason, 2026-10-17: record both, fix
+D7 now and leave C23 for later.
+
+### 46.1 D7: a part only the resolved content referenced (fixed)
+
+**Word's saves.**
+- C05 deletes a picture: Word's Accept All took its image part.
+- C04 inserts a picture: Word's Reject All took its image part.
+- C06 deletes a section break: on Accept All the merged section keeps the following section's header
+  and footer references, and the first section's headers and footers went. The tracked file's six
+  header parts and six footer parts were three and three in Word's save.
+
+**The engine before.** It removed the content and left its relationships and parts. A save then carried
+parts referenced from nowhere: 3 headers, 3 footers and an image after Accept All, an image after Reject
+All. The picture someone deleted, and the text of the headers that went, were still inside the file.
+
+**The rule** is docx4j's (its CR-043 section 3.2; D7, decided by Jason 2026-10-16):
+- Every relationship the removed content referenced, through any `r:` attribute, is a candidate.
+- A candidate goes when nothing left in its part references it.
+- The part it targeted goes when no relationship anywhere in the package targets that part, and so does
+  whatever that part alone related to.
+- Word measured images, headers and footers. The other kinds (charts, OLE objects and their previews,
+  `v:imagedata`) are docx4j's reading, not measured.
+
+**Fixed,** in `TrackedChange.mts`:
+- Section 45's resolution scope now knows its part: `resolving` takes the change's `Body`, and so its
+  part.
+- `discarding` records the relationship ids of what it is handed. A paragraph join also hands it the
+  `w:pPr` it drops, whose `w:sectPr` references the section's headers and footers.
+- The ids are read off the model's mapping, as docx4j reads its fields' `@XmlAttribute`: each type's
+  properties whose attribute is in the relationships namespace (`CTBlip`'s `embed` and `link`, a header
+  reference's `id`, ...). An `otherAttributes` map is read too, and so is any DOM in the tree.
+- When the resolution ends, `dropRelationshipsUnused` walks the part once for the ids still in use, and
+  removes the other candidates' relationships. A target with no source relationship left
+  (`Part.sourceRelationships`) is removed from the package, and `RelationshipsPart.removeParts` takes
+  what it alone related to.
+- This happens when the resolution ends, not on save as section 44's notes do. So after `acceptAll` the
+  package no longer has the part.
+
+**The cost.** Nothing extra unless removed content referenced a relationship; then one walk of the part.
+On a 20,000-paragraph document, accepting one deletion on its own took 72 ms when the deletion held a
+picture, against 29 ms for a deleted word (23 ms before this change).
+
+**Tests:** two in `test/tracking.test.mjs`, after section 45's.
+- Word's case runs on the probe's tracked file and Word's two saves. After acceptAll and after
+  rejectAll, the number of header parts and of footer parts, and the images' bytes, are Word's, and no
+  header, footer or image relationship is left unreferenced. After acceptAll the headers' and footers'
+  text is Word's too. After rejectAll it isn't, because `Body.rejectAll` resolves only the body's story
+  (section 45).
+- Built markup holds four pictures: one deleted; one inserted; one deleted beside a kept use of the same
+  relationship; and one deleted that a header also shows, through its own relationship to the same image
+  part. They are checked after accept all, after reject all, and after a save and reload.
+
+Both fail with the settling step disabled. Not released.
+
+**Not done.** A note section 44 removes takes nothing with it yet: a picture in a removed footnote stays
+in the footnotes part's relationships. The same holds for a removed comment's content. docx4j settles
+both (its `Removals.flush` repeats until nothing more goes). Neither is measured here.
+
+**Found, not fixed:**
+- `insertInlinePictureFromBase64` under `TrackAll` marks the new paragraph's mark inserted but not the
+  picture's run. Rejecting it removes the mark and joins the picture into the paragraph before, so the
+  picture survives the reject.
+- `InlinePicture.delete()` under `TrackAll` removes the picture outright, writing no `w:del`, and leaves
+  its image part.
+
+### 46.2 C23: a row's indent, rejected (recorded, for later)
+
+**The case.** In C23, Author A indented the second row of a two-by-two table by 720 twips (the cells
+are 2000 each). Word wrote:
+- the grid split to fit the indent, into five columns: 720/1280/720/1280/720;
+- on the first row, untracked, `w:gridAfter` 1 and `w:wAfter` 720;
+- on the second row, `w:gridBefore` 1 and `w:wBefore` 720, with a `w:trPrChange` holding the old
+  `w:trPr`;
+- also on the second row, a `w:tblPrEx` that only repeats the table's `w:tblPr`, with a
+  `w:tblPrExChange` holding the same.
+
+| | Word | the engine |
+|---|---|---|
+| Reject All: grid | 2000/2000 | 2000/2000/720 |
+| Reject All: first row | no `w:trPr` | `w:gridAfter` 1, `w:wAfter` 720 |
+| Reject All: second row | no `w:trPr`, no `w:tblPrEx` | `w:gridAfter` 1, the `w:tblPrEx` kept |
+| Accept All: grid and rows | as tracked, the records dropped | the same |
+| Accept All: second row's `w:tblPrEx` | gone | kept |
+
+So Word rebuilt the table as it was before the indent. The engine restored the tracked properties and
+collapsed the grid (section 35), but kept a 720-twip column that no cell reaches, at the end of both
+rows. Either way, Word dropped a `w:tblPrEx` left saying only what `w:tblPr` says. How Word lays out the
+engine's leftover column isn't measured.
+
+**docx4j's rule** (CR-043 section 3.2, the table records' row), to follow when this is scheduled:
+- collapse the merged grid: grid columns no row keeps apart become one;
+- the columns past every row's last cell go, with the rows' `w:gridAfter` and `w:wAfter`;
+- the spans are recounted, which takes C23's five columns back to two;
+- on accept and on reject alike, a row's `w:tblPrEx` left saying only what the table's `w:tblPr` says
+  goes.
+
+The place for it is `tableRevisions.mts`'s grid collapse. Its test would be the probe's table against
+Word's two saves.

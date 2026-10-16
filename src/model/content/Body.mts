@@ -25,7 +25,7 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, storyRootOf } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving } from './TrackedChange.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -500,7 +500,7 @@ export class Body {
   private resolveAll(what: 'accept' | 'reject'): number {
     let count = 0;
     // one resolution for the lot, so the bookmarks are read before the first and after the last
-    resolving(this.package_, storyRootOf(this), () => {
+    resolving(this.package_, this, () => {
       let changes = this.getTrackedChanges();
       count = changes.length;
       while (changes.length > 0) {

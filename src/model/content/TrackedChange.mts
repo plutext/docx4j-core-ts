@@ -13,7 +13,8 @@ import type { Body } from './Body.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, pruneParagraphProperties, HOLDER_TYPES, holderItemsOf } from './tracking.mjs';
 import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
-import { deepCopy } from '@docx4j/generated-objects-ts';
+import { deepCopy, getContextSync } from '@docx4j/generated-objects-ts';
+import type { Part } from '../../parts/Part.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
@@ -197,7 +198,7 @@ export class TrackedChange {
    * Either half of a move keeps the whole move, as Word's Review tab does (CR-002 section 29).
    */
   accept(): void {
-    resolving(this.package_, storyRootOf(this.body_), () => this.acceptHere());
+    resolving(this.package_, this.body_, () => this.acceptHere());
   }
 
   private acceptHere(): void {
@@ -261,7 +262,7 @@ export class TrackedChange {
    * Either half of a move rejects the whole move, as Word's Review tab does (CR-002 section 29).
    */
   reject(): void {
-    resolving(this.package_, storyRootOf(this.body_), () => this.rejectHere());
+    resolving(this.package_, this.body_, () => this.rejectHere());
   }
 
   private rejectHere(): void {
@@ -452,17 +453,23 @@ function remove(owner: Element[], element: Element): void {
   list.splice(i, 1);
 }
 
-// --- what goes with removed content: notes (CR-002 section 44) and bookmarks (section 45) ----------
+// --- what goes with removed content: notes (CR-002 section 44), bookmarks (45), relationships and parts (46) ---
 
 /** The ids of the footnotes and endnotes whose references removed content took with it. */
 export interface NoteRemovals { footnote: Set<number>; endnote: Set<number> }
 
 /**
  * A resolution in progress: where `discarding` records the notes (its package's `pendingNoteRemovals`),
- * the tree its bookmarks are read in (the change's part), and those bookmarks as they were before the
- * first removal.
+ * the tree its bookmarks are read in (the change's part), those bookmarks as they were before the first
+ * removal, the part the change is in, and the relationship ids of that part the removed content held.
  */
-interface Resolution { notes: NoteRemovals | undefined; root: object | undefined; before?: Map<string, BookmarkState> }
+interface Resolution {
+  notes: NoteRemovals | undefined;
+  root: object | undefined;
+  before?: Map<string, BookmarkState>;
+  part: Part | undefined;
+  relationships?: Set<string>;
+}
 
 let resolution: Resolution | undefined;
 
@@ -478,14 +485,24 @@ let resolution: Resolution | undefined;
  *   marker in removed content goes whole, its other marker too, even with content left beside it; so
  *   does one with content between its markers that is left with none, a deletion it was around accepted
  *   among them (U15); and one that was empty before, as `_GoBack` is, stays. Those three are not measured.
+ * - **Relationships and parts**: Word's saves kept no part the resolved content alone referenced. A
+ *   picture deleted and accepted, or inserted and rejected, took its image part (docx4j CR-043's probe,
+ *   C05 and C04), and a section break deleted and accepted took the headers and footers of the section
+ *   it ended (C06: six of each became three). docx4j's rule (its CR-043 section 3.2, D7) is followed: a
+ *   relationship of the change's part that the removed content referenced, through any `r:` attribute,
+ *   goes when nothing left in the part references it; its part goes when no relationship in the package
+ *   targets it any more, and what that part alone related to goes with it. The kinds beyond pictures,
+ *   headers and footers (charts, OLE objects, `v:imagedata`) are docx4j's reading, not measured.
  * A change resolved inside another's (a row's cells, a group's pieces, `acceptAll`'s changes) shares the
  * outer resolution, so the bookmarks are read twice for the lot, and not at all when nothing is removed.
  */
-export function resolving(pkg: unknown, root: object | undefined, resolve: () => void): void {
+export function resolving(pkg: unknown, body: Body | undefined, resolve: () => void): void {
   const notes = (pkg as { pendingNoteRemovals?: NoteRemovals } | undefined)?.pendingNoteRemovals;
+  const root = storyRootOf(body);
   const outer = resolution;
   if (outer) {
     outer.root ??= root;
+    outer.part ??= body?.part;
     const previous = outer.notes;
     outer.notes = notes ?? previous;
     try {
@@ -495,27 +512,37 @@ export function resolving(pkg: unknown, root: object | undefined, resolve: () =>
     }
     return;
   }
-  resolution = { notes, root };
+  resolution = { notes, root, part: body?.part };
   try {
     resolve();
     const done = resolution;
     if (done.root && done.before) dropBookmarksBroken(done.root, done.before);
+    if (done.part && done.relationships?.size) dropRelationshipsUnused(done.part, done.relationships);
   } finally {
     resolution = undefined;
   }
 }
 
 /** The tree a body's bookmarks are read in: its part's, so a marker in another cell or paragraph is found. */
-export function storyRootOf(body: Body | undefined): object | undefined {
+function storyRootOf(body: Body | undefined): object | undefined {
   if (!body) return undefined;
   return body.part?.isUnmarshalled ? body.part.contents as object : body.container;
 }
 
-/** Called before content is removed (or a paragraph mark joins two): records its notes, and the bookmarks as they stand. */
-function discarding(element?: Element): void {
+/**
+ * Called before content is removed (or a paragraph mark joins two): records its notes, the relationships
+ * it references, and the bookmarks as they stand. `properties` is a paragraph's `w:pPr` that a join drops,
+ * whose `w:sectPr` references its section's headers and footers.
+ */
+function discarding(element?: Element, properties?: unknown): void {
   if (!resolution) return;
   if (resolution.root) resolution.before ??= bookmarksIn(resolution.root);
   if (element && resolution.notes) noteReferencesIn(element, resolution.notes);
+  if (resolution.part && (element || properties)) {
+    const into = (resolution.relationships ??= new Set());
+    if (element) relationshipIdsIn(element, into);
+    if (properties) relationshipIdsIn(properties, into);
+  }
 }
 
 /** A bookmark as a tree holds it: which of its markers stand, and whether content stands between them. */
@@ -620,6 +647,92 @@ function noteReferencesIn(tree: unknown, into: NoteRemovals): void {
     for (const [key, value] of Object.entries(o)) if (key !== 'PARENT') visit(value);
   };
   visit(tree);
+}
+
+const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+/** Per type, the properties that are attributes in the relationships namespace (`r:id`, `r:embed`, `r:link`, ...). */
+const relationshipAttributes = new Map<string, readonly string[]>();
+
+function relationshipAttributesOf(typeName: string): readonly string[] {
+  let names = relationshipAttributes.get(typeName);
+  if (names) return names;
+  const found: string[] = [];
+  type Property = { name?: string; attributeName?: { namespaceURI?: string } | null };
+  type Info = { properties?: Property[]; baseTypeInfo?: Info };
+  let info: Info | undefined;
+  try { info = getContextSync().getTypeInfoByName(typeName) as unknown as Info | undefined; } catch { info = undefined; }
+  for (let ti = info; ti; ti = ti.baseTypeInfo) {
+    for (const property of ti.properties ?? []) {
+      if (property.attributeName?.namespaceURI === R_NS && property.name) found.push(property.name);
+    }
+  }
+  relationshipAttributes.set(typeName, names = found);
+  return names;
+}
+
+/**
+ * Adds to `into` every relationship id a tree references: the `r:` attributes of its typed objects (read
+ * off the model's mapping, as docx4j reads its fields' `@XmlAttribute`), those kept in an
+ * `otherAttributes` map, and those of any DOM it holds.
+ */
+function relationshipIdsIn(tree: unknown, into: Set<string>): void {
+  const seen = new Set<object>();
+  const visitDom = (node: Node): void => {
+    if (node.nodeType !== 1) return;
+    const attributes = (node as unknown as { attributes: ArrayLike<Attr> }).attributes;
+    for (let i = 0; i < attributes.length; i++) {
+      const a = attributes[i]!;
+      if (a.namespaceURI === R_NS && a.value) into.add(a.value);
+    }
+    for (let c = node.firstChild; c; c = c.nextSibling) visitDom(c);
+  };
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null || seen.has(o)) return;
+    seen.add(o);
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    if (typeof (o as { nodeType?: unknown }).nodeType === 'number') { visitDom(o as Node); return; }
+    const record = o as Record<string, unknown>;
+    const typeName = record.TYPE_NAME;
+    if (typeof typeName === 'string') {
+      for (const name of relationshipAttributesOf(typeName)) {
+        const value = record[name];
+        if (typeof value === 'string' && value) into.add(value);
+      }
+    }
+    const other = record.otherAttributes;
+    if (other && typeof other === 'object') {
+      for (const [key, value] of Object.entries(other)) if (key.startsWith(`{${R_NS}}`) && typeof value === 'string') into.add(value);
+    }
+    for (const key in record) if (key !== 'PARENT' && key !== 'otherAttributes') visit(record[key]);
+  };
+  visit(tree);
+}
+
+/**
+ * The relationships of `part` among `candidates` that nothing left in the part references are removed,
+ * and the part each targeted when no relationship in the package targets it any more, with what that
+ * part alone related to (`RelationshipsPart.removeParts`). A part not unmarshalled can't be read for
+ * what still references, so nothing is removed from it.
+ */
+function dropRelationshipsUnused(part: Part, candidates: Set<string>): void {
+  const rels = part.relationshipsPart;
+  const contents = (part as { isUnmarshalled?: boolean; contents?: unknown }).isUnmarshalled
+    ? (part as { contents?: unknown }).contents : undefined;
+  if (!rels || contents === undefined) return;
+  const used = new Set<string>();
+  relationshipIdsIn(contents, used);
+  for (const id of candidates) {
+    if (used.has(id)) continue;
+    const rel = rels.getRelationshipById(id);
+    if (!rel) continue;
+    const target = rels.getPart(rel);
+    rels.removeRelationship(rel);
+    if (target && target.sourceRelationships.length === 0) {
+      target.relationshipsPart?.removeParts();
+      target.package?.parts.remove(target.partName);
+    }
+  }
 }
 
 /** What `flushPendingNoteRemovals` needs of the main document part. */
@@ -892,6 +1005,7 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
       const items = (into.content ??= []);
       for (const item of p.content ?? []) items.push(item as never);
       linkParents(items, into);
+      discarding(undefined, p.pPr);
       container.splice(i, 1);
       return;
     }
@@ -904,6 +1018,7 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
   const content = (p.content ??= []);
   for (const item of nextP.content ?? []) content.push(item as never);
   linkParents(content, p);
+  discarding(undefined, p.pPr);                                        // a section break's sectPr goes with it
   p.pPr = nextP.pPr;
   if (p.pPr) linkParents(p.pPr, p);
   // The mark that survives is the next paragraph's, and so is the paragraph's identity: Word keeps the

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { WordprocessingMLPackage, ZipPartStore, ChangeTracker, highestAnnotationId, unmarshalString } from '../dist/index.mjs';
+import { WordprocessingMLPackage, ZipPartStore, ChangeTracker, highestAnnotationId, unmarshalString, HeaderPart } from '../dist/index.mjs';
 import { fixture, fixturesDir, bytesEqual } from './helpers.mjs';
 
 const DATE = new Date(Date.UTC(2026, 8, 16, 10, 30, 0));
@@ -1897,6 +1897,104 @@ test('a bookmark with a marker in removed content, or emptied by a removal, goes
   one.body.getTrackedChanges().find((c) => c.text === 'deleted').accept();
   assert.deepEqual(Object.keys(await bookmarksOf(one)).sort(), ['across', 'beside', 'point', 'wider']);
 });
+
+// A 4 x 3 PNG, as content-c.test.mjs has it.
+const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAIAAAA7ljmRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAEElEQVR4nGN4YGAARww4OQAs9g8Bfw7KYwAAAABJRU5ErkJggg==';
+
+// CR-002 section 46 (D7): a part only the resolved content referenced goes with it. In docx4j's CR-043 probe
+// Word's Accept All took the image of the picture C05 deleted and the three headers and three footers of
+// the section whose break C06 deleted (six of each became three), and its Reject All took the image of
+// the picture C04 inserted. Word renames parts when it saves, so what is compared is what is left: the
+// header and footer parts and their text, and the images' bytes.
+const partsLeft = async (pkg) => {
+  const parts = [...pkg.parts.values()];
+  const named = (re) => parts.filter((p) => re.test(p.partName.name));
+  const textOf = async (p) => (await p.getXml()).replace(/<w:delText[^>]*>[^<]*<\/w:delText>/g, '').replace(/<[^>]+>/g, '').trim();
+  const hex = (bytes) => [...bytes.slice(0, 64)].map((b) => b.toString(16).padStart(2, '0')).join('') + ':' + bytes.length;
+  return {
+    headers: (await Promise.all(named(/^\/word\/header\d+\.xml$/).map(textOf))).sort(),
+    footers: (await Promise.all(named(/^\/word\/footer\d+\.xml$/).map(textOf))).sort(),
+    images: (await Promise.all(named(/^\/word\/media\//).map(async (p) => hex(await p.getBytes())))).sort(),
+  };
+};
+const unreferenced = async (pkg) => {
+  const main = pkg.getMainDocumentPart();
+  const xml = await main.getXml();
+  return main.relationshipsPart.list
+    .filter((r) => /\/(header|footer|image)$/.test(r.type) && !xml.includes(`"${r.id}"`))
+    .map((r) => r.target);
+};
+test('accepting or rejecting all takes the parts only the removed content referenced, as Word did (CR-043 probe, C04, C05, C06)', async () => {
+  for (const [what, word] of [['acceptAll', 'cr043-accept-all.docx'], ['rejectAll', 'cr043-reject-all.docx']]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('revisions/cr043/cr043-tracked.docx'));
+    (await pkg.getBody())[what]();
+    const ours = await partsLeft(pkg);
+    const words = await partsLeft(await WordprocessingMLPackage.load(await fixture(`revisions/cr043/${word}`)));
+    assert.equal(ours.headers.length, words.headers.length, `${what}: header parts`);
+    assert.equal(ours.footers.length, words.footers.length, `${what}: footer parts`);
+    assert.deepEqual(ours.images, words.images, `${what}: the image left is Word's`);
+    assert.deepEqual(await unreferenced(pkg), [], `${what}: no header, footer or image left unreferenced`);
+    // Accept All resolves the headers' and footers' own changes too, so their text is Word's; Reject All
+    // leaves them (Body.rejectAll resolves the body's story only, section 45)
+    if (what === 'acceptAll') assert.deepEqual([ours.headers, ours.footers], [words.headers, words.footers]);
+  }
+});
+
+test('a relationship the removed content held goes when nothing else in the part uses it, and its part when nothing targets it', async () => {
+  const D = 'w:author="Author A" w:date="2026-10-16T00:00:00Z"';
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    const body = pkg.body;
+    // four pictures, each its own image part: a deleted, an inserted, one deleted here and kept there, and
+    // one the header also shows
+    const pictures = ['deleted', 'inserted', 'twice', 'header'].map((name) => body.insertInlinePictureFromBase64(PNG, 'End', { name }));
+    const ids = Object.fromEntries(pictures.map((p) => [p.inline.docPr.name, p.inline.graphic.graphicData.any[0].value.blipFill.blip.embed]));
+    const main = pkg.getMainDocumentPart();
+    let xml = await main.getXml();
+    const runOf = (id) => {
+      const at = xml.indexOf(`r:embed="${id}"`);
+      const start = xml.lastIndexOf('<w:r>', at);
+      const end = xml.indexOf('</w:r>', at) + '</w:r>'.length;
+      return [start, end];
+    };
+    const wrap = (id, open, close) => { const [s, e] = runOf(id); xml = xml.slice(0, s) + open + xml.slice(s, e) + close + xml.slice(e); };
+    const twiceRun = xml.slice(...runOf(ids.twice));
+    wrap(ids.deleted, `<w:del w:id="91" ${D}>`, '</w:del>');
+    wrap(ids.inserted, `<w:ins w:id="92" ${D}>`, '</w:ins>');
+    wrap(ids.twice, `<w:del w:id="93" ${D}>`, `</w:del>${twiceRun}`);    // the same relationship, kept beside
+    wrap(ids.header, `<w:del w:id="94" ${D}>`, '</w:del>');
+    main.setXml(xml);
+    await main.getContents();
+    // the header shows the fourth picture too, through a relationship of its own to the same image part
+    const image = main.relationshipsPart.getPart(ids.header);
+    const header = new HeaderPart();
+    main.relationshipsPart.addPart(header);
+    header.setXml('<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p/></w:hdr>');
+    header.getRelationshipsPart(true).addPart(image, 'REUSE_EXISTING');
+    return { pkg, ids, images: () => [...pkg.parts.values()].filter((p) => p.partName.name.startsWith('/word/media/')).length };
+  };
+  const rels = (pkg) => pkg.getMainDocumentPart().relationshipsPart.list.map((r) => r.id);
+
+  const accepted = await make();
+  assert.equal(accepted.images(), 4);
+  accepted.pkg.body.acceptAll();
+  assert.ok(!rels(accepted.pkg).includes(accepted.ids.deleted), 'the deleted picture\'s relationship goes');
+  assert.ok(rels(accepted.pkg).includes(accepted.ids.inserted), 'the inserted picture, accepted, keeps its relationship');
+  assert.ok(rels(accepted.pkg).includes(accepted.ids.twice), 'a relationship still used beside the deletion stays');
+  assert.ok(!rels(accepted.pkg).includes(accepted.ids.header), 'the relationship goes from the main part');
+  assert.equal(accepted.images(), 3, 'the deleted picture\'s image goes; the one the header still targets stays');
+
+  const rejected = await make();
+  rejected.pkg.body.rejectAll();
+  for (const id of [rejected.ids.deleted, rejected.ids.twice, rejected.ids.header]) assert.ok(rels(rejected.pkg).includes(id), `${id} kept: its content was kept`);
+  assert.ok(!rels(rejected.pkg).includes(rejected.ids.inserted), 'the inserted picture\'s relationship goes');
+  assert.equal(rejected.images(), 3);
+
+  // and the saved package is consistent: it reloads, with what was kept
+  const again = await WordprocessingMLPackage.load(await accepted.pkg.save());
+  assert.equal([...again.parts.values()].filter((p) => p.partName.name.startsWith('/word/media/')).length, 3);
+});
+
 
 test('an inserted table groups with the rows and the inserted text touching it, as Office JS lists them (check 31)', async () => {
   const row = (text) => `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc></w:tr>`;
