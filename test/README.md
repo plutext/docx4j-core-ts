@@ -61,6 +61,11 @@ probe's tracked edits on a base document (its `cr043-log.txt` lists each case), 
 All and Reject All saves of it (`cr043-accept-all`, `cr043-reject-all`). They are the oracle of
 `tracking.test.mjs`'s bookmark case (CR-002 section 45).
 
+`onoff/pandoc-code.docx` is what pandoc 3.6.1 makes of `onoff/pandoc-code.md` beside it
+(`pandoc pandoc-code.md -o pandoc-code.docx`, 2026-10-17): its table's header row has
+`w:tblHeader w:val="on"` and its Source Code style `w:wordWrap w:val="off"`, ST_OnOff spellings
+that @docx4j/jsonix 3.4.0 refused. It is the fixture of `load.test.mjs`'s on/off case.
+
 The images in `content-c.test.mjs` are base64 constants rather than files: a 4 x 3 PNG at 96 dpi
 (a real one, deflated with `node:zlib`), a 2 x 2 GIF87a, a 2 x 2 24-bit BMP at 3780 px/m, and a
 JPEG header (SOI, a JFIF APP0 at 300 dpi, SOF0, EOI) for the header reader.

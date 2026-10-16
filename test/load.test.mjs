@@ -137,6 +137,31 @@ test('an unmarshal failure names the part, with the location and line', async ()
   assert.equal(second.partName, '/word/styles.xml');
 });
 
+// ECMA-376 Transitional's ST_OnOff admits "on" and "off" beside true, false, 1 and 0, and pandoc writes
+// them: w:tblHeader w:val="on" on a table's header row, w:wordWrap w:val="off" in its Source Code style.
+// @docx4j/jsonix 3.4.0 accepted only the xsd:boolean spellings, so the document part threw
+// PartUnmarshalException at w:tblHeader/@w:val and the file could not be opened; 3.4.1 (jsonix-CR-007)
+// reads them, and @docx4j/generated-objects-ts 0.3.2, this package's floor, requires it. They are
+// written back as true and false.
+test('a document whose on/off values are "on" and "off" loads, reads them as booleans and saves', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('onoff/pandoc-code.docx'));
+  await pkg.unmarshalAll();
+  const read = async (p) => {
+    const body = await p.getBody();
+    const header = body.tables[0].rows[0].tr.trPr.cnfStyleOrDivIdOrGridBefore.find((i) => i.name.localPart === 'tblHeader');
+    const style = p.getMainDocumentPart().styleDefinitionsPart.contents.style.find((s) => s.styleId === 'SourceCode');
+    return { tblHeader: header.value.val, wordWrap: style.pPr.wordWrap.val };
+  };
+  assert.deepEqual(await read(pkg), { tblHeader: true, wordWrap: false });
+
+  const saved = await pkg.save();
+  const again = await WordprocessingMLPackage.load(saved);
+  await again.unmarshalAll();
+  assert.deepEqual(await read(again), { tblHeader: true, wordWrap: false });
+  assert.match(await again.getMainDocumentPart().getXml(), /<w:tblHeader w:val="true"\s*\/>/);
+  assert.match(await again.getMainDocumentPart().styleDefinitionsPart.getXml(), /<w:wordWrap w:val="false"\s*\/>/);
+});
+
 // CR-002 section 33, found by the editor's E4.b: a browser's DOMParser does not throw on malformed
 // XML. Chromium hands back the document up to the error with an XHTML parsererror first in the root,
 // Firefox a parsererror root in its own namespace, and parseXml passed either on, so a part with a

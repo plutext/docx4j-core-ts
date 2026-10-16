@@ -2579,3 +2579,32 @@ since the port follows docx4j's answer (section 14). No golden covers the case.
 
 When docx4j fixes it, a golden moves only if a fixture reaches the case, and none does today. So
 the port takes docx4j's test along with the change, as section 22 did for issue 593.
+
+## 25. On and off read as booleans: objects 0.3.2 over jsonix 3.4.1 (2026-10-17)
+
+The editor found this on 2026-10-16, on a document pandoc made: the file would not open. ECMA-376
+Transitional's `ST_OnOff` admits `on` and `off` beside `true`, `false`, `1` and `0`, and pandoc
+writes them (`w:wordWrap w:val="off"` in its Source Code style, `w:tblHeader w:val="on"` on a
+table's header row). jsonix 3.4.0's `XSD.Boolean` accepted only the `xsd:boolean` spellings, so any
+part holding one threw `PartUnmarshalException`, from `unmarshalAll` and `getBody` alike. docx4j's
+`wml.xsd` types `CT_OnOff`'s `val` as `xsd:boolean`, so the fix belongs in the runtime, not the
+compiler.
+
+- **Upstream.** jsonix 3.4.1 (jsonix-CR-007, tag `de4d3e0`) reads `on` and `off`. Objects 0.3.2
+  (tag `1b9b48c`) raises its jsonix floor to `^3.4.1`. This package raises its own range to
+  `^0.3.2`, so a consumer gets both, and the lockfile moves to objects 0.3.2 and jsonix 3.4.1. The
+  values are written back as `true` and `false`.
+- **Checked before release and against what was published.** Both npm tarballs match what was
+  tested, file for file: jsonix's matches its tag, and objects' matches the `dd12979` pack except
+  for the version line.
+  - On the published versions the suite passes 822 of 822, typecheck is clean and parity is zero.
+  - Load, `unmarshalAll` and save of the 455 earlier fixtures (8,143 parts, docx4j's charts corpus
+    included) hash identically to objects 0.3.1 over jsonix 3.4.0.
+- **Test.** `load.test.mjs` loads `test/fixtures/onoff/pandoc-code.docx`, reads `tblHeader` as true
+  and `wordWrap` as false, saves, reloads and reads them again. On jsonix 3.4.0 the same file throws
+  at `w:tblHeader/@w:val`.
+- **A difference from docx4j.** The docx4j session measured docx4j 17.3.3-SNAPSHOT (`fc6059ed3`)
+  reading `off` as on, with both the reference JAXB and MOXy: `val` comes back null, and
+  `BooleanDefaultTrue.isVal()` reads null as true. This package reads `off` as the standard does.
+  docx4j's CR-045 (proposed, `82bf972e3`) would make docx4j agree. No golden holds an on/off
+  value, so parity can't see the difference.
