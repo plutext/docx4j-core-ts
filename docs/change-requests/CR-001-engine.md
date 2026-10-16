@@ -2550,3 +2550,32 @@ Tests: `fonts.test.mjs` asserts Aptos Narrow maps to Intos Narrow as a `METRIC_C
 (`MetricallyCompatibleSubstituteTest`) and that Book Antiqua has a bold face (`NoBoldFaceTest`).
 Both fail on the tables before. No golden maps Aptos Narrow or Book Antiqua, and parity is still
 zero on all 124.
+
+## 24. Noted: the list walk counts a shallower level as used before it is (docx4j issue 696, 2026-10-15)
+
+The editor found this on a file of Jason's (its ED-005 section 12.97). Word's answer comes from
+Jason's screenshot of 2026-10-14. The docx4j session filed it, with a minimal numbering part, as
+[issue 696](https://github.com/plutext/docx4j/issues/696). Nothing changes here until docx4j does,
+since the port follows docx4j's answer (section 14). No golden covers the case.
+
+- **The case.** A list's first items are at deeper levels (ilvl 1, 2, 2), then comes a level-0 item.
+  Level 0 starts at 2 and its text is `%1`. Word numbers the level-0 item 2; docx4j and this package
+  number it 3. The docx4j session confirmed it on 17.3.3-SNAPSHOT through `Emulator.getNumber`; here
+  it shows through `Paragraph.listItem`, on 0.4.0 and on main.
+- **Why.** Section 15.4's walk table, rule 12: the first use of a level walks the shallower levels
+  and increments each one not yet met. That sets the level to its start and marks it encountered
+  (rule 7), so the first explicit level-0 item increments again (rule 9). docx4j's CR-014 left this
+  open in its phase 2 notes ("A level never used at all ... unmeasured").
+- **A candidate fix, checked against the engine only.** In that walk, prime each such level the way
+  `resetCounter` does (rule 10): at its start, `resetPending`, encountered, its start override
+  spent, instead of incrementing it. On a scratch copy of `dist/` the file then numbers 2, and the
+  labels are unchanged on all 217 docx fixtures. Parity and the list and numbering tests pass (302
+  tests). It is not in `src/`.
+- **Not measured in Word** (both in the issue):
+  - A `%1.%2` level-1 item before any level-0 item. Both versions print "2.1"; the level-0 item
+    after it is 3 today and 2 with the candidate.
+  - Two deeper levels before the shallower one (starts 1, `%1.%2.%3`): a level-2 item then a
+    level-1 item reads 1.1.1 then 1.2 today, and 1.1.1 then 1.1 with the candidate.
+
+When docx4j fixes it, a golden moves only if a fixture reaches the case, and none does today. So
+the port takes docx4j's test along with the change, as section 22 did for issue 593.
