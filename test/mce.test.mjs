@@ -82,7 +82,13 @@ test('the fallback branch when nothing is understood; preprocessing off', async 
   assert.equal(alternates.length, 1);
   assert.equal(alternates[0].choice.length, 1);
   assert.equal(alternates[0].choice[0].requires, 'wps');
+  // DOM, not typed: the objects mapping declares w:drawing and w:pict only within their parents,
+  // and the branches' lax wildcard types global elements alone. objects CR-009 (proposed
+  // 2026-10-17, for CR-010 phase 2) declares them globally, as docx4j does; these two assertions
+  // fail when it arrives, and then assert the typed form instead.
+  assert.equal(alternates[0].choice[0].any[0].nodeType, 1);
   assert.equal(alternates[0].choice[0].any[0].nodeName, 'w:drawing');
+  assert.equal(alternates[0].fallback.any[0].nodeType, 1);
   assert.equal(alternates[0].fallback.any[0].nodeName, 'w:pict');
   const source = new TextDecoder().decode(new ZipPartStore(await fixture('loadAndSave.docx')).loadSync('word/document.xml'));
   const saved = new TextDecoder().decode(new ZipPartStore(await raw.save()).loadSync('word/document.xml'));

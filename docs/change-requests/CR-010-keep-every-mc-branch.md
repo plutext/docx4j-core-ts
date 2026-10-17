@@ -2,8 +2,8 @@
 
 **Status:** Proposed 2026-10-17, at Jason's request ("Shouldn't we be preserving all branches of
 mc?"). Phase 1 implemented 2026-10-17 (section 9; D2, D3 and D4 decided by Jason that day, and
-D1 settled by the text extraction paper's D4). Phases 0, 2, 3 and 4 are not scheduled; each waits
-for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0). Phase 2 needs work in
+D1 settled by the text extraction paper's D4). Phase 2 proposed the same day as the objects
+package's CR-009 (section 10). Phases 0, 3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0). Phase 2 needs work in
 the objects package, as a CR there.
 
 ## 1. Why
@@ -147,7 +147,8 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
      no hidden-text rule, and needs neither to answer "does the other branch say something
      different". The read-time form, with the read rules, comes with phase 3. It needs no
      phase 4.
-2. **Typed branches**, in the objects package: a CR there for section 3 item 4's route. Its test is
+2. **Typed branches**, in the objects package: a CR there for section 3 item 4's route (objects
+   CR-009, proposed 2026-10-17; section 10). Its test is
    this CR's survey: every DOM entry in section 2's second table that the content API reads comes
    back typed, and every part still writes back whole.
 3. **The content API over kept branches** (three to five days):
@@ -349,3 +350,59 @@ decided, and what it found, as it bears on this CR:
   one pass over branches that are dropped in any case.
 - **The warnings cover only parts parsed so far.** A caller wanting a whole package's warnings
   reads its parts first; private reads keep them untouched.
+
+## 10. Phase 2: the objects package's CR-009 (proposed 2026-10-17)
+
+Jason asked for phase 2 on 2026-10-17. Phase 2 is objects work, so this package's part is the
+route and its evidence. Both are in `../docx4j-generated-objects-ts`'s
+`docs/change-requests/CR-009-type-kept-mc-branches.md`. It was written here and taken by that
+repository's session the same day (`1e4da5a`, pushed), which added a verification section of its
+own (its section 7). Implementation waits for Jason's go in that session.
+
+### 10.1 The route: section 3 item 4's first
+
+- **What the wildcard types.** Inside a kept branch the runtime types an element only when the
+  context declares it globally.
+- **The gap.** docx4j declares 640 elements globally (`@XmlRootElement` and unscoped
+  `@XmlElementDecl`, its generated objects at `VERSION_17_3_4`). Of those, this mapping declares
+  46 WordprocessingML elements only within parents and 15 only as properties; the rest are global
+  here too, outside WordprocessingML, or ambiguous in docx4j itself (`w:sdtContent`).
+- **The proposal.** Declare those 61 globally, each with docx4j's root class's type.
+  - As the objects session refined it, the recommended form is one more hand-written mapping
+    beside the generated modules. It depends on `org_docx4j_wml`, declares no types, and names its
+    element declarations' types by qualified name. `modulesFor` includes it with
+    `org_docx4j_wml`, and the context isn't mutated.
+  - The alternative is the generated mapping, through a compiler CR.
+
+The second route, typing a DOM branch child in its host's container at load, would reach the same
+types by more machinery. Its scope-correct typing would differ from docx4j's only where docx4j
+itself types globally. So the CR doesn't propose it.
+
+### 10.2 Measured, with the 61 registered in a live context (no module edited)
+
+- **Kept branches** (`mcePreprocess: false`): `w:drawing` 13 and `w:pict` 9 come back typed. Every
+  other DOM entry in section 2's second table stays DOM, since it is outside WordprocessingML or
+  `c:style`.
+- **The round trip.** 277 of the 281 parts write every element back whole. The four others
+  (`loadAndSave.docx` and the three `cr043-*.docx`) lose `w14:anchorId` on a Fallback's
+  `v:shapetype`, which `CTShapetype` doesn't bind, and nothing else. The CR's item 2 asks for that.
+  - docx4j 17.3.2 loses the attribute too: loading `loadAndSave.docx` and marshalling its main
+    document part, the Fallback is kept and the attribute gone. It also writes `o:spt="202"` as
+    `"202.0"`. A Java check from the scratchpad against the harness's jars, not committed.
+  - Two rewrites are lexical, and a resolved Choice gets them today: `xsd:boolean` `1` as `true`,
+    and `o:gfxdata`'s base64 without its line breaks. The comparison treats both as equal.
+- **Default load** (resolving): none of the 8,235 parts changes.
+
+Two findings from the objects session's own verification (its CR-009 section 7):
+- **`o:spt` is written back `"202"` here**, where docx4j writes `"202.0"`.
+- **Each of the 61 becomes a valid root,** so `unmarshalString('<w:drawing/>')` succeeds where it
+  threw. That matters for phase 3: a fragment of these elements no longer needs wrapping in its
+  container.
+
+### 10.3 Here
+
+- **The test that announces the release.** `mce.test.mjs`'s preprocessing-off test asserts that
+  the kept `w:drawing` and `w:pict` are DOM, citing objects CR-009, so the release that types them
+  fails it.
+- **When that release comes,** this package raises its range and re-runs section 10.2's survey as
+  phase 2's acceptance. The survey scripts are in the scratchpad; phase 0 makes them a test.
