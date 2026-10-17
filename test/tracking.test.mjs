@@ -1995,6 +1995,117 @@ test('a relationship the removed content held goes when nothing else in the part
   assert.equal([...again.parts.values()].filter((p) => p.partName.name.startsWith('/word/media/')).length, 3);
 });
 
+// CR-002 section 46.1: a picture inserted or deleted under tracking is a revision, in the form Word wrote
+// for docx4j's CR-043 probe - C04, `<w:ins><w:r><w:drawing>`, and C05, `<w:del><w:r><w:drawing>` - so
+// that rejecting the one or accepting the other takes the picture, and with it its image (D7).
+const imageParts = (pkg) => [...pkg.parts.values()].filter((p) => p.partName.name.startsWith('/word/media/')).length;
+const bodyXml = async (pkg) => {
+  const xml = await pkg.getMainDocumentPart().getXml();
+  return xml.slice(xml.indexOf('<w:body>'), xml.indexOf('</w:body>'))
+    .replace(/<w:drawing>.*?<\/w:drawing>/gs, '<w:drawing/>').replace(/ w:id="\d+"| w:author="[^"]*"| w:date="[^"]*"| w16du:dateUtc="[^"]*"/g, '');
+};
+
+test('a picture inserted under tracking is an insertion, as Word writes one (CR-043 probe, C04)', async () => {
+  const make = async () => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.body.insertParagraph('Kept.', 'End');
+    pkg.changeTrackingMode = 'TrackAll';
+    pkg.body.insertInlinePictureFromBase64(PNG, 'End');
+    pkg.body.paragraphs[0].insertInlinePictureFromBase64(PNG, 'End');
+    return pkg;
+  };
+  const pkg = await make();
+  const xml = await bodyXml(pkg);
+  assert.ok(xml.includes('<w:p><w:r><w:t>Kept.</w:t></w:r><w:ins><w:r><w:drawing/></w:r></w:ins></w:p>'), xml);
+  assert.ok(xml.includes('<w:p><w:pPr><w:rPr><w:ins/></w:rPr></w:pPr><w:ins><w:r><w:drawing/></w:r></w:ins></w:p>'), xml);
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => c.type), ['Added', 'Added']);
+
+  pkg.body.rejectAll();
+  assert.equal(pkg.body.inlinePictures.length, 0, 'rejected, the pictures go');
+  assert.equal(imageParts(pkg), 0, 'and their images');
+  assert.equal(pkg.body.text, 'Kept.');
+  const accepted = await make();
+  accepted.body.acceptAll();
+  assert.equal(accepted.body.inlinePictures.length, 2);
+  assert.equal(imageParts(accepted), 2);
+
+  // 'Replace' deletes what it replaces, as insertText('Replace') does
+  const replaced = await WordprocessingMLPackage.createPackage();
+  replaced.body.insertParagraph('Old text.', 'End');
+  replaced.changeTrackingMode = 'TrackAll';
+  replaced.body.paragraphs[0].insertInlinePictureFromBase64(PNG, 'Replace');
+  assert.ok((await bodyXml(replaced)).includes('<w:del><w:r><w:delText>Old text.</w:delText></w:r></w:del><w:ins><w:r><w:drawing/></w:r></w:ins>'));
+});
+
+test('a picture deleted under tracking is a deletion, as Word writes one (CR-043 probe, C05); its author\'s own insertion is taken back', async () => {
+  const make = async (shared) => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    const picture = pkg.body.insertInlinePictureFromBase64(PNG, 'End');
+    if (shared) {
+      // the picture between two pieces of text in one run, formatted
+      const main = pkg.getMainDocumentPart();
+      const xml = await main.getXml();
+      const drawing = xml.slice(xml.indexOf('<w:drawing>'), xml.indexOf('</w:drawing>') + '</w:drawing>'.length);
+      main.setXml(xml.replace(/<w:p>(<w:pPr>.*?<\/w:pPr>)?<w:r><w:drawing>.*?<\/w:drawing><\/w:r><\/w:p>/s,
+        `<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>before</w:t>${drawing}<w:t>after</w:t></w:r></w:p>`));
+      await main.getContents();
+    }
+    pkg.changeTrackingMode = 'TrackAll';
+    return { pkg, picture: shared ? pkg.body.inlinePictures[0] : picture };
+  };
+  const { pkg, picture } = await make(false);
+  picture.delete();
+  assert.ok((await bodyXml(pkg)).includes('<w:p><w:del><w:r><w:drawing/></w:r></w:del></w:p>'), await bodyXml(pkg));
+  assert.deepEqual(pkg.body.getTrackedChanges().map((c) => c.type), ['Deleted']);
+  assert.equal(imageParts(pkg), 1, 'a deletion still references its image');
+  assert.equal(pkg.body.inlinePictures.length, 0, 'a deleted picture is not listed: the listing is the accepted view');
+  assert.throws(() => picture.delete(), /inside a w:del/, 'deleting it again is refused');
+  pkg.body.acceptAll();
+  assert.equal(pkg.body.inlinePictures.length, 0);
+  assert.equal(imageParts(pkg), 0, 'accepted, the image goes (D7)');
+  const rejected = await make(false);
+  rejected.picture.delete();
+  rejected.pkg.body.rejectAll();
+  assert.equal(rejected.pkg.body.inlinePictures.length, 1);
+  assert.equal(imageParts(rejected.pkg), 1);
+  assert.ok(!(await bodyXml(rejected.pkg)).includes('<w:del'));
+
+  // a picture sharing its run: it gets a run of its own, with the run's properties, for the deletion
+  const shared = await make(true);
+  shared.picture.delete();
+  assert.ok((await bodyXml(shared.pkg)).includes('<w:r><w:rPr><w:b/></w:rPr><w:t>before</w:t></w:r><w:del><w:r><w:rPr><w:b/></w:rPr><w:drawing/></w:r></w:del><w:r><w:rPr><w:b/></w:rPr><w:t>after</w:t></w:r>'), await bodyXml(shared.pkg));
+  assert.equal(shared.pkg.body.text, 'beforeafter');
+
+  // inserted under tracking by the same author, then deleted: taken back, no revision of it left
+  const own = await WordprocessingMLPackage.createPackage();
+  own.changeTrackingMode = 'TrackAll';
+  own.body.insertInlinePictureFromBase64(PNG, 'End').delete();
+  assert.ok(!(await bodyXml(own)).includes('<w:drawing'));
+  assert.equal(imageParts(own), 1, 'its image waits for the save');
+  const saved = await WordprocessingMLPackage.load(await own.save());
+  assert.equal(imageParts(saved), 0, 'and goes then, nothing referencing it');
+});
+
+test('a picture removed outright gives up its image on save, unless something references it by then', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.body.insertParagraph('Kept.', 'End');
+  const gone = pkg.body.insertInlinePictureFromBase64(PNG, 'End');
+  const moved = pkg.body.insertInlinePictureFromBase64(PNG, 'End');
+  assert.equal(imageParts(pkg), 2);
+  gone.delete();
+  // a cut and a paste: the same drawing removed, then put back in another paragraph before the save
+  const drawing = moved.element;
+  moved.delete();
+  const first = pkg.body.paragraphs[0];
+  first.p.content.push({ name: { namespaceURI: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', localPart: 'r' },
+    value: { TYPE_NAME: 'org_docx4j_wml.R', content: [drawing] } });
+  assert.equal(imageParts(pkg), 2, 'nothing goes before the save');
+  const saved = await WordprocessingMLPackage.load(await pkg.save());
+  assert.equal(imageParts(saved), 1, 'the deleted picture\'s image went; the pasted one\'s stayed');
+  assert.equal((await saved.getBody()).inlinePictures.length, 1);
+});
+
+
 
 test('an inserted table groups with the rows and the inserted text touching it, as Office JS lists them (check 31)', async () => {
   const row = (text) => `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc></w:tr>`;

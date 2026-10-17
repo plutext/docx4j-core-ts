@@ -361,10 +361,14 @@ export class Paragraph {
     const part = this.parentBody.part;
     if (!part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
     const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
+    const tracker = this.changeTracker;
+    // under tracking the picture is an insertion, and what it replaces is deleted as insertText's is
+    if (location === 'Replace' && tracker) this.splice(0, this.text.length, '');
     const content = (this.p.content ??= []) as Element[];
-    if (location === 'Replace') content.length = 0;
-    if (location === 'Start') content.unshift(run as Element); else content.push(run as Element);
-    linkParents(run, this.p);
+    if (location === 'Replace' && !tracker) content.length = 0;
+    const item = tracker ? tracker.ins([run]) : run;
+    if (location === 'Start') content.unshift(item as Element); else content.push(item as Element);
+    linkParents(item, this.p);
     return new InlinePicture(drawing, run, this);
   }
 

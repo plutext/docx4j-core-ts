@@ -29,6 +29,7 @@ import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
 import { type TrackedChange, type NoteRemovals, flushPendingNoteRemovals } from '../model/content/TrackedChange.mjs';
+import { type RelationshipRemovals, flushPendingRelationshipRemovals } from '../model/content/relationships.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
 import type { PartSink } from '../opc/PartStore.mjs';
 // Registers the comment parts with the content API (CR-002 phase G); no cycle: the model half
@@ -145,6 +146,13 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * them (CR-002 section 44; `TrackedChange`). An extension.
    */
   readonly pendingNoteRemovals: NoteRemovals = { footnote: new Set<number>(), endnote: new Set<number>() };
+  /**
+   * Relationships, by the name of their part, that a picture removed outright referenced (tracking off,
+   * or a picture taken back from its author's own insertion): each goes when the package is saved if
+   * nothing then references it, and its part with it when nothing else targets that (CR-002 section
+   * 47). Settled on save, not at once, so a picture cut and pasted back keeps its image. An extension.
+   */
+  readonly pendingRelationshipRemovals: RelationshipRemovals = new Map();
   /**
    * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
    * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
@@ -563,6 +571,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     for (const id of this.pendingCommentRemovals) target.pendingCommentRemovals.add(id);
     for (const id of this.pendingNoteRemovals.footnote) target.pendingNoteRemovals.footnote.add(id);
     for (const id of this.pendingNoteRemovals.endnote) target.pendingNoteRemovals.endnote.add(id);
+    for (const [name, ids] of this.pendingRelationshipRemovals) target.pendingRelationshipRemovals.set(name, new Set(ids));
     target.trackedChangeDate = this.trackedChangeDate;
     target.fonts.defaultTheme = this.fonts.defaultTheme;
     target.xpathEngine = this.xpathEngine;
@@ -573,6 +582,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     if (this.pendingCommentRemovals.size > 0) await flushPendingCommentRemovals(await this.getBody());
     const notes = this.pendingNoteRemovals;
     if (notes.footnote.size + notes.endnote.size > 0) await flushPendingNoteRemovals(this.getMainDocumentPart(), notes);
+    if (this.pendingRelationshipRemovals.size > 0) flushPendingRelationshipRemovals(this, this.pendingRelationshipRemovals);
     if (this.requiredStyles.size > 0) {
       await this.styles.ensure([...this.requiredStyles]);
       this.requiredStyles.clear();

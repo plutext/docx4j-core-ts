@@ -4073,11 +4073,11 @@ Both fail with the settling step disabled. Not released.
 in the footnotes part's relationships. The same holds for a removed comment's content. docx4j settles
 both (its `Removals.flush` repeats until nothing more goes). Neither is measured here.
 
-**Found, not fixed:**
-- `insertInlinePictureFromBase64` under `TrackAll` marks the new paragraph's mark inserted but not the
-  picture's run. Rejecting it removes the mark and joins the picture into the paragraph before, so the
-  picture survives the reject.
-- `InlinePicture.delete()` under `TrackAll` removes the picture outright, writing no `w:del`, and leaves
+**Found, and fixed in section 47:**
+- `insertInlinePictureFromBase64` under `TrackAll` marked the new paragraph's mark inserted but not the
+  picture's run. Rejecting it removed the mark and joined the picture into the paragraph before, so the
+  picture survived the reject.
+- `InlinePicture.delete()` under `TrackAll` removed the picture outright, writing no `w:del`, and left
   its image part.
 
 ### 46.2 C23: a row's indent, rejected (recorded, for later)
@@ -4113,3 +4113,59 @@ engine's leftover column isn't measured.
 
 The place for it is `tableRevisions.mts`'s grid collapse. Its test would be the probe's table against
 Word's two saves.
+
+## 47. Pictures under tracking: inserted and deleted as Word marks them (2026-10-17)
+
+Section 46 found both defects while building its tests. Fixed at Jason's word.
+
+**Word's form**, from docx4j's CR-043 probe (Word 16.0.20326):
+- C04, a picture inserted at the end of a paragraph: `<w:ins><w:r><w:drawing>...</w:drawing></w:r></w:ins>`.
+- C05, a picture deleted: `<w:del><w:r><w:drawing>...</w:drawing></w:r></w:del>`, the text around it untouched.
+
+**Fixed:**
+- **Inserting.** `Body.insertInlinePictureFromBase64` and `Paragraph.insertInlinePictureFromBase64` put
+  the picture's run in a `w:ins` while the package tracks changes, as `insertBreak` already does. The new
+  paragraph's mark is an insertion as before.
+  - `'Replace'` deletes the paragraph's text as `insertText('Replace')` does, a `w:del` under tracking.
+    Without tracking it still clears the paragraph's content.
+  - Rejecting the insertion takes the picture and, through section 46, its image part.
+- **Deleting.** `InlinePicture.delete()` under tracking puts the picture's run in a `w:del`.
+  - When the run held more than the picture (text before or after it), the picture first gets a run of
+    its own with a copy of the run's properties, so the deletion holds it alone and the text stays.
+  - A picture inside a `w:del` or `w:moveFrom` is refused, as editing deleted text is (`assertEditable`).
+  - A picture inside its author's own `w:ins` is taken back, as `Paragraph.delete` takes back the
+    author's own text, and an emptied `w:ins` goes with it. One inside another author's insertion gets
+    a `w:del` within it.
+  - Accepting the deletion takes the picture and its image part (section 46); rejecting keeps both.
+- **The image of a picture removed outright.** This covers a picture deleted with tracking off and a
+  picture taken back.
+  - Its relationship ids are queued on the package's new `pendingRelationshipRemovals`, by the part's
+    name, so a clone carries them.
+  - On save, each goes if nothing in the part references it then, and its image part with it when
+    nothing else targets that part.
+  - The wait is deliberate: a picture cut and pasted back before the save (the same drawing, so the
+    same relationship) keeps its image.
+  - The helpers this shares with section 46 moved into `relationships.mts`.
+
+**Tests:** three in `test/tracking.test.mjs`, after section 46's.
+- Inserted under tracking: Word's C04 form, at a body's end and a paragraph's. Rejecting takes both
+  pictures and their images, and accepting keeps them. `'Replace'` deletes the old text.
+- Deleted under tracking: Word's C05 form. The image stays while the deletion references it. A second
+  delete is refused. Accepting takes the image; rejecting leaves no `w:del`.
+  - A picture between two pieces of formatted text in one run gets a run of its own, both runs
+    keeping `w:b`.
+  - The author's own inserted picture, deleted, leaves no revision, and its image goes on save.
+- Removed outright: the image goes on save, but not the image of a drawing pasted back before it.
+
+Before the fix, the first two fail on the markup, and the third keeps both images. Suite 833 passed. Not
+released.
+
+**Found, not fixed.** A picture has no position in the text model, because `segmentsOf` gives a
+`w:drawing` no text. So a deletion that works on text passes over pictures:
+- Under tracking, `Paragraph.delete()` of "a", a picture, "b" marks the text and the mark deleted but
+  not the picture. After Accept All the picture stands in the next paragraph.
+- `Range.delete()` over the whole text leaves the picture in the paragraph.
+
+Office JS counts an inline picture in a range; what Word's own `Range.Delete` does with one isn't
+measured here. A fix belongs to the text model, with `InlinePicture` as the run-level primitive, and is
+not scheduled.

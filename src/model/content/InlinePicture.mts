@@ -13,7 +13,9 @@ import { base64Decode, base64Encode, decodeXmlText } from '../../xml/dom.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import type { Part } from '../../parts/Part.mjs';
-import { type Element, find, runOf } from './tree.mjs';
+import { type Element, type RevisionHolder, find, runOf, linkParents, revisionKindOf } from './tree.mjs';
+import { type ChangeTracker, copyRPr } from './tracking.mjs';
+import { type RelationshipRemovals, relationshipIdsIn, queueRelationshipRemovals } from './relationships.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 
 /** English Metric Units per inch, and per twip (docx4j UnitsOfMeasurement). */
@@ -370,16 +372,71 @@ export class InlinePicture {
     return part instanceof ImagePart ? part : undefined;
   }
 
-  /** Removes the picture; the run goes too when the picture was all it held. */
+  /**
+   * Removes the picture; the run goes too when the picture was all it held.
+   *
+   * While the package tracks changes it is marked deleted instead: its run goes into a `w:del`, and
+   * when the run held more than the picture, the picture is first given a run of its own with the
+   * same properties, so the deletion holds it alone. Accepting the deletion then takes it, and its
+   * image part with it (CR-002 section 46). A picture its author inserted under tracking is taken
+   * back, as `Paragraph.delete` takes back its own text, and one inside a deletion is refused.
+   *
+   * A picture removed outright (tracking off, or taken back) queues its image relationship on the
+   * package. On save the relationship goes if nothing then references it, and the image part with it
+   * when nothing else targets it. Waiting for the save lets a picture cut and pasted back keep its
+   * image.
+   */
   delete(): void {
+    const place = placeOf(this.paragraph.p, this.run);
+    if (!place) return;
+    const revision = place.revision;
+    const tracker = this.paragraph.changeTracker;
+    if (tracker && (revision?.kind === 'del' || revision?.kind === 'moveFrom')) {
+      throw new Docx4JException(`This picture is inside a w:${revision.kind} (deleted by ${revision.value.author}); reject the deletion first`);
+    }
+    if (tracker && !tracker.ownInsertion(revision)) {
+      this.markDeleted(tracker, place);
+      return;
+    }
     const content = this.run.value.content as Element[] | undefined;
     const at = content?.indexOf(this.element) ?? -1;
     if (content && at >= 0) content.splice(at, 1);
     if (!content || content.length === 0) {
-      const holder = runHolderOf(this.paragraph.p, this.run);
-      const i = holder ? holder.indexOf(this.run as Element) : -1;
-      if (holder && i >= 0) holder.splice(i, 1);
+      const i = place.items.indexOf(this.run as Element);
+      if (i >= 0) place.items.splice(i, 1);
+      if (revision && revision.items.length === 0) {                     // an insertion left empty goes with it
+        const j = revision.owner.indexOf(revision.element);
+        if (j >= 0) revision.owner.splice(j, 1);
+      }
     }
+    const ids = new Set<string>();
+    relationshipIdsIn(this.element, ids);
+    const pkg = this.paragraph.parentBody.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined;
+    queueRelationshipRemovals(pkg?.pendingRelationshipRemovals, this.paragraph.parentBody.part, ids);
+  }
+
+  /** The picture's run in a `w:del`, the picture split into a run of its own when the run held more. */
+  private markDeleted(tracker: ChangeTracker, place: Place): void {
+    const run = this.run;
+    const at = place.items.indexOf(run as Element);
+    const content = (run.value.content ?? []) as Element[];
+    const i = content.indexOf(this.element as Element);
+    if (at < 0 || i < 0) return;
+    const before = content.slice(0, i);
+    const after = content.slice(i + 1);
+    const pieces: Element[] = [];
+    let alone: Element<wml.R> = run;
+    if (before.length > 0 || after.length > 0) {
+      alone = runOf([this.element as Element], copyRPr(run.value.rPr));
+      if (before.length > 0) {
+        run.value.content = before as wml.R['content'];
+        pieces.push(run as Element);
+      }
+    }
+    pieces.push(tracker.del([alone as Element]));
+    if (after.length > 0) pieces.push(runOf(after, copyRPr(run.value.rPr)) as Element);
+    place.items.splice(at, 1, ...pieces);
+    linkParents(pieces, place.parent);
   }
 
   private pic(): pic.Pic | undefined {
@@ -401,19 +458,26 @@ export class InlinePicture {
 }
 
 /** The array holding a run inside a paragraph (the paragraph's content, or a holder's). */
-function runHolderOf(p: object, run: Element<wml.R>): Element[] | undefined {
-  const seek = (items: Element[] | undefined): Element[] | undefined => {
+/** Where a run stands: the array holding it, what that array belongs to, and the revision it is in, if any. */
+interface Place { items: Element[]; parent: object; revision?: RevisionHolder }
+
+function placeOf(p: wml.P, run: Element<wml.R>): Place | undefined {
+  const seek = (items: Element[] | undefined, parent: object, revision: RevisionHolder | undefined): Place | undefined => {
     if (!items) return undefined;
-    if (items.includes(run as Element)) return items;
+    if (items.includes(run as Element)) return revision ? { items, parent, revision } : { items, parent };
     for (const item of items) {
       const v = item.value as { content?: Element[]; customXmlOrSmartTagOrSdt?: Element[]; sdtContent?: { content?: Element[] } } | null;
       if (typeof v !== 'object' || v === null) continue;
-      const nested = seek(v.content ?? v.customXmlOrSmartTagOrSdt ?? v.sdtContent?.content);
-      if (nested) return nested;
+      const holder = v.sdtContent ?? v;
+      const nested = v.content ?? v.customXmlOrSmartTagOrSdt ?? v.sdtContent?.content;
+      const kind = revisionKindOf(item);
+      const inner = kind && nested ? { kind, element: item, value: v as unknown as wml.CTTrackChange, items: nested, owner: items } : revision;
+      const found = seek(nested, holder, inner);
+      if (found) return found;
     }
     return undefined;
   };
-  return seek((p as { content?: Element[] }).content);
+  return seek(p.content as Element[] | undefined, p, undefined);
 }
 
 export { IMAGE_CONTENT_TYPES_BY_EXTENSION };

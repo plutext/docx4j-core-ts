@@ -296,8 +296,11 @@ export class Body {
     if (!this.part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
     const { run, drawing } = addImage(this.part, base64, this.container, writableWidthEmu(this.container), options);
     const paragraph = this.insertParagraph('', location);
-    paragraph.p.content!.push(run as never);
-    linkParents(run, paragraph.p);
+    // under tracking the picture is an insertion, as its paragraph's mark is (insertBreak's form)
+    const tracker = paragraph.changeTracker;
+    const item = tracker ? tracker.ins([run]) : run;
+    paragraph.p.content!.push(item as never);
+    linkParents(item, paragraph.p);
     return new InlinePicture(drawing, run, paragraph);
   }
 
