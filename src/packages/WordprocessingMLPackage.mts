@@ -282,6 +282,10 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
       this.resolver = resolver;
       this.resolverPending = undefined;
       return resolver;
+    }, (e: unknown) => {
+      // not kept: a styles part put right (setXml) is read again on the next call
+      this.resolverPending = undefined;
+      throw e;
     });
     return this.resolverPending;
   }

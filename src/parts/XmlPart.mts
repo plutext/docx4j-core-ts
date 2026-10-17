@@ -28,9 +28,18 @@ const warnedPrefixes = new Set<string>();
  * element, so the location is everything before the position or the colon - and `w:sz` must not be
  * cut at its own prefix separator, which a naive split on `:` does.
  */
+/** The runtime's located message: `w:sz/@w:val (line 12): reason`, the position optional. */
+const LOCATION_PREFIX = /^(.+?)(?: \(line \d+(?:, column \d+)?\))?: /;
+
 function locationOf(message: string, located: boolean): string | undefined {
   if (!located) return undefined;
-  return /^(.+?)(?: \(line \d+(?:, column \d+)?\))?: /.exec(message)?.[1];
+  return LOCATION_PREFIX.exec(message)?.[1];
+}
+
+/** ` (line 12, column 9)`, or as much of it as is known. */
+function positionOf(line: number | undefined, column: number | undefined): string {
+  if (line === undefined) return '';
+  return column === undefined ? ` (line ${line})` : ` (line ${line}, column ${column})`;
 }
 
 /** What `selectObjects` needs: the engine to evaluate with, and any prefixes beyond the defaults. */
@@ -119,7 +128,7 @@ export class XmlPart<T = unknown> extends Part {
     if (this.element === undefined) {
       const bytes = this.bytes ?? (await this.loadSourceBytes());
       if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
-      const doc = parseXml(decodeXmlText(bytes));
+      const doc = this.parse(bytes);
       this.recordDeclarations(doc);
       this.preprocessor?.(doc, this as XmlPart<unknown>);
       this.element = await this.unmarshal(doc);
@@ -142,7 +151,7 @@ export class XmlPart<T = unknown> extends Part {
     if (this.element !== undefined) return this.element.value;
     const bytes = this.bytes ?? (await this.loadSourceBytes());
     if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
-    const doc = parseXml(decodeXmlText(bytes));
+    const doc = this.parse(bytes);
     this.recordDeclarations(doc);
     this.preprocessor?.(doc, this as XmlPart<unknown>);
     return (await this.unmarshal(doc)).value;
@@ -218,25 +227,52 @@ export class XmlPart<T = unknown> extends Part {
   }
 
   /**
+   * Parses the part's bytes, and names the part when the XML is not well-formed. xmldom's error
+   * (Node) carries the line and column of the fault; a browser's says them in its text, which
+   * `parseXml` passes on.
+   */
+  private parse(bytes: Uint8Array): Document {
+    try {
+      return parseXml(decodeXmlText(bytes));
+    } catch (cause) {
+      const at = (cause as { locator?: { lineNumber?: unknown; columnNumber?: unknown } } | undefined)?.locator;
+      const line = typeof at?.lineNumber === 'number' ? at.lineNumber : undefined;
+      const column = typeof at?.columnNumber === 'number' ? at.columnNumber : undefined;
+      const reason = (cause instanceof Error ? cause.message : String(cause)).replace(/^Malformed XML: /, '');
+      throw new PartUnmarshalException(`${this.partName}: Malformed XML${positionOf(line, column)}: ${reason}`, this.partName.name, { cause, line, column });
+    }
+  }
+
+  /**
    * Unmarshals, and names the part when the runtime refuses. The runtime's own message says what is
    * wrong and, since `@docx4j/jsonix` 3.4.0, where - `w:sz/@w:val (line 12): Argument [NaN] must be
    * an integer` - but not which part it was reading, which is the first thing a person editing a
-   * part's XML needs (CR-002 section 27). The location it found is lifted onto the exception so a
-   * caller does not parse the message; `line` is undefined where the parser supplies no position,
-   * which is every browser (only xmldom carries a locator).
+   * part's XML needs (CR-002 section 27), nor the value it refused. The message names the part, and
+   * for an attribute gives the value as written and the column too:
+   * `/word/styles.xml: w:sz/@w:val="big" (line 12, column 9): Argument [NaN] must be an integer, ...`.
+   * The location it found is lifted onto the exception so a caller does not parse the message; `line`
+   * is undefined where the parser supplies no position, which is every browser (only xmldom carries a
+   * locator).
    */
   private async unmarshal(doc: Document): Promise<Jsonix.TypedNamedValue<T>> {
     try {
       return await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc);
     } catch (cause) {
-      const located = cause as { message?: unknown; node?: { lineNumber?: number; columnNumber?: number } | undefined; attributeName?: { localPart?: string } | undefined; jsonixLocated?: boolean };
+      type LocatedNode = { lineNumber?: number; columnNumber?: number; getAttributeNS?(ns: string | null, local: string): string | null };
+      const located = cause as { message?: unknown; node?: LocatedNode | undefined; attributeName?: { namespaceURI?: string; localPart?: string } | undefined; jsonixLocated?: boolean };
       const message = typeof located?.message === 'string' ? located.message : String(cause);
-      throw new PartUnmarshalException(`${this.partName}: ${message}`, this.partName.name, {
-        cause,
-        location: locationOf(message, located?.jsonixLocated === true),
-        line: typeof located?.node?.lineNumber === 'number' ? located.node.lineNumber : undefined,
-        column: typeof located?.node?.columnNumber === 'number' ? located.node.columnNumber : undefined,
-      });
+      const location = locationOf(message, located?.jsonixLocated === true);
+      const line = typeof located?.node?.lineNumber === 'number' ? located.node.lineNumber : undefined;
+      const column = typeof located?.node?.columnNumber === 'number' ? located.node.columnNumber : undefined;
+      let detail = message;
+      if (location !== undefined) {
+        const reason = message.slice(LOCATION_PREFIX.exec(message)?.[0].length ?? 0);
+        const name = located?.attributeName;
+        const value = name?.localPart ? located?.node?.getAttributeNS?.(name.namespaceURI || null, name.localPart) : undefined;
+        const shown = typeof value === 'string' ? `=${JSON.stringify(value.length > 80 ? `${value.slice(0, 80)}...` : value)}` : '';
+        detail = `${location}${shown}${positionOf(line, column)}: ${reason}`;
+      }
+      throw new PartUnmarshalException(`${this.partName}: ${detail}`, this.partName.name, { cause, location, line, column });
     }
   }
 

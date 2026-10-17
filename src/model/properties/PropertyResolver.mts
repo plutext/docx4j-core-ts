@@ -41,7 +41,7 @@
 // marshalling the part before and after).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
-import { Docx4JException } from '../../opc/exceptions.mjs';
+import { Docx4JException, PartUnmarshalException } from '../../opc/exceptions.mjs';
 import { log } from './log.mjs';
 import { NumberingDefinitions } from '../listnumbering/definitions.mjs';
 import {
@@ -150,6 +150,26 @@ export function headingLevelByName(style: wml.Style | undefined): number {
   return match ? Number(match[1]) : -1;
 }
 
+/**
+ * A styles or numbering part the resolver can't do without: when it can't be read, nothing in the
+ * document can be given its formatting, so the document is refused (Jason, 2026-10-17), and the
+ * error says so before it says what was wrong where. A `PartUnmarshalException` stays one, with its
+ * part, location, line and column, so a caller showing the fault reads the same fields as for any
+ * part.
+ */
+async function readOrRefuse<T>(part: { readContents(): Promise<T> }, role: 'styles' | 'numbering'): Promise<T> {
+  try {
+    return await part.readContents();
+  } catch (e) {
+    const why = role === 'styles' ? "every paragraph's formatting depends on it" : "its lists' numbers and indents depend on it";
+    const lead = `The document cannot be opened: its ${role} part could not be read, and ${why}.`;
+    if (e instanceof PartUnmarshalException) {
+      throw new PartUnmarshalException(`${lead} ${e.message}`, e.partName, { cause: e, location: e.location, line: e.line, column: e.column });
+    }
+    throw new Docx4JException(`${lead} ${e instanceof Error ? e.message : String(e)}`, { cause: e });
+  }
+}
+
 export class PropertyResolver {
 
   private documentDefaultPPr: wml.PPr = { TYPE_NAME: 'org_docx4j_wml.PPr' };
@@ -225,8 +245,8 @@ export class PropertyResolver {
     }
     const stylesPart = main.styleDefinitionsPart;
     const numberingPart = main.numberingDefinitionsPart;
-    const privateStyles = stylesPart === undefined ? undefined : await stylesPart.readContents();
-    const privateNumbering = numberingPart === undefined ? undefined : await numberingPart.readContents();
+    const privateStyles = stylesPart === undefined ? undefined : await readOrRefuse(stylesPart, 'styles');
+    const privateNumbering = numberingPart === undefined ? undefined : await readOrRefuse(numberingPart, 'numbering');
     // the settings are read for two compatibility values (CR-007), privately, as the others are
     const settingsPart = main.documentSettingsPart;
     let privateSettings: wml.CTSettings | undefined;

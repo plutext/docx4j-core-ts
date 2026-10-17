@@ -2608,3 +2608,65 @@ compiler.
   `BooleanDefaultTrue.isVal()` reads null as true. This package reads `off` as the standard does.
   docx4j's CR-045 (proposed, `82bf972e3`) would make docx4j agree. No golden holds an on/off
   value, so parity can't see the difference.
+
+## 26. A styles part that cannot be read refuses the document, and says so (2026-10-17)
+
+The on/off failure (section 25) raised the question: should a styles part that won't unmarshal stop the
+whole document from opening? It already did. `getBody` builds the `PropertyResolver`, and the resolver
+reads the styles part with nothing around it. Jason's decision, 2026-10-17: yes, it refuses the
+document, "but we need a useful error message".
+
+**What a person was told before**, for `<w:sz w:val="big"/>` in `styles.xml`:
+
+```
+PartUnmarshalException: /word/styles.xml: w:sz/@w:val (line 7): Argument [NaN] must be an integer, but it is not a number.
+```
+
+That gives the part, the attribute and the line. It doesn't give the value refused, the column, or that
+the document as a whole can't be opened. A part that wasn't well-formed was worse: xmldom's bare
+`ParseError` (`Unescaped '<' not allowed in attributes values`) named no part at all.
+
+**Now:**
+
+```
+PartUnmarshalException: The document cannot be opened: its styles part could not be read, and every paragraph's formatting depends on it. /word/styles.xml: w:sz/@w:val="big" (line 7, column 9): Argument [NaN] must be an integer, but it is not a number.
+```
+
+- **Every part** (`XmlPart.unmarshal`): an attribute the runtime refused is shown with its value as
+  written (cut at 80 characters), and the position gives the column as well as the line.
+  `PartUnmarshalException.column` was already there and is now always filled where the parser gives one.
+- **A part that isn't well-formed** (`XmlPart.parse`, new): a `PartUnmarshalException` naming the part,
+  with the line and column from xmldom's locator (`/word/styles.xml: Malformed XML (line 7, column 9):
+  Unescaped '<' ...`). A browser's message carries its own position, which `parseXml` passes on (CR-002
+  section 33). `DefaultXmlPart` parses on its own and is unchanged; the editor's XML check reads it.
+- **Where the styles are needed** (`PropertyResolver.create`, so `getBody`, `getPropertyResolver` and
+  the content API's effective reads):
+  - the part's error is wrapped, saying first that the document cannot be opened and why, then the
+    part's own message;
+  - it stays a `PartUnmarshalException`, with the same `partName`, `location`, `line` and `column`, and
+    the part's error as its `cause`.
+  - The numbering part is read the same way and was already as fatal. It gets the same lead, with its
+    own reason ("its lists' numbers and indents depend on it"); Jason confirmed this handling the same
+    day. The settings part is still tolerated, with a warning and the default compatibility mode.
+- **Put right, it opens.** `getPropertyResolver` no longer keeps a failed build. Before, a styles part
+  corrected with `setXml` was never read again, because every later call returned the same rejection.
+- `unmarshalAll` reports a failing part with the part-level message, without the lead, since it reads
+  every part and not only those the document needs.
+
+**Tests** in `load.test.mjs`:
+- the located error now asserts the value and the column;
+- a part that isn't well-formed names itself, with the line and column;
+- a document whose styles part can't be read is refused by `getBody` and `getPropertyResolver` with the
+  lead and the part's detail, the part's error its cause; with the part put right, the document opens.
+  This one fails if a failed build is kept.
+
+Suite 833 passed. Not released.
+
+**For the editor.** It shows `PartUnmarshalException.message` and reads `location`, `line` and `column`
+(`checkPartXml`). The message now carries the value and the column, and a failed `getBody` begins with
+the lead sentence. No field changed.
+
+**Later, perhaps: repair.** Jason, 2026-10-17: "in the future, we might add repair functionality for
+these parts". That would mean opening a document whose styles or numbering part can't be read, by
+repairing the part rather than refusing it. Nothing is proposed. A repair would start from what the
+error now carries: the part, the element or attribute, and the value refused.

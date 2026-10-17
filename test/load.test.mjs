@@ -129,6 +129,9 @@ test('an unmarshal failure names the part, with the location and line', async ()
   assert.equal(error.location, 'w:sz/@w:val', 'the attribute, not cut at its own prefix separator');
   assert.equal(typeof error.line, 'number');
   assert.ok(error.line > 0);
+  assert.equal(typeof error.column, 'number');
+  // the value as written, and where: the runtime's own message says NaN
+  assert.ok(error.message.startsWith(`/word/styles.xml: w:sz/@w:val="big" (line ${error.line}, column ${error.column}): `), error.message);
   assert.ok(error.cause, 'the runtime error is the cause');
 
   // readContents reports the same way, since a private read fails for the same reasons
@@ -160,6 +163,46 @@ test('a document whose on/off values are "on" and "off" loads, reads them as boo
   assert.deepEqual(await read(again), { tblHeader: true, wordWrap: false });
   assert.match(await again.getMainDocumentPart().getXml(), /<w:tblHeader w:val="true"\s*\/>/);
   assert.match(await again.getMainDocumentPart().styleDefinitionsPart.getXml(), /<w:wordWrap w:val="false"\s*\/>/);
+});
+
+// Not well-formed: the parser's error names no part, so the part's does (Node: xmldom's locator gives
+// the line and column; a browser's message says them itself, the case below).
+test('a part that is not well-formed names itself, with the line and column', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  styles.setXml((await styles.getXml()).replace('<w:sz w:val="22" />', '<w:sz w:val="22" <'));
+  const error = await styles.getContents().then(() => undefined, (e) => e);
+  assert.ok(error instanceof PartUnmarshalException, `expected PartUnmarshalException, got ${error?.constructor?.name}`);
+  assert.equal(error.partName, '/word/styles.xml');
+  assert.match(error.message, /^\/word\/styles\.xml: Malformed XML \(line \d+, column \d+\): Unescaped '<' not allowed in attributes values$/);
+  assert.equal(typeof error.line, 'number');
+  assert.equal(typeof error.column, 'number');
+  assert.equal(error.location, undefined, 'no element: the parser stopped before one');
+  assert.equal(styles.isUnmarshalled, false);
+});
+
+// Jason, 2026-10-17: a styles part that cannot be read refuses the document, since nothing in it can be
+// given its formatting, and the error says that first, then what was wrong where. Put right, it opens.
+test('a document whose styles part cannot be read is refused, saying why; put right, it opens', async () => {
+  const made = await WordprocessingMLPackage.createPackage();
+  const good = await made.getMainDocumentPart().styleDefinitionsPart.getXml();
+  made.getMainDocumentPart().styleDefinitionsPart.setXml(good.replace('<w:sz w:val="22" />', '<w:sz w:val="big" />'));
+  const pkg = await WordprocessingMLPackage.load(await made.save());
+
+  const error = await pkg.getBody().then(() => undefined, (e) => e);
+  assert.ok(error instanceof PartUnmarshalException, `expected PartUnmarshalException, got ${error?.constructor?.name}`);
+  assert.match(error.message, /^The document cannot be opened: its styles part could not be read, and every paragraph's formatting depends on it\. \/word\/styles\.xml: w:sz\/@w:val="big" \(line \d+, column \d+\): Argument \[NaN\] must be an integer/);
+  assert.equal(error.partName, '/word/styles.xml');
+  assert.equal(error.location, 'w:sz/@w:val');
+  assert.equal(typeof error.line, 'number');
+  assert.ok(error.cause instanceof PartUnmarshalException, "the part's own error is the cause");
+  await assert.rejects(() => pkg.getPropertyResolver(), (e) => e.message === error.message, 'the resolver says the same');
+
+  // the failure is not kept: the part put right, the document opens
+  pkg.getMainDocumentPart().styleDefinitionsPart.setXml(good);
+  const body = await pkg.getBody();
+  assert.ok(body.paragraphs.length >= 0);
+  assert.ok(pkg.propertyResolver);
 });
 
 // CR-002 section 33, found by the editor's E4.b: a browser's DOMParser does not throw on malformed
