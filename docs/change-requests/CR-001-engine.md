@@ -219,6 +219,14 @@ unmarshalled. Off switch: `LoadOptions.mcePreprocess = false` (the content then 
 `org_docx4j_mce` objects with each branch kept as DOM and written back on save; since objects
 0.1.5 the schema admits the element wherever Word writes it, section 17.5).
 
+Two departures from this paragraph since then:
+- **docx4j keeps the element** wherever it occurs, and saves every branch, since its CR-021
+  (17.2.0). So "docx4j's behaviour" above is no longer true (CR-010 section 1).
+- **CR-010 phase 1 (2026-10-17) keeps two kinds whole:** the element under `c:chartSpace` or the
+  SpreadsheetML `workbook` (`KEPT_HOSTS`), and one nothing can be selected from (Choices only,
+  none understood), which ISO removes. Load also reports `mce.branches_differ` when the branch
+  taken and a branch dropped hold different text (`XmlPart.warnings`, `OpcPackage.warnings`).
+
 On marshal, the root element must declare every prefix named in `mc:Ignorable` even if unused in
 the tree, and Word expects the conventional prefixes (`w`, `r`, `wp`, `a`, `pic`, `v`, `o`,
 `w10`, `w14`, `w15`, `mc`, ...). `XmlPart` marshals with docx4j's prefix table
@@ -2403,6 +2411,9 @@ the content API's reach, per host type, not a single switch; and the content API
 is what it should start from. `onUnexpectedElement` (jsonix-CR-006, in 3.4.0) reports exactly this
 class of loss at the point it happens, which is the instrument to build it on: today the only way
 to find one is to diff a part by hand, which is how both of this week's cases came to light.
+
+That CR is CR-010. Its phase 1 (2026-10-17) keeps the workbook's element and the chart part's
+whole, and leaves the worksheet's controls resolved, as CR-004 phase B wants.
 
 ### 21.1 The inventory: what this package silently drops today (2026-09-27)
 

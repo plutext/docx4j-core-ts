@@ -1,8 +1,10 @@
 # CR-010: Keep every branch of `mc:AlternateContent` (docx4j CR-021's policy)
 
 **Status:** Proposed 2026-10-17, at Jason's request ("Shouldn't we be preserving all branches of
-mc?"). Not scheduled; each phase waits for Jason's go. The policy is docx4j's CR-021 (done
-2026-09-19, in 17.2.0). Phase 2 needs work in the objects package, as a CR there.
+mc?"). Phase 1 implemented 2026-10-17 (section 9; D2, D3 and D4 decided by Jason that day, and
+D1 settled by the text extraction paper's D4). Phases 0, 2, 3 and 4 are not scheduled; each waits
+for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0). Phase 2 needs work in
+the objects package, as a CR there.
 
 ## 1. Why
 
@@ -104,6 +106,20 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
 5. **Save writes every branch.** An edit made through a mutator lands in every branch, so a
    Fallback is never left saying something the Choice doesn't. Content the API inserts is written as
    given.
+6. **One selection rule in both selectors**, the preprocessor's and `mcBranchOf`: the text
+   extraction paper's D4, which Jason accepted on 2026-10-17 (section 7). Today:
+   - **Namespaces.** The preprocessor resolves each `Requires` prefix to its URI at the Choice.
+     `mcBranchOf` compares prefixes with the conventional prefix table. D4 item 1 wants URIs, with
+     prefixes only where the declarations in force are not kept; that is an objects change.
+   - **An empty `Requires`** is not understood by either, as D4 item 3 says. Nothing to do.
+   - **Choices only, none understood.** `mcBranchOf` yields the first Choice (D4 item 4, a
+     departure confined to reading). The preprocessor removes the element, as ISO does. Section 5
+     D4 says what load should do instead.
+   - **The understood set** is D4 item 2's: one list published once, as a resource in docx4j as
+     the strict fixtures are, with `UNDERSTOOD_NAMESPACES` asserted against it by a test. That
+     doesn't mean shrinking this package's set: its ~110 URIs are the widest of the three engines
+     and the natural first content. Additions (cx1 and cx2, CR-009 section 8) go to the published
+     list.
 
 ## 4. Phases
 
@@ -113,14 +129,24 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
      flat tree today;
    - which of the four excluded XPath fixtures come back once the element is kept, and what the
      parity goldens (lists in text boxes) need from D1.
-1. **Keep where nothing reads the content** (half a day). The preprocessor leaves the element alone
-   where its host is `c:chartSpace` or the SpreadsheetML workbook. The model binds the element in
-   both, and nothing in this package reads `c14:style` or `absPath`. This ends section 1 item 2's
-   two losses, 227 and 31 elements in the corpus, with no change to the content API.
+1. **Keep where nothing reads the content** (half a day; implemented 2026-10-17, section 9). The
+   preprocessor leaves the element alone where its host is `c:chartSpace` or the SpreadsheetML
+   workbook. The model binds the element in both, and nothing in this package reads `c14:style` or
+   `absPath`. This ends section 1 item 2's two losses, 227 and 31 elements in the corpus, with no
+   change to the content API.
    - The worksheet's `x14` controls stay resolved until phase 3, since CR-004 phase B reads them
      typed.
    - Test: a chart part's `c14:style` and `c:style`, and the workbook's `absPath`, survive
      `unmarshalAll` and a save.
+   - Added 2026-10-17, from the paper's D4 (section 7): an element nothing can be selected from
+     is kept whole, not removed (D4 below).
+   - Also added: the `mce.branches_differ` warning in its load-time form. Before the preprocessor
+     resolves an element, it compares the normalised `w:t` text of the branch it takes with the
+     branches it drops, and records the part and the branch taken on a load report that readers
+     surface. That report is new API, shaped in this phase. This form has no revision view and
+     no hidden-text rule, and needs neither to answer "does the other branch say something
+     different". The read-time form, with the read rules, comes with phase 3. It needs no
+     phase 4.
 2. **Typed branches**, in the objects package: a CR there for section 3 item 4's route. Its test is
    this CR's survey: every DOM entry in section 2's second table that the content API reads comes
    back typed, and every part still writes back whole.
@@ -149,10 +175,40 @@ The estimates are rough, and phase 2's depends on the route.
     docx4j's default would make the trees agree for parity.
   - Recommended: Word's rule, with the understood set as an option. The parity harness would then
     run docx4j with `preferChoice` set to match.
+  - **Settled 2026-10-17** by the text extraction paper's D4, which Jason accepted as written
+    (`docx4j-portfolio` 2d8fd36). D4 applies the ISO rule on URIs to every reader in all three
+    engines; it is Word's rule. docx4j will select by purpose: text by the rule, while drawing
+    keeps the Fallback default until docx4j's FO output draws an inline `wps` box. Until docx4j's
+    split lands, the parity harness runs docx4j with `preferChoice` set to match, as recommended
+    above. Word's evidence is in section 7.
 - **D2: mutators edit every branch** (docx4j's ALL). Recommended. The alternative leaves a stale
-  Fallback.
+  Fallback. The paper assumes it throughout, and docx4j's CR-043 lister already reads every
+  branch. **Decided 2026-10-17** (Jason: "D2: yes").
 - **D3: phase 1 alone, now?** It fixes the two outright losses without touching the content API.
-  Recommended either way.
+  Recommended either way. The paper takes no position on timing. Phase 1 now also carries the
+  two additions of 2026-10-17. **Decided 2026-10-17** (Jason: "D3: start phase 1 now, with the
+  two additions above"); implemented, section 9.
+- **D4: what load does with an element nothing can be selected from** (Choices only, none
+  understood, no Fallback; added 2026-10-17). The decided rule (D4 item 4) is that a reader takes
+  its first Choice, and the portfolio session proposed the preprocessor do so too, as
+  `mcBranchOf` does. Measured the same day, on a `w:r` holding such an element with a text box in
+  an unknown namespace, saved after an edit:
+
+  | load | `getBody()` | the paragraph's text | the save after an edit |
+  |---|---|---|---|
+  | removes it (today, ISO) | opens | excludes the box | the run empty: the element is lost |
+  | promotes the first Choice | **throws** `PartUnmarshalException`: the run's property "does not allow DOM content" | | |
+  | keeps the element whole | opens | excludes the box | the element back whole |
+
+  - Promoting fails because the preprocessor's output is what the model unmarshals and a save
+    writes, so promoting would make the writer rely on the reading departure, which D4 item 4
+    rules out.
+  - Keeping is lossless today. The text becomes readable when phase 3 reads kept branches
+    through `mcBranchOf`.
+  - Recommended: keep the element whole, in phase 1. With this package's understood set the
+    case is rare: the corpus has none, and Word's Choice-only boxes require `wps`, which is
+    understood. It arises under a caller's narrower `understood` set.
+  - **Decided 2026-10-17**, with D3: keeping it is one of phase 1's two additions.
 
 ## 6. Risks
 
@@ -160,12 +216,51 @@ The estimates are rough, and phase 2's depends on the route.
   content stood (`P.content`, `R.content`, the drawing anchors). Code that walks the tree itself,
   the editor's first, has to go through `mcBranchOf`, or through the content API.
 - **A misclassified walker:** a mutator walking one branch leaves the others stale; a reader
-  walking all of them counts a text box twice (the bug that started docx4j CR-021).
+  walking all of them counts a text box twice (the bug that started docx4j CR-021). The paper
+  finds the same duplication in other tools: Gemini's app and docx2txt-based loaders emit every
+  branch (its sections 7.2 and 7.5).
 - **A kept branch is lossless only while the model binds its whole content** (docx4j CR-021
   section 8.6 item 10). Measured lossless for all 281 parts today; section 2's survey is re-run
   before the default flips.
 
-## 7. References
+## 7. The text extraction paper (2026-10-17)
+
+The portfolio's `docs/text_extraction_behaviour_model.md` (written 2026-10-17; its section 9
+decisions were taken the same day, Jason accepting every recommendation, `docx4j-portfolio`
+2d8fd36) defines one text model for docx4j, this package and python. It names this CR twice:
+D1 is the rule it wants in all three engines, and phase 3 fills its text-box address. What it
+decided, and what it found, as it bears on this CR:
+
+- **Decided (its D4):**
+  - the ISO rule on namespace URIs, for every reader;
+  - one understood set, published once;
+  - an empty `Requires` is not understood;
+  - a Choice-only element nobody understands yields its first Choice, for reading only;
+  - never both branches;
+  - the `mce.branches_differ` warning.
+
+  These settle D1 here. Section 3 item 6 and section 5 D4 apply them.
+- **Word's evidence** (Word 365 build 16.0.20326, Jason, 17 October 2026; the paper's section 8):
+  - Re-saving the extraction probe, Word resolved every non-shape `AlternateContent` to the branch
+    the ISO rule selects, in all eight cases. That includes a rebound prefix (matched by URI) and
+    a Choice requiring two prefixes, one unknown (the Fallback was taken).
+  - `Range.Text` over `StoryRanges` gives a text box as its own story holding only the drawn
+    branch's text. No Fallback text is in any story unless the Fallback is the branch drawn.
+- **Fallbacks on Word's save** (scripted rounds by docx4j's session and Jason, in docx4j CR-021
+  section 8.5, edited there and not yet committed when this was written):
+  - Word keeps an authored Fallback unless it edits the shape, or the document holds an
+    `altChunk` anywhere, in which case every Fallback is regenerated.
+  - A bare `wps` box gains a Fallback on every save.
+  - So in a Word-saved file whose boxes weren't edited, and with no `altChunk`, the Fallbacks are
+    still the author's. A reader on the Fallback can read text Word never showed. That is the
+    plainest case for phase 4's flip.
+- **The text-box address** `body/3/textbox:0/1` (the paper's section 4.3) is a proposal, not
+  decided. The address grammar is shared with python's CR-003 section 3.4 and the editor's
+  ED-001, so phase 3 agrees a form with those sessions before it lands.
+- **The text CR.** The paper's section 10 proposes a core-ts text CR (`getText`, text boxes after
+  this CR's phase 3). It consumes this CR's selection rule and doesn't define one.
+
+## 8. References
 
 - docx4j CR-021 (`VERSION_17_3_3`, `docs/developer/change-requests/`), `org.docx4j.jaxb.McSelection`,
   `McMode`; CR-024 (`mc:AlternateContent` in DrawingML).
@@ -173,5 +268,84 @@ The estimates are rough, and phase 2's depends on the route.
   slicers); CR-009 section 8 (the chartex namespaces); `src/opc/mce/`.
 - The objects package: `builders/wml`'s `mcBranchOf`, `childValues` and `textOf`; its CR-002 (fragments
   unmarshalled in their container).
+- The portfolio: `docs/text_extraction_behaviour_model.md`, sections 4, 8 and 9 (D4); decisions
+  taken at 2d8fd36.
 - The survey script is not committed. It loads each file twice, resolved and with
   `mcePreprocess: false`, and compares every element's normalised form; phase 0 makes it a test.
+
+## 9. Phase 1 (implemented 2026-10-17)
+
+### 9.1 What changed
+
+- **`src/opc/mce/preprocessor.mts`.** Load leaves two kinds of `mc:AlternateContent` whole, branches
+  and all, including any element nested in them:
+  - under a host in `KEPT_HOSTS` (`c:chartSpace` and SpreadsheetML's `workbook`), or under the
+    caller's own `keptHosts`, as `{namespace}localName`; an empty set resolves everywhere, as
+    before;
+  - where nothing can be selected (Choices only, none understood), which ISO, and this package
+    until now, removes (D4).
+- **Outermost first.** The pass now resolves each element before what it contains, then visits
+  the content it leaves in place; before, it went innermost first. Resolution comes out the same,
+  but an element nested in a dropped branch is no longer visited, so it reports nothing.
+- **New entry points.** `preprocessAlternateContent(root, options)` returns
+  `{ resolved, kept, warnings }`, and `resolveAlternateContent` still returns the number resolved.
+- **The warning.** `mce.branches_differ` (`McBranchesDifferWarning`) is recorded when the text of
+  the branch taken differs from that of a branch dropped:
+  - The text is a branch's `w:t`, `a:t` and `m:t`, with whitespace collapsed. A nested element
+    contributes the branch the same rule selects, or its first Choice when nothing can be
+    selected (the reading rule).
+  - It carries the part name, the line and column (where the DOM records them, as xmldom does),
+    the branch taken (`Choice(wps)`, `Fallback`), every branch's text and a message.
+- **Where warnings collect.** `XmlPart.warnings` holds what the preprocessor returned the last
+  time the part was parsed, by `getContents()` or a private read, so a reader that leaves the part
+  untouched gets them too. `setContents` clears them. `OpcPackage.warnings` gathers the warnings of
+  every part parsed so far. A `DomPreprocessor` may now return warnings, and one that returns
+  nothing leaves none.
+- **Exports** from `./opc`: `KEPT_HOSTS`, `preprocessAlternateContent`, and the types
+  `McBranchesDifferWarning`, `PartWarning` and `MceResult`.
+- **Tests:**
+  - five new ones in `mce.test.mjs`: a chart part's `c14:style` and its `c:style` Fallback
+    through `unmarshalAll` and a save; `KEPT_HOSTS` and an empty `keptHosts`; an element nothing
+    can be selected from, through an edit and a save; the warning on a text box, with
+    `setContents` clearing it; the warning from a private read of docx4j's waterfall;
+  - two changed: `create.test.mjs`'s workbook test now asserts that `absPath` is kept, where it
+    asserted the loss, and `mce.test.mjs`'s first test asserts the kept element, where it
+    asserted removal.
+
+  Run against the build of `3d609c0` (with the two new names shimmed), all seven fail and the rest
+  pass. Suite 838 passed.
+
+### 9.2 Measured over the 459 files
+
+- **Re-marshalled** after `unmarshalAll` and a save, 258 of the 8,235 parts change: exactly the 227
+  chart parts (172 in xlsx, 32 in docx, 23 in pptx) and the 31 workbooks that hold the element.
+  Every other part is byte-identical to `3d609c0`'s output.
+- **In those 258**, every element comes back whole (names, attributes and children; prefix
+  declarations aside). At `3d609c0`, none of the 258 did.
+- **No reader is affected.** Nothing in `src/` reads a chart part's tree (`ChartPart` is the class
+  alone) or a workbook's `alternateContent`.
+- **The warning:** 11, from private reads of every XML part; no file failed to load. The nine
+  `wps` text boxes' branches agree.
+
+  | branches | warnings | where |
+  |---|---|---|
+  | the Choice without text, the Fallback with Excel's notice | 7 | cx1 4 ("This chart isn't available in your version of Excel"), the a14 slicer, sle15, tsle |
+  | the Choice with text, the Fallback without | 3 | two a14 checkboxes ("Check Box 1"), a pptx slide's a14 text box |
+  | both with text: the same equation in OMML and in its linear form | 1 | `loadAndSave.xlsx`'s a14 equation |
+
+  - A reader on the Fallback would read the first seven's notices, as docx4j's default and the
+    paper's Fallback-only tools do, and nothing for the next three. So those ten are what the
+    warning is for.
+  - The equation is a false positive of the text comparison. The Choice's `m:t` runs and the
+    Fallback's linear `a:t` are two notations of one formula. The read-time form (phase 3) can
+    compare math by its own rule, and this one is left as it is.
+
+### 9.3 Not done in phase 1
+
+- **The worksheet's `x14` controls** stay resolved (section 4).
+- **The content API** doesn't read a kept branch, so the text of an element nothing can be
+  selected from appears nowhere until phase 3.
+- **No `warnings: false` option** (the paper's section 4.1 item 6). The load-time comparison is
+  one pass over branches that are dropped in any case.
+- **The warnings cover only parts parsed so far.** A caller wanting a whole package's warnings
+  reads its parts first; private reads keep them untouched.

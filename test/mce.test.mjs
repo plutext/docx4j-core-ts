@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, MCE_NS, ZipPartStore } from '../dist/index.mjs';
+import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore } from '../dist/index.mjs';
 import { fixture, fixturesDir } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -28,10 +28,11 @@ test('resolveAlternateContent: the first understood mc:Choice wins, else the fal
   doc = parseXml(nested);
   assert.equal(resolveAlternateContent(doc), 2);
   assert.equal(doc.getElementsByTagNameNS(W, 't')[0].textContent, 'inner');
-  // no fallback and nothing understood: dropped
+  // no fallback and nothing understood: kept whole since CR-010 phase 1 (ISO removes it)
   doc = parseXml(`<w:p xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:x="urn:unknown"><mc:AlternateContent><mc:Choice Requires="x"><w:r/></mc:Choice></mc:AlternateContent></w:p>`);
-  resolveAlternateContent(doc);
-  assert.equal(doc.documentElement.childNodes.length, 0);
+  assert.equal(resolveAlternateContent(doc), 0);
+  assert.equal(doc.getElementsByTagNameNS(MCE_NS, 'AlternateContent').length, 1);
+  assert.equal(doc.getElementsByTagNameNS(W, 'r').length, 1);
   assert.ok(UNDERSTOOD_NAMESPACES.has('http://schemas.microsoft.com/office/word/2010/wordprocessingShape'));
 });
 
@@ -166,4 +167,96 @@ test('a funnel\'s frame, behind Requires="cx2", is taken too', () => {
   assert.equal(resolveAlternateContent(doc), 1);
   assert.equal(doc.getElementsByTagNameNS(CX, 'chart').length, 1);
   assert.equal(doc.getElementsByTagNameNS(W, 't').length, 0);
+});
+
+// CR-010 phase 1 (Jason, 2026-10-17: D3, phase 1 now, with its two additions). The element is kept
+// whole under c:chartSpace and the SpreadsheetML workbook, where promoting a Choice lost it outright
+// (CR-001 sections 21 and 21.1): a chart's c14:style went, and with it the Fallback's c:style.
+test('a chart part keeps its c14:style mc:AlternateContent, and its c:style Fallback, through a save', async () => {
+  const bytes = await fixture('loadAndSave.docx');
+  const name = 'word/charts/chart1.xml';
+  const source = parseXml(new TextDecoder().decode(new ZipPartStore(bytes).loadSync(name)));
+  const want = [...source.getElementsByTagNameNS(MCE_NS, 'AlternateContent')].map(elementForm);
+  assert.equal(want.length, 1);
+  assert.equal(source.getElementsByTagNameNS(MCE_NS, 'AlternateContent')[0].parentNode.localName, 'chartSpace');
+  const pkg = await OpcPackage.load(bytes);
+  await pkg.unmarshalAll();
+  const chart = [...pkg.parts].find((p) => p.partName.name === '/' + name);
+  const kept = chart.contents.alternateContent;
+  assert.equal(kept.choice[0].requires, 'c14');
+  assert.ok(kept.fallback, 'the Fallback is in the tree');
+  const saved = parseXml(new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync(name)));
+  assert.deepEqual([...saved.getElementsByTagNameNS(MCE_NS, 'AlternateContent')].map(elementForm), want, 'written back whole');
+  assert.equal(saved.getElementsByTagNameNS('http://schemas.microsoft.com/office/drawing/2007/8/2/chart', 'style')[0].getAttribute('val'), '102');
+  assert.equal(saved.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/chart', 'style')[0].getAttribute('val'), '2');
+  assert.equal(pkg.warnings.filter((w) => w.partName === '/' + name).length, 0, 'nothing resolved there, so nothing to warn about');
+});
+
+test('KEPT_HOSTS, and keptHosts: an empty set resolves everywhere, as before', () => {
+  assert.deepEqual([...KEPT_HOSTS].sort(), [
+    '{http://schemas.openxmlformats.org/drawingml/2006/chart}chartSpace',
+    '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}workbook',
+  ]);
+  const xml = `<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:mc="${MCE_NS}"><mc:AlternateContent><mc:Choice Requires="c14" xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"><c14:style val="102"/></mc:Choice><mc:Fallback><c:style val="2"/></mc:Fallback></mc:AlternateContent></c:chartSpace>`;
+  assert.deepEqual(preprocessAlternateContent(parseXml(xml)), { resolved: 0, kept: 1, warnings: [] });
+  const doc = parseXml(xml);
+  assert.equal(preprocessAlternateContent(doc, { keptHosts: new Set() }).resolved, 1);
+  assert.equal(doc.documentElement.firstChild.localName, 'style');
+  assert.equal(doc.documentElement.firstChild.namespaceURI, 'http://schemas.microsoft.com/office/drawing/2007/8/2/chart');
+});
+
+// The text extraction paper's D4 item 4 (decided 2026-10-17): a reader takes the first Choice of an
+// element nothing can be selected from. Load does not promote it - its content is in no namespace
+// the model understands, and a w:r refuses it, so the part would not open - and does not remove it,
+// as ISO would: it keeps it whole, for a reader over kept branches (CR-010 phase 3) to read.
+test('an element nothing can be selected from is kept whole, and a save writes it back', async () => {
+  const box = '<zz:box><w:txbxContent><w:p><w:r><w:t>Hello box</w:t></w:r></w:p></w:txbxContent></zz:box>';
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:zz="urn:example:zz"><w:body><w:p><w:r><w:t>Before </w:t></w:r><w:r><mc:AlternateContent><mc:Choice Requires="zz">${box}</mc:Choice></mc:AlternateContent></w:r><w:r><w:t>after</w:t></w:r></w:p><w:sectPr/></w:body></w:document>`);
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  const body = await back.getBody();
+  assert.equal(body.paragraphs[0].text, 'Before after', 'the content API does not read a kept branch yet');
+  body.paragraphs[0].insertText('!', 'End');
+  const xml = new TextDecoder().decode(new ZipPartStore(await back.save()).loadSync('word/document.xml'));
+  assert.ok(xml.includes('<mc:AlternateContent><mc:Choice Requires="zz">'), 'kept');
+  assert.ok(xml.includes('Hello box'));
+  assert.ok(xml.includes('after!'), 'and the edit');
+});
+
+// The text extraction paper's section 4.1 item 6 (decided 2026-10-17), in its load-time form: the
+// preprocessor compares the text of the branch it takes with the branches it drops, and records a
+// warning on the part when they differ.
+test('mce.branches_differ: a text box whose Fallback says something else', async () => {
+  const wps = 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape';
+  const run = (choice, fallback) => `<w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:drawing><w:txbxContent><w:p><w:r><w:t>${choice}</w:t></w:r></w:p></w:txbxContent></w:drawing></mc:Choice><mc:Fallback><w:pict><w:txbxContent><w:p><w:r><w:t>${fallback}</w:t></w:r></w:p></w:txbxContent></w:pict></mc:Fallback></mc:AlternateContent></w:r>`;
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:wps="${wps}"><w:body><w:p>${run('Current text', 'Stale  text')}${run('Same', ' Same ')}</w:p><w:sectPr/></w:body></w:document>`);
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  assert.deepEqual(back.warnings, [], 'nothing parsed yet');
+  await back.getBody();
+  const warnings = back.getMainDocumentPart().warnings;
+  assert.equal(warnings.length, 1, 'whitespace aside, the second box\'s branches agree');
+  const [w] = warnings;
+  assert.equal(w.code, 'mce.branches_differ');
+  assert.equal(w.partName, '/word/document.xml');
+  assert.equal(w.selected, 'Choice(wps)');
+  assert.deepEqual(w.branches, [{ branch: 'Choice(wps)', text: 'Current text' }, { branch: 'Fallback', text: 'Stale text' }]);
+  assert.equal(typeof w.line, 'number');
+  assert.equal(typeof w.column, 'number');
+  assert.match(w.message, /^\/word\/document\.xml \(line \d+, column \d+\): .*Choice\(wps\) was read \("Current text"\), not Fallback "Stale text"$/);
+  assert.deepEqual(back.warnings, warnings, 'the package gathers its parts\'');
+  back.getMainDocumentPart().setContents(back.getMainDocumentPart().contents);
+  assert.deepEqual(back.getMainDocumentPart().warnings, [], 'contents set: the source\'s warnings no longer apply');
+});
+
+test('mce.branches_differ: a private read reports too, and an untouched part stays untouched', async () => {
+  // docx4j's waterfall: Excel's Fallback is its "not available" box, with text; the cx1 frame has none.
+  const pkg = await OpcPackage.load(await fixture('charts/waterfall.xlsx'));
+  const drawing = [...pkg.parts].find((p) => p.partName.name === '/xl/drawings/drawing1.xml');
+  await drawing.readContents();
+  assert.ok(drawing.isUntouched);
+  assert.equal(drawing.warnings.length, 1);
+  assert.equal(drawing.warnings[0].selected, 'Choice(cx1)');
+  assert.equal(drawing.warnings[0].branches[0].text, '');
+  assert.match(drawing.warnings[0].branches[1].text, /^This chart isn't available in your version of Excel/);
 });

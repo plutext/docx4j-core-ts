@@ -14,7 +14,7 @@ import { XmlPart } from '../parts/XmlPart.mjs';
 import { RelationshipsPart, type AddPartBehaviour } from '../parts/RelationshipsPart.mjs';
 import type { CustomXmlDataStoragePart } from '../parts/DefaultXmlPart.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart, DocPropsCustomPart } from '../parts/docProps/index.mjs';
-import { mcePreprocess } from '../opc/mce/preprocessor.mjs';
+import { mcePreprocess, type PartWarning } from '../opc/mce/preprocessor.mjs';
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
 /** Anything `OpcPackage.load` accepts: zip bytes, a flat OPC string, or a container. */
@@ -91,6 +91,17 @@ export class OpcPackage implements RelationshipSource {
   getMainPart(): Part | undefined {
     const rel = this.relationshipsPart.getRelationshipByType(Namespaces.DOCUMENT) ?? this.relationshipsPart.getRelationshipByType(Namespaces.DOCUMENT_STRICT);
     return rel ? this.relationshipsPart.getPart(rel) : undefined;
+  }
+
+  /**
+   * The warnings of every part parsed so far (each XML part's `warnings`, CR-010 phase 1). A part
+   * is parsed when something reads it, so a reader that wants a whole package's warnings reads its
+   * parts first; `unmarshalAll()` does, at the cost of re-marshalling every part on save.
+   */
+  get warnings(): PartWarning[] {
+    const out: PartWarning[] = [];
+    for (const part of this.parts) if (part instanceof XmlPart) out.push(...part.warnings);
+    return out;
   }
 
   /** Unmarshals every XML part, so that `contents` is available synchronously everywhere. */

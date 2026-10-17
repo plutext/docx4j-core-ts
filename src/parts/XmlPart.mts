@@ -6,6 +6,7 @@ import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION } from '../xml/dom.mjs';
 import { log } from '../model/properties/log.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
+import type { PartWarning } from '../opc/mce/preprocessor.mjs';
 
 const XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
 const MC_NS = Namespaces.MARKUP_COMPATIBILITY;
@@ -66,8 +67,11 @@ export interface RootName {
   localPart: string;
 }
 
-/** A hook run over the DOM before unmarshalling (the MCE preprocessor); set by the package on load. */
-export type DomPreprocessor = (doc: Document, part?: XmlPart<unknown>) => void;
+/**
+ * A hook run over the DOM before unmarshalling (the MCE preprocessor); set by the package on load.
+ * What it returns becomes the part's `warnings`.
+ */
+export type DomPreprocessor = (doc: Document, part?: XmlPart<unknown>) => void | readonly PartWarning[];
 
 /**
  * A part whose content is a typed element of the object model (docx4j JaxbXmlPart<E>). `T` is the
@@ -88,6 +92,7 @@ export class XmlPart<T = unknown> extends Part {
    * re-declared from on marshal; see `declareIgnorablePrefixes`.
    */
   private sourceDeclarations: Map<string, string> | undefined;
+  private parseWarnings: readonly PartWarning[] = [];
 
   constructor(partName: PartName | string, contentType: string, relationshipType: string, rootName?: RootName) {
     super(partName, contentType, relationshipType);
@@ -112,6 +117,15 @@ export class XmlPart<T = unknown> extends Part {
     return this.element === undefined && this.bytes === undefined;
   }
 
+  /**
+   * What the preprocessor reported the last time this part was parsed (CR-010 phase 1): an
+   * mc:AlternateContent whose branches' text differs (`mce.branches_differ`). Empty until the part
+   * is parsed, by `getContents()` or a private read, and again once its contents are set.
+   */
+  get warnings(): readonly PartWarning[] {
+    return this.parseWarnings;
+  }
+
   /** The unmarshalled contents (docx4j getJaxbElement()); throws when not yet unmarshalled. */
   get contents(): T {
     if (this.element === undefined) throw new Docx4JException(`Part ${this.partName} is not unmarshalled yet; await getContents() first`);
@@ -130,7 +144,7 @@ export class XmlPart<T = unknown> extends Part {
       if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
       const doc = this.parse(bytes);
       this.recordDeclarations(doc);
-      this.preprocessor?.(doc, this as XmlPart<unknown>);
+      this.preprocess(doc);
       this.element = await this.unmarshal(doc);
       this.rootName ??= { namespaceURI: this.element.name.namespaceURI, localPart: this.element.name.localPart };
       this.bytes = undefined;
@@ -153,8 +167,13 @@ export class XmlPart<T = unknown> extends Part {
     if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
     const doc = this.parse(bytes);
     this.recordDeclarations(doc);
-    this.preprocessor?.(doc, this as XmlPart<unknown>);
+    this.preprocess(doc);
     return (await this.unmarshal(doc)).value;
+  }
+
+  private preprocess(doc: Document): void {
+    const warnings = this.preprocessor?.(doc, this as XmlPart<unknown>);
+    this.parseWarnings = warnings ? [...warnings] : [];
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */
@@ -163,6 +182,7 @@ export class XmlPart<T = unknown> extends Part {
     if (!name) throw new Docx4JException(`Part ${this.partName}: no root element name; pass one`);
     this.element = { name: { namespaceURI: name.namespaceURI, localPart: name.localPart }, value };
     this.bytes = undefined;
+    this.parseWarnings = [];
   }
 
   /** Replaces the contents with raw XML bytes; they are unmarshalled on the next getContents(). */

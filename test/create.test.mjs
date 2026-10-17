@@ -260,12 +260,12 @@ test('SpreadsheetMLPackage.createPackage: a new xlsx saves and reloads', async (
   assert.deepEqual((await again.getWorksheetParts()).map((p) => p.partName.name), ['/xl/worksheets/sheet3.xml', '/xl/worksheets/sheet1.xml', '/xl/worksheets/sheet2.xml']);
 });
 
-test('the xlsx fixture workbook: Excel\'s x15 absPath mc:AlternateContent has no Fallback', async () => {
-  // docx4j CR-021's finding, pinned here: Excel writes
+test('the xlsx fixture workbook: Excel\'s x15 absPath mc:AlternateContent, which has no Fallback, is kept', async () => {
+  // docx4j CR-021's finding: Excel writes
   //   <mc:AlternateContent><mc:Choice Requires="x15"><x15ac:absPath url="..."/></mc:Choice></mc:AlternateContent>
-  // with no mc:Fallback. x15 is not a namespace the object model has a module for, so the
-  // preprocessor of CR-001 section 5.6 finds no understood Choice and no Fallback, and drops the
-  // element (ECMA-376 Part 3 10.2.1). The untouched part still round-trips byte for byte.
+  // with no mc:Fallback. x15 is understood, so the preprocessor took the Choice, and the workbook,
+  // which binds the element but not a promoted absPath, lost it on a re-marshal (CR-001 section
+  // 21.1). Since CR-010 phase 1 the workbook is a kept host: the element stays whole.
   const bytes = await fixture('loadAndSave.xlsx');
   const source = new ZipPartStore(bytes);
   const raw = new TextDecoder().decode(source.loadSync('xl/workbook.xml'));
@@ -274,11 +274,11 @@ test('the xlsx fixture workbook: Excel\'s x15 absPath mc:AlternateContent has no
 
   const pkg = await SpreadsheetMLPackage.load(bytes);
   const workbook = await pkg.getWorkbookPart().getContents();
-  assert.equal(workbook.alternateContent, undefined, 'the unresolvable Choice is dropped');
+  assert.equal(workbook.alternateContent.choice[0].requires, 'x15', 'kept, typed');
   assert.equal(workbook.sheets.sheet.length, 1);
   assert.equal(workbook.ignorable, 'x15 xr xr6 xr10 xr2');
   const marshalled = new TextDecoder().decode(await pkg.getWorkbookPart().getBytes());
-  assert.ok(!marshalled.includes('absPath'), 'a re-marshalled workbook loses it, as Word and Excel do on open');
+  assert.ok(/<mc:AlternateContent[^>]*><mc:Choice Requires="x15"><x15ac:absPath [^>]*url="/.test(marshalled), 'a re-marshalled workbook writes it back');
 
   const untouched = await SpreadsheetMLPackage.load(bytes);
   const saved = new ZipPartStore(await untouched.save());

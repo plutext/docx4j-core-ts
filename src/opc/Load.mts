@@ -16,7 +16,11 @@ import { decodeXmlText, parseXml } from '../xml/dom.mjs';
 export interface LoadOptions {
   /** Part classes by content type; defaults to docx4j's table. */
   registry?: PartRegistry;
-  /** Resolve `mc:AlternateContent` before unmarshalling (default true, as docx4j and Word). */
+  /**
+   * Resolve `mc:AlternateContent` before unmarshalling (default true, as Word does on open; docx4j
+   * keeps the element since its CR-021). Kept whole even so: the element under a `KEPT_HOSTS` host,
+   * and one nothing can be selected from (CR-010 phase 1). False keeps every one.
+   */
   mcePreprocess?: boolean;
   /** Runs over every XML part's DOM before it is unmarshalled; set by the package from `mcePreprocess`. */
   preprocessor?: DomPreprocessor;
