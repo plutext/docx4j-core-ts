@@ -121,10 +121,12 @@ Key mechanics:
   (`c:chartSpace`, the SpreadsheetML workbook) and where nothing can be selected (Choices only,
   none understood). Where it resolves, it reports `mce.branches_differ` on `XmlPart.warnings` when
   the branch taken and a branch dropped hold different text (`OpcPackage.warnings` gathers them).
-  It is required, not cosmetic: a `w:drawing` inside `mc:Choice` cannot be typed
-  by the model. `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
+  It stays the default because the content API does not read kept branches yet (CR-010 phase 3).
+  Since objects 0.4.0 a kept branch's `w:drawing` and `w:pict` are typed (objects CR-009, CR-010
+  phase 2); the `xdr:` and `p:` drawing content and `c:style` inside one stay DOM.
+  `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
-  (CR-009 section 8). Taking a Choice **converts DOM into
+  (this package's CR-009, section 8). Taking a Choice **converts DOM into
   typed content**, so it can expose a binding gap the unresolved form hid: content the model binds
   only partly loses the unbound part on a re-marshal, where leaving the Choice alone would have kept
   all of it (measured, CR-004 section 7). The test when adding a namespace is therefore whether
