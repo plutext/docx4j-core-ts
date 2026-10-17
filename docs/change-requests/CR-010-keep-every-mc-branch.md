@@ -2,9 +2,10 @@
 
 **Status:** Proposed 2026-10-17, at Jason's request ("Shouldn't we be preserving all branches of
 mc?"). Phase 1 implemented 2026-10-17 (section 9; D2, D3 and D4 decided by Jason that day, and
-D1 settled by the text extraction paper's D4). Phase 2 proposed the same day as the objects
-package's CR-009 (section 10). Phases 0, 3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0). Phase 2 needs work in
-the objects package, as a CR there.
+D1 settled by the text extraction paper's D4). Phase 2 implemented 2026-10-18: the objects
+package's CR-009, released in its 0.4.0, which this package now requires (section 10). Phases 0,
+3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done
+2026-09-19, in 17.2.0).
 
 ## 1. Why
 
@@ -148,7 +149,7 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
      different". The read-time form, with the read rules, comes with phase 3. It needs no
      phase 4.
 2. **Typed branches**, in the objects package: a CR there for section 3 item 4's route (objects
-   CR-009, proposed 2026-10-17; section 10). Its test is
+   CR-009, released in its 0.4.0 on 2026-10-18; section 10). Its test is
    this CR's survey: every DOM entry in section 2's second table that the content API reads comes
    back typed, and every part still writes back whole.
 3. **The content API over kept branches** (three to five days):
@@ -351,13 +352,14 @@ decided, and what it found, as it bears on this CR:
 - **The warnings cover only parts parsed so far.** A caller wanting a whole package's warnings
   reads its parts first; private reads keep them untouched.
 
-## 10. Phase 2: the objects package's CR-009 (proposed 2026-10-17)
+## 10. Phase 2: the objects package's CR-009 (implemented 2026-10-18)
 
 Jason asked for phase 2 on 2026-10-17. Phase 2 is objects work, so this package's part is the
 route and its evidence. Both are in `../docx4j-generated-objects-ts`'s
 `docs/change-requests/CR-009-type-kept-mc-branches.md`. It was written here and taken by that
 repository's session the same day (`1e4da5a`, pushed), which added a verification section of its
-own (its section 7). Implementation waits for Jason's go in that session.
+own (its section 7). Jason gave the go there on 2026-10-18, and it was released as objects 0.4.0
+the same day (section 10.4).
 
 ### 10.1 The route: section 3 item 4's first
 
@@ -392,6 +394,11 @@ itself types globally. So the CR doesn't propose it.
   - Two rewrites are lexical, and a resolved Choice gets them today: `xsd:boolean` `1` as `true`,
     and `o:gfxdata`'s base64 without its line breaks. The comparison treats both as equal.
 - **Default load** (resolving): none of the 8,235 parts changes.
+- **Closed since.** docx4j's CR-048 (`acd0defc9`, reported from here) declares `w14:anchorId` on
+  every VML shape and `v:group`, and `o:gfxdata` where it was missing. The objects package
+  regenerated from it (`97c43b9`), and that is in 0.4.0, so the four parts are whole (section
+  10.4). docx4j's own fixtures lost more than this survey found: `anchorId` on `v:shape` and
+  `v:rect`, `o:gfxdata` on `v:oval` and `v:rect`.
 
 Two findings from the objects session's own verification (its CR-009 section 7):
 - **`o:spt` is written back `"202"` here**, where docx4j writes `"202.0"`.
@@ -401,8 +408,43 @@ Two findings from the objects session's own verification (its CR-009 section 7):
 
 ### 10.3 Here
 
-- **The test that announces the release.** `mce.test.mjs`'s preprocessing-off test asserts that
-  the kept `w:drawing` and `w:pict` are DOM, citing objects CR-009, so the release that types them
-  fails it.
-- **When that release comes,** this package raises its range and re-runs section 10.2's survey as
-  phase 2's acceptance. The survey scripts are in the scratchpad; phase 0 makes them a test.
+- **The test that announced the release.** `mce.test.mjs`'s preprocessing-off test asserted that
+  the kept `w:drawing` and `w:pict` were DOM, and it failed on CR-009's build, as intended. It now
+  asserts the typed form: the `w:drawing` with its `wp:anchor`, and the `w:pict` with its
+  `v:shapetype`, whose `w14:anchorId` the save writes back. On 0.3.2 it fails.
+- **The range** is `^0.4.0`, and section 10.2's survey, re-run, is phase 2's acceptance (10.4).
+  The survey scripts are in the scratchpad; phase 0 makes them a test.
+
+### 10.4 Acceptance (2026-10-18)
+
+Checked twice: before the release, against `npm pack` of the objects checkout at `abcb881`; after
+it, against 0.4.0 from npm, whose tarball is file for file the same except its version. The
+"before" side is this package's HEAD on 0.3.2. Both runs gave the same results.
+
+- **The suite.** Only the announcer failed (section 10.3). Parity, XPath parity and the typechecks
+  passed.
+- **Kept branches** (`mcePreprocess: false`):
+  - `w:drawing` (13) and `w:pict` (9) are typed. Section 2's other DOM entries stay DOM, since
+    they are outside WordprocessingML or are `c:style`.
+  - All 281 parts write every element back whole, the four `w14:anchorId` parts included.
+  - Eight parts differ from their source outside the element, identically on 0.3.2. They predate
+    CR-009: `iterateDelta="1E-4"` written `"0.0001"` in three workbooks, and `c:strRef`'s
+    `c:extLst` put in schema order in five filtered charts.
+- **Bytes, every entry after `unmarshalAll` and a save** (459 inputs, 8,235 entries):
+  - Default load: none changes.
+  - Kept branches: nine `word/document.xml` parts change. Compared element by element, every
+    difference is lexical:
+    - `xsd:boolean` `1`/`0` written `true`/`false`;
+    - `o:gfxdata` without its line breaks;
+    - attribute order and namespace declarations;
+    - whitespace-only text between elements under element-only parents.
+    No attribute or element is added or dropped, and no text changes.
+- **An element marshalled on its own** (`Paragraph.getXml`, `ContentControl.getXml`,
+  `toApiScript`'s fallback, which `insertXml` takes back). Over the docx fixtures' 8,089 such
+  elements:
+  - `w:p`, `w:sdt` and `w:tr` are unchanged.
+  - `w:tbl`, `w:tc`, `w:drawing`, `w:bookmarkStart` and `w:bookmarkEnd` no longer carry
+    `xsi:type`, now that they are declared roots, as docx4j's are. Nothing else changes.
+  - Both forms, with and without `xsi:type`, read back and marshal to the same new output, so a
+    script written before still loads.
+- **Not done:** the content API over kept branches (phase 3), and the survey as a test (phase 0).

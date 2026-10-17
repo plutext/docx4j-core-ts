@@ -144,7 +144,7 @@ test('an unmarshal failure names the part, with the location and line', async ()
 // them: w:tblHeader w:val="on" on a table's header row, w:wordWrap w:val="off" in its Source Code style.
 // @docx4j/jsonix 3.4.0 accepted only the xsd:boolean spellings, so the document part threw
 // PartUnmarshalException at w:tblHeader/@w:val and the file could not be opened; 3.4.1 (jsonix-CR-007)
-// reads them, and @docx4j/generated-objects-ts 0.3.2, this package's floor, requires it. They are
+// reads them, and @docx4j/generated-objects-ts requires it from 0.3.2. They are
 // written back as true and false.
 test('a document whose on/off values are "on" and "off" loads, reads them as booleans and saves', async () => {
   const pkg = await WordprocessingMLPackage.load(await fixture('onoff/pandoc-code.docx'));
