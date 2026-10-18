@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **not released**. Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **not released**.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -4010,6 +4010,8 @@ nothing is scheduled.
   the probe's file the engine leaves the changes in a text box (C22, inside `w:txbxContent`) and in the
   endnotes' text (C21's, and the text of C12b's inserted endnote).
 
+Both fixed on 2026-10-18: the stories in section 49, the math in section 51.
+
 ## 46. Accepting and rejecting: the parts only removed content referenced (D7, fixed) and a row indent rejected (C23, recorded) (2026-10-17)
 
 Both came from docx4j's agreement run, its CR-043 section 14, which compared docx4j's, this package's
@@ -4071,7 +4073,7 @@ Both fail with the settling step disabled. Not released.
 
 **Not done.** A note section 44 removes takes nothing with it yet: a picture in a removed footnote stays
 in the footnotes part's relationships. The same holds for a removed comment's content. docx4j settles
-both (its `Removals.flush` repeats until nothing more goes). Neither is measured here.
+both (its `Removals.flush` repeats until nothing more goes). Neither is measured here. Done in section 50.
 
 **Found, and fixed in section 47:**
 - `insertInlinePictureFromBase64` under `TrackAll` marked the new paragraph's mark inserted but not the
@@ -4168,4 +4170,185 @@ released.
 
 Office JS counts an inline picture in a range; what Word's own `Range.Delete` does with one isn't
 measured here. A fix belongs to the text model, with `InlinePicture` as the run-level primitive, and is
-not scheduled.
+not scheduled. Fixed in section 48.
+
+## 48. A picture has a place in the text model: a deletion takes the pictures in its span (2026-10-18)
+
+Section 47 found this; Jason decided on 2026-10-18 to fix it before the next release, with sections 49 to
+51 (the gaps sections 45 and 46 recorded).
+
+**Before.** `segmentsOf` gave a picture no segment, so every deletion that works on text passed over it:
+- Under tracking, `Paragraph.delete()` of "a", a picture, "b" put the text in a `w:del` and marked the
+  mark deleted, and left the picture's run out. Accepting joined the picture into the next paragraph. A
+  paragraph holding only a picture had no text to delete, so only its mark was marked.
+- `Range.delete()`, `Range.insertText(…, 'Replace')` and `Paragraph.insertText(…, 'Replace')` over the
+  whole text left the picture, with tracking on or off. So did a deleted row's cells (`markDeletedInPlace`).
+
+**The model.**
+- `segmentsOf(container, { objects: true })` lists each drawn object as a segment with no text, where
+  it stands: a `w:drawing` (a picture, a chart, a text box), a `w:pict` or a `w:object` (`OBJECT_ITEMS`).
+  Without the option the segments are as before, so `text`, search and every offset are unchanged.
+- An object stands between two characters, so one at a span's start or end offset may be in the span
+  or outside it, and offsets cannot say which. `SpanEdges` decides:
+  - a paragraph's whole range holds the objects at both its edges (`Paragraph.getRange('Whole')` and
+    `'Content'`, which now set `Range.whole`);
+  - any other range, a search hit among them, holds only the objects strictly inside it.
+- So replacing a search hit never takes the picture beside it, and deleting or replacing a paragraph's
+  whole content takes every picture in it. A search hit can still run across a picture, since the
+  picture has no text; replacing such a hit takes the picture.
+- Office JS counts an inline picture as in a range. What Word's own `Range.Delete` does with a picture
+  at a range's edge is not measured; the edge rule is this package's.
+
+**Fixed,** in `Paragraph.mts` and `Range.mts`:
+- `splice` takes the edges. Under tracking, `deleteText` and `isolate` take the objects in the span with
+  its text:
+  - an object's run goes into the `w:del`, one `w:del` for consecutive runs;
+  - where its run held more, the object first gets a run of its own, as `InlinePicture.delete` gives it
+    one (section 47);
+  - its author's own inserted picture is taken back.
+- With tracking off, the objects in the span are removed with its text.
+- The whole-paragraph operations pass `WHOLE`:
+  - `delete()`, which now deletes even when the paragraph has no text;
+  - `markDeletedInPlace`;
+  - the `text` setter under tracking;
+  - `insertText('Replace')`;
+  - `insertInlinePictureFromBase64('Replace')` under tracking.
+- `Range.delete()`, `insertText('Replace')` and the `text` setter pass the range's edges.
+- Content removed outright now queues the relationships it referenced, as section 47's picture deleted
+  outright does: on save each goes if nothing then references it, and its part with it when nothing else
+  targets that part. That covers:
+  - `Paragraph.delete()` and the `text` setter with tracking off;
+  - `insertInlinePictureFromBase64('Replace')` with tracking off;
+  - `Body.clear()`;
+  - the objects `splice` removes;
+  - an author's own insertion that `deleteText` takes back.
+
+**Tests:** two in `test/tracking.test.mjs`, after section 47's.
+- A paragraph deleted under tracking: one `w:del` holding "a", the picture's run and "b". Accepting
+  leaves no picture and no image; rejecting brings both back. The same for a paragraph holding only a
+  picture, an author's own inserted picture (taken back, its image gone on save), and a deleted row's
+  cell.
+- Ranges, with tracking on and off:
+  - a paragraph's whole range deleted takes the picture wherever it stands (before, between and after
+    the text, and alone), and its image goes on save;
+  - `insertText('Replace')` deletes the picture with the text;
+  - search hits beside the picture leave it, and a hit across it takes it;
+  - content removed outright gives up its image on save: `Paragraph.delete()`, `Body.clear()` and the
+    `text` setter.
+
+Both fail on the code before the fix. Not released.
+
+## 49. Accepting and rejecting every story (2026-10-18)
+
+Section 45 measured this ("Stories").
+
+**The API.** Office JS resolves changes through `body.getTrackedChanges()`, which covers the body's
+story. docx4j (its CR-043, `TrackedChanges.acceptAll(pkg)`) and docx4j-python (its CR-010 section 3.3,
+`revisions.accept_all(pkg)`) keep a story's verbs and add one over every story. This package does the
+same:
+- `Body.acceptAll` and `rejectAll` stay their story's, as Office JS's body is. A text box is a story of
+  its own, as Word counts stories, and its host's `Body` does not resolve it. That departs from
+  docx4j-python, whose `Body.accept_all` covers the text boxes in its story.
+- `WordprocessingMLPackage.acceptAllRevisions()` and `rejectAllRevisions()` are new, asynchronous, and
+  named after Word's `Document.AcceptAllRevisions` and `RejectAllRevisions`, which the probe called.
+  - They resolve, in docx4j's order, the main document, each footnote, each endnote and each comment
+    (each a `Body` over its content), then the headers and footers.
+  - In each story they resolve the text boxes too: a `w:txbxContent` in a DrawingML or a VML shape is a
+    story of its own (`resolveStory` in `Body.mts`).
+  - They return how many changes were listed.
+- A story part whose source holds no revision markup (by local name, in any prefix) is not read, so it
+  keeps its bytes. A part already unmarshalled is always resolved.
+- Each story resolves in a resolution of its own (section 45's `resolving`), so its bookmarks are read
+  in its part and its relationships settled there (section 46).
+
+**Measured against Word.**
+- On the probe (section 45's files), after either verb and a save, no revision element is left in any
+  story, as in Word's saves. Every story's paragraph text is Word's: the main document, the text box
+  (C22), the endnotes (C12b, C21), the comments, and the headers and footers.
+- The same comparison on check 18's file and on the editor's review file: every story's text is Word's,
+  but for one paragraph of the review file. It ends in an inserted space that Word's Accept All save does
+  not have. `Body.acceptAll` before this change keeps the same space; not investigated.
+- How Office JS lists a text box's changes is not measured.
+
+**Over 474 files** (this package's fixtures and every `.docx` in docx4j-core-tests' resources), 192
+hold revision markup. Of their 384 runs (each verb on each file), 338 leave none. 44 leave one range
+start of a broken move, a `w:moveToRangeStart` (32 runs) or a `w:moveFromRangeStart` (12). These are
+check 20's moves without range markers (cases 12 to 14, and their copies in both repositories), and
+`Body.acceptAll` and `rejectAll` before this change leave the same markers; not investigated. 2 are the
+Strict sample, which the model does not read.
+
+**Tests:** one in `test/tracking.test.mjs`, after section 48's. On the probe it checks:
+- after each verb, no revision left in any story, and every story's text Word's;
+- the comments part, which holds no revision, not read;
+- `Body.acceptAll` leaving the text box's two revisions and those of the endnotes, a header and a footer.
+
+It fails on the code before (no such verb). Not released.
+
+## 50. What a removed note or comment held goes with it (2026-10-18)
+
+Section 46 recorded this ("Not done").
+
+**Fixed:**
+- **Notes.** Section 44's `flushPendingNoteRemovals` now records what each note it removes held:
+  - the relationships its content referenced (a picture's image), queued on `pendingRelationshipRemovals`
+    for the notes part;
+  - the comments whose `w:commentReference` was in it, queued on `pendingCommentRemovals`, their anchor
+    being gone.
+- **Comments.** A comment removed (`Comment.delete()`, and section 38's pending removals) queues the
+  relationships its content referenced, for the comments part.
+- **The save** settles comments and notes until nothing more is pending (at most ten rounds), then the
+  relationships, as docx4j's `Removals.flush` repeats. A relationship goes when nothing left in its part
+  references it, and its part with it when nothing else targets that part.
+- Word measured only that a note goes with its reference (section 44) and that a comment goes with its
+  text (check 32). The rest is docx4j's reading (its CR-043 `Removals`), followed so that the two ports
+  agree; it is not measured.
+
+**Tests:** one in `test/tracking.test.mjs`, after section 49's.
+- A footnote whose reference is deleted holds a picture and a comment's anchor. Accepted, the note, its
+  image and the comment all go; rejected, all stay.
+- A comment holding a picture is deleted, and another one's text goes with a rejected insertion
+  (check 32's rule). Each one's image goes on save.
+
+It fails on the code before the fix, first on the note's image. Not released.
+
+## 51. Revisions inside equations (2026-10-18)
+
+Section 45 measured this ("Math").
+
+**Word's forms**, from docx4j's `tracked-changes-equations.docx` (its issue 348, `992c8d572`) and Word's
+Accept All and Reject All saves of it (docx4j's CR-043 probe, `5e895232f`; Word 16.0.20326,
+2026-10-16), all three now in `test/fixtures/revisions/cr043/`:
+- An equation's text inserted or deleted is a `w:ins` or `w:del` inside an `m:r`, around its `m:rPr`,
+  `w:rPr` and `m:t` (`CT_MathRunTrackChange`).
+- A structure inserted or deleted (an `m:sSup`, an `m:acc`) is a `w:ins` or `w:del` in its `m:ctrlPr`,
+  holding run properties.
+- Word's Accept All kept an inserted structure, its `m:ctrlPr` holding the recorded `w:rPr`, and took a
+  deleted one away whole; Reject All did the reverse. The text revisions resolved as a run's do.
+
+**Fixed,** in `TrackedChange.mts`, after docx4j's `Lister.math` and `Resolver.mathRun` and
+`mathStructure`:
+- **Listing.** There are two new targets, `mathRun` and `mathStructure`.
+  - They are listed from a paragraph's `m:oMath` and `m:oMathPara` in document order, a structure's
+    marker before its arguments, and they group as insertions and deletions do.
+  - A math run with text and no revision keeps the pieces either side of it apart, as plain text does.
+  - A `w:ins` or `w:del` holding math, which the schema allows, is listed as a run's revision (docx4j's
+    U7; in no fixture).
+- **`mathRun`.** Kept, its content takes its place in the `m:r`. Otherwise it goes, and the `m:r` with
+  it when no text is left. Its text is its `m:t`'s.
+- **`mathStructure`.** Kept, the marker goes, and the run properties it recorded become the
+  `m:ctrlPr`'s `w:rPr` when it has none. Otherwise the structure, two up from the `m:ctrlPr`, goes whole.
+  An argument's own `m:ctrlPr` (an `m:e`'s) marks no structure, and its marker goes either way (docx4j's
+  U16; not measured).
+- **The range.** A math change's range is collapsed where its equation stands, since an equation's text
+  is not in the paragraph's text.
+
+**Measured.** The file lists 12 changes, the count docx4j's CR-043 lists and gives as Word's. After
+Accept All and after Reject All, all at once or one change at a time, each equation's structures and text
+are Word's, every `m:ctrlPr` is Word's, and no revision element is left. Over section 49's 474 files,
+`Body.acceptAll` and `rejectAll` save every entry as before, byte for byte, except this file's
+`word/document.xml` (948 runs, every saved entry hashed).
+
+**Tests:** one in `test/tracking.test.mjs`, after section 50's: the listing, both resolutions against
+Word's saves (all at once and one at a time), and the collapsed range and an argument's own marker on
+handwritten markup. It fails on the code before (it lists no change). Suite 843 passed; typecheck passed.
+Not released.

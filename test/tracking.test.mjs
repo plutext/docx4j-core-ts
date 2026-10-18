@@ -2107,6 +2107,269 @@ test('a picture removed outright gives up its image on save, unless something re
 
 
 
+// CR-002 section 48: a picture has a place in the text model, so a deletion over it takes it
+const PIC = Symbol('picture');
+const W_MAIN = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+/** A package of one paragraph of the given runs - text, or PIC for a picture in a run of its own - then "Next.", loaded back. */
+const withPicture = async (...parts) => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const p = pkg.body.insertParagraph('', 'End');
+  p.insertInlinePictureFromBase64(PNG, 'End');
+  const pictureRun = p.p.content.pop();
+  const textRun = (text) => ({ name: { namespaceURI: W_MAIN, localPart: 'r' },
+    value: { TYPE_NAME: 'org_docx4j_wml.R', content: [{ name: { namespaceURI: W_MAIN, localPart: 't' }, value: { TYPE_NAME: 'org_docx4j_wml.Text', value: text } }] } });
+  p.p.content.push(...parts.map((part) => part === PIC ? pictureRun : textRun(part)));
+  pkg.body.insertParagraph('Next.', 'End');
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  await back.getBody();
+  back.author = { name: 'Ada' };
+  return back;
+};
+const tracking = (pkg) => { pkg.changeTrackingMode = 'TrackAll'; return pkg; };
+
+test('a paragraph deleted under tracking takes its pictures with its text, and accepting does not leave them in the next', async () => {
+  const pkg = tracking(await withPicture('a', PIC, 'b'));
+  pkg.body.paragraphs[0].delete();
+  assert.ok((await bodyXml(pkg)).includes('<w:p><w:pPr><w:rPr><w:del/></w:rPr></w:pPr><w:del><w:r><w:delText>a</w:delText></w:r><w:r><w:drawing/></w:r><w:r><w:delText>b</w:delText></w:r></w:del></w:p>'), await bodyXml(pkg));
+  assert.equal(pkg.body.getTrackedChanges().length, 1, 'one change: the text, the picture and the mark');
+  pkg.body.acceptAll();
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['Next.']);
+  assert.equal(pkg.body.inlinePictures.length, 0, 'before, the picture stood in "Next." once accepted');
+  assert.equal(imageParts(pkg), 0, 'and its image goes with it (section 46)');
+  const rejected = tracking(await withPicture('a', PIC, 'b'));
+  rejected.body.paragraphs[0].delete();
+  rejected.body.rejectAll();
+  assert.deepEqual(rejected.body.paragraphs.map((p) => [p.text, p.inlinePictures.length]), [['ab', 1], ['Next.', 0]]);
+
+  // a paragraph holding a picture and no text, which has no text to delete
+  const only = tracking(await withPicture(PIC));
+  only.body.paragraphs[0].delete();
+  assert.ok((await bodyXml(only)).includes('<w:p><w:pPr><w:rPr><w:del/></w:rPr></w:pPr><w:del><w:r><w:drawing/></w:r></w:del></w:p>'), await bodyXml(only));
+  only.body.acceptAll();
+  assert.equal(only.body.inlinePictures.length, 0);
+
+  // its author's own inserted picture is taken back, and its image goes on save
+  const own = tracking(await withPicture('a'));
+  own.body.paragraphs[0].insertInlinePictureFromBase64(PNG, 'End');
+  own.body.paragraphs[0].delete();
+  assert.ok(!(await bodyXml(own)).includes('<w:drawing'));
+  assert.equal(imageParts(await WordprocessingMLPackage.load(await own.save())), 1, 'the first picture\'s image only');
+
+  // a deleted row's cells: their pictures are in the w:del too
+  const table = await withPicture('a');
+  const tbl = table.body.insertTable(1, 1, 'End', [['cell']]);
+  tbl.rows[0].cells[0].body.paragraphs[0].insertInlinePictureFromBase64(PNG, 'End');
+  tracking(table);
+  tbl.deleteRows(0);
+  assert.ok((await bodyXml(table)).includes('<w:del><w:r><w:delText>cell</w:delText></w:r><w:r><w:drawing/></w:r></w:del>'), await bodyXml(table));
+});
+
+test('a range over a paragraph\'s whole content takes its pictures; a span of text takes those strictly inside it', async () => {
+  for (const parts of [['a', PIC, 'b'], [PIC, 'ab'], ['ab', PIC], [PIC]]) {
+    const pkg = await withPicture(...parts);
+    pkg.body.paragraphs[0].getRange('Whole').delete();
+    assert.equal(pkg.body.inlinePictures.length, 0, `untracked, ${parts.length} parts`);
+    assert.equal(pkg.body.paragraphs[0].text, '');
+    assert.equal(imageParts(await WordprocessingMLPackage.load(await pkg.save())), 0, 'its image goes on save');
+    const tracked = tracking(await withPicture(...parts));
+    tracked.body.paragraphs[0].getRange('Content').delete();
+    tracked.body.acceptAll();
+    assert.equal(tracked.body.inlinePictures.length, 0, `tracked, ${parts.length} parts`);
+  }
+  // replacing the whole content, as insertText('Replace') does on a paragraph
+  const replaced = tracking(await withPicture('a', PIC));
+  replaced.body.paragraphs[0].insertText('New', 'Replace');
+  assert.ok((await bodyXml(replaced)).includes('<w:del><w:r><w:delText>a</w:delText></w:r><w:r><w:drawing/></w:r></w:del><w:ins><w:r><w:t>New</w:t></w:r></w:ins>'), await bodyXml(replaced));
+
+  // a search hit holds the pictures strictly inside it, not one beside it
+  for (const tracked of [false, true]) {
+    const pkg = await withPicture('ab', PIC, 'cd');
+    if (tracked) tracking(pkg);
+    const p = pkg.body.paragraphs[0];
+    p.search('ab')[0].insertText('x', 'Replace');
+    p.search('cd')[0].delete();
+    if (tracked) pkg.body.acceptAll();
+    assert.deepEqual([p.text, p.inlinePictures.length], ['x', 1], `tracked: ${tracked}; the picture beside both hits stays`);
+    const inside = await withPicture('ab', PIC, 'cd');
+    if (tracked) tracking(inside);
+    inside.body.paragraphs[0].search('bc')[0].delete();
+    if (tracked) inside.body.acceptAll();
+    assert.deepEqual([inside.body.paragraphs[0].text, inside.body.inlinePictures.length], ['ad', 0], `tracked: ${tracked}; the picture inside the hit goes`);
+  }
+  // content removed outright gives up its pictures' images on save, as a picture deleted outright does (section 47)
+  for (const remove of [(pkg) => pkg.body.paragraphs[0].delete(), (pkg) => pkg.body.clear(), (pkg) => { pkg.body.paragraphs[0].text = 'plain'; }]) {
+    const pkg = await withPicture('a', PIC);
+    remove(pkg);
+    assert.equal(imageParts(await WordprocessingMLPackage.load(await pkg.save())), 0, String(remove));
+  }
+});
+
+
+// CR-002 section 49: every story
+const STORY_PART = /\/word\/(document|header\d*|footer\d*|footnotes|endnotes|comments)\.xml$/;
+const REVISION = /<(w|m):(ins|del|moveFrom|moveTo|rPrChange|pPrChange|sectPrChange|tblPrChange|trPrChange|tcPrChange|tblGridChange|tblPrExChange|cellIns|cellDel|cellMerge|numberingChange|customXmlInsRangeStart|customXmlDelRangeStart|moveFromRangeStart|moveToRangeStart)\b/g;
+/** The revision elements left in each story part, by part. */
+const revisionsLeft = async (pkg) => {
+  const out = {};
+  for (const part of pkg.parts.values()) {
+    if (!STORY_PART.test(part.partName.name)) continue;
+    const n = [...(await part.getXml()).matchAll(REVISION)].length;
+    if (n > 0) out[part.partName.name] = n;
+  }
+  return out;
+};
+/** Each story's paragraphs' text, a text box's paragraphs apart from the one holding the box; headers and footers pooled, sorted. */
+const storyTexts = async (pkg) => {
+  const out = {};
+  for (const part of pkg.parts.values()) {
+    if (!STORY_PART.test(part.partName.name)) continue;
+    const paragraphs = [];
+    const visit = (o, into) => {
+      if (typeof o !== 'object' || o === null) return;
+      if (Array.isArray(o)) { for (const item of o) visit(item, into); return; }
+      if (o.TYPE_NAME === 'org_docx4j_wml.P') { const own = []; paragraphs.push(own); for (const key in o) if (key !== 'PARENT') visit(o[key], own); return; }
+      if (o.name?.localPart === 't' && o.value?.TYPE_NAME === 'org_docx4j_wml.Text') { into?.push(o.value.value ?? ''); return; }
+      for (const key in o) if (key !== 'PARENT') visit(o[key], into);
+    };
+    visit(await part.getContents(), undefined);
+    const key = part.partName.name.replace(/\d+\.xml$/, '.xml');
+    out[key] = [...(out[key] ?? []), ...paragraphs.map((own) => own.join('')).filter((text) => text !== '')];
+  }
+  for (const key of Object.keys(out)) if (/header|footer/.test(key)) out[key].sort();
+  return out;
+};
+
+test('acceptAllRevisions and rejectAllRevisions resolve every story, as Word\'s Accept All and Reject All did (CR-043 probe)', async () => {
+  for (const [what, saved] of [['acceptAllRevisions', 'cr043-accept-all.docx'], ['rejectAllRevisions', 'cr043-reject-all.docx']]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('revisions/cr043/cr043-tracked.docx'));
+    assert.ok(await pkg[what]() > 0);
+    assert.equal(pkg.getMainDocumentPart().commentsPart.isUnmarshalled, false, 'the comments, which hold no revision, are not read');
+    const back = await WordprocessingMLPackage.load(await pkg.save());
+    const word = await WordprocessingMLPackage.load(await fixture(`revisions/cr043/${saved}`));
+    assert.deepEqual(await revisionsLeft(word), {}, `${what}: Word's save has none`);
+    assert.deepEqual(await revisionsLeft(back), {}, `${what}: none left in any story`);
+    assert.deepEqual(await storyTexts(back), await storyTexts(word), `${what}: every story's text, the text box's (C22) and the endnotes' (C12b, C21) among them, is Word's`);
+  }
+  // Body.acceptAll resolves its own story, as Office JS's body does: the text box's, the endnotes' and
+  // the headers' and footers' changes are left to their stories
+  const body = await WordprocessingMLPackage.load(await fixture('revisions/cr043/cr043-tracked.docx'));
+  (await body.getBody()).acceptAll();
+  const left = await revisionsLeft(await WordprocessingMLPackage.load(await body.save()));
+  assert.deepEqual(Object.keys(left).sort(), ['/word/document.xml', '/word/endnotes.xml', '/word/footer5.xml', '/word/header5.xml']);
+  assert.equal(left['/word/document.xml'], 2, 'the text box\'s insertion and deletion (C22)');
+});
+
+
+// CR-002 section 50: what a removed note or comment held goes on with it
+test('a note removed with its reference takes its picture\'s image and the comment anchored in it; a removed comment its picture\'s', async () => {
+  const made = await WordprocessingMLPackage.createPackage();
+  made.body.insertInlinePictureFromBase64(PNG, 'End');
+  const madeXml = await made.getMainDocumentPart().getXml();
+  const drawing = madeXml.slice(madeXml.indexOf('<w:drawing>'), madeXml.indexOf('</w:drawing>') + '</w:drawing>'.length).replace(/r:embed="[^"]*"/, 'r:embed="rIdImage"');
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
+    + ' xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+  const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+  const WML = 'application/vnd.openxmlformats-officedocument.wordprocessingml';
+  const part = (name, type, xml) => `<pkg:part pkg:name="${name}" pkg:contentType="${type}"><pkg:xmlData>${xml}</pkg:xmlData></pkg:part>`;
+  const rels = (...r) => `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${r.map(([id, type, target]) => `<Relationship Id="${id}" Type="${REL}/${type}" Target="${target}"/>`).join('')}</Relationships>`;
+  const flat = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">'
+    + part('/_rels/.rels', RELS, rels(['rId1', 'officeDocument', 'word/document.xml']))
+    + part('/word/_rels/document.xml.rels', RELS, rels(['rId1', 'footnotes', 'footnotes.xml'], ['rId2', 'comments', 'comments.xml']))
+    + part('/word/document.xml', `${WML}.document.main+xml`, `<w:document ${NS}><w:body><w:p><w:r><w:t>One</w:t></w:r>`
+      + '<w:del w:id="90" w:author="Author A" w:date="2026-10-16T00:00:00Z"><w:r><w:footnoteReference w:id="1"/></w:r></w:del></w:p></w:body></w:document>')
+    + part('/word/footnotes.xml', `${WML}.footnotes+xml`, `<w:footnotes ${NS}>`
+      + '<w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>'
+      + `<w:footnote w:id="1"><w:p><w:commentRangeStart w:id="5"/><w:r><w:t>A note</w:t></w:r><w:commentRangeEnd w:id="5"/><w:r><w:commentReference w:id="5"/></w:r><w:r>${drawing}</w:r></w:p></w:footnote></w:footnotes>`)
+    + part('/word/_rels/footnotes.xml.rels', RELS, rels(['rIdImage', 'image', 'media/image1.png']))
+    + part('/word/comments.xml', `${WML}.comments+xml`, `<w:comments ${NS}><w:comment w:id="5" w:author="Author B"><w:p><w:r><w:t>On the note.</w:t></w:r></w:p></w:comment></w:comments>`)
+    + `<pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png" pkg:compression="store"><pkg:binaryData>${PNG}</pkg:binaryData></pkg:part>`
+    + '</pkg:package>';
+  const comments = async (pkg) => [...(await pkg.getMainDocumentPart().commentsPart.getXml()).matchAll(/<w:comment\b[^>]*w:id="(\d+)"/g)].map((m) => Number(m[1]));
+  const accepted = await WordprocessingMLPackage.load(flat);
+  assert.equal(imageParts(accepted), 1);
+  (await accepted.getBody()).acceptAll();
+  const back = await WordprocessingMLPackage.load(await accepted.save());
+  assert.ok(!/<w:footnote w:id="1"/.test(await back.getMainDocumentPart().footnotesPart.getXml()), 'the note went with its reference (section 44)');
+  assert.equal(imageParts(back), 0, 'and its picture\'s image with it; before, the image stayed, related from the notes part');
+  assert.equal(back.getMainDocumentPart().footnotesPart.relationshipsPart?.relationships.relationship?.length ?? 0, 0);
+  assert.deepEqual(await comments(back), [], 'the comment anchored in the note went too');
+  const rejected = await WordprocessingMLPackage.load(flat);
+  (await rejected.getBody()).rejectAll();
+  const kept = await WordprocessingMLPackage.load(await rejected.save());
+  assert.equal(imageParts(kept), 1, 'rejected, the note and all it holds stay');
+  assert.deepEqual(await comments(kept), [5]);
+
+  // a comment holding a picture, deleted, and one whose text went with a rejected insertion (check 32's rule)
+  const deleted = await WordprocessingMLPackage.createPackage();
+  const comment = await deleted.body.insertParagraph('Commented.', 'End').insertComment('See the picture:');
+  comment.commentBody.insertInlinePictureFromBase64(PNG, 'End');
+  assert.equal(imageParts(deleted), 1);
+  await comment.delete();
+  assert.equal(imageParts(await WordprocessingMLPackage.load(await deleted.save())), 0, 'the deleted comment\'s picture\'s image goes on save');
+  const inserted = await tracked(['Kept.']);
+  const p = inserted.body.paragraphs[0];
+  p.insertText(' Inserted', 'End');
+  (await p.search('Inserted')[0].insertComment('On inserted text')).commentBody.insertInlinePictureFromBase64(PNG, 'End');
+  inserted.body.rejectAll();
+  const gone = await WordprocessingMLPackage.load(await inserted.save());
+  assert.deepEqual([(await gone.getBody()).text, await comments(gone), imageParts(gone)], ['Kept.', [], 0]);
+});
+
+
+// CR-002 section 51: revisions inside equations. docx4j's tracked-changes-equations.docx (its
+// docx4j-core-tests resources, 992c8d572) and Word's Accept All and Reject All saves of it from its CR-043
+// probe (revisions/cr043/, 5e895232f; Word 16.0.20326, 2026-10-16).
+/** Each equation as its structures and its text, `m sSup(e(s)sup(-1)).`: adjacent runs' text joined, properties left out, as Word's save merges runs. */
+const equationsOf = async (pkg) => [...(await pkg.getMainDocumentPart().getXml()).matchAll(/<m:oMath>(.*?)<\/m:oMath>/gs)].map(([, inner]) => {
+  const bare = inner.replace(/<(m:\w+Pr|w:rPr)\b[^>]*\/>|<(m:\w+Pr|w:rPr)\b[^>]*>.*?<\/\2>/gs, '');
+  let out = '';
+  for (const m of bare.matchAll(/<m:t(?: [^>]*)?>([^<]*)<\/m:t>|<(\/?)m:(\w+)[^>]*?(\/?)>/g)) {
+    if (m[1] !== undefined) out += m[1];
+    else if (m[3] !== 'r' && m[3] !== 't') out += m[2] ? ')' : m[4] ? `${m[3]}()` : `${m[3]}(`;
+  }
+  return out;
+});
+const controlsOf = async (pkg) => [...(await pkg.getMainDocumentPart().getXml()).matchAll(/<m:ctrlPr>(.*?)<\/m:ctrlPr>/gs)].map((m) => m[1]);
+
+test('revisions inside equations are listed and resolved as Word resolved them: in a run, and a structure whole', async () => {
+  const load = async (name) => WordprocessingMLPackage.load(await fixture(`revisions/cr043/${name}`));
+  const tracked = await load('tracked-changes-equations.docx');
+  const changes = (await tracked.getBody()).getTrackedChanges();
+  assert.equal(changes.length, 12, 'before, none: 39 revision elements were left whatever was resolved');
+  assert.deepEqual(changes.slice(0, 2).map((c) => [c.type, c.text]), [['Deleted', '\\,s^{-1}.'], ['Added', '\u2009s-1.']]);
+  for (const [what, saved] of [['acceptAll', 'equations-accept-all.docx'], ['rejectAll', 'equations-reject-all.docx']]) {
+    const word = await load(saved);
+    const pkg = await load('tracked-changes-equations.docx');
+    assert.equal((await pkg.getBody())[what](), 12);
+    const back = await WordprocessingMLPackage.load(await pkg.save());
+    assert.deepEqual(await revisionsLeft(back), {}, what);
+    assert.deepEqual(await equationsOf(back), await equationsOf(word), `${what}: each equation's structures and text are Word's`);
+    assert.deepEqual(await controlsOf(back), await controlsOf(word), `${what}: a kept structure's m:ctrlPr has the run properties its marker recorded`);
+    // one change at a time, listed again after each, as Word's Review tab resolves them
+    const single = await load('tracked-changes-equations.docx');
+    const body = await single.getBody();
+    for (let left = body.getTrackedChanges(); left.length > 0; left = body.getTrackedChanges()) left[0][what === 'acceptAll' ? 'accept' : 'reject']();
+    assert.deepEqual(await equationsOf(single), await equationsOf(word), `${what}, one at a time`);
+  }
+  assert.deepEqual((await equationsOf(await load('equations-accept-all.docx')))[0], 'm\u2009sSup(e(s)sup(-1)).');
+  assert.deepEqual((await equationsOf(await load('equations-reject-all.docx')))[0], 'm\\,s^{-1}.', 'Word\'s Reject All took the inserted m:sSup away whole');
+
+  // an argument's own m:ctrlPr (an m:e's) marks no structure: its marker goes either way (docx4j's U16, handwritten)
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
+  const argument = '<w:p><w:r><w:t xml:space="preserve">Before </w:t></w:r><m:oMath><m:sSup><m:e><m:r><m:t>x</m:t></m:r><m:ctrlPr><w:ins w:id="7" w:author="Author A" w:date="2026-10-16T00:00:00Z"><w:rPr><w:i/></w:rPr></w:ins></m:ctrlPr></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:oMath><w:r><w:t xml:space="preserve"> after</w:t></w:r></w:p>';
+  for (const what of ['acceptAll', 'rejectAll']) {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setXml(`<w:document ${W}><w:body>${argument}</w:body></w:document>`);
+    const [change] = (await pkg.getBody()).getTrackedChanges();
+    assert.deepEqual([change.getRange().start, change.getRange().end], [7, 7], 'collapsed where the equation stands: its text is not the paragraph\'s');
+    assert.equal(pkg.body[what](), 1);
+    assert.deepEqual(await equationsOf(pkg), ['sSup(e(x)sup(2))'], `${what}: the structure stays`);
+    assert.deepEqual(await controlsOf(pkg), ['<w:rPr><w:i/></w:rPr>'], what);
+  }
+});
+
+
 test('an inserted table groups with the rows and the inserted text touching it, as Office JS lists them (check 31)', async () => {
   const row = (text) => `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc></w:tr>`;
   const table = (...rows) => `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid>${rows.join('')}</w:tbl>`;

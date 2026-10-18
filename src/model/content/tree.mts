@@ -13,6 +13,38 @@ export interface TextViewOptions {
   view?: TextView;
 }
 
+/** `segmentsOf`'s options: a view, and whether drawn objects get a segment of their own. */
+export interface SegmentOptions extends TextViewOptions {
+  /**
+   * True to list each picture or other drawn object (`OBJECT_ITEMS`) as a segment of no text at its
+   * place in the text (`object` set), so that a deletion of a span can find it (CR-002 section 48).
+   */
+  objects?: boolean;
+}
+
+/**
+ * Run content that stands in the text and has no text of its own: a `w:drawing` (a picture, a chart, a
+ * text box), a VML `w:pict` and an embedded `w:object`. Office JS counts an inline picture as in a
+ * range, so a span's deletion takes the objects in it (CR-002 section 48).
+ */
+export const OBJECT_ITEMS: ReadonlySet<string> = new Set(['drawing', 'pict', 'object']);
+
+/**
+ * Which objects at a span's edges are in the span. An object stands between two characters, so one at
+ * a span's start or end offset may be inside it or outside it, and offsets alone cannot say which. A
+ * paragraph's whole range holds the objects at both of its edges (`WHOLE`); a span of text, such as a
+ * search found, holds only the objects strictly inside it (CR-002 section 48).
+ */
+export interface SpanEdges { start: boolean; end: boolean }
+
+/** Both edges: the objects at a span's start and at its end are in it. */
+export const WHOLE: SpanEdges = Object.freeze({ start: true, end: true });
+
+/** True when an object at offset `at` is in the span [start, end) with these edges. */
+export function objectInSpan(at: number, start: number, end: number, edges?: SpanEdges): boolean {
+  return (start < at && at < end) || (at === start && edges?.start === true) || (at === end && edges?.end === true);
+}
+
 /** The four run-level revision holders (CR-002 phase F); their runs live under `customXmlOrSmartTagOrSdt`. */
 export type RevisionKind = 'ins' | 'del' | 'moveFrom' | 'moveTo';
 
@@ -45,6 +77,8 @@ export interface TextSegment {
   end: number;
   /** True for w:t: text that can be edited in place. */
   editable: boolean;
+  /** True for a drawn object (`OBJECT_ITEMS`), whose segment has no text: listed only when asked for. */
+  object?: boolean;
   /**
    * The nearest enclosing w:ins / w:del / w:moveFrom / w:moveTo, when the run is in one.
    * A deletion of this run goes inside it (`runOwner` is already its item list); an insertion
@@ -98,10 +132,12 @@ function itemText(item: Element): string | undefined {
 /**
  * The text segments of a paragraph (or any run holder) in order. The default view is the
  * accepted one: the runs of a `w:ins` or `w:moveTo` count, those of a `w:del` or `w:moveFrom`
- * do not. `{ view: 'original' }` is the other way round (CR-002 phase F).
+ * do not. `{ view: 'original' }` is the other way round (CR-002 phase F). `{ objects: true }`
+ * lists the drawn objects too, each a segment of no text where it stands (CR-002 section 48).
  */
-export function segmentsOf(container: object, options?: TextViewOptions): TextSegment[] {
+export function segmentsOf(container: object, options?: SegmentOptions): TextSegment[] {
   const view = options?.view ?? 'accepted';
+  const objects = options?.objects === true;
   const out: TextSegment[] = [];
   let pos = 0;
   const visitRuns = (items: Element[] | undefined, revision: RevisionHolder | undefined): void => {
@@ -115,7 +151,14 @@ export function segmentsOf(container: object, options?: TextViewOptions): TextSe
         for (let j = 0; j < content.length; j++) {
           const item = content[j]!;
           const text = itemText(item);
-          if (text === undefined) continue;
+          if (text === undefined) {
+            if (objects && OBJECT_ITEMS.has(item.name.localPart)) {
+              const seg: TextSegment = { item, owner: content, index: j, run, runOwner: items, runIndex: i, text: '', start: pos, end: pos, editable: false, object: true };
+              if (revision) seg.revision = revision;
+              out.push(seg);
+            }
+            continue;
+          }
           const seg: TextSegment = {
             item, owner: content, index: j, run, runOwner: items, runIndex: i, text,
             start: pos, end: pos + text.length, editable: item.name.localPart === 't',

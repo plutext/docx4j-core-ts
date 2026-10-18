@@ -4,7 +4,8 @@ import type { CellContext } from '../properties/table.mjs';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
   if (rPr) run.value.rPr = rPr;
@@ -116,8 +117,9 @@ export class Paragraph {
 
   /** Replaces the content with one run of the text, keeping the first run's formatting. */
   set text(value: string) {
-    if (this.changeTracker) { this.splice(0, this.text.length, value); return; }
+    if (this.changeTracker) { this.splice(0, this.text.length, value, 'before', WHOLE); return; }
     const rPr = runsOf(this.p)[0]?.value.rPr;
+    this.releaseRelationships(this.p.content);
     this.p.content = [withRPr(textRun(value), rPr ? deepCopy(rPr) : undefined)] as wml.P['content'];
     linkParents(this.p.content, this.p);
   }
@@ -323,7 +325,7 @@ export class Paragraph {
     const length = this.text.length;
     if (location === 'Start') return this.splice(0, 0, text);
     if (location === 'End') return this.splice(length, length, text);
-    return this.splice(0, length, text);
+    return this.splice(0, length, text, 'before', WHOLE);
   }
 
   /** A new paragraph of the text before or after this one, with this paragraph's properties (as Word). */
@@ -363,9 +365,9 @@ export class Paragraph {
     const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
     const tracker = this.changeTracker;
     // under tracking the picture is an insertion, and what it replaces is deleted as insertText's is
-    if (location === 'Replace' && tracker) this.splice(0, this.text.length, '');
+    if (location === 'Replace' && tracker) this.splice(0, this.text.length, '', 'before', WHOLE);
     const content = (this.p.content ??= []) as Element[];
-    if (location === 'Replace' && !tracker) content.length = 0;
+    if (location === 'Replace' && !tracker) { this.releaseRelationships(content); content.length = 0; }
     const item = tracker ? tracker.ins([run]) : run;
     if (location === 'Start') content.unshift(item as Element); else content.push(item as Element);
     linkParents(item, this.p);
@@ -433,11 +435,15 @@ export class Paragraph {
     return trackedChangesOfParagraph(this);
   }
 
+  /**
+   * The paragraph's range: 'Whole' and 'Content' hold its whole content, the pictures at its start and
+   * end among them, so deleting it deletes them (CR-002 section 48); 'Start' and 'End' are collapsed.
+   */
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     const length = this.text.length;
     if (location === 'Start') return new Range(this, 0, 0);
     if (location === 'End') return new Range(this, length, length);
-    return new Range(this, 0, length);
+    return new Range(this, 0, length, true);
   }
 
   /**
@@ -449,13 +455,16 @@ export class Paragraph {
     const tracker = this.changeTracker;
     if (tracker) { this.trackedDelete(tracker); return; }
     const i = this.index;
-    if (i >= 0) this.container.splice(i, 1);
+    if (i < 0) return;
+    this.container.splice(i, 1);
+    this.releaseRelationships(this.element);
   }
 
   private trackedDelete(tracker: ChangeTracker): void {
     if (markDeleted(this.p)) throw new Docx4JException('This paragraph is already marked deleted');
-    const length = this.text.length;
-    if (length > 0) this.deleteText(tracker, 0, length);
+    // the whole content, its pictures too: before, a picture's run, having no text, stayed out of the
+    // w:del, and accepting joined it into the next paragraph (CR-002 section 48)
+    this.deleteText(tracker, 0, this.text.length, WHOLE);
     const rPr = this.p.pPr?.rPr;
     const ownMark = rPr?.ins !== undefined && rPr.ins.author === tracker.author;
     if (ownMark && (this.p.content ?? []).length === 0) {
@@ -482,9 +491,21 @@ export class Paragraph {
    */
   markDeletedInPlace(tracker: ChangeTracker): void {
     if (markDeleted(this.p)) return;
-    const length = this.text.length;
-    if (length > 0) this.deleteText(tracker, 0, length);
+    this.deleteText(tracker, 0, this.text.length, WHOLE);
     tracker.markParagraphDeleted(this.p);
+  }
+
+  /**
+   * Queues the relationships that content removed outright referenced (a picture's image, a link's
+   * target), to be settled when the package is saved: each goes then if nothing references it, and
+   * its part with it when nothing else targets that (CR-002 sections 47 and 48).
+   */
+  releaseRelationships(removed: unknown): void {
+    const ids = new Set<string>();
+    relationshipIdsIn(removed, ids);
+    if (ids.size === 0) return;
+    const pkg = this.parentBody.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined;
+    queueRelationshipRemovals(pkg?.pendingRelationshipRemovals, this.parentBody.part, ids);
   }
 
   /** The paragraph as XML (extension; Office JS getOoxml wraps it in a package). */
@@ -579,8 +600,8 @@ export class Paragraph {
     return { tracker, ownInsertions };
   }
 
-  /** The text segments (w:t, w:tab, ...) with their offsets. */
-  segments(options?: TextViewOptions): TextSegment[] {
+  /** The text segments (w:t, w:tab, ...) with their offsets; `{ objects: true }` adds the pictures. */
+  segments(options?: SegmentOptions): TextSegment[] {
     return segmentsOf(this.p, options);
   }
 
@@ -589,28 +610,33 @@ export class Paragraph {
    * Runs are edited in place: a w:t loses or gains characters, a tab or break inside the range
    * is removed, a run left empty is removed. Text is inserted into the w:t at `start`,
    * else into a new run with the formatting of the nearest run.
+   *
+   * The pictures in the span go with its text: those strictly inside it, and those at an edge `edges`
+   * says the span holds (`WHOLE` for a paragraph's whole content), so a span of no text can still
+   * delete a picture (CR-002 section 48).
    */
-  splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before'): Range {
+  splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges): Range {
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
     const tracker = this.changeTracker;
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
-      const deletions = end > start ? this.deleteText(tracker, start, end) : [];
+      const deletions = end > start || edges ? this.deleteText(tracker, start, end, edges) : [];
       if (text.length > 0) this.insertTracked(tracker, start, text, deletions[deletions.length - 1], prefer);
       return new Range(this, start, start + text.length);
     }
     let segs = this.segments();
     let inserted = false;
+    const objects = this.segments({ objects: true }).filter((s) => s.object && objectInSpan(s.start, start, end, edges));
     // A replacement that begins inside a revision is a deletion and then the new text typed there, so
     // the new text is plain and splits the revision, as typed text is (test/README.md check 21), rather
     // than joining the revision it replaced part of.
     if (end > start && text.length > 0 && segs.find((s) => s.start <= start && start < s.end)?.revision) {
-      this.splice(start, end, '');
+      this.splice(start, end, '', prefer, edges);
       return this.splice(start, start, text);
     }
-    if (end > start) {
+    if (end > start || objects.length > 0) {
       // Replace: the new text takes the place (and formatting) of the first replaced character, as Word does.
       const first = segs.find((s) => s.start <= start && start < s.end);
       const toRemove: TextSegment[] = [];
@@ -626,10 +652,11 @@ export class Paragraph {
           if (value === '') toRemove.push(seg); else setText(t, value);
         } else toRemove.push(seg);
       }
-      for (const seg of toRemove.reverse()) {
+      for (const seg of [...toRemove.reverse(), ...objects]) {
         const i = seg.owner.indexOf(seg.item);
         if (i >= 0) seg.owner.splice(i, 1);
       }
+      this.releaseRelationships(objects.map((seg) => seg.item));
       if (inserted && text.length > 0) {
         this.removeEmptyRuns();
         return new Range(this, start, start + text.length);
@@ -856,10 +883,12 @@ export class Paragraph {
    * The text in [start, end) becomes a deletion: the runs holding it are isolated, their `w:t`
    * turned into `w:delText`, and each run of consecutive ones moved into one `w:del`. Text this
    * author had inserted is simply removed, as Word does, rather than nested in a `w:del`.
+   * The pictures in the span (`splice`'s `edges`) are deleted with the text, each in a run of its own
+   * where its run held more, as `InlinePicture.delete` gives it one (CR-002 section 48).
    * Returns the `w:del` elements it made, in document order.
    */
-  private deleteText(tracker: ChangeTracker, start: number, end: number): Anchor[] {
-    const targets = this.isolate(start, end);
+  private deleteText(tracker: ChangeTracker, start: number, end: number, edges?: SpanEdges): Anchor[] {
+    const targets = this.isolate(start, end, edges);
     for (const seg of targets) tracker.assertEditable(seg.revision);
     type Target = { run: Element; owner: Element[]; own: boolean; revision?: RevisionHolderOf };
     const list: Target[] = [];
@@ -886,7 +915,9 @@ export class Paragraph {
       const at = owner.indexOf(group[0]!.run);
       const runs = owner.splice(at, group.length);
       if (group[0]!.own) {
-        // taking back our own insertion: the runs go, and an emptied w:ins with them
+        // taking back our own insertion: the runs go, and an emptied w:ins with them; a picture's
+        // image waits for the save, as `InlinePicture.delete` leaves it (section 47)
+        this.releaseRelationships(runs);
         const revision = group[0]!.revision;
         if (revision && revision.items.length === 0) {
           const i = revision.owner.indexOf(revision.element);
@@ -1063,12 +1094,15 @@ export class Paragraph {
    * Splits runs so that every run holding text in [start, end) holds nothing else, and returns
    * the segments inside the span. `splitAt` does the `w:t` boundaries; this also moves the items
    * of a run that straddles a boundary (a tab, a break, a drawing) out into runs of their own.
+   * The pictures in the span (`splice`'s `edges`) are among the segments returned, and a run
+   * holding one holds nothing outside the span either.
    */
-  private isolate(start: number, end: number): TextSegment[] {
+  private isolate(start: number, end: number, edges?: SpanEdges): TextSegment[] {
     this.splitAt(start);
     this.splitAt(end);
+    const inSpan = (s: TextSegment): boolean => s.object ? objectInSpan(s.start, start, end, edges) : s.start >= start && s.end <= end && s.text.length > 0;
     for (let guard = 0; guard < 10_000; guard++) {
-      const inside = this.segments().filter((s) => s.start >= start && s.end <= end && s.text.length > 0);
+      const inside = this.segments({ objects: true }).filter(inSpan);
       let split = false;
       const seen = new Set<wml.R>();
       for (const seg of inside) {
@@ -1082,7 +1116,7 @@ export class Paragraph {
       }
       if (!split) return inside;
     }
-    return this.segments().filter((s) => s.start >= start && s.end <= end && s.text.length > 0);
+    return this.segments({ objects: true }).filter(inSpan);
   }
 
   /** Moves the items before `seg` into a run of their own, in front of `seg`'s run. */

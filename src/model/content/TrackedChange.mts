@@ -3,6 +3,7 @@
 // org.docx4j.convert.out.common.preprocess): a w:ins is unwrapped, a w:del removed, a deleted
 // paragraph mark joins its paragraph with the next. CR-002 phase F.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as math from '@docx4j/generated-objects-ts/modules/org_docx4j_math';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf } from './tree.mjs';
@@ -15,7 +16,7 @@ import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, 
 import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import type { Part } from '../../parts/Part.mjs';
-import { relationshipIdsIn, dropRelationshipsUnused } from './relationships.mjs';
+import { relationshipIdsIn, dropRelationshipsUnused, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
@@ -80,7 +81,23 @@ export type TrackedChangeTarget =
    * and Word's Reject All took the whole field away, the result with it (CR-002 section 44). `span` is
    * the items of `owner` from the first `w:ins` to the last.
    */
-  | { kind: 'field'; span: Element[]; owner: Element[]; value: wml.CTTrackChange };
+  | { kind: 'field'; span: Element[]; owner: Element[]; value: wml.CTTrackChange }
+  /**
+   * A `w:ins` or `w:del` inside an `m:r`, which is where Word writes an equation's text inserted or
+   * deleted (`m:r` > `w:ins` > `m:rPr`, `w:rPr`, `m:t`; docx4j's `tracked-changes-equations.docx`).
+   * `item` is the `w:ins` or `w:del` in the run's content, `run` the `m:r` and `runOwner` its list.
+   * Kept, its content takes its place in the run; not kept, it goes, and a run left with no text with it
+   * (CR-002 section 51). `equation` is the `m:oMath` or `m:oMathPara` in the paragraph that holds it.
+   */
+  | { kind: 'mathRun'; revision: 'ins' | 'del'; item: Element; run: Element<math.CTR>; runOwner: Element[]; value: wml.CTMathRunTrackChange; equation?: Element }
+  /**
+   * A `w:ins` or `w:del` in an equation structure's `m:ctrlPr`, Word's mark of an `m:sSup`, an `m:acc`,
+   * ... inserted or deleted as a whole. `structure` is that element and `owner` its list, two up from
+   * the `m:ctrlPr`; undefined for an argument's own `m:ctrlPr` (an `m:e`'s), which marks no structure.
+   * Kept, the marker goes and the run properties it recorded become the control's; not kept, the
+   * structure goes whole, as Word's Accept All and Reject All did (CR-002 section 51).
+   */
+  | { kind: 'mathStructure'; revision: 'ins' | 'del'; ctrlPr: math.CTCtrlPr; structure?: Element; owner?: Element[]; value: wml.CTRPrChange; equation?: Element };
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
@@ -107,6 +124,7 @@ export class TrackedChange {
       case 'cell': return t.cell === 'ins' ? 'Added' : 'Deleted';
       case 'holder': return 'Added';
       case 'field': return 'Added';
+      case 'mathRun': case 'mathStructure': return t.revision === 'ins' ? 'Added' : 'Deleted';
       default: return 'Formatted';
     }
   }
@@ -141,6 +159,8 @@ export class TrackedChange {
       case 'sectionProperties': return t.sectPr;
       case 'holder': return t.holder;
       case 'field': return t.span[0]!;
+      case 'mathRun': return t.item;
+      case 'mathStructure': return t.structure ?? t.ctrlPr;
       default: return t.value;
     }
   }
@@ -163,6 +183,8 @@ export class TrackedChange {
       // a deleted row's content is `w:delText` inside `w:del`, which the accepted view skips:
       // its text is what the row said before, as for a run deletion
       case 'row': return rowText(t.tr.value, t.row === 'del' ? 'original' : 'accepted');
+      // an equation's text: its m:t, as docx4j gives it; a structure's own marker covers no text
+      case 'mathRun': return (t.value.rest ?? []).map((item) => mathTextOf(item as Element) ?? '').join('');
       default: return '';
     }
   }
@@ -190,6 +212,11 @@ export class TrackedChange {
       const segs = p.segments().filter((s) => s.run === t.run);
       if (segs.length === 0) return p.getRange('Start');
       return new Range(p, segs[0]!.start, segs[segs.length - 1]!.end);
+    }
+    // an equation's text is not in the paragraph's: collapsed where the equation stands
+    if ((t.kind === 'mathRun' || t.kind === 'mathStructure') && t.equation) {
+      const at = acceptedOffsetOf(p.p, t.equation);
+      return new Range(p, at, at);
     }
     return p.getRange('Whole');
   }
@@ -255,6 +282,12 @@ export class TrackedChange {
           if (revisionKindOf(el) === 'ins') unwrap({ kind: 'run', revision: 'ins', element: el, owner: currentOwner(t.owner, el), value: el.value as wml.CTTrackChange });
         }
         return;
+      case 'mathRun':
+        resolveMathRun(t, t.revision === 'ins');
+        return;
+      case 'mathStructure':
+        resolveMathStructure(t, t.revision === 'ins');
+        return;
     }
   }
 
@@ -315,6 +348,12 @@ export class TrackedChange {
         return;
       case 'field':
         removeField(t, this.paragraph);
+        return;
+      case 'mathRun':
+        resolveMathRun(t, t.revision === 'del');
+        return;
+      case 'mathStructure':
+        resolveMathStructure(t, t.revision === 'del');
         return;
     }
   }
@@ -653,8 +692,14 @@ function noteReferencesIn(tree: unknown, into: NoteRemovals): void {
 /** What `flushPendingNoteRemovals` needs of the main document part. */
 interface NotesHost {
   getContents(): Promise<unknown>;
-  footnotesPart?: { getContents(): Promise<wml.CTFootnotes> };
-  endnotesPart?: { getContents(): Promise<wml.CTEndnotes> };
+  footnotesPart?: Part & { getContents(): Promise<wml.CTFootnotes> };
+  endnotesPart?: Part & { getContents(): Promise<wml.CTEndnotes> };
+}
+
+/** Where a removed note's own content goes on to: the package's queues (`WordprocessingMLPackage`). */
+interface NoteRemovalHost {
+  pendingCommentRemovals?: Set<number>;
+  pendingRelationshipRemovals?: RelationshipRemovals;
 }
 
 /**
@@ -663,22 +708,48 @@ interface NotesHost {
  * empty. A note's entry goes, Word's separators never: their ids are never referenced. The notes parts
  * are read only when something is pending, so a save with none leaves them untouched. Word's own save
  * also renumbers the notes left (the editor's `review-for-word` saves); their ids stay here.
+ *
+ * What a removed note held goes on with it, as docx4j's `Removals.flush` takes it (CR-002 section 50,
+ * docx4j's reading, not measured): the relationships its content referenced (a picture's image) are
+ * queued on `host` for the notes part, to go when nothing else uses them, and a comment whose reference
+ * was in it is queued for removal, its anchor being gone.
  */
-export async function flushPendingNoteRemovals(main: NotesHost, pending: NoteRemovals): Promise<void> {
+export async function flushPendingNoteRemovals(main: NotesHost, pending: NoteRemovals, host?: NoteRemovalHost): Promise<void> {
   if (pending.footnote.size === 0 && pending.endnote.size === 0) return;
   const standing: NoteRemovals = { footnote: new Set(), endnote: new Set() };
   noteReferencesIn(await main.getContents(), standing);
-  const prune = (notes: wml.CTFtnEdn[] | undefined, ids: Set<number>, kept: Set<number>): void => {
+  const prune = (part: Part, notes: wml.CTFtnEdn[] | undefined, ids: Set<number>, kept: Set<number>): void => {
     if (!notes) return;
+    const released = new Set<string>();
     for (let i = notes.length - 1; i >= 0; i--) {
       const note = notes[i]!;
-      if ((note.type === undefined || note.type === 'normal') && ids.has(Number(note.id)) && !kept.has(Number(note.id))) notes.splice(i, 1);
+      if ((note.type === undefined || note.type === 'normal') && ids.has(Number(note.id)) && !kept.has(Number(note.id))) {
+        relationshipIdsIn(note.content, released);
+        if (host?.pendingCommentRemovals) commentReferencesIn(note.content, host.pendingCommentRemovals);
+        notes.splice(i, 1);
+      }
     }
+    queueRelationshipRemovals(host?.pendingRelationshipRemovals, part, released);
   };
-  if (pending.footnote.size > 0 && main.footnotesPart) prune((await main.footnotesPart.getContents()).footnote, pending.footnote, standing.footnote);
-  if (pending.endnote.size > 0 && main.endnotesPart) prune((await main.endnotesPart.getContents()).endnote, pending.endnote, standing.endnote);
+  if (pending.footnote.size > 0 && main.footnotesPart) prune(main.footnotesPart, (await main.footnotesPart.getContents()).footnote, pending.footnote, standing.footnote);
+  if (pending.endnote.size > 0 && main.endnotesPart) prune(main.endnotesPart, (await main.endnotesPart.getContents()).endnote, pending.endnote, standing.endnote);
   pending.footnote.clear();
   pending.endnote.clear();
+}
+
+/** Adds the ids of the `w:commentReference` elements anywhere in a tree to `into`. */
+function commentReferencesIn(tree: unknown, into: Set<number>): void {
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    if ((o as { name?: { localPart?: string } }).name?.localPart === 'commentReference') {
+      const id = Number(((o as { value?: { id?: unknown } }).value)?.id);
+      if (Number.isInteger(id)) into.add(id);
+      return;
+    }
+    for (const [key, value] of Object.entries(o)) if (key !== 'PARENT') visit(value);
+  };
+  visit(tree);
 }
 
 /** A holder's four insertion markers taken away; the element stays. */
@@ -982,6 +1053,117 @@ function acceptedOffsetOf(p: wml.P, target: Element): number {
   };
   visit(runItemsOf(p));
   return found >= 0 ? found : pos;
+}
+
+// --- math (CR-002 section 51) ------------------------------------------------------------------
+
+/** True for a value of the math model (`m:oMath`, `m:r`, `m:sSup`, ...). */
+function isMathValue(value: unknown): boolean {
+  const tn = (value as { TYPE_NAME?: unknown } | null | undefined)?.TYPE_NAME;
+  return typeof tn === 'string' && tn.startsWith('org_docx4j_math.');
+}
+
+/** The text of an `m:t` (or a `w:t`) in an `m:r`; undefined for anything else. */
+function mathTextOf(item: Element): string | undefined {
+  if (item?.name?.localPart !== 't') return undefined;
+  return String((item.value as { value?: unknown } | undefined)?.value ?? '');
+}
+
+/**
+ * A math run's revision resolved: `keep` (an insertion accepted, a deletion rejected) puts its content in
+ * its place in the `m:r`; otherwise it goes, and the `m:r` with it when no text is left in it (docx4j's
+ * reading of Word's Accept All and Reject All of `tracked-changes-equations.docx`).
+ */
+function resolveMathRun(t: Extract<TrackedChangeTarget, { kind: 'mathRun' }>, keep: boolean): void {
+  const content = (t.run.value.content ?? []) as Element[];
+  const i = content.indexOf(t.item);
+  if (i < 0) return;
+  if (keep) {
+    const moved = (t.value.rest ?? []) as Element[];
+    content.splice(i, 1, ...moved);
+    linkParents(moved, t.run.value);
+    return;
+  }
+  discarding(t.item);
+  content.splice(i, 1);
+  if (!content.some((item) => mathTextOf(item) !== undefined || (item.value as { TYPE_NAME?: string } | undefined)?.TYPE_NAME === 'org_docx4j_wml.CTMathRunTrackChange')) {
+    remove(t.runOwner, t.run as Element);
+  }
+}
+
+/**
+ * A structure's insertion or deletion resolved: `keep` drops the marker, its recorded run properties
+ * becoming the control's when it has none, as Word's saves have them; otherwise the structure goes
+ * whole from its list. An argument's own marker has no structure, and is dropped either way.
+ */
+function resolveMathStructure(t: Extract<TrackedChangeTarget, { kind: 'mathStructure' }>, keep: boolean): void {
+  if (!keep && t.structure && t.owner) { remove(t.owner, t.structure); return; }
+  const ctrlPr = t.ctrlPr;
+  if (!ctrlPr.rPr && t.value.rPr) {
+    ctrlPr.rPr = rPrFromElements(t.value.rPr.egrPrBase ?? []);
+    linkParents(ctrlPr.rPr, ctrlPr);
+  }
+  if (t.revision === 'ins') delete ctrlPr.ins; else delete ctrlPr.del;
+}
+
+/** What is above a math value as `mathTokens` walks down: the value, the element holding it and that element's list. */
+interface MathLevel { value: object; item: unknown; owner: Element[] | undefined }
+
+/** The equation a math piece is in: the outermost level's element, the one in the paragraph. */
+function equationOf(stack: MathLevel[]): { equation?: Element } {
+  const top = stack[0]?.item as Element | undefined;
+  return top && typeof top === 'object' && 'name' in top ? { equation: top } : {};
+}
+
+/**
+ * An equation's single changes, in document order, docx4j's walk (its CR-043 `Lister.math`): a
+ * revision inside an `m:r`; a structure's, in its `m:ctrlPr`, which comes before the structure's
+ * arguments; and a run-level revision holding math. A math run with text and no revision keeps the
+ * pieces either side apart, as plain text does.
+ */
+function mathTokens(paragraph: Paragraph | undefined, value: object, item: unknown, owner: Element[] | undefined, stack: MathLevel[], out: TrackedChangeToken[]): void {
+  const tn = (value as { TYPE_NAME?: string }).TYPE_NAME;
+  if (tn === 'org_docx4j_math.CTR') {
+    for (const c of ((value as math.CTR).content ?? []) as Element[]) {
+      const cv = c?.value as { TYPE_NAME?: string } | undefined;
+      if (cv?.TYPE_NAME === 'org_docx4j_wml.CTMathRunTrackChange' && owner) {
+        out.push(new TrackedChange({ kind: 'mathRun', revision: c.name.localPart === 'del' ? 'del' : 'ins', item: c, run: item as Element<math.CTR>, runOwner: owner, value: cv as wml.CTMathRunTrackChange, ...equationOf(stack) }, paragraph));
+      } else if (mathTextOf(c) !== undefined) out.push(BREAK);
+    }
+    return;
+  }
+  if (tn === 'org_docx4j_math.CTCtrlPr') {
+    const ctrlPr = value as math.CTCtrlPr;
+    if (!ctrlPr.ins && !ctrlPr.del) return;
+    // in m:sSupPr in m:sSup, the structure is two up; an argument's (m:e's) own marks none
+    const parent = stack[stack.length - 1];
+    const grand = parent && (parent.value as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_math.CTOMathArg' ? stack[stack.length - 2] : undefined;
+    const structure = { ...(grand?.owner ? { structure: grand.item as Element, owner: grand.owner } : {}), ...equationOf(stack) };
+    if (ctrlPr.ins) out.push(new TrackedChange({ kind: 'mathStructure', revision: 'ins', ctrlPr, value: ctrlPr.ins, ...structure }, paragraph));
+    if (ctrlPr.del) out.push(new TrackedChange({ kind: 'mathStructure', revision: 'del', ctrlPr, value: ctrlPr.del, ...structure }, paragraph));
+    return;
+  }
+  stack.push({ value, item, owner });
+  for (const key of Object.keys(value)) {
+    if (key === 'PARENT' || key === 'TYPE_NAME') continue;
+    const field = (value as Record<string, unknown>)[key];
+    if (typeof field !== 'object' || field === null) continue;
+    if (Array.isArray(field)) {
+      const list = field as Element[];
+      for (const c of list) {
+        if (typeof c !== 'object' || c === null) continue;
+        const kind = revisionKindOf(c);
+        if (kind !== undefined) {
+          // a w:ins or w:del holding m:r: as runs (schema-legal; docx4j's U7, in no fixture)
+          out.push(new TrackedChange({ kind: 'run', revision: kind, element: c, owner: list, value: c.value as wml.CTTrackChange }, paragraph));
+          continue;
+        }
+        const cv = c !== null && typeof c === 'object' && 'value' in c && 'name' in c ? c.value : c;
+        if (isMathValue(cv)) mathTokens(paragraph, cv as object, c, list, stack, out);
+      }
+    } else if (isMathValue(field)) mathTokens(paragraph, field, field, undefined, stack, out);
+  }
+  stack.pop();
 }
 
 // --- moves -------------------------------------------------------------------------------------
@@ -1294,6 +1476,11 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       i += field.target.span.length - 1;
       continue;
     }
+    // an equation: the revisions in its runs and on its structures (section 51)
+    if (isMathValue(el.value)) {
+      mathTokens(paragraph, el.value as object, el, items, [], out);
+      continue;
+    }
     const kind = revisionKindOf(el);
     if (kind !== undefined) {
       // moved text is content Office JS cannot list (checks 16, 17), and is kept apart
@@ -1341,6 +1528,7 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
   if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
   if (t.kind === 'holder' || t.kind === 'field') return 'ins';
+  if (t.kind === 'mathRun' || t.kind === 'mathStructure') return t.revision;
   // an inserted or deleted row groups with rows and text touching it: Office JS lists an inserted
   // table of three rows, with the inserted paragraphs before and after it, as one change, and rows
   // added to a table that was there as one change per touching run of them (check 31)

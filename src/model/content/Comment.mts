@@ -13,6 +13,7 @@ import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
 import { revisionDateOf, wordCalendarOf, copyRPr } from './tracking.mjs';
+import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import {
   COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions, type CommentEntry,
   commentExOf, commentIdsOf, commentPartsAccess, commentParaId,
@@ -202,6 +203,12 @@ export class Comment {
       const i = comments.indexOf(this.element);
       if (i >= 0) comments.splice(i, 1);
     }
+    // what the comment's own content related to - a picture's image - goes on save when nothing else
+    // uses it, as for a picture deleted outright (CR-002 section 50; docx4j's Removals)
+    const released = new Set<string>();
+    relationshipIdsIn(this.element.content, released);
+    const pkg = this.body.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined;
+    queueRelationshipRemovals(pkg?.pendingRelationshipRemovals, this.parts.commentsPart, released);
     const paraId = this.paraId;
     if (paraId === undefined) return;
     const extended = this.parts.commentsEx?.commentEx;

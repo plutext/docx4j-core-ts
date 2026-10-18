@@ -3,7 +3,7 @@ import { Font } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
-import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
+import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, WHOLE, type SpanEdges, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
@@ -22,9 +22,20 @@ import type { TrackedChange } from './TrackedChange.mjs';
  * A subset of Office JS `Word.Range`: a span of text within one paragraph, [start, end) in the
  * paragraph's text. Positions are recomputed from the tree on every use, so a range stays
  * valid across edits made through it; edits made elsewhere may shift it.
+ *
+ * A picture has a place in the text and no text of its own, so a picture at the range's start or
+ * end offset may be inside it or outside it. `whole` says: a range from `Paragraph.getRange('Whole')`
+ * or `'Content'` holds the paragraph's whole content, the pictures at its edges too, and deleting or
+ * replacing it deletes them; any other range holds the pictures strictly inside it, so that a search
+ * hit replaced does not take the picture beside it (CR-002 section 48).
  */
 export class Range {
-  constructor(readonly paragraph: Paragraph, public start: number, public end: number) {}
+  constructor(readonly paragraph: Paragraph, public start: number, public end: number, readonly whole = false) {}
+
+  /** The edges `Paragraph.splice` is given: both for a whole range. */
+  private get edges(): SpanEdges | undefined {
+    return this.whole ? WHOLE : undefined;
+  }
 
   get paragraphs(): Paragraph[] {
     return [this.paragraph];
@@ -101,7 +112,7 @@ export class Range {
 
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
     let r: Range;
-    if (location === 'Replace') r = this.paragraph.splice(this.start, this.end, text);
+    if (location === 'Replace') r = this.paragraph.splice(this.start, this.end, text, 'before', this.edges);
     // text put before the range joins the run the range starts in - inside the link the range is on,
     // as Office JS (check 32: insertText('Before') on a link's text went into the link, as 'After' did)
     else if (location === 'Before' || location === 'Start') r = this.paragraph.splice(this.start, this.start, text, 'after');
@@ -140,9 +151,9 @@ export class Range {
       : { element: el, container: this.paragraph.container });
   }
 
-  /** Removes the span's text. */
+  /** Removes the span's text, and the pictures in it (CR-002 section 48). */
   delete(): void {
-    this.paragraph.splice(this.start, this.end, '');
+    this.paragraph.splice(this.start, this.end, '', 'before', this.edges);
     this.end = this.start;
   }
 
@@ -179,7 +190,7 @@ export class Range {
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     if (location === 'Start') return new Range(this.paragraph, this.start, this.start);
     if (location === 'End') return new Range(this.paragraph, this.end, this.end);
-    return new Range(this.paragraph, this.start, this.end);
+    return new Range(this.paragraph, this.start, this.end, this.whole);
   }
 
   /** The span's text as it stands (extension; Office JS getOoxml wraps it in a package). */

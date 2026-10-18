@@ -59,7 +59,11 @@ Accept All and Reject All saves of the same file (`-accepted`, `-rejected`). The
 2026-10-16, driven through Word's object model by its `cr043-probe.ps1`): `cr043-tracked.docx`, the
 probe's tracked edits on a base document (its `cr043-log.txt` lists each case), and Word's Accept
 All and Reject All saves of it (`cr043-accept-all`, `cr043-reject-all`). They are the oracle of
-`tracking.test.mjs`'s bookmark case (CR-002 section 45).
+`tracking.test.mjs`'s bookmark case (CR-002 section 45), its parts case (section 46) and its
+every-story case (section 49). Beside them, `tracked-changes-equations.docx` is docx4j's file of that
+name (its `docx4j-core-tests/src/test/resources/`, at its `992c8d572`, issue 348), and
+`equations-accept-all.docx` and `equations-reject-all.docx` are Word's Accept All and Reject All saves of
+it from the same probe run (at `5e895232f`): the oracle of the equations case (section 51).
 
 `onoff/pandoc-code.docx` is what pandoc 3.6.1 makes of `onoff/pandoc-code.md` beside it
 (`pandoc pandoc-code.md -o pandoc-code.docx`, 2026-10-17): its table's header row has

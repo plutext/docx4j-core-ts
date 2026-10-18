@@ -15,7 +15,7 @@ import {
   newFontSettings, themeOfSettings, type FontSettings, type DefaultThemeValue,
 } from '../model/fonts/defaultTheme.mjs';
 import { HeaderPart, FooterPart } from '../parts/wml/index.mjs';
-import type { Body, Address, Outline, OutlineParagraph, OutlineTable } from '../model/content/Body.mjs';
+import { Body, resolveStory, type Address, type Outline, type OutlineParagraph, type OutlineTable } from '../model/content/Body.mjs';
 import type { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
@@ -463,6 +463,53 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return this.body.getTrackedChanges();
   }
 
+  /**
+   * Accepts every tracked change in every story: the main document, the footnotes, the endnotes and
+   * the comments, the headers and footers, and the text boxes in each. Word's
+   * `Document.AcceptAllRevisions` did that on docx4j's CR-043 probe (Word 16.0.20326), and left no
+   * revision in any story; `Body.acceptAll` resolves its own story only, as Office JS's `body` does
+   * (CR-002 section 49). A story part with no revision markup is not read, so it keeps its bytes.
+   * Returns how many changes were listed, story by story. An extension, named after Word's verb.
+   */
+  async acceptAllRevisions(): Promise<number> {
+    return this.resolveEveryStory('accept');
+  }
+
+  /** Rejects every tracked change in every story, as `acceptAllRevisions` accepts them (Word's `Document.RejectAllRevisions`). */
+  async rejectAllRevisions(): Promise<number> {
+    return this.resolveEveryStory('reject');
+  }
+
+  private async resolveEveryStory(what: 'accept' | 'reject'): Promise<number> {
+    let count = 0;
+    for (const body of await this.revisedStories()) count += resolveStory(body, what);
+    return count;
+  }
+
+  /**
+   * The body of every story whose part holds revision markup, in docx4j's order (its CR-043
+   * `TrackedChanges.in`): the main document, each footnote, each endnote, each comment, then the
+   * headers and footers. A footnote, an endnote or a comment is a body of its own over its content.
+   */
+  private async revisedStories(): Promise<Body[]> {
+    const main = this.getMainDocumentPart();
+    const out: Body[] = [];
+    if (await holdsRevisions(main)) out.push(await main.getBody());
+    for (const [part, kind] of [[main.footnotesPart, 'footnote'], [main.endnotesPart, 'endnote']] as const) {
+      if (!part || !(await holdsRevisions(part))) continue;
+      const contents = await part.getContents();
+      for (const note of (kind === 'footnote' ? (contents as wml.CTFootnotes).footnote : (contents as wml.CTEndnotes).endnote) ?? []) {
+        out.push(new Body(part, note as { content?: never[] }, `${kind}:${note.id}`, this));
+      }
+    }
+    const comments = main.commentsPart;
+    if (comments && (await holdsRevisions(comments))) {
+      for (const comment of (await comments.getContents()).comment ?? []) out.push(new Body(comments, comment as { content?: never[] }, `comment:${comment.id}`, this));
+    }
+    for (const part of [...main.headerParts, ...main.footerParts]) if (await holdsRevisions(part)) out.push(await part.getBody());
+    return out;
+  }
+
   /** The tracker every content-API mutation asks for; undefined while the mode is `Off`. */
   get changeTracker(): ChangeTracker | undefined {
     const mode = this.changeTrackingMode;
@@ -583,9 +630,14 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
 
   override async saveTo<R>(sink: PartSink<R>): Promise<R> {
     if (this.trackingPending) await this.setChangeTrackingMode(this.trackingMode ?? 'Off');
-    if (this.pendingCommentRemovals.size > 0) await flushPendingCommentRemovals(await this.getBody());
+    // what removed content took with it, until nothing more goes: a removed note takes the comments
+    // anchored in it, and a removed note or comment the relationships its content held, which the last
+    // step settles (CR-002 section 50; docx4j's Removals.flush repeats the same way)
     const notes = this.pendingNoteRemovals;
-    if (notes.footnote.size + notes.endnote.size > 0) await flushPendingNoteRemovals(this.getMainDocumentPart(), notes);
+    for (let round = 0; round < 10 && this.pendingCommentRemovals.size + notes.footnote.size + notes.endnote.size > 0; round++) {
+      if (this.pendingCommentRemovals.size > 0) await flushPendingCommentRemovals(await this.getBody());
+      if (notes.footnote.size + notes.endnote.size > 0) await flushPendingNoteRemovals(this.getMainDocumentPart(), notes, this);
+    }
     if (this.pendingRelationshipRemovals.size > 0) flushPendingRelationshipRemovals(this, this.pendingRelationshipRemovals);
     if (this.requiredStyles.size > 0) {
       await this.styles.ensure([...this.requiredStyles]);
@@ -710,6 +762,17 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   protected override get progId(): string {
     return 'Word.Document';
   }
+}
+
+/** Revision markup, by local name in any prefix: what a story part holds when it has a tracked change to resolve. */
+const REVISION_MARKUP = /<(?:[\w.-]+:)?(?:ins|del|moveFrom|moveTo|rPrChange|pPrChange|sectPrChange|tblPrChange|trPrChange|tcPrChange|tblGridChange|tblPrExChange|cellIns|cellDel|cellMerge|numberingChange|customXmlInsRangeStart|customXmlDelRangeStart)[\s/>]/;
+
+/**
+ * True when a story part may hold a tracked change: always once it is unmarshalled, else when its
+ * source has revision markup, read without unmarshalling it, so a part with none keeps its bytes.
+ */
+async function holdsRevisions(part: XmlPart<unknown>): Promise<boolean> {
+  return part.isUnmarshalled || REVISION_MARKUP.test(await part.getXml());
 }
 
 /**

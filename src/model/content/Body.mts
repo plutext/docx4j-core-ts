@@ -14,6 +14,7 @@ import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/w
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
+import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { expandReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
 
@@ -407,11 +408,18 @@ export class Body {
 
   /**
    * Removes everything (section properties stay). While the package tracks changes, every
-   * paragraph is marked deleted and every row's `w:trPr` takes a `w:del` instead.
+   * paragraph is marked deleted and every row's `w:trPr` takes a `w:del` instead. Removed outright,
+   * the relationships the content held (its pictures' images) are settled on save (CR-002 section 47).
    */
   clear(): void {
     const tracker = this.changeTracker;
-    if (!tracker) { this.content.length = 0; return; }
+    if (!tracker) {
+      const ids = new Set<string>();
+      relationshipIdsIn(this.content, ids);
+      queueRelationshipRemovals((this.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined)?.pendingRelationshipRemovals, this.part, ids);
+      this.content.length = 0;
+      return;
+    }
     for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
     for (const p of this.paragraphs) p.delete();
   }
@@ -770,4 +778,32 @@ function writableWidthTwips(container: { sectPr?: wml.SectPr }): number | undefi
 function describe(el: Element): string {
   const tn = typeNameOf(el);
   return `${el.name?.localPart ?? '?'} (${tn ?? 'no TYPE_NAME'})`;
+}
+
+/**
+ * A story's tracked changes resolved (`Body.acceptAll` or `rejectAll`), then those of each text box in
+ * it - a `w:txbxContent`, in a DrawingML shape or a VML one - which Word counts as a story of its own
+ * (CR-002 section 49). A text box inside a text box is reached through its own story. Returns how many
+ * changes were listed.
+ */
+export function resolveStory(body: Body, what: 'accept' | 'reject'): number {
+  let count = what === 'accept' ? body.acceptAll() : body.rejectAll();
+  for (const box of textBoxesIn(body.container)) count += resolveStory(body.sub(box), what);
+  return count;
+}
+
+/** The `w:txbxContent` of every text box in a story's content, not descending into one found. */
+function textBoxesIn(container: { content?: Element[] }): { content?: Element[] }[] {
+  const out: { content?: Element[] }[] = [];
+  const seen = new Set<object>();
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null || seen.has(o)) return;
+    if (typeof (o as { nodeType?: unknown }).nodeType === 'number') return;      // DOM the model does not type
+    seen.add(o);
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') { out.push(o as { content?: Element[] }); return; }
+    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key]);
+  };
+  visit(container.content);
+  return out;
 }
