@@ -10,8 +10,9 @@ and D5 implemented (section 11.8).
 Phase 3 implemented 2026-10-18 at Jason's request ("do CR-010 phase 3"; section 13). Phase 4
 implemented 2026-10-18 at Jason's request ("implement CR-010 phase 4, coordinating with the editor as
 appropriate"; section 14): load keeps the element by default. It needs `@docx4j/jsonix` 3.4.2,
-published the same day; objects 0.4.1 requires it, and this package requires objects 0.4.1
-(section 14.4). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). The policy is docx4j's CR-021 (done
+published the same day, which objects 0.4.1 requires (section 14.4). This package requires objects
+0.4.2 since 2026-10-19, which also declares the prefixes a kept `mc:Choice`'s `Requires` names
+(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why
@@ -1169,8 +1170,9 @@ No WordprocessingML element is DOM.
 
 ### 14.7 Not done
 
-- **The release.** The jsonix floor is in place (objects `^0.4.1`, section 14.4). The release carries
-  phase 4. Then the editor installs, and the registry entry is marked done.
+- **The release.** Both floors are in place: jsonix 3.4.2 (section 14.4) and the objects fix of
+  section 14.8, through objects `^0.4.2`. Then the editor installs, and the objects session reruns
+  its sample project on the release.
 - **`p:sp` and the `xdr:` shapes in a kept branch stay DOM.** docx4j types `p:sp` there. The
   objects package's CR-010 (proposed 2026-10-18, `d888cd5`) declares it and `p:cmAuthor` globally,
   as CR-009 did WordprocessingML's. Its `xdr:` anchors wait on docx4j binding
@@ -1178,7 +1180,7 @@ No WordprocessingML element is DOM.
   `selectedBranchOf`, in the release that takes it. Nothing reads them today, and no consumer has
   asked.
 - **`worksheet.controls`** is typed only resolved (section 14.2).
-- **The read-time warning moves to CR-012**, the text-model CR, not yet opened (Jason, 2026-10-19:
+- **The read-time warning moves to CR-012**, the text-model CR, proposed the same day (Jason, 2026-10-19:
   "yes, move the read-time warning to CR-012 and commit"). That is the paper's section 4.1 form,
   with a revision view and a hidden-text rule. Those rules are the text model's: hidden text is the
   extraction specification's REQ-507, and the views are the model's. The math comparison section 9.2
@@ -1188,3 +1190,67 @@ No WordprocessingML element is DOM.
   `createMcePreprocessor({ understood })` warns by its set while readers keep theirs.
 - **Text boxes in search, `replaceText`, bindings and paraIds**, and the `textbox:N` view, go to the
   text-model CR (D8, section 13.4).
+
+### 14.8 A kept `mc:Choice` loses the declaration its `Requires` names (found 2026-10-19)
+
+- **Found** answering docx4j-25's question from its CR-049 (`ba40c53f4`): does a marshal declare a
+  root's `mc:Ignorable` prefixes and its Choices' namespaces? The first half is fine. Each marshal
+  copies its own prefix table, and `mc:Ignorable` comes from the root being written, so no state is
+  shared between marshals. The second half isn't.
+- **The defect is the objects package's.** Its `fixRootNamespaceDeclarations` removes each root
+  declaration that no element or attribute uses, and keeps only what `mc:Ignorable` names. A
+  Choice's `Requires` names prefixes too, and doesn't count as a use. So where the Choice's content
+  is in another namespace than the one `Requires` names, the declaration goes. Example:
+  `waterfall.docx`'s `Requires="cx1"`, whose content is `cx:` (2014/chartex). The saved part then
+  names a prefix nothing declares.
+- **Measured** over the 483 packages: every `mc:Choice` in a re-marshalled part, checked with
+  `lookupNamespaceURI`.
+
+  | Load | `Requires` prefixes | Undeclared | In |
+  |---|---|---|---|
+  | `mcePreprocess: true` | 265 | 0 | |
+  | default (kept) | 297 | 18: `cx1` 11, `x14` 4, `a14`, `sle15` and `tsle` 1 each | 11 packages |
+
+  The `cx1` cases are the waterfall docx, pptx and xlsx, the chartex `manual-bin*` files and the
+  three CR-047 pareto files. The `x14` cases are the worksheet controls of the two `cr022-checkbox`
+  files; the `a14`, `sle15` and `tsle` cases are `cr022-slicers-timelines`.
+
+  So this is new with phase 4. Before it, these elements were resolved and no Choice was written.
+  Phase 4's survey (section 14.3) compared the elements canonically, without namespace
+  declarations, so it couldn't see this.
+- **What it costs.**
+  - On reload, the keeping pass treats such a Choice as not understood, since its prefix doesn't
+    resolve. The content API's readers match the `Requires` string by prefix and still take the
+    Choice, so the two disagree.
+  - docx4j has declared Choice prefixes on save since 6.0.0. `JaxbXmlPart`'s `mcChoiceNamespaces`
+    javadoc says: "These must be declared, or Word can't open the docx". That is docx4j's record, not
+    a measurement here. No Office application has opened one of these files.
+  - docx4j-python has the same gap (its CR-011 Q11).
+- **The fix goes to the objects package** (sent 2026-10-19): count a Choice's `Requires` prefixes as
+  used, and declare at the root any still missing, from the prefix table. That is docx4j CR-049's
+  contract. Every one of the 18 prefixes is in `NAMESPACE_PREFIXES`.
+- **The test.** `mce.test.mjs` asserted the defect as it was (CLAUDE.md): 10 of the 33 prefixes the
+  fixtures' kept load writes (`cx1` 3, `x14` 4, `a14`, `sle15` and `tsle` 1 each), and none in the
+  resolved load. The fix announced itself by failing it, and since the raise below it asserts none
+  undeclared in either load.
+- **The candidate, `33a7f44`** (objects CR-001 section 3.2): a Choice's `Requires` prefixes count as
+  used, and any still undeclared is declared from the table. A `Requires` prefix nothing resolves is
+  kept, with a warning. Checked here on 2026-10-19 with the tarball packed from it:
+  - 0 of 297 undeclared in the kept load, and 0 of 265 resolved;
+  - of the 25,704 entry hashes, 30 differ: 15 parts in each of the default and kept loads, none in
+    the resolved load. Each of those parts is byte-identical to 0.4.1's apart from its root start
+    tag, which gains exactly the missing declarations (`cx1` 11, `x14` 2, `sle15` 1, `a14` with
+    `tsle` 1);
+  - 0 errors with the factory compiled strict, and the warnings unchanged;
+  - the suite passes but for the test above, which fails as meant; typecheck passes.
+
+- **Objects 0.4.2** was published the same day. Its tag is `29cd1cc`: `33a7f44` plus the version
+  bump. Checked here on the npm artifact:
+  - its tarball's 847 files are the candidate's, apart from the version in `package.json`;
+  - of the 25,704 entry hashes, none differs from the candidate's, and the same 30 differ from
+    0.4.1's; 0 errors with the factory compiled strict;
+  - 0 of 297 undeclared in the kept load, and 0 of 265 resolved.
+- **The raise.** `package.json` requires `^0.4.2`, and the lockfile holds 0.4.2 (integrity
+  `sha512-rRINQ9FA…GShLAlA==`) with `@docx4j/jsonix` 3.4.2. A lockfile holding 0.4.1 no longer
+  satisfies the range, so no install of this package's release keeps the defect. The test above
+  asserts none undeclared; the suite passes (875) and typecheck passes.

@@ -130,8 +130,9 @@ Key mechanics:
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
   when resolved. A code path that walks the tree itself has to choose: `selectedBranchOf` to read,
   every branch to write. Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
-  `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range is the
-  floor that brings it (CR-010 section 14.4).
+  `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
+  it (CR-010 section 14.4). The floor is objects 0.4.2, whose marshal declares the prefixes a kept
+  `mc:Choice`'s `Requires` names (CR-010 section 14.8).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
   (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
@@ -140,7 +141,8 @@ Key mechanics:
   all of it (measured, CR-004 section 7). The test when adding a namespace is therefore whether
   everything in the Choice round-trips, not whether the model can read it.
 - **Namespace prefixes** are the facade's job (objects CR-001: `NAMESPACE_PREFIXES` default,
-  `mc:Ignorable` declarations kept, `xml` never declared). Nothing here touches prefixes.
+  `mc:Ignorable` declarations kept, a kept `mc:Choice`'s `Requires` prefixes declared since 0.4.2,
+  `xml` never declared). Nothing here touches prefixes.
 - **The content API is views, not a model.** `Body`/`Paragraph`/`Range` hold a reference to
   the element and the array containing it; nothing is cached but the `Body` per container
   (a WeakMap in `parts/wml`). Text edits work on the paragraph's text segments (`segmentsOf`)

@@ -511,3 +511,38 @@ test('phase 4: no load leaks a global, which a strict-mode consumer would get as
   for (const name of ['loadAndSave.docx', 'mc-alternate-content-header.xml', 'revisions/cr043/cr043-tracked.docx']) assert.ok(names.includes(name), name);
   assert.deepEqual(leaks, {});
 });
+
+// A kept mc:Choice's Requires names prefixes that its content need not use (waterfall's Requires="cx1"
+// over cx: content, Excel's Requires="x14" over x:controls). @docx4j/generated-objects-ts 0.4.1's marshal
+// removed each root declaration no element or attribute used, so 10 of these fixtures' 33 were written
+// undeclared; 0.4.2 counts them as used, as docx4j CR-049 does (JaxbXmlPart's mcChoiceNamespaces: "These
+// must be declared, or Word can't open the docx"). This test asserted the 0.4.1 defect until the range
+// was raised to ^0.4.2 (CR-010 section 14.8). The resolved load writes no such Choice.
+test('phase 4: a re-marshalled mc:Choice keeps the declaration its Requires names', async () => {
+  const undeclared = { kept: {}, resolved: {} };
+  let written = 0;
+  for (const { path, input } of await packagesHolding()) {
+    for (const [load, options] of [['kept', undefined], ['resolved', { mcePreprocess: true }]]) {
+      const pkg = await OpcPackage.load(input, options);
+      await pkg.unmarshalAll();
+      const marshalled = new Set([...pkg.parts].filter((part) => part.isUnmarshalled).map((part) => part.partName.name));
+      const saved = new ZipPartStore(await pkg.save());
+      for (const name of saved.partNames()) {
+        if (!marshalled.has(name.startsWith('/') ? name : `/${name}`)) continue;
+        const xml = new TextDecoder().decode(saved.loadSync(name));
+        if (!xml.includes('Requires')) continue;
+        for (const choice of parseXml(xml).getElementsByTagNameNS(MCE_NS, 'Choice')) {
+          for (const prefix of (choice.getAttribute('Requires') ?? '').split(/\s+/).filter(Boolean)) {
+            if (load === 'kept') written++;
+            if (choice.lookupNamespaceURI(prefix)) continue;
+            const key = `${path.slice(fixturesDir.length + 1)} ${name.replace(/^\//, '')} ${prefix}`;
+            undeclared[load][key] = (undeclared[load][key] ?? 0) + 1;
+          }
+        }
+      }
+    }
+  }
+  assert.ok(written >= 30, `${written} Requires prefixes written by the kept load`);
+  assert.deepEqual(undeclared.resolved, {});
+  assert.deepEqual(undeclared.kept, {});
+});
