@@ -147,7 +147,7 @@ interface TrackedChangeFilter {
   from?: Date;                              // at or after
   to?: Date;                                // before
   kinds?: readonly TrackedChangeKind[];     // D2
-  parts?: readonly Part[];                  // D2
+  parts?: readonly (Part | string)[];       // D2; a string is a part name (section 9)
 }
 type TrackedChangeSelection = TrackedChangeFilter | ((change: TrackedChange) => boolean);
 ```
@@ -165,9 +165,11 @@ type TrackedChangeSelection = TrackedChangeFilter | ((change: TrackedChange) => 
   - the conditions apply to the single pieces;
   - a listed change is the whole change;
   - resolving takes only its matching pieces;
-  - the count is of listed changes with a matching piece;
+  - the count is of listed changes with a matching piece, so with a filter it is of the changes
+    resolved, as `acceptAll` counts today (section 9);
   - rounds relist and resolve until no piece matches or two rounds stall;
-  - nothing is swept with a filter.
+  - nothing is swept with a filter. With none, `acceptAll` and `rejectAll` sweep as they do today
+    (section 9).
 - **Dates** are compared with `TrackedChange.date`. That is `w16du:dateUtc` where present, else
   `w:date` read as local wall-clock time (CR-002 section 29), the same rule as docx4j's `getDate()`.
 
@@ -222,7 +224,8 @@ My estimates, about 2 days in all plus whatever the goldens turn up:
 2. **D2, the conditions.** You named author, type and date. docx4j and python also have kinds,
    parts and a range. Recommended:
    - **Kinds and parts too.** Each is a line once `kind` and `part` exist, and with them a filter
-     written for docx4j carries over.
+     written for docx4j carries over. A part may be given by its name, which JSON can carry (the
+     editor's review, section 9).
    - **The range later.** A content control's content or a bookmark's extent spans paragraphs, and
      this package's `Range` lies within one paragraph.
 3. **D3, the kind vocabulary.** Recommended: docx4j's names verbatim (`'RUN_INSERTION'`). Then an
@@ -281,3 +284,43 @@ Hand-offs:
     removed content, equations);
   - `src/packages/WordprocessingMLPackage.mts` (`revisedStories`, `holdsRevisions`);
   - `src/model/content/Body.mts` (`getTrackedChanges`, `resolveAll`, `resolveStory`).
+
+## 9. The editor's review (2026-10-18)
+
+The editor (`docx4j-ts-editor`) reviewed this CR with the 0.5.0 release, on main at `3d2ec61`.
+
+**Where it would use the filter:**
+- **Settling with an author.** Its tracked-changes Accept All and Reject All, when given an author,
+  now list this package's changes, filter them by author, and resolve them last first
+  (`preserved.mts`). `Body.acceptAll({ authors: [a] })` would replace that loop, provided it
+  returns the count of changes resolved, as `acceptAll` does today: the review panel's status line
+  reports that number.
+- **The agent's resolve tool** (`tools-resolve.mts`) takes an author and filters the listing
+  itself. A tool's arguments are JSON, so the object form is what it needs. The editor's
+  `docs/agent.md` would adopt `authors`, `types`, `from` and `to` as the tool's filter when that
+  contract next changes.
+
+**On the decisions:**
+- **D1: agreed.** `pkg.getTrackedChanges()` stays synchronous. The editor's console binds the shim's
+  `document.getTrackedChanges()` against the Office JS subset, so a promise there would break the
+  console's lint and typecheck too. `getAllTrackedChanges` with `part` is also what the editor needs
+  when its review panel extends to notes, headers and comments, which it already projects as stories
+  of their own but does not yet list revisions in.
+- **D2: kinds and parts yes, the range later.** It adds one remark about shape (item 1 below).
+- **D3: docx4j's names verbatim, as data values.** `target.kind` stays camelCase for programs. The
+  editor maps the names to its own contract words (insertion, deletion, formatting, properties,
+  move), as it does now.
+- **D4: left out.** The editor lists again after every resolution in any case.
+
+**The three remarks**, recorded in the proposal above:
+1. **A part by its name.** `parts?: readonly Part[]` does not travel as JSON. So a part may also be
+   given by its name, as `PartName.name` spells it (`'/word/footnotes.xml'`). Otherwise the tool
+   layer has to map names to parts on every call. `TrackedChange.part` stays a `Part`, its name
+   reachable as `part.partName`.
+2. **The count** that `acceptAll` and `rejectAll` return with a filter is the number of changes
+   resolved, as without one today. That agrees with section 3.2's "listed changes with a matching
+   piece".
+3. **No filter, a sweep.** `Body.acceptAll()` and `rejectAll()` with no filter go on sweeping as they
+   do today. The editor's "all" settle depends on the sweep. The semantics, in which a listed change
+   is the whole change and resolving takes only its matching pieces, suit it: it resolves its own
+   listing by key, and the changes it preserves through this package.
