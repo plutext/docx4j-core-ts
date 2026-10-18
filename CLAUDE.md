@@ -24,11 +24,13 @@ taking one, 62 parity goldens; and the content API's effective reads passing `Pa
 is implemented, released in 0.3.2. CR-002 section 41 (`styles.ensure` falling back to Word's built-ins
 from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three table layout
 modes, held to Word 365's saves, checks 39 to 41) are implemented, released in 0.4.0 (2026-10-09).
-So is CR-008 phase 1 (docx4j CR-034's colour merge rules in the catalogue, 2026-10-12). So are CR-001 Phases C and D
+So are CR-001 Phases C and D
 (pptx and xlsx creation, `./node`, `clone()`; font discovery over private reads), CR-004 (the Excel
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine) and its sections 8 and 9 (escaped
 XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0), and CR-006 (`selectObjects` and
-`Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). The editor's release requests are
+`Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). CR-008 phase 1 (docx4j CR-034's colour merge rules in the
+catalogue, 2026-10-12) came after 0.4.0: it is implemented, not released, as is the rest the CR index
+(`docs/change-requests/README.md`) lists as not released. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -221,10 +223,12 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   released, to `VERSION_17_3_1` on 2026-10-02 when 17.3.0 was released (tag `docx4j-17.3.0`,
   `883a08e07`), to `VERSION_17_3_2` on 2026-10-07 when 17.3.1 was released (tag `docx4j-17.3.1`,
   `5cf47d752`; 17.3.1 ships CR-030, the table context, and otherwise PDF-side work that changes no
-  XML), and to `VERSION_17_3_3` on 2026-10-09 when 17.3.2 was released (tag `docx4j-17.3.2`,
-  `856afc5da`), and that is the branch the parity workflow checks out (the release branches are
-  frozen at their releases; `test/java/pom.xml` resolves the latest release, 17.3.2, for a hand-run,
-  and the workflow reads docx4j's `<revision>` instead). The classes being
+  XML), to `VERSION_17_3_3` on 2026-10-09 when 17.3.2 was released (tag `docx4j-17.3.2`,
+  `856afc5da`), and to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
+  `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows). The
+  parity workflow still checks out `VERSION_17_3_3`, which is now frozen at the 17.3.3 release, and
+  `test/java/pom.xml` still resolves 17.3.2 for a hand-run (the workflow reads docx4j's `<revision>`
+  instead); moving both is CR-011's phase 0. The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
@@ -235,7 +239,7 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, then `0349796f9`
   (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
   section 22), and now record `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge; local in docx4j
-  when taken, CR-008 section 6), harness version 4, which needs docx4j 17.3.1's table context and does not
+  when taken, CR-008 section 6, and part of the 17.3.3 release since), harness version 4, which needs docx4j 17.3.1's table context and does not
   compile against 17.3.0. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.
 
