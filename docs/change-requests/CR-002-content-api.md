@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **not released**. Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **not released**.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **not released**. Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **not released**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **not released**.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -4352,3 +4352,146 @@ are Word's, every `m:ctrlPr` is Word's, and no revision element is left. Over se
 Word's saves (all at once and one at a time), and the collapsed range and an argument's own marker on
 handwritten markup. It fails on the code before (it lists no change). Suite 843 passed; typecheck passed.
 Not released.
+
+## 52. An SVG picture's image (2026-10-18)
+
+Found by `test/README.md`'s check 43 (CR-010 section 13.4). Jason asked for the fix the same day ("on
+second thoughts, do the svg fix now").
+
+**The markup.** Office 2016 and later write an SVG picture as a `pic:pic` whose `a:blip` embeds a PNG
+of it, with an `a:extLst` holding an `asvg:svgBlip` (extension `{96DAC541-7B7A-43D3-8B79-37D633B846F1}`)
+that embeds the SVG. `loadAndSave.docx`'s icon is one: `rId8` is `media/image1.png`, `rId9`
+`media/image2.svg`.
+
+**Office JS.** On a copy of that file (Word 16.0.20326.20232), `getBase64ImageSrc()` gave 1016
+characters. That is the length of the SVG's base64, where the PNG's is 5652. Only the lengths were
+compared. `getBase64()` gave the PNG.
+
+**Fixed,** in `InlinePicture.mts`:
+- `getBase64()` and `getBase64ImageSrc()` give the SVG where the picture has one, and the `a:blip`'s
+  image otherwise.
+- `svgRelId` and `svgImagePart()` are new extensions beside `relId` and `imagePart()`, which stay the
+  `a:blip`'s.
+- `imageFormat` reads the same part as `getBase64`: `Svg` for an SVG picture, else the `a:blip`'s
+  format. It gave `Png` here before (see check 45 below for the departure).
+
+**Check 44** (Jason, 2026-10-18: "find out what Office JS reports for an SVG picture"; Word
+16.0.20326.20232, PC):
+- `getBase64ImageSrc()` is the SVG's base64 character for character, which confirms the fix.
+- `imageFormat` came back `null`, with no error. One picture cannot say whether that is the SVG picture's
+  value or every picture's in this build, so check 45 asked.
+
+**Check 45** (the same day and build): on a copy of the file with a plain PNG (the icon's own PNG, no
+`svgBlip`) and a plain GIF added, Office JS gave `null` for the icon, `Png` and `Gif` for the other two.
+So **`null` is Office JS's `imageFormat` for an SVG picture**. `@types/office-js` declares the property
+non-null, and `Word.ImageFormat` has an `Svg` that Word did not give.
+
+**A departure, decided by Jason the same day** ("that seems like a bug, i would prefer we return Svg and
+document this as a departure"): `InlinePicture.imageFormat` gives `Svg` for an SVG picture.
+- It agrees with `getBase64`, which gives the SVG's bytes.
+- It agrees with what a picture whose `a:blip` points straight at an SVG part already gave (CR-005
+  section 9 item 6's binding case). `picture-binding.test.mjs`'s check 38 test asserted `Png` for Word
+  365's own save of that picture (its `svgBlip` form), and now asserts `Svg` and the engine's SVG.
+- It keeps the declared type non-null, as Office JS's typings have it.
+- A script that branches on the format sees `Svg` here where Word gives `null`.
+- A deletion already released both relationships (`relationshipIdsIn` reads every `r:` attribute,
+  `svgBlip`'s included).
+
+**Found on the way, and fixed below ("The binding"):**
+- **The picture binding's `keep` mode** (CR-005 section 9) pointed the `a:blip`'s `r:embed` at the new
+  image and left the rest of the `a:blip` as it was, so an `svgBlip` stayed on the old SVG.
+  - docx4j's `bind.xslt` (`picture3` and `picture3richtext`, `VERSION_17_3_4`) differs: it writes a new
+    `<a:blip r:embed="..."/>` with no children. That drops the `a:extLst`, and the `svgBlip` with it.
+  - So the port departed from docx4j here, and docx4j's form shows the new image.
+- **`updateFromContentControls`** wrote the `a:blip`'s image to the node, which is an SVG picture's PNG.
+
+**Check 46** (Jason, 2026-10-18, Word 16.0.20326.20232, PC; `fixtures/check46/`). The file holds the icon
+three times: unbound (46a), in an `od:Handler=picture` control bound by this package to a red PNG (46b),
+and in a picture content control with a `w:dataBinding` to the same node, also bound by this package
+(46c). Word's save is beside the original as `46-svg-binding-word365.docx`.
+- **46b: for Word the picture is the old icon.**
+  - Jason's screenshot shows the black circle with the tick, not the red square the binding put in the
+    `a:blip`. Office JS gave the icon's SVG (1016 characters) and `imageFormat` `null`.
+  - Saving, Word dropped the red PNG altogether. 46b's `a:blip` is on the same 2414-byte PNG as 46a's,
+    which is neither the icon's own PNG (4238 bytes) nor the red one, and appears to be one Word made
+    from the SVG.
+  - So a stale `svgBlip` is not only what Word shows. A save in Word also loses the bound image.
+  - A tag-bound control, which Word does not bind itself, keeps the template's picture.
+- **46c: Word rebinds a picture control on open.** Office JS gave a 464-character PNG, the red PNG's
+  length, with `imageFormat` `Png`. Word refilled the control from its node when it opened the file and
+  holds a plain PNG picture, the SVG gone. So in Word a `w:dataBinding` picture control repairs itself.
+  Every other reader of this package's output, and this package's own `getBase64` and `imageFormat`,
+  read the stale SVG.
+- **Word's own binding writes a bare `a:blip`.** 46c's saved `a:blip` is `<a:blip r:embed="rId10"/>` on
+  the red PNG, its `a:extLst` and `svgBlip` gone: the form docx4j's `picture3` writes. Whether Word also
+  drops an `a:blip`'s effects (`a:alphaModFix`, `a:lum`, ...) when it rebinds is not measured, since the
+  icon has none.
+
+**docx4j and an SVG value** (its session, 2026-10-18, measured on `VERSION_17_3_4`, Linux, no ImageMagick):
+`BinaryPartAbstractImage.createImagePart` cannot make an SVG image part.
+- Given the bytes alone, xmlgraphics cannot read SVG (docx4j-core has no Batik), and the fallback through
+  ImageMagick or GraphicsMagick throws `ImageConverterMissingException` with neither installed. With one
+  installed it would rasterise the SVG to a PNG part (not run).
+- Given the content type `image/svg+xml`, the content type manager makes a `DefaultXmlPart` (the type is
+  XML), and the cast to `BinaryPartAbstractImage` throws `ClassCastException`.
+- So a `picture3` binding whose value is an SVG cannot give an SVG picture in docx4j today. It reaches the
+  same part creation through `xpathInjectImageRelId` (read in the code, not run). Either SVG form would
+  need SVG image parts in docx4j first, a docx4j CR of its own. docx4j's session will put checks 46 and
+  47 to Jason when that comes up. This package's `addImagePart` already takes an SVG (CR-005 section 9
+  item 6).
+
+**Check 47** (Jason, 2026-10-18; Word 365 16.0.20326.20232, Word 2010, Word 2013; `fixtures/check47/`,
+Word's saves beside the originals). Two picture content controls with a `w:dataBinding` this package did
+not apply, each showing a green square, were left for Word to bind. A second file held the icon in Word's
+form and in an `a:blip` with only the `svgBlip`.
+- **Word binding an SVG value (47a)** showed the blue circle. It saved Office's own form: the `a:blip` on
+  a PNG it made, and the `svgBlip` on the node's SVG, byte for byte.
+- **Word binding a PNG into an `a:blip` with an effect (47c)** showed a pink square. It saved
+  `<a:blip r:embed="..."><a:alphaModFix amt="30000"/></a:blip>`, so **Word keeps a picture's effects when
+  it rebinds**. docx4j's bare `a:blip` does not.
+- **The `svgBlip` alone, no `r:embed` (47b, Jason's suggestion).**
+  - Word 365 drew it. Saving, it added an `r:embed` on a PNG it made, as it did in check 38 for an `a:blip`
+    on an SVG part.
+  - Word 2010 and 2013 drew a red cross, as check 38 found for an `a:blip` on an SVG part, and kept the
+    `a:blip` as it was.
+  - No Word reported a problem on opening.
+- **So Word's binding rule, as measured** (checks 46 and 47):
+  - the `a:blip`'s `r:embed` takes the new image, and its effects stay;
+  - a raster value takes the `svgBlip` away (46c);
+  - an SVG value goes under the `svgBlip`, with a PNG Word makes in the `r:embed` (47a).
+  This package cannot make the PNG. For an SVG value, the `svgBlip` alone draws in every Word tried
+  exactly as an `a:blip` on the SVG part does (Word 365 draws both; Word 2010 and 2013 a red cross for
+  both). It also keeps the SVG where Office puts it. Jason, the same day: "here now in 2026 i don't think
+  we need to be too concerned about the behaviour of word 2010 and 2013".
+
+**The binding, fixed** (Jason, 2026-10-18: "implement"), in `InlinePicture.mts` and
+`customxml/pictures.mts`:
+- **`setBlipImage(blip, relId, svg)`** changes the bound picture's `a:blip` by Word's rule, keeping its
+  effects and other extensions. `bindPicture`'s `keep` mode uses it, for Word's picture controls and
+  for `od:Handler=picture` without `width`.
+  - A raster value goes in `r:embed`, and the `svgBlip` is taken away (with the `a:extLst` when that
+    leaves it empty).
+  - An SVG value goes under the `svgBlip`, which is added if there is none, and `r:embed` is taken away.
+    Before, it went in `r:embed` (CR-005 section 9 item 6).
+  - `r:link` is left as it was.
+  - The new `svgBlip` is written with the facade's prefix for its namespace, `a16svg`, where Word writes
+    `asvg`.
+- **`updateFromContentControls`** writes the image `getBase64` gives: the SVG where the picture has an
+  `svgBlip`, else the `r:embed`'s image. What Word writes back for an SVG picture is not measured (47a's
+  node was left as it was, but nothing was edited).
+- **Against Word's saves** (`picture-binding.test.mjs`):
+  - Applying `47-bindings.docx`'s bindings gives 47c's blip as Word saved it: the red PNG with
+    `a:alphaModFix amt="30000"`.
+  - It gives 47a's SVG under the `svgBlip`, byte for byte, as Word's save has it, without Word's PNG.
+  - Re-applying `46-svg-binding.docx`'s (both bound pictures' `svgBlip` stale) gives the bare `a:blip`
+    on the red PNG that Word saved for 46c.
+- **Writing back:** the SVG for Word's own form (47a's save) and for this package's.
+- **The CR-005 section 9 SVG test** now asserts the `svgBlip` form.
+
+Against the binding before the fix, those three tests fail.
+
+**Tests:** one in `test/content-c.test.mjs`: the icon's two ids and parts, `getBase64` equal to the SVG's
+base64, `imageFormat` `Svg`, and a picture with no SVG unchanged. It fails on the code before (`73933fc`).
+Two assertions move to `Svg`: `kept-branches.test.mjs`'s icon and `picture-binding.test.mjs`'s check 38
+save. The binding's tests are listed above. Suite 869 passed; typecheck passed. Not released.
+

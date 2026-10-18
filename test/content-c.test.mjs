@@ -178,6 +178,34 @@ test('inline picture: a second image gets its own part, and a paragraph takes on
   await WordprocessingMLPackage.load(await pkg.save());
 });
 
+test("inline picture: an SVG picture's image is its SVG, as Office JS gives it (check 43)", async () => {
+  // loadAndSave.docx's icon: the a:blip embeds a PNG, and its a:extLst an asvg:svgBlip embedding the SVG
+  const bytes = await fixture('loadAndSave.docx');
+  const store = new ZipPartStore(bytes);
+  const base64Of = (name) => Buffer.from(store.loadSync(name)).toString('base64');
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  const [picture] = (await pkg.getBody()).inlinePictures;
+  assert.equal(picture.altTextDescription, 'Badge Tick1 with solid fill');
+  assert.equal(picture.relId, 'rId8');
+  assert.equal(picture.imagePart().partName.name, '/word/media/image1.png', "imagePart is the a:blip's");
+  assert.equal(picture.svgRelId, 'rId9');
+  assert.equal(picture.svgImagePart().partName.name, '/word/media/image2.svg');
+  // Office JS's getBase64ImageSrc gave 1016 characters (Word 16.0.20326.20232): the SVG's length, not the PNG's 5652
+  const svg = base64Of('word/media/image2.svg');
+  assert.equal(svg.length, 1016);
+  assert.equal(await picture.getBase64(), svg);
+  assert.equal(await picture.getBase64ImageSrc(), svg);
+  // Office JS gives null here (check 45); this package gives Svg, a departure (CR-002 section 52)
+  assert.equal(picture.imageFormat, 'Svg');
+  // a picture with no SVG gives its own image, as before
+  const created = await WordprocessingMLPackage.createPackage();
+  const plain = created.body.insertInlinePictureFromBase64(PNG, 'End');
+  assert.equal(plain.svgRelId, undefined);
+  assert.equal(plain.svgImagePart(), undefined);
+  assert.equal(plain.imageFormat, 'Png');
+  assert.equal(await plain.getBase64(), PNG);
+});
+
 test('insertOoxml: a pkg:package with an image is copied in with fresh names and ids', async () => {
   const source = await WordprocessingMLPackage.createPackage();
   source.body.insertParagraph('from the other package', 'End');

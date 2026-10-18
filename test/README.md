@@ -1302,7 +1302,143 @@ already named, so each case starts by opening its own file.
    stands. Also found: `getBase64ImageSrc()` gave 1016 characters. That is the length of the base64
    of `word/media/image2.svg`, the SVG the picture's `asvg:svgBlip` embeds. `getBase64()` here gives
    the PNG that the `a:blip` embeds (`image1.png`, 5652). Only the lengths were compared. CR-010
-   section 13.4 records both findings.
+   section 13.4 records both findings, and CR-002 section 52 the SVG fix.
+44. What Office JS reports for an SVG picture (CR-002 section 52, 2026-10-18; Jason: "find out what
+   Office JS reports for an SVG picture"). In Word 365 (desktop), open `__tmp/44/loadAndSave.docx`, a
+   copy of `fixtures/loadAndSave.docx` made for this check. Its one inline picture, in the 30th of 41
+   paragraphs, is an SVG icon ("Badge Tick1 with solid fill", 72 by 72 points). Its `a:blip` embeds
+   `media/image1.png`, and the `asvg:svgBlip` in the blip's `a:extLst` embeds `media/image2.svg`. Open
+   Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet), paste the HTML
+   and Script tabs of the snippet for 44 below over the defaults, click **Run the check** and copy the
+   JSON back. Nothing is edited; close without saving. The snippet reports:
+   - `imageFormat`, or the error if this Word lacks it. `InlinePicture.imageFormat` gives `Png` here,
+     the `a:blip`'s part's format.
+   - whether `getBase64ImageSrc()` is the SVG's base64 character for character (`equalsSvg`), where
+     check 43 compared only lengths. `getBase64()` gives the SVG since CR-002 section 52.
+   - the image's first 16 characters: `PHN2Zy` begins an SVG's `<svg`, and `iVBORw0KGgo` a PNG.
+
+   **Run 2026-10-18 (Jason, Word 16.0.20326.20232, PC):** `equalsSvg` true (1016 characters, beginning
+   `PHN2ZyB2aWV3Qm94`), so Office JS's image for an SVG picture is the SVG, as `getBase64()` gives since
+   CR-002 section 52. `imageFormat` came back `null`, with no error. One picture cannot say whether that
+   is the SVG picture's value or every picture's in this build, which is check 45's question.
+45. Whether Office JS's `imageFormat` is `null` for an SVG picture only, or for every picture (CR-002
+   section 52, 2026-10-18; check 44 gave `null`). In Word 365 (desktop), open
+   `__tmp/45/svg-and-plain.docx`. It was made from `fixtures/loadAndSave.docx` by this package (main
+   part re-marshalled), with two paragraphs added at the end, so it has 43. Its three inline pictures:
+   - in the 30th paragraph, the SVG icon ("Badge Tick1 with solid fill", 72 by 72);
+   - in the 42nd, "plain PNG": the icon's own PNG (`a:blip` only, no `svgBlip`), 72 by 72;
+   - in the 43rd, "plain GIF": a 2 by 2 GIF shown at 36 by 36.
+
+   Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet), paste the
+   HTML and Script tabs of the snippet for 45 below over the defaults, click **Run the check** and copy
+   the JSON back. Nothing is edited; close without saving. `InlinePicture.imageFormat` gives `Png`, `Png`
+   and `Gif`. If Office JS gives `Png` and `Gif` for the two plain ones and `null` for the icon, `null` is
+   its value for an SVG picture. If it gives `null` for all three, this build reports no format for any
+   picture. **Run 2026-10-18 (Jason, Word 16.0.20326.20232, PC):** `null` for the icon, `Png` for "plain
+   PNG" and `Gif` for "plain GIF". So `null` is Office JS's `imageFormat` for an SVG picture, though
+   `@types/office-js` declares the property non-null and `Word.ImageFormat` has an `Svg`. The images were
+   the icon's SVG (1016 characters, `PHN2Zy...`), the PNG (5652, `iVBORw0KGgo...`) and the GIF (48), the
+   sizes as stated. CR-002 section 52 records it, and the departure Jason chose: this package gives
+   `Svg` there.
+46. What Word draws for an SVG picture after this package's picture binding has swapped its image
+   (CR-002 section 52, 2026-10-18; Jason: "let's do check 46"). The binding's keep mode (CR-005
+   section 9) points the `a:blip`'s `r:embed` at the new image and leaves the `asvg:svgBlip` on the
+   old SVG. docx4j's `bind.xslt` writes a bare `a:blip` instead.
+   - **The file:** `__tmp/46/46-svg-binding.docx`, a copy of `fixtures/check46/46-svg-binding.docx` (built by
+     `fixtures/check46/build.mjs`). It holds
+     three copies of `loadAndSave.docx`'s SVG icon, a black circle with a tick cut out of it, each
+     72 by 72 points, under a label paragraph.
+     - **46a:** the icon, not bound. Its `a:blip` is on the icon's PNG and its `svgBlip` on the SVG.
+     - **46b:** an `od:Handler=picture` rich text control (no `w:dataBinding`), bound by this package
+       to a node holding a solid red PNG.
+     - **46c:** a picture content control with a `w:dataBinding` to the same node, bound by this
+       package.
+     In both bound copies the `a:blip` is on a red PNG and the `svgBlip` still on the icon's SVG.
+   - **Steps.** In Word 365 (desktop), open `__tmp/46/46-svg-binding.docx`, and before anything else
+     File > Save As `46-svg-binding-word365.docx` in the same folder. That keeps Word's form of the
+     file, a refreshed binding included. In the saved copy:
+     1. Say what each of 46a, 46b and 46c shows: the black circle with the tick, a red square, or
+        something else.
+     2. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet),
+        paste the HTML and Script tabs of the snippet for 46 below over the defaults, click **Run the
+        check** and copy the JSON back.
+     3. Close without saving again.
+   - **What it decides.**
+     - 46b shows the circle: Word draws the stale `svgBlip`, and the binding needs fixing (CR-002
+       section 52's options).
+     - 46b shows red: Word draws the `a:blip` there.
+     - 46c also says whether Word refills a bound picture control from its node when it opens the
+       file. The save shows what Word writes for both.
+   - **Run 2026-10-18 (Jason, Word 16.0.20326.20232, PC).** The original was left unchanged. Jason's
+     screenshot of the saved copy shows the black circle with the tick for 46a and **46b**, and a red
+     square for 46c. Word's save is `fixtures/check46/46-svg-binding-word365.docx`.
+     - 46a: the icon's SVG (1016 characters, `PHN2Zy...`), `imageFormat` `null`, in no control.
+     - 46b: **the icon's SVG** (1016, `PHN2Zy...`), `imageFormat` `null`, in the `RichText` control with
+       the `od:Handler=picture` tag. So for Word the picture is the stale `svgBlip`'s old icon, not the
+       red PNG that the binding put in the `a:blip`.
+     - 46c: a PNG of 464 characters (`iVBORw0KGgo...`), `imageFormat` `Png`, in the `Picture` control.
+       That is exactly the length of the node's red PNG (346 bytes) in base64. So Word refilled the
+       bound picture control from its node when it opened the file, and holds it as a plain PNG
+       picture, the SVG gone.
+     - **Word's save:**
+       - 46a and 46b: both drawings have the same `a:blip`, on `media/image1.png`, a PNG of 2414 bytes
+         that is neither the icon's own PNG (4238) nor the red one. Their `svgBlip` is on the icon's
+         SVG. So for 46b Word dropped the red PNG the binding had put in the `a:blip`, and gave it the
+         same PNG as 46a, which appears to be one Word made from the SVG.
+       - 46c: a bare `<a:blip r:embed="rId10"/>` on the red PNG (`media/image3.png`, 346 bytes), the
+         `a:extLst` and its `svgBlip` gone. Word's own binding writes the form docx4j's `bind.xslt`
+         writes.
+     - CR-002 section 52 records it.
+47. Which form an SVG picture's binding should write (CR-002 section 52, 2026-10-18; Jason: "build check
+   47"). Check 46 found that Word's own binding of a picture control writes a bare
+   `<a:blip r:embed="..."/>`, as docx4j's `bind.xslt` does. This check asks three things: what Word
+   writes when the bound value is an SVG (47a), whether Word reads an `a:blip` with only the
+   `asvg:svgBlip` and no `r:embed` (47b, Jason's suggestion), and whether Word keeps a picture's effects
+   when it rebinds (47c). Two files in `__tmp/47/`, copies of `fixtures/check47/` (built by
+   `fixtures/check47/build.mjs`).
+   - **`47-bindings.docx`, in Word 365 only.** It has two picture content controls, each with a
+     `w:dataBinding` that this package did not apply: each control's picture is a green square, 72 by
+     72 points, and Word is left to bind it when it opens the file, as it did in check 46.
+     - **47a:** the node holds an SVG, a blue circle. A blue circle means Word bound it, and its save
+       shows the form Word writes for a bound SVG. A green square means Word did not bind it.
+     - **47c:** the node holds a red PNG, and the green square's `a:blip` has an `a:alphaModFix amt="30000"`
+       (30% opacity). Pink means Word bound it and kept the effect; solid red means it bound it and
+       dropped the effect; pale green means it did not bind it.
+     - Steps: open `__tmp/47/47-bindings.docx`, and before anything else File > Save As
+       `47-bindings-word365.docx` in the same folder. In the saved copy, say what 47a and 47c show (or
+       take a screenshot), run the snippet for 46 below (Script Lab, as in check 46) and copy the JSON
+       back, then close without saving again.
+   - **`47-svgblip-only.docx`, in Word 365, then Word 2010, then Word 15.** It has two copies of
+     `loadAndSave.docx`'s icon, a black circle with a tick cut out of it, each 72 by 72 points.
+     - **Baseline:** the icon as Word writes it, with its `a:blip` on the PNG and its `svgBlip` on the SVG.
+     - **47b:** the same icon with `<a:blip><a:extLst><a:ext uri="{96DAC541-...}"><asvg:svgBlip
+       r:embed="..."/></a:ext></a:extLst></a:blip>`, no `r:embed` on the `a:blip`. The schema allows
+       that (`AG_Blob`'s `r:embed` is optional); Office never writes it.
+     - Steps, in each Word: open `__tmp/47/47-svgblip-only.docx` and say whether Word reports a
+       problem or offers a repair. Before anything else, File > Save As `47-svgblip-only-word365.docx`
+       (or `-word2010.docx`, `-word15.docx`) in the same folder. Say what the baseline and 47b show:
+       the circle with the tick, an empty frame, a red cross, or something else. In Word 365 only, run
+       the snippet for 46 below and copy the JSON back. Close without saving again.
+     - Word 2010 and 15 do not read SVG (check 38), so they show what a reader without SVG support makes
+       of 47b. The baseline gives them the `a:blip`'s PNG.
+   - **Run 2026-10-18 (Jason; Word 365 16.0.20326.20232, Word 2010, Word 2013).** Jason wrote his
+     observations into each save, in bold underline. The saves are in `fixtures/check47/`, the Word 2013
+     one renamed `47-svgblip-only-word2013.docx`. No problem on opening was reported.
+     - **47a: a blue circle.** Word bound the SVG. Its save writes Office's own SVG picture: the
+       `a:blip` on a PNG Word made (`image1.png`, 2348 bytes), and an `asvg:svgBlip` on the node's SVG,
+       byte for byte (113 bytes). Office JS gave that SVG (152 characters) and `imageFormat` `null`.
+       The node was left as it was.
+     - **47c: a pink square.** Word bound the red PNG and kept the effect. Its save is
+       `<a:blip r:embed="rId9"><a:alphaModFix amt="30000"/></a:blip>` on the red PNG (346 bytes).
+       Office JS gave the red PNG (464 characters), `Png`.
+     - **47b, the `svgBlip` alone:**
+       - Word 365 drew the circle with the tick, as for the baseline. Saving, it gave 47b an `r:embed`
+         on a PNG it made (2414 bytes), shared with the baseline's, so the save holds Office's own form
+         twice.
+       - Word 2010 and Word 2013 showed **a red cross** for 47b and the circle with the tick for the
+         baseline (from its PNG). Each kept 47b's `a:blip` as it was, without `r:embed`.
+     - CR-002 section 52 records it, with the binding rule it gives, which the binding now follows.
+       `picture-binding.test.mjs` holds the binding to these saves and to check 46's.
 
 A small Node script for 1 to 3 is:
 
@@ -2962,6 +3098,156 @@ async function check() {
       images.forEach((image, i) => { report.inlinePictures[i].base64Length = image.value.length; });
     } catch (e) {
       report.base64Error = String(e.message || e);
+    }
+    out.value = JSON.stringify(report, null, 2);
+  });
+}
+```
+
+And the Script Lab snippet for 44 (Word, Office JS, WordApi 1.1, and `imageFormat` where this Word has
+it), on `__tmp/44/loadAndSave.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+// word/media/image2.svg's bytes as base64 (760 bytes, 1016 characters)
+const SVG = 'PHN2ZyB2aWV3Qm94PSIwIDAgOTYgOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJJY29uc19CYWRnZVRpY2sxIiBvdmVyZmxvdz0iaGlkZGVuIj48cGF0aCBkPSJNNDcuOTc5IDEwQzI3LjAwMzggMTAgMTAgMjcuMDAzOCAxMCA0Ny45NzkgMTAgNjguOTU0MiAyNy4wMDM4IDg1Ljk1OCA0Ny45NzkgODUuOTU4IDY4Ljk1NDIgODUuOTU4IDg1Ljk1OCA2OC45NTQyIDg1Ljk1OCA0Ny45NzkgODUuOTU4IDQ3Ljk3OCA4NS45NTggNDcuOTc3IDg1Ljk1OCA0Ny45NzYgODUuOTY1MiAyNy4wMDk2IDY4Ljk3NDQgMTAuMDA3MiA0OC4wMDggMTAgNDcuOTk4MyAxMCA0Ny45ODg3IDEwIDQ3Ljk3OSAxMFpNNTcuMTc5IDQ5Ljc5M0M1MS42NDU3IDU1LjMxNjMgNDYuMDc5IDYwLjg4ODcgNDAuNDc5IDY2LjUxIDM1LjcyMDMgNjEuNzI4NyAzMC45NTAzIDU2Ljk1ODcgMjYuMTY5IDUyLjJMMzAuOTUgNDcuNDE5IDQwLjQ3OSA1Ni45NDhDNDUuMTA1IDUyLjI1NTMgNDkuNzA1IDQ3LjU5NTcgNTQuMjc5IDQyLjk2OSA1OC44NSAzOC4zNDMgNjEuMzc5IDM1Ljg2IDY2LjEyIDMxLjI3OCA2Ni4yNTMgMzEuMTQ1IDY2LjM5NiAzMS4wMTMgNjYuNTUxIDMwLjg3OCA2Ni43MDEyIDMwLjc1MDYgNjYuODM1NSAzMC42MDU2IDY2Ljk1MSAzMC40NDZMNzEuNzk5IDM1LjIyN0M2Ni4xNjggNDAuODI3IDYyLjcxMiA0NC4yNjcgNTcuMTc4IDQ5Ljc5WiIvPjwvc3ZnPg==';
+
+async function check() {
+  await Word.run(async (context) => {
+    const pictures = context.document.body.inlinePictures;
+    pictures.load('items/width,items/height,items/altTextDescription');
+    await context.sync();
+    const report = { host: Office.context.diagnostics, inlinePictures: pictures.items.length };
+    const picture = pictures.items[0];
+    report.altTextDescription = picture.altTextDescription;
+    // the image, on its own sync
+    try {
+      const image = picture.getBase64ImageSrc();
+      await context.sync();
+      report.base64Length = image.value.length;
+      report.base64Start = image.value.slice(0, 16);
+      report.equalsSvg = image.value === SVG;
+    } catch (e) {
+      report.base64Error = String(e.message || e);
+    }
+    // imageFormat, on its own sync, in case this Word does not have it
+    try {
+      picture.load('imageFormat');
+      await context.sync();
+      report.imageFormat = picture.imageFormat;
+    } catch (e) {
+      report.imageFormatError = String(e.message || e);
+    }
+    out.value = JSON.stringify(report, null, 2);
+  });
+}
+```
+
+And the Script Lab snippet for 45 (Word, Office JS, WordApi 1.1, and `imageFormat` where this Word has
+it), on `__tmp/45/svg-and-plain.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+async function check() {
+  await Word.run(async (context) => {
+    const pictures = context.document.body.inlinePictures;
+    pictures.load('items/width,items/height,items/altTextDescription');
+    await context.sync();
+    const report = {
+      host: Office.context.diagnostics,
+      inlinePictures: pictures.items.map((p) => ({ altTextDescription: p.altTextDescription, width: p.width, height: p.height })),
+    };
+    // each image, on its own sync
+    try {
+      const images = pictures.items.map((p) => p.getBase64ImageSrc());
+      await context.sync();
+      images.forEach((image, i) => {
+        report.inlinePictures[i].base64Length = image.value.length;
+        report.inlinePictures[i].base64Start = image.value.slice(0, 16);
+      });
+    } catch (e) {
+      report.base64Error = String(e.message || e);
+    }
+    // imageFormat, on its own sync, in case this Word does not have it
+    try {
+      pictures.items.forEach((p) => p.load('imageFormat'));
+      await context.sync();
+      pictures.items.forEach((p, i) => { report.inlinePictures[i].imageFormat = p.imageFormat; });
+    } catch (e) {
+      report.imageFormatError = String(e.message || e);
+    }
+    out.value = JSON.stringify(report, null, 2);
+  });
+}
+```
+
+And the Script Lab snippet for 46 (Word, Office JS, WordApi 1.3, and `imageFormat` where this Word has
+it), on `46-svg-binding-word365.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+async function check() {
+  await Word.run(async (context) => {
+    const pictures = context.document.body.inlinePictures;
+    pictures.load('items/width,items/height');
+    await context.sync();
+    const controls = pictures.items.map((p) => { const c = p.parentContentControlOrNullObject; c.load('isNullObject,type,tag'); return c; });
+    await context.sync();
+    const report = {
+      host: Office.context.diagnostics,
+      inlinePictures: pictures.items.map((p, i) => ({
+        width: p.width,
+        height: p.height,
+        control: controls[i].isNullObject ? null : { type: controls[i].type, tag: controls[i].tag },
+      })),
+    };
+    // each image, on its own sync: an SVG begins PHN2Zy, a PNG iVBORw0KGgo
+    try {
+      const images = pictures.items.map((p) => p.getBase64ImageSrc());
+      await context.sync();
+      images.forEach((image, i) => {
+        report.inlinePictures[i].base64Length = image.value.length;
+        report.inlinePictures[i].base64Start = image.value.slice(0, 16);
+      });
+    } catch (e) {
+      report.base64Error = String(e.message || e);
+    }
+    try {
+      pictures.items.forEach((p) => p.load('imageFormat'));
+      await context.sync();
+      pictures.items.forEach((p, i) => { report.inlinePictures[i].imageFormat = p.imageFormat; });
+    } catch (e) {
+      report.imageFormatError = String(e.message || e);
     }
     out.value = JSON.stringify(report, null, 2);
   });

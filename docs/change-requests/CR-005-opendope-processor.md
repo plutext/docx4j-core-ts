@@ -538,7 +538,10 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
    the `asvg:svgBlip` extension (`{96DAC541-7B7A-43D3-8B79-37D633B846F1}`). So no fallback is
    needed from this package for a Word that reads SVG, which makes its own; the limitation is Word
    2010 and 15, which show a red cross. Held by the check 38 test. The editor recommends keeping it
-   as it is; Jason's decision stands on that measurement.*
+   as it is; Jason's decision stands on that measurement.* *Changed 2026-10-18 (CR-002 section 52,
+   checks 46 and 47): a bind that keeps the drawing now puts an SVG under the `a:blip`'s
+   `asvg:svgBlip` with no `r:embed`, as Word binds an SVG value apart from the PNG Word makes. A raster
+   value takes an old `svgBlip` away, and the `a:blip`'s effects stay.*
 
 7. **Word check 38, run 2026-10-08 by Jason in Word 2010 and Word 15** (the saves beside the
    originals in `test/fixtures/check38/`, commit e490163; read here part by part and held by two tests

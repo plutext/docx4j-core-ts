@@ -11,7 +11,9 @@
 //
 // docx4j's `bind.xslt`: modes `picture3` and `picture3richtext` replace the first `a:blip`'s
 // `r:embed` with a relationship to a new image part and keep everything else about the drawing - its
-// anchor, wrapping, position and extent (`BindingTraverserXSLT.xpathInjectImageRelId`; REQ-061).
+// anchor, wrapping, position and extent (`BindingTraverserXSLT.xpathInjectImageRelId`; REQ-061). The
+// blip itself is changed as Word changes it, not as docx4j does (`setBlipImage`, CR-002 section 52):
+// its effects stay, which docx4j's bare `a:blip` drops, and an SVG goes under `asvg:svgBlip`.
 // With a `width` parameter on the tag the content is replaced by a new inline picture
 // (`xpathInjectImage`; REQ-062): at its natural size, scaled down to fit `width=N` twips or the
 // text width, whichever is smaller; `width=auto` the text width alone. A control in a table cell
@@ -23,7 +25,8 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import { find, type Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
-import { addImage, addImagePart, writableWidthEmu } from '../content/InlinePicture.mjs';
+import { addImage, addImagePart, writableWidthEmu, setBlipImage, svgBlipOf } from '../content/InlinePicture.mjs';
+import { ContentTypes } from '../../opc/ContentTypes.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { base64Decode, base64Encode } from '../../xml/dom.mjs';
 import { enclosingCellOf } from '../properties/table.mjs';
@@ -119,7 +122,9 @@ function maxWidthEmu(control: ContentControl, width: PictureWidth): number | und
 
 /**
  * Binds one control to a value: base64 image data (a data URL accepted). With `keep`, the first
- * `a:blip`'s `r:embed` is pointed at a new image part and the drawing is left as it is; a picture
+ * `a:blip` is pointed at a new image part and the drawing is left as it is, as Word binds a picture
+ * control (`setBlipImage`: a raster image in `r:embed`, the `asvg:svgBlip` taken away; an SVG under
+ * the `asvg:svgBlip`, `r:embed` taken away; the effects kept; CR-002 section 52); a picture
  * control holding no picture gets a new inline one at its natural size instead (docx4j's pre-v3
  * fallback), a tag-bound control holding none is left and noted. Otherwise the control's content
  * becomes one run holding a new inline picture, sized as `PictureWidth` says, in the first
@@ -138,7 +143,8 @@ export function bindPicture(control: ContentControl, value: string, width: Pictu
     const blip = firstBlipOf(control);
     if (blip) {
       try {
-        blip.embed = addImagePart(source, base64).relId;
+        const added = addImagePart(source, base64);
+        setBlipImage(blip, added.relId, added.info.contentType === ContentTypes.IMAGE_SVG);
       } catch (e) {
         return { done: false, note: `${label}: not an image this package reads (${messageOf(e)})` };
       }
@@ -181,7 +187,8 @@ export function applyPictureHandlersTo(controls: ContentControl[], parts: Custom
 /**
  * The reverse direction for a mapped picture control (docx4j's `UpdateXmlFromDocumentSurface`
  * skips pictures; Word 15 writes the picture back, check 38): the bytes of the image part the
- * first `a:blip` embeds, as base64, into the node. Nothing is written when the node already holds
+ * first `a:blip` shows, as base64, into the node: its `asvg:svgBlip`'s SVG where it has one, as
+ * `InlinePicture.getBase64` gives (CR-002 section 52), else its `r:embed`'s image. Nothing is written when the node already holds
  * those bytes (compared decoded, so Word's line-wrapped base64 counts as the same), when the
  * control shows no picture, or when the blip's part is not an image part. Asynchronous, since a
  * part's bytes may still be in the container.
@@ -193,8 +200,9 @@ export async function updateFromPictureControl(control: ContentControl): Promise
   if (!node) return false;
   const blip = firstBlipOf(control);
   const source = control.parentBody.part;
-  if (!blip?.embed || !source) return false;
-  const part = source.relationshipsPart?.getPart(blip.embed);
+  const relId = svgBlipOf(blip)?.embed || blip?.embed;
+  if (!relId || !source) return false;
+  const part = source.relationshipsPart?.getPart(relId);
   if (!(part instanceof ImagePart)) return false;
   const bytes = await part.getBytes();
   const held = base64Decode(node.text);

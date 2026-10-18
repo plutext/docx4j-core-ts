@@ -119,7 +119,7 @@ test('inline pictures are pictures only: no inline text box (check 42) and no in
     const { body } = await load('loadAndSave.docx', kept);
     const pictures = body.inlinePictures;
     assert.equal(pictures.length, 1, `${at}: the picture, not the inline c:chart beside it`);
-    assert.equal(pictures[0].imageFormat, 'Png');
+    assert.equal(pictures[0].imageFormat, 'Svg', 'an SVG icon (CR-002 section 52)');
   }
 });
 

@@ -3,7 +3,7 @@
 // entry, with and without a width parameter. The node holds base64 image data.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WordprocessingMLPackage, addImage, addImagePart, base64Decode, find, imageInfoOf, pictureWidthOf, tagParamsOf } from '../dist/index.mjs';
+import { WordprocessingMLPackage, addImage, addImagePart, base64Decode, base64Encode, find, imageInfoOf, pictureWidthOf, tagParamsOf } from '../dist/index.mjs';
 import { pngOf, bytesEqual, fixture } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -146,11 +146,15 @@ test('Word check 38 (2026-10-08): od:Handler pictures keep their images in both 
   const control = (await main.getBody()).contentControls[4];
   assert.equal(control.tag, 'od:xpath=x3&od:Handler=picture');
   const picture = control.paragraphs[0].inlinePictures[0];
-  assert.equal(picture.imageFormat, 'Png');
+  // an SVG picture in Word's form reports Svg and gives the SVG (CR-002 section 52; Office JS gives null, check 45)
+  assert.equal(picture.imageFormat, 'Svg');
+  assert.equal(picture.imagePart().contentType, 'image/png', "the a:blip is Word's PNG");
   const [, extension] = /<a:blip r:embed="rId\d+"><a:extLst><a:ext uri="\{96DAC541-7B7A-43D3-8B79-37D633B846F1\}"><asvg:svgBlip [^>]*r:embed="(rId\d+)"\/><\/a:ext><\/a:extLst><\/a:blip>/.exec(await control.getXml());
   const svg = main.relationshipsPart.getPart(extension);
   assert.equal(svg.contentType, 'image/svg+xml');
   assert.equal((await svg.getBytes()).length, 188, 'the engine\'s SVG, byte for byte');
+  assert.equal(picture.svgImagePart(), svg);
+  assert.equal(await picture.getBase64(), base64Encode(await svg.getBytes()));
 });
 
 test('(b) od:Handler=picture without width: a floating picture keeps its anchor, wrapping, position and extent; only r:embed changes', async () => {
@@ -232,8 +236,12 @@ test('an SVG value replaces a picture (the drawing kept, the part image/svg+xml)
   assert.equal(control.xmlMapping.setMapping('/data/svg', '', data), true);
   const picture = control.pictureContentControl.inlinePicture;
   assert.equal(picture.imageFormat, 'Svg');
-  assert.equal(picture.imagePart().partName.name, '/word/media/image1.svg');
-  assert.ok(bytesEqual(await picture.imagePart().getBytes(), base64Decode(SVG)));
+  // under the asvg:svgBlip, with no r:embed, as Word puts a bound SVG there (check 47; CR-002 section 52)
+  assert.equal(picture.relId, undefined);
+  assert.equal(picture.imagePart(), undefined);
+  assert.equal(picture.svgImagePart().partName.name, '/word/media/image1.svg');
+  assert.ok(bytesEqual(await picture.svgImagePart().getBytes(), base64Decode(SVG)));
+  assert.equal(await picture.getBase64(), base64Encode(base64Decode(SVG)));
   body.insertParagraph('inline', 'End');
   const inline = body.search('inline')[0].insertContentControl('RichText');
   inline.tag = 'od:xpath=x5&od:Handler=picture&width=auto';
@@ -243,6 +251,72 @@ test('an SVG value replaces a picture (the drawing kept, the part image/svg+xml)
   assert.equal(inline.text, 'inline');
   const again = await WordprocessingMLPackage.load(await pkg.save());
   assert.equal((await again.getBody()).contentControls[0].pictureContentControl.inlinePicture.imageFormat, 'Svg');
+});
+
+/** The first a:blip of each picture control, typed, with the bytes of the parts it points at. */
+async function blipsOf(pkg) {
+  const main = pkg.getMainDocumentPart();
+  const out = [];
+  for (const control of (await pkg.getBody()).contentControls) {
+    const [blip] = find(control.sdt.sdtContent, 'org_docx4j_dml.CTBlip');
+    const bytes = async (relId) => (relId ? [...await main.relationshipsPart.getPart(relId).getBytes()] : null);
+    const svg = blip.extLst?.ext?.find((e) => e.uri === '{96DAC541-7B7A-43D3-8B79-37D633B846F1}')?.any?.value?.embed;
+    out.push({
+      embed: await bytes(blip.embed),
+      svg: await bytes(svg),
+      effects: (blip.alphaBiLevelOrAlphaCeilingOrAlphaFloor ?? []).map((e) => [e.TYPE_NAME, e.amt]),
+      extensions: (blip.extLst?.ext ?? []).map((e) => e.uri),
+    });
+  }
+  return out;
+}
+
+test("the binding changes a picture's blip as Word's does: a PNG takes the svgBlip away, an SVG goes under it, effects stay (checks 46 and 47)", async () => {
+  // check 47: two picture controls Word bound on open (an SVG; a red PNG into a blip at 30% opacity)
+  const ours = await WordprocessingMLPackage.load(await fixture('check47/47-bindings.docx'));
+  await ours.customXmlParts.load();
+  assert.deepEqual(await ours.customXmlParts.applyBindings(), { bound: 2, updated: 2, skipped: 0 });
+  const word = await WordprocessingMLPackage.load(await fixture('check47/47-bindings-word365.docx'));
+  const [svgOurs, redOurs] = await blipsOf(ours);
+  const [svgWord, redWord] = await blipsOf(word);
+  assert.deepEqual(redOurs, redWord, '47c: the red PNG in r:embed, the a:alphaModFix kept, as Word saved it');
+  assert.deepEqual(redOurs.effects, [['org_docx4j_dml.CTAlphaModulateFixedEffect', 30000]]);
+  assert.deepEqual(svgOurs.svg, svgWord.svg, '47a: the SVG under the svgBlip, byte for byte');
+  assert.deepEqual(svgOurs.extensions, svgWord.extensions);
+  assert.equal(svgOurs.embed, null, 'no r:embed: Word put a PNG it made there, which this package cannot make');
+  assert.notEqual(svgWord.embed, null);
+  // check 46: SVG pictures that a binding had pointed at a red PNG, its svgBlip left on the old icon
+  const stale = await WordprocessingMLPackage.load(await fixture('check46/46-svg-binding.docx'));
+  await stale.customXmlParts.load();
+  const before = await blipsOf(stale);
+  assert.ok(before.every((b) => b.svg !== null), 'before: the svgBlip on the old SVG');
+  await stale.customXmlParts.applyBindings();
+  const after = await blipsOf(stale);
+  const [, word46c] = await blipsOf(await WordprocessingMLPackage.load(await fixture('check46/46-svg-binding-word365.docx')));
+  for (const blip of after) assert.deepEqual(blip, word46c, "a bare a:blip on the red PNG, as Word saved 46c's");
+  for (const picture of (await stale.getBody()).inlinePictures.slice(1)) assert.equal(picture.imageFormat, 'Png');
+});
+
+test("updateFromContentControls writes an SVG picture's SVG back, as getBase64 gives it", async () => {
+  // Word's own form (47a, saved by Word 365): the a:blip on a PNG Word made, the svgBlip on the SVG
+  const pkg = await WordprocessingMLPackage.load(await fixture('check47/47-bindings-word365.docx'));
+  await pkg.customXmlParts.load();
+  const [svgControl] = (await pkg.getBody()).contentControls;
+  const node = svgControl.xmlMapping.customXmlNode;
+  const svg = node.text;
+  assert.equal(svg.length, 152);
+  node.text = '';
+  await pkg.customXmlParts.updateFromContentControls();
+  assert.equal(node.text, svg, 'the SVG, not the PNG in r:embed');
+  assert.equal(await svgControl.pictureContentControl.inlinePicture.getBase64(), svg);
+  // and this package's form, the svgBlip alone
+  const ours = await WordprocessingMLPackage.load(await fixture('check47/47-bindings.docx'));
+  await ours.customXmlParts.load();
+  await ours.customXmlParts.applyBindings();
+  const [control] = (await ours.getBody()).contentControls;
+  control.xmlMapping.customXmlNode.text = '';
+  await ours.customXmlParts.updateFromContentControls();
+  assert.equal(control.xmlMapping.customXmlNode.text, svg);
 });
 
 test('left and noted: an empty node, a node that is not an image, a missing entry, a tag-bound control with no picture to replace', async () => {

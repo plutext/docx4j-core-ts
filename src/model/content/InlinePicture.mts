@@ -279,6 +279,56 @@ export function writableWidthEmu(container: object): number | undefined {
   return twips > 0 ? twips * EMU_PER_TWIP : undefined;
 }
 
+/** The TYPE_NAME of `asvg:svgBlip`, Office 2016's SVG picture extension of an `a:blip`. */
+const SVG_BLIP = 'org_docx4j_com_microsoft_schemas_office_drawing_x2016_SVG_main.CTSVGBlip';
+/** The `a:ext` URI that `asvg:svgBlip` stands under, and its namespace. */
+const SVG_BLIP_EXT_URI = '{96DAC541-7B7A-43D3-8B79-37D633B846F1}';
+const SVG_NS = 'http://schemas.microsoft.com/office/drawing/2016/SVG/main';
+
+/** The `asvg:svgBlip` in a blip's `a:extLst`, if any: an SVG picture's SVG (CR-002 section 52). */
+export function svgBlipOf(blip: dml.CTBlip | undefined): { embed?: string } | undefined {
+  for (const ext of blip?.extLst?.ext ?? []) {
+    const any: unknown = ext.any;
+    if (isElement(any) && typeNameOf(any) === SVG_BLIP) return any.value as { embed?: string };
+  }
+  return undefined;
+}
+
+/**
+ * Points a blip at a new image the way Word's own picture binding does (test/README.md checks 46 and
+ * 47; CR-002 section 52). The blip's effects and other extensions stay.
+ * - A raster image goes in `r:embed`, and an `asvg:svgBlip` is taken away. Left in place, Word would go
+ *   on drawing its old SVG, and would replace the new image with a PNG of that SVG when it saves.
+ * - An SVG goes under the `asvg:svgBlip`, and `r:embed` is taken away. Word puts a PNG of the SVG it
+ *   makes itself in `r:embed`, which this package cannot make, and Word 365 draws the SVG without one.
+ * `r:link` is left as it was.
+ */
+export function setBlipImage(blip: dml.CTBlip, relId: string, svg: boolean): void {
+  if (!svg) {
+    blip.embed = relId;
+    const list = blip.extLst;
+    if (list?.ext) {
+      list.ext = list.ext.filter((ext) => !(isElement(ext.any) && typeNameOf(ext.any) === SVG_BLIP));
+      if (list.ext.length === 0) delete blip.extLst;
+    }
+    return;
+  }
+  delete blip.embed;
+  const existing = svgBlipOf(blip);
+  if (existing) {
+    existing.embed = relId;
+    return;
+  }
+  const list = (blip.extLst ??= { TYPE_NAME: 'org_docx4j_dml.CTOfficeArtExtensionList', ext: [] } as dml.CTOfficeArtExtensionList);
+  const ext = {
+    TYPE_NAME: 'org_docx4j_dml.CTOfficeArtExtension',
+    uri: SVG_BLIP_EXT_URI,
+    any: { name: { namespaceURI: SVG_NS, localPart: 'svgBlip' }, value: { TYPE_NAME: SVG_BLIP, embed: relId } },
+  } as unknown as dml.CTOfficeArtExtension;
+  (list.ext ??= []).push(ext);
+  linkParents(list, blip);
+}
+
 const FORMAT_BY_CONTENT_TYPE: Readonly<Record<string, ImageFormat>> = {
   [ContentTypes.IMAGE_PNG]: 'Png', [ContentTypes.IMAGE_X_PNG]: 'Png', [ContentTypes.IMAGE_JPEG]: 'Jpeg',
   [ContentTypes.IMAGE_GIF]: 'Gif', [ContentTypes.IMAGE_BMP]: 'Bmp', [ContentTypes.IMAGE_TIFF]: 'Tiff',
@@ -369,9 +419,14 @@ export class InlinePicture {
     this.inline.docPr.title = text;
   }
 
-  /** The kind of image, from the content type of the part the picture embeds. */
+  /**
+   * The kind of image, from the content type of the part `getBase64` reads: `Svg` for an SVG picture
+   * (`svgImagePart`), else the `a:blip`'s part's. Office JS gives `null` for an SVG picture, though its
+   * typings declare the property non-null and `Word.ImageFormat` has `Svg` (test/README.md check 45);
+   * this package gives `Svg`, a departure (CR-002 section 52).
+   */
   get imageFormat(): ImageFormat {
-    const part = this.imagePart();
+    const part = this.svgImagePart() ?? this.imagePart();
     return (part && FORMAT_BY_CONTENT_TYPE[part.contentType]) ?? 'Unsupported';
   }
 
@@ -380,9 +435,22 @@ export class InlinePicture {
     return this.pic()?.blipFill.blip?.embed;
   }
 
-  /** The image's bytes as base64 (Office JS getBase64ImageSrc). */
+  /**
+   * The relationship id of the SVG the picture embeds beside its image, if any (extension): the
+   * `r:embed` of an `asvg:svgBlip` in the `a:blip`'s `a:extLst`, as Office 2016 and later write an SVG
+   * picture, with the `a:blip`'s own image a PNG of it for readers that don't understand SVG.
+   */
+  get svgRelId(): string | undefined {
+    const embed = svgBlipOf(this.pic()?.blipFill.blip)?.embed;
+    return embed === undefined || embed === '' ? undefined : embed;
+  }
+
+  /**
+   * The image's bytes as base64 (Office JS getBase64ImageSrc). For an SVG picture, the SVG
+   * (`svgImagePart`), as Office JS gives it (test/README.md check 43); else the `a:blip`'s image.
+   */
   async getBase64(): Promise<string> {
-    const part = this.imagePart();
+    const part = this.svgImagePart() ?? this.imagePart();
     if (!part) throw new Docx4JException('This picture has no image part (a linked or missing image)');
     return base64Encode(await part.getBytes());
   }
@@ -392,9 +460,17 @@ export class InlinePicture {
     return this.getBase64();
   }
 
-  /** The image part this picture embeds (extension). */
+  /** The image part this picture embeds: the `a:blip`'s, which is an SVG picture's PNG (extension). */
   imagePart(): ImagePart | undefined {
-    const relId = this.relId;
+    return this.partFor(this.relId);
+  }
+
+  /** The SVG part an SVG picture embeds beside its image (`svgRelId`), if any (extension). */
+  svgImagePart(): ImagePart | undefined {
+    return this.partFor(this.svgRelId);
+  }
+
+  private partFor(relId: string | undefined): ImagePart | undefined {
     const source = this.paragraph.parentBody.part;
     if (!relId || !source) return undefined;
     const part = source.relationshipsPart?.getPart(relId);

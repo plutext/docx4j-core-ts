@@ -925,9 +925,9 @@ A wider probe found no other difference between the two loads on the eight fixtu
   - `getBase64ImageSrc()` gave 1016 characters, exactly the length of `image2.svg` in base64.
     `InlinePicture.getBase64()` gives the PNG's, 5652. Only the lengths were compared.
   - This predates this CR (CR-002's `InlinePicture`) and is not phase 3's.
-  - A fix would read the `svgBlip`'s part where there is one. Whether Office JS's `imageFormat` then
+  - Fixed the same day as CR-002 section 52 (Jason: "on second thoughts, do the svg fix now"):
+    `getBase64` gives the `svgBlip`'s part where there is one. Whether Office JS's `imageFormat` then
     says `Svg` is not measured.
-  - Left for later (Jason, 2026-10-18: "note the SVG fix for later").
 - **The editor** (item 6, before phase 4): `mcBranchOf` (now `selectedBranchOf`) in its run projection
   and image lookups, its `labels.mts` oracle and `AskBox`'s text walk, and its diagnostics fixtures. It
   doesn't read `inlinePictures`, so section 13.1's change doesn't reach it there. A script in its console
