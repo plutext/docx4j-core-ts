@@ -4439,6 +4439,17 @@ and in a picture content control with a `w:dataBinding` to the same node, also b
   need SVG image parts in docx4j first, a docx4j CR of its own. docx4j's session will put checks 46 and
   47 to Jason when that comes up. This package's `addImagePart` already takes an SVG (CR-005 section 9
   item 6).
+- **Corrected the same day** (docx4j's session, after Jason pointed to it): docx4j can add an SVG picture
+  by hand. Its `ImageAddSVG` sample (`docx4j-samples-docx4j`, 2021) puts the SVG in a `DefaultXmlPart` of
+  type `image/svg+xml` on an image relationship, and writes an `a:blip` holding only the `svgBlip`, with
+  no `r:embed`. That is the form this package's binding writes for an SVG value (below), and the one
+  Word 365 draws (check 47). What docx4j lacks is SVG in `createImagePart` and `createImageInline` and
+  in its readers.
+- **docx4j issues**, raised at Jason's request ("ask it to raise 2 github issues"):
+  - [plutext/docx4j#699](https://github.com/plutext/docx4j/issues/699): SVG pictures. The image API and
+    docx4j's readers don't support SVG.
+  - [plutext/docx4j#700](https://github.com/plutext/docx4j/issues/700): binding a picture content control.
+    The picture's effects are lost, and an SVG value can't be bound.
 
 **Check 47** (Jason, 2026-10-18; Word 365 16.0.20326.20232, Word 2010, Word 2013; `fixtures/check47/`,
 Word's saves beside the originals). Two picture content controls with a `w:dataBinding` this package did
