@@ -12,7 +12,7 @@ implemented 2026-10-18 at Jason's request ("implement CR-010 phase 4, coordinati
 appropriate"; section 14): load keeps the element by default. It needs `@docx4j/jsonix` 3.4.2,
 published the same day, which objects 0.4.1 requires (section 14.4). This package requires objects
 0.4.2 since 2026-10-19, which also declares the prefixes a kept `mc:Choice`'s `Requires` names
-(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). The policy is docx4j's CR-021 (done
+(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why

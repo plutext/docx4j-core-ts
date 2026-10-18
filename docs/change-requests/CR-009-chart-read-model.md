@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-10-12, on docx4j CR-035 phase 2's hand-off (the docx4j session,
 2026-10-12). Not scheduled; Jason decides. New scope, not a parity-bound correction. Section 8 (a
-chartex chart lost on save, and kept: `cx1` and `cx2` understood) fixed 2026-10-17, **not released**.
+chartex chart lost on save, and kept: `cx1` and `cx2` understood) fixed 2026-10-17, **released in 0.5.0** (2026-10-19).
 
 ## 1. Why
 

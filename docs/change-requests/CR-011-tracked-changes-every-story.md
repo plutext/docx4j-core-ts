@@ -5,7 +5,7 @@ one call, filters, and a report; a package-level getTrackedChanges over every st
 author/type/date filter on the resolve-all verbs"). Revised the same day, at Jason's word ("yes,
 revise it that way please"): trimmed to the listing and the filters, with the report left until
 someone asks for it (section 7). It is to follow the 0.5.0 release, and is not scheduled. It builds
-on CR-002 sections 49 to 51 (`b6ef16a`, not released). Decisions D1 to D4 (section 6) are Jason's.
+on CR-002 sections 49 to 51 (`b6ef16a`, released in 0.5.0). Decisions D1 to D4 (section 6) are Jason's.
 
 ## 1. Why
 

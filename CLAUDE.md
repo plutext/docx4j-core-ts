@@ -29,8 +29,8 @@ So are CR-001 Phases C and D
 2010/2013 extension parts), CR-005 phase A (the FontoXPath engine) and its sections 8 and 9 (escaped
 XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0), and CR-006 (`selectObjects` and
 `Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). CR-008 phase 1 (docx4j CR-034's colour merge rules in the
-catalogue, 2026-10-12) came after 0.4.0: it is implemented, not released, as is the rest the CR index
-(`docs/change-requests/README.md`) lists as not released. The editor's release requests are
+catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
+0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
