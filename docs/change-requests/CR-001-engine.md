@@ -222,13 +222,19 @@ unmarshalled. Off switch: `LoadOptions.mcePreprocess = false` (the content then 
 `org_docx4j_mce` objects with each branch kept as DOM and written back on save; since objects
 0.1.5 the schema admits the element wherever Word writes it, section 17.5).
 
-Two departures from this paragraph since then:
+Three departures from this paragraph since then:
 - **docx4j keeps the element** wherever it occurs, and saves every branch, since its CR-021
   (17.2.0). So "docx4j's behaviour" above is no longer true (CR-010 section 1).
 - **CR-010 phase 1 (2026-10-17) keeps two kinds whole:** the element under `c:chartSpace` or the
   SpreadsheetML `workbook` (`KEPT_HOSTS`), and one nothing can be selected from (Choices only,
   none understood), which ISO removes. Load also reports `mce.branches_differ` when the branch
   taken and a branch dropped hold different text (`XmlPart.warnings`, `OpcPackage.warnings`).
+- **CR-010 phase 4 (2026-10-18) keeps every element by default**, as docx4j does: `mcePreprocess`
+  defaults to false, so no branch is lost from a re-marshalled part. The content API reads the
+  branch the paragraph above describes (`selectedBranchOf`, CR-010 phase 3), and mutators edit every
+  branch. The default pass, `mceKeep`, changes nothing and reports the same `mce.branches_differ`
+  warnings. Resolving, as described above with phase 1's two kinds, is `mcePreprocess: true`
+  (CR-010 section 14).
 
 On marshal, the root element must declare every prefix named in `mc:Ignorable` even if unused in
 the tree, and Word expects the conventional prefixes (`w`, `r`, `wp`, `a`, `pic`, `v`, `o`,

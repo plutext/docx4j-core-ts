@@ -236,8 +236,8 @@ Under two seconds for 46 fixtures; the same rules as above for which docx4j it r
 - **A fixture whose main part marshals an `mc:AlternateContent` records its hits too** (the
   header's `alternateContent` says how many it holds). docx4j keeps the element and both branches in
   its tree, so its marshal has a text box's paragraphs twice, and `xpath-parity.test.mjs` loads such
-  a fixture with the element kept (`mcePreprocess: false`), where this package's tree holds them
-  twice too. Four fixtures, each with a text box. Until CR-010 D5 (2026-10-18) they recorded no hits
+  a fixture with the element kept (the default since CR-010 phase 4; from D5 until then,
+  `mcePreprocess: false`), where this package's tree holds them twice too. Four fixtures, each with a text box. Until CR-010 D5 (2026-10-18) they recorded no hits
   (CR-006 section 8 item 3).
 - **Paths are docx4j's**, prefixes and all, and the header's `prefixes` records the namespace of
   every prefix a path uses; the test asserts they are the objects package's before it compares a

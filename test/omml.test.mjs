@@ -4,6 +4,11 @@
 // equation only in its WordprocessingML context and keeps it as DOM in the PresentationML and
 // SpreadsheetML ones; this package has one context, so it is typed in every part. Both fixture
 // parts hold the same equation: 16 runs and 7 control-properties elements, each naming Cambria Math.
+//
+// The equation's shape is the Choice of an a14 mc:AlternateContent. Load keeps the element since
+// CR-010 phase 4, and a kept branch's p:sp or xdr:sp stays DOM (CR-010 section 2), so the typed
+// equation is read from the resolved load (mcePreprocess: true); kept, the part writes it back as it
+// came, both branches with it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { OpcPackage, ZipPartStore } from '../dist/index.mjs';
@@ -33,7 +38,7 @@ for (const [name, partName] of [['loadAndSave.pptx', '/ppt/slides/slide2.xml'], 
     assert.equal(count(source, '<m:r><a:rPr'), 16);
     assert.equal(count(source, '<m:ctrlPr><a:rPr'), 7);
 
-    const pkg = await OpcPackage.load(bytes);
+    const pkg = await OpcPackage.load(bytes, { mcePreprocess: true });
     const { runs, ctrls } = collect(await pkg.parts.get(partName).getContents());
     assert.equal(runs.length, 16);
     assert.equal(ctrls.length, 7);
@@ -53,5 +58,14 @@ for (const [name, partName] of [['loadAndSave.pptx', '/ppt/slides/slide2.xml'], 
     assert.equal(count(out, '<m:r><a:rPr'), 16);
     assert.equal(count(out, '<m:ctrlPr><a:rPr'), 7);
     assert.equal(count(out, '<a14:m>'), 1);
+
+    // kept (the default): the shape is DOM in the Choice, and a re-marshal writes the equation back
+    const kept = await OpcPackage.load(bytes);
+    await kept.parts.get(partName).getContents();
+    const keptOut = new TextDecoder().decode(new ZipPartStore(await kept.save()).loadSync(partName.slice(1)));
+    assert.equal(count(keptOut, '<m:r><a:rPr'), 16);
+    assert.equal(count(keptOut, '<m:ctrlPr><a:rPr'), 7);
+    assert.equal(count(keptOut, '<a14:m>'), 1);
+    assert.equal(count(keptOut, '<mc:Fallback>'), count(source, '<mc:Fallback>'), 'the Fallback kept');
   });
 }

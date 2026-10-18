@@ -17,10 +17,11 @@
 //    assumed: the owner's class must be the one docx4j gives that element wherever an expression
 //    of the same golden selected it.
 //
-// A fixture whose main part marshals an mc:AlternateContent is loaded with the element kept
-// (mcePreprocess: false). docx4j keeps the element and both its branches in its tree, and so does
-// this package's tree then; resolved on load, the two would be answering about different documents.
-// Until CR-010 D5 (2026-10-18) those fixtures were recorded without hits (CR-006 section 8 item 3).
+// A fixture whose main part marshals an mc:AlternateContent is loaded with the element kept, the
+// default since CR-010 phase 4. docx4j keeps the element and both its branches in its tree, and so
+// does this package's tree then; resolved on load (mcePreprocess: true), the two would be answering
+// about different documents. Until CR-010 D5 (2026-10-18) those fixtures were recorded without hits
+// (CR-006 section 8 item 3), and from D5 to phase 4 they alone were loaded with mcePreprocess: false.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
@@ -34,8 +35,8 @@ const names = (await readdir(goldenDir)).filter((n) => n.endsWith('.json')).sort
 const goldens = await Promise.all(names.map(async (n) => JSON.parse(await readFile(join(goldenDir, n), 'utf8'))));
 
 /**
- * The fixtures whose main part has an mc:AlternateContent - a text box, each of them - and so are
- * loaded with the element kept. Listed, so that a fixture joining them is a decision.
+ * The fixtures whose main part has an mc:AlternateContent - a text box, each of them - and so whose
+ * selections cross the kept element. Listed, so that a fixture joining them is a decision.
  * tables-textbox-in-cell joined with CR-007's table fixtures (2026-10-08): its text box is the
  * point of the fixture. Until CR-010 D5 these were recorded without hits.
  */
@@ -83,7 +84,7 @@ for (const golden of goldens) {
   const fixture = golden.header.fixture;
   const kept = golden.header.alternateContent > 0;
   test(`selectObjects agrees with docx4j: ${fixture}${kept ? ' (mc:AlternateContent kept)' : ''}`, async () => {
-    const pkg = await WordprocessingMLPackage.load(await fixtureBytes(fixture), kept ? { mcePreprocess: false } : undefined);
+    const pkg = await WordprocessingMLPackage.load(await fixtureBytes(fixture));
     // every typed object of the part's tree, which is what a selected object must be one of
     const inTree = new Set();
     walk(await pkg.getMainDocumentPart().getContents(), (value) => { inTree.add(value); });

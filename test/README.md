@@ -297,7 +297,10 @@ already named, so each case starts by opening its own file.
    Excel writes `mc:AlternateContent > mc:Choice Requires="x14" > controls`. It is schema-valid
    (`CT_Worksheet` has `controls`). **Accepted 2026-09-26 (Excel 365), measured on
    `fixtures/cr022-checkbox-linked.xlsx`:** the box toggles and drives D4 after a whole-package
-   re-marshal, so Excel does not need the wrapper and resolve-on-load stands (CR-004 section 7). Use
+   re-marshal, so Excel does not need the wrapper and resolve-on-load stands (CR-004 section 7).
+   Since CR-010 phase 4 (2026-10-18) the default load keeps the wrapper and writes it back, which is
+   Excel's own markup and docx4j's (its CR-021 section 8.13 found Excel accepts both forms); the bare
+   form this check measured is `mcePreprocess: true`'s. Use
    the linked fixture for this check, not `cr022-checkbox.xlsx`, whose check box does not toggle
    *before* a save either - it is docx4j-generated with no `fmlaLink` and no `x:FmlaLink`, and three
    rounds of bisecting over it measured nothing. **The lesson for any check added here: name a

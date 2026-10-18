@@ -7,8 +7,12 @@ package's CR-009, released in its 0.4.0, which this package now requires (sectio
 implemented 2026-10-18 (section 11): the walker audit, the editor's exposure, the XPath and parity
 measurements, and the survey as a test in `mce.test.mjs`; D5 and D6 decided by Jason that day,
 and D5 implemented (section 11.8).
-Phase 3 implemented 2026-10-18 at Jason's request ("do CR-010 phase 3"; section 13). Phase 4 is not
-scheduled and waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0).
+Phase 3 implemented 2026-10-18 at Jason's request ("do CR-010 phase 3"; section 13). Phase 4
+implemented 2026-10-18 at Jason's request ("implement CR-010 phase 4, coordinating with the editor as
+appropriate"; section 14): load keeps the element by default. It needs `@docx4j/jsonix` 3.4.2,
+published the same day; objects 0.4.1 requires it, and this package requires objects 0.4.1
+(section 14.4). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). The policy is docx4j's CR-021 (done
+2026-09-19, in 17.2.0).
 
 ## 1. Why
 
@@ -150,7 +154,8 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
      surface. That report is new API, shaped in this phase. This form has no revision view and
      no hidden-text rule, and needs neither to answer "does the other branch say something
      different". The read-time form, with the read rules, comes with phase 3. It needs no
-     phase 4.
+     phase 4. (Phase 3 did not carry it. Phase 4 keeps the load-time form, run without resolving
+     (section 14.1), and the read-time form moved to CR-012 (section 14.7).)
 2. **Typed branches**, in the objects package: a CR there for section 3 item 4's route (objects
    CR-009, released in its 0.4.0 on 2026-10-18; section 10). Its test is
    this CR's survey: every DOM entry in section 2's second table that the content API reads comes
@@ -166,6 +171,8 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
    - The four XPath fixtures rejoin `xpath-parity.test.mjs`. Done early, by D5 (section 11.8).
    - CR-001 section 5.6 is corrected.
    - The editor takes the release in step.
+   - Implemented 2026-10-18 (section 14), with the warning kept by a pass that doesn't resolve, and
+     the editor's side on its branch `mce-keep`. It needs `@docx4j/jsonix` 3.4.2 (section 14.4).
 
 The estimates are rough, and phase 2's depends on the route.
 
@@ -232,7 +239,7 @@ The estimates are rough, and phase 2's depends on the route.
   branch (its sections 7.2 and 7.5).
 - **A kept branch is lossless only while the model binds its whole content** (docx4j CR-021
   section 8.6 item 10). Measured lossless for all 281 parts today; section 2's survey is re-run
-  before the default flips.
+  before the default flips. Re-run 2026-10-18 over 483 files: all 292 parts whole (section 14.3).
 
 ## 7. The text extraction paper (2026-10-17)
 
@@ -349,8 +356,8 @@ decided, and what it found, as it bears on this CR:
     paper's Fallback-only tools do, and nothing for the next three. So those ten are what the
     warning is for.
   - The equation is a false positive of the text comparison. The Choice's `m:t` runs and the
-    Fallback's linear `a:t` are two notations of one formula. The read-time form (phase 3) can
-    compare math by its own rule, and this one is left as it is.
+    Fallback's linear `a:t` are two notations of one formula. The read-time form (CR-012's since
+    2026-10-19, section 14.7) can compare math by its own rule, and this one is left as it is.
 
 ### 9.3 Not done in phase 1
 
@@ -932,3 +939,252 @@ A wider probe found no other difference between the two loads on the eight fixtu
   and image lookups, its `labels.mts` oracle and `AskBox`'s text walk, and its diagnostics fixtures. It
   doesn't read `inlinePictures`, so section 13.1's change doesn't reach it there. A script in its console
   that reads `body.inlinePictures` through the shim gets the new count.
+
+## 14. Phase 4: the default flips to keep (2026-10-18)
+
+Jason asked for phase 4 on 2026-10-18 ("implement CR-010 phase 4, coordinating with the editor as
+appropriate"). Implemented the same day.
+- The default load now keeps every `mc:AlternateContent`, as docx4j does, and a save writes every
+  branch. The content API already answered the same over a kept tree (section 13).
+- The editor ran its suites against this build and found a defect in jsonix, which the kept load
+  is the first to reach (section 14.4). jsonix fixed it in 3.4.2, published the same day, which the
+  lockfile now holds.
+
+### 14.1 What changed
+
+- **`mcePreprocess` defaults to false.** `OpcPackage.load` installs `mceKeep` unless the caller passes
+  `mcePreprocess: true`, which installs the resolving `mcePreprocess` as before, `KEPT_HOSTS` and the
+  nothing-selectable rule included. `{ mcePreprocess: false }` is now the default spelled out.
+- **The warning channel stays open.** Before this phase, `mcePreprocess: false` meant no pass at all,
+  so a kept load recorded no `mce.branches_differ`. `cr022-checkbox.xlsx` gave 1 warning resolved
+  and 0 kept. Phase 1 had left the read-time form to phase 3 (section 4), and phase 3's list
+  (section 11.7) didn't carry it. The flip would have closed the channel, so the load-time form now
+  runs without resolving:
+  - `preprocessAlternateContent(root, { resolve: false })` visits the elements resolving would, in
+    the same order. That is outermost first, then into the branch the rule selects, and no element
+    `KEPT_HOSTS` or the nothing-selectable rule would keep.
+  - It reports the same warnings and leaves the DOM as it was. `kept` counts the elements it met.
+  - `mceKeep` is that pass with load's defaults. `createMcePreprocessor({ resolve: false, ... })`
+    takes a caller's own set.
+  - Exported from `./opc`: `mceKeep`, and `resolve` on `McePreprocessOptions`.
+- **Inserted content is written as given** (section 3 item 5). `Body`, `Paragraph` and `Range`'s
+  `insertOoxml` and `insertXml` run the package's preprocessor over the fragment. For a loaded
+  package that is now `mceKeep`, so an inserted `mc:AlternateContent` is kept, as a created
+  package, which never had a preprocessor, always kept it. Under `mcePreprocess: true` it is
+  resolved, as before.
+- **`clone()`** loads with its original's options, so a clone keeps or resolves as the original did.
+- **`selectObjects` reaches inside DOM content** (`binder.mts`). The marshal reports a wildcard
+  child's imported copy, but nothing inside it. Kept, a DrawingML frame is DOM from the branch down,
+  so `cr022-slicers-timelines.xlsx`'s slicer, formerly the wildcard child, is now three levels
+  inside one. An element inside an imported copy now maps to the node at the same place under the
+  original. Below a typed ancestor an unreported element stays unmapped, as before. A hit's path
+  now crosses the element: `/xdr:wsDr/xdr:twoCellAnchor[1]/mc:AlternateContent[1]/mc:Choice[1]/xdr:graphicFrame[1]/...`.
+
+### 14.2 What a consumer sees
+
+- **WordprocessingML.** The element stands in run content with both branches, a text box's
+  `w:drawing` in the Choice and its `w:pict` in the Fallback, both typed. The content API's answers
+  don't move (section 13.2): `Body.paragraphs`, text, search, lists, `inlinePictures`, tracked
+  changes, the addresses.
+  - A walk of the tree written outside this package has to choose: `selectedBranchOf` to read,
+    every branch to write.
+  - The test's own label oracle (`lists.test.mjs`) is such a walk. It counted 17 paragraphs where the
+    golden has 14 until it took the selected branch, as parity's walks had since phase 3.
+  - A re-marshalled document holds a text box twice. `cr043-tracked.docx`'s box keeps its insertion
+    and deletion in each branch after `Body.acceptAll`, so its XML has 4 revision elements where the
+    resolved save had 2, as Word's own file does.
+- **SpreadsheetML.**
+  - A worksheet's form controls stay in Excel's `mc:AlternateContent`. `x:controls` is DOM in the
+    `x14` Choice, since it is a global element neither here nor in docx4j (`CTControls` has no
+    `@XmlRootElement`). So `worksheet.controls` is typed only under `mcePreprocess: true` (CR-004
+    section 7). The control's `r:id` still resolves to its `ControlPropertiesPart`, and a save
+    writes Excel's markup back, which Excel accepts as it accepts the bare form (docx4j CR-021
+    section 8.13).
+  - The slicer, timeline and `a14` drawings keep their Fallback placeholders, with the frame and
+    the shapes DOM in their branches.
+- **PresentationML.** The `a14` shape that holds `loadAndSave.pptx`'s equation is DOM in its
+  Choice.
+  - docx4j types it: `p:sp` is a root element there (`Shape`, `@XmlRootElement(name = "sp")`),
+    while the objects package's CR-009 declared WordprocessingML's globals only.
+  - `placeholdersOf` doesn't look inside the element. The corpus has no placeholder there.
+  - The OMML test (`omml.test.mjs`) reads the typed equation from the resolved load, and checks
+    that the kept load writes it back whole.
+- **What saves keep.** Every branch, so no Fallback is lost from a re-marshalled part.
+  - CR-001 section 21's open kind (a) is closed by default. `cr022-checkbox-linked.xlsx`'s drawing
+    holds two `a14:legacySpreadsheetColorIndex` attributes. Resolved, the Choice is typed and
+    `a:srgbClr` doesn't bind them, so they go. Kept, they are written back (`sml-extensions.test.mjs`
+    pins both).
+
+### 14.3 The survey re-run (section 6)
+
+The corpus is this repository's fixtures plus docx4j's `docx4j-core-tests/src/test/resources/charts/`
+(483 packages, 8,568 entries; 459 when section 2 measured it). Each package was loaded, run through
+`unmarshalAll`, saved, and hashed entry by entry. The runs were:
+- this build, three ways: default, `mcePreprocess: false` and `mcePreprocess: true`;
+- HEAD's build (`a2a048a`), two ways: its default and `mcePreprocess: false`.
+
+The scripts are in the session's scratchpad, not committed.
+
+| comparison | result |
+|---|---|
+| `mcePreprocess: true` against HEAD's default | every entry byte-identical: the option is the old load |
+| `mcePreprocess: false` against HEAD's | every entry byte-identical: the keeping pass changes no output |
+| the default against `mcePreprocess: true` | 27 entries differ: `word/document.xml` 9, a header 1, slides 3, `xl/drawings` 12, worksheets 2. Exactly the re-marshalled parts that hold the element outside `KEPT_HOSTS` |
+| kept: every element back whole (section 11.6's comparison) | 297 elements in 292 parts, all whole |
+| kept: parts that differ from their source anywhere | 8, the same as section 10.4's and on the resolved load too: `iterateDelta` in 3 workbooks, `c:extLst` order in 5 filtered charts |
+| `mce.branches_differ` from private reads of every XML part | 14 in each load, identical in every package |
+| errors on load, `unmarshalAll` or save | none, in any of the five runs |
+
+What the kept branches hold:
+
+| typed | DOM |
+|---|---|
+| `c14:style` 229, `x15ac:absPath` 36, `w:drawing` 14, `w:pict` 10 | `c:style` 229, `xdr:sp` 12, `xdr:graphicFrame` 10, `p:graphicFrame` 2, `p:pic` 2, `p:sp` 2, `x:controls` 2, `xdr:twoCellAnchor` 2 |
+
+No WordprocessingML element is DOM.
+
+### 14.4 jsonix's undeclared `input` (found by the editor; fixed in jsonix 3.4.2)
+
+- **The defect.** `@docx4j/jsonix` 3.4.1's `Base64Binary.decode` assigns an undeclared `input`
+  (`jsonix-factory.js` line 4489).
+  - Node loads jsonix as sloppy CommonJS, where the assignment makes a global and nothing fails.
+  - A strict ESM bundle (the editor's Vite build, vitest's jsdom) throws `ReferenceError: input is
+    not defined`, and the part doesn't open: "/word/document.xml: v:shape/@o:gfxdata=...: input is
+    not defined".
+  - Kept, a Word text box's VML Fallback is unmarshalled, and its `v:shape`'s or `v:oval`'s
+    `o:gfxdata` (`xsd:base64Binary`) is decoded. Resolved, the Fallback is dropped first. So phase 4
+    is the first load to reach it.
+  - Found by the editor (`docx4j-ts-editor-50`) on its first run against this build. It sent jsonix
+    the fix, and hand-patched this repository's installed copy for its own runs. That copy is
+    restored (`npm ci`), and every number here is on the published file.
+- **Measured over the 483 packages:**
+  - Globals leaked by load, `unmarshalAll` and save: `input` from 5 packages in the kept load
+    (`loadAndSave.docx`, `mc-alternate-content-header.xml`, the three `cr043-*.docx`), none resolved.
+  - Strict mode: `node --use-strict` doesn't reach CommonJS, and 3.4.1 passed under it, so it was no
+    instrument. A `Module.prototype._compile` hook that prepends `"use strict"` to
+    `jsonix-factory.js` makes 3.4.1 throw on exactly those 5 packages, in the kept load only.
+- **The fix**, jsonix `231679e` (version `7fa5002`, which adds only the version bump). It is three
+  `var`s in the factory: `input`, and `that` in `unmarshalFile` and `unmarshalURL`. It was checked
+  here as a candidate with `npm install --no-save` (`dependency-release-verification`):
+  - the suite passes but for the test below, which fails as meant;
+  - typecheck passes;
+  - all 25,704 entry hashes (483 packages, three loads) are unchanged, and so are the warnings;
+  - no global leaks in either load;
+  - under the strict hook: 0 errors over the 483 packages in either load, and the whole suite passes
+    but for the test below.
+
+  The editor's five browser specs over the text-box fixtures pass in its production build with it,
+  17 of 17. `npm ci` restored 3.4.1 afterwards. The report went to `jsonix-d2`.
+- **Published as 3.4.2** the same day (tag at `7fa5002`). The npm artifact checks out:
+  - its integrity matches the lockfile's;
+  - its `jsonix-factory.js` and `jsonix.js` are the checkout's at `7fa5002`;
+  - with the factory compiled strict, it gives 0 errors over the 483 packages in all three loads,
+    with all 25,704 entry hashes and every warning unchanged from published 3.4.1;
+  - no global leaks.
+- **The lockfile** moved from 3.4.1 to 3.4.2 (`npm update @docx4j/jsonix`; `package.json` unchanged).
+- **The test.** `mce.test.mjs` asserted the defect as it was (CLAUDE.md): the kept load leaked `input`
+  from those five fixtures, and the resolved load leaked nothing. Against a build of HEAD it failed,
+  and it failed again when the candidate was installed, as meant. It now asserts that no load of the
+  packages holding the element leaks a global, which a strict consumer would get as a ReferenceError.
+- **The floor.** core-ts has no jsonix dependency of its own; it gets jsonix through the objects
+  package, whose range is `^3.4.1`. A consumer whose lockfile holds 3.4.1 keeps it after taking
+  phase 4, and every Word text box with VML `o:gfxdata` then fails to open in a strict-mode consumer,
+  every browser consumer among them. Two ways to make 3.4.2 the floor, for Jason:
+  - a direct `"@docx4j/jsonix": "^3.4.2"` in this package's dependencies. It takes effect with this
+    release, and npm installs the one copy that satisfies both ranges;
+  - the objects package raising its range in its next release, and this package's objects floor
+    following it. The objects package's `721eab4` makes its range `^3.4.2` and adds a strict-mode
+    `o:gfxdata` round trip to its esbuild bundle test, which fails on 3.4.1.
+
+  Recommended: the second, the way every jsonix floor has come here, with the direct dependency
+  only if this package released first.
+
+  **Decided by Jason, 2026-10-18** ("Raise core-ts's objects range to ^0.4.1"): the second.
+  - **Objects 0.4.1** was published the same day. Its tag is `10b0d39`: `d888cd5` plus the version
+    line. `d888cd5` is `721eab4`, two doc commits and a proposed objects CR, so `modules/` and
+    `src/` are as in 0.4.0.
+  - **The candidate**, checked here before the release (`dependency-release-verification`): the
+    tarball packed from `d888cd5`. Its 846 files other than `package.json` were byte-identical to
+    0.4.0's, and the jsonix range was the only difference in `package.json`. With it the suite passed
+    (874), typecheck passed, and the 25,704 entry hashes, the 14 warnings and the 297 whole elements
+    were unchanged, with the factory compiled strict and 0 errors.
+  - **The published artifact**: it differs from that tarball only in its version line, and the same
+    checks give the same results.
+  - **The raise.** `package.json` requires `^0.4.1`, and the lockfile holds 0.4.1 (integrity
+    `sha512-TXfq0s7d…FRGDQ==`) and jsonix 3.4.2. After `npm ci` the suite passes (874), typecheck
+    passes, and the survey is unchanged from the locked 0.4.0, entry for entry.
+
+  So a consumer that takes this release gets jsonix 3.4.2 or later.
+
+### 14.5 The editor
+
+- **Told as soon as the flip built**, with section 11.3's list. It ran its suites against this
+  working tree, found section 14.4, and did its side on branch `mce-keep` (`53c0ea0` in
+  `../docx4j-ts-editor`). The branch merges when it installs the release carrying phase 4:
+  - **Import.** A run's element goes through `selectedBranchOf`. An inline drawing in the selected
+    branch is an image node, with the element as its source, so the export writes every branch back
+    by identity. Anything else is the opaque `AlternateContent` atom, as before.
+  - **Image lookups** go through one helper. `walkStory` and `textOfElement` take the selected branch.
+  - **Its diagnostics pin** is regenerated: `loadAndSave`'s `drawing: 1` is `AlternateContent: 1`.
+    It also gains a test with a picture inside a Choice.
+  - **The XPath placement** needed nothing. Its companion's find had a defect that predates this phase
+    (a hit in a text box climbed to the box's paragraph, which `addressOf` doesn't address), and it is
+    fixed. ED-005 section 12.106 records that the XML pane's mismatch is gone (section 11.3).
+- **Its numbers**, with jsonix 3.4.2:
+  - typecheck clean;
+  - model 1327 (3 new);
+  - editor unit 214 of 218 (the four failures known from the 0.5.0 review);
+  - companion 32;
+  - browser specs over the text-box fixtures 17 of 17.
+- **Release order, its view.** Phase 4 inside 0.5.0 if jsonix 3.4.2 ships this week: one install, one
+  floor raise. Otherwise 0.5.0 first and phase 4 as 0.6.0, since nothing in the editor needs phase
+  4 to ship. Jason decides.
+
+### 14.6 Tests
+
+- **`mce.test.mjs`, 5 new:**
+  - the default keeps, `mcePreprocess: false` is the same, and `mcePreprocess: true` resolves; a
+    clone loads as its original;
+  - the keeping pass reports what resolving reports, nested elements included, and leaves the DOM
+    as it was;
+  - over the 16 fixture packages holding the element, a kept load's warnings equal a resolved
+    load's (8 warnings);
+  - `insertOoxml` into a loaded document writes the element as given;
+  - section 14.4's leak, asserted as it was on 3.4.1, and since 3.4.2 that no load leaks a global.
+
+  Against HEAD's build, with `mceKeep` shimmed, the first four fail, and so does the flat OPC
+  header test, which now covers both loads. The leak test failed there in its 3.4.1 form. In its
+  final form it passes there, since HEAD's default load resolves and decodes no Fallback.
+- **Changed to say which load they mean:**
+  - `kept-branches.test.mjs`. Its resolved side was the default, so after the flip it compared kept
+    with kept. It is now `mcePreprocess: true`.
+  - `parity.test.mjs`. The four fixtures holding the element run the default (kept) and once more
+    resolved: 261.
+  - `xpath-parity.test.mjs`. Every fixture loads the default way: 64.
+  - the label oracle's walk in `lists.test.mjs`.
+  - In `mce.test.mjs`, the header and the three chartex frames run in both loads.
+  - `omml.test.mjs`, `sml-extensions.test.mjs` (the controls, the slicer drawings, the legacy
+    colours), `content.test.mjs` (the slicer's path) and `tracking.test.mjs` (CR-043's count).
+- **Suite:** 874 passed; typecheck passed.
+
+### 14.7 Not done
+
+- **The release.** The jsonix floor is in place (objects `^0.4.1`, section 14.4). The release carries
+  phase 4. Then the editor installs, and the registry entry is marked done.
+- **`p:sp` and the `xdr:` shapes in a kept branch stay DOM.** docx4j types `p:sp` there. The
+  objects package's CR-010 (proposed 2026-10-18, `d888cd5`) declares it and `p:cmAuthor` globally,
+  as CR-009 did WordprocessingML's. Its `xdr:` anchors wait on docx4j binding
+  `a14:legacySpreadsheetColorIndex`. `placeholdersOf` would then read a kept `p:spTree` through
+  `selectedBranchOf`, in the release that takes it. Nothing reads them today, and no consumer has
+  asked.
+- **`worksheet.controls`** is typed only resolved (section 14.2).
+- **The read-time warning moves to CR-012**, the text-model CR, not yet opened (Jason, 2026-10-19:
+  "yes, move the read-time warning to CR-012 and commit"). That is the paper's section 4.1 form,
+  with a revision view and a hidden-text rule. Those rules are the text model's: hidden text is the
+  extraction specification's REQ-507, and the views are the model's. The math comparison section 9.2
+  leaves open goes with it. The load-time form covers what the paper's warning asks, so CR-010 closes
+  without it.
+- **Readers use load's default understood set** (section 13.4). A caller's own
+  `createMcePreprocessor({ understood })` warns by its set while readers keep theirs.
+- **Text boxes in search, `replaceText`, bindings and paraIds**, and the `textbox:N` view, go to the
+  text-model CR (D8, section 13.4).

@@ -17,12 +17,15 @@ export interface LoadOptions {
   /** Part classes by content type; defaults to docx4j's table. */
   registry?: PartRegistry;
   /**
-   * Resolve `mc:AlternateContent` before unmarshalling (default true, as Word does on open; docx4j
-   * keeps the element since its CR-021). Kept whole even so: the element under a `KEPT_HOSTS` host,
-   * and one nothing can be selected from (CR-010 phase 1). False keeps every one.
+   * Resolve `mc:AlternateContent` before unmarshalling, as Word does on open. Default false since
+   * CR-010 phase 4: every element is kept with all its branches, as docx4j keeps it since its CR-021;
+   * readers take the branch resolving would (`selectedBranchOf`), mutators every branch, and a save
+   * writes them all. Either way a part's `warnings` report where the branches' text differs. True
+   * resolves, but keeps the element under a `KEPT_HOSTS` host and one nothing can be selected from
+   * (CR-010 phase 1).
    */
   mcePreprocess?: boolean;
-  /** Runs over every XML part's DOM before it is unmarshalled; set by the package from `mcePreprocess`. */
+  /** Runs over every XML part's DOM before it is unmarshalled; set by the package from `mcePreprocess` (`mceKeep` or `mcePreprocess`). */
   preprocessor?: DomPreprocessor;
 }
 

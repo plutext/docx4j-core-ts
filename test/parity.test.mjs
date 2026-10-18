@@ -18,7 +18,7 @@
 //     `Emulator`'s `numString`, `isBullet`, `numFont`, `ilvl`, `numId`, its `NumRef` and the
 //     whole state after the paragraph, plus `ind`, `indResolved`, `lvl` and `labelRPr` as object
 //     trees.  Step 4 adds fonts.  The fixtures holding mc:AlternateContent run each comparison
-//     twice, the element resolved and kept (`KEPT`, CR-010 phase 3).
+//     twice, the element kept and resolved (`HOLDING`, CR-010 phases 3 and 4).
 //
 // **How a value is compared.**  Our object is marshalled to XML through the objects facade,
 // and then *both* strings are unmarshalled, so both sides took the same path: attribute order,
@@ -45,20 +45,21 @@ const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
 /**
  * The fixtures holding mc:AlternateContent, as their XPath goldens count it (test/golden/xpath/). Their
- * comparisons run twice: loaded the default way, which resolves the element, and with it kept
- * (`mcePreprocess: false`), as docx4j keeps it, where the walks below and `TableContextTracker.walk`
- * read the selected branch (CR-010 phase 3). docx4j's harness reads the same branch, since it sets
- * `preferChoice` to this package's understood prefixes (CR-010 section 11.5).
+ * comparisons run twice: loaded the default way, which keeps the element as docx4j keeps it (CR-010
+ * phase 4), where the walks below and `TableContextTracker.walk` read the selected branch (phase 3);
+ * and with it resolved (`mcePreprocess: true`), as Word resolves it on open. docx4j's harness reads
+ * the same branch, since it sets `preferChoice` to this package's understood prefixes (CR-010
+ * section 11.5).
  */
-const KEPT = new Set();
+const HOLDING = new Set();
 for (const name of names) {
   const xpath = JSON.parse(await readFile(join(goldenDir, 'xpath', name), 'utf8'));
-  if (xpath.header.alternateContent > 0) KEPT.add(name);
+  if (xpath.header.alternateContent > 0) HOLDING.add(name);
 }
-/** Each golden once, loaded the default way, and those in KEPT once more with the element kept. */
-const RUNS = [...names.map((name) => ({ name, kept: false })), ...[...KEPT].map((name) => ({ name, kept: true }))];
-const loadOptions = (kept) => (kept ? { mcePreprocess: false } : undefined);
-const keptLabel = (kept) => (kept ? ' (mc:AlternateContent kept)' : '');
+/** Each golden once, loaded the default way, and those in HOLDING once more with the element resolved. */
+const RUNS = [...names.map((name) => ({ name, resolved: false })), ...[...HOLDING].map((name) => ({ name, resolved: true }))];
+const loadOptions = (resolved) => (resolved ? { mcePreprocess: true } : undefined);
+const resolvedLabel = (resolved) => (resolved ? ' (mc:AlternateContent resolved)' : '');
 const MCE_ALTERNATE_CONTENT = 'org_docx4j_mce.AlternateContent';
 
 /**
@@ -122,7 +123,7 @@ function xmlStrings(value, into) {
 
 test('parity goldens: present', () => {
   assert.ok(names.length >= 62, `${names.length} goldens`);
-  assert.deepEqual([...KEPT].sort(), ['loadAndSave.json', 'numbering-stories-coretests.json', 'numbering-stories.json', 'tables-textbox-in-cell.json']);
+  assert.deepEqual([...HOLDING].sort(), ['loadAndSave.json', 'numbering-stories-coretests.json', 'numbering-stories.json', 'tables-textbox-in-cell.json']);
 });
 
 for (const name of names) {
@@ -382,11 +383,11 @@ async function storiesOf(pkg, golden) {
   return out;
 }
 
-for (const { name, kept } of RUNS) {
-  test(`parity ${name}${keptLabel(kept)}: styles, paragraphs, runs and tables equal docx4j`, async () => {
+for (const { name, resolved } of RUNS) {
+  test(`parity ${name}${resolvedLabel(resolved)}: styles, paragraphs, runs and tables equal docx4j`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(resolved));
     const resolver = await pkg.getPropertyResolver();
 
     const differences = [];
@@ -595,11 +596,11 @@ function stateJson(state) {
   return { counters, startOverridesApplied: [...state.startOverridesApplied].sort() };
 }
 
-for (const { name, kept } of RUNS) {
-  test(`parity ${name}${keptLabel(kept)}: numbering equals docx4j per story`, async () => {
+for (const { name, resolved } of RUNS) {
+  test(`parity ${name}${resolvedLabel(resolved)}: numbering equals docx4j per story`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(resolved));
     await pkg.getPropertyResolver();
     const emulator = await pkg.getNumberingEmulator();
 
@@ -691,11 +692,11 @@ function textOfRun(r) {
   return text;
 }
 
-for (const { name, kept } of RUNS) {
-  test(`parity ${name}${keptLabel(kept)}: font spans, fonts in use and the mapping equal docx4j`, async () => {
+for (const { name, resolved } of RUNS) {
+  test(`parity ${name}${resolvedLabel(resolved)}: font spans, fonts in use and the mapping equal docx4j`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(resolved));
     const resolver = await pkg.getPropertyResolver();
     const main = pkg.getMainDocumentPart();
     const selector = await main.getRunFontSelector();

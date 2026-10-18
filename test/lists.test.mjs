@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
   WordprocessingMLPackage, ZipPartStore, Body, Paragraph, List,
-  HeaderPart, FooterPart,
+  HeaderPart, FooterPart, selectedBranchOf,
 } from '../dist/index.mjs';
 import { Word } from '../dist/office-js/index.mjs';
 import { fixture, fixturesDir, bytesEqual } from './helpers.mjs';
@@ -374,7 +374,8 @@ function isElement(value) {
 /**
  * A `Paragraph` view over every `w:p` under `root` in document order - a text box's included,
  * which `Body.paragraphs` does not reach - so that this compares the same paragraphs, in the
- * same order, as `test/parity.test.mjs` does.
+ * same order, as `test/parity.test.mjs` does. A kept `mc:AlternateContent` (the default load since
+ * CR-010 phase 4) is walked through its selected branch, as the parity test's walks are.
  */
 function paragraphViews(root, body) {
   const out = [];
@@ -384,6 +385,7 @@ function paragraphViews(root, body) {
       return;
     }
     if (typeof value !== 'object' || value === null) return;
+    if (value.TYPE_NAME === 'org_docx4j_mce.AlternateContent') { walk(selectedBranchOf(value), container); return; }
     if (isElement(value)) {
       if (value.value && value.value.TYPE_NAME === 'org_docx4j_wml.P') out.push(new Paragraph(value, container, body));
       walk(value.value, container);

@@ -20,6 +20,26 @@ const CHECKBOX = 'cr022-checkbox.xlsx';
 const CHECKBOX_LINKED = 'cr022-checkbox-linked.xlsx';
 const X14 = 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/main';
 const X15 = 'http://schemas.microsoft.com/office/spreadsheetml/2010/11/main';
+const SML = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+/** Load resolving mc:AlternateContent, as before CR-010 phase 4; the default keeps it. */
+const RESOLVED = { mcePreprocess: true };
+
+/**
+ * A sheet's first form control: typed in `worksheet.controls` when the load resolved Excel's x14
+ * mc:AlternateContent, else read from the kept element's Choice, where `x:controls` is DOM (it is no
+ * global element, here or in docx4j, so a branch's lax wildcard leaves it untyped; CR-010 phase 4).
+ */
+function firstControl(contents) {
+  if (contents.controls) {
+    const [c] = contents.controls.control;
+    return { name: c.name, shapeId: c.shapeId, id: c.id };
+  }
+  const controls = (contents.alternateContent ?? []).flatMap((ac) => ac.choice.flatMap((choice) => choice.any))
+    .find((node) => node.nodeType === 1 && node.namespaceURI === SML && node.localName === 'controls');
+  const c = controls.getElementsByTagNameNS(SML, 'control')[0];
+  return { name: c.getAttribute('name'), shapeId: Number(c.getAttribute('shapeId')), id: c.getAttributeNS(R, 'id') };
+}
 
 /** The ext content of a given element name, unwrapped (docx4j's ExcelExtensionsTest.ext). */
 function ext(extLst, localPart) {
@@ -179,7 +199,8 @@ test('a workbook with slicers and timelines round-trips byte for byte', async ()
 // resolves the branch on load, so the saved sheet holds a bare x:controls (schema-valid; the
 // wrapper cannot be rebuilt from the resolved tree) rather than Excel's mc:AlternateContent.
 test('a form control\'s properties part is typed, and the sheet keeps its x14 controls', async () => {
-  const pkg = await OpcPackage.load(await fixture(CHECKBOX));
+  // resolved: worksheet.controls is typed (CR-004 phase B), and written back bare
+  const pkg = await OpcPackage.load(await fixture(CHECKBOX), RESOLVED);
   const sheet = pkg.getWorkbookPart().getWorksheet(0);
   const part = sheet.controlPropertiesParts[0];
   assert.ok(part instanceof ControlPropertiesPart);
@@ -200,11 +221,27 @@ test('a form control\'s properties part is typed, and the sheet keeps its x14 co
   assert.ok(!xml.includes('<mc:AlternateContent'), 'its branch was chosen on load');
   assert.ok(entry(saved, '[Content_Types].xml').includes(ContentTypes.SPREADSHEETML_CONTROL_PROPERTIES));
 
-  const back = await OpcPackage.load(await pkg.save());
+  const back = await OpcPackage.load(await pkg.save(), RESOLVED);
   const backSheet = back.getWorkbookPart().getWorksheet(0);
   assert.ok(back.parts.get('/xl/ctrlProps/ctrlProp1.xml') instanceof ControlPropertiesPart);
   assert.equal((await backSheet.getContents()).controls.control.length, 1);
   assert.equal((await backSheet.controlPropertiesParts[0].getContents()).objectType, 'CheckBox');
+
+  // kept, the default since CR-010 phase 4: the sheet holds Excel's mc:AlternateContent, the controls
+  // DOM in its x14 Choice, still naming the properties part, and a save writes Excel's markup back
+  const kept = await OpcPackage.load(await fixture(CHECKBOX));
+  const keptSheet = kept.getWorkbookPart().getWorksheet(0);
+  const contents = await keptSheet.getContents();
+  assert.equal(contents.controls, undefined);
+  assert.equal(contents.alternateContent[0].choice[0].requires, 'x14');
+  const control = firstControl(contents);
+  assert.equal(control.name, 'Check Box 1');
+  assert.equal(keptSheet.relationshipsPart.getPart(control.id), keptSheet.controlPropertiesParts[0]);
+  const source = entry(new ZipPartStore(await fixture(CHECKBOX)), 'xl/worksheets/sheet1.xml');
+  const keptXml = entry(new ZipPartStore(await kept.save()), 'xl/worksheets/sheet1.xml');
+  for (const tag of ['<mc:AlternateContent', '<mc:Choice Requires="x14"', '<controls', '<control ', '<controlPr']) {
+    assert.equal(keptXml.split(tag).length, source.split(tag).length, `${tag}, as Excel wrote it`);
+  }
 });
 
 // The same on the fixture whose check box Excel is known to drive - `fmlaLink` on the properties
@@ -214,21 +251,30 @@ test('a form control\'s properties part is typed, and the sheet keeps its x14 co
 // follows: what Excel accepted was this package re-marshalled whole, and `fmlaLink` is the
 // attribute the live control hangs on.
 test('the linked check box: fmlaLink and the VML survive a whole-package re-marshal', async () => {
-  const pkg = await OpcPackage.load(await fixture(CHECKBOX_LINKED));
-  await pkg.unmarshalAll();
-  const sheet = pkg.getWorkbookPart().getWorksheet(0);
-  assert.equal((await sheet.controlPropertiesParts[0].getContents()).fmlaLink, '$D$4');
+  // resolved, as Excel accepted it (check 14), and kept, Excel's own markup (docx4j CR-021 section 8.13)
+  for (const options of [RESOLVED, undefined]) {
+    const pkg = await OpcPackage.load(await fixture(CHECKBOX_LINKED), options);
+    await pkg.unmarshalAll();
+    const sheet = pkg.getWorkbookPart().getWorksheet(0);
+    assert.equal((await sheet.controlPropertiesParts[0].getContents()).fmlaLink, '$D$4');
 
-  const saved = new ZipPartStore(await pkg.save());
-  assert.ok(entry(saved, 'xl/ctrlProps/ctrlProp1.xml').includes('fmlaLink="$D$4"'));
-  // the VML is a BinaryPart, so the x:FmlaLink half of the link is never re-marshalled at all
-  const source = new ZipPartStore(await fixture(CHECKBOX_LINKED));
-  assert.deepEqual(saved.loadSync('xl/drawings/vmlDrawing1.vml'), source.loadSync('xl/drawings/vmlDrawing1.vml'));
-  // and the control still names the properties part, through the shapeId the VML shape carries
-  const control = (await sheet.getContents()).controls.control[0];
-  assert.equal(control.shapeId, 1025);
-  assert.equal(sheet.relationshipsPart.getPart(control.id), sheet.controlPropertiesParts[0]);
-  assert.ok(entry(saved, 'xl/drawings/drawing1.xml').includes('spid="_x0000_s1025"'));
+    const saved = new ZipPartStore(await pkg.save());
+    assert.ok(entry(saved, 'xl/ctrlProps/ctrlProp1.xml').includes('fmlaLink="$D$4"'));
+    // the VML is a BinaryPart, so the x:FmlaLink half of the link is never re-marshalled at all
+    const source = new ZipPartStore(await fixture(CHECKBOX_LINKED));
+    assert.deepEqual(saved.loadSync('xl/drawings/vmlDrawing1.vml'), source.loadSync('xl/drawings/vmlDrawing1.vml'));
+    // and the control still names the properties part, through the shapeId the VML shape carries
+    const control = firstControl(await sheet.getContents());
+    assert.equal(control.shapeId, 1025);
+    assert.equal(sheet.relationshipsPart.getPart(control.id), sheet.controlPropertiesParts[0]);
+    assert.ok(entry(saved, 'xl/drawings/drawing1.xml').includes('spid="_x0000_s1025"'));
+    // CR-001 section 21's kind (a): resolving the drawing's a14 Choice types its hidden colours, and
+    // a:srgbClr does not bind a14:legacySpreadsheetColorIndex, so both go; kept, the Choice is DOM and
+    // writes them back (CR-010 phase 4)
+    const legacy = (xml) => xml.split('a14:legacySpreadsheetColorIndex=').length - 1;
+    assert.equal(legacy(entry(source, 'xl/drawings/drawing1.xml')), 2);
+    assert.equal(legacy(entry(saved, 'xl/drawings/drawing1.xml')), options === RESOLVED ? 0 : 2);
+  }
 });
 
 test('the four parts the fixtures have no example of: added, saved, and found again by class', async () => {
@@ -308,9 +354,11 @@ test('the nine classes carry docx4j\'s default part names, content types and rel
 // element no module binds; that wildcard is lax since docx4j 8e8f6ea83, so the Choice round-trips
 // as DOM and is worth taking over the Fallback, which is only an "Excel 2010 or later" placeholder
 // box. drawing1 frames a slicer (Requires a14, understood before phase B) and a timeline (tsle);
-// drawing2 frames a slicer through sle15.
+// drawing2 frames a slicer through sle15. Resolved (mcePreprocess: true) the Choice is taken; kept,
+// the default since CR-010 phase 4, the frame and the Fallback's placeholder stay DOM in their branches
+// and a save writes both back.
 test('the slicer and timeline drawings keep their graphics, as DOM', async () => {
-  const pkg = await OpcPackage.load(await fixture(FIXTURE));
+  const pkg = await OpcPackage.load(await fixture(FIXTURE), RESOLVED);
   const domNodesOf = (contents) => {
     const names = [];
     const walk = (v) => {
@@ -333,6 +381,19 @@ test('the slicer and timeline drawings keep their graphics, as DOM', async () =>
   assert.ok(!one.includes('<mc:Choice'), 'the branches were chosen on load');
   assert.ok(!one.includes('This shape represents a slicer'), 'the fallback placeholder was given up');
   assert.ok(entry(saved, 'xl/drawings/drawing2.xml').includes('<sle:slicer'));
+
+  const kept = await OpcPackage.load(await fixture(FIXTURE));
+  assert.deepEqual(domNodesOf(await kept.parts.get('/xl/drawings/drawing1.xml').getContents()),
+    ['xdr:graphicFrame', 'xdr:sp', 'xdr:graphicFrame', 'xdr:sp']);
+  assert.deepEqual(domNodesOf(await kept.parts.get('/xl/drawings/drawing2.xml').getContents()),
+    ['xdr:graphicFrame', 'xdr:sp']);
+  const source = new ZipPartStore(await fixture(FIXTURE));
+  const keptSaved = new ZipPartStore(await kept.save());
+  for (const name of ['xl/drawings/drawing1.xml', 'xl/drawings/drawing2.xml']) {
+    for (const tag of ['<mc:AlternateContent', '<mc:Fallback', '<sle:slicer', '<tsle:timeslicer', 'This shape represents']) {
+      assert.equal(entry(keptSaved, name).split(tag).length, entry(source, name).split(tag).length, `${name}: ${tag}`);
+    }
+  }
 });
 
 // docx4j ExcelExtensionsTest.assertWorkbook / assertWorksheets / assertStylesAndTable: the x14 and

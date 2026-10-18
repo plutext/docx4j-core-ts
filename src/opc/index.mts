@@ -7,7 +7,7 @@ export { ZipPartStore, ZipPartSink } from './ZipPartStore.mjs';
 export { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions, PKG_NS } from './FlatOpcPartStore.mjs';
 export { loadPackage, type LoadOptions } from './Load.mjs';
 export { savePackage } from './Save.mjs';
-export { mcePreprocess, createMcePreprocessor, resolveAlternateContent, preprocessAlternateContent, MCE_NS, KEPT_HOSTS, type McePreprocessOptions, type McBranchesDifferWarning, type PartWarning, type MceResult } from './mce/preprocessor.mjs';
+export { mceKeep, mcePreprocess, createMcePreprocessor, resolveAlternateContent, preprocessAlternateContent, MCE_NS, KEPT_HOSTS, type McePreprocessOptions, type McBranchesDifferWarning, type PartWarning, type MceResult } from './mce/preprocessor.mjs';
 export { UNDERSTOOD_NAMESPACES, UNDERSTOOD_PREFIXES } from './mce/understood.mjs';
 export { Docx4JException, InvalidFormatException, PartUnrecognisedException, PartUnmarshalException, CyclicStylesException, PropertyResolverNotCreatedException } from './exceptions.mjs';
 export { parseXml, serializeXml, serializeXmlPart, createDocument, encodeText, decodeXmlText, stripXmlDeclaration, base64Encode, base64Decode, childElements, XML_DECLARATION } from '../xml/dom.mjs';

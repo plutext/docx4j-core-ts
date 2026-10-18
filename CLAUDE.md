@@ -117,20 +117,24 @@ Key mechanics:
   to a part class; unknown XML becomes `DefaultXmlPart`, anything else `BinaryPart`. Custom XML
   parts are indexed by the `ds:itemID` of their properties part (read from the DOM, so that
   part stays untouched).
-- **MCE preprocessing** resolves `mc:AlternateContent` (first `mc:Choice` whose `Requires`
-  prefixes are all in `UNDERSTOOD_NAMESPACES`, else `mc:Fallback`) on the DOM before
-  unmarshalling, except where it keeps the element whole (CR-010 phase 1): under `KEPT_HOSTS`
-  (`c:chartSpace`, the SpreadsheetML workbook) and where nothing can be selected (Choices only,
-  none understood). Where it resolves, it reports `mce.branches_differ` on `XmlPart.warnings` when
-  the branch taken and a branch dropped hold different text (`OpcPackage.warnings` gathers them).
-  It stays the default until CR-010 phase 4. Since phase 3 the content API reads a kept element too:
-  readers take `selectedBranchOf`'s branch (`mcBranchOf` over `UNDERSTOOD_PREFIXES`, the branch load
-  would resolve to), mutators every branch, and a run's element is one object segment.
-  Since objects 0.4.0 a kept branch's `w:drawing` and `w:pict` are typed (objects CR-009, CR-010
-  phase 2); the `xdr:` and `p:` drawing content and `c:style` inside one stay DOM.
+- **`mc:AlternateContent` is kept on load** with every branch, as docx4j keeps it, since CR-010
+  phase 4 (`mcePreprocess` defaults to false). Readers take `selectedBranchOf`'s branch (`mcBranchOf`
+  over `UNDERSTOOD_PREFIXES`: the first `mc:Choice` whose `Requires` prefixes are all in
+  `UNDERSTOOD_NAMESPACES`, else `mc:Fallback`), mutators every branch, a run's element is one object
+  segment, and a save writes every branch. The default pass (`mceKeep`) changes nothing and reports
+  `mce.branches_differ` on `XmlPart.warnings` where the branches' text differs (`OpcPackage.warnings`
+  gathers them). `mcePreprocess: true` resolves on the DOM before unmarshalling instead, as Word does
+  on open, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the SpreadsheetML workbook) and
+  where nothing can be selected (CR-010 phase 1). Since objects 0.4.0 a kept branch's `w:drawing` and
+  `w:pict` are typed (objects CR-009, CR-010 phase 2); the `xdr:` and `p:` drawing content, a
+  worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
+  when resolved. A code path that walks the tree itself has to choose: `selectedBranchOf` to read,
+  every branch to write. Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
+  `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range is the
+  floor that brings it (CR-010 section 14.4).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
-  (this package's CR-009, section 8). Taking a Choice **converts DOM into
+  (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
   typed content**, so it can expose a binding gap the unresolved form hid: content the model binds
   only partly loses the unbound part on a re-marshal, where leaving the Choice alone would have kept
   all of it (measured, CR-004 section 7). The test when adding a namespace is therefore whether

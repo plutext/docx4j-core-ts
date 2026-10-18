@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore, FlatOpcPartStore } from '../dist/index.mjs';
+import { OpcPackage, mceKeep, mcePreprocess, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore, FlatOpcPartStore } from '../dist/index.mjs';
 import { fixture, fixturesDir } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -38,14 +38,14 @@ test('resolveAlternateContent: the first understood mc:Choice wins, else the fal
 
 test('a Word 2010 flat OPC package with mc:AlternateContent in a header', async () => {
   const flat = await readFile(join(fixturesDir, 'mc-alternate-content-header.xml'), 'utf8');
-  const pkg = await OpcPackage.load(flat);
+  // resolved (mcePreprocess: true): the wps choice is taken, a w:drawing, not the VML fallback
+  const pkg = await OpcPackage.load(flat, { mcePreprocess: true });
   assert.ok(pkg instanceof WordprocessingMLPackage);
   const headers = pkg.getMainDocumentPart().headerParts;
   assert.ok(headers.length > 0);
   const header = headers.find((h) => h instanceof HeaderPart);
   const hdr = await header.getContents();
   assert.equal(hdr.TYPE_NAME, 'org_docx4j_wml.Hdr');
-  // the wps choice was taken: a w:drawing, not the VML fallback
   const xml = await header.getXml();
   assert.ok(!xml.includes('mc:AlternateContent'));
   assert.ok(xml.includes('<w:drawing>') || xml.includes('<w:drawing '), 'choice branch');
@@ -54,6 +54,16 @@ test('a Word 2010 flat OPC package with mc:AlternateContent in a header', async 
   const zip = await pkg.save();
   const back = await OpcPackage.load(zip);
   assert.equal(back.parts.size, pkg.parts.size);
+
+  // kept, the default since CR-010 phase 4: the header writes both branches back
+  const kept = await OpcPackage.load(flat);
+  const keptHeader = kept.getMainDocumentPart().headerParts.find((h) => h instanceof HeaderPart);
+  await keptHeader.getContents();
+  const keptXml = await keptHeader.getXml();
+  assert.ok(keptXml.includes('<mc:AlternateContent>') && keptXml.includes('<mc:Choice Requires="wps">'), 'kept whole');
+  assert.ok(keptXml.includes('<w:drawing>') || keptXml.includes('<w:drawing '), 'the Choice');
+  assert.ok(keptXml.includes('<w:pict'), 'and the Fallback');
+  assert.equal((await OpcPackage.load(await kept.save())).parts.size, kept.parts.size);
 });
 
 test('the fallback branch when nothing is understood; preprocessing off', async () => {
@@ -68,8 +78,8 @@ test('the fallback branch when nothing is understood; preprocessing off', async 
   // Off: since the CR-021 regeneration (objects 0.1.5) the model admits mc:AlternateContent in
   // the WordprocessingML hosts, so the part unmarshals with the element typed and both branches
   // kept, and a save writes both back. Since objects 0.4.0 (its CR-009, CR-010 phase 2) what the
-  // branches hold is typed too; the content API does not read kept branches yet (CR-010 phase 3),
-  // which is why resolving on load stays the default (CR-001 section 17.5).
+  // branches hold is typed too; the content API reads kept branches since CR-010 phase 3, and
+  // keeping is the default since phase 4, so the option and the default load are the same.
   const raw = await OpcPackage.load(await fixture('loadAndSave.docx'), { mcePreprocess: false });
   const contents = await raw.getMainDocumentPart().getContents();
   const alternates = [];
@@ -159,18 +169,25 @@ for (const [file, name] of [['waterfall.docx', 'word/document.xml'], ['waterfall
     assert.equal(choice.getAttribute('Requires'), 'cx1');
     const frame = [...choice.childNodes].find((c) => c.nodeType === 1);
 
-    const pkg = await OpcPackage.load(bytes);
-    await pkg.unmarshalAll();
-    const store = new ZipPartStore(await pkg.save());
-    const saved = parseXml(new TextDecoder().decode(store.loadSync(name)));
-    assert.equal(saved.getElementsByTagNameNS(MCE_NS, 'AlternateContent').length, 0, 'the branch was chosen on load');
-    const frames = [...saved.getElementsByTagNameNS(frame.namespaceURI, frame.localName)].map(elementForm);
-    assert.ok(frames.includes(elementForm(frame)), `the Choice's ${frame.nodeName} is written back whole`);
-    const chart = saved.getElementsByTagNameNS(CX, 'chart');
-    assert.equal(chart.length, 1, 'cx:chart, not the Fallback');
-    const rels = store.loadSync(name.replace(/([^/]+)$/, '_rels/$1.rels'));
-    const id = chart[0].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
-    assert.match(new TextDecoder().decode(rels), new RegExp(`Id="${id}"[^>]*chartEx|chartEx[^>]*Id="${id}"`), 'its relationship still names the chartEx part');
+    // resolved (mcePreprocess: true), the Choice is taken; kept (the default since CR-010 phase 4),
+    // the element is written back whole, the Fallback's picture with it
+    for (const resolved of [true, false]) {
+      const pkg = await OpcPackage.load(bytes, { mcePreprocess: resolved });
+      await pkg.unmarshalAll();
+      const store = new ZipPartStore(await pkg.save());
+      const saved = parseXml(new TextDecoder().decode(store.loadSync(name)));
+      // canonical (below) leaves aside the lexical rewrites, xsd:boolean's 1 written true among them
+      const elements = [...saved.getElementsByTagNameNS(MCE_NS, 'AlternateContent')].map(canonical);
+      if (resolved) assert.equal(elements.length, 0, 'the branch was chosen on load');
+      else assert.deepEqual(elements, [...source.getElementsByTagNameNS(MCE_NS, 'AlternateContent')].map(canonical), 'kept whole');
+      const frames = [...saved.getElementsByTagNameNS(frame.namespaceURI, frame.localName)].map(elementForm);
+      assert.ok(frames.includes(elementForm(frame)), `the Choice's ${frame.nodeName} is written back whole`);
+      const chart = saved.getElementsByTagNameNS(CX, 'chart');
+      assert.equal(chart.length, 1, 'cx:chart, once: the Fallback holds none');
+      const rels = store.loadSync(name.replace(/([^/]+)$/, '_rels/$1.rels'));
+      const id = chart[0].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+      assert.match(new TextDecoder().decode(rels), new RegExp(`Id="${id}"[^>]*chartEx|chartEx[^>]*Id="${id}"`), 'its relationship still names the chartEx part');
+    }
   });
 }
 
@@ -354,4 +371,143 @@ test('kept branches: each fixture part holding mc:AlternateContent writes every 
   // DOM is outside WordprocessingML (DrawingML frames and shapes, c:style, the x14 controls)
   assert.deepEqual([...held.keys()].filter((key) => key.startsWith(`DOM {${W}}`)), []);
   assert.ok((held.get(`typed {${W}}drawing`) ?? 0) > 0 && (held.get(`typed {${W}}pict`) ?? 0) > 0, JSON.stringify([...held]));
+});
+
+// CR-010 phase 4 (Jason, 2026-10-18: "implement CR-010 phase 4"): load keeps every mc:AlternateContent
+// by default, as docx4j does since its CR-021, and `mcePreprocess: true` resolves as before. The
+// warning channel stays: the default pass, `mceKeep`, reports what resolving would and changes nothing.
+
+/** Every org_docx4j_mce.AlternateContent under a value (a generic walk, every branch). */
+function alternatesIn(value, out = [], seen = new Set()) {
+  if (!value || typeof value !== 'object' || value.nodeType || seen.has(value)) return out;
+  seen.add(value);
+  if (value.TYPE_NAME === 'org_docx4j_mce.AlternateContent') out.push(value);
+  for (const key of Object.keys(value)) if (key !== 'PARENT') alternatesIn(value[key], out, seen);
+  return out;
+}
+
+test('phase 4: load keeps mc:AlternateContent by default, and mcePreprocess: true resolves it', async () => {
+  const bytes = await fixture('loadAndSave.docx');
+  const source = new TextDecoder().decode(new ZipPartStore(bytes).loadSync('word/document.xml'));
+  for (const [options, kept] of [[undefined, true], [{ mcePreprocess: false }, true], [{ mcePreprocess: true }, false]]) {
+    const pkg = await WordprocessingMLPackage.load(bytes, options);
+    assert.equal(pkg.loadOptions.preprocessor, kept ? mceKeep : mcePreprocess, JSON.stringify(options));
+    const main = pkg.getMainDocumentPart();
+    assert.equal(alternatesIn(await main.getContents()).length, kept ? 1 : 0, JSON.stringify(options));
+    const saved = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
+    assert.equal(saved.split('<mc:Fallback>').length - 1, kept ? source.split('<mc:Fallback>').length - 1 : 0, JSON.stringify(options));
+    // the content API answers the same either way (phase 3)
+    const body = await pkg.getBody();
+    assert.deepEqual([body.paragraphs.length, body.inlinePictures.length], [41, 1], JSON.stringify(options));
+  }
+  // a clone loads as its original did
+  const resolved = await WordprocessingMLPackage.load(bytes, { mcePreprocess: true });
+  assert.equal(alternatesIn(await (await resolved.clone()).getMainDocumentPart().getContents()).length, 0);
+  assert.equal(alternatesIn(await (await (await WordprocessingMLPackage.load(bytes)).clone()).getMainDocumentPart().getContents()).length, 1);
+});
+
+test('phase 4: the keeping pass reports what resolving reports, and leaves the DOM as it was', () => {
+  const wps = 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape';
+  const box = (text) => `<w:drawing><w:txbxContent><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:txbxContent></w:drawing>`;
+  // an element whose branches differ, holding a second in its Choice whose branches differ too, and a
+  // third in its Fallback, which neither pass enters (resolving drops it)
+  const nestedInChoice = `<mc:AlternateContent><mc:Choice Requires="wps">${box('inner new')}</mc:Choice><mc:Fallback>${box('inner old')}</mc:Fallback></mc:AlternateContent>`;
+  const nestedInFallback = `<mc:AlternateContent><mc:Choice Requires="wps">${box('x')}</mc:Choice><mc:Fallback>${box('y')}</mc:Fallback></mc:AlternateContent>`;
+  const xml = `<w:document xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:wps="${wps}"><w:body><w:p><w:r><mc:AlternateContent><mc:Choice Requires="wps">${box('outer new')}${nestedInChoice}</mc:Choice><mc:Fallback>${box('outer old')}${nestedInFallback}</mc:Fallback></mc:AlternateContent></w:r></w:p></w:body></w:document>`;
+  const resolving = preprocessAlternateContent(parseXml(xml), { partName: '/word/document.xml' });
+  const doc = parseXml(xml);
+  const before = canonical(doc.documentElement);
+  const keeping = preprocessAlternateContent(doc, { resolve: false, partName: '/word/document.xml' });
+  assert.deepEqual([resolving.resolved, resolving.kept], [2, 0]);
+  assert.deepEqual([keeping.resolved, keeping.kept], [0, 2], 'the elements met: the outer one and the one in its selected branch');
+  assert.equal(keeping.warnings.length, 2);
+  assert.deepEqual(keeping.warnings, resolving.warnings);
+  assert.equal(canonical(doc.documentElement), before, 'the DOM is untouched');
+  assert.deepEqual(mceKeep(parseXml(xml)), resolving.warnings.map((w) => ({ ...w, partName: undefined, message: w.message.replace('/word/document.xml', 'a part') })));
+  // KEPT_HOSTS and the nothing-selectable rule keep an element in both passes, and neither reports it
+  const chart = `<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:mc="${MCE_NS}"><mc:AlternateContent><mc:Choice Requires="c14" xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"><c14:style val="102"/></mc:Choice><mc:Fallback><c:style val="2"/></mc:Fallback></mc:AlternateContent></c:chartSpace>`;
+  assert.deepEqual(preprocessAlternateContent(parseXml(chart), { resolve: false }), { resolved: 0, kept: 1, warnings: [] });
+});
+
+/** The fixture packages (zip or flat OPC) with a part holding mc:AlternateContent: path and input. */
+async function packagesHolding() {
+  const out = [];
+  for (const path of await packagesUnder(fixturesDir)) {
+    const flat = path.endsWith('.xml');
+    const input = flat ? await readFile(path, 'utf8') : new Uint8Array(await readFile(path));
+    if (flat && !input.includes(XML_PACKAGE_NS)) continue;
+    const source = flat ? new FlatOpcPartStore(input) : new ZipPartStore(input);
+    for (const name of source.partNames()) {
+      if (name.endsWith('.xml') && new TextDecoder().decode(await source.load(name)).includes('AlternateContent')) {
+        out.push({ path, input });
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+test('phase 4: over the fixtures, a kept load reports the warnings a resolved load does', async () => {
+  let compared = 0;
+  const counts = {};
+  for (const { path, input } of await packagesHolding()) {
+    // every XML part read privately, so no part is touched; kept by the option, which the default is
+    // (the first test above), since before phase 4 the option meant no pass at all, and no warning
+    const loads = [];
+    for (const options of [{ mcePreprocess: true }, { mcePreprocess: false }]) {
+      const pkg = await OpcPackage.load(input, options);
+      for (const part of pkg.parts) if (typeof part.readContents === 'function') await part.readContents();
+      loads.push(pkg.warnings);
+    }
+    const where = path.slice(fixturesDir.length + 1);
+    assert.deepEqual(loads[1], loads[0], where);
+    compared++;
+    for (const w of loads[0]) counts[w.selected] = (counts[w.selected] ?? 0) + 1;
+  }
+  // 16 packages and 8 warnings on 2026-10-18 (a14 5, cx1, sle15 and tsle 1 each): floors, so the
+  // comparison cannot pass by finding nothing
+  assert.ok(compared >= 16, `${compared} packages hold the element`);
+  assert.ok(Object.values(counts).reduce((a, b) => a + b, 0) >= 8, JSON.stringify(counts));
+});
+
+test('phase 4: insertOoxml into a loaded document writes an mc:AlternateContent as given', async () => {
+  const fragment = `<w:p xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"><w:r><w:t>before</w:t></w:r><w:r><mc:AlternateContent><mc:Choice Requires="w14"><w:t>new</w:t></mc:Choice><mc:Fallback><w:t>old</w:t></mc:Fallback></mc:AlternateContent></w:r></w:p>`;
+  for (const [options, kept] of [[undefined, true], [{ mcePreprocess: true }, false]]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'), options);
+    await (await pkg.getBody()).insertOoxml(fragment, 'End');
+    const saved = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
+    assert.equal(saved.includes('<mc:Choice Requires="w14"><w:t>new</w:t></mc:Choice><mc:Fallback><w:t>old</w:t></mc:Fallback>'), kept, JSON.stringify(options));
+    assert.equal(saved.includes('>old</w:t>'), kept, 'resolved, the Fallback is dropped');
+    assert.ok(saved.includes('>new</w:t>'));
+  }
+});
+
+// A dependency defect phase 4 exposed. @docx4j/jsonix 3.4.1's Base64Binary.decode assigned an
+// undeclared `input` (jsonix-factory.js line 4489). Node loads jsonix as sloppy CommonJS, so the
+// assignment made a global and the suites passed; a strict ESM bundle (the editor's Vite build,
+// vitest's jsdom) threw ReferenceError, and the part failed to unmarshal. Kept, a Word text box's VML
+// Fallback is unmarshalled, and its v:shape's o:gfxdata (xsd:base64Binary) is decoded; resolved, the
+// Fallback is dropped first. Found by the editor against phase 4 on 2026-10-18; fixed in jsonix 3.4.2
+// (231679e, three `var`s), when this test, which had asserted the leak from the five fixtures below,
+// failed as meant (CR-010 section 14.4). A global created here is a ReferenceError in a strict consumer.
+test('phase 4: no load leaks a global, which a strict-mode consumer would get as a ReferenceError (jsonix 3.4.2)', async () => {
+  const leaks = {};
+  const holding = await packagesHolding();
+  for (const { path, input } of holding) {
+    for (const [mode, options] of [['resolved', { mcePreprocess: true }], ['kept', undefined]]) {
+      const before = new Set(Object.getOwnPropertyNames(globalThis));
+      const pkg = await OpcPackage.load(input, options);
+      await pkg.unmarshalAll();
+      await pkg.save();
+      for (const name of Object.getOwnPropertyNames(globalThis)) {
+        if (before.has(name)) continue;
+        (leaks[`${mode} ${name}`] ??= []).push(path.slice(fixturesDir.length + 1));
+        delete globalThis[name];
+      }
+    }
+  }
+  // packages whose kept load leaked `input` on 3.4.1 are among those walked
+  const names = holding.map(({ path }) => path.slice(fixturesDir.length + 1));
+  for (const name of ['loadAndSave.docx', 'mc-alternate-content-header.xml', 'revisions/cr043/cr043-tracked.docx']) assert.ok(names.includes(name), name);
+  assert.deepEqual(leaks, {});
 });

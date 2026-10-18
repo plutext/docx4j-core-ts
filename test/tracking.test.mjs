@@ -2256,7 +2256,8 @@ test('acceptAllRevisions and rejectAllRevisions resolve every story, as Word\'s 
   (await body.getBody()).acceptAll();
   const left = await revisionsLeft(await WordprocessingMLPackage.load(await body.save()));
   assert.deepEqual(Object.keys(left).sort(), ['/word/document.xml', '/word/endnotes.xml', '/word/footer5.xml', '/word/header5.xml']);
-  assert.equal(left['/word/document.xml'], 2, 'the text box\'s insertion and deletion (C22)');
+  // twice over: the text box is in the kept mc:AlternateContent's Choice and in its Fallback (CR-010 phase 4)
+  assert.equal(left['/word/document.xml'], 4, 'the text box\'s insertion and deletion (C22), in each branch');
 });
 
 

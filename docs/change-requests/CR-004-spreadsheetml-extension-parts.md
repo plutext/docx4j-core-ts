@@ -382,5 +382,9 @@ to the manual checklist.
 
 Nothing is changed here until those verdicts arrive. What phase B keeps either way is the read:
 `worksheet.controls` holds the control and its `r:id` resolves to the `ControlPropertiesPart`,
-where before phase B the whole `mc:AlternateContent` was dropped and neither existed. The docx4j
+where before phase B the whole `mc:AlternateContent` was dropped and neither existed.
+(Since CR-010 phase 4 (2026-10-18) the default load keeps Excel's wrapper, as docx4j does, and
+writes it back. `x:controls` is then DOM inside the `x14` Choice, since it is a global element
+neither here nor in docx4j, so `worksheet.controls` is typed only under `mcePreprocess: true`. The
+control's `r:id` still resolves to the part (CR-010 section 14).) The docx4j
 session records the same in its CR-022 section 20.

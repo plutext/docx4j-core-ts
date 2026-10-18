@@ -32,7 +32,7 @@ export interface SegmentOptions extends TextViewOptions {
  */
 export const OBJECT_ITEMS: ReadonlySet<string> = new Set(['drawing', 'pict', 'object']);
 
-/** The TYPE_NAME of a kept `mc:AlternateContent` (loaded with `mcePreprocess: false`, or under `KEPT_HOSTS`). */
+/** The TYPE_NAME of a kept `mc:AlternateContent` (the default load since CR-010 phase 4; under `KEPT_HOSTS` with `mcePreprocess: true`). */
 export const ALTERNATE_CONTENT = 'org_docx4j_mce.AlternateContent';
 
 /**

@@ -14,7 +14,7 @@ import { XmlPart } from '../parts/XmlPart.mjs';
 import { RelationshipsPart, type AddPartBehaviour } from '../parts/RelationshipsPart.mjs';
 import type { CustomXmlDataStoragePart } from '../parts/DefaultXmlPart.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart, DocPropsCustomPart } from '../parts/docProps/index.mjs';
-import { mcePreprocess, type PartWarning } from '../opc/mce/preprocessor.mjs';
+import { mceKeep, mcePreprocess, type PartWarning } from '../opc/mce/preprocessor.mjs';
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
 /** Anything `OpcPackage.load` accepts: zip bytes, a flat OPC string, or a container. */
@@ -57,7 +57,7 @@ export class OpcPackage implements RelationshipSource {
   static async load(source: PackageSource, options: LoadOptions = {}): Promise<OpcPackage> {
     const store = toStore(source);
     const opts: LoadOptions = { ...options };
-    if (opts.preprocessor === undefined && opts.mcePreprocess !== false) opts.preprocessor = mcePreprocess;
+    if (opts.preprocessor === undefined) opts.preprocessor = opts.mcePreprocess === true ? mcePreprocess : mceKeep;
     const pkg = await loadPackage(store, createPackageForContentType, opts);
     pkg.loadOptions = opts;
     return pkg;

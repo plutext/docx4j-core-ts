@@ -1038,7 +1038,8 @@ test('selectObjects reaches a wildcard child through the imported copy', async (
   // jsonix writes any-content with importNode, so the element in the snapshot is a COPY of the tree
   // node; the binder maps the copy back to the ORIGINAL (jsonix-CR-006 section 2, finding 3). Without
   // that line a select could not reach exactly the content the model does not bind - here the slicer
-  // inside an a:graphicData, which nothing in the model types (CR-004 section 7).
+  // inside an a:graphicData, which nothing in the model types (CR-004 section 7). Since CR-010 phase 4
+  // the frame's mc:AlternateContent is kept, and the whole frame is DOM in its Choice.
   const { DefaultXPathEngine } = await import('../dist/index.mjs');
   const pkg = await OpcPackage.load(await fixture('cr022-slicers-timelines.xlsx'));
   const drawing = pkg.parts.get('/xl/drawings/drawing1.xml');
@@ -1048,7 +1049,7 @@ test('selectObjects reaches a wildcard child through the imported copy', async (
 
   const hits = await drawing.selectObjects("//*[local-name()='slicer']", { engine });
   assert.equal(hits.length, 1);
-  assert.equal(hits[0].path, '/xdr:wsDr/xdr:twoCellAnchor[1]/xdr:graphicFrame[1]/a:graphic[1]/a:graphicData[1]/sle:slicer[1]');
+  assert.equal(hits[0].path, '/xdr:wsDr/xdr:twoCellAnchor[1]/mc:AlternateContent[1]/mc:Choice[1]/xdr:graphicFrame[1]/a:graphic[1]/a:graphicData[1]/sle:slicer[1]');
   assert.equal(hits[0].object?.nodeName, 'sle:slicer', 'the object of DOM content is the node itself');
   assert.notEqual(hits[0].object, hits[0].node, 'and it is the node in the TREE, not the snapshot copy');
   // which is what makes it usable: editing it edits the document

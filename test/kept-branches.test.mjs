@@ -1,4 +1,5 @@
-// CR-010 phase 3: the content API over a kept mc:AlternateContent (loaded with mcePreprocess: false).
+// CR-010 phase 3: the content API over a kept mc:AlternateContent (loaded with mcePreprocess: false,
+// the default since phase 4; the resolved load is mcePreprocess: true).
 //
 // Readers take the branch load would have resolved the element to (`selectedBranchOf`, docx4j's
 // McMode.READ); mutators take every branch (McMode.ALL). So a kept tree answers as a resolved one
@@ -16,6 +17,7 @@ import { fixture } from './helpers.mjs';
 
 const MCE = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
 const KEPT = { mcePreprocess: false };
+const RESOLVED = { mcePreprocess: true };
 const AC = 'org_docx4j_mce.AlternateContent';
 
 /** The .docx fixtures whose main document holds mc:AlternateContent (CR-010 section 11.2). */
@@ -46,7 +48,7 @@ function allOf(root, typeName) {
 const holdsObject = (p) => allOf(p.p, AC).length > 0 || allOf(p.p, 'org_docx4j_wml.Drawing').length > 0;
 
 async function load(name, kept) {
-  const pkg = await WordprocessingMLPackage.load(await fixture(name), kept ? KEPT : undefined);
+  const pkg = await WordprocessingMLPackage.load(await fixture(name), kept ? KEPT : RESOLVED);
   return { pkg, body: await pkg.getBody() };
 }
 
@@ -155,7 +157,7 @@ const documentXml = (bytes) => new TextDecoder().decode(new ZipPartStore(bytes).
 test('a picture in the selected branch is listed once, from that branch; deleting it removes the element, every branch', async () => {
   const understood = await pictureInBranch('wp14');
   for (const kept of [false, true]) {
-    const pkg = await WordprocessingMLPackage.load(understood, kept ? KEPT : undefined);
+    const pkg = await WordprocessingMLPackage.load(understood, kept ? KEPT : RESOLVED);
     const pictures = (await pkg.getBody()).inlinePictures;
     assert.equal(pictures.length, 1, `${kept ? 'kept' : 'resolved'}: the Choice's picture, once`);
     assert.equal(pictures[0].altTextDescription, '', "the Choice's drawing, not the Fallback's");
@@ -165,7 +167,7 @@ test('a picture in the selected branch is listed once, from that branch; deletin
   // with the Choice's prefix not understood, load takes the Fallback, and a kept load reads it too
   const fallback = await pictureInBranch('w16du');
   for (const kept of [false, true]) {
-    const pictures = (await (await WordprocessingMLPackage.load(fallback, kept ? KEPT : undefined)).getBody()).inlinePictures;
+    const pictures = (await (await WordprocessingMLPackage.load(fallback, kept ? KEPT : RESOLVED)).getBody()).inlinePictures;
     assert.deepEqual(pictures.map((p) => p.altTextDescription), ['the Fallback'], kept ? 'kept' : 'resolved');
   }
 

@@ -43,8 +43,11 @@ const ooxml = await pkg.saveFlatOpc();              // pkg:package, for insertOo
 ```
 
 A part that is never touched is written back byte for byte; `getContents()` (or a view over
-it) marks a part for re-marshalling. `mc:AlternateContent` is resolved when a part is
-unmarshalled, as Word does on open (`{ mcePreprocess: false }` to keep it). Subpaths
+it) marks a part for re-marshalling. `mc:AlternateContent` is kept with every branch, as docx4j
+keeps it: the content API reads the branch Word would (the first `mc:Choice` whose namespaces are
+understood, else the `mc:Fallback`), an edit lands in every branch, and a save writes them all
+(`{ mcePreprocess: true }` resolves the element when a part is unmarshalled instead, as Word does on
+open). Subpaths
 `@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately,
 `/office-js` the `Word` shim (below), `/html` HTML to WordprocessingML (a converter to an
 intermediate form and a builder from it, CR-005 section 8; the HTML parser is yours, a browser's

@@ -25,7 +25,8 @@ export interface Bound {
    * The tree object: for an element, what a walk of the typed tree would hand you at that path,
    * never a `{ name, value }` wrapper; for an attribute or a text node, the object of the element
    * that owns it. Undefined for an element the model does not build - a wildcard child is its own
-   * object, so this is undefined only above the root or for a node the marshal did not report.
+   * object, and so is each element inside one (the node at the same place in the tree), so this is
+   * undefined only above the root or for a node the marshal did not report.
    */
   object: unknown;
   /** Set when an attribute was selected: its qualified name on `object`'s element. */
@@ -61,16 +62,56 @@ export async function bindSnapshot<T>(element: Jsonix.TypedNamedValue<T>): Promi
 /** Turns selected nodes into `Bound`s against a snapshot, with one path cache for them all. */
 export function boundsOf(nodes: readonly Node[], snapshot: BoundSnapshot): Bound[] {
   const paths = new Paths();
+  const indexes = new Map<Node, Map<Node, number>>();
   return nodes.map((node) => {
     const owner = owningElement(node);
     const bound: Bound = {
       node,
-      object: owner === undefined ? undefined : snapshot.objects.get(owner),
+      object: owner === undefined ? undefined : objectOf(owner, snapshot.objects, indexes),
       path: paths.of(node),
     };
     if (node.nodeType === 2) bound.attribute = (node as Attr).name;
     return bound;
   });
+}
+
+/**
+ * The tree object behind a snapshot element. The marshal reports a wildcard child's imported copy
+ * but nothing inside it, so an element there maps to the node at the same place under the original:
+ * the copy is deep, so the child positions agree. Since CR-010 phase 4 a kept branch's DrawingML is
+ * DOM from the branch down (an `xdr:graphicFrame`, a `p:sp`), and a selection lands inside it.
+ * Below a typed ancestor an unreported element stays unmapped.
+ */
+function objectOf(element: Element, objects: WeakMap<Element, unknown>, indexes: Map<Node, Map<Node, number>>): unknown {
+  if (objects.has(element)) return objects.get(element);
+  const path: Node[] = [];
+  let at: Node = element;
+  while (!objects.has(at as Element)) {
+    path.push(at);
+    const parent: Node | null = at.parentNode;
+    if (parent === null || parent.nodeType !== 1) return undefined;
+    at = parent;
+  }
+  let node = objects.get(at as Element);
+  if (!isNode(node)) return undefined;
+  for (let k = path.length - 1; k >= 0; k--) {
+    node = (node as Node).childNodes[childIndex(path[k]!, indexes)];
+    if (node === undefined || node === null) return undefined;
+  }
+  return node;
+}
+
+/** A node's position among its parent's child nodes, each parent's counted once. */
+function childIndex(node: Node, indexes: Map<Node, Map<Node, number>>): number {
+  const parent = node.parentNode!;
+  let index = indexes.get(parent);
+  if (index === undefined) {
+    index = new Map();
+    let i = 0;
+    for (let child = parent.firstChild; child; child = child.nextSibling) index.set(child, i++);
+    indexes.set(parent, index);
+  }
+  return index.get(node) ?? -1;
 }
 
 /**
@@ -147,6 +188,10 @@ class Paths {
     }
     return positions.get(element) ?? 0;
   }
+}
+
+function isNode(node: unknown): node is Node {
+  return typeof node === 'object' && node !== null && typeof (node as { nodeType?: unknown }).nodeType === 'number';
 }
 
 function isElement(node: unknown): node is Element {

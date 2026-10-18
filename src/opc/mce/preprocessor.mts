@@ -1,10 +1,15 @@
 // Markup compatibility preprocessing (ECMA-376 Part 3; docx4j mc-preprocessor.xslt). Runs over a
-// part's DOM before it is unmarshalled: each mc:AlternateContent is replaced by the content of
-// the first mc:Choice whose Requires prefixes all name namespaces the object model understands,
-// else by its mc:Fallback content. This is what Word does on open. It runs only for parts that are
-// unmarshalled, so untouched parts keep every branch.
+// part's DOM before it is unmarshalled. Since CR-010 phase 4 load keeps every mc:AlternateContent,
+// as docx4j does since its CR-021, and the default pass (`mceKeep`) changes nothing: it reports what
+// resolving would, the `mce.branches_differ` warning below, so a reader learns where the branch the
+// content API reads says something other than one it doesn't.
 //
-// Two kinds are left whole instead (CR-010 phase 1), so a save writes them back with every branch:
+// Resolving (`mcePreprocess: true` on load, the pass `mcePreprocess`) replaces each element by the
+// content of the first mc:Choice whose Requires prefixes all name namespaces the object model
+// understands, else by its mc:Fallback content. This is what Word does on open. It runs only for
+// parts that are unmarshalled, so untouched parts keep every branch.
+//
+// Two kinds are left whole even so (CR-010 phase 1), so a save writes them back with every branch:
 // - those under a host in `KEPT_HOSTS`, where the model binds the element and nothing in this
 //   package reads the branches' content (a chart part's c14:style, a workbook's x15ac:absPath,
 //   which promoting lost outright);
@@ -33,6 +38,11 @@ export interface McePreprocessOptions {
   understood?: ReadonlySet<string>;
   /** Hosts, as `{namespace}localName`, whose mc:AlternateContent is left whole; defaults to `KEPT_HOSTS`. */
   keptHosts?: ReadonlySet<string>;
+  /**
+   * False leaves every element whole and reports what resolving would (CR-010 phase 4): the same
+   * warnings, from the same elements, and no change to the DOM. Defaults to true.
+   */
+  resolve?: boolean;
 }
 
 /**
@@ -56,14 +66,25 @@ export interface McBranchesDifferWarning {
 /** A warning load records on a part. */
 export type PartWarning = McBranchesDifferWarning;
 
-/** What one pass over a DOM did. */
+/**
+ * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a
+ * branch the rule doesn't select, so an element nested there is not counted.
+ */
 export interface MceResult {
   resolved: number;
   kept: number;
   warnings: PartWarning[];
 }
 
-/** The default preprocessor, over the object model's namespaces. Returns the part's warnings. */
+/**
+ * Load's preprocessor since CR-010 phase 4: every mc:AlternateContent is kept, and the part's
+ * warnings are what resolving would report. Returns them.
+ */
+export function mceKeep(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
+  return preprocessAlternateContent(doc, { resolve: false, partName: part?.partName.name }).warnings;
+}
+
+/** The resolving preprocessor (`mcePreprocess: true`), over the object model's namespaces. Returns the part's warnings. */
 export function mcePreprocess(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
   return preprocessAlternateContent(doc, { partName: part?.partName.name }).warnings;
 }
@@ -81,10 +102,15 @@ export function resolveAlternateContent(root: Node, understood: ReadonlySet<stri
   return preprocessAlternateContent(root, { understood }).resolved;
 }
 
-/** The pass itself: what it resolved, kept and reported. */
+/**
+ * The pass itself: what it resolved, kept and reported. With `resolve: false` it visits the elements
+ * resolving would, outermost first and into the branch the rule selects, reports the same warnings,
+ * and leaves the DOM as it was.
+ */
 export function preprocessAlternateContent(root: Node, options: McePreprocessOptions & { partName?: string } = {}): MceResult {
   const understood = options.understood ?? UNDERSTOOD_NAMESPACES;
   const keptHosts = options.keptHosts ?? KEPT_HOSTS;
+  const resolve = options.resolve ?? true;
   const result: MceResult = { resolved: 0, kept: 0, warnings: [] };
   const visit = (node: Node): void => {
     const hostKept = node.nodeType === 1 && keptHosts.has(`{${(node as Element).namespaceURI ?? ''}}${(node as Element).localName}`);
@@ -102,6 +128,11 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
       if (hostKept || (branch === undefined && choices.length > 0)) { result.kept++; continue; }
       const warning = branchesDiffer(el, choices, fallback, branch, understood, options.partName);
       if (warning) result.warnings.push(warning);
+      if (!resolve) {
+        result.kept++;
+        if (branch) visit(branch);
+        continue;
+      }
       const moved: Node[] = [];
       if (branch) for (let c = branch.firstChild; c; c = c.nextSibling) moved.push(c);
       for (const n of moved) node.insertBefore(n, el);
