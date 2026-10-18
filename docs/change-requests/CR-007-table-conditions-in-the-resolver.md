@@ -5,6 +5,8 @@
 hand-off (its section 9). CR-001 Phase B left table conditional formatting out (its sections 15.1 and 19) because
 docx4j did not have it; docx4j CR-030 (VERSION_17_3_1, phases 1 to 5 done 2026-10-03 and 2026-10-04,
 commits 3577e5181, ecaa95c1d, 8c387f484, 446d65c5d, 843ac12df) now does, and this is its port.
+Section 8 (docx4j 900b6a212 followed: below mode 15 the size exception applies wherever the table
+style formats text; 2026-10-12) implemented, **not released**.
 
 ## 1. What docx4j CR-030 did, as far as this package reads it
 

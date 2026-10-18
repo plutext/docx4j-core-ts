@@ -1,7 +1,8 @@
 # CR-009: The chart read model (docx4j CR-035 phase 2), held to its JSON goldens
 
 **Status:** Proposed 2026-10-12, on docx4j CR-035 phase 2's hand-off (the docx4j session,
-2026-10-12). Not scheduled; Jason decides. New scope, not a parity-bound correction.
+2026-10-12). Not scheduled; Jason decides. New scope, not a parity-bound correction. Section 8 (a
+chartex chart lost on save, and kept: `cx1` and `cx2` understood) fixed 2026-10-17, **not released**.
 
 ## 1. Why
 

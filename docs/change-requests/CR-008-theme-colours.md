@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-10-12, on docx4j CR-034's hand-off (the docx4j session, 2026-10-12).
 Phase 1 (the merge rules) implemented 2026-10-12, at Jason's request relayed by the docx4j-python
-session (section 6); phase 2 (the resolver) is new scope, not scheduled.
+session (section 6), **not released** (it came after 0.4.0); phase 2 (the resolver) is new scope, not scheduled.
 
 ## 1. Why
 

@@ -3,7 +3,10 @@
 **Status:** Phase A implemented 2026-09-10 (both steps); Phase B implemented 2026-09-19 (plan in
 section 14, notes in section 15; parity with docx4j VERSION_17_1_1 7fba7a150 on 45 goldens);
 Phase C implemented 2026-09-19 (section 16); Phase D implemented 2026-09-25 (section 18: font
-discovery over private reads, requested by the editor)
+discovery over private reads, requested by the editor); all four released. Sections 22, 23, 25 and
+26 (2026-10-12 to 2026-10-17: parity on docx4j 17.3.2 with two of its fixes ported, the font tables
+regenerated at docx4j `84d0f8a5b`, objects `^0.3.2` over jsonix 3.4.1, and a styles part that cannot
+be read refusing the document with an error that says so) implemented, **not released**.
 **Depends on:** `@docx4j/generated-objects-ts` 0.1.0 (the object model and its facade),
 `@docx4j/jsonix` 3.2.0 (`parentPointers`, `deepCopy`); one small runtime addition is listed in
 section 9.
