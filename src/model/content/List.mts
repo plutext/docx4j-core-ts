@@ -15,6 +15,7 @@
 // own, and a text box is a story of its own.  That costs a walk of the story per call;
 // `Body.listLabels()` does the walk once and answers for every paragraph.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { deepCopy, unmarshalNode } from '@docx4j/generated-objects-ts';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { parseXml } from '../../xml/dom.mjs';
@@ -24,7 +25,7 @@ import { NumberingState, storyKindOf } from '../listnumbering/state.mjs';
 import type { NumberingDefinitions, ListDefinition, LevelDefinition } from '../listnumbering/definitions.mjs';
 import { LEVELS } from '../listnumbering/definitions.mjs';
 import type { Emulator, NumRef } from '../listnumbering/Emulator.mjs';
-import { isElement, linkParents, type Element } from './tree.mjs';
+import { isElement, linkParents, selectedBranchOf, ALTERNATE_CONTENT, type Element } from './tree.mjs';
 import { Font, type RPrHolder } from './Font.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -151,6 +152,9 @@ function numRefOf(paragraph: Paragraph): NumRef | undefined {
  * counts in. `test/parity.test.mjs`'s `walkNumbering`, which is the harness's own walk: a text
  * box's paragraphs stay in this story's list (they are in the part, in document order) but
  * count in a story of their own, which is docx4j's rule (CR-014 probe P7).
+ *
+ * A kept `mc:AlternateContent` is walked through its selected branch alone (`selectedBranchOf`,
+ * docx4j's `McMode.READ`), so a text box held in both branches counts once (CR-010 phase 3).
  */
 function walkStory(root: unknown, state: NumberingState, emit: (p: wml.P, state: NumberingState) => void): void {
   const walk = (value: unknown, current: NumberingState): void => {
@@ -159,8 +163,10 @@ function walkStory(root: unknown, state: NumberingState, emit: (p: wml.P, state:
       return;
     }
     if (typeof value !== 'object' || value === null) return;
+    if (typeof (value as { nodeType?: unknown }).nodeType === 'number') return;      // DOM the model does not type
     if (isElement(value)) { walk((value as Element).value, current); return; }
     const node = value as Record<string, unknown> & { TYPE_NAME?: string };
+    if (node.TYPE_NAME === ALTERNATE_CONTENT) { walk(selectedBranchOf(node as mce.AlternateContent), current); return; }
     let inner = current;
     if (node.TYPE_NAME === 'org_docx4j_wml.P') emit(node as unknown as wml.P, current);
     else if (node.TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') inner = new NumberingState();

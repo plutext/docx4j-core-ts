@@ -123,7 +123,9 @@ Key mechanics:
   (`c:chartSpace`, the SpreadsheetML workbook) and where nothing can be selected (Choices only,
   none understood). Where it resolves, it reports `mce.branches_differ` on `XmlPart.warnings` when
   the branch taken and a branch dropped hold different text (`OpcPackage.warnings` gathers them).
-  It stays the default because the content API does not read kept branches yet (CR-010 phase 3).
+  It stays the default until CR-010 phase 4. Since phase 3 the content API reads a kept element too:
+  readers take `selectedBranchOf`'s branch (`mcBranchOf` over `UNDERSTOOD_PREFIXES`, the branch load
+  would resolve to), mutators every branch, and a run's element is one object segment.
   Since objects 0.4.0 a kept branch's `w:drawing` and `w:pict` are typed (objects CR-009, CR-010
   phase 2); the `xdr:` and `p:` drawing content and `c:style` inside one stay DOM.
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
@@ -162,6 +164,7 @@ Key mechanics:
 `create.test.mjs` the created docx, pptx and xlsx, `directory.test.mjs` the `./node` container and
 `clone()`, `omml.test.mjs` an equation in DrawingML text (docx4j `OmmlInDrawingMLTextTest`),
 `sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004),
+`kept-branches.test.mjs` the content API over kept `mc:AlternateContent`, resolved and kept loads compared (CR-010 phase 3),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

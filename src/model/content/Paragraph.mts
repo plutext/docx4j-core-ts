@@ -21,7 +21,7 @@ import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
-import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
+import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
@@ -305,16 +305,17 @@ export class Paragraph {
     return out;
   }
 
-  /** The inline pictures in this paragraph, in order (Office JS Paragraph.inlinePictures). */
+  /**
+   * The inline pictures in this paragraph, in order (Office JS Paragraph.inlinePictures): each
+   * `w:drawing` whose `wp:inline` holds a `pic:pic`, in a run or in the selected branch of a kept
+   * `mc:AlternateContent` (`picturesIn`). An inline chart, text box or group is not one (CR-010
+   * section 12.6).
+   */
   get inlinePictures(): InlinePicture[] {
     const out: InlinePicture[] = [];
     for (const run of runsOf(this.p)) {
       for (const item of (run.value.content ?? []) as Element[]) {
-        if (item.name.localPart !== 'drawing') continue;
-        const inline = (item.value as wml.Drawing).anchorOrInline?.[0];
-        if (inline && (inline as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_dml_wordprocessingDrawing.Inline') {
-          out.push(new InlinePicture(item as Element<wml.Drawing>, run, this));
-        }
+        for (const drawing of picturesIn(item)) out.push(new InlinePicture(drawing, run, this, drawing === item ? undefined : item));
       }
     }
     return out;

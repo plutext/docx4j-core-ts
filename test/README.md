@@ -1278,7 +1278,31 @@ already named, so each case starts by opening its own file.
    **Run the check** and copy the JSON back. Nothing is edited; close without saving. Here
    `Body.paragraphs` gives 11, `Body.text` leaves the box's text out, and `Body.inlinePictures` gives 1
    (the box's inline `w:drawing`). If Office JS gives 14 paragraphs, or the box's text in `body.text`,
-   it counts the box as the body's, and D7 is revisited.
+   it counts the box as the body's, and D7 is revisited. **Run 2026-10-18 (Jason, Word
+   16.0.20326.20232, PC):** 11 paragraphs, with `Body.paragraphs`' texts except that each note
+   reference stands as `\u0002` ("P11 Two footnotes\u0002 and\u0002", "P15 An endnote\u0002"; nothing
+   for P19's comment reference); `body.text` without the box's text; and **no** inline picture, where
+   `Body.inlinePictures` gives 1. So Office JS leaves the box out of the body, and D7 stands; it does
+   not count an inline text box as an inline picture. CR-010 section 12.6 records the two findings.
+43. Whether Office JS counts an inline chart as an inline picture (CR-010 section 13.4, 2026-10-18;
+   Jason: "we'd better check whether Office JS counts an inline chart as a picture"). In Word 365
+   (desktop), open `__tmp/43/loadAndSave.docx`, a copy of `fixtures/loadAndSave.docx` made for this
+   check. It has 41 paragraphs. The 30th, an empty one, holds an inline picture ("Graphic 2", 72 by
+   72 points). The 41st, the last, holds an inline chart ("Chart 2", 347.55 by 202.75 points, a
+   `c:chart` in the drawing's `a:graphicData`). The text box in the 26th paragraph is floating
+   (`wp:anchor`), so it is no inline picture either way. Open Script Lab (Insert > Get Add-ins >
+   Script Lab, then Script Lab > Code > New snippet), paste the HTML and Script tabs of the snippet
+   for 43 below over the defaults, click **Run the check** and copy the JSON back. Nothing is edited;
+   close without saving. Since CR-010 phase 3, `Body.inlinePictures` gives 1 (the picture), and 2
+   before (the chart too). If Office JS lists the chart, a second entry of about 347.55 by 202.75 in
+   the 41st paragraph, `inlinePictures` lists inline charts again. **Run 2026-10-18 (Jason, Word
+   16.0.20326.20232, PC):** 41 paragraphs and **one** inline picture, 72 by 72 in the 30th paragraph,
+   alt text "Badge Tick1 with solid fill", the same as `Body.inlinePictures` gives. The chart is not
+   listed, so Office JS does not count an inline chart as an inline picture, and phase 3's rule
+   stands. Also found: `getBase64ImageSrc()` gave 1016 characters. That is the length of the base64
+   of `word/media/image2.svg`, the SVG the picture's `asvg:svgBlip` embeds. `getBase64()` here gives
+   the PNG that the `a:blip` embeds (`image1.png`, 5652). Only the lengths were compared. CR-010
+   section 13.4 records both findings.
 
 A small Node script for 1 to 3 is:
 
@@ -2888,6 +2912,58 @@ async function check() {
       bodyTextHasBox: /P2[0-2]/.test(body.text),
       inlinePictures: pictures.items.map((p) => [p.width, p.height]),
     }, null, 2);
+  });
+}
+```
+
+And the Script Lab snippet for 43 (Word, Office JS, WordApi 1.3), on `__tmp/43/loadAndSave.docx`. The
+HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+async function check() {
+  await Word.run(async (context) => {
+    const paragraphs = context.document.body.paragraphs;
+    const pictures = context.document.body.inlinePictures;
+    paragraphs.load('items');
+    pictures.load('items/width,items/height,items/altTextTitle,items/altTextDescription');
+    await context.sync();
+    // each picture's paragraph, as its 1-based position among the body's paragraphs
+    const positions = pictures.items.map((p) => {
+      const range = p.paragraph.getRange('Whole');
+      return paragraphs.items.map((q) => range.compareLocationWith(q.getRange('Whole')));
+    });
+    await context.sync();
+    const report = {
+      host: Office.context.diagnostics,
+      paragraphs: paragraphs.items.length,
+      inlinePictures: pictures.items.map((p, i) => ({
+        width: p.width,
+        height: p.height,
+        altTextTitle: p.altTextTitle,
+        altTextDescription: p.altTextDescription,
+        paragraph: positions[i].findIndex((c) => c.value === 'Equal') + 1,
+      })),
+    };
+    // the image Office JS gives for each, on its own, in case a chart has none
+    try {
+      const images = pictures.items.map((p) => p.getBase64ImageSrc());
+      await context.sync();
+      images.forEach((image, i) => { report.inlinePictures[i].base64Length = image.value.length; });
+    } catch (e) {
+      report.base64Error = String(e.message || e);
+    }
+    out.value = JSON.stringify(report, null, 2);
   });
 }
 ```

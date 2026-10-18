@@ -6,6 +6,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import type * as wp from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_wordprocessingDrawing';
 import type * as pic from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_picture';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { inlinePicture } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { ContentTypes, IMAGE_CONTENT_TYPES_BY_EXTENSION } from '../../opc/ContentTypes.mjs';
@@ -13,7 +14,7 @@ import { base64Decode, base64Encode, decodeXmlText } from '../../xml/dom.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import type { Part } from '../../parts/Part.mjs';
-import { type Element, type RevisionHolder, find, runOf, linkParents, revisionKindOf } from './tree.mjs';
+import { type Element, type RevisionHolder, find, runOf, linkParents, revisionKindOf, isElement, typeNameOf, isAlternateContent, selectedBranchOf } from './tree.mjs';
 import { type ChangeTracker, copyRPr } from './tracking.mjs';
 import { type RelationshipRemovals, relationshipIdsIn, queueRelationshipRemovals } from './relationships.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -286,8 +287,34 @@ const FORMAT_BY_CONTENT_TYPE: Readonly<Record<string, ImageFormat>> = {
 };
 
 /**
- * A subset of Office JS `Word.InlinePicture` over a `w:drawing` holding a `wp:inline`. A view:
- * the drawing, the run it is in and the paragraph. Sizes are points, as Office JS reports them.
+ * The inline pictures a run's item holds: the item itself when it is a `w:drawing` whose `wp:inline`
+ * holds a `pic:pic`, and those in a kept `mc:AlternateContent`'s selected branch (`selectedBranchOf`,
+ * CR-010 phase 3). A drawing of anything else, such as a chart, a text box, a group or SmartArt, is no
+ * inline picture: Office JS lists none for an inline text box (CR-010 section 12.6, test/README.md
+ * check 42).
+ */
+export function picturesIn(item: Element): Element<wml.Drawing>[] {
+  if (isAlternateContent(item)) {
+    return (selectedBranchOf(item.value as mce.AlternateContent) ?? []).flatMap((child) => (isElement(child) ? picturesIn(child) : []));
+  }
+  return item.name.localPart === 'drawing' && holdsInlinePicture(item.value as wml.Drawing) ? [item as Element<wml.Drawing>] : [];
+}
+
+/** True for a drawing whose `wp:inline` holds a `pic:pic`. */
+function holdsInlinePicture(drawing: wml.Drawing): boolean {
+  const inline = drawing.anchorOrInline?.[0] as wp.Inline | undefined;
+  if (!inline || inline.TYPE_NAME !== 'org_docx4j_dml_wordprocessingDrawing.Inline') return false;
+  const first = inline.graphic?.graphicData?.any?.[0];
+  return isElement(first) && typeNameOf(first) === 'org_docx4j_dml_picture.Pic';
+}
+
+/**
+ * A subset of Office JS `Word.InlinePicture` over a `w:drawing` holding a `wp:inline` with a `pic:pic`.
+ * A view: the drawing, the run it is in and the paragraph. Sizes are points, as Office JS reports them.
+ *
+ * A picture in a kept `mc:AlternateContent`'s selected branch has the element as its `holder`. Reads and
+ * the setters are the selected branch's drawing; `delete` removes the element whole, every branch with
+ * it (CR-010 phase 3).
  */
 export class InlinePicture {
   constructor(
@@ -296,6 +323,8 @@ export class InlinePicture {
     /** The run holding the drawing, and the array holding the run. */
     readonly run: Element<wml.R>,
     readonly paragraph: Paragraph,
+    /** The run's item the drawing stands in, where that is not the drawing: a kept `mc:AlternateContent`. */
+    readonly holder?: Element,
   ) {}
 
   /** The wp:inline; a floating picture (wp:anchor) is not an InlinePicture, and throws. */
@@ -373,7 +402,8 @@ export class InlinePicture {
   }
 
   /**
-   * Removes the picture; the run goes too when the picture was all it held.
+   * Removes the picture; the run goes too when the picture was all it held. A picture in a kept
+   * `mc:AlternateContent` takes the element with it, every branch (`holder`).
    *
    * While the package tracks changes it is marked deleted instead: its run goes into a `w:del`, and
    * when the run held more than the picture, the picture is first given a run of its own with the
@@ -398,8 +428,9 @@ export class InlinePicture {
       this.markDeleted(tracker, place);
       return;
     }
+    const item = this.holder ?? this.element;
     const content = this.run.value.content as Element[] | undefined;
-    const at = content?.indexOf(this.element) ?? -1;
+    const at = content?.indexOf(item) ?? -1;
     if (content && at >= 0) content.splice(at, 1);
     if (!content || content.length === 0) {
       const i = place.items.indexOf(this.run as Element);
@@ -410,7 +441,7 @@ export class InlinePicture {
       }
     }
     const ids = new Set<string>();
-    relationshipIdsIn(this.element, ids);
+    relationshipIdsIn(item, ids);
     const pkg = this.paragraph.parentBody.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined;
     queueRelationshipRemovals(pkg?.pendingRelationshipRemovals, this.paragraph.parentBody.part, ids);
   }
@@ -420,14 +451,15 @@ export class InlinePicture {
     const run = this.run;
     const at = place.items.indexOf(run as Element);
     const content = (run.value.content ?? []) as Element[];
-    const i = content.indexOf(this.element as Element);
+    const item = this.holder ?? this.element as Element;
+    const i = content.indexOf(item);
     if (at < 0 || i < 0) return;
     const before = content.slice(0, i);
     const after = content.slice(i + 1);
     const pieces: Element[] = [];
     let alone: Element<wml.R> = run;
     if (before.length > 0 || after.length > 0) {
-      alone = runOf([this.element as Element], copyRPr(run.value.rPr));
+      alone = runOf([item], copyRPr(run.value.rPr));
       if (before.length > 0) {
         run.value.content = before as wml.R['content'];
         pieces.push(run as Element);

@@ -17,7 +17,8 @@
 //     in document order and with one `NumberingState` per story as the harness had them, the
 //     `Emulator`'s `numString`, `isBullet`, `numFont`, `ilvl`, `numId`, its `NumRef` and the
 //     whole state after the paragraph, plus `ind`, `indResolved`, `lvl` and `labelRPr` as object
-//     trees.  Step 4 adds fonts.
+//     trees.  Step 4 adds fonts.  The fixtures holding mc:AlternateContent run each comparison
+//     twice, the element resolved and kept (`KEPT`, CR-010 phase 3).
 //
 // **How a value is compared.**  Our object is marshalled to XML through the objects facade,
 // and then *both* strings are unmarshalled, so both sides took the same path: attribute order,
@@ -33,7 +34,7 @@ import { dirname, join } from 'node:path';
 import {
   parseXml, unmarshalNode, marshalString, WordprocessingMLPackage,
   HeaderPart, FooterPart, Emulator, NumberingStates,
-  TableContextTracker, TableStyleConditions, rowsOf, cellsOf,
+  TableContextTracker, TableStyleConditions, rowsOf, cellsOf, selectedBranchOf,
 } from '../dist/index.mjs';
 import { fixturesDir, plain } from './helpers.mjs';
 
@@ -41,6 +42,24 @@ const goldenDir = join(dirname(fileURLToPath(import.meta.url)), 'golden');
 const names = (await readdir(goldenDir)).filter((n) => n.endsWith('.json')).sort();
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+/**
+ * The fixtures holding mc:AlternateContent, as their XPath goldens count it (test/golden/xpath/). Their
+ * comparisons run twice: loaded the default way, which resolves the element, and with it kept
+ * (`mcePreprocess: false`), as docx4j keeps it, where the walks below and `TableContextTracker.walk`
+ * read the selected branch (CR-010 phase 3). docx4j's harness reads the same branch, since it sets
+ * `preferChoice` to this package's understood prefixes (CR-010 section 11.5).
+ */
+const KEPT = new Set();
+for (const name of names) {
+  const xpath = JSON.parse(await readFile(join(goldenDir, 'xpath', name), 'utf8'));
+  if (xpath.header.alternateContent > 0) KEPT.add(name);
+}
+/** Each golden once, loaded the default way, and those in KEPT once more with the element kept. */
+const RUNS = [...names.map((name) => ({ name, kept: false })), ...[...KEPT].map((name) => ({ name, kept: true }))];
+const loadOptions = (kept) => (kept ? { mcePreprocess: false } : undefined);
+const keptLabel = (kept) => (kept ? ' (mc:AlternateContent kept)' : '');
+const MCE_ALTERNATE_CONTENT = 'org_docx4j_mce.AlternateContent';
 
 /**
  * The container each recorded element lives in.  The runtime resolves global elements only
@@ -103,6 +122,7 @@ function xmlStrings(value, into) {
 
 test('parity goldens: present', () => {
   assert.ok(names.length >= 62, `${names.length} goldens`);
+  assert.deepEqual([...KEPT].sort(), ['loadAndSave.json', 'numbering-stories-coretests.json', 'numbering-stories.json', 'tables-textbox-in-cell.json']);
 });
 
 for (const name of names) {
@@ -157,7 +177,8 @@ function isElement(value) {
 /**
  * Every object under `root` in document order: own enumerable properties in order, arrays in
  * order, element pairs unwrapped.  The unmarshalled tree keeps document order in its `content`
- * arrays, which is what the harness's TraversalUtil walk gives.
+ * arrays, which is what the harness's TraversalUtil walk gives.  A kept mc:AlternateContent is
+ * walked through its selected branch, as the harness's walk (McMode.READ) is.
  */
 function visit(root, fn) {
   const walk = (value) => {
@@ -167,6 +188,7 @@ function visit(root, fn) {
     }
     if (typeof value !== 'object' || value === null) return;
     if (isElement(value)) { walk(value.value); return; }
+    if (value.TYPE_NAME === MCE_ALTERNATE_CONTENT) { walk(selectedBranchOf(value)); return; }
     if (fn(value) === false) return; // do not descend
     for (const key of Object.keys(value)) {
       if (key === 'PARENT' || key === 'TYPE_NAME') continue;
@@ -360,11 +382,11 @@ async function storiesOf(pkg, golden) {
   return out;
 }
 
-for (const name of names) {
-  test(`parity ${name}: styles, paragraphs, runs and tables equal docx4j`, async () => {
+for (const { name, kept } of RUNS) {
+  test(`parity ${name}${keptLabel(kept)}: styles, paragraphs, runs and tables equal docx4j`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
     const resolver = await pkg.getPropertyResolver();
 
     const differences = [];
@@ -395,12 +417,17 @@ for (const name of names) {
       // the context of every paragraph the way a whole-document walk gets it (TableContextTracker),
       // to be the same as cellContextOf's, which climbs the PARENT pointers of one paragraph
       const tracked = new Map();
-      new TableContextTracker(resolver).walk(stories.get(story), (p, ctx) => tracked.set(p, ctx));
+      const walked = [];
+      new TableContextTracker(resolver).walk(stories.get(story), (p, ctx) => { walked.push(p); tracked.set(p, ctx); });
       if (paragraphs.length !== recorded.paragraphs.length) {
         const at = recorded.paragraphs.find((p, i) => (paragraphs[i]?.paraId ?? null) !== p.paraId);
         report(`${story}: ${paragraphs.length} paragraphs, the golden has ${recorded.paragraphs.length}`
           + (at ? `; first mismatch at index ${at.index} (${JSON.stringify(at.text)})` : ''));
         continue;
+      }
+      // the tracker visits the paragraphs the harness does, each once and in order (a kept text box once)
+      if (walked.length !== paragraphs.length || walked.some((p, i) => p !== paragraphs[i])) {
+        report(`${story}: the tracker visits ${walked.length} paragraphs, the walk ${paragraphs.length}`);
       }
       for (let i = 0; i < paragraphs.length; i++) {
         const p = paragraphs[i];
@@ -516,7 +543,8 @@ for (const name of names) {
  *
  * `w:txbxContent` is where the new story starts here.  The harness enters it one node earlier -
  * at the `wp:inline`, the `wps:wsp` or the VML `v:textbox` - but every one of those holds its
- * paragraphs inside a single `w:txbxContent`, so the state the paragraphs see is the same.
+ * paragraphs inside a single `w:txbxContent`, so the state the paragraphs see is the same.  A
+ * kept mc:AlternateContent is walked through its selected branch, as the harness's walk is.
  */
 function walkNumbering(root, state, newStory, emit) {
   const walk = (value, current) => {
@@ -526,6 +554,7 @@ function walkNumbering(root, state, newStory, emit) {
     }
     if (typeof value !== 'object' || value === null) return;
     if (isElement(value)) { walk(value.value, current); return; }
+    if (value.TYPE_NAME === MCE_ALTERNATE_CONTENT) { walk(selectedBranchOf(value), current); return; }
     let inner = current;
     if (value.TYPE_NAME === 'org_docx4j_wml.P') emit(value, current);
     else if (value.TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') inner = newStory();
@@ -566,11 +595,11 @@ function stateJson(state) {
   return { counters, startOverridesApplied: [...state.startOverridesApplied].sort() };
 }
 
-for (const name of names) {
-  test(`parity ${name}: numbering equals docx4j per story`, async () => {
+for (const { name, kept } of RUNS) {
+  test(`parity ${name}${keptLabel(kept)}: numbering equals docx4j per story`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
     await pkg.getPropertyResolver();
     const emulator = await pkg.getNumberingEmulator();
 
@@ -662,11 +691,11 @@ function textOfRun(r) {
   return text;
 }
 
-for (const name of names) {
-  test(`parity ${name}: font spans, fonts in use and the mapping equal docx4j`, async () => {
+for (const { name, kept } of RUNS) {
+  test(`parity ${name}${keptLabel(kept)}: font spans, fonts in use and the mapping equal docx4j`, async () => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
     const path = await fixturePath(golden.header.fixture);
-    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)));
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(path)), loadOptions(kept));
     const resolver = await pkg.getPropertyResolver();
     const main = pkg.getMainDocumentPart();
     const selector = await main.getRunFontSelector();

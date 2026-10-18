@@ -1,7 +1,9 @@
 // The text model of a paragraph and the block-level structure, over the objects package's
 // builders (walk, find, linkParents, textOf and the element helpers come from there).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { isElement, typeNameOf, runItemsOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
+import { isElement, typeNameOf, runItemsOf, mcBranchOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
+import { UNDERSTOOD_PREFIXES } from '../../opc/mce/understood.mjs';
 
 export { isElement, typeNameOf, walk, find, linkParents, textOf, W_NS, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
@@ -25,9 +27,30 @@ export interface SegmentOptions extends TextViewOptions {
 /**
  * Run content that stands in the text and has no text of its own: a `w:drawing` (a picture, a chart, a
  * text box), a VML `w:pict` and an embedded `w:object`. Office JS counts an inline picture as in a
- * range, so a span's deletion takes the objects in it (CR-002 section 48).
+ * range, so a span's deletion takes the objects in it (CR-002 section 48). A kept `mc:AlternateContent`
+ * in a run is one such object too, whatever its branches hold (`ALTERNATE_CONTENT`, CR-010 phase 3).
  */
 export const OBJECT_ITEMS: ReadonlySet<string> = new Set(['drawing', 'pict', 'object']);
+
+/** The TYPE_NAME of a kept `mc:AlternateContent` (loaded with `mcePreprocess: false`, or under `KEPT_HOSTS`). */
+export const ALTERNATE_CONTENT = 'org_docx4j_mce.AlternateContent';
+
+/**
+ * The branch of a kept `mc:AlternateContent` the content API reads (docx4j's `McMode.READ`, CR-010
+ * phase 3): the objects package's `mcBranchOf` over the prefixes load understands
+ * (`UNDERSTOOD_PREFIXES`), so a reader of the kept element takes the branch the preprocessor would have
+ * resolved it to. A mutator walks every branch instead (docx4j's `McMode.ALL`). Undefined for an element
+ * with no branches.
+ */
+export function selectedBranchOf(value: mce.AlternateContent | undefined): Element[] | undefined {
+  return mcBranchOf(value, { understood: UNDERSTOOD_PREFIXES });
+}
+
+/** True for a kept `mc:AlternateContent`: its element pair, or its value. */
+export function isAlternateContent(value: unknown): boolean {
+  const v = isElement(value) ? value.value : value;
+  return typeof v === 'object' && v !== null && (v as { TYPE_NAME?: string }).TYPE_NAME === ALTERNATE_CONTENT;
+}
 
 /**
  * Which objects at a span's edges are in the span. An object stands between two characters, so one at
@@ -77,7 +100,7 @@ export interface TextSegment {
   end: number;
   /** True for w:t: text that can be edited in place. */
   editable: boolean;
-  /** True for a drawn object (`OBJECT_ITEMS`), whose segment has no text: listed only when asked for. */
+  /** True for a drawn object (`OBJECT_ITEMS`, or a kept `mc:AlternateContent`), whose segment has no text: listed only when asked for. */
   object?: boolean;
   /**
    * The nearest enclosing w:ins / w:del / w:moveFrom / w:moveTo, when the run is in one.
@@ -134,6 +157,11 @@ function itemText(item: Element): string | undefined {
  * accepted one: the runs of a `w:ins` or `w:moveTo` count, those of a `w:del` or `w:moveFrom`
  * do not. `{ view: 'original' }` is the other way round (CR-002 phase F). `{ objects: true }`
  * lists the drawn objects too, each a segment of no text where it stands (CR-002 section 48).
+ *
+ * A kept `mc:AlternateContent` in a run is one object segment, whatever its branches hold, so that
+ * removing a span removes every branch with it (CR-010 phase 3). A drawing adds no text, so the
+ * offsets are a resolved load's. One in a paragraph's content, outside a run, is not listed: Word
+ * writes none, and the corpus has none (CR-010 section 11.3).
  */
 export function segmentsOf(container: object, options?: SegmentOptions): TextSegment[] {
   const view = options?.view ?? 'accepted';
@@ -152,7 +180,7 @@ export function segmentsOf(container: object, options?: SegmentOptions): TextSeg
           const item = content[j]!;
           const text = itemText(item);
           if (text === undefined) {
-            if (objects && OBJECT_ITEMS.has(item.name.localPart)) {
+            if (objects && (OBJECT_ITEMS.has(item.name.localPart) || isAlternateContent(item))) {
               const seg: TextSegment = { item, owner: content, index: j, run, runOwner: items, runIndex: i, text: '', start: pos, end: pos, editable: false, object: true };
               if (revision) seg.revision = revision;
               out.push(seg);

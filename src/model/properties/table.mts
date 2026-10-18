@@ -8,8 +8,9 @@
 // resolver's overloads which take one put the table level where ECMA-376-1 17.7.2 puts it:
 // above the document defaults, below the paragraph's own style.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { isEmptyPPr, isEmptyRPr } from './styleUtil.mjs';
-import { rowsOf, cellsOf } from '../content/tree.mjs';
+import { rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT } from '../content/tree.mjs';
 import {
   type Condition, type Look, PRECEDENCE, DEFAULT_LOOK, lookOf, rowBandSize, colBandSize, rowCnf,
   resolve, rowConditions, applicable, formatsText, key as conditionsKey,
@@ -336,7 +337,9 @@ export class TableContextTracker {
   /**
    * Walks everything under `root` (an object, an element pair or an array of them), in document
    * order, calling `visit` for each paragraph with its context. It descends through every
-   * member but the `PARENT` pointers, so a text box's paragraphs are reached, in no table.
+   * member but the `PARENT` pointers, so a text box's paragraphs are reached, in no table. A kept
+   * `mc:AlternateContent` is descended through its selected branch alone (`selectedBranchOf`,
+   * docx4j's `McMode.READ`), so a text box held in both branches is visited once (CR-010 phase 3).
    */
   walk(root: unknown, visit: (p: wml.P, cellContext: CellContext | undefined) => void): void {
     const seen = new Set<object>();
@@ -349,6 +352,7 @@ export class TableContextTracker {
       if (seen.has(o)) return;
       seen.add(o);
       const typeName = (o as { TYPE_NAME?: string }).TYPE_NAME;
+      if (typeName === ALTERNATE_CONTENT) { descend(selectedBranchOf(o as mce.AlternateContent), depth + 1); return; }
       if (typeName === P) visit(o as wml.P, this.cellContext(o as wml.P));
       const leave = this.enter(o);
       for (const key of Object.keys(o)) {

@@ -9,6 +9,8 @@
 // slicer namespaces of CR-004 phase B, whose content the model does not bind at all but carries
 // through as DOM, and the chartex namespaces Office gates a chart's frame with, which nothing in the
 // Choice uses (CR-009 section 8).
+import { NAMESPACE_PREFIXES } from '@docx4j/generated-objects-ts';
+
 export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
   'http://schemas.openxmlformats.org/package/2006/relationships',
@@ -139,3 +141,16 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/drawing/2015/9/8/chartex',
   'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
 ]);
+
+/**
+ * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), which is what a reader of a
+ * kept mc:AlternateContent matches `mc:Choice/@Requires` against (CR-010 section 11.5): the unmarshalled
+ * model does not keep the declarations in force at the element, so the objects package's `mcBranchOf`
+ * compares prefixes, and its default set, every prefix `NAMESPACE_PREFIXES` knows, is wider than what
+ * load understands. Through this set a reader takes the branch the preprocessor would have resolved to,
+ * wherever the document writes the conventional prefixes. An understood namespace with no conventional
+ * prefix has no entry.
+ */
+export const UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set(
+  [...UNDERSTOOD_NAMESPACES].map((uri) => NAMESPACE_PREFIXES[uri]).filter((prefix): prefix is string => prefix !== undefined && prefix !== ''),
+);

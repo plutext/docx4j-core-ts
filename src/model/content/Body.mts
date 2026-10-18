@@ -1,9 +1,10 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/exceptions.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf } from './tree.mjs';
+import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf, runsOf } from './tree.mjs';
 import { Paragraph } from './Paragraph.mjs';
@@ -785,25 +786,43 @@ function describe(el: Element): string {
  * it - a `w:txbxContent`, in a DrawingML shape or a VML one - which Word counts as a story of its own
  * (CR-002 section 49). A text box inside a text box is reached through its own story. Returns how many
  * changes were listed.
+ *
+ * In a kept `mc:AlternateContent` the text box of every branch is resolved, so that each says the same
+ * afterwards (docx4j's `McMode.ALL`), and the changes are counted in the selected branch alone, so a
+ * text box held in both counts once, as a resolved load's does (CR-010 phase 3).
  */
 export function resolveStory(body: Body, what: 'accept' | 'reject'): number {
   let count = what === 'accept' ? body.acceptAll() : body.rejectAll();
-  for (const box of textBoxesIn(body.container)) count += resolveStory(body.sub(box), what);
+  for (const { box, selected } of textBoxesIn(body.container)) {
+    const resolved = resolveStory(body.sub(box), what);
+    if (selected) count += resolved;
+  }
   return count;
 }
 
-/** The `w:txbxContent` of every text box in a story's content, not descending into one found. */
-function textBoxesIn(container: { content?: Element[] }): { content?: Element[] }[] {
-  const out: { content?: Element[] }[] = [];
+/**
+ * The `w:txbxContent` of every text box in a story's content, not descending into one found, each with
+ * whether it is in a branch a reader takes: false inside a branch of a kept `mc:AlternateContent` other
+ * than its selected one (`selectedBranchOf`).
+ */
+function textBoxesIn(container: { content?: Element[] }): { box: { content?: Element[] }; selected: boolean }[] {
+  const out: { box: { content?: Element[] }; selected: boolean }[] = [];
   const seen = new Set<object>();
-  const visit = (o: unknown): void => {
+  const visit = (o: unknown, selected: boolean): void => {
     if (typeof o !== 'object' || o === null || seen.has(o)) return;
     if (typeof (o as { nodeType?: unknown }).nodeType === 'number') return;      // DOM the model does not type
     seen.add(o);
-    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
-    if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') { out.push(o as { content?: Element[] }); return; }
-    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key]);
+    if (Array.isArray(o)) { for (const item of o) visit(item, selected); return; }
+    const typeName = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (typeName === 'org_docx4j_wml.CTTxbxContent') { out.push({ box: o as { content?: Element[] }, selected }); return; }
+    if (typeName === ALTERNATE_CONTENT) {
+      const ac = o as mce.AlternateContent;
+      const read = selectedBranchOf(ac);
+      for (const branch of [...(ac.choice ?? []), ...(ac.fallback ? [ac.fallback] : [])]) visit(branch.any, selected && branch.any === read);
+      return;
+    }
+    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key], selected);
   };
-  visit(container.content);
+  visit(container.content, true);
   return out;
 }

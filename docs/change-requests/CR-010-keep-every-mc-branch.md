@@ -7,8 +7,8 @@ package's CR-009, released in its 0.4.0, which this package now requires (sectio
 implemented 2026-10-18 (section 11): the walker audit, the editor's exposure, the XPath and parity
 measurements, and the survey as a test in `mce.test.mjs`; D5 and D6 decided by Jason that day,
 and D5 implemented (section 11.8).
-Phases 3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in
-17.2.0).
+Phase 3 implemented 2026-10-18 at Jason's request ("do CR-010 phase 3"; section 13). Phase 4 is not
+scheduled and waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in 17.2.0).
 
 ## 1. Why
 
@@ -160,6 +160,8 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
    - `Body.paragraphs` and the story walks deciding how a text box's paragraphs count, as docx4j's
      READ visits them once (section 12: D7 and D8);
    - `InlinePicture`, search, `replaceText`, tracked changes, bindings.
+   - Implemented 2026-10-18 (section 13). Search, `replaceText` and bindings reach no text box in
+     either load, and go to the text-model CR with the text-box view (section 13.4).
 4. **The default flips to keep** (a day, plus the editor's side): `mcePreprocess` defaults to false.
    - The four XPath fixtures rejoin `xpath-parity.test.mjs`. Done early, by D5 (section 11.8).
    - CR-001 section 5.6 is corrected.
@@ -498,7 +500,7 @@ share a primitive.
 |---|---|---|
 | `List.mts` `walkStory`, under `Body.listLabels`, `ListItem.listString`, `level` and `siblingIndex` | generic. A text box's list paragraphs are numbered once per branch: `numbering-stories` gives 12 labels where resolving gives 9. The body's own numbers don't move, because a text box counts in a fresh state | `mcBranchOf` at the element |
 | `TableContextTracker.walk` (public; the parity test uses it) | generic. A text box's paragraphs are visited once per branch, each with no context | `mcBranchOf` |
-| `Paragraph.inlinePictures`, under `Body.inlinePictures` | named. An inline drawing in the Choice is no longer listed: 1 to 0 in each `numbering-stories`, 3 to 0 in `tables-textbox-in-cell`, 1 to 0 in `waterfall` | the selected branch's `w:drawing` |
+| `Paragraph.inlinePictures`, under `Body.inlinePictures` | named. An inline drawing in the Choice is no longer listed: 1 to 0 in each `numbering-stories`, 3 to 0 in `tables-textbox-in-cell`, 1 to 0 in `waterfall`. Check 42 found since that Office JS lists no inline picture for `numbering-stories`' inline text box, so for a text box 0 is Office JS's count, and the resolved load's 1 is the defect (section 12.6) | pictures only (`pic:pic`), from the selected branch (section 12.6) |
 | the `segmentsOf` and `runsOf` readers: search, the text views, `Range` reads | named. Same results either way, since a drawing adds no text to a paragraph's | none, until the text CR (section 7) puts a text box's text in |
 | `textOf`: `Paragraph.text`, `Body.text`, the outline's text, `toApiScript`'s cell text | READ already. A drawing gives no text in either load | none |
 | `placeholdersOf` (a pptx layout's placeholders) | named. A placeholder inside an element would be missed. The corpus has none there | `mcBranchOf`, low priority |
@@ -651,7 +653,8 @@ in this repository.
    walker in section 11.2 goes through it.
 2. **`segmentsOf`** lists the element as one `OBJECT_ITEMS` segment, where its `w:drawing` stood.
    That closes section 48's gap for a tracked delete, a range deletion and the text setter, since
-   removing the element removes every branch. It also gives `inlinePictures` a place to look.
+   removing the element removes every branch. `inlinePictures` lists pictures only (`pic:pic`), in a
+   drawing or in the selected branch, since Office JS lists no inline text box (section 12.6).
 3. **`walkStory` and `TableContextTracker.walk`** take the selected branch at the element.
 4. **`resolveStory`** goes on resolving every branch's text boxes, and counts the selected branch.
 5. **Predating this CR, and decided with the text CR** (section 7): text boxes in content controls
@@ -713,7 +716,8 @@ box exists twice, once in each branch, so the answer decides what every count is
     that paragraph, `body/3/textbox:0/1`, never as body ordinals (REQ-519). Its note says the ports
     adopt these segment kinds with their text-model CRs.
 - **Word** counts a text box as a story of its own (section 7, from `StoryRanges`). What Office JS's
-  `body.paragraphs` gives over a document with a text box is not measured.
+  `body.paragraphs` gives over a document with a text box was not measured when this was written;
+  check 42 measured it since (section 12.6): it leaves the box out.
 
 ### 12.2 The options
 
@@ -771,3 +775,160 @@ items 3 and 4.
   `numbering-stories.docx`. It reads Office JS's `body.paragraphs` (11 here, 14 with the box's),
   whether `body.text` holds the box's text, and `body.inlinePictures` (1 here: the box's inline
   drawing). If Office JS counts the box as the body's, D7 is revisited before phase 3 relies on it.
+  Run the same day: it doesn't, and D7 and D8 stand without condition (section 12.6).
+
+### 12.6 Check 42 (2026-10-18)
+
+Jason ran check 42 in Word 16.0.20326.20232 (PC) on a copy of `numbering-stories.docx`.
+
+- **D7 stands.** `body.paragraphs` holds 11 paragraphs, the same as `Body.paragraphs`, and
+  `body.text` leaves out the box's text (P20 to P22). Office JS leaves a text box's paragraphs out of
+  the body, as option A does. D7 and D8 hold without condition.
+- **Found: Office JS lists no inline picture for an inline text box.** `Paragraph.inlinePictures`
+  lists every `w:drawing` holding a `wp:inline`, whatever its graphic, so it lists the box. It gives 1
+  where Office JS gives 0.
+  - This predates this CR (CR-002's `InlinePicture`) and shows in the default load.
+  - Section 11.2 read the kept load's 0 as a loss. For a text box, 0 is Office JS's count.
+  - Phase 3 therefore lists pictures only, a drawing whose `a:graphicData` holds a `pic:pic`, in the
+    drawing itself or in the selected branch (section 11.7 item 2). Resolved and kept then agree
+    with Office JS, and `tables-textbox-in-cell`'s three boxes and `waterfall`'s chartex frame are
+    no inline pictures in either load.
+  - Whether Office JS lists an inline chart is not measured. `loadAndSave.docx` has an inline
+    `c:chart` beside an inline picture, and this package listed both. Check 43 measured it since:
+    Office JS lists no inline chart either (section 13.4).
+- **Found: Office JS puts U+0002 in a paragraph's text for each note reference.** The two footnote
+  references in "P11 Two footnotes and" and the endnote reference in "P15 An endnote" each read
+  `\u0002`. P19's comment reference reads as nothing. `Paragraph.text` (`textOf`, docx4j's
+  `TextUtils`) gives nothing for any of them. This predates this CR and is not phase 3's. It is a
+  rule of the text model, for the text-model CR to settle against the specification.
+
+
+## 13. Phase 3: the content API over kept branches (2026-10-18)
+
+Jason asked for phase 3 on 2026-10-18 ("do CR-010 phase 3"). It works from section 11.7's list, with
+D7 and D8 (section 12) and check 42's finding on inline pictures (section 12.6). Implemented the same
+day. A kept tree now answers as a resolved one does, and the default load stays resolving until
+phase 4.
+
+### 13.1 What changed
+
+- **One selection helper** (section 11.7 item 1):
+  - `UNDERSTOOD_PREFIXES` (`./opc`) is `UNDERSTOOD_NAMESPACES` through `NAMESPACE_PREFIXES`, 100
+    prefixes.
+  - `selectedBranchOf(element)` (`./model`) is `mcBranchOf` over that set, so a reader takes the
+    branch load would have resolved the element to. A Choice requiring `w16du`, `x14ac` or `cx3`
+    (conventional, not understood) gives the Fallback here, where `mcBranchOf`'s own default gives
+    the Choice.
+  - `isAlternateContent(value)` (`./model`) recognises the element or its value.
+  - Every READ walker below goes through the helper.
+- **`segmentsOf({ objects: true })`** lists the element in a run as one object segment of no text
+  (item 2). A tracked `Paragraph.delete` or `Range.delete` puts its run in the `w:del`, and Accept All
+  removes it. An untracked whole-range delete and `insertText(..., 'Replace')` remove it. Every branch
+  goes, since the element goes whole. That closes CR-002 section 48's gap on kept trees.
+  - Offsets don't move, since the element adds no text.
+  - An element in a paragraph's content, outside a run, is not listed. Word writes none, and the
+    corpus has none (section 11.3).
+- **`inlinePictures` lists pictures only.** That is a `w:drawing` whose `wp:inline` holds a `pic:pic`,
+  in a run or in the selected branch of a kept element (`picturesIn`, section 12.6).
+  - A picture from a branch carries the element as `InlinePicture.holder`. Its `delete` removes the
+    element whole, untracked or tracked, and its image relationship is queued with every branch's.
+  - Reads and setters are the selected branch's drawing (section 13.4).
+  - **This changes answers in the default load too**, since a chart, a text box or a group is no
+    longer listed:
+
+    | fixture | before | now | what is no longer listed |
+    |---|---|---|---|
+    | `loadAndSave.docx` | 2 | 1 | the inline `c:chart` (check 43: Office JS gives 1) |
+    | `numbering-stories.docx`, `numbering-stories-coretests.docx` | 1 | 0 | the inline `wps` text box (check 42: Office JS gives 0) |
+    | `tables-textbox-in-cell.docx` | 3 | 0 | three inline `wps` text boxes |
+    | `charts/waterfall.docx` | 1 | 0 | the chartex frame |
+
+- **`walkStory`** (`List.mts`, under `listLabels`, `ListItem.listString`, `level`, `siblingIndex`) and
+  **`TableContextTracker.walk`** take the selected branch at the element (item 3), so a text box is
+  numbered and visited once.
+- **`resolveStory`** (`pkg.acceptAllRevisions`, `rejectAllRevisions`) still resolves every branch's
+  text box, and counts the changes of the selected one (item 4).
+- **`Body.paragraphs` is unchanged** (D7), and so is everything built on it. No text-box view (D8).
+
+### 13.2 Measured
+
+The eight `.docx` fixtures of section 11.2 were each loaded resolved and kept.
+
+| | before, kept | before, resolved | now, both |
+|---|---|---|---|
+| `numbering-stories` (both): list labels | 12 | 9 | 9 |
+| the same: `TableContextTracker.walk` visits | 17 | 14 | 14 |
+| `tables-textbox-in-cell`: visits | 11 | 8 | 8 |
+| `cr043-tracked`: `acceptAllRevisions()` | 39 | 37 | 37 |
+| each fixture: the element left after a tracked `Paragraph.delete` and Accept All, or a whole-range delete | 1 to 3 | 0 | 0 |
+| inline pictures | section 11.2's losses | section 13.1's table, before | section 13.1's table, now |
+
+A wider probe found no other difference between the two loads on the eight fixtures. It compared:
+
+- reads: paragraph texts and `Body.text`; every segment with its offsets, and the object segments' offsets;
+  `outline`, `search`, `getTrackedChanges`; content controls, tables, lists, addresses; the paragraph
+  formatting reads; list labels;
+- edits: the listing after a tracked delete, Reject All restoring the element, `insertText('X', 'Replace')`,
+  and a save and reload.
+
+`fontsInUse` and `getStylesInUse` walk every branch (section 11.2), and they agree on all eight too.
+
+### 13.3 Tests
+
+- **`test/kept-branches.test.mjs`**, 6 tests:
+  - `UNDERSTOOD_PREFIXES` and `selectedBranchOf` against `mcBranchOf`'s default;
+  - the eight fixtures' readers, resolved and kept, deep-equal: `Body.paragraphs` and `Body.text`,
+    the labels, the tracker's visits, the pictures, both resolve-all counts;
+  - pictures only, in both loads;
+  - a picture in a branch: listed once from the Choice, or the Fallback when the Choice's prefix is
+    not understood; deleted outright, the element and its image part go; deleted under tracking,
+    Accept All removes the element and Reject All restores it whole;
+  - the three mutators on section 11.2's five fixtures: no element left, and the kept answers equal
+    the resolved ones;
+  - `cr043-tracked`'s text box: resolved in both branches, counted once.
+
+  Against a build of `3a0050e`, with the two new names shimmed into the test, five fail. The first
+  passes only through the shims, and fails on its import without them.
+- **`test/parity.test.mjs`.** The four fixtures whose XPath goldens count the element (`KEPT`) run each
+  comparison twice, resolved and kept, so the kept tree is held to docx4j's answers ahead of phase 4.
+  - The test's walks `visit` and `walkNumbering` take `selectedBranchOf` (section 11.5).
+  - A new check: `TableContextTracker.walk` visits the paragraphs the harness's walk lists, each once,
+    in order.
+  - 261 tests, 12 more. Against `3a0050e`'s build, the four kept "styles, paragraphs, runs and tables"
+    tests fail on that check.
+- Suite 866 passed; typecheck passed.
+
+### 13.4 Not done
+
+- **Predating this CR**, for the text-model CR (item 5): text boxes in content controls and bindings,
+  in `search` and `replaceText`, and their paraIds. The same goes for check 42's U+0002 rule for note
+  references.
+- **A picture's setters write the selected branch only.** `width`, `height` and the alt text leave a
+  Fallback's copy as it was. Matching a branch's twin is section 12.4's design, the same as for a
+  text box. No fixture has a picture inside a branch, and Word writes a picture as a plain
+  `w:drawing`.
+- **The picture binding's `firstBlipOf`** still points the first `a:blip` in any branch at the new
+  image (section 11.2), for the same reason.
+- **`placeholdersOf`.** A kept `p:spTree` branch holds `p:sp` as DOM (section 2), so there is nothing
+  typed to read until the objects package types it.
+- **Readers use load's default understood set.** A caller that passes its own `understood` to a
+  preprocessor gets no matching option on the readers.
+- **Check 43: Office JS lists no inline chart.** `test/README.md`'s check 43 ran on a copy of
+  `loadAndSave.docx` (Jason, 2026-10-18: "we'd better check whether Office JS counts an inline chart as
+  a picture"; Word 16.0.20326.20232, PC).
+  - Office JS gave one inline picture: 72 by 72 points, in the 30th of 41 paragraphs, alt text "Badge
+    Tick1 with solid fill". `Body.inlinePictures` gives the same in both loads.
+  - The chart in the 41st paragraph is not listed, so leaving it out is Office JS's count, and the
+    pictures-only rule stands.
+- **Found by check 43: Office JS's image for an SVG picture is the SVG.** The picture's `a:blip` embeds
+  `image1.png`, and its `a:extLst` holds an `asvg:svgBlip` embedding `image2.svg`.
+  - `getBase64ImageSrc()` gave 1016 characters, exactly the length of `image2.svg` in base64.
+    `InlinePicture.getBase64()` gives the PNG's, 5652. Only the lengths were compared.
+  - This predates this CR (CR-002's `InlinePicture`) and is not phase 3's.
+  - A fix would read the `svgBlip`'s part where there is one. Whether Office JS's `imageFormat` then
+    says `Svg` is not measured.
+  - Left for later (Jason, 2026-10-18: "note the SVG fix for later").
+- **The editor** (item 6, before phase 4): `mcBranchOf` (now `selectedBranchOf`) in its run projection
+  and image lookups, its `labels.mts` oracle and `AskBox`'s text walk, and its diagnostics fixtures. It
+  doesn't read `inlinePictures`, so section 13.1's change doesn't reach it there. A script in its console
+  that reads `body.inlinePictures` through the shim gets the new count.
