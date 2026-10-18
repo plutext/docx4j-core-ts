@@ -69,8 +69,8 @@ itself; not confirmed), so it needs no rule.
 
 `chatgpt/chatgpt-answer.html` is what chatgpt.com in Chromium put on the clipboard as `text/html` for
 an answer selected and copied with Ctrl+C, saved by `wl-paste -t text/html` on 2026-10-15 (the same
-copy's `text/plain`, Markdown, beside it as `.txt`, and the page's `chromium/x-source-url` as
-`.url`). Every word is a `span` of its own; a heading, a paragraph and a cell hold them in a `p` or
+copy's `text/plain`, Markdown, beside it as `.txt`). The answer is from a conversation of Jason's; the
+page's `chromium/x-source-url` was a private link and is not kept. Every word is a `span` of its own; a heading, a paragraph and a cell hold them in a `p` or
 `h2`, but the note after a table stands in a bare `span` straight under the fragment, a `span` per
 word inside it. The walk had made a paragraph of each word there (the editor showed the note one
 word per line); text and inline elements met under a container are now one paragraph together, to
