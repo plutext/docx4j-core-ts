@@ -243,7 +243,10 @@ class changed - each of which fails. Three things the harness had to decide, rec
   `numbering-stories-coretests`, each with a text box - marshal an `mc:AlternateContent` in their
   main part. docx4j keeps the element and both branches in its tree, so its marshal has the text
   box's paragraphs twice; this package resolves the choice before it unmarshals. They are recorded
-  without hits, and the test lists them, so that a fixture joining them is a decision.
+  without hits, and the test lists them, so that a fixture joining them is a decision. **Since
+  2026-10-18** (CR-010 D5) they are recorded with hits and loaded with the element kept
+  (`mcePreprocess: false`), where the two trees are the same document. All four agree: these
+  three, and `tables-textbox-in-cell`, which joined them with CR-007.
 - **The departure of section 2, measured.** docx4j's binder associates nothing with an attribute or
   a text node (778 text nodes and 114 attributes here, all null); this package gives the owning
   element's object, and the test checks it is the object of the class docx4j gives that element.

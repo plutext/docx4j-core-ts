@@ -17,9 +17,10 @@
 //    assumed: the owner's class must be the one docx4j gives that element wherever an expression
 //    of the same golden selected it.
 //
-// A fixture whose main part marshals an mc:AlternateContent is recorded without hits: docx4j keeps
-// the element and both its branches in the tree, this package resolves the choice before it
-// unmarshals, and the two would be answering about different documents (CR-006 section 8 item 3).
+// A fixture whose main part marshals an mc:AlternateContent is loaded with the element kept
+// (mcePreprocess: false). docx4j keeps the element and both its branches in its tree, and so does
+// this package's tree then; resolved on load, the two would be answering about different documents.
+// Until CR-010 D5 (2026-10-18) those fixtures were recorded without hits (CR-006 section 8 item 3).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
@@ -33,12 +34,12 @@ const names = (await readdir(goldenDir)).filter((n) => n.endsWith('.json')).sort
 const goldens = await Promise.all(names.map(async (n) => JSON.parse(await readFile(join(goldenDir, n), 'utf8'))));
 
 /**
- * The fixtures whose main part has an mc:AlternateContent - a text box, each of them - and so no
- * hits. Listed, so that a new fixture joining them is a decision rather than a silent loss of
- * coverage. tables-textbox-in-cell joined with CR-007's table fixtures (2026-10-08): its text box
- * is the point of the fixture.
+ * The fixtures whose main part has an mc:AlternateContent - a text box, each of them - and so are
+ * loaded with the element kept. Listed, so that a fixture joining them is a decision.
+ * tables-textbox-in-cell joined with CR-007's table fixtures (2026-10-08): its text box is the
+ * point of the fixture. Until CR-010 D5 these were recorded without hits.
  */
-const EXCLUDED = ['loadAndSave.docx', 'numbering-stories-coretests.docx', 'numbering-stories.docx', 'tables-textbox-in-cell.docx'];
+const KEPT = ['loadAndSave.docx', 'numbering-stories-coretests.docx', 'numbering-stories.docx', 'tables-textbox-in-cell.docx'];
 
 async function fixtureBytes(name) {
   for (const path of [join(fixturesDir, name), join(fixturesDir, 'parity', name)]) {
@@ -61,12 +62,13 @@ function classOf(object) {
   return object.TYPE_NAME ?? `(${typeof object}, no TYPE_NAME)`;
 }
 
-test('xpath goldens: present, one harness version, and the exclusions are the known ones', () => {
+test('xpath goldens: present, one harness version, every one with hits, and the kept ones are the known ones', () => {
   assert.ok(goldens.length >= 40, `${goldens.length} goldens`);
-  for (const golden of goldens) assert.equal(golden.header.harnessVersion, '1', golden.header.fixture);
-  const excluded = goldens.filter((g) => !g.hits);
-  assert.deepEqual(excluded.map((g) => g.header.fixture).sort(), EXCLUDED);
-  for (const golden of excluded) assert.ok(golden.header.alternateContent > 0, golden.header.fixture);
+  for (const golden of goldens) {
+    assert.equal(golden.header.harnessVersion, '1', golden.header.fixture);
+    assert.ok(golden.hits, `${golden.header.fixture} has hits`);
+  }
+  assert.deepEqual(goldens.filter((g) => g.header.alternateContent > 0).map((g) => g.header.fixture).sort(), KEPT);
 });
 
 test("xpath goldens: docx4j's prefixes are the objects package's", () => {
@@ -77,10 +79,11 @@ test("xpath goldens: docx4j's prefixes are the objects package's", () => {
   }
 });
 
-for (const golden of goldens.filter((g) => g.hits)) {
+for (const golden of goldens) {
   const fixture = golden.header.fixture;
-  test(`selectObjects agrees with docx4j: ${fixture}`, async () => {
-    const pkg = await WordprocessingMLPackage.load(await fixtureBytes(fixture));
+  const kept = golden.header.alternateContent > 0;
+  test(`selectObjects agrees with docx4j: ${fixture}${kept ? ' (mc:AlternateContent kept)' : ''}`, async () => {
+    const pkg = await WordprocessingMLPackage.load(await fixtureBytes(fixture), kept ? { mcePreprocess: false } : undefined);
     // every typed object of the part's tree, which is what a selected object must be one of
     const inTree = new Set();
     walk(await pkg.getMainDocumentPart().getContents(), (value) => { inTree.add(value); });

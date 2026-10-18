@@ -5,7 +5,8 @@ mc?"). Phase 1 implemented 2026-10-17 (section 9; D2, D3 and D4 decided by Jason
 D1 settled by the text extraction paper's D4). Phase 2 implemented 2026-10-18: the objects
 package's CR-009, released in its 0.4.0, which this package now requires (section 10). Phase 0
 implemented 2026-10-18 (section 11): the walker audit, the editor's exposure, the XPath and parity
-measurements, and the survey as a test in `mce.test.mjs`; D5 and D6 decided by Jason that day.
+measurements, and the survey as a test in `mce.test.mjs`; D5 and D6 decided by Jason that day,
+and D5 implemented (section 11.8).
 Phases 3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in
 17.2.0).
 
@@ -37,10 +38,10 @@ So this package now departs from docx4j here. It costs three things:
    - Excel's `x15ac:absPath` in the workbook;
    - `c14:style` in a chart part. Its Fallback `c:style` goes too, so a re-marshalled chart loses
      its style altogether.
-3. **Parity.** `test/xpath-parity.test.mjs` excludes the four fixtures with `mc:AlternateContent`
-   (`loadAndSave.docx`, `numbering-stories-coretests.docx`, `numbering-stories.docx`,
-   `tables-textbox-in-cell.docx`). docx4j's tree keeps the element and this package's doesn't, so
-   their selections can't be compared.
+3. **Parity.** `test/xpath-parity.test.mjs` excluded, until D5 (section 11.8), the four fixtures
+   with `mc:AlternateContent` (`loadAndSave.docx`, `numbering-stories-coretests.docx`,
+   `numbering-stories.docx`, `tables-textbox-in-cell.docx`). docx4j's tree keeps the element and
+   this package's doesn't, so their selections can't be compared.
 
 CR-001 section 15.4 recorded why the default stayed resolve-on-load once keeping became lossless
 (objects 0.1.5): a kept branch's content is mostly DOM, which the typed views don't enter. It left
@@ -160,7 +161,7 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
      READ visits them once;
    - `InlinePicture`, search, `replaceText`, tracked changes, bindings.
 4. **The default flips to keep** (a day, plus the editor's side): `mcePreprocess` defaults to false.
-   - The four XPath fixtures rejoin `xpath-parity.test.mjs`.
+   - The four XPath fixtures rejoin `xpath-parity.test.mjs`. Done early, by D5 (section 11.8).
    - CR-001 section 5.6 is corrected.
    - The editor takes the release in step.
 
@@ -663,7 +664,17 @@ in this repository.
   hits, their four goldens are regenerated from the same docx4j, and `xpath-parity.test.mjs` loads
   them with `mcePreprocess: false`. Recommended. The kept tree's XPath answers are then held to
   docx4j through phase 3, not only from phase 4. **Decided 2026-10-18** (Jason: "D5: ok").
-  It is not part of phase 0's commit; it follows on its own.
+  **Implemented the same day**, after phase 0's commit:
+  - `XPathHarness` records hits for every fixture; the header's `alternateContent` still counts the
+    elements, and its log line names the fixtures the test keeps them in.
+  - The four goldens were regenerated with it from the jar the others were made with (`2e381ef26`,
+    `f805ae4be89897e3`). Regenerating all 62 the same way changed nothing in the other 58 but their
+    dates, so only the four are replaced. Each gains its 47 expressions' hits and the prefixes its
+    paths use, and they equal section 11.4's run.
+  - `xpath-parity.test.mjs` loads a fixture whose golden counts an element with
+    `mcePreprocess: false`; its first test asserts every golden has hits and that the fixtures
+    holding the element are the four listed (`KEPT`, formerly `EXCLUDED`). 64 tests, 4 more; loaded
+    the default way, those 4 fail.
 - **D6: `MC_PREFER_CHOICE` refreshed** to `UNDERSTOOD_NAMESPACES`' prefixes (section 11.5), with
   CR-011's phase 0, whose regeneration touches every golden's header anyway. Recommended. No answer
   moves. **Decided 2026-10-18** (Jason: "D6: ok"); it is done with CR-011's phase 0.

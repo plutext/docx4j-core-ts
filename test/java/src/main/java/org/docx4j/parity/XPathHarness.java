@@ -17,11 +17,12 @@
  * docx4j's refreshXmlFirst is for.  Without it getBinder() binds the source XML, which keeps
  * what neither object model has and is not what either side's selection runs over.
  *
- * A fixture whose main part marshals an mc:AlternateContent gets a golden that says so and
- * records no hits (CR-006 section 8 item 3).  docx4j keeps the element and both branches in
- * its tree, so its marshal has them - a text box's paragraphs twice, under the Choice and
- * under the Fallback - while this package resolves the choice before it unmarshals.  The two
- * would be answering about different documents.
+ * A fixture whose main part marshals an mc:AlternateContent records its hits too, and the
+ * header's alternateContent says how many it holds.  docx4j keeps the element and both
+ * branches in its tree, so its marshal has them - a text box's paragraphs twice, under the
+ * Choice and under the Fallback - and the test loads such a fixture with the element kept
+ * (mcePreprocess: false), where this package's tree is the same document.  Until core-ts
+ * CR-010 D5 (2026-10-18) these goldens recorded no hits (CR-006 section 8 item 3).
  */
 package org.docx4j.parity;
 
@@ -134,9 +135,10 @@ public class XPathHarness {
 				Map<String, Object> golden = golden(document, commit);
 				Path file = out.toPath().resolve(Harness.basename(document) + ".json");
 				Files.write(file, Json.write(golden).getBytes(StandardCharsets.UTF_8));
+				int alternateContent = (Integer) ((Map<?, ?>) golden.get("header")).get("alternateContent");
 				System.out.println(String.format("  %-40s %5d ms  %7d bytes%s",
 						document.getName(), System.currentTimeMillis() - t, Files.size(file),
-						golden.containsKey("hits") ? "" : "  (excluded: mc:AlternateContent)"));
+						alternateContent == 0 ? "" : "  (" + alternateContent + " mc:AlternateContent: the test keeps it)"));
 			} catch (Exception e) {
 				failed++;
 				System.out.println("  " + document.getName() + " FAILED: " + e);
@@ -159,14 +161,12 @@ public class XPathHarness {
 
 		Map<String, String> prefixes = new TreeMap<String, String>();
 		Map<String, Object> hits = new LinkedHashMap<String, Object>();
-		if (alternateContent == 0) {
-			for (String expression : EXPRESSIONS) {
-				List<Object> list = new ArrayList<Object>();
-				for (JAXBAssociation association : XmlUtils.getJAXBAssociationsForXPath(binder, root, expression, false)) {
-					list.add(hit(association, prefixes));
-				}
-				hits.put(expression, list);
+		for (String expression : EXPRESSIONS) {
+			List<Object> list = new ArrayList<Object>();
+			for (JAXBAssociation association : XmlUtils.getJAXBAssociationsForXPath(binder, root, expression, false)) {
+				list.add(hit(association, prefixes));
 			}
+			hits.put(expression, list);
 		}
 
 		Map<String, Object> header = new LinkedHashMap<String, Object>();
@@ -183,7 +183,7 @@ public class XPathHarness {
 
 		Map<String, Object> golden = new LinkedHashMap<String, Object>();
 		golden.put("header", header);
-		if (alternateContent == 0) golden.put("hits", hits);
+		golden.put("hits", hits);
 		return golden;
 	}
 
