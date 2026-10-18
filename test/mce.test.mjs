@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore } from '../dist/index.mjs';
+import { OpcPackage, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore, FlatOpcPartStore } from '../dist/index.mjs';
 import { fixture, fixturesDir } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -271,4 +271,87 @@ test('mce.branches_differ: a private read reports too, and an untouched part sta
   assert.equal(drawing.warnings[0].selected, 'Choice(cx1)');
   assert.equal(drawing.warnings[0].branches[0].text, '');
   assert.match(drawing.warnings[0].branches[1].text, /^This chart isn't available in your version of Excel/);
+});
+
+// CR-010 phase 0 (section 11): the survey of sections 2, 10.2 and 10.4 as a test, over this
+// repository's fixtures; the release checks add docx4j's charts directory, which is not here.
+// Loaded with every mc:AlternateContent kept, unmarshalled and saved, each part that held the
+// element writes every one back whole, and what a kept branch holds in WordprocessingML is typed.
+// Elements are compared by names, attributes and children, leaving aside prefix declarations and
+// the three lexical rewrites the model makes anywhere (section 10.4): xsd:boolean's 1 and 0
+// written true and false, o:gfxdata's base64 without its line breaks, and whitespace-only text.
+
+const O_NS = 'urn:schemas-microsoft-com:office:office';
+const XML_PACKAGE_NS = 'http://schemas.microsoft.com/office/2006/xmlPackage';
+
+function canonical(node) {
+  if (node.nodeType === 3 || node.nodeType === 4) return node.nodeValue.trim() ? JSON.stringify(node.nodeValue) : '';
+  if (node.nodeType !== 1) return '';
+  const attributes = [...node.attributes].filter((a) => a.name !== 'xmlns' && !a.name.startsWith('xmlns:')).map((a) => {
+    const value = a.namespaceURI === O_NS && a.localName === 'gfxdata' ? a.value.replace(/\s+/g, '')
+      : a.value === 'true' ? '1' : a.value === 'false' ? '0' : a.value;
+    return `{${a.namespaceURI ?? ''}}${a.localName}=${JSON.stringify(value)}`;
+  }).sort();
+  return `<{${node.namespaceURI}}${node.localName} ${attributes.join(' ')}>${[...node.childNodes].map(canonical).join('')}</>`;
+}
+
+/** Every zip package and flat OPC package under a directory, sorted. */
+async function packagesUnder(dir) {
+  const out = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...await packagesUnder(path));
+    else if (/\.(docx|xlsx|pptx|xml)$/i.test(entry.name)) out.push(path);
+  }
+  return out.sort();
+}
+
+/** Adds, by qualified name, what the branches of each mc:AlternateContent under `value` hold: typed or DOM. */
+function branchContents(value, into, seen = new Set()) {
+  if (!value || typeof value !== 'object' || seen.has(value) || value.nodeType) return;
+  seen.add(value);
+  if (value.TYPE_NAME === 'org_docx4j_mce.AlternateContent') {
+    for (const branch of [...(value.choice ?? []), ...(value.fallback ? [value.fallback] : [])]) {
+      for (const item of branch.any ?? []) {
+        const key = item.nodeType ? `DOM {${item.namespaceURI}}${item.localName}` : `typed {${item.name?.namespaceURI}}${item.name?.localPart}`;
+        into.set(key, (into.get(key) ?? 0) + 1);
+      }
+    }
+  }
+  for (const key of Object.keys(value)) if (key !== 'PARENT') branchContents(value[key], into, seen);
+}
+
+test('kept branches: each fixture part holding mc:AlternateContent writes every one back whole, its WordprocessingML typed (CR-010 phase 0)', async () => {
+  let parts = 0;
+  const held = new Map();
+  for (const path of await packagesUnder(fixturesDir)) {
+    const flat = path.endsWith('.xml');
+    const input = flat ? await readFile(path, 'utf8') : new Uint8Array(await readFile(path));
+    if (flat && !input.includes(XML_PACKAGE_NS)) continue;
+    const source = flat ? new FlatOpcPartStore(input) : new ZipPartStore(input);
+    const expected = new Map();
+    for (const name of source.partNames()) {
+      if (!name.endsWith('.xml') || name.includes('_rels/') || name === '[Content_Types].xml') continue;
+      const text = new TextDecoder().decode(await source.load(name));
+      if (!text.includes('AlternateContent')) continue;
+      const elements = [...parseXml(text).getElementsByTagNameNS(MCE_NS, 'AlternateContent')];
+      if (elements.length > 0) expected.set(name, elements.map(canonical));
+    }
+    if (expected.size === 0) continue;
+    const pkg = await OpcPackage.load(input, { mcePreprocess: false });
+    await pkg.unmarshalAll();
+    for (const part of pkg.parts) if (part.isUnmarshalled) branchContents(part.contents, held);
+    const saved = new ZipPartStore(await pkg.save());
+    for (const [name, want] of expected) {
+      parts++;
+      const got = [...parseXml(new TextDecoder().decode(saved.loadSync(name))).getElementsByTagNameNS(MCE_NS, 'AlternateContent')].map(canonical);
+      assert.deepEqual(got, want, `${path.slice(fixturesDir.length + 1)} ${name}: every mc:AlternateContent back whole`);
+    }
+  }
+  // 28 on 2026-10-18 (27 in the zips, 1 in the flat OPC header): a floor, so the walk cannot pass by finding nothing
+  assert.ok(parts >= 28, `${parts} parts hold mc:AlternateContent`);
+  // objects 0.4.0 (its CR-009, CR-010 phase 2) types w:drawing and w:pict in a branch; what stays
+  // DOM is outside WordprocessingML (DrawingML frames and shapes, c:style, the x14 controls)
+  assert.deepEqual([...held.keys()].filter((key) => key.startsWith(`DOM {${W}}`)), []);
+  assert.ok((held.get(`typed {${W}}drawing`) ?? 0) > 0 && (held.get(`typed {${W}}pict`) ?? 0) > 0, JSON.stringify([...held]));
 });

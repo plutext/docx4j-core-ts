@@ -206,7 +206,7 @@ My estimates, about 2 days in all plus whatever the goldens turn up:
 
 | Phase | What | Size |
 |---|---|---|
-| 0 | The parity moved to docx4j 17.3.3 (pom, workflow branch, CLAUDE.md), and `RevisionsHarness` with its goldens | ½ to 1 day |
+| 0 | The parity moved to docx4j 17.3.3 (pom, workflow branch, CLAUDE.md), the harness's `MC_PREFER_CHOICE` refreshed to `UNDERSTOOD_NAMESPACES`' prefixes (CR-010 D6, section 11.5), and `RevisionsHarness` with its goldens | ½ to 1 day |
 | 1 | `getAllTrackedChanges`, `kind`, `part`, the section order; the listing goldens at zero differences | ½ day, plus whatever the goldens find |
 | 2 | The filters, both forms, on the listing and the resolve-all verbs; the goldens of what each filter leaves | 1 day |
 
@@ -254,12 +254,15 @@ Not in scope:
 - **Text boxes in kept `mc:AlternateContent` branches** (`mcePreprocess: false`):
   - docx4j lists the Choice's changes and resolves the Fallback twin.
   - This package's content API doesn't read kept branches yet (CR-010 phase 3).
-  - What `acceptAllRevisions` does there is not measured; phase 1 measures it and records it.
+  - What `acceptAllRevisions` does there: CR-010 section 11.2 measured that every branch's text box
+    is resolved, and that the count returned counts a box's changes once per branch. Phase 1 lists
+    them once, by the selected branch.
 
 Hand-offs:
 - **The registry:** `core-ts/CR-011`, proposed, through the session in `../docx4j-portfolio`.
 - **The parity move to docx4j 17.3.3:** CLAUDE.md, `test/java/pom.xml` and
-  `.github/workflows/parity.yml` (phase 0).
+  `.github/workflows/parity.yml` (phase 0), with `MC_PREFER_CHOICE` refreshed in the same
+  regeneration (CR-010 D6).
 - **The editor**, once released: the filter exists. Its own author filter is its to keep or replace.
 
 ## 8. References

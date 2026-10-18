@@ -3,9 +3,11 @@
 **Status:** Proposed 2026-10-17, at Jason's request ("Shouldn't we be preserving all branches of
 mc?"). Phase 1 implemented 2026-10-17 (section 9; D2, D3 and D4 decided by Jason that day, and
 D1 settled by the text extraction paper's D4). Phase 2 implemented 2026-10-18: the objects
-package's CR-009, released in its 0.4.0, which this package now requires (section 10). Phases 0,
-3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done
-2026-09-19, in 17.2.0).
+package's CR-009, released in its 0.4.0, which this package now requires (section 10). Phase 0
+implemented 2026-10-18 (section 11): the walker audit, the editor's exposure, the XPath and parity
+measurements, and the survey as a test in `mce.test.mjs`; D5 and D6 decided by Jason that day.
+Phases 3 and 4 are not scheduled; each waits for Jason's go. The policy is docx4j's CR-021 (done 2026-09-19, in
+17.2.0).
 
 ## 1. Why
 
@@ -124,7 +126,7 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
 
 ## 4. Phases
 
-0. **The audit** (half a day):
+0. **The audit** (half a day; implemented 2026-10-18, section 11):
    - each walker in `src/` classified as reader, mutator or indifferent;
    - what the editor (`../docx4j-ts-editor`) reads through the tree, since its views assume one
      flat tree today;
@@ -211,6 +213,8 @@ The estimates are rough, and phase 2's depends on the route.
     case is rare: the corpus has none, and Word's Choice-only boxes require `wps`, which is
     understood. It arises under a caller's narrower `understood` set.
   - **Decided 2026-10-17**, with D3: keeping it is one of phase 1's two additions.
+- **D5 and D6**, from phase 0, are in section 11.8: the four XPath fixtures rejoining now, loaded
+  kept, and the parity harness's `MC_PREFER_CHOICE` refreshed. Both decided 2026-10-18.
 
 ## 6. Risks
 
@@ -273,7 +277,8 @@ decided, and what it found, as it bears on this CR:
 - The portfolio: `docs/text_extraction_behaviour_model.md`, sections 4, 8 and 9 (D4); decisions
   taken at 2d8fd36.
 - The survey script is not committed. It loads each file twice, resolved and with
-  `mcePreprocess: false`, and compares every element's normalised form; phase 0 makes it a test.
+  `mcePreprocess: false`, and compares every element's normalised form. Phase 0 made it a test over
+  this repository's fixtures (section 11.6).
 
 ## 9. Phase 1 (implemented 2026-10-17)
 
@@ -413,7 +418,7 @@ Two findings from the objects session's own verification (its CR-009 section 7):
   asserts the typed form: the `w:drawing` with its `wp:anchor`, and the `w:pict` with its
   `v:shapetype`, whose `w14:anchorId` the save writes back. On 0.3.2 it fails.
 - **The range** is `^0.4.0`, and section 10.2's survey, re-run, is phase 2's acceptance (10.4).
-  The survey scripts are in the scratchpad; phase 0 makes them a test.
+  The survey scripts are in the scratchpad; phase 0 made them a test (section 11.6).
 
 ### 10.4 Acceptance (2026-10-18)
 
@@ -447,4 +452,218 @@ it, against 0.4.0 from npm, whose tarball is file for file the same except its v
     `xsi:type`, now that they are declared roots, as docx4j's are. Nothing else changes.
   - Both forms, with and without `xsi:type`, read back and marshal to the same new output, so a
     script written before still loads.
-- **Not done:** the content API over kept branches (phase 3), and the survey as a test (phase 0).
+- **Not done:** the content API over kept branches (phase 3), and the survey as a test (phase 0,
+  done since: section 11.6).
+
+## 11. Phase 0: the audit (2026-10-18)
+
+Jason asked for phase 0 on 2026-10-18 ("do CR-010 phase 0"). This section answers section 4's three
+questions and makes the survey a test, as sections 8 and 10.3 said phase 0 would. Phase 3 starts from
+section 11.7's list. The test is in `mce.test.mjs` (section 11.6). The probes and the harness
+copy behind sections 11.2, 11.4 and 11.5 are in the session's scratchpad, not committed.
+
+### 11.1 How a walker meets a kept element
+
+- **Where the element can stand.** The model admits `mc:AlternateContent` in a paragraph's content
+  and that of the run holders in it (`w:hyperlink`, `w:fldSimple`, run-level `w:sdt` and
+  `w:customXml`, `w:smartTag`, `w:dir`, `w:bdo`), in a run's content, and in a math run's. Block
+  containers (body, cell, block content control) can't hold it. Every WordprocessingML instance in
+  the corpus is in a run (section 2).
+- **Three kinds of walk**, and the kind decides what a walker does with a kept element:
+  - *Generic walks* descend every property: the objects package's `walk`, `find`, `walkAll`,
+    `nextSdtId` and `linkParents`, and this package's own recursions over `Object.keys`. They reach
+    every branch, which is docx4j's ALL.
+  - *Named walks* follow the model's content properties: `childrenOf`, `runItemsOf`, `segmentsOf`,
+    `runsOf`, `rowsOf`, `cellsOf`. An `AlternateContent` has none of them (its branches are `choice`
+    and `fallback`), so they step over it and see no branch. docx4j has no counterpart, since
+    `TraversalUtil` always descends.
+  - *`textOf`* takes `mcBranchOf`'s branch, which is docx4j's READ. It is the only walker that does.
+- So a reader written as a generic walk counts a text box twice once the element is kept. A mutator
+  written as a named walk misses the element altogether. Phase 3's work is those two lists.
+
+### 11.2 The walkers
+
+Measured on the eight `.docx` fixtures that hold the element, each loaded twice, resolved and
+kept, with every reader and mutator below run on both loads and the results compared. The
+fixtures are `loadAndSave`, the two `numbering-stories`, `tables-textbox-in-cell`,
+`charts/waterfall` and the three `cr043-*`. Each walker was also read. A row groups the walkers that
+share a primitive.
+
+**Readers: one branch (READ).**
+
+| walker | with the element kept, today | phase 3 |
+|---|---|---|
+| `List.mts` `walkStory`, under `Body.listLabels`, `ListItem.listString`, `level` and `siblingIndex` | generic. A text box's list paragraphs are numbered once per branch: `numbering-stories` gives 12 labels where resolving gives 9. The body's own numbers don't move, because a text box counts in a fresh state | `mcBranchOf` at the element |
+| `TableContextTracker.walk` (public; the parity test uses it) | generic. A text box's paragraphs are visited once per branch, each with no context | `mcBranchOf` |
+| `Paragraph.inlinePictures`, under `Body.inlinePictures` | named. An inline drawing in the Choice is no longer listed: 1 to 0 in each `numbering-stories`, 3 to 0 in `tables-textbox-in-cell`, 1 to 0 in `waterfall` | the selected branch's `w:drawing` |
+| the `segmentsOf` and `runsOf` readers: search, the text views, `Range` reads | named. Same results either way, since a drawing adds no text to a paragraph's | none, until the text CR (section 7) puts a text box's text in |
+| `textOf`: `Paragraph.text`, `Body.text`, the outline's text, `toApiScript`'s cell text | READ already. A drawing gives no text in either load | none |
+| `placeholdersOf` (a pptx layout's placeholders) | named. A placeholder inside an element would be missed. The corpus has none there | `mcBranchOf`, low priority |
+| `Body.select`, `selectObjects` (XPath over a marshalled snapshot) | every branch, as docx4j's `getJAXBNodesViaXPath` gives: 188 of 188 agree (section 11.4) | none. The expression decides, as with docx4j's finders (CR-021 section 8.3) |
+
+**Mutators: every branch (ALL).**
+
+| walker | with the element kept, today | phase 3 |
+|---|---|---|
+| everything through `segmentsOf({ objects: true })` (CR-002 section 48): `Paragraph.delete` and `Range.delete` under tracking, `insertText(..., 'Replace')`, an untracked `getRange('Whole').delete()` | named. The element is not an `OBJECT_ITEMS` segment, so a tracked `Paragraph.delete` leaves its run outside the `w:del`, and Accept All then leaves the box behind. That is section 48's gap again, on all five fixtures tried (`loadAndSave`, `numbering-stories`, `tables-textbox-in-cell`, `waterfall`, `cr043-tracked`). An untracked `getRange('Whole').delete()` or `insertText('', 'Replace')` leaves it in place, where resolving removes the drawing. `Range.delete` under tracking shares the path and was read, not run | the element as one object segment. Removing it removes every branch |
+| `pkg.acceptAllRevisions`, `rejectAllRevisions`: the text box stories (`textBoxesIn`, generic) | every branch's `w:txbxContent` is resolved, which is right. The count returned counts a box's changes once per branch: `cr043-tracked` returns 39 where resolving returns 37 | resolve every branch; count the selected one |
+| removal's relationship cleanup (`relationshipIdsIn`, generic) | every branch. With the element kept, the Fallback's picture relationship goes with the chart's: `waterfall` drops both. Resolving leaves the image relationship behind, its reference already dropped at load | none |
+| `insertOoxml` and `insertXml` reference rewriting (`visitReferences` over `walkAll`) | every branch | none |
+| what a resolution checks around it: `bookmarksIn`, the broken-bookmark pass, `noteReferencesIn`, `commentReferencesIn` (all generic) | every branch. A note or comment referenced only from a Fallback stays referenced | none |
+| id allocation: `highestAnnotationId` (the tracker and `seedAnnotationIds`), `nextSdtId`, `nextDrawingId` (all generic) | every branch. An id used in any branch is taken | none |
+| `linkParents` | every branch | none |
+| `fontsInUse` and `getStylesInUse` (`walkStories`, generic) | every branch, as docx4j's `FontsAnalysis` and `FontAndStyleFinder`: a face used only in a Fallback is still used | none |
+| an untracked `Paragraph.delete`, `Body.clear` | the paragraph goes whole, every branch with it | none |
+| the picture binding's `firstBlipOf` (`find`) | the first `a:blip` in any branch, so the Choice's. A Fallback's `v:imagedata` would keep the old image. No picture control in the corpus wraps its drawing in mc | every branch's picture |
+| `paraIdTaken`, `Body.assignParaId` | block walks. A text box's paraIds are not seen in either load, which predates this CR | ALL, with the text boxes |
+| `applyBindings`, `updateFromContentControls` (controls from `collectControls`, named) | a control in a text box is not reached in either load, which predates this CR. docx4j's `BindingHandler` reaches every branch | ALL, if text box controls join |
+| `replaceText` | segment-based. A text box's text is not searched in either load (predates) | ALL, if text boxes join search (the text CR, section 7) |
+
+**Indifferent.** These are block walks, or they stop where a drawing begins:
+- `Body.paragraphs`, `tables`, `outline`, `rowElements`, the addresses (`elementAt`, `pathOf`,
+  `addressOf`);
+- the story walk of `getTrackedChanges` and `trackedChangeTokensOfParagraph` (a text box is a story
+  of its own, reached through `resolveStory`), `movePiecesOf`, `resolveUnlisted`, the
+  `insertedFieldAt` scan;
+- `Table`, `tableColumns`, `tableRevisions`;
+- the offsets that count text up to an element: the comment markers' (`collect`),
+  `acceptedOffsetOf`, a content control's empty position (the element adds no text, so a segment
+  of no width for it, section 11.7 item 2, moves none of them);
+- `collectControls` as a listing, `hyperlinkHolders`;
+- `PropertyResolver.cellContextOf` (up the `PARENT` chain, stopping at `w:txbxContent`);
+- `toApiScript`: an element in a run can't be expressed, so the paragraph falls back to its
+  marshalled XML, every branch kept;
+- `html/convert` (it walks HTML), and the preprocessor itself.
+
+### 11.3 The editor
+
+This is a read-only survey of `../docx4j-ts-editor` at `a7d67e4` (2026-10-17), with its main claims
+checked in the code. The editor loads with this package's default everywhere. Nothing in it names
+`mcePreprocess`, `KEPT_HOSTS` or the warnings.
+
+- **What it reads through the tree.** Its ProseMirror import (`editor-model/src/import.mts`) walks
+  paragraphs and runs itself: `runItemsOf`, then a run's content by local name. Its export writes
+  back, by identity, whatever it did not rebuild.
+  - **Nothing breaks.** A kept element in a run becomes an opaque inline atom of kind
+    `AlternateContent`, which is written back whole. So an edited part keeps both branches. Today
+    every text box in that part loses its wrapper and its Fallback.
+  - **What it shows changes.** Today any inline `w:drawing` becomes an image node, whatever its
+    graphic. `numbering-stories.docx`'s inline `wps` box is drawn as a missing image, and kept it
+    would be the opaque glyph. A Fallback picture behind a Choice nobody understands would also go
+    from an image to the glyph. The import needs `mcBranchOf` where it meets the element, and so do
+    its image lookups.
+  - **A paragraph-level element** holding runs would turn read-only, and its text would be missed
+    by the editor's find, its offsets, the MCP read and the outline. The corpus has none.
+- **Its own generic walks:**
+  - `labels.mts` `walkStory`, a copy of this package's, numbers both branches. Inside a text box
+    that is harmless (fresh counters), and only the test suite uses it as an oracle; the app uses
+    `liveLabels`.
+  - `AskBox`'s `textOfElement` collects every `w:t`, so both branches' text.
+  - `applyReferenceIds`, `hasPageField`, `usedSdtIds` and the `sources` path ids see both branches
+    and stay correct, since they rewrite or collect sets.
+- **What depends on phase 3 here:**
+  - Its XPath hit placement and the MCP find climb `PARENT` through the branches. Load links them:
+    a Fallback paragraph's chain runs `w:txbxContent`, `v:textbox`, `v:shape`, `w:pict`, `Fallback`,
+    `AlternateContent`, `w:r`, `w:p`, `w:body`.
+  - `preserved.mts` numbers `getTrackedChanges()` entries within a block, so phase 3 must not list a
+    change once per branch.
+  - Its find and XPath tests compare its answers with `search` and `selectObjects`.
+- **Tests that pin today's tree:** `diagnostics.expected.json` (`loadAndSave`'s opaque `drawing`,
+  `numbering-stories`' image node) and `editor/test/diagnostics.test.tsx`. They change in step with
+  phase 4.
+- **An inconsistency, for the editor to record.** ED-002 says the XML pane's Apply runs the MCE
+  preprocessor, but `app/xml.ts` uses plain `unmarshalString`. So an element pasted there stays in
+  the tree, while the save's self-check reload resolves it. Keeping on load removes the mismatch.
+
+### 11.4 The four excluded XPath fixtures
+
+docx4j's `XPathHarness` was run from a scratchpad copy that records hits for every fixture. It used
+the jar the XPath goldens were made with (`2e381ef26`, `f805ae4be89897e3`). Its hits were then
+compared with `selectObjects` as `xpath-parity.test.mjs` compares them, with the element kept
+and with it resolved:
+
+| fixture | kept | resolved |
+|---|---|---|
+| `loadAndSave.docx` | 47 of 47 | 39 of 47 |
+| `numbering-stories-coretests.docx` | 47 of 47 | 33 of 47 |
+| `numbering-stories.docx` | 47 of 47 | 33 of 47 |
+| `tables-textbox-in-cell.docx` | 47 of 47 | 36 of 47 |
+
+- **All four come back** once the element is kept, with objects 0.4.0's typed branches.
+- **Resolved, they differ** where a path crosses the element: `//w:p`, `//w:r`, `//w:t`,
+  `//w:drawing`, `//a:graphic`, `//w:p[.//w:t]`, `//w:p[last()]` and `//w:t/text()` in all four;
+  `//w:pPr` and `//wp:inline` in the other three; `//w:rPr`, `//w:numPr` and their predicates in the
+  two `numbering-stories`; `//w:tbl//w:p` in `tables-textbox-in-cell`. docx4j selects a text box's
+  paragraphs under both branches, and the resolved tree has them once, under `w:r/w:drawing`.
+- They need not wait for phase 4. The harness drops its exclusion and records their hits, and the
+  test loads those four with `mcePreprocess: false`. Then `selectObjects` over a kept tree is held
+  to docx4j while phase 3 changes the walkers around it (D5).
+
+### 11.5 What the parity goldens need from D1
+
+- **Nothing new.** Since harness version 3 (CR-021 phase 1), the harness has set docx4j's
+  `preferChoice` to this package's understood prefixes, so docx4j already reads the Choice the
+  TypeScript side resolves to. The four parity fixtures holding the element all require `wps`.
+- **Measured.** `parity.test.mjs` was run from a scratchpad copy that loads with
+  `mcePreprocess: false`. 8 of 249 tests fail: the four fixtures, two tests each ("17 paragraphs,
+  the golden has 14"). The test's own two walks, `visit` and `walkNumbering`, are generic. With
+  each taking `mcBranchOf`'s branch at the element, all 249 pass. So phase 4's change to the parity
+  test is those two lines, and the goldens stand.
+- **A drift in the harness.** `MC_PREFER_CHOICE` names 84 prefixes, and `UNDERSTOOD_NAMESPACES` has
+  100 with prefixes. Seventeen understood here are missing from it (`c16r3`, `cei`, `cx1`, `cx2`,
+  `sle`, `sle15`, `tsle`, `w16`, `w16cex`, `x12ac`, `x14`, `x15`, `x15ac`, `x16`, `xcalcf`, `xm`,
+  `xr`). It also names `c173`, which is not understood. Its comment says it is that set. No parity
+  fixture has a Choice requiring any of them, so no golden would move. It is refreshed when the
+  goldens are next regenerated, which CR-011's phase 0 does (D6).
+- **For phase 3's readers.** `mcBranchOf`'s default set is `NAMESPACE_PREFIXES`' 136 prefixes, 36
+  more than load understands (`x14ac`, `w16du`, `xr2`, `cx3` to `cx8`, ...). A reader on the
+  default would take a Choice the loader rejects, so phase 3 passes the understood set itself
+  (`UNDERSTOOD_NAMESPACES` through `NAMESPACE_PREFIXES`) until `mcBranchOf` matches URIs (D4 item
+  1, an objects change). Seven understood namespaces have no conventional prefix, the SpreadsheetML
+  main among them. No `Requires` in section 2's corpus names one.
+
+### 11.6 The survey as a test
+
+`mce.test.mjs` gains "kept branches: each fixture part holding mc:AlternateContent writes every one
+back whole, its WordprocessingML typed". It walks `test/fixtures/`: every zip package, and every
+flat OPC package. Each is loaded with `mcePreprocess: false`, unmarshalled and saved, and then:
+
+- **Whole.** Every part that held the element writes each one back: names, attributes and
+  children, with prefix declarations and section 10.4's three lexical rewrites left aside. That is
+  28 parts: 27 in the zips, and the flat OPC fixture's header.
+- **Typed.** No WordprocessingML element in a kept branch is DOM, and typed `w:drawing` (12) and
+  `w:pict` (10) are both found. What stays DOM is outside WordprocessingML: `xdr:sp` 6,
+  `xdr:graphicFrame` 4, `c:style` 4, `controls` 2, `xdr:twoCellAnchor` 2, `p:sp` 2,
+  `p:graphicFrame` 1, `p:pic` 1.
+- **A floor of 28 parts**, so the walk can't pass by finding nothing.
+- **It bites.** Loading the default way (resolving) fails it, first on `charts/waterfall.docx`.
+- **Cost.** `mce.test.mjs` takes under two seconds with it.
+
+The release checks' run over the 459 files stays a script, since docx4j's charts directory is not
+in this repository.
+
+### 11.7 For phase 3
+
+1. **One selection helper**: `mcBranchOf` with the understood prefixes (section 11.5). Every READ
+   walker in section 11.2 goes through it.
+2. **`segmentsOf`** lists the element as one `OBJECT_ITEMS` segment, where its `w:drawing` stood.
+   That closes section 48's gap for a tracked delete, a range deletion and the text setter, since
+   removing the element removes every branch. It also gives `inlinePictures` a place to look.
+3. **`walkStory` and `TableContextTracker.walk`** take the selected branch at the element.
+4. **`resolveStory`** goes on resolving every branch's text boxes, and counts the selected branch.
+5. **Predating this CR, and decided with the text CR** (section 7): text boxes in content controls
+   and bindings, in search and `replaceText`, and their paraIds.
+6. **The editor**, before phase 4: `mcBranchOf` in its run projection and image lookups, its label
+   oracle and `AskBox`'s text walk, and its diagnostics fixtures (section 11.3).
+7. **Tests**: the XPath four rejoin (D5); the parity test's two walks (section 11.5).
+
+### 11.8 Decisions
+
+- **D5: the four XPath fixtures rejoin now, loaded kept** (section 11.4). The harness records their
+  hits, their four goldens are regenerated from the same docx4j, and `xpath-parity.test.mjs` loads
+  them with `mcePreprocess: false`. Recommended. The kept tree's XPath answers are then held to
+  docx4j through phase 3, not only from phase 4. **Decided 2026-10-18** (Jason: "D5: ok").
+  It is not part of phase 0's commit; it follows on its own.
+- **D6: `MC_PREFER_CHOICE` refreshed** to `UNDERSTOOD_NAMESPACES`' prefixes (section 11.5), with
+  CR-011's phase 0, whose regeneration touches every golden's header anyway. Recommended. No answer
+  moves. **Decided 2026-10-18** (Jason: "D6: ok"); it is done with CR-011's phase 0.
