@@ -2774,6 +2774,17 @@ release at the end; the move fix (section 29) is out. What landed, in order:
 | 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
 | - | XPath over the tree | CR-006 | `7368f8c` | CR-006 section 5's docx4j oracle followed after the review: 46 XPath goldens, zero differences (CR-006 section 9.1) |
 
+**0.5.0 was released on 2026-10-19** (tag `0.5.0` at `05e1370`, published by `push-to-npm.yml`
+from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag, and a
+clean consumer install smoke-tested with the jsonix factory compiled strict) with sections 43 to 52
+(refusals first; accepting and rejecting fields, notes, bookmarks, the parts only removed content
+referenced, pictures, every story and equations; an SVG picture's image, checks 44 to 47), CR-010
+(every branch of `mc:AlternateContent` kept on load; checks 42 and 43), CR-001 sections 22, 23, 25
+and 26, CR-005 section 8.1 item 4, CR-007 section 8, CR-008 phase 1 and CR-009 section 8, over
+`@docx4j/generated-objects-ts` 0.4.2 and `@docx4j/jsonix` 3.4.2. The editor was asked before the
+release (nothing further wanted) and ran its whole suite, with its `mce-keep` branch, against
+`7b5dbc1` first.
+
 **0.4.0 was released on 2026-10-09** (tag `0.4.0` at `1c76afa`, published by `push-to-npm.yml`
 from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag,
 and a clean consumer install smoke-tested) with sections 41 and 42 (Word's built-in styles in
