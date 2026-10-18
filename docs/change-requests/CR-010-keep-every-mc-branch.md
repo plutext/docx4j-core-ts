@@ -158,7 +158,7 @@ while `w:p` and `w:r` are global, so the wildcard leaves them DOM.
 3. **The content API over kept branches** (three to five days):
    - the walkers through `mcBranchOf` (readers) and every branch (mutators);
    - `Body.paragraphs` and the story walks deciding how a text box's paragraphs count, as docx4j's
-     READ visits them once;
+     READ visits them once (section 12: D7 and D8);
    - `InlinePicture`, search, `replaceText`, tracked changes, bindings.
 4. **The default flips to keep** (a day, plus the editor's side): `mcePreprocess` defaults to false.
    - The four XPath fixtures rejoin `xpath-parity.test.mjs`. Done early, by D5 (section 11.8).
@@ -216,6 +216,8 @@ The estimates are rough, and phase 2's depends on the route.
   - **Decided 2026-10-17**, with D3: keeping it is one of phase 1's two additions.
 - **D5 and D6**, from phase 0, are in section 11.8: the four XPath fixtures rejoining now, loaded
   kept, and the parity harness's `MC_PREFER_CHOICE` refreshed. Both decided 2026-10-18.
+- **D7 and D8**, for phase 3, are in section 12.5: whether `Body.paragraphs` holds a text box's
+  paragraphs, and where the text-box view goes. Both decided 2026-10-18, subject to check 42 in Word.
 
 ## 6. Risks
 
@@ -678,3 +680,94 @@ in this repository.
 - **D6: `MC_PREFER_CHOICE` refreshed** to `UNDERSTOOD_NAMESPACES`' prefixes (section 11.5), with
   CR-011's phase 0, whose regeneration touches every golden's header anyway. Recommended. No answer
   moves. **Decided 2026-10-18** (Jason: "D6: ok"); it is done with CR-011's phase 0.
+
+## 12. Phase 3: does a text box's paragraph count in `Body.paragraphs`? (2026-10-18)
+
+Jason asked for this before any phase 3 code ("write the short phase 3 section on whether text-box
+paragraphs count in Body.paragraphs, with a recommendation, before writing any code"). Section 4
+gives phase 3 the question of how a text box's paragraphs count. Once the element is kept, a text
+box exists twice, once in each branch, so the answer decides what every count is over.
+
+### 12.1 What stands
+
+- **`Body.paragraphs` is the story's block walk**: the body, tables, cells and content controls. It
+  doesn't enter a run, so a text box's paragraphs are not in it, whether the element is resolved or
+  kept. Nor are they in what is built on it: `text`, `getText`, `search`, `replaceText`, `outline`,
+  `inlinePictures`, the addresses and `select`'s views. That last one already says a run in a text
+  box "stays a `Bound`".
+- **Every other rule here makes a text box a story of its own**:
+  - list numbering counts it in a fresh state (CR-001 section 15.2, docx4j's CR-014 probe P7);
+  - the cell context stops at it (CR-007, docx4j's CR-030 probe T3);
+  - `pkg.acceptAllRevisions` resolves it as a story, while `Body.acceptAll` stays its host story's
+    (CR-002 section 49).
+
+  `Body.listLabels` is a story walk, not `Body.paragraphs`. It lists a text box's numbered
+  paragraphs, each counted in the box's own state: 3 of `numbering-stories`' 9 labels.
+- **The other engines and the specification:**
+  - docx4j-python's `Body.paragraphs` and `Body.text` leave text boxes out ("Word's main story, no
+    text boxes", its CR-003 decided question 8).
+  - docx4j has no `Body.paragraphs`. Its `TraversalUtil` walks (READ) visit a text box's paragraphs
+    once, inside the anchoring paragraph.
+  - The text extraction specification WD 0.9 (portfolio `a195eae`) emits a text box's paragraphs
+    once, after the anchoring paragraph, from the selected branch (REQ-518). It addresses them under
+    that paragraph, `body/3/textbox:0/1`, never as body ordinals (REQ-519). Its note says the ports
+    adopt these segment kinds with their text-model CRs.
+- **Word** counts a text box as a story of its own (section 7, from `StoryRanges`). What Office JS's
+  `body.paragraphs` gives over a document with a text box is not measured.
+
+### 12.2 The options
+
+- **A. Leave them out.** `Body.paragraphs` stays the story's own paragraphs, whether the element is
+  kept or resolved. A text box's paragraphs are a story, reached on their own (section 12.4).
+- **B. Put them in once**, from the selected branch, after the anchoring paragraph: docx4j's walk,
+  in REQ-518's order.
+- **C. Put them in from every branch.** Rejected: each text box would appear twice, which is the bug
+  that started docx4j's CR-021.
+
+### 12.3 Recommendation: A
+
+- **No answer moves.** Phase 3 is to make a kept tree answer as a resolved one does. B would change
+  `Body.text`, `outline`, `search`, `lists` and `inlinePictures` in every document with a text box,
+  under the default load too.
+- **The addresses stay ordinals.** `body/3` and `body/3/1/0/2` count block children. B would put
+  paragraphs in the list that have no block ordinal. REQ-519 addresses them under their anchor
+  instead, which A leaves room for.
+- **One rule.** Numbering, the cell context and tracked changes already treat a text box as a story,
+  and so do Word and python. B would make `Body.paragraphs` the one exception.
+- **Writes.** Under B, `delete` or `insertText` on a text box's paragraph would edit only the
+  selected branch and leave the Fallback saying something else, against D2. Under A, nothing in the
+  content API writes to a text box until a view designed to edit every branch exists.
+- **Consumers.** The editor's projection, its console and the MCP outline go on seeing the
+  paragraphs they see today.
+
+A changes nothing in `Body.paragraphs`. What phase 3 still owes is in the story walks, section 11.7
+items 3 and 4.
+
+### 12.4 What follows from A
+
+- **The story walks count a text box once**: `listLabels` (in the box's own state, as now),
+  `TableContextTracker.walk`, fonts and styles in use, and CR-011's listing (after its story).
+  Readers take the selected branch; mutators (resolution, removal's cleanup) take every branch.
+- **Reaching a text box** is a view of its own. It would be a `Body` per box anchored in a
+  paragraph, in anchor order, over the selected branch's `w:txbxContent`, addressed
+  `…/textbox:N/…` (REQ-519).
+  - Reading through it is straightforward.
+  - Writing through it has to edit every branch's twin (D2). The corpus's nine boxes hold the same
+    text in both branches (section 9.2), but nothing guarantees the same runs, so matching the
+    twins is a design of its own.
+  - REQ-519's note gives the segment kinds to the text-model CR, which takes the next free number
+    (CR-011 is tracked changes now).
+
+### 12.5 Decisions
+
+- **D7: `Body.paragraphs` leaves a text box's paragraphs out, whether kept or resolved** (option A).
+  Recommended. Phase 3 then changes nothing that `Body.paragraphs` and the views built on it report.
+- **D8: the text-box view goes to the text-model CR**, not phase 3. That includes `textbox:N`
+  addresses, reading, and writes that land in every branch. Recommended. It keeps phase 3 to
+  making a kept tree answer as a resolved one, and puts the view with the rest of REQ-518 and
+  REQ-519.
+- **Decided 2026-10-18, both, subject to a check in Word** (Jason: "D7 and D8 agreed, subject to a
+  check in word"). The check is `test/README.md`'s check 42, a Script Lab snippet on a copy of
+  `numbering-stories.docx`. It reads Office JS's `body.paragraphs` (11 here, 14 with the box's),
+  whether `body.text` holds the box's text, and `body.inlinePictures` (1 here: the box's inline
+  drawing). If Office JS counts the box as the body's, D7 is revisited before phase 3 relies on it.

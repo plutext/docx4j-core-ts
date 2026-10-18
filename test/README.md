@@ -1269,6 +1269,16 @@ already named, so each case starts by opening its own file.
    cell with its old share spanning a seven-column merged grid (check 27's form), the new cells as
    `1 pct`, and listed one `Formatted`. The engine moved to all of it; CR-002 section 42.6,
    `table-columns.test.mjs`.
+42. Whether Office JS counts a text box's paragraphs as the body's (CR-010 section 12, D7, 2026-10-18;
+   Jason: "D7 and D8 agreed, subject to a check in word"). In Word 365 (desktop), open a **copy** of
+   `fixtures/parity/numbering-stories.docx`. Its eighth paragraph, "P23 A text box:", ends in an inline
+   text box holding three numbered paragraphs, P20 to P22, in an `mc:AlternateContent` (a `wps` Choice
+   and a VML Fallback). Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New
+   snippet), paste the HTML and Script tabs of the snippet for 42 below over the defaults, click
+   **Run the check** and copy the JSON back. Nothing is edited; close without saving. Here
+   `Body.paragraphs` gives 11, `Body.text` leaves the box's text out, and `Body.inlinePictures` gives 1
+   (the box's inline `w:drawing`). If Office JS gives 14 paragraphs, or the box's text in `body.text`,
+   it counts the box as the body's, and D7 is revisited.
 
 A small Node script for 1 to 3 is:
 
@@ -2844,5 +2854,40 @@ async function check() {
     }));
   });
   out.value = JSON.stringify(report, null, 2);
+}
+```
+
+And the Script Lab snippet for 42 (Word, Office JS, WordApi 1.3), on a copy of
+`fixtures/parity/numbering-stories.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+async function check() {
+  await Word.run(async (context) => {
+    const body = context.document.body;
+    const paragraphs = body.paragraphs;
+    const pictures = body.inlinePictures;
+    paragraphs.load('items/text');
+    pictures.load('items/width,items/height');
+    body.load('text');
+    await context.sync();
+    out.value = JSON.stringify({
+      host: Office.context.diagnostics,
+      paragraphs: paragraphs.items.length,
+      texts: paragraphs.items.map((p) => p.text),
+      bodyTextHasBox: /P2[0-2]/.test(body.text),
+      inlinePictures: pictures.items.map((p) => [p.width, p.height]),
+    }, null, 2);
+  });
 }
 ```
