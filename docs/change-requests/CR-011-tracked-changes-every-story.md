@@ -5,7 +5,9 @@ one call, filters, and a report; a package-level getTrackedChanges over every st
 author/type/date filter on the resolve-all verbs"). Revised the same day, at Jason's word ("yes,
 revise it that way please"): trimmed to the listing and the filters, with the report left until
 someone asks for it (section 7). It is to follow the 0.5.0 release, and is not scheduled. It builds
-on CR-002 sections 49 to 51 (`b6ef16a`, released in 0.5.0). Decisions D1 to D4 (section 6) are Jason's.
+on CR-002 sections 49 to 51 (`b6ef16a`, released in 0.5.0). Decisions D1 to D4 (section 6) were taken
+by Jason on 2026-10-20, each as recommended: D3 with docx4j's three type names also taken by the
+filter's `types`, and D4 as CR-002 section 53. Not scheduled.
 
 ## 1. Why
 
@@ -143,7 +145,7 @@ On `TrackedChange`, two read-only extensions:
 ```ts
 interface TrackedChangeFilter {
   authors?: readonly string[];
-  types?: readonly ('Added' | 'Deleted' | 'Formatted')[];
+  types?: readonly ('Added' | 'Deleted' | 'Formatted' | 'ADDED' | 'DELETED' | 'FORMATTED')[];  // D3
   from?: Date;                              // at or after
   to?: Date;                                // before
   kinds?: readonly TrackedChangeKind[];     // D2
@@ -196,6 +198,7 @@ type TrackedChangeSelection = TrackedChangeFilter | ((change: TrackedChange) => 
   - the date range on a package built in the test, with `withTracking` at three dates by three
     authors (every fixture's revisions carry one date);
   - the function form;
+  - `types` in both spellings, Office JS's and docx4j's (D3);
   - a listing leaving parts without markup unread;
   - the headers and footers in section order.
 - Each test fails on the code before.
@@ -221,6 +224,8 @@ My estimates, about 2 days in all plus whatever the goldens turn up:
    synchronous to a promise. The shim's `document.getTrackedChanges()` returns it, and the Office JS
    subset declares that method as `getTrackedChanges(): ArrayLike<TrackedChange>`
    (`test/office-js-subset.ts`), so the subset would no longer typecheck.
+
+   **Decided 2026-10-20** as recommended (Jason: "D1 and D2 recommendations accepted").
 2. **D2, the conditions.** You named author, type and date. docx4j and python also have kinds,
    parts and a range. Recommended:
    - **Kinds and parts too.** Each is a line once `kind` and `part` exist, and with them a filter
@@ -228,15 +233,37 @@ My estimates, about 2 days in all plus whatever the goldens turn up:
      editor's review, section 9).
    - **The range later.** A content control's content or a bookmark's extent spans paragraphs, and
      this package's `Range` lies within one paragraph.
+
+   **Decided 2026-10-20** as recommended: author, type, date, kinds and parts; the range later.
 3. **D3, the kind vocabulary.** Recommended: docx4j's names verbatim (`'RUN_INSERTION'`). Then an
    object filter written for docx4j, or passed as JSON by a tool that also drives docx4j, carries over
    unchanged. These are data values, not identifiers. The alternative follows this repository's
    camelCase rule (`'runInsertion'`), as python follows its own (`run_insertion`). With the report
    left out, the case for verbatim is weaker than it was, but it still holds.
+
+   **Decided 2026-10-20** (Jason: "D3: ok"), with one addition. The camelCase rule is about
+   identifiers; string values here are spelled as their source spells them. Four docx4j enums are
+   already carried over verbatim (`AddPartBehaviour`, `PageSizePaper`, `FontDecision.Source` as
+   `FontDecisionSource`, `FontFallback.FontClass`), Office JS's values keep Office JS's case
+   (`'Added'`, `'TrackAll'`) and OOXML's the schema's; no docx4j enum was renamed. Verbatim is the
+   fifth, not a departure. The claim above held for `kinds` but not for `types`, which follow Office
+   JS's `TrackedChange.type`, while docx4j's are `ADDED`, `DELETED` and `FORMATTED`. So the filter's
+   `types` also takes docx4j's three names, and a docx4j filter carries over. `TrackedChange.type`
+   stays Office JS's.
 4. **D4, stale views.** docx4j's views throw once the package has been resolved since they were
    listed. This package's views aren't checked, and a caller lists again. Recommended: leave it out
    of this CR. A check would need a generation on the package, bumped by every resolution, which
    touches every view's `accept` and `reject`.
+
+   **Decided 2026-10-20** (Jason: "D4 recommendation accepted"), on a recommendation revised after
+   measuring. Views that aren't checked are not harmless: for most kinds a view resolved a second
+   time acts on what now stands in its place (a deleted mark accepted twice joins one paragraph too
+   many; formatting rejected after `acceptAllRevisions` is restored; an accepted inserted row,
+   rejected through the same view, goes). docx4j's counter is not taken either: the editor's
+   `resolvePreservedOnTree` and `Body.acceptAll` resolve several views from one listing, which it
+   would make throw. Instead each view acts only while the record it was listed for is still in
+   place, and otherwise does nothing. That is a defect in what is released, so it is CR-002 section
+   53, fixed on its own, not part of this CR.
 
 ## 7. Not in scope, and hand-offs
 

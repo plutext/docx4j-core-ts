@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where today most kinds act again on what stands in its place; proposed and decided, not implemented.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -4517,3 +4517,97 @@ base64, `imageFormat` `Svg`, and a picture with no SVG unchanged. It fails on th
 Two assertions move to `Svg`: `kept-branches.test.mjs`'s icon and `picture-binding.test.mjs`'s check 38
 save. The binding's tests are listed above. Suite 869 passed; typecheck passed. Released in 0.5.0.
 
+
+## 53. A view whose change is already resolved does nothing (2026-10-20)
+
+CR-011's D4 asked whether a `TrackedChange` view should notice that it is out of date, as docx4j's do
+(its CR-043 section 3.1). Measuring the views that aren't checked here found a defect in what is
+released.
+
+**The defect.** Nothing stops a view acting after its change has been resolved, whether by the view
+itself or by another verb, `acceptAll` or `rejectAll` included. For most kinds a second call then acts
+on whatever stands where the change was:
+
+- Accepting a deleted paragraph mark twice joins one paragraph too many: `A`, `B`, `C`, `D` becomes
+  `AB`, `C`, `D`, then `ABC`, `D`. The same happens when the view was listed before `acceptAll`.
+- After `acceptAllRevisions`, rejecting the formatting changes listed before it restores the
+  properties they recorded: a paragraph centred under tracking goes back to left, and bold to not
+  bold.
+- An inserted row, accepted and then rejected through the same view, is deleted.
+
+**Measured** (2026-10-20) on the main body of the 53 fixtures that hold a listed change. Each listed
+change was resolved one way and its view then called again both ways (four orders), and the views
+listed before `Body.acceptAll` and `rejectAll` were called after them. A call "changes the document"
+when the main document part's tree differs after it:
+
+| Kind (`target.kind`) | The stale call that changes the document | What it does |
+|---|---|---|
+| `mark`, deleted | accept after accept (29 of 30) or after reject (30 of 30) | joins the paragraph with the next one |
+| | reject after accept (1 of 30) | drops the deletion of the mark now standing, the next paragraph's |
+| `mark`, inserted | reject after accept or reject (39 of 39) | joins the paragraph with the next one |
+| `runProperties`, `paragraphProperties`, `sectionProperties` | reject after accept (80 of 80, 160 of 161, 26 of 26) | restores the properties recorded when it was listed |
+| `markProperties` | reject after accept, in its one group with `runProperties` (1 of 1) | the same, by the code |
+| `row` | inserted: reject after accept; deleted: accept after reject (26 of 26 each) | removes the row |
+| `holder` | reject after accept (1 of 1) | takes the content control away |
+| `field` | reject after accept (2 of 2) | removes the field |
+| `mathStructure` | inserted: reject after accept; deleted: accept after reject (each of the 9 groups holding one) | removes the structure |
+| `group` | as its pieces | |
+
+Unchanged in every order: `run` (`ins`, `del`, `moveFrom`, `moveTo`) and `mathRun`, whose resolution
+does nothing once the element has left its list, and `tableProperties`, which reads the table's
+records as they stand. No fixture lists a `cell` in its main body. By the code, a `cell` behaves as a `row`
+(`removeCell`). What Word does with an Office JS `TrackedChange` whose change is gone has not been
+measured.
+
+**The rule** (Jason, 2026-10-20, CR-011 D4: "D4 recommendation accepted"). A view acts only while the
+record it was listed for, its `target.value`, is still where it was listed:
+
+| Kind | The record must still be |
+|---|---|
+| `run` | the element, in its list (as today) |
+| `mark` | the paragraph's `w:pPr/w:rPr/w:ins` or `w:del`, the paragraph in its container |
+| `runProperties` | the run's `w:rPrChange` |
+| `paragraphProperties` | the paragraph's `w:pPrChange` |
+| `markProperties` | the paragraph's `w:pPr/w:rPr/w:rPrChange` |
+| `sectionProperties` | the section's `w:sectPrChange` |
+| `row` | the row's `w:trPr/w:ins` or `w:del`, the row in its list |
+| `cell` | the cell's `w:cellIns` or `w:cellDel`, the cell in its row |
+| `holder` | the outer pair of markers, in their list |
+| `field` | the first `w:ins` of its span, in its list |
+| `mathRun` | the `w:ins` or `w:del` in its run (as today) |
+| `mathStructure` | the `w:ins` or `w:del` in its `m:ctrlPr` |
+| `tableProperties` | (as today: the table's records as they stand) |
+| `group` | each piece, by its own kind |
+
+The record is compared by identity, so a record in its place that a later change wrote is not
+mistaken for it. Otherwise `accept()` and `reject()` do nothing and return, as a `run`'s already does.
+
+**Not docx4j's counter.** docx4j stamps each view with a count of the accepts and rejects on its
+package, and a view listed before the last one throws `IllegalStateException` ("list again"). It is
+not ported, and this is a departure:
+- **Resolving several views from one listing works today and is used.** `Body.acceptAll` and
+  `rejectAll` resolve one listing last first (`Body.mts`), and so does the editor's
+  `resolvePreservedOnTree` (its `preserved.mts`). Under docx4j's rule the second view would throw.
+  CR-011's section 9 records the editor as listing again after every resolution; this loop doesn't.
+- **Doing nothing, not throwing.** A correct loop meets views whose record is gone: accepting either
+  half of a move resolves the other half (section 29), and a group's pieces resolve with it.
+- **No state on the package.** The check is the view's own, and it also sees a record taken away by an
+  edit, which docx4j's count, of its own verbs, does not.
+
+**The resolve-all verbs** go through the same views, so the rule applies to them. Where a join has
+given a paragraph the next one's properties (the mark that survives is the next one's, `joinWithNext`),
+a view of the first paragraph's `w:pPrChange` listed before the join no longer finds its record and
+does nothing, where today it acts on the next paragraph's. Whether that moves any result is for the
+tests that hold the all-verbs to Word's saves (checks 18, 20, 22 and 29, the CR-043 probe, the review
+file), and for section 49's run over 474 files, compared before and after.
+
+**Tests** in `test/tracking.test.mjs`, each failing on the code before:
+- for each kind in the first table, on a fixture that lists it (check 20's `01-type-inside-a.docx`,
+  check 22's deleted mark, the CR-043 probe, `tracked-changes-equations.docx`, check 34's control): a
+  view resolved one way, then called both ways, leaves the document as its first call did;
+- a `cell`, on a table built in the test;
+- the views listed before `acceptAll` and before `rejectAll`, each called both ways after it, change
+  nothing;
+- a loop resolving one listing last first, as the editor's does, still resolves every change.
+
+**Size:** half a day. Proposed and decided 2026-10-20; not implemented.
