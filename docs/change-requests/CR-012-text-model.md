@@ -410,6 +410,13 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
        `TextsTest`.
      - (c) waits for docx4j to push `VERSION_17_3_4`, or release 17.3.4, so the weekly workflow can
        rebuild them. That needs CR-011 phase 0's move of the parity workflow and the pom.
+     - They are cut at docx4j `8d32bf928` or later. Before it, every header or footer block's address
+       began with the part content's Java `toString()` (`org.docx4j.wml.Ftr@50bb1c1ffooter:rId9/0`,
+       a local variable in `Extractor.headerOrFooter` shadowing the prefix). It now reads
+       `footer:rId9/0`, which `TextsTest.headersBySection` asserts and which this package's
+       `HeaderPart` and `FooterPart` bodies already give. Section 2 was read at `3dcbb3764`, before
+       the fix; nothing here was taken from those addresses (docx4j-25, by way of the portfolio,
+       2026-10-19).
 9. **D9, REQ-510 in the Emulator, first.** Recommended: port `Emulator.levelStyleId`.
    - A numbering level belongs to one paragraph style: the one its `w:lvl/w:pStyle` names, else the
      first paragraph style in `styles.xml` whose own `w:numPr` names it.
