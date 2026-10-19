@@ -226,6 +226,7 @@ export class TrackedChange {
    * Either half of a move keeps the whole move, as Word's Review tab does (CR-002 section 29).
    */
   accept(): void {
+    if (!this.isCurrent()) return;
     resolving(this.package_, this.body_, () => this.acceptHere());
   }
 
@@ -296,7 +297,51 @@ export class TrackedChange {
    * Either half of a move rejects the whole move, as Word's Review tab does (CR-002 section 29).
    */
   reject(): void {
+    if (!this.isCurrent()) return;
     resolving(this.package_, this.body_, () => this.rejectHere());
+  }
+
+  /**
+   * Whether the record this view was listed for, `target.value`, is still where it was listed. A view
+   * whose change has been resolved since, by itself or by another verb, does nothing; otherwise it
+   * would act on what stands there now (CR-002 section 53). The record is compared by identity. docx4j's
+   * views throw instead, once any change on the package has been resolved since they were listed; that
+   * would stop a loop resolving one listing last first, as `Body.acceptAll` does.
+   */
+  private isCurrent(): boolean {
+    const t = this.target;
+    const inList = (owner: Element[], element: Element): boolean => currentOwner(owner, element).includes(element);
+    switch (t.kind) {
+      case 'run':
+      case 'mathRun':
+        return true;                                         // their resolution does nothing once the element has left its list
+      case 'tableProperties':
+        return true;                                         // resolved from the table's records as they stand
+      case 'group':
+        return true;                                         // each piece decides for itself
+      case 'mark': {
+        const paragraph = this.paragraph;
+        return !!paragraph && paragraph.p.pPr?.rPr?.[t.mark] === t.value && inList(paragraph.container, paragraph.element as Element);
+      }
+      case 'runProperties':
+        return t.run.rPr?.rPrChange === t.value;
+      case 'paragraphProperties':
+        return this.paragraph?.p.pPr?.pPrChange === t.value;
+      case 'markProperties':
+        return this.paragraph?.p.pPr?.rPr?.rPrChange === t.value;
+      case 'sectionProperties':
+        return t.sectPr.sectPrChange === t.value;
+      case 'row':
+        return t.tr.value.trPr?.[t.row] === t.value && inList(t.owner, t.tr as Element);
+      case 'cell':
+        return t.tc.value.tcPr?.[t.cell === 'ins' ? 'cellIns' : 'cellDel'] === t.value && inList(t.owner, t.tc as Element);
+      case 'holder':
+        return inList(t.owner, t.outer[0]);
+      case 'field':
+        return t.span.length > 0 && inList(t.owner, t.span[0]!);
+      case 'mathStructure':
+        return t.ctrlPr[t.revision] === t.value && (!t.structure || !t.owner || inList(t.owner, t.structure));
+    }
   }
 
   private rejectHere(): void {

@@ -2446,3 +2446,67 @@ test('text inserted before a range on a link goes into the link, as Office JS pu
   outside.body.paragraphs[0].search('the ')[0].insertText('w', 'After');
   assert.match(await xmlOf(outside), /<w:ins [^>]*><w:r><w:t>w<\/w:t><\/w:r><\/w:ins><w:hyperlink /);
 });
+
+test('a view whose change is already resolved does nothing, whichever verb resolved it (CR-002 section 53)', async () => {
+  const tree = (pkg) => JSON.stringify(pkg.getMainDocumentPart().contents, (k, v) => (k === 'PARENT' ? undefined : v));
+  const kindOf = (c) => (c.target.kind === 'group' ? c.target.pieces.map(kindOf).join('+') : c.target.kind);
+  const files = ['check20/01-type-inside-a.docx', 'check22/22-deleted.docx', 'check29/29a-heading-end-tracked.docx',
+    'check34/34b-tracked.docx', 'cr043/cr043-tracked.docx', 'cr043/tracked-changes-equations.docx'];
+  const seen = new Set();
+  for (const file of files) {
+    const bytes = await fixture(`revisions/${file}`);
+    const count = (await (await WordprocessingMLPackage.load(bytes)).getBody()).getTrackedChanges().length;
+    for (let i = 0; i < count; i++) {
+      for (const [first, then] of [['accept', 'accept'], ['accept', 'reject'], ['reject', 'reject'], ['reject', 'accept']]) {
+        const pkg = await WordprocessingMLPackage.load(bytes);
+        const change = (await pkg.getBody()).getTrackedChanges()[i];
+        for (const kind of kindOf(change).split('+')) seen.add(kind);
+        change[first]();
+        const resolved = tree(pkg);
+        change[then]();
+        assert.equal(tree(pkg), resolved, `${file} #${i} (${kindOf(change)}): ${then} after ${first}`);
+      }
+    }
+    // the views listed before an "all" verb, called after it
+    for (const all of ['acceptAll', 'rejectAll']) {
+      const pkg = await WordprocessingMLPackage.load(bytes);
+      const body = await pkg.getBody();
+      const listed = body.getTrackedChanges();
+      body[all]();
+      const resolved = tree(pkg);
+      for (const change of listed) { change.accept(); change.reject(); }
+      assert.equal(tree(pkg), resolved, `${file}: the views listed before ${all}`);
+    }
+  }
+  for (const kind of ['mark', 'runProperties', 'paragraphProperties', 'markProperties', 'sectionProperties', 'row', 'holder', 'field', 'mathStructure']) {
+    assert.ok(seen.has(kind), `a ${kind} view was tried`);
+  }
+
+  // a cell, which no fixture lists: an inserted cell accepted, then rejected, stays; a deleted one
+  // rejected, then accepted, too (before, the second call took it away)
+  const W3000 = '<w:tcW w:w="3000" w:type="dxa"/>';
+  const tc = (text, tcPr) => `<w:tc><w:tcPr>${tcPr}</w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc>`;
+  for (const [marker, keep, take] of [['cellIns', 'accept', 'reject'], ['cellDel', 'reject', 'accept']]) {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body><w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr>`
+      + '<w:tblGrid><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/><w:gridCol w:w="3000"/></w:tblGrid>'
+      + `<w:tr>${tc('a1', W3000)}${tc('b1', W3000)}${tc('c1', `${W3000}<w:${marker} w:id="1" w:author="Author A" w:date="2026-10-20T00:00:00Z"/>`)}</w:tr></w:tbl>`
+      + '<w:p/><w:sectPr/></w:body></w:document>');
+    const [change] = (await pkg.getBody()).getTrackedChanges();
+    assert.equal(change.target.kind, 'cell');
+    change[keep]();
+    change[take]();
+    assert.equal((await tablesAndSection(pkg)).tables[0].match(/<w:tc>/g).length, 3, `${marker}: ${take} after ${keep}`);
+  }
+
+  // one listing resolved last first, as Body.acceptAll and the editor's resolvePreservedOnTree do:
+  // each view's record is still in place at its turn, so every change is resolved
+  for (const file of ['check22/22-deleted.docx', 'check29/29a-heading-end-tracked.docx', 'cr043/tracked-changes-equations.docx']) {
+    for (const what of ['accept', 'reject']) {
+      const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/${file}`));
+      const changes = (await pkg.getBody()).getTrackedChanges();
+      for (let i = changes.length - 1; i >= 0; i--) changes[i][what]();
+      assert.equal(pkg.body.getTrackedChanges().length, 0, `${file}: ${what}, last first`);
+    }
+  }
+});
