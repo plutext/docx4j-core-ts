@@ -2450,7 +2450,8 @@ test('text inserted before a range on a link goes into the link, as Office JS pu
 test('a view whose change is already resolved does nothing, whichever verb resolved it (CR-002 section 53)', async () => {
   const tree = (pkg) => JSON.stringify(pkg.getMainDocumentPart().contents, (k, v) => (k === 'PARENT' ? undefined : v));
   const kindOf = (c) => (c.target.kind === 'group' ? c.target.pieces.map(kindOf).join('+') : c.target.kind);
-  const files = ['check20/01-type-inside-a.docx', 'check22/22-deleted.docx', 'check29/29a-heading-end-tracked.docx',
+  // check 20's 06 holds a deletion inside moved text, which accepting the move carries out of it
+  const files = ['check20/01-type-inside-a.docx', 'check20/06-delete-part-a.docx', 'check22/22-deleted.docx', 'check29/29a-heading-end-tracked.docx',
     'check34/34b-tracked.docx', 'cr043/cr043-tracked.docx', 'cr043/tracked-changes-equations.docx'];
   const seen = new Set();
   for (const file of files) {
@@ -2461,9 +2462,9 @@ test('a view whose change is already resolved does nothing, whichever verb resol
         const pkg = await WordprocessingMLPackage.load(bytes);
         const change = (await pkg.getBody()).getTrackedChanges()[i];
         for (const kind of kindOf(change).split('+')) seen.add(kind);
-        change[first]();
+        assert.equal(change[first](), true, `${file} #${i} (${kindOf(change)}): ${first} acts`);
         const resolved = tree(pkg);
-        change[then]();
+        assert.equal(change[then](), false, `${file} #${i} (${kindOf(change)}): ${then} after ${first} says so`);
         assert.equal(tree(pkg), resolved, `${file} #${i} (${kindOf(change)}): ${then} after ${first}`);
       }
     }
@@ -2474,7 +2475,7 @@ test('a view whose change is already resolved does nothing, whichever verb resol
       const listed = body.getTrackedChanges();
       body[all]();
       const resolved = tree(pkg);
-      for (const change of listed) { change.accept(); change.reject(); }
+      for (const change of listed) assert.deepEqual([change.accept(), change.reject()], [false, false], `${file}: a view listed before ${all}`);
       assert.equal(tree(pkg), resolved, `${file}: the views listed before ${all}`);
     }
   }
@@ -2494,8 +2495,7 @@ test('a view whose change is already resolved does nothing, whichever verb resol
       + '<w:p/><w:sectPr/></w:body></w:document>');
     const [change] = (await pkg.getBody()).getTrackedChanges();
     assert.equal(change.target.kind, 'cell');
-    change[keep]();
-    change[take]();
+    assert.deepEqual([change[keep](), change[take]()], [true, false], marker);
     assert.equal((await tablesAndSection(pkg)).tables[0].match(/<w:tc>/g).length, 3, `${marker}: ${take} after ${keep}`);
   }
 
@@ -2505,8 +2505,24 @@ test('a view whose change is already resolved does nothing, whichever verb resol
     for (const what of ['accept', 'reject']) {
       const pkg = await WordprocessingMLPackage.load(await fixture(`revisions/${file}`));
       const changes = (await pkg.getBody()).getTrackedChanges();
-      for (let i = changes.length - 1; i >= 0; i--) changes[i][what]();
+      for (let i = changes.length - 1; i >= 0; i--) assert.equal(changes[i][what](), true, `${file} #${i}: ${what}, last first`);
       assert.equal(pkg.body.getTrackedChanges().length, 0, `${file}: ${what}, last first`);
     }
   }
+
+  // and first to last, across a join: accepting the deleted mark takes the next paragraph's content
+  // into this one, and the insertion listed in it is still found there (before, its view acted on the
+  // joined paragraph's own list, out of the document, and the w:ins stayed)
+  const joined = await WordprocessingMLPackage.createPackage();
+  const A = 'w:author="Author A" w:date="2026-10-20T00:00:00Z"';
+  joined.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body>`
+    + `<w:p><w:pPr><w:rPr><w:del w:id="1" ${A}/></w:rPr></w:pPr><w:r><w:t>One</w:t></w:r></w:p>`
+    + `<w:p><w:r><w:t xml:space="preserve">Two </w:t></w:r><w:ins w:id="2" ${A}><w:r><w:t>added</w:t></w:r></w:ins></w:p>`
+    + '<w:p><w:r><w:t>Three</w:t></w:r></w:p><w:sectPr/></w:body></w:document>');
+  const forward = (await joined.getBody()).getTrackedChanges();
+  assert.deepEqual(forward.map((c) => c.target.kind), ['mark', 'run']);
+  assert.deepEqual(forward.map((c) => c.accept()), [true, true]);
+  assert.deepEqual(joined.body.paragraphs.map((p) => p.text), ['OneTwo added', 'Three']);
+  assert.equal(joined.body.getTrackedChanges().length, 0);
+  assert.doesNotMatch(await joined.getMainDocumentPart().getXml(), /<w:ins /);
 });

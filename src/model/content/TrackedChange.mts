@@ -224,10 +224,14 @@ export class TrackedChange {
   /**
    * Keeps the change: a `w:ins` is unwrapped, a `w:del` removed, a deleted mark joins the paragraphs.
    * Either half of a move keeps the whole move, as Word's Review tab does (CR-002 section 29).
+   *
+   * Returns whether it acted: false, changing nothing, when the change has been resolved since it was
+   * listed (CR-002 section 53). An extension: Office JS's `accept()` returns nothing.
    */
-  accept(): void {
-    if (!this.isCurrent()) return;
+  accept(): boolean {
+    if (!this.isCurrent()) return false;
     resolving(this.package_, this.body_, () => this.acceptHere());
+    return true;
   }
 
   private acceptHere(): void {
@@ -295,10 +299,13 @@ export class TrackedChange {
   /**
    * Puts back what was there: a `w:ins` is removed, a `w:del` restored, a `w:rPrChange` re-applied.
    * Either half of a move rejects the whole move, as Word's Review tab does (CR-002 section 29).
+   *
+   * Returns whether it acted, as `accept()` does.
    */
-  reject(): void {
-    if (!this.isCurrent()) return;
+  reject(): boolean {
+    if (!this.isCurrent()) return false;
     resolving(this.package_, this.body_, () => this.rejectHere());
+    return true;
   }
 
   /**
@@ -313,12 +320,13 @@ export class TrackedChange {
     const inList = (owner: Element[], element: Element): boolean => currentOwner(owner, element).includes(element);
     switch (t.kind) {
       case 'run':
+        return inList(t.owner, t.element);
       case 'mathRun':
-        return true;                                         // their resolution does nothing once the element has left its list
+        return ((t.run.value.content ?? []) as Element[]).includes(t.item);
       case 'tableProperties':
-        return true;                                         // resolved from the table's records as they stand
+        return hasTableRecords(t.tbl.value);                 // resolved from the table's records as they stand
       case 'group':
-        return true;                                         // each piece decides for itself
+        return t.pieces.some((piece) => piece.isCurrent());  // each piece decides for itself
       case 'mark': {
         const paragraph = this.paragraph;
         return !!paragraph && paragraph.p.pPr?.rPr?.[t.mark] === t.value && inList(paragraph.container, paragraph.element as Element);
@@ -340,7 +348,8 @@ export class TrackedChange {
       case 'field':
         return t.span.length > 0 && inList(t.owner, t.span[0]!);
       case 'mathStructure':
-        return t.ctrlPr[t.revision] === t.value && (!t.structure || !t.owner || inList(t.owner, t.structure));
+        // an equation's lists are not the ones childrenOf gives its PARENT, so the structure's own
+        return t.ctrlPr[t.revision] === t.value && (!t.structure || !t.owner || currentOwner(t.owner, t.structure).includes(t.structure));
     }
   }
 
@@ -519,12 +528,12 @@ function resolvePieces(pieces: TrackedChange[], what: 'accept' | 'reject'): void
 }
 
 /**
- * The list an element is in now: `owner` as the change was listed, else the list its `PARENT` keeps -
- * a piece listed inside a holder that was unwrapped since (its content moved out into the owner,
- * check 30) is still found.
+ * The list an element is in now: the list its `PARENT` keeps, else `owner` as the change was listed.
+ * A piece listed inside a holder that was unwrapped since (its content moved out into the owner, check
+ * 30) is still found, and so is a run whose paragraph was joined into the one before it: the joined
+ * paragraph's own list still holds it, but is no longer in the document (CR-002 section 53).
  */
 function currentOwner(owner: Element[], element: Element): Element[] {
-  if (owner.includes(element)) return owner;
   const parent = (element.value as { PARENT?: object } | undefined)?.PARENT;
   const actual = parent ? runItemsOf(parent) ?? childrenOf(parent) : undefined;
   return actual?.includes(element) ? actual : owner;
@@ -990,10 +999,12 @@ function hasText(el: Element): boolean {
 
 /** A `w:ins` or `w:moveTo` accepted: its runs take its place. */
 function unwrap(t: Extract<TrackedChangeTarget, { kind: 'run' }>): void {
-  const i = t.owner.indexOf(t.element);
+  const owner = currentOwner(t.owner, t.element);
+  const i = owner.indexOf(t.element);
   if (i < 0) return;
-  const items = runItemsOf(t.element.value as object) ?? [];
-  t.owner.splice(i, 1, ...items);
+  // the revision keeps nothing, so a view listed inside it no longer finds its element there (section 53)
+  const items = (runItemsOf(t.element.value as object) ?? []).splice(0);
+  owner.splice(i, 1, ...items);
   const parent = (t.value as { PARENT?: object }).PARENT;
   for (const item of items) linkParents(item, parent);
 }
@@ -1034,7 +1045,7 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
     if (previous && typeNameOf(previous) === 'org_docx4j_wml.P') {
       const into = previous.value as wml.P;
       const items = (into.content ??= []);
-      for (const item of p.content ?? []) items.push(item as never);
+      for (const item of (p.content ?? []).splice(0)) items.push(item as never);   // this paragraph keeps nothing
       linkParents(items, into);
       discarding(undefined, p.pPr);
       container.splice(i, 1);
@@ -1047,7 +1058,7 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
   }
   const nextP = next.value as wml.P;
   const content = (p.content ??= []);
-  for (const item of nextP.content ?? []) content.push(item as never);
+  for (const item of (nextP.content ?? []).splice(0)) content.push(item as never);   // the next keeps nothing
   linkParents(content, p);
   discarding(undefined, p.pPr);                                        // a section break's sectPr goes with it
   p.pPr = nextP.pPr;
@@ -1124,7 +1135,7 @@ function resolveMathRun(t: Extract<TrackedChangeTarget, { kind: 'mathRun' }>, ke
   const i = content.indexOf(t.item);
   if (i < 0) return;
   if (keep) {
-    const moved = (t.value.rest ?? []) as Element[];
+    const moved = ((t.value.rest ?? []) as Element[]).splice(0);
     content.splice(i, 1, ...moved);
     linkParents(moved, t.run.value);
     return;
