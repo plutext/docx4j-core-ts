@@ -439,7 +439,7 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
 | 1 | REQ-510's level ownership in the Emulator (D9), with `LevelOwnerTest`'s documents and Word's labels | ½ to 1 day |
 | 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx` | 7 to 9 days |
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks` | 2 to 3 days |
-| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, after check 49 (section 12) | 3½ to 4½ days |
+| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12) | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
 | 6 | Block-model parity goldens (D8 c), once docx4j's 17.3.4 work is public | 1 day |
 
@@ -618,13 +618,27 @@ case by case.
   shape. Nothing maps a Fallback's text to the Choice's, as D5 says of text boxes. So after an edit
   the branches disagree. That is what the editor's ED-009 writes, and the next load's
   `mce.branches_differ` reports it. Taken with the rule; Jason's to reverse.
+  - **Office JS edits the same way.** Check 49: an `insertText` through a range over a branch's text
+    lands where it says, and Word's save holds the edit.
+  - **Word does the same, and more.** Jason's Word 365 save of the editor's check file (ED-009
+    section 9.2, 2026-10-20) has no `mc:AlternateContent` left. Every element, edited or not,
+    run-level or paragraph-level, became its selected branch's items as plain runs, and every Fallback
+    was dropped. So a stale branch matters only to a reader that doesn't understand the Choice, until
+    Word next saves the file. docx4j CR-021 section 8.1's "Word keeps a paragraph-level element under
+    `w:p`" holds for a bare drawing, the case it measured; with runs in the Choice, Word resolves it.
 - **D2, the Office JS readers.** Items 1 and 2 change `Paragraph.text`, `search`, `Range` offsets
   and `replaceText` for these shapes. Under D2 those keep Office JS's text, and what Office JS's
   `paragraph.text` reads for a branch's text isn't measured. Word displays the selected Choice;
-  that's the probe. So **check 49** comes first. It reads `paragraph.text`, `search('flat')` and a
-  range over the branch's text in Word 365, on the editor's check file (`mc-for-word.docx`, ED-009
-  step S6) or on `mc-branches.docx`, for cases 1, 2, 6 and 8. If Office JS reads the branch, the rule
-  is Office JS's and D2 holds. If it doesn't, the question goes back to Jason.
+  that's the probe. So **check 49** came first. It read `paragraph.text`, `search` and a range over a
+  branch's text in Word 365 (`test/README.md`). If Office JS read the branch, the rule would be Office
+  JS's and D2 would hold; if not, the question would go back to Jason.
+  - **Run 2026-10-20 (Jason, Script Lab, over the editor's `mc-branches.docx`): Office JS reads the
+    branch.** `paragraph.text` gives the selected branch's words in all eight cases, run-level and
+    paragraph-level, and never a Fallback's. `search` finds a word only a Choice holds, and never one
+    only a Fallback holds. So items 1 and 2 are Office JS's text, and D2 holds.
+  - **Found with it.** Office JS gives a `w:br` in a branch as U+000B, where `textOf` gives `\n`.
+    Check 48 can measure whether that holds for every break, before `Paragraph.text` moves off
+    `textOf` (D6).
 - **`textOf`.** `Paragraph.text` calls it (D2), and it reads a paragraph-level branch but not a
   run-level one. Its branch choice is its own prefix set (section 1), and its output is kept stable
   (objects `c31cb83`). So item 1 is the same move as D6: `Paragraph.text` onto this package's run

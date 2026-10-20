@@ -3256,3 +3256,34 @@ async function check() {
   });
 }
 ```
+
+49. What Office JS reads over a kept `mc:AlternateContent`'s branch (CR-012 section 12, 2026-10-20).
+   Under CR-012's D2 the Office JS readers keep Office JS's text, so the editor's ED-009 rule (read a
+   run-level element as its selected branch's items, a paragraph-level one as its runs, and edit in
+   the selected branch) is Office JS's only if Office JS reads the branch. (48 is CR-012 D6's check,
+   not yet written.) The file is the editor's `mc-branches.docx`: eight kept elements, none edited,
+   each under a paragraph naming its case. The snippet, `check49-script-lab.js`, is beside it on the
+   share (`Office 2016/mc-fun/`); the editor's ED-009 section 9.2 item 4 has the cases.
+   - **Run 2026-10-20 (Jason; Word 365, Script Lab).** His save is the editor's
+     `packages/editor-model/test/fixtures/mc/mc-branches-check49-word365.docx` (editor `3189640`).
+     - **`paragraph.text` gives the selected branch's words in every case**, never a Fallback's and
+       never empty: case 1 `The Earth is flat`; case 2 `Before\tafter the tab\u000bafter the break`;
+       case 3 `unknown choice` (a Choice requiring `x14ac`, understood); case 4 `nothing to select`
+       (also `x14ac`); case 5 `A picture:  after it`; case 6 `I prefer w14`; case 7 `I prefer w16du`;
+       case 8, the paragraph-level element, `bold ying plain ying`.
+     - **`body.search`** finds each word that is only in a Choice, one hit each (`w16du` two: the
+       branch and its case label), and none that is only in a Fallback (`round`, `Fallback text`,
+       `fallback shown`, `yang`: zero each).
+     - **A range from the first `flat` hit** reads `flat`, its paragraph `The Earth is flat`.
+       `insertText("YY", "After")` through it lands after the hit, and the paragraph reads
+       `The Earth is flatYY`. Word's save holds two plain runs, `The Earth is flat` and `YY`. As in
+       ED-009 S6, the save has no `mc:AlternateContent` left.
+   - **What this package gives**, on the same file in a kept load: case 1 `""`, case 2 `""`, case 6
+     `I prefer `, and `search('flat')` nothing. A run-level element is one object segment of no text
+     (CR-010 section 13.1). Case 8 reads `bold ying plain ying` through `textOf`, but an edit there throws
+     (CR-012 section 12.4). For cases 3, 4 and 7, `selectedBranchOf` takes another branch than Word's.
+     Resolved, they read `fallback shown`, `""` (the element is kept whole, nothing selectable) and
+     `I prefer w14` (CR-010 section 15).
+   - **Also found: a line break is U+000B in Office JS.** Case 2's `w:br` reads as `\u000b`, where
+     `Paragraph.text` (`textOf`) gives `\n`. It was measured on a break inside a branch. Whether
+     Office JS gives U+000B for every `w:br` isn't measured here; check 48 can take it.

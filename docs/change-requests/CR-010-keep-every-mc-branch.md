@@ -15,9 +15,11 @@ published the same day, which objects 0.4.1 requires (section 14.4). This packag
 (section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). Section 14.9 (2026-10-20, found by the editor): a `Requires` prefix the prefix table lacks lost
 its declaration on save, an objects package defect, fixed by its CR-011 in objects 0.4.3, which this
 package requires since the same day. Section 15
-(2026-10-20, the editor's ED-009 question 2): the `Requires` gate alone picks the readers' branch
-for a Choice whose content is in bound namespaces, taken as the editor asked (Jason: "do as the
-editor asks re Q1, Q2"); proposed, not scheduled. The policy is docx4j's CR-021 (done
+(2026-10-20, the editor's ED-009 question 2): the readers count `w16sdtdh`, `w16sdtfl`, `w16du`
+and `x14ac` as understood by their `Requires` alone. All four are on docx4j's published list, and
+`w16du` and `x14ac` were measured in Word 365. Taken as the editor asked and rewritten to that simpler
+rule the same day (Jason: "do as the editor asks re Q1, Q2"; "yes, rewrite section 15 to the simpler
+rule"; "yes to 1, 2, and 3"); proposed, not scheduled. The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why
@@ -1333,60 +1335,9 @@ No WordprocessingML element is DOM.
   the probe saves with all 12 `Requires` prefixes resolving, `xmlns:zz9` and `xmlns:shape2010` on
   each `mc:AlternateContent`. Content moved, copied or built loses them. That half is docx4j CR-052,
   proposed 2026-10-20; the specification's note under REQ-303 records the clone case.
-- **The test.** `mce.test.mjs` asserts the defect as it is (CLAUDE.md), over `zz9` on the root,
-  `zz8` on the element and `shape2010`. Each `Requires` is kept and nothing declares it, and `zz9`
-  leaves `mc:Ignorable`. The fix announces itself by failing it.
-
-## 15. The readers' branch: the `Requires` gate alone (the editor's ED-009, 2026-10-20)
-
-**Status:** Proposed 2026-10-20 at the editor's request (ED-009 section 3.8, its proposal P7). Taken
-as the editor asked (Jason, 2026-10-20: "do as the editor asks re Q1, Q2"). Not scheduled.
-
-### 15.1 What the editor measured
-
-Jason's probe paragraph has one run-level element with ten Choices and a Fallback. The Choices
-require `w14`, `w15`, `w16se`, `w16cid`, `w16`, `w16cex`, `w16sdtdh`, `w16sdtfl`, `w16du` and `wp14`,
-in that order, and each holds its own prefix as text.
-- `selectedBranchOf` takes `w14`, the Choice Word 365 shows.
-- `UNDERSTOOD_PREFIXES` lacks `w16sdtdh`, `w16sdtfl` and `w16du`, which the editor reports Word 365
-  understands. All three are in `NAMESPACE_PREFIXES`. No generated module binds them, which is why
-  `UNDERSTOOD_NAMESPACES` doesn't have them.
-- So with one of the three first, Word shows it and this package takes the next Choice it
-  understands. The editor's `mc-branches.docx` case 7 (`w16du` first) reads "I prefer w14" here, resolved.
-  Word's display is the editor's report from Jason's probe; it wasn't checked here.
-
-### 15.2 The rule
-
-For the branch the readers take (`selectedBranchOf`), a Choice is understood when:
-- every namespace its `Requires` names is one Word 365 understands; and
-- everything inside it is in namespaces the model binds, so it unmarshals typed and round-trips.
-
-So the gate alone decides, and section 11.5's round-trip guard (docx4j CR-021 section 8.9) moves
-from the `Requires` namespaces onto the Choice's content. In the probes the prefix is only a gate,
-and the content is plain WordprocessingML.
-
-- **Kept loads, the default.** The choice decides only what the readers read and the mutators edit.
-  The save writes every branch as loaded, so a wider set can't lose content.
-- **`mcePreprocess: true`.** Today it uses the same set to choose which branch replaces the element,
-  and that converts DOM into typed content (CLAUDE.md). Under the content condition, the guard is
-  checked on what is converted. Content the model binds only partly still loses the unbound part
-  (CR-004 section 7). So resolving keeps `UNDERSTOOD_NAMESPACES` until the round trip of such a
-  Choice is measured. The rule here is for kept loads first.
-- **Which namespaces Word understands.** Only the three are measured. The list goes with section 3's
-  item 6, D4 item 2's published list.
-- **Matching by URI** (D4 item 1, an objects change) is related. `shape2010` in docx4j's extraction
-  probe is the `wps` namespace under another prefix (section 14.9), and today's prefix match
-  doesn't take it.
-
-### 15.3 What it changes
-
-- **In the corpus, nothing.** No `Requires` in its 834 elements names `w16du`, `w16sdtdh` or
-  `w16sdtfl` (section 14.9's count), so no fixture and no parity golden changes branch.
-- **docx4j.** It's a departure from CR-021 section 8.9, to raise with docx4j through the portfolio
-  when this is scheduled. The parity harness's `preferChoice` (section 11.5) has to follow, so docx4j
-  reads the branch this package reads.
-- **The editor** shows whatever `selectedBranchOf` selects, and records the difference meanwhile in
-  its `docs/word-divergences.md`.
+- **The test.** `mce.test.mjs` asserted the defect as it was (CLAUDE.md), over `zz9` on the root,
+  `zz8` on the element and `shape2010`: each `Requires` kept and nothing declaring it, and `zz9`
+  leaving `mc:Ignorable`. The fix announced itself by failing it (below).
 - **Fixed in objects 0.4.3** (tag `3b4f4ba`, published 2026-10-20), over `@docx4j/jsonix` 3.5.0
   (jsonix CR-008, the unmarshal-side `onElement`, published the same day). Checked here before the
   release, on a tarball packed from its commit `9ecd17a`, and again on the npm artifact:
@@ -1417,3 +1368,90 @@ and the content is plain WordprocessingML.
   - The test asserts the bindings kept: the three `Requires` bound as the source bound them,
     `mc:Ignorable="zz9"` kept with its declaration, an inserted fragment's and an inserted flat OPC
     package's `zz7` bound, and no warning.
+
+## 15. The readers' branch: the `Requires` gate alone (the editor's ED-009, 2026-10-20)
+
+**Status:** Proposed 2026-10-20 at the editor's request (ED-009 section 3.8, its proposal P7), taken
+as the editor asked (Jason: "do as the editor asks re Q1, Q2"). Rewritten the same day to the simpler
+rule below (Jason: "yes, rewrite section 15 to the simpler rule"). The first version also required
+the Choice's content to be in namespaces the model binds. `x14ac` was added after the Word 365 check
+(Jason, 2026-10-20: "yes to 1, 2, and 3", 1 being `x14ac`). Not scheduled.
+
+### 15.1 What the editor measured
+
+Jason's probe paragraph has one run-level element with ten Choices and a Fallback. The Choices
+require `w14`, `w15`, `w16se`, `w16cid`, `w16`, `w16cex`, `w16sdtdh`, `w16sdtfl`, `w16du` and `wp14`,
+in that order, and each holds its own prefix as text.
+- `selectedBranchOf` takes `w14`, and Word 365 shows `w14`.
+- `UNDERSTOOD_PREFIXES` lacks `w16sdtdh`, `w16sdtfl` and `w16du`. All three are in
+  `NAMESPACE_PREFIXES`. No generated module binds them, which is why `UNDERSTOOD_NAMESPACES` doesn't
+  have them.
+- **Measured for `w16du`.** Jason opened the editor's check file in Word 365 on 2026-10-20 (ED-009
+  section 9.2; his save is the editor's `test/fixtures/mc/mc-for-word-word365.docx`, editor
+  `8410226`). Its case 7, the ten Choices with `w16du` first, shows "I prefer w16du" in Word, where
+  this package reads "I prefer w14". `w16sdtdh` and `w16sdtfl` are not measured: in Jason's probe
+  `w14` comes first, so Word showing `w14` says nothing about them.
+- **`x14ac` too.** The same file's case 3 is a Choice requiring Excel's `x14ac`, with a Fallback. Word
+  365 shows the Choice in a Word part, where this package takes the Fallback. So the namespaces Office
+  understands are Office-wide, not one application's. `x14ac` is on docx4j's list as well (line 112,
+  section 15.2).
+
+### 15.2 docx4j's list already has them
+
+docx4j's published understood list (`docx4j-core/src/main/resources/org/docx4j/jaxb/understood-namespaces.txt`,
+118 URIs) has all three, at lines 109 to 111. They are 3 of the 11 that docx4j's JAXB contexts bind
+and this package's 107 don't. The other 8 are `dgm1611` (drawing/2016/11/diagram), `x14ac` and six
+SpreadsheetML revision namespaces (`xr2`, `xr3`, `xr6`, revision9, which has no conventional prefix,
+`xr10` and `xr16`). The rule below counts `x14ac` with the three, since Word 365 understands it
+(section 15.1). CR-012's phase 0 measures all 11 over the corpus (its section 4.1).
+
+The specification's REQ-306 has each implementation assert its set against that list, with
+additions made to the list first. These four are on it already. So counting them follows docx4j's
+list rather than departing from it. The first version of this section called the change a departure
+from docx4j CR-021 section 8.9. That section is about load, which the rule below leaves alone.
+
+### 15.3 The rule
+
+For the branch the readers take (`selectedBranchOf`), a Choice is understood when every namespace its
+`Requires` names is in `UNDERSTOOD_NAMESPACES` or is one of `w16sdtdh`, `w16sdtfl`, `w16du` and
+`x14ac`. That is REQ-302 as written, the gate alone. There is no condition on the Choice's content.
+
+- **Kept loads, the default.** The choice decides only what the readers read and the mutators edit.
+  The save writes every branch as loaded, so the wider set can't lose content.
+- **`mcePreprocess: true` keeps `UNDERSTOOD_NAMESPACES`.** Resolving converts the Choice's DOM into
+  typed content (CLAUDE.md), and no generated module binds the four namespaces. Anything of theirs
+  inside a taken Choice would then be lost on a re-marshal. Whether any of the 11 joins
+  `UNDERSTOOD_NAMESPACES` goes through CLAUDE.md's round-trip test, in CR-012's phase 0.
+- **Why no content condition.** REQ-302 has none. `mcBranchOf` takes only a set of prefixes, so a
+  condition on the content would need an objects change, or a branch selection of this package's own,
+  which CLAUDE.md rules out. The rule needs neither: `selectedBranchOf` passes `mcBranchOf` the wider
+  set.
+- **Prefixes.** All four are in `NAMESPACE_PREFIXES`, so REQ-303's documented prefix matching covers
+  them, as it does the rest of `UNDERSTOOD_PREFIXES`.
+
+### 15.4 What it changes
+
+- **The two loads can disagree.** On a Choice requiring one of the four, a kept load's readers take
+  it, and a resolved load takes the next understood Choice or the Fallback. Section 13.1's "a reader
+  takes the branch load would have resolved the element to" then holds for `UNDERSTOOD_NAMESPACES`
+  only.
+- **In the corpus, nothing.** No `Requires` among its 834 elements names one of the four (section
+  14.9's count). So no fixture, no kept-and-resolved agreement test and no parity golden changes.
+- **The parity harness.** Its `preferChoice` (section 11.5) is refreshed when CR-011's phase 0
+  regenerates the goldens. No fixture needs it before then.
+- **`textOf`** is unaffected. `mcBranchOf`'s default set, which it uses, takes all four already.
+- **The editor's check file.** In its cases 3 and 4 (`x14ac`) and 7 (`w16du` first), `selectedBranchOf`
+  then takes the branch Word took (check 49). Their text reads as Word's once CR-012 section 12 reads
+  a run-level element's branch, and then the editor's pins of them go.
+- **The editor** shows whatever `selectedBranchOf` selects.
+
+### 15.5 Before it's implemented
+
+- **The Word check, half done.** `w16du` and `x14ac` are measured (section 15.1). `w16sdtdh` and
+  `w16sdtfl` each need a paragraph with that Choice first, which the editor's build script can add.
+- **The other seven of docx4j's 11** are on its list but not measured in Word, so they wait for
+  CR-012's phase 0.
+- **Size.** About two hours:
+  - the readers' set beside `UNDERSTOOD_PREFIXES`, and `selectedBranchOf` over it;
+  - a test over cases 3, 4, 6 and 7, kept and resolved;
+  - the documentation.
