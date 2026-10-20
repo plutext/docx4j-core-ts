@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
-    "docx4jVersion": "docx4j-core-17.3.3.jar",
-    "docx4jCoreJarSha256": "ec27210095a880f3",
-    "date": "2026-10-20T11:04:17Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:56Z",
     "fixture": "revisions/cr043/cr043-tracked.docx",
     "fixtureBytes": 44084,
     "timeZone": "UTC",
@@ -467,11 +467,51 @@
   "resolved": {
     "acceptAll": {
       "count": 37,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          47
+        ],
+        "starts": [
+          47
+        ],
+        "ends": [
+          47
+        ],
+        "references": [
+          47
+        ]
+      }
     },
     "rejectAll": {
       "count": 37,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          47
+        ],
+        "starts": [
+          47
+        ],
+        "ends": [
+          47
+        ],
+        "references": [
+          47
+        ]
+      }
     },
     "rejectAuthor": {
       "filter": {
@@ -906,7 +946,27 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          47
+        ],
+        "starts": [
+          47
+        ],
+        "ends": [
+          47
+        ],
+        "references": [
+          47
+        ]
+      }
     },
     "acceptDeleted": {
       "filter": {
@@ -1135,7 +1195,27 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          47
+        ],
+        "starts": [
+          47
+        ],
+        "ends": [
+          47
+        ],
+        "references": [
+          47
+        ]
+      }
     },
     "acceptRunDeletions": {
       "filter": {
@@ -1485,7 +1565,27 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          47
+        ],
+        "starts": [
+          47
+        ],
+        "ends": [
+          47
+        ],
+        "references": [
+          47
+        ]
+      }
     }
   }
 }

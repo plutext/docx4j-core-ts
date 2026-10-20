@@ -1,0 +1,397 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:56Z",
+    "fixture": "revisions/python/artefact8/8-tracked-changes.docx",
+    "fixtureBytes": 12760,
+    "timeZone": "UTC",
+    "authors": [
+      "Claude"
+    ]
+  },
+  "listing": [
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 1,
+      "text": "first",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 2,
+      "text": "second",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 3,
+      "text": "Added by an agent, right after the first paragraph.\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "ROW_DELETION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 18,
+      "text": "East\tQ2\t180\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "ROW_INSERTION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 11,
+      "text": "North\tQ2\t300\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 8,
+      "text": "This paragraph will be deleted, with its mark.\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 10,
+      "text": "This paragraph will be made bold.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 6,
+      "text": "\rAnd one appended at the very end.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Claude",
+      "date": "2026-10-20T04:46:25Z",
+      "id": 7,
+      "text": "And one appended at the very end.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 9,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    },
+    "rejectAll": {
+      "count": 9,
+      "left": [],
+      "comments": {
+        "parts": [],
+        "entries": [],
+        "starts": [],
+        "ends": [],
+        "references": []
+      }
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 3,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 2,
+          "text": "second",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 3,
+          "text": "Added by an agent, right after the first paragraph.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 11,
+          "text": "North\tQ2\t300\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 10,
+          "text": "This paragraph will be made bold.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 6,
+          "text": "\rAnd one appended at the very end.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 7,
+          "text": "And one appended at the very end.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 2,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 2,
+          "text": "second",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 3,
+          "text": "Added by an agent, right after the first paragraph.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "ROW_DELETION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 18,
+          "text": "East\tQ2\t180\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 11,
+          "text": "North\tQ2\t300\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 9,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 10,
+          "text": "This paragraph will be made bold.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 6,
+          "text": "\rAnd one appended at the very end.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Claude",
+          "date": "2026-10-20T04:46:25Z",
+          "id": 7,
+          "text": "And one appended at the very end.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    }
+  }
+}

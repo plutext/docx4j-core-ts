@@ -110,6 +110,14 @@ export interface CommentParts {
   ensureCommentsEx(): w15.CTCommentsEx;
   /** Loads and creates the side parts the bookkeeping needs (w15, w16cid; w16cex only if present). */
   ensureAll(): Promise<CommentParts>;
+  /** Loads the side parts the document has, creating none: what removing a comment needs. */
+  loadExisting(): Promise<CommentParts>;
+  /**
+   * Takes the comments part and its commentsExtended, commentsIds and commentsExtensible parts out of
+   * the package, with their relationships, and the people part too when `people` is true. A part
+   * another relationship still targets stays.
+   */
+  drop(people: boolean): void;
 }
 
 /** How the content API reaches the comment parts; implemented and registered by `src/parts/wml/comments.mts`. */

@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
-    "docx4jVersion": "docx4j-core-17.3.3.jar",
-    "docx4jCoreJarSha256": "ec27210095a880f3",
-    "date": "2026-10-20T11:04:18Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:56Z",
     "fixture": "revisions/review/review-for-word-word15.docx",
     "fixtureBytes": 21104,
     "timeZone": "UTC",
@@ -413,11 +413,79 @@
   "resolved": {
     "acceptAll": {
       "count": 32,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "starts": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "ends": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "references": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ]
+      }
     },
     "rejectAll": {
       "count": 32,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          56,
+          57,
+          58,
+          59
+        ],
+        "starts": [
+          56,
+          57,
+          58,
+          59
+        ],
+        "ends": [
+          56,
+          57,
+          58,
+          59
+        ],
+        "references": [
+          56,
+          57,
+          58,
+          59
+        ]
+      }
     },
     "rejectAuthor": {
       "filter": {
@@ -641,7 +709,43 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "starts": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "ends": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "references": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ]
+      }
     },
     "acceptDeleted": {
       "filter": {
@@ -900,7 +1004,43 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "starts": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "ends": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "references": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ]
+      }
     },
     "acceptRunDeletions": {
       "filter": {
@@ -1195,7 +1335,43 @@
             "RUN_INSERTION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "starts": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "ends": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ],
+        "references": [
+          46,
+          56,
+          57,
+          58,
+          59
+        ]
+      }
     }
   }
 }

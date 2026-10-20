@@ -620,7 +620,8 @@ export interface NoteRemovals { footnote: Set<number>; endnote: Set<number> }
 /**
  * A resolution in progress: where `discarding` records the notes (its package's `pendingNoteRemovals`),
  * the tree its bookmarks are read in (the change's part), those bookmarks as they were before the first
- * removal, the part the change is in, and the relationship ids of that part the removed content held.
+ * removal, the part the change is in, the relationship ids of that part the removed content held, and
+ * the comments to judge once the joins are made (`removeRevision`), with the body each is in.
  */
 interface Resolution {
   notes: NoteRemovals | undefined;
@@ -628,6 +629,7 @@ interface Resolution {
   before?: Map<string, BookmarkState>;
   part: Part | undefined;
   relationships?: Set<string>;
+  comments?: Map<number, Body>;
 }
 
 let resolution: Resolution | undefined;
@@ -652,6 +654,9 @@ let resolution: Resolution | undefined;
  *   goes when nothing left in the part references it; its part goes when no relationship in the package
  *   targets it any more, and what that part alone related to goes with it. The kinds beyond pictures,
  *   headers and footers (charts, OLE objects, `v:imagedata`) are docx4j's reading, not measured.
+ * - **Comments**: a comment `removeRevision` left with its range's start and end in different paragraphs
+ *   goes whole when the joins have brought them into one list with nothing with text between
+ *   (`settleSpanningComments`; CR-002 section 54).
  * A change resolved inside another's (a row's cells, a group's pieces, `acceptAll`'s changes) shares the
  * outer resolution, so the bookmarks are read twice for the lot, and not at all when nothing is removed.
  */
@@ -675,6 +680,7 @@ export function resolving(pkg: unknown, body: Body | undefined, resolve: () => v
   try {
     resolve();
     const done = resolution;
+    if (done.comments?.size) settleSpanningComments(done.comments);
     if (done.root && done.before) dropBookmarksBroken(done.root, done.before);
     if (done.part && done.relationships?.size) dropRelationshipsUnused(done.part, done.relationships);
   } finally {
@@ -1005,35 +1011,43 @@ function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
 
 /**
  * A revision taken away with its runs - a rejected insertion, an accepted deletion - and the comments
- * on it, by where their markers were (CR-002 section 38 item 1):
- * - Word writes a comment's range start inside the `w:ins` of the text it is on; when that text goes,
- *   current Word removes the comment with it - markers, reference run and entry (check 32, run
- *   2026-10-02: rejecting the insertion, rejecting all, and accepting the deletion in the same shape,
- *   each left no comment). A comment whose start comes out of the revision with no text left in its
- *   range is removed here: the markers and the reference now, the entries in the comment parts when
- *   the comments are next read or the package saved (`pendingCommentRemovals`).
- * - A comment whose markers lie outside the revision (this package's own form before 0.3.1, and any
- *   file's) is kept when its text goes: Word 2010 and Word 15, rejecting all in the editor's
- *   `review-for-word.docx`, left its reference run alone, the range markers dropped and the entry kept
- *   (the editor's finding of 2026-10-02). The range markers go here, the reference and the entry stay.
- * A comment with text left in its range keeps its markers where the text was (not measured), and
- * current Word's answer for the outside form, and the older Words' for the inside one, are not measured.
+ * on it, as Word 365 resolves them (CR-002 section 54; docx4j CR-043 section 15, `Resolver.removeRevision`):
+ * a comment whose range start was inside the revision, or whose markers lie either side of it in its
+ * list, goes whole - markers, reference run and entry - once nothing with text is left in its range.
+ * - Word writes a comment's range start inside the `w:ins` of the text it is on; current Word removed
+ *   the comment with that text (check 32: rejecting the insertion, rejecting all, and accepting the
+ *   deletion in the same shape).
+ * - Every marker outside the revision (this package's own form before 0.3.1, a tracker's that wraps
+ *   only the text): Word 365's Reject All of the editor's `review-for-word.docx` and of docx4j-python's
+ *   artefact 8, and its Accept All of a deletion (docx4j's U21), removed the comment whole too. Word
+ *   2010 and Word 15 kept it, its range markers dropped, which was the rule here until section 54.
+ * - A range whose start and end are in different paragraphs is judged when the resolution ends, once
+ *   the paragraph marks taken away have joined what is left (`resolving`): Word 365's Reject All of two
+ *   inserted paragraphs commented whole removed the comment (docx4j's U23). A range still crossing a
+ *   paragraph mark stays (docx4j's U24, not measured).
+ * The markers and the reference go now, the entries in the comment parts when the comments are next
+ * read or the package saved (`pendingCommentRemovals`). A comment with text left in its range keeps its
+ * markers where the text was (not measured), and so does one whose range was empty before.
  */
 function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragraph: Paragraph | undefined): void {
   const owner = currentOwner(t.owner, t.element);
   const i = owner.indexOf(t.element);
   if (i < 0) return;
   const kept = (runItemsOf(t.element.value as object) ?? []).filter((item) => item.name?.localPart === 'commentRangeStart' || item.name?.localPart === 'commentRangeEnd');
-  // the comments whose range held the revision: a start inside it (Word's form), or one before it
-  // with its end after it (the engine's own, the markers beside the runs)
-  const idOf = (el: Element): unknown => (el.value as { id?: unknown }).id;
-  const inside = new Set<unknown>(kept.filter((m) => m.name?.localPart === 'commentRangeStart').map(idOf));
+  // the comments whose range held the revision: a start inside it (Word's form); a start before it
+  // with its end after it (the markers beside the runs) or in another paragraph; an end after it with
+  // its start in another paragraph
+  const inside = new Set<unknown>(kept.filter((m) => m.name?.localPart === 'commentRangeStart').map(commentIdOf));
   const outside = new Set<unknown>();
   for (let s = 0; s < i; s++) {
     const el = owner[s]!;
     if (el.name?.localPart !== 'commentRangeStart') continue;
-    const id = idOf(el);
-    if (owner.some((other, e) => e > i && other.name?.localPart === 'commentRangeEnd' && idOf(other) === id)) outside.add(id);
+    const id = commentIdOf(el);
+    if (markerAt(owner, s + 1, owner.length, 'commentRangeEnd', id) < 0 || markerAt(owner, i + 1, owner.length, 'commentRangeEnd', id) >= 0) outside.add(id);
+  }
+  for (let e = i + 1; e < owner.length; e++) {
+    const el = owner[e]!;
+    if (el.name?.localPart === 'commentRangeEnd' && markerAt(owner, 0, e, 'commentRangeStart', commentIdOf(el)) < 0) outside.add(commentIdOf(el));
   }
   discarding(t.element);
   owner.splice(i, 1, ...kept);
@@ -1041,18 +1055,61 @@ function removeRevision(t: Extract<TrackedChangeTarget, { kind: 'run' }>, paragr
   const body = paragraph?.parentBody;
   if (!body) return;
   for (const id of [...inside, ...outside]) {
-    const start = owner.find((el) => el.name?.localPart === 'commentRangeStart' && idOf(el) === id);
-    if (!start || !rangeIsEmpty(owner, start, id as number)) continue;
-    if (inside.has(id)) {
-      removeMarkers(body.container, id as number);
-      const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
-      pkg?.pendingCommentRemovals?.add(id as number);
-    } else {
-      // the range markers only: the reference run and the entry stay (Word 2010 and 15)
-      const end = owner.find((el) => el.name?.localPart === 'commentRangeEnd' && idOf(el) === id);
-      for (const marker of [end, start]) if (marker) owner.splice(owner.indexOf(marker), 1);
+    const start = markerAt(owner, 0, owner.length, 'commentRangeStart', id);
+    if (start < 0 || markerAt(owner, start + 1, owner.length, 'commentRangeEnd', id) < 0) {
+      if (resolution) (resolution.comments ??= new Map()).set(id as number, body);   // start and end in different paragraphs
+    } else if (rangeIsEmpty(owner, owner[start]!, id as number)) {
+      removeCommentWhole(body, id as number);
     }
   }
+}
+
+const commentIdOf = (el: Element): unknown => (el.value as { id?: unknown } | undefined)?.id;
+
+/** The index in `list`, from `from` up to `to`, of a comment's range start or end (`local`), or -1. */
+function markerAt(list: Element[], from: number, to: number, local: 'commentRangeStart' | 'commentRangeEnd', id: unknown): number {
+  for (let i = from; i < to; i++) if (list[i]!.name?.localPart === local && commentIdOf(list[i]!) === id) return i;
+  return -1;
+}
+
+/** A comment taken away: its markers and reference run now, its entries when the comments are next read or the package saved. */
+function removeCommentWhole(body: Body, id: number): void {
+  removeMarkers(body.container, id);
+  const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+  pkg?.pendingCommentRemovals?.add(id);
+}
+
+/**
+ * The comments `removeRevision` left with their range's start and end in different lists, judged once
+ * the resolution's joins are made (docx4j's `Removals.removeCommentIfEmptied`): one goes whole when its
+ * start and end now stand in one list with nothing with text between them.
+ */
+function settleSpanningComments(comments: Map<number, Body>): void {
+  for (const [id, body] of comments) {
+    const list = listHolding(storyRootOf(body), (el) => el.name?.localPart === 'commentRangeStart' && commentIdOf(el) === id);
+    if (!list) continue;
+    const start = markerAt(list, 0, list.length, 'commentRangeStart', id);
+    if (rangeIsEmpty(list, list[start]!, id)) removeCommentWhole(body, id);
+  }
+}
+
+/** The list under `root` (block, run and run-content lists, math's) holding an item `match` matches, or undefined. */
+function listHolding(root: unknown, match: (el: Element) => boolean): Element[] | undefined {
+  let found: Element[] | undefined;
+  const seen = new Set<object>();
+  const visit = (o: unknown): void => {
+    if (found || typeof o !== 'object' || o === null || seen.has(o)) return;
+    seen.add(o);
+    if (Array.isArray(o)) {
+      if (o.some((item) => typeof item === 'object' && item !== null && match(item as Element))) { found = o as Element[]; return; }
+      for (const item of o) visit(item);
+      return;
+    }
+    if ((o as { nodeType?: unknown }).nodeType !== undefined) return;   // a DOM node
+    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key]);
+  };
+  visit(root);
+  return found;
 }
 
 /** True when nothing with text stands between a comment's range start and its end in the same list. */

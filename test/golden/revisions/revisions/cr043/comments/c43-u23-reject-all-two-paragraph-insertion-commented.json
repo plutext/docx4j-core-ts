@@ -1,0 +1,184 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:55Z",
+    "fixture": "revisions/cr043/comments/c43-u23-reject-all-two-paragraph-insertion-commented.docx",
+    "fixtureBytes": 3560,
+    "timeZone": "UTC",
+    "authors": [
+      "Probe"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Probe",
+      "date": "2026-10-21T00:00:00Z",
+      "id": 1,
+      "text": "C43_U23_FIRST_INSERTED_PARAGRAPH\rC43_U23_SECOND_INSERTED_PARAGRAPH\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0,
+          5
+        ],
+        "starts": [
+          0,
+          5
+        ],
+        "ends": [
+          0,
+          5
+        ],
+        "references": [
+          0,
+          5
+        ]
+      }
+    },
+    "rejectAll": {
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          5
+        ],
+        "starts": [
+          5
+        ],
+        "ends": [
+          5
+        ],
+        "references": [
+          5
+        ]
+      }
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Probe",
+          "date": "2026-10-21T00:00:00Z",
+          "id": 1,
+          "text": "C43_U23_FIRST_INSERTED_PARAGRAPH\rC43_U23_SECOND_INSERTED_PARAGRAPH\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0,
+          5
+        ],
+        "starts": [
+          0,
+          5
+        ],
+        "ends": [
+          0,
+          5
+        ],
+        "references": [
+          0,
+          5
+        ]
+      }
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Probe",
+          "date": "2026-10-21T00:00:00Z",
+          "id": 1,
+          "text": "C43_U23_FIRST_INSERTED_PARAGRAPH\rC43_U23_SECOND_INSERTED_PARAGRAPH\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0,
+          5
+        ],
+        "starts": [
+          0,
+          5
+        ],
+        "ends": [
+          0,
+          5
+        ],
+        "references": [
+          0,
+          5
+        ]
+      }
+    }
+  }
+}

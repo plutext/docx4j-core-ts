@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, not released.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -3409,7 +3409,8 @@ entry, the range markers dropped. Current Word on the outside form, and the olde
 one, are not measured; a comment keeping some text beyond the revision keeps its markers (not
 measured). Accepting the insertion, or rejecting the deletion, leaves the comment on its word, as Word
 does. Until the run the engine kept the markers in both forms, the comment collapsed where its text
-was.
+was. **Superseded for the outside form by section 54 (2026-10-21):** Word 365 removes that comment
+whole too, and so does the engine since.
 
 **2. Deleting a heading's paragraph mark gives the next paragraph the heading's properties.** Word
 15, at Delete at the end of a Heading 2 paragraph followed by a Normal one with tracking on, marked
@@ -4659,3 +4660,111 @@ the call. Jason agreed ("acceded to the editor's request so accept() and reject(
   - the forward-order case resolves fully.
 - **Tests:** the section's test asserts each return value, takes check 20's 06 for the nested
   deletion, and adds the forward-order case. Suite 876 passed; typecheck passed.
+
+## 54. Comments as Word 365 resolves them: a comment whose range a resolution empties goes whole (2026-10-21)
+
+*The port of docx4j CR-043 section 15 (its `d18693760` and `a8bc6cda9`, `VERSION_17_3_4`), scheduled by
+Jason on 2026-10-21 ("do the comment-rule port, then CR-012 phase 2"). Implemented the same day, not
+released.*
+
+**What Word 365 does.** Section 38 item 1 had the outside form only from Word 2010 and Word 15: a
+comment on inserted text whose range start, end and reference all lie outside the `w:ins` (this
+package's form before 0.3.1, and a tracker's that wraps only the text). Those Words, rejecting all,
+kept the comment and dropped its range markers, and so did `removeRevision`. Section 38 said current
+Word on that form was unmeasured. Jason measured it in Word 365 (16.0) on 2026-10-21:
+- Reject All of the editor's `review-for-word.docx` removed "Changed from arrears, as agreed." whole:
+  markers, reference run and entry.
+- Accept All and Reject All of docx4j-python's acceptance artefact 8 (a comment on inserted "second",
+  every marker outside the `w:ins`): rejected, the comment went, and with it, the last, the comments,
+  commentsExtended and commentsIds parts and `people.xml`. Check 32 had seen the comments part go the
+  same way.
+- docx4j-25's probes (docx4j CR-043 U21 to U23):
+  - U21: Accept All of a deletion whose comment's markers lie outside the `w:del` removed the comment
+    whole; a control comment stayed.
+  - U22: one insertion rejected, which removes the document's only comment while a tracked deletion is
+    left. The comment parts went and `people.xml` stayed.
+  - U23: Reject All of two inserted paragraphs, commented whole (the range starts in the first and ends
+    in the second), removed the comment.
+
+docx4j followed (Jason, there: "follow Word 365"; and for U23 "fix Resolver.removeRevision to judge
+the range across paragraphs").
+
+**The rule, as ported** (`removeRevision`, `TrackedChange.mts`).
+- A revision taken away with its content (an insertion rejected, a deletion accepted) makes a
+  candidate of each comment whose range held it:
+  - a range start inside it (Word's form);
+  - a range start before it in its list, with the end after it or in another paragraph;
+  - a range end after it, with the start in another paragraph.
+- A candidate with its start and end in the revision's list goes whole once nothing with text is left
+  between them: its markers and reference run at once, its entry when the comments are next read or
+  the package saved (`pendingCommentRemovals`, as before).
+- A candidate with its start and end in different lists is judged when the resolution ends
+  (`settleSpanningComments`, from `resolving`), after the paragraph marks taken away have joined what is
+  left. It goes whole when its start and end now stand in one list with nothing with text between
+  them. docx4j's `Removals.removeCommentIfEmptied` does the same at its flush.
+- A comment whose range still crosses a paragraph mark stays (docx4j's U24, not measured). So does one
+  with text left in its range, and one whose range was empty before.
+- Accepting an insertion or rejecting a deletion leaves the comment on its text, as before.
+
+The outside branch of section 38 is gone. A file 0.3.0 wrote now loses such a comment whole on
+reject, as Word 365 does, where Word 2010 and Word 15 kept it.
+
+**The comment parts.** With the last comment a resolution takes away, the comments part and its
+commentsExtended, commentsIds and commentsExtensible parts go, with their relationships; a part another
+relationship still targets stays (`CommentParts.drop`). `people.xml` goes too where no tracked change
+is left (`getAllTrackedChanges()` is empty), as U22 showed Word keeping it while a deletion was still
+tracked.
+
+**A departure: when the parts are decided.** docx4j decides at the end of its resolution. This package
+removes a comment's entry later, when the comments are next read or the package saved, since the
+comment parts are read asynchronously and `Body.acceptAll` is synchronous; the parts are decided then
+(`flushPendingRemovals`, `Comment.mts`). The answer is docx4j's unless tracked changes are made or
+resolved in between: a resolution that leaves a deletion tracked, followed by an accept of that deletion
+before the save, drops `people.xml` here, and keeps it in docx4j.
+
+**A defect this found: a removal created parts.** The entries went through `Comment.delete()`, which
+first creates the commentsExtended, commentsIds and people parts a document lacks (`ensureAll`, which
+an edit needs). So rejecting a comment's inserted text in a Word 2010 file, which has a comments part
+alone, wrote three parts it never had. The editor's `measure-word2010.docx` rejected all was one; Word 15's
+`measure-word15.docx` gained a commentsIds part. A resolution's removal now loads only the side parts
+the document has (`CommentParts.loadExisting`, then `Comment.removeThread`). `delete()` is unchanged.
+
+**The oracle.** The revisions goldens (CR-011) recorded only the tracked changes a resolution leaves,
+so no comment answer of docx4j's had been compared. `RevisionsHarness` version 2 records each
+resolution's comments as well: the comment parts left, the comments part's entries, and the ids of the
+comment markers in the XML parts under `word/`. The test reads the same from the package as saved
+(`test/revisions-parity.test.mjs`). The goldens were regenerated from docx4j `a8bc6cda9`, with six
+fixtures added from docx4j's resources at that commit, the Word 365 files above: 96 goldens.
+- Zero differences. Header fields and `comments` aside, none of the 90 goldens' answers moved.
+- The code before this section differs from the new goldens on six fixtures, all in `comments`:
+  `review-for-word` and Word 15's save of it, artefact 8, U21, U22 and U23.
+- `a8bc6cda9` is on docx4j's `VERSION_17_3_4` but was not yet on GitHub (at `5c691fc1f`, before the
+  rule). Until it is pushed, the weekly workflow, which builds GitHub's head, would record the old
+  comments in those six and open a pull request.
+
+**Before and after** on 564 files (this package's fixtures, the text extraction suite's, and every
+`.docx` in docx4j-core-tests' resources), each through `acceptAllRevisions` and `rejectAllRevisions`,
+saved: 15 of the 1,128 results changed, all of them comments.
+- 11 are the rule: a comment removed whole where it was kept. These are `review-for-word` and its Word
+  15 and Word 2010 saves, artefact 8 (its comment parts and `people.xml` gone), U21, U22 and U23, some
+  in two copies.
+- 4 are the defect: no side part created in `measure-word15.docx` and `measure-word2010.docx`, two
+  copies each.
+
+**Tests** (`tracking.test.mjs`), each failing on the code before:
+- Word 365's Reject All of `review-for-word`, its Accept All and Reject All of artefact 8 (the comment
+  parts Word kept, compared), and its Accept All of U21. Each compares the main body's paragraphs and
+  each comment's text and range, since Word renumbers comments.
+- U23 through `rejectAllRevisions` and `Body.rejectAll`. The same file with only the run insertions
+  rejected (a `kinds` filter) keeps the comment, its range across the marks (U24).
+- U22 through the one view's `reject()`: the comment parts go and `people.xml` stays. Through
+  `rejectAllRevisions`, `people.xml` goes too, with the relationships. A read before the save flushes
+  the removals. A Word 2010 shape with a comments part alone keeps that part alone.
+- Section 38's tests were changed to the new rule: the outside form's comment goes, and a note's
+  comment, the last, takes its part.
+
+The suite: 1,008 tests pass; typecheck passes.
+
+**Not ported here.** docx4j's `ResolvedView` (the text model's accepted and original views, its CR-046)
+makes the same candidates, and judges a range across paragraphs without making the joins. It comes with
+CR-012's views.

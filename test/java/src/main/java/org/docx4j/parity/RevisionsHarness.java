@@ -13,7 +13,10 @@
  *   acceptAll(kinds(RUN_DELETION)), which splits a deleted paragraph: its text goes, its mark
  *     stays (CR-043's U19),
  *
- * with the count each returned.  test/revisions-parity.test.mjs does the same through
+ * with the count each returned, and the comments each leaves (version 2, core-ts CR-002 section 54:
+ * docx4j CR-043 section 15's rule): the comment parts the main document part still has, the ids of
+ * the comments part's entries, and the ids of the comment range starts, range ends and references
+ * left in the package's XML parts under word/.  test/revisions-parity.test.mjs does the same through
  * getAllTrackedChanges, acceptAllRevisions and rejectAllRevisions and compares.
  *
  *   mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.RevisionsHarness \
@@ -43,21 +46,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.docx4j.Docx4jProperties;
+import org.docx4j.XmlUtils;
 import org.docx4j.jaxb.McSelection;
 import org.docx4j.model.revisions.TrackedChange;
 import org.docx4j.model.revisions.TrackedChangeFilter;
 import org.docx4j.model.revisions.TrackedChanges;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.JaxbXmlPart;
+import org.docx4j.openpackaging.parts.Part;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
+import org.docx4j.wml.Comments;
 
 public class RevisionsHarness {
 
 	/** Raise when the shape of a golden changes; the test reads it. */
-	static final String HARNESS_VERSION = "1";
+	static final String HARNESS_VERSION = "2";
 
 	static final String TIME_ZONE = "UTC";
 
@@ -192,11 +202,53 @@ public class RevisionsHarness {
 	}
 
 	/** What a resolve-all returned, with the filter it was given, and what is listed after it. */
-	private static Map<String, Object> outcome(int count, WordprocessingMLPackage pkg, Map<String, Object> filter) {
+	private static Map<String, Object> outcome(int count, WordprocessingMLPackage pkg, Map<String, Object> filter) throws Exception {
 		Map<String, Object> out = new LinkedHashMap<String, Object>();
 		if (filter != null) out.put("filter", filter);
 		out.put("count", count);
 		out.put("left", changes(TrackedChanges.in(pkg)));
+		out.put("comments", comments(pkg));
+		return out;
+	}
+
+	/** A comment marker in marshalled XML, in any prefix: its local name and its id. */
+	static final Pattern COMMENT_MARKER = Pattern.compile(
+			"<(?:[\\w.-]+:)?(commentRangeStart|commentRangeEnd|commentReference)\\b[^>]*?\\b(?:[\\w.-]+:)?id=\"(-?\\d+)\"");
+
+	/**
+	 * What a resolution leaves of the comments: the names of the comment parts the main document part
+	 * still has (comments, commentsExtended, commentsIds, commentsExtensible, people), the ids of the
+	 * comments part's entries, and the ids of the range starts, range ends and references in the
+	 * package's XML parts under word/; each list sorted, an id once.
+	 */
+	static Map<String, Object> comments(WordprocessingMLPackage pkg) throws Exception {
+		MainDocumentPart main = pkg.getMainDocumentPart();
+		List<Object> parts = new ArrayList<Object>();
+		for (Part part : new Part[] { main.getCommentsPart(), main.getCommentsExtendedPart(), main.getCommentsIdsPart(),
+				main.getCommentsExtensiblePart(), main.getPeoplePart() }) {
+			if (part != null) parts.add(part.getPartName().getName());
+		}
+		Set<Long> entries = new TreeSet<Long>();
+		if (main.getCommentsPart() != null && main.getCommentsPart().getJaxbElement() != null) {
+			for (Comments.Comment comment : main.getCommentsPart().getJaxbElement().getComment()) {
+				if (comment.getId() != null) entries.add(comment.getId().longValue());
+			}
+		}
+		Map<String, Set<Long>> markers = new LinkedHashMap<String, Set<Long>>();
+		for (String kind : new String[] { "commentRangeStart", "commentRangeEnd", "commentReference" }) markers.put(kind, new TreeSet<Long>());
+		for (Part part : pkg.getParts().getParts().values()) {
+			if (!(part instanceof JaxbXmlPart) || !part.getPartName().getName().startsWith("/word/")) continue;
+			Object root = ((JaxbXmlPart<?>) part).getJaxbElement();
+			if (root == null) continue;
+			Matcher m = COMMENT_MARKER.matcher(XmlUtils.marshaltoString(root, true, false, ((JaxbXmlPart<?>) part).getJAXBContext()));
+			while (m.find()) markers.get(m.group(1)).add(Long.parseLong(m.group(2)));
+		}
+		Map<String, Object> out = new LinkedHashMap<String, Object>();
+		out.put("parts", parts);
+		out.put("entries", new ArrayList<Object>(entries));
+		out.put("starts", new ArrayList<Object>(markers.get("commentRangeStart")));
+		out.put("ends", new ArrayList<Object>(markers.get("commentRangeEnd")));
+		out.put("references", new ArrayList<Object>(markers.get("commentReference")));
 		return out;
 	}
 

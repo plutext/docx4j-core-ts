@@ -151,6 +151,15 @@ export class Comment {
   /** Removes the comment and its replies: the markers, the reference runs and every side-part entry. */
   async delete(): Promise<void> {
     await this.parts.ensureAll();
+    this.removeThread();
+  }
+
+  /**
+   * @internal `delete()` once the side parts it touches are loaded: public so that a resolution's
+   * removals (`flushPendingRemovals`), which load only the parts the document has, take a comment away
+   * without creating any (CR-002 section 54).
+   */
+  removeThread(): void {
     for (const comment of this.thread()) comment.removeSelf();
     if (this.parentComment) {
       const i = this.parentComment.replyList.indexOf(this);
@@ -539,6 +548,7 @@ export async function commentsOf(scope: Body | Paragraph | Range): Promise<Comme
  * Comments whose anchored text went with a rejected insertion or an accepted deletion (check 32;
  * `TrackedChange`'s `removeRevision`) had their markers removed then; their entries go here, with
  * their replies, when the comments are next read or the package is saved (`WordprocessingMLPackage.saveTo`).
+ * With the last comment, the comment parts go too (`flushPendingRemovals`).
  */
 export async function flushPendingCommentRemovals(body: Body): Promise<void> {
   const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
@@ -548,16 +558,33 @@ export async function flushPendingCommentRemovals(body: Body): Promise<void> {
   await flushPendingRemovals(body, parts);
 }
 
+/**
+ * The entries of the comments a resolution took away, replies included. The side parts the document
+ * has are loaded for it and none is created: before section 54 a removal created the commentsExtended,
+ * commentsIds and people parts a document lacked, as `delete()` does.
+ *
+ * With the last comment a resolution takes away, the comment parts go, as Word 365 removed them
+ * (docx4j CR-043 section 15; docx4j-python's artefact 8 rejected, docx4j's U22, core-ts check 32): the
+ * comments part and its commentsExtended, commentsIds and commentsExtensible parts, with their
+ * relationships; and the people part where no tracked change is left to name an author (U22: Word kept
+ * it while a deletion was still tracked). docx4j decides when its resolution ends; this, when the
+ * entries go, so tracked changes made or resolved in between count.
+ */
 async function flushPendingRemovals(body: Body, parts: CommentParts): Promise<void> {
-  const pkg = body.package_ as { pendingCommentRemovals?: Set<number> } | undefined;
+  const pkg = body.package_ as { pendingCommentRemovals?: Set<number>; getAllTrackedChanges?: () => Promise<unknown[]> } | undefined;
   const pending = pkg?.pendingCommentRemovals;
   if (!pending?.size) return;
+  await parts.loadExisting();
   const views = viewsOf(parts, body);
+  let removed = false;
   for (const id of [...pending]) {
     const view = views.get(id);
-    if (view) await view.delete();
+    if (view) { view.removeThread(); removed = true; }
     pending.delete(id);
   }
+  if (!removed || (parts.comments.comment ?? []).length > 0) return;
+  const people = parts.people !== undefined && pkg?.getAllTrackedChanges !== undefined && (await pkg.getAllTrackedChanges()).length === 0;
+  parts.drop(people);
 }
 
 /** A `Comment` view per entry in the parts, replies linked to their parents. */

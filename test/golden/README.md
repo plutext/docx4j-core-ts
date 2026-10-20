@@ -238,22 +238,41 @@ scratch Maven repository. The harness's `MC_PREFER_CHOICE`, recorded in every he
 11.5 and 15) where it named an older copy of load's 84. Header fields aside, no answer moved and no
 XPath hit. CR-011 phase 0.
 
+## `revisions/` at harness version 2: the comments each resolution leaves (2026-10-21)
+
+The harness now records, after each resolution, the comments it leaves: `comments.parts`, the comment
+parts the main document part still has; `comments.entries`, the ids of the comments part's entries;
+and `comments.starts`, `ends` and `references`, the ids of the comment markers in the package's XML
+parts under `word/`. The test reads the same from the package as saved. Regenerated from docx4j
+`VERSION_17_3_4` at `a8bc6cda93ffdde75df270fc411826fc0080923f` (built from a `git archive` into a
+scratch Maven repository, `docx4j-core-17.3.4-SNAPSHOT.jar`, SHA-256 `c7210a1c10a1707e…`), the commit
+that completes docx4j CR-043 section 15, which CR-002 section 54 ports: a comment whose range a
+resolution empties goes whole wherever its markers were, and the comment parts with the last. Six
+fixtures were added with it (docx4j's `revisions/cr043/comments/`, `revisions/python/artefact8/` and the
+editor's `review-for-word.docx`), 96 in all. Header fields and the new `comments` aside, no answer of
+the 90 moved. This package's code before section 54 differs from the new goldens on six fixtures, all
+in `comments`.
+
+When this was written, docx4j's commits from `d18693760` on were not yet on GitHub, whose
+`VERSION_17_3_4` stood at `5c691fc1f`, before the rule; the weekly workflow, which builds that head,
+would record the old comments until they are pushed.
+
 ## `revisions/`: every story's tracked changes, and what each resolve-all leaves (CR-011)
 
-One JSON file per `.docx` fixture whose `word/` parts hold revision markup, 90 of them, at the
+One JSON file per `.docx` fixture whose `word/` parts hold revision markup, 96 of them, at the
 fixture's own path under `test/fixtures/` (`revisions/check20/12-partner-missing.json`). Each records
-what docx4j 17.3.3's `org.docx4j.model.revisions` answers (its CR-043): `listing`, what
+what docx4j's `org.docx4j.model.revisions` answers (its CR-043): `listing`, what
 `TrackedChanges.in` lists, each change's type, kind, author, date, id, text, part and the kinds of its
 pieces; and `resolved`, for each of `acceptAll` and `rejectAll` with no filter, `rejectAll` by the
 second author listed (where there are two or more), `acceptAll` of the `DELETED` type and `acceptAll`
-of the `RUN_DELETION` kind (which splits a deleted paragraph, docx4j's U19), the count returned and
-what is listed after. Written by [`../java/`](../java/README.md#the-revisions-harness-cr-011)'s
+of the `RUN_DELETION` kind (which splits a deleted paragraph, docx4j's U19), the count returned,
+what is listed after, and (since harness version 2) the comments left. Written by [`../java/`](../java/README.md#the-revisions-harness-cr-011)'s
 `RevisionsHarness` in the UTC time zone, which the header records, and compared by
 `test/revisions-parity.test.mjs`, which runs in it too: a `w:date` without `w16du:dateUtc` is local
 wall-clock time on both sides.
 
 | | |
 |---|---|
-| docx4j | the 17.3.3 release, as above |
-| harness version | 1 |
-| fixtures | the 90 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,737 changes listed |
+| docx4j | `VERSION_17_3_4` at `a8bc6cda9`, as above (the 17.3.3 release at harness version 1) |
+| harness version | 2 |
+| fixtures | the 96 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,784 changes listed |

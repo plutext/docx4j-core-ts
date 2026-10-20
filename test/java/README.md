@@ -257,7 +257,10 @@ fixtures directory, **at any depth**, whose `word/` parts hold revision markup (
 change's type, kind, author, date, id, text, part name and the kinds of its pieces - and then, each
 on a fresh load, the count returned and what is listed after `acceptAll` and `rejectAll`,
 `rejectAll(authors(<the second author listed>))` where there are two or more, `acceptAll(types(DELETED))`
-and `acceptAll(kinds(RUN_DELETION))`. One golden per fixture under
+and `acceptAll(kinds(RUN_DELETION))`; and, since version 2 (CR-002 section 54), the comments each
+resolution leaves: the comment parts the main document part still has, the comments part's entries,
+and the ids of the comment range starts, range ends and references in the XML parts under `word/`.
+One golden per fixture under
 [`../golden/revisions/`](../golden/revisions/), at the fixture's own path, compared by
 `test/revisions-parity.test.mjs`.
 
@@ -266,7 +269,7 @@ mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.RevisionsHarness \
   -Dfixtures=../fixtures -Dout=../golden/revisions -Ddocx4j.commit=<hash>
 ```
 
-About six seconds for 90 fixtures; the same rules as above for which docx4j it runs against.
+About eight seconds for 96 fixtures; the same rules as above for which docx4j it runs against.
 
 - **Dates.** `TrackedChange.getDate()` reads a `w:date` without `w16du:dateUtc` as local wall-clock
   time in the JVM's time zone, as Office JS reads it in the add-in's. The harness sets the default

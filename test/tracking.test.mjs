@@ -544,9 +544,9 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   inside.body.acceptAll();
   assert.equal(inside.body.paragraphs[1].text, 'Kept after.');
   assert.equal((await xmlOf(inside)).includes('w:id="7"'), false, 'marker 7 and its reference gone');
-  // a comment whose markers lay outside the revision - this package's own form before 0.3.1 - stays
-  // as its reference alone, the range markers dropped, as Word 2010 and Word 15 left it on Reject All
-  // (the editor's review-for-word.docx saves; CR-002 section 38 item 1)
+  // a comment whose markers lay outside the revision - this package's own form before 0.3.1 - goes
+  // whole when its text goes, as Word 365 removed one on Reject All in the editor's review-for-word.docx
+  // (Word 2010 and Word 15 kept it, the range markers dropped; CR-002 sections 38 and 54)
   const deleted = await tracked(['The tenant pays rent monthly in advance.']);
   deleted.changeTrackingMode = 'Off';
   await deleted.body.paragraphs[0].search('monthly')[0].insertComment('M1');
@@ -554,10 +554,9 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   deleted.body.paragraphs[0].search('rent monthly in')[0].delete();
   assert.equal((await deleted.body.getComments()).length, 1);
   deleted.body.acceptAll();
-  assert.equal((await deleted.body.getComments()).length, 1, 'the comment stays');
   assert.equal(deleted.body.paragraphs[0].text, 'The tenant pays  advance.');
-  assert.match(await xmlOf(deleted), /<w:t xml:space="preserve">The tenant pays <\/w:t><\/w:r><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><w:r><w:t xml:space="preserve"> advance\.<\/w:t>/, 'the reference alone, no range marker');
-  assert.equal((await xmlOf(deleted)).includes('commentRange'), false);
+  assert.equal((await xmlOf(deleted)).includes('comment'), false, 'no marker and no reference run left');
+  assert.equal((await deleted.body.getComments()).length, 0, 'the comment goes');
   const kept = await tracked(['The tenant pays rent monthly in advance.']);
   kept.changeTrackingMode = 'Off';
   await kept.body.paragraphs[0].search('monthly')[0].insertComment('M1');
@@ -2286,7 +2285,11 @@ test('a note removed with its reference takes its picture\'s image and the comme
     + part('/word/comments.xml', `${WML}.comments+xml`, `<w:comments ${NS}><w:comment w:id="5" w:author="Author B"><w:p><w:r><w:t>On the note.</w:t></w:r></w:p></w:comment></w:comments>`)
     + `<pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png" pkg:compression="store"><pkg:binaryData>${PNG}</pkg:binaryData></pkg:part>`
     + '</pkg:package>';
-  const comments = async (pkg) => [...(await pkg.getMainDocumentPart().commentsPart.getXml()).matchAll(/<w:comment\b[^>]*w:id="(\d+)"/g)].map((m) => Number(m[1]));
+  // null when the comments part has gone, as it does with the last comment a resolution takes (section 54)
+  const comments = async (pkg) => {
+    const part = pkg.getMainDocumentPart().commentsPart;
+    return part ? [...(await part.getXml()).matchAll(/<w:comment\b[^>]*w:id="(\d+)"/g)].map((m) => Number(m[1])) : null;
+  };
   const accepted = await WordprocessingMLPackage.load(flat);
   assert.equal(imageParts(accepted), 1);
   (await accepted.getBody()).acceptAll();
@@ -2294,7 +2297,7 @@ test('a note removed with its reference takes its picture\'s image and the comme
   assert.ok(!/<w:footnote w:id="1"/.test(await back.getMainDocumentPart().footnotesPart.getXml()), 'the note went with its reference (section 44)');
   assert.equal(imageParts(back), 0, 'and its picture\'s image with it; before, the image stayed, related from the notes part');
   assert.equal(back.getMainDocumentPart().footnotesPart.relationshipsPart?.relationships.relationship?.length ?? 0, 0);
-  assert.deepEqual(await comments(back), [], 'the comment anchored in the note went too');
+  assert.equal(await comments(back), null, 'the comment anchored in the note went too, the last, and its part with it');
   const rejected = await WordprocessingMLPackage.load(flat);
   (await rejected.getBody()).rejectAll();
   const kept = await WordprocessingMLPackage.load(await rejected.save());
@@ -2314,7 +2317,7 @@ test('a note removed with its reference takes its picture\'s image and the comme
   (await p.search('Inserted')[0].insertComment('On inserted text')).commentBody.insertInlinePictureFromBase64(PNG, 'End');
   inserted.body.rejectAll();
   const gone = await WordprocessingMLPackage.load(await inserted.save());
-  assert.deepEqual([(await gone.getBody()).text, await comments(gone), imageParts(gone)], ['Kept.', [], 0]);
+  assert.deepEqual([(await gone.getBody()).text, await comments(gone), imageParts(gone)], ['Kept.', null, 0]);
 });
 
 
@@ -2678,4 +2681,104 @@ test('CR-011: a note whose reference a resolution took is no story any more, tho
   assert.match(await pkg.getMainDocumentPart().footnotesPart.getXml(), /in the note going/, 'the entry itself goes on save (CR-002 section 44)');
   const back = await WordprocessingMLPackage.load(await pkg.save());
   assert.doesNotMatch(await back.getMainDocumentPart().footnotesPart.getXml(), /in the note going/);
+});
+
+// CR-002 section 54: comments as Word 365 resolves them (docx4j CR-043 section 15, d18693760 and
+// a8bc6cda9). The fixtures are docx4j's (docx4j-core-tests revisions/, copied at a8bc6cda9): the editor's
+// review-for-word.docx and Jason's Word 365 Reject All of it; docx4j-python's acceptance artefact 8 and
+// Word 365's Accept All and Reject All of it; docx4j-25's probes U21 to U23 and Word 365's saves of them
+// (Jason, 2026-10-21).
+/** The main body as its paragraphs' text, and each comment as its text and the text it is on (Word renumbers comments), from the package as saved. */
+const commentedOf = async (pkg) => {
+  const body = await (await WordprocessingMLPackage.load(await pkg.save())).getBody();
+  return {
+    paragraphs: body.paragraphs.map((p) => p.text),
+    comments: (await body.getComments()).map((c) => [c.content.trim(), c.getRange().map((r) => r.text).join('|')]),
+  };
+};
+const commentPartsOf = async (pkg) => {
+  const main = (await WordprocessingMLPackage.load(await pkg.save())).getMainDocumentPart();
+  return [main.commentsPart, main.commentsExtendedPart, main.commentsIdsPart, main.commentsExtensiblePart, main.peoplePart]
+    .filter((part) => part !== undefined).map((part) => part.partName.name);
+};
+
+test('a comment whose range a resolution empties goes whole wherever its markers were, as Word 365 resolved them', async () => {
+  // review-for-word: "Changed from arrears, as agreed." is on an inserted paragraph, every marker outside
+  // its w:ins; Word 365's Reject All removed it, where Word 2010 and Word 15 kept it (section 38)
+  const review = await WordprocessingMLPackage.load(await fixture('revisions/review/review-for-word.docx'));
+  assert.ok((await commentedOf(review)).comments.some(([text]) => text === 'Changed from arrears, as agreed.'));
+  await review.rejectAllRevisions();
+  const word = await commentedOf(await WordprocessingMLPackage.load(await fixture('revisions/review/review-for-word-word365-rejected.docx')));
+  assert.deepEqual(await commentedOf(review), word, 'review-for-word rejected: the text and the comments are Word 365\'s');
+  assert.ok(!word.comments.some(([text]) => text === 'Changed from arrears, as agreed.'));
+  // artefact 8: a comment on inserted "second", its range start, end and reference outside the w:ins
+  for (const [verb, saved] of [['acceptAllRevisions', '8-word-accepted.docx'], ['rejectAllRevisions', '8-word-rejected.docx']]) {
+    const pkg = await WordprocessingMLPackage.load(await fixture('revisions/python/artefact8/8-tracked-changes.docx'));
+    await pkg[verb]();
+    const theirs = await WordprocessingMLPackage.load(await fixture(`revisions/python/artefact8/${saved}`));
+    assert.deepEqual(await commentedOf(pkg), await commentedOf(theirs), `artefact 8, ${verb}`);
+    assert.deepEqual(await commentPartsOf(pkg), await commentPartsOf(theirs), `artefact 8, ${verb}: the comment parts Word kept`);
+  }
+  // U21: Accept All of a deletion whose comment's markers lie outside the w:del; the control comment stays
+  const u21 = await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u21-accept-all-deletion-comment-outside.docx'));
+  await u21.acceptAllRevisions();
+  assert.deepEqual(await commentedOf(u21), await commentedOf(await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u21-word365-accepted.docx'))));
+  assert.deepEqual((await commentedOf(u21)).comments, [['C43_U21_CONTROL', 'C43_U21_CONTROL_TEXT']]);
+});
+
+test('a comment whose range spans paragraphs goes whole once the joins have emptied it (U23); one still across a mark stays', async () => {
+  const u23 = await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u23-reject-all-two-paragraph-insertion-commented.docx'));
+  await u23.rejectAllRevisions();
+  const word = await commentedOf(await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u23-word365-rejected.docx')));
+  assert.deepEqual(await commentedOf(u23), word, 'the spanning comment went with the two inserted paragraphs, as Word 365\'s Reject All took it');
+  assert.deepEqual(word.comments, [['C43_U23_CONTROL', 'C43_U23_AFTER_CONTROL']]);
+  // through Body.rejectAll, which resolves the main story alone, the same
+  const body = await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u23-reject-all-two-paragraph-insertion-commented.docx'));
+  (await body.getBody()).rejectAll();
+  assert.deepEqual(await commentedOf(body), word);
+  // the inserted text rejected but not the marks: the range still crosses a paragraph mark, and the
+  // comment stays (docx4j's U24, not measured)
+  const marks = await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u23-reject-all-two-paragraph-insertion-commented.docx'));
+  assert.equal(await marks.rejectAllRevisions({ kinds: ['RUN_INSERTION'] }), 1);
+  assert.deepEqual((await commentedOf(marks)).comments.map(([text]) => text), ['C43_U23_SPANNING', 'C43_U23_CONTROL']);
+});
+
+test('with the last comment a resolution takes, the comment parts go, and people.xml once no tracked change is left (U22)', async () => {
+  const name = 'revisions/cr043/comments/c43-u22-reject-one-last-comment-revisions-left.docx';
+  const one = await WordprocessingMLPackage.load(await fixture(name));
+  const changes = await one.getAllTrackedChanges();
+  assert.deepEqual(changes.map((c) => c.type), ['Added', 'Deleted']);
+  assert.equal(changes[0].reject(), true);
+  const theirs = await WordprocessingMLPackage.load(await fixture('revisions/cr043/comments/c43-u22-word365-rejected-one.docx'));
+  assert.deepEqual(await commentedOf(one), await commentedOf(theirs), 'the insertion rejected, as Word 365 rejected it alone');
+  assert.deepEqual(await commentPartsOf(one), ['/word/people.xml'], 'the comment parts went with the only comment; people.xml stays while a deletion is tracked');
+  assert.deepEqual(await commentPartsOf(theirs), ['/word/people.xml'], 'as in Word 365\'s save');
+  // with nothing tracked left, people.xml goes too; so it did in Word 365's Reject All of artefact 8
+  const all = await WordprocessingMLPackage.load(await fixture(name));
+  await all.rejectAllRevisions();
+  assert.deepEqual(await commentPartsOf(all), []);
+  const back = await WordprocessingMLPackage.load(await all.save());
+  for (const part of ['/word/comments.xml', '/word/commentsExtended.xml', '/word/commentsIds.xml', '/word/people.xml']) {
+    assert.equal(back.parts.get(part), undefined, `${part} is gone`);
+  }
+  assert.doesNotMatch(await back.getMainDocumentPart().relationshipsPart.getXml(), /comments|people/, 'and the relationships to them');
+  // the comments read before the save flush the removals: none is listed, and the parts have gone already
+  const read = await WordprocessingMLPackage.load(await fixture(name));
+  await read.rejectAllRevisions();
+  assert.deepEqual(await (await read.getBody()).getComments(), []);
+  assert.equal(read.getMainDocumentPart().commentsPart, undefined);
+  // a removal creates no part: before, the entry's removal created the commentsExtended, commentsIds and
+  // people parts a Word 2010 file lacks (the editor's measure-word2010.docx rejected, say)
+  // (comment 1's start inside the w:ins, Word's form, which the rule before section 54 removed too)
+  const ins = '<w:ins w:id="9" w:author="Author A" w:date="2026-10-21T00:00:00Z"><w:commentRangeStart w:id="1"/><w:r><w:t>inserted</w:t></w:r></w:ins>';
+  const comment = (id, text) => `<w:comment w:id="${id}" w:author="Author B"><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:comment>`;
+  const w2010 = await WordprocessingMLPackage.load(flatPackage([
+    ['', 'document', 'document.xml', '<w:document NS><w:body>'
+      + `<w:p><w:r><w:t xml:space="preserve">Kept </w:t></w:r>${ins}<w:commentRangeEnd w:id="1"/><w:r><w:commentReference w:id="1"/></w:r></w:p>`
+      + '<w:p><w:commentRangeStart w:id="2"/><w:r><w:t>commented</w:t></w:r><w:commentRangeEnd w:id="2"/><w:r><w:commentReference w:id="2"/></w:r></w:p></w:body></w:document>'],
+    ['rId2', 'comments', 'comments.xml', `<w:comments NS>${comment(1, 'Going')}${comment(2, 'Staying')}</w:comments>`],
+  ]));
+  await w2010.rejectAllRevisions();
+  assert.deepEqual((await commentedOf(w2010)).comments, [['Staying', 'commented']]);
+  assert.deepEqual(await commentPartsOf(w2010), ['/word/comments.xml'], 'the comments part, and no part it did not have');
 });

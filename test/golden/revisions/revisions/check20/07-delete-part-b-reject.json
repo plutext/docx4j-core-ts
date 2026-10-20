@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
-    "docx4jVersion": "docx4j-core-17.3.3.jar",
-    "docx4jCoreJarSha256": "ec27210095a880f3",
-    "date": "2026-10-20T11:04:15Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:52Z",
     "fixture": "revisions/check20/07-delete-part-b-reject.docx",
     "fixtureBytes": 26333,
     "timeZone": "UTC",
@@ -330,11 +330,67 @@
   "resolved": {
     "acceptAll": {
       "count": 26,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          42,
+          43,
+          44
+        ],
+        "starts": [
+          42,
+          43,
+          44
+        ],
+        "ends": [
+          42,
+          43,
+          44
+        ],
+        "references": [
+          42,
+          43,
+          44
+        ]
+      }
     },
     "rejectAll": {
       "count": 26,
-      "left": []
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          42,
+          43,
+          44
+        ],
+        "starts": [
+          42,
+          43,
+          44
+        ],
+        "ends": [
+          42,
+          43,
+          44
+        ],
+        "references": [
+          42,
+          43,
+          44
+        ]
+      }
     },
     "rejectAuthor": {
       "filter": {
@@ -368,7 +424,35 @@
             "RUN_DELETION"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          42,
+          43,
+          44
+        ],
+        "starts": [
+          42,
+          43,
+          44
+        ],
+        "ends": [
+          42,
+          43,
+          44
+        ],
+        "references": [
+          42,
+          43,
+          44
+        ]
+      }
     },
     "acceptDeleted": {
       "filter": {
@@ -618,7 +702,35 @@
             "PARAGRAPH_MARK_PROPERTIES"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          42,
+          43,
+          44
+        ],
+        "starts": [
+          42,
+          43,
+          44
+        ],
+        "ends": [
+          42,
+          43,
+          44
+        ],
+        "references": [
+          42,
+          43,
+          44
+        ]
+      }
     },
     "acceptRunDeletions": {
       "filter": {
@@ -892,7 +1004,35 @@
             "PARAGRAPH_MARK_PROPERTIES"
           ]
         }
-      ]
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          42,
+          43,
+          44
+        ],
+        "starts": [
+          42,
+          43,
+          44
+        ],
+        "ends": [
+          42,
+          43,
+          44
+        ],
+        "references": [
+          42,
+          43,
+          44
+        ]
+      }
     }
   }
 }

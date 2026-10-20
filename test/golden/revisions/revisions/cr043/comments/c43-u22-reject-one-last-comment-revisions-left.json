@@ -1,0 +1,162 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:55Z",
+    "fixture": "revisions/cr043/comments/c43-u22-reject-one-last-comment-revisions-left.docx",
+    "fixtureBytes": 3529,
+    "timeZone": "UTC",
+    "authors": [
+      "Probe"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Probe",
+      "date": "2026-10-21T00:00:00Z",
+      "id": 1,
+      "text": "C43_U22_INSERTED",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Probe",
+      "date": "2026-10-21T00:00:00Z",
+      "id": 3,
+      "text": "C43_U22_STILL_TRACKED_DELETION",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 2,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    },
+    "rejectAll": {
+      "count": 2,
+      "left": [],
+      "comments": {
+        "parts": [],
+        "entries": [],
+        "starts": [],
+        "ends": [],
+        "references": []
+      }
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Probe",
+          "date": "2026-10-21T00:00:00Z",
+          "id": 1,
+          "text": "C43_U22_INSERTED",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Probe",
+          "date": "2026-10-21T00:00:00Z",
+          "id": 1,
+          "text": "C43_U22_INSERTED",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0
+        ],
+        "starts": [
+          0
+        ],
+        "ends": [
+          0
+        ],
+        "references": [
+          0
+        ]
+      }
+    }
+  }
+}

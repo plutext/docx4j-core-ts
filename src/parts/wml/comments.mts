@@ -63,6 +63,30 @@ class DocumentCommentParts implements CommentParts {
     this.loadedAll = true;
     return this;
   }
+
+  async loadExisting(): Promise<CommentParts> {
+    const main = this.main;
+    if (main.commentsExtendedPart) this.commentsEx ??= await main.commentsExtendedPart.getContents();
+    if (main.commentsIdsPart) this.commentsIds ??= await main.commentsIdsPart.getContents();
+    this.extensible ??= await loadExtensible(main);
+    return this;
+  }
+
+  drop(people: boolean): void {
+    const main = this.main;
+    const parts = [main.commentsPart, main.commentsExtendedPart, main.commentsIdsPart, main.commentsExtensiblePart, people ? main.peoplePart : undefined];
+    for (const part of parts) {
+      if (!part) continue;
+      const rels = main.relationshipsPart;
+      const rel = rels?.getRel(part.partName);
+      if (rel) rels!.removeRelationship(rel);
+      if (part.sourceRelationships.length > 0) continue;
+      part.relationshipsPart?.removeParts();
+      part.package?.parts.remove(part.partName);
+    }
+    main.commentsPart = main.commentsExtendedPart = main.commentsIdsPart = main.commentsExtensiblePart = undefined;
+    if (people) main.peoplePart = undefined;
+  }
 }
 
 /** The document part a body's comments belong to: the body's own part, else the package's main part. */

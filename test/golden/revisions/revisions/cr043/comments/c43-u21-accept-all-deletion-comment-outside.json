@@ -1,0 +1,141 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
+    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "c7210a1c10a1707e",
+    "date": "2026-10-20T23:03:55Z",
+    "fixture": "revisions/cr043/comments/c43-u21-accept-all-deletion-comment-outside.docx",
+    "fixtureBytes": 3536,
+    "timeZone": "UTC",
+    "authors": [
+      "Probe"
+    ]
+  },
+  "listing": [
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Probe",
+      "date": "2026-10-21T00:00:00Z",
+      "id": 1,
+      "text": "C43_U21_DELETED_PHRASE",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          2
+        ],
+        "starts": [
+          2
+        ],
+        "ends": [
+          2
+        ],
+        "references": [
+          2
+        ]
+      }
+    },
+    "rejectAll": {
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          0,
+          2
+        ],
+        "starts": [
+          0,
+          2
+        ],
+        "ends": [
+          0,
+          2
+        ],
+        "references": [
+          0,
+          2
+        ]
+      }
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          2
+        ],
+        "starts": [
+          2
+        ],
+        "ends": [
+          2
+        ],
+        "references": [
+          2
+        ]
+      }
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 1,
+      "left": [],
+      "comments": {
+        "parts": [
+          "/word/comments.xml",
+          "/word/commentsExtended.xml",
+          "/word/commentsIds.xml",
+          "/word/people.xml"
+        ],
+        "entries": [
+          2
+        ],
+        "starts": [
+          2
+        ],
+        "ends": [
+          2
+        ],
+        "references": [
+          2
+        ]
+      }
+    }
+  }
+}

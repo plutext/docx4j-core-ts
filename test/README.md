@@ -53,7 +53,20 @@ made of it in check 18 - one action each through the Review tab, on a fresh copy
 `packages/editor-model/test/fixtures/review/`, at its `1c90869`, 2026-09-30):
 `review-for-word-word15.docx`, the editor's review file saved untouched by Word 15, and Word 15's
 Accept All and Reject All saves of the same file (`-accepted`, `-rejected`). They are the oracle of
-`tracking.test.mjs`'s footnote case (CR-002 section 44).
+`tracking.test.mjs`'s footnote case (CR-002 section 44). Beside them, from docx4j's
+`docx4j-core-tests/src/test/resources/revisions/editor/review/` at its `a8bc6cda9`:
+`review-for-word.docx`, the editor's review file itself, and `review-for-word-word365-rejected.docx`,
+Jason's Word 365 Reject All of it (2026-10-21), which removed the comment "Changed from arrears, as
+agreed." whose markers lie outside its `w:ins`, where Word 2010 and Word 15 kept it. They, and the two
+directories below, are the oracle of `tracking.test.mjs`'s comment cases (CR-002 section 54).
+`revisions/python/artefact8/` holds docx4j-python's acceptance artefact 8 (`8-tracked-changes.docx`,
+a comment on inserted "second" with every marker outside the `w:ins`) and Word 365's Accept All and
+Reject All saves of it (`8-word-accepted`, `8-word-rejected`; Jason, 2026-10-21), from docx4j's
+`revisions/python/artefact8/` at `a8bc6cda9`. `revisions/cr043/comments/` holds docx4j-25's probes U21
+to U23 for docx4j CR-043 section 15 and Word 365's saves of them (Jason, 2026-10-21), from docx4j's
+`revisions/cr043/comments/` at `a8bc6cda9`: U21, Accept All of a deletion whose comment's markers lie
+outside the `w:del`; U22, one insertion rejected, which removes the only comment while a deletion
+stays tracked; U23, Reject All of two inserted paragraphs commented whole.
 `revisions/cr043/` holds three files from docx4j's CR-043 phase 0 probe (its
 `docx4j-core-tests/src/test/resources/revisions/cr043/`, at its `5e895232f`; Word 16.0.20326,
 2026-10-16, driven through Word's object model by its `cr043-probe.ps1`): `cr043-tracked.docx`, the

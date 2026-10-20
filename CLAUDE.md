@@ -32,8 +32,10 @@ XHTML through the `html` module, and picture bindings; implemented 2026-10-08, r
 catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
 0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it.
 CR-011 (every story's tracked changes in one listing, and filters on it and the resolve-all verbs,
-docx4j CR-043's, held to its answers by 90 revisions goldens) is implemented, not yet released. So
-are CR-012's phases 0 and 1 (the text model's conformance suite and agreement test, copied from
+docx4j CR-043's, held to its answers by 96 revisions goldens) is implemented, not yet released. So
+are CR-002 section 54 (docx4j CR-043 section 15: a comment whose range a resolution empties goes
+whole wherever its markers were, and the comment parts with the last, as Word 365 does; the
+revisions goldens record each resolution's comments since) and CR-012's phases 0 and 1 (the text model's conformance suite and agreement test, copied from
 docx4j into `test/text-extraction/` with their runners, every row pending until phase 2; REQ-510's
 level owner in the `Emulator`). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
@@ -202,9 +204,11 @@ when an answer moves. Parity is zero differences. `test/golden/xpath/` is CR-006
 docx4j's `getJAXBNodesViaXPath` selects for 47 expressions per fixture, made by the same Maven
 project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and compared by
 `test/xpath-parity.test.mjs`. `test/golden/revisions/` is CR-011's: what docx4j's
-`org.docx4j.model.revisions` (its CR-043) lists of each of the 90 fixtures with revision markup, at
-any depth, and what each resolve-all leaves, with and without a filter (`RevisionsHarness`, in UTC; a
-golden's path mirrors its fixture's), compared by `test/revisions-parity.test.mjs`.
+`org.docx4j.model.revisions` (its CR-043) lists of each of the 96 fixtures with revision markup, at
+any depth, and what each resolve-all leaves, with and without a filter, tracked changes and (harness
+version 2, CR-002 section 54) comments (`RevisionsHarness`, in UTC; a golden's path mirrors its
+fixture's; recorded from docx4j `VERSION_17_3_4` at `a8bc6cda9`), compared by
+`test/revisions-parity.test.mjs`.
 
 ## Rules
 

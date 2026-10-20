@@ -998,7 +998,9 @@ included), so 588 in all, every one pending.
 - docx4j's `d18693760` changes what `rejectAll` leaves of a comment on rejected inserted text, where
   this package still follows Word 2010 and 15 (CR-002 section 38). That changes the reference's
   comments, which the agreement test reads only with every story included. It is not this CR's to
-  port: it belongs with CR-011's resolve-all verbs, and it waits on Jason.
+  port: it belongs with CR-011's resolve-all verbs, and it waits on Jason. *Ported 2026-10-21 as
+  CR-002 section 54, with `a8bc6cda9`'s range across paragraphs. The views (`ResolvedView`) make the
+  same comments candidates; that half comes with this CR's views.*
 - As docx4j does, the copy is the fixture loaded a second time, not `clone()`. docx4j's reason, a
   save dropping an unconventional `Requires` prefix (probe case 6), no longer holds here since
   objects 0.4.3 (CR-010 section 14.9). But a second load is the cheaper copy, so section 4.1's
