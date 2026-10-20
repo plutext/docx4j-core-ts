@@ -1,8 +1,9 @@
 # CR-012: The text model: docx4j CR-046's text extraction (views, scope, plain text, Markdown, the block model), held to the specification's conformance suite
 
 **Status:** Proposed 2026-10-19, at Jason's request ("open a text-model CR here (That would be
-CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18). Not scheduled.
-Decisions D1 to D9 (section 6) are Jason's. D2 starts from his decision of the same day, that the
+CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18). Not started.
+Decisions D1 to D9 (section 6) were taken by Jason on 2026-10-21, all as recommended ("CR-012 all
+decisions as recommended"; section 6.1). D2 starts from his decision of 2026-10-19, that the
 Office JS readers keep calling the objects package's `textOf` and that it is not deprecated. It
 takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the read-time
 `mce.branches_differ` warning (section 14.7). The editor reviewed it the same day (section 11), and
@@ -340,7 +341,7 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
 | REQ-203 Strict | a conversion on load, which CR-001 section 17.6 left out | not in this CR |
 | `symbols: unicode`, `math: unicodemath` | refused, as docx4j refuses them | not in this CR |
 
-## 6. Decisions (for Jason)
+## 6. Decisions (taken 2026-10-21, all as recommended)
 
 1. **D1, the names.** Recommended:
    - docx4j's class names (`Texts`, `TextOptions`, `TextResult`, `PlainText`, `MarkdownExporter`),
@@ -434,6 +435,46 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
    - It is independent of the rest, and python's parity waits on it (its CR-011 risk 3). So it is
      phase 1. It is separable as its own CR if Jason prefers.
 
+### 6.1 What the decisions settle, and what they leave (2026-10-21)
+
+Jason took all nine on 2026-10-21: "CR-012 all decisions as recommended". Each stands as written
+above. Read against what has moved since the CR was written:
+
+- **D2 decides this package's readers, not python's.** docx4j-python's CR-011 Q4 makes its `Body`
+  and `Paragraph` text the model. Until that is decided the same way, which is Jason's call there,
+  the two ports' `paragraph.text` disagree for the same document (section 8's last risk).
+  - The exemption is still to be asked. REQ-202, as WD 0.26 reads it, admits only a deprecated
+    getter. It goes to the specification through the portfolio session (section 9).
+- **D4.** REQ-519's second NOTE in WD 0.26 still calls the text-box segment a proposal. The
+  specification is asked to mark it decided.
+- **D6 waits on check 48.** Check 48 isn't written yet. It is a Word check:
+  - whether Office JS's `search` matches across a note reference, and what a `Range` over one reads;
+  - whether every `w:br` reads as U+000B (section 12.3).
+
+  It comes before phase 4 moves `Paragraph.text`. Until it is run, `Paragraph.text` is unchanged.
+- **D8 (c) no longer waits.** docx4j's `VERSION_17_3_4` is public: on GitHub at `5c691fc1f`
+  (committed 2026-10-20) as of this writing. It holds `8d32bf928`'s address fix and `d9acdf5e2`'s
+  level owner, and the parity workflow checks it out since CR-011 phase 0. So the block-model
+  goldens can be cut from a branch commit with phase 2 rather than after it.
+  - `test/java/pom.xml` resolves the 17.3.3 release for a hand-run, and that has no
+    `org.docx4j.model.text`. So until 17.3.4 is released, a `TextHarness` runs against docx4j built
+    from the commit it records, in a separate Maven repository.
+- **D9 moves none of the 62 parity goldens.** docx4j at `5c691fc1f` already reads the unlinked
+  level's owner in its labels (`Emulator.levelStyleId`, through `styleLinkedElsewhere`), and gave
+  the same answers on all 214 goldens (CR-011 section 10.1). So it moves no label in those fixtures,
+  and `LevelOwnerTest`'s three documents and Word's labels are the test, as D9 says.
+- **The specification has moved on.** This CR read WD 0.16. The portfolio's copy is WD 0.26
+  (2026-10-21). 0.17 to 0.26 are mostly:
+  - the inspector, not in scope;
+  - `altChunk` (REQ-513, phase 5e): an RTF chunk through an RTF reader, and `display: none` in an
+    HTML, XHTML or MHT chunk as hidden text;
+  - REQ-504 leaving out a comment with no anchor in the main document, a header or footer, or a
+    note (0.20), which is phase 2's.
+
+  Phase 0 starts by reading those changes, and the suite at the docx4j commit it copies.
+- **Still open, and not one of the nine:** whether the editor's `ms-docx-250.docx` may be committed
+  here (section 4.4). Until Jason says so, phase 2 reads it from the editor's checkout.
+
 ## 7. Phases and sizes
 
 | Phase | What | Size |
@@ -444,7 +485,7 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks` | 2 to 3 days |
 | 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12) | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
-| 6 | Block-model parity goldens (D8 c), once docx4j's 17.3.4 work is public | 1 day |
+| 6 | Block-model parity goldens (D8 c). docx4j's 17.3.4 work is now public, so this can go with phase 2 (section 6.1) | 1 day |
 
 The estimates are rough. Phase 2 is the bulk, and it is where the agreement test will find the
 deleted-mark and rejected-field cases the paper's REQ-406 NOTE records ("both ports' text views of
