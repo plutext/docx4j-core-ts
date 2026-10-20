@@ -547,13 +547,14 @@ test('phase 4: a re-marshalled mc:Choice keeps the declaration its Requires name
   assert.deepEqual(undeclared.kept, {});
 });
 
-// A defect in @docx4j/generated-objects-ts 0.4.2 (CR-010 section 14.9; found by the editor building
-// its ED-009 fixture; objects CR-011, e311ef1, proposed 2026-10-20, no fix released). The object
-// tree keeps none of the source's namespace declarations, and the marshal declares a Requires or an
-// mc:Ignorable prefix only from NAMESPACE_PREFIXES, so a prefix the table lacks loses its binding:
-// zz9 declared on the root or on the element, and shape2010, docx4j's text-extraction probe's second
-// prefix for the wps namespace. The fix announces itself by failing these assertions.
-test('a re-marshalled mc:Choice loses the declaration of a Requires prefix the prefix table lacks (objects 0.4.2 defect)', async () => {
+// CR-010 section 14.9. The object tree keeps none of the source's namespace declarations, so up to
+// objects 0.4.2 the marshal declared a Requires or an mc:Ignorable prefix only from NAMESPACE_PREFIXES,
+// and a prefix the table lacks lost its binding: zz9 declared on the root or on the element, and
+// shape2010, docx4j's text-extraction probe's second prefix for the wps namespace. Found by the editor
+// building its ED-009 fixture; this test asserted the loss until objects 0.4.3 (3b4f4ba, objects CR-011,
+// over jsonix 3.5.0's unmarshal-side onElement), when it failed as meant. The record of a source binding
+// is kept on each typed mc:Choice, so it moves with the Choice through insertOoxml too.
+test('a re-marshalled mc:Choice keeps the binding of a Requires prefix only the source declared (objects CR-011)', async () => {
   const wps = 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape';
   const choice = (requires, text, declaration = '') => `<w:r><mc:AlternateContent${declaration}><mc:Choice Requires="${requires}"><w:t>${text}</w:t></mc:Choice><mc:Fallback><w:t>fallback</w:t></mc:Fallback></mc:AlternateContent></w:r>`;
   const make = await WordprocessingMLPackage.createPackage();
@@ -563,22 +564,34 @@ test('a re-marshalled mc:Choice loses the declaration of a Requires prefix the p
     + choice('shape2010', 'alias', ` xmlns:shape2010="${wps}"`)
     + '</w:p><w:sectPr/></w:body></w:document>');
   const source = await make.save();
-  const requiresOf = (bytes) => [...parseXml(new TextDecoder().decode(new ZipPartStore(bytes).loadSync('word/document.xml'))).getElementsByTagNameNS(MCE_NS, 'Choice')]
+  const documentXml = (bytes) => new TextDecoder().decode(new ZipPartStore(bytes).loadSync('word/document.xml'));
+  const requiresOf = (bytes) => [...parseXml(documentXml(bytes)).getElementsByTagNameNS(MCE_NS, 'Choice')]
     .map((element) => [element.getAttribute('Requires'), element.lookupNamespaceURI(element.getAttribute('Requires'))]);
-  assert.deepEqual(requiresOf(source), [['zz9', 'urn:example:zz9'], ['zz8', 'urn:example:zz8'], ['shape2010', wps]], 'the source declares all three');
+  const expected = [['zz9', 'urn:example:zz9'], ['zz8', 'urn:example:zz8'], ['shape2010', wps]];
+  assert.deepEqual(requiresOf(source), expected, 'the source declares all three');
 
-  const pkg = await WordprocessingMLPackage.load(source);
-  (await pkg.getBody()).insertParagraph('edited', 'End');
   const warnings = [];
   const warn = console.warn;
   console.warn = (message) => warnings.push(message);
-  let saved;
-  try { saved = await pkg.save(); } finally { console.warn = warn; }
-  assert.deepEqual(requiresOf(saved), [['zz9', null], ['zz8', null], ['shape2010', null]], 'each Requires is kept, and nothing declares it');
-  const root = new TextDecoder().decode(new ZipPartStore(saved).loadSync('word/document.xml')).match(/<w:document[^>]*>/)[0];
-  assert.ok(!root.includes('Ignorable'), 'zz9 dropped from mc:Ignorable');
-  assert.deepEqual(warnings, [
-    "marshal: an mc:Choice's Requires names zz9, zz8, shape2010, which no declaration or NAMESPACE_PREFIXES entry resolves; kept",
-    'marshal: mc:Ignorable names zz9, which no declaration or NAMESPACE_PREFIXES entry resolves; dropped',
-  ]);
+  try {
+    const pkg = await WordprocessingMLPackage.load(source);
+    (await pkg.getBody()).insertParagraph('edited', 'End');
+    const saved = await pkg.save();
+    assert.deepEqual(requiresOf(saved), expected, 'each Requires is kept, bound as the source bound it');
+    const root = documentXml(saved).match(/<w:document[^>]*>/)[0];
+    assert.match(root, /mc:Ignorable="zz9"/, 'zz9 stays in mc:Ignorable');
+    assert.match(root, /xmlns:zz9="urn:example:zz9"/);
+
+    // Inserted from OOXML that alone declares the prefix: a bare fragment, and flat OPC.
+    const para = (declarations) => `<w:p${declarations}>${choice('zz7', 'inserted')}</w:p>`;
+    const flat = '<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">'
+      + '<pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part>'
+      + `<pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"><pkg:xmlData><w:document xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:zz7="urn:example:zz7"><w:body>${para('')}</w:body></w:document></pkg:xmlData></pkg:part></pkg:package>`;
+    for (const ooxml of [para(` xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:zz7="urn:example:zz7"`), flat]) {
+      const into = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
+      await (await into.getBody()).insertOoxml(ooxml, 'End');
+      assert.deepEqual(requiresOf(await into.save()).filter(([prefix]) => prefix === 'zz7'), [['zz7', 'urn:example:zz7']], ooxml.slice(0, 12));
+    }
+  } finally { console.warn = warn; }
+  assert.deepEqual(warnings, [], 'no prefix left unresolved');
 });

@@ -12,8 +12,9 @@ implemented 2026-10-18 at Jason's request ("implement CR-010 phase 4, coordinati
 appropriate"; section 14): load keeps the element by default. It needs `@docx4j/jsonix` 3.4.2,
 published the same day, which objects 0.4.1 requires (section 14.4). This package requires objects
 0.4.2 since 2026-10-19, which also declares the prefixes a kept `mc:Choice`'s `Requires` names
-(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). Section 14.9 (2026-10-20, found by the editor): a `Requires` prefix the prefix table lacks loses
-its declaration on save, an objects package defect, sent there as a CR at Jason's word. Section 15
+(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). Section 14.9 (2026-10-20, found by the editor): a `Requires` prefix the prefix table lacks lost
+its declaration on save, an objects package defect, fixed by its CR-011 in objects 0.4.3, which this
+package requires since the same day. Section 15
 (2026-10-20, the editor's ED-009 question 2): the `Requires` gate alone picks the readers' branch
 for a Choice whose content is in bound namespaces, taken as the editor asked (Jason: "do as the
 editor asks re Q1, Q2"); proposed, not scheduled. The policy is docx4j's CR-021 (done
@@ -1326,10 +1327,12 @@ No WordprocessingML element is DOM.
   - **Cost here.** Once any record exists, a whole-document `deepCopy` costs about 60% more and a
     marshal 5 to 8% more (the objects session's measurement). `clone()` is a save and a reload, and
     this package deep-copies only paragraph-sized pieces, so only the marshal's share reaches it.
-- **docx4j**, read, not run: `Docx4jUnmarshallerListener` records each Choice's `Requires` as
-  prefixes on the part (`JaxbXmlPart.addMcChoiceNamespace`, since 6.0.0), and the marshal declares
-  them through its prefix mapper. Whether that mapper can declare a prefix its own table lacks
-  wasn't checked.
+- **docx4j.** `Docx4jUnmarshallerListener` records each Choice's `Requires` as prefixes on the part
+  (`JaxbXmlPart.addMcChoiceNamespace`, since 6.0.0). docx4j-25 measured docx4j at `cf1abf001`
+  (`VERSION_17_3_4`), as objects CR-011's header records. A part saved as loaded keeps its bindings:
+  the probe saves with all 12 `Requires` prefixes resolving, `xmlns:zz9` and `xmlns:shape2010` on
+  each `mc:AlternateContent`. Content moved, copied or built loses them. That half is docx4j CR-052,
+  proposed 2026-10-20; the specification's note under REQ-303 records the clone case.
 - **The test.** `mce.test.mjs` asserts the defect as it is (CLAUDE.md), over `zz9` on the root,
   `zz8` on the element and `shape2010`. Each `Requires` is kept and nothing declares it, and `zz9`
   leaves `mc:Ignorable`. The fix announces itself by failing it.
@@ -1384,3 +1387,33 @@ and the content is plain WordprocessingML.
   reads the branch this package reads.
 - **The editor** shows whatever `selectedBranchOf` selects, and records the difference meanwhile in
   its `docs/word-divergences.md`.
+- **Fixed in objects 0.4.3** (tag `3b4f4ba`, published 2026-10-20), over `@docx4j/jsonix` 3.5.0
+  (jsonix CR-008, the unmarshal-side `onElement`, published the same day). Checked here before the
+  release, on a tarball packed from its commit `9ecd17a`, and again on the npm artifact:
+  - the artifact's 847 files are the candidate's, apart from the version, and its integrity is
+    `sha512-oW/prT+G…oSjFg==`;
+  - typecheck passes, and the suite passes but for this section's test, which failed as meant: each
+    `Requires` came back bound to its source namespace;
+  - the repro keeps `xmlns:zz9` and `mc:Ignorable="zz9"`, the probe saves with no `Requires` prefix
+    unbound (4 under 0.4.2), and both `insertOoxml` forms keep the inserted Choice's prefix bound,
+    with no warnings;
+  - over 750 packages (this repository's fixtures and every docx, pptx and xlsx in docx4j-core-tests'
+    resources), 741 loaded kept and resolved, 26,962 entry hashes. 4 differ from 0.4.2's: the kept
+    load's `word/document.xml` in the four copies of the probe. Each is 0.4.2's with exactly
+    `xmlns:zz9` and `xmlns:shape2010` added to `w:document` and nothing removed, so equal once
+    declarations are stripped. The survey's 4 marshal warnings go to 0, and the npm artifact's
+    hashes equal the candidate's.
+- **Where the declaration goes.** Objects CR-011 declares a source-only prefix on the root, CR-001's
+  convention, where docx4j declares it on each `mc:AlternateContent` for a loaded part and docx4j
+  CR-052's D4 recommends the same. Both are valid. Whether the ports should agree is for Jason
+  (objects CR-011's Consumers section).
+- **The raise.** `package.json` requires `^0.4.3`. The lockfile holds 0.4.3 (integrity as above) with
+  `@docx4j/jsonix` 3.5.0 (`sha512-sAOKd3YM…UKy2w==`). npm wrote the entries of jsonix's two dependencies,
+  `@xmldom/xmldom` and `xmlhttprequest`, back without their informational `license` field; their
+  versions and integrity hashes are unchanged.
+  - `XmlPart.recordDeclarations` and `declareIgnorablePrefixes` (CR-001 section 17) are removed. Since
+    objects 0.1.5 the facade had declared or dropped every `mc:Ignorable` prefix before the second
+    ran, so neither had anything to do. With them goes the last code here that touched prefixes.
+  - The test asserts the bindings kept: the three `Requires` bound as the source bound them,
+    `mc:Ignorable="zz9"` kept with its declaration, an inserted fragment's and an inserted flat OPC
+    package's `zz7` bound, and no warning.
