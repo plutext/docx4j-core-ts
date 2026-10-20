@@ -172,6 +172,13 @@ export function phase(reqs) {
 
 export const INSPECTION_TABLE = 'expected-inspection.tsv';
 export const INSPECTION_STATUS = 'expected-inspection-status.tsv';
+/**
+ * An inspector with an HTML reader (docx4j CR-053 phase 3): the fifth fixture's findings, written by
+ * hand and checked against Word 365's save of it, with `parsed`, and `pending` where a row rests on a
+ * rule not yet ruled on.
+ */
+export const INSPECTION_HTML_TABLE = 'expected-inspection-html.tsv';
+export const INSPECTION_HTML_STATUS = 'expected-inspection-html-status.tsv';
 /** A finding's identity: its kind and its stored location. */
 export const INSPECTION_KEY = ['kind', 'chain', 'part', 'path', 'start', 'end_path', 'end'];
 /** The fields compared for a finding whose identity matched. */
@@ -187,23 +194,28 @@ export const INSPECTION_LIMITATIONS = ['layout.covered', 'layout.position', 'lay
 
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
+/** A finding's identity, its kind and location, as one string. */
+const inspectionKey = (finding) => INSPECTION_KEY.map((k) => finding[k] ?? '').join(' | ');
+
 /** location key -> the sorted field tuples of the findings there (a multiset) */
-function occurrences(findings) {
+function occurrences(findings, names) {
   const out = new Map();
   for (const f of findings) {
-    const key = INSPECTION_KEY.map((k) => f[k] ?? '').join(' | ');
-    const fields = INSPECTION_FIELDS.map((k) => f[k] ?? '').join(' | ');
+    const key = inspectionKey(f);
     if (!out.has(key)) out.set(key, []);
-    out.get(key).push(fields);
+    out.get(key).push(names.map((k) => f[k] ?? '').join(' | '));
   }
   for (const l of out.values()) l.sort(byCodeUnit);
   return out;
 }
 
-/** A fixture's inspection against the table: by occurrence, then field by field, then the status. */
-export function compareInspection(fixture, expected, status, actual) {
-  const want = occurrences(expected);
-  const got = occurrences(actual.findings);
+/**
+ * A fixture's inspection against the table: by occurrence, then field by field (`fields`, the table's
+ * own unless given), then the status.
+ */
+export function compareInspection(fixture, expected, status, actual, fields = INSPECTION_FIELDS) {
+  const want = occurrences(expected, fields);
+  const got = occurrences(actual.findings, fields);
   const problems = [];
   for (const key of [...new Set([...want.keys(), ...got.keys()])].sort(byCodeUnit)) {
     const w = want.get(key) ?? [];
@@ -211,7 +223,7 @@ export function compareInspection(fixture, expected, status, actual) {
     if (w.length !== g.length) {
       problems.push(`${w.length > g.length ? 'missing ' : 'unexpected '}${Math.abs(w.length - g.length)}: ${key}`);
     } else if (w.join('\n') !== g.join('\n')) {
-      problems.push(`fields of ${key}: expected [${w.join(', ')}], got [${g.join(', ')}] (${INSPECTION_FIELDS.join(', ')})`);
+      problems.push(`fields of ${key}: expected [${w.join(', ')}], got [${g.join(', ')}] (${fields.join(', ')})`);
     }
   }
   if (problems.length > 0) {
@@ -291,6 +303,12 @@ class Run {
     return this.outputs.get(key);
   }
 
+  /** A check left pending for a reason of its own (a rule not yet in the WD), not a missing statement. */
+  pend(row, item, view, scenario, reason) {
+    this.pending++;
+    this.report.push(`${row.fixture}\t${row.case}\t${item}\t${view}\t${scenario}\tPENDING\t${reason}`);
+  }
+
   pass(row, item, view, scenario) {
     this.passed++;
     this.report.push(`${row.fixture}\t${row.case}\t${item}\t${view}\t${scenario}\tPASS\t`);
@@ -321,13 +339,18 @@ async function inspections(run, dir) {
   }
   const statuses = table(join(dir, INSPECTION_STATUS));
   for (const status of statuses) {
-    // the whole fixture's comparison is REQ-1204's, its checks REQ-901, 902 and 904 to 907's
+    // the whole fixture's comparison is REQ-1204's, its checks REQ-901, 902 and 904 to 907's. The table
+    // is an inspector's with no HTML reader: with one, a chunk's hidden text is found and the chunk is
+    // not skipped, so the comparison pends
     const statements = `${INSPECTION_STATEMENTS}, REQ-1204`;
     const row = { fixture: status.fixture, case: '0', statements };
-    if (!run.ready(row, 'inspection', '-', 'default', requirements(statements))) continue;
+    const inspectionRequires = requirements(statements);
+    inspectionRequires.add(HTML_READER_ABSENT);
+    if (!run.ready(row, 'inspection', '-', 'default', inspectionRequires)) continue;
     compareInspection(status.fixture, expected.get(status.fixture) ?? [], status, await run.engine.inspect(join(dir, status.fixture)));
     run.pass(row, 'inspection', '-', 'default');
   }
+  await htmlInspections(run, dir);
   // REQ-903: an extraction's counts under each output, against the table's groups, with no HTML reader
   const countsRequire = requirements('REQ-903');
   countsRequire.add(HTML_READER_ABSENT);
@@ -343,6 +366,42 @@ async function inspections(run, dir) {
       equal(want, await run.engine.counts(join(dir, status.fixture), output), `${status.fixture}: counts under ${output}`);
       run.pass(row, 'counts', '-', output);
     }
+  }
+}
+
+/**
+ * docx4j CR-053 phase 3: an inspector with an HTML reader, on the fixture whose chunks it reads, against
+ * the HTML table, `parsed` compared with the other fields. A row resting on a rule not yet ruled on (its
+ * `pending`) is left out on both sides and reported pending.
+ */
+async function htmlInspections(run, dir) {
+  if (!existsSync(join(dir, INSPECTION_HTML_TABLE))) return;
+  const expected = new Map();
+  for (const row of table(join(dir, INSPECTION_HTML_TABLE))) {
+    if (!expected.has(row.fixture)) expected.set(row.fixture, []);
+    expected.get(row.fixture).push(row);
+  }
+  const fields = [...INSPECTION_FIELDS, 'parsed'];
+  for (const status of table(join(dir, INSPECTION_HTML_STATUS))) {
+    const statements = `${INSPECTION_STATEMENTS}, REQ-1204, REQ-513`;
+    const row = { fixture: status.fixture, case: '0', statements };
+    const reqs = requirements(statements);
+    reqs.add(HTML_READER_PRESENT);
+    if (!run.ready(row, 'inspection', '-', HTML_READER_PRESENT, reqs)) continue;
+    const checked = [];
+    const pending = new Set();
+    for (const r of expected.get(status.fixture) ?? []) {
+      if (r.pending === '') {
+        checked.push(r);
+      } else {
+        pending.add(inspectionKey(r));
+        run.pend(r, `inspect:${r.kind}:${r.selector}`, '-', HTML_READER_PRESENT, r.pending);
+      }
+    }
+    const actual = await run.engine.inspect(join(dir, status.fixture));
+    const found = actual.findings.filter((f) => !pending.has(inspectionKey(f)));
+    compareInspection(status.fixture, checked, status, { ...actual, findings: found }, fields);
+    run.pass(row, 'inspection', '-', HTML_READER_PRESENT);
   }
 }
 

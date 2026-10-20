@@ -326,10 +326,12 @@ export class Emulator {
 
   /**
    * The numbering reference a paragraph resolves to, without taking a number and without
-   * touching any state. docx4j `Emulator.numRefFor` (17.1.1); never undefined.
+   * touching any state. docx4j `Emulator.numRefFor` (17.1.1); never undefined.  A paragraph with
+   * no `w:pPr` resolves as an empty one, against the default paragraph style, as
+   * {@link getNumber} resolves it (docx4j `c283dffdb`, 17.3.4).
    */
   numRefFor(pPr: wml.PPr | undefined): NumRef {
-    if (pPr === undefined) return NumRef.not('no pPr');
+    if (pPr === undefined) return this.resolve(undefined, undefined, undefined, false);
     const [pStyleVal, numId, ilvl] = readNumPr(pPr);
     return this.resolve(pStyleVal, numId, ilvl, numId !== undefined && numId !== '');
   }
@@ -457,12 +459,11 @@ export class Emulator {
 
   /**
    * docx4j `Emulator.numRefFor(wmlPackage, pPr)`: where this paragraph's numbering resolves to,
-   * before any counting.  Never undefined; a package with no numbering part, a null `w:pPr` or
-   * a package whose `PropertyResolver` has not been built each answer {@link NumRef.notNumbered}
-   * with the reason.
+   * before any counting.  Never undefined; a package with no numbering part or a package whose
+   * `PropertyResolver` has not been built each answer {@link NumRef.notNumbered} with the reason.
+   * A null `w:pPr` resolves as an empty one (docx4j `c283dffdb`, 17.3.4).
    */
   static numRefFor(pkg: NumberedPackageLike | undefined, pPr: wml.PPr | undefined): NumRef {
-    if (pPr === undefined) return NumRef.not('no pPr');
     const part = numberingPartOf(pkg);
     if (part === undefined) return NumRef.not('no numbering part');
     const resolver = pkg?.propertyResolverOrUndefined;

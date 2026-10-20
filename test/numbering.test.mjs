@@ -569,8 +569,12 @@ test('DefaultStyleNumberedTest: a paragraph with no w:pPr at all is numbered as 
   assert.equal(Emulator.getNumber(pkg, undefined).numString, '1.');
   assert.equal(Emulator.getNumber(pkg, { TYPE_NAME: 'org_docx4j_wml.PPr' }).numString, '2.');
   assert.equal(Emulator.peek(pkg, undefined).numString, '3.');
-  // docx4j's numRefFor still answers a null w:pPr "not numbered" (CR-012 section 14)
-  assert.equal(Emulator.numRefFor(pkg, undefined).notNumbered, true);
+  // and numRefFor agrees (docx4j c283dffdb, ParityAccessorsTest: numId 1, ilvl 0, from the style)
+  const ref = Emulator.numRefFor(pkg, undefined);
+  assert.equal(ref.notNumbered, false);
+  assert.equal(ref.numId, '1');
+  assert.equal(ref.ilvl, '0');
+  assert.equal(ref.direct, false);
 });
 
 test('DefaultStyleNumberedTest: a style based on nothing is not', async () => {
@@ -634,10 +638,14 @@ test('unmarshalDefaultNumbering gives docx4j\'s bullet and decimal sets', async 
 test('numRefFor: a package with no numbering part, a missing pPr, and w:numId 0', async () => {
   const bare = await WordprocessingMLPackage.createPackage();
   assert.equal(Emulator.numRefFor(bare, {}).reason, 'no numbering part');
-  assert.equal(Emulator.numRefFor(bare, undefined).reason, 'no pPr');
+  assert.equal(Emulator.numRefFor(bare, undefined).reason, 'no numbering part');
 
+  // a missing w:pPr resolves as an empty one, against the default paragraph style (docx4j c283dffdb)
   const pkg = await linkedPackage();
-  assert.equal(Emulator.numRefFor(pkg, undefined).reason, 'no pPr');
+  const missing = Emulator.numRefFor(pkg, undefined);
+  assert.equal(missing.notNumbered, true);
+  assert.equal(missing.reason, Emulator.numRefFor(pkg, { TYPE_NAME: 'org_docx4j_wml.PPr' }).reason);
+  assert.equal(missing.reason, "no numId, and style 'Normal' is not numbered");
 
   // the paragraph's own w:numId 0 (docx4j 01d661547; ECMA-376 17.9.18)
   const direct = Emulator.numRefFor(pkg, await pPrOf(

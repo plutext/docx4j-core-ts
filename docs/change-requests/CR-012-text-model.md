@@ -4,7 +4,7 @@
 CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18). Decisions D1 to D9
 (section 6) were taken by Jason on 2026-10-21, all as recommended ("CR-012 all decisions as
 recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-012 phases 0 and
-1"), not released: the suite copied from docx4j `1d108c0af` with its runner and the agreement
+1"), not released: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
 test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). D2 starts from his decision of 2026-10-19, that the
 Office JS readers keep calling the objects package's `textOf` and that it is not deprecated. It
 takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the read-time
@@ -771,7 +771,7 @@ For this package:
 ### 13.2 The copy
 
 `test/text-extraction/` (its `README.md` is the provenance):
-- `suite/` is docx4j's `docx4j-core-tests/src/test/resources/text-extraction/`, all 77 files,
+- `suite/` is docx4j's `docx4j-core-tests/src/test/resources/text-extraction/`, all 80 files,
   unedited.
 - `revisions/` holds the 9 of docx4j's 128 CR-043 fixtures that `test/fixtures/` didn't already
   have. The other 119 were there byte for byte, from this package's own checks and CR-011.
@@ -781,14 +781,29 @@ For this package:
 That is 1.7 MB in all, where section 6 estimated 4.3 MB. `scripts/copy-text-extraction-suite.mjs
 <docx4j> <commit>` makes the copy from the commit with `git archive`, never from a working tree.
 
-**The commit is `1d108c0af`** (`VERSION_17_3_4`, docx4j CR-053 phase 2), committed 2026-10-21 and not
-yet pushed. It is the newest committed suite that WD 0.27 cites.
-- Its suite differs from the pushed `5c691fc1f`, which is WD 0.26's `86449c013` unchanged, in three
-  ways: case 36's and case 63's HTML rows need an HTML reader; their warning rows follow; and three
-  goldens are recut without the chunk's text.
-- WD 0.27 also cites CR-053 phase 3, a fifth fixture (`extraction-probe-html.docx`, four chunks for
-  an inspector with an HTML reader). docx4j hasn't committed it yet. When it is committed and
-  pushed, the suite is copied again (section 13.6).
+**The commit is `198d015a3`** (`VERSION_17_3_4`, docx4j CR-053 under WD 0.28, Word's rounds 11 and 12),
+committed 2026-10-21 and not yet pushed. Its suite is WD 0.28's (portfolio `f2046e5`, whose `[PROBE]`
+cites `4a8833eea`) with only `support/inspect_oracle.py` changed: the oracle's decoder drops its
+UTF-16 step, and no table, fixture, golden or document moves. The next WD revision cites it.
+- The commit before it, `d18693760` (docx4j CR-043 section 15: a comment whose range a resolution
+  empties goes whole, wherever its markers were, as Word 365 does), adds four fixtures under
+  `revisions/`: `python/artefact8/` (three) and `editor/review/review-for-word-word365-rejected.docx`.
+  They are copied too, which makes 13 of docx4j's 132 copied here and 119 found under
+  `test/fixtures/`.
+- The first copy, committed as `77c5e1e`, was at `1d108c0af` (CR-053 phase 2), the newest committed
+  suite WD 0.27 cited. That suite differed from the pushed `5c691fc1f`, which is WD 0.26's
+  `86449c013` unchanged, in three ways: case 36's and case 63's HTML rows need an HTML reader;
+  their warning rows follow; and three goldens are recut without the chunk's text.
+- `4a8833eea` adds a fifth fixture, `extraction-probe-html.docx`: four chunks for an inspector with
+  an HTML reader, its findings in `expected-inspection-html.tsv` and its status in
+  `expected-inspection-html-status.tsv`. The other four fixtures' inspection status now skips their
+  HTML and MHT chunks as `not_decoded`, the oracle script (`inspect_oracle.py`) does the same, and
+  the token rows' notes cite WD 0.27. No token row, golden or case statement moved.
+- Jason, 2026-10-21: "wait for the WD 0.28 commit", then "WD 0.28 should be committed - ask the
+  portfolio agent". The portfolio session's answer: copy at `4a8833eea`, since WD 0.28 cites it and
+  every table and fixture is final there, and again at Word's round 11 commit, which would change only
+  the oracle's decoder. Both were done the same day. At `198d015a3` the manifest showed exactly that
+  one file changed in the suite, as the portfolio and docx4j-25 said.
 
 **One departure from D8 (a)'s wording.** The copy is at `test/text-extraction/`, not
 `test/fixtures/text-extraction/`. The weekly parity workflow's `RevisionsHarness` writes a golden
@@ -799,7 +814,7 @@ moved, and differences there are CR-011's to investigate, not this phase's.
 ### 13.3 The runners
 
 **`test/text-extraction/conformance.mjs`** is docx4j's `ExtractionConformance` as it stands at
-`1d108c0af`, mirrored as written:
+`4a8833eea`, mirrored as written:
 - the tables and their column check;
 - REQ-1201's normalisation and counting, with the longer-marker rule;
 - the markings;
@@ -807,26 +822,34 @@ moved, and differences there are CR-011's to investigate, not this phase's.
   scenario statements and the HTML reader's capability;
 - the phases;
 - the supplemental scenarios;
-- the findings, order, inspection, counts and golden checks.
+- the findings, order, inspection, counts and golden checks;
+- since `4a8833eea`, the HTML reader's inspection of the fifth fixture, which compares `parsed` as well,
+  leaves out a row that waits for a ruling (its `pending`) and reports it pending for that reason;
+  and the other fixtures' whole inspection, which needs `html reader absent` as well.
 
 An engine is the adapter `TextsAdapter` is in docx4j. Here it may be asynchronous, since `Texts.of`
 will be. There is none until phase 2.
 
-With no engine the suite has **1,583 rows, all pending**. By the phases of docx4j's CR-046, which
+With no engine the suite has **1,584 rows, all pending**. By the phases of docx4j's CR-046, which
 the report names: 618 are its phase 1 (the plain-text model), 697 its phase 2, 54 its phase 3
-(Markdown) and 214 the inspector's. Here the first two are phase 2's, with phase 5's statements
+(Markdown) and 215 the inspector's. Here the first two are phase 2's, with phase 5's statements
 among them, and the third is phase 3's.
 
-The port was checked against docx4j's own run of the same morning (its
-`docx4j-core-tests/target/text-extraction/conformance.tsv`: 1,590 rows, 1,526 passing and 64
-pending, from docx4j's working tree, which holds CR-053 phase 3's fifth fixture):
-- The 1,583 rows here are exactly docx4j's rows less the fifth fixture's 7, in the same order.
-- Each of docx4j's 58 pending rows on the four fixtures pends here for the same phase.
+The port was checked against docx4j's own run (its
+`docx4j-core-tests/target/text-extraction/conformance.tsv`, written at 08:00 on 2026-10-21 after
+`4a8833eea`: 1,584 rows, 1,565 passing and 19 pending; `198d015a3` moves no table, so no row):
+- The 1,584 rows here are exactly docx4j's rows, in the same order.
+- Each of docx4j's 19 pending rows pends here for the same phase, the fifth fixture's inspection
+  among them (docx4j's run has no HTML reader).
+- The first copy was checked the same way against docx4j's run of that morning: its 1,583 rows were
+  docx4j's less the fifth fixture's 7.
 
 The runner's own tests (`text-extraction.test.mjs`) port `ExtractionConformanceTest`'s checks of the
 protocol: normalisation, marking, the golden reader, Markdown image destinations, an engine's rows
 and a golden checked and a broken one failing, the order rows, the inspection compared by
-occurrence, and the case statements against Appendix A and the README.
+occurrence, and the case statements against Appendix A and the README. One test is this package's
+own: the HTML reader's inspection, whose `parsed` and `pending` docx4j's tests reach only through
+its engine.
 
 Not ported: the three tests of docx4j's builder output (`corpusHasEveryCaseAndValidPayloads`,
 `inspectionOracleMatchesTheFixtures`, `docxAltChunkRequiresItsImportContentType`). They check the
@@ -836,12 +859,16 @@ One Java detail is spelled out. Normalisation strips Java's `\s`, which is the s
 characters, and `\p{Z}`. JavaScript's `\s` adds U+FEFF, the only character it holds outside those,
 so the runner names the characters. A test pins U+FEFF as kept.
 
-**`test/text-extraction/agreement.mjs`** is docx4j's `ViewAgreementTest`. It covers 142 fixtures:
-docx4j's 128 under `revisions/` and the 14 `.docx` under `text-extraction/`, in docx4j's order.
+**`test/text-extraction/agreement.mjs`** is docx4j's `ViewAgreementTest`. It covers 147 fixtures:
+docx4j's 132 under `revisions/` and the 15 `.docx` under `text-extraction/`, in docx4j's order.
 Each gets four comparisons (accepted and original, in the default scope and with every story
-included), so 568 in all, every one pending.
+included), so 588 in all, every one pending.
 - The copy route, the reference, runs now: `acceptAllRevisions` and `rejectAllRevisions` on each
-  of the 142 complete without an exception, in about 4.5 seconds.
+  of the 147 complete without an exception, in about 4.5 seconds.
+- docx4j's `d18693760` changes what `rejectAll` leaves of a comment on rejected inserted text, where
+  this package still follows Word 2010 and 15 (CR-002 section 38). That changes the reference's
+  comments, which the agreement test reads only with every story included. It is not this CR's to
+  port: it belongs with CR-011's resolve-all verbs, and it waits on Jason.
 - As docx4j does, the copy is the fixture loaded a second time, not `clone()`. docx4j's reason, a
   save dropping an unconventional `Requires` prefix (probe case 6), no longer holds here since
   objects 0.4.3 (CR-010 section 14.9). But a second load is the cheaper copy, so section 4.1's
@@ -872,22 +899,61 @@ machine-local corpora.
 
 ### 13.5 Tests
 
-`text-extraction.test.mjs` has 14 tests:
+`text-extraction.test.mjs` has 15 tests:
 - the copy against the manifest, with no file added;
 - the case statements;
-- seven protocol tests;
+- eight protocol tests;
 - the suite with no engine;
 - the agreement fixtures, the copy route and the runner's report of a difference;
 - the understood set.
 
-The whole suite passes (998, with section 14's seven), and so does typecheck.
+The whole suite passes (999, with section 14's seven), and so does typecheck.
 
 ### 13.6 What phase 0 leaves
 
-- **Copy again** when docx4j commits and pushes CR-053 phase 3. Recount the pending rows and port
-  any runner change, as the README says.
+- **Copy again** whenever WD's `[PROBE]` moves. Recount the pending rows and port any runner
+  change each time, as the README says.
 - **D8 (c)**, the block-model goldens, goes with phase 2 or 6 (section 6.1).
 - **Phase 2** installs the engine in `text-extraction.test.mjs` (`ENGINE`) and the agreement test's.
+
+### 13.7 docx4j CR-053's hand-off, for phase 5e (2026-10-21)
+
+docx4j-25 handed off docx4j CR-053 (phase 4) on 2026-10-21. docx4j is the oracle under WD 0.28, at
+`35e304770`, `1d108c0af`, `4a8833eea` and `198d015a3`, which the suite copy carries. Nothing changes
+here now:
+- this package has no extractor;
+- it writes no altChunk: its `html` module converts XHTML into WordprocessingML;
+- `AlternativeFormatInputPart` is typed on load by its relationship, keeping the part's declared
+  content type.
+
+For phase 5e, and for any future writer of HTML chunks:
+- **Writing** (docx4j `AltChunkHtml`):
+  - strip a leading XML declaration, after a BOM and white space too, since Word 365 refuses one;
+  - keep the declared encoding: UTF-8 with a BOM, or another encoding transcoded to UTF-8 with a BOM
+    and its `meta` rewritten;
+  - type a loaded chunk by its declared content type, the extension being the fallback (CR-053 D6).
+- **Reading** (REQ-513):
+  - An HTML, XHTML or MHT chunk is read only through an HTML reader: an [HTML]-algorithm parser and
+    a reader of its tree. XHTML is read as HTML, well-formed or not. Without a reader the chunk is not
+    expanded, with `altchunk.not_expanded` naming its content type.
+  - Decoding (WD 0.28): a BOM; else a `meta` `charset` or `http-equiv`, by [ENCODING]'s labels
+    (ISO-8859-1 and US-ASCII are windows-1252); else UTF-8 where valid; else windows-1252. There is no
+    XML-declaration step and no UTF-16 detection without a BOM.
+  - The hiding rule is WD 0.28 REQ-513's subset of CSS, with docx4j's `HtmlChunks` as the reference:
+    - a selector list loses its whole rule on any selector Word ignores;
+    - a rule inside any at-rule does not count;
+    - a class matches only a host style of exactly its name;
+    - elements Word doesn't know are transparent;
+    - an explicit `display` other than `none` or `inherit` shows its content;
+    - a table's row groups are read in source order.
+  - A chunk over 50,000 parsed elements is not expanded.
+- **Inspecting** (REQ-901, 902, 907; section 5 does not claim the inspector):
+  - Without a reader, a chunk is skipped as `not_decoded`, its scripts and references still found.
+  - With one, the inspector runs the extraction's import after REQ-907's limits. It gives one
+    `text.hidden` per outermost hidden element holding text that isn't all white space, at its path
+    in the parsed tree, and `parsed: html` on the `altchunk` finding.
+  - Over 50,000 elements the inspector reports `limit.elements`.
+- **The harness:** `htmlInspections` and `pend`, ported in section 13.3.
 
 ## 14. Phase 1: REQ-510, the level's owner (implemented 2026-10-21)
 
@@ -906,17 +972,22 @@ docx4j `d9acdf5e2` (CR-046 phase 3's follow-ups), ported:
   style (docx4j's change in the same commit). `peek` follows.
 - **`NumberingResult.count`** was already docx4j's new `getValue()`. Its comment says so now.
 
-**One docx4j inconsistency, ported as it is.** docx4j's `numRefFor(pkg, null)` still answers "no
-pPr", not numbered. Its own comment calls it "the answer getNumber acts on", and `getNumber` now
-numbers that paragraph. So here, in a document whose default paragraph style is numbered, a
-paragraph with no `w:pPr` gets a label from `Body.listLabels` and `ListItem.listString`, while
-`Paragraph.isListItem` (through `numRefFor`) says false.
-- The parity harness records `numRefFor` per paragraph, so the port keeps docx4j's answer. A test
-  pins it.
-- It is reported to docx4j. docx4j-25 agrees it is inconsistent (2026-10-21): the fix would have
-  `numRefFor` resolve a null `w:pPr` as an empty one. It is shared numbering code outside its CR, so
-  it is Jason's call there. Fixed there, it moves here with the parity goldens; until then the test
-  stays as it is.
+**One docx4j inconsistency, found by the port and fixed in docx4j.** At `d9acdf5e2`, docx4j's
+`numRefFor(pkg, null)` still answered "no pPr", not numbered. Its own comment calls it "the answer
+getNumber acts on", and `getNumber` now numbered that paragraph. So in a document whose default
+paragraph style is numbered, a paragraph with no `w:pPr` would have had a label from
+`Body.listLabels` and `ListItem.listString`, while `Paragraph.isListItem` (through `numRefFor`) said
+false.
+- The parity harness records `numRefFor` per paragraph, so the first port (`77c5e1e`) kept docx4j's
+  answer and pinned it in a test.
+- Reported to docx4j the same day. Jason: "make the one-line fix so it matches getNumber" (docx4j
+  `c283dffdb`, pinned by its `ParityAccessorsTest`: numId 1, ilvl 0, from the style).
+- Ported. `numRefFor` resolves a missing `w:pPr` as an empty one, against the default paragraph style.
+  As in docx4j, a package with no numbering part now answers "no numbering part" before anything
+  else. Two tests changed with it: the pinned one now asserts numId 1, ilvl 0, not direct; and an
+  older one that held "no pPr" now holds "no numbering part" and the default style's reason.
+- The 62 parity goldens give 0 differences with it, so none of their fixtures has the case, and none
+  is regenerated.
 
 **Tests** (`numbering.test.mjs`) port the Emulator half of docx4j's `LevelOwnerTest`, with its three
 documents in `test/fixtures/listnumbering/`:
@@ -924,8 +995,8 @@ documents in `test/fixtures/listnumbering/`:
 - the same labels through `Body.listLabels`;
 - the owners;
 - the style that lost the level keeps its indent (720 and 720) and has no label;
-- in `DefaultStyleNumberedTest`'s document, a paragraph with no `w:pPr` is numbered while
-  `numRefFor` says not.
+- in `DefaultStyleNumberedTest`'s document, a paragraph with no `w:pPr` is numbered, and `numRefFor`
+  agrees.
 
 Against the code before the change all seven fail, the linked document's because its list C names
 no style. With it, all seven pass.

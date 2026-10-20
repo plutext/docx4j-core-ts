@@ -1,18 +1,18 @@
 {
  "docx4j": {
-  "commit": "1d108c0af28f09c8d0178e911dcad8d399ffa2fe",
+  "commit": "198d015a3f336ae2fbf7c978107e3059d55de614",
   "date": "2026-10-21",
-  "subject": "CR-053 phase 2: HTML, XHTML and MHT altChunks read as Word reads them, through docx4j-ImportXHTML"
+  "subject": "CR-053: an HTML chunk's CSS, encoding and table order as Word 365 reads them (WD 0.28, rounds 11 and 12)"
  },
  "files": [
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/GOLDENS.md",
-   "sha1": "36d424579b2beed9c58fce442e9b24071448e5db",
+   "sha1": "4c782ea5c63af3ccd7dafd5e0e23b2937aa2b252",
    "path": "test/text-extraction/suite/GOLDENS.md"
   },
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/INSPECTION.md",
-   "sha1": "c56e5ca219d5e4fe2d82dc4f20946afe1cf540a3",
+   "sha1": "f3bd1a94faba5fa3fd04c9b49810c6b96b4b95c2",
    "path": "test/text-extraction/suite/INSPECTION.md"
   },
   {
@@ -57,7 +57,7 @@
   },
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/README.md",
-   "sha1": "049e37372782cbcb29a80ef40ff475f4afa300ae",
+   "sha1": "8a6c95944ad59b0b47bae62c664ad620313526b1",
    "path": "test/text-extraction/suite/phase0/README.md"
   },
   {
@@ -186,8 +186,18 @@
    "path": "test/text-extraction/suite/phase0/expected-findings.tsv"
   },
   {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-inspection-html-status.tsv",
+   "sha1": "4d3cd06b39195f0c6f1c3bfa470df50d15d3c05b",
+   "path": "test/text-extraction/suite/phase0/expected-inspection-html-status.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-inspection-html.tsv",
+   "sha1": "9395e1b890cc71caa2b787aede651ddb58e3db18",
+   "path": "test/text-extraction/suite/phase0/expected-inspection-html.tsv"
+  },
+  {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-inspection-status.tsv",
-   "sha1": "9783c4d0a2983474edf4d8a3426987c095fb79f6",
+   "sha1": "de78bfb9a3fea9a5bd8c7612f9d781f694dc1d4b",
    "path": "test/text-extraction/suite/phase0/expected-inspection-status.tsv"
   },
   {
@@ -202,7 +212,7 @@
   },
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-tokens.tsv",
-   "sha1": "38884275e6bf546dcce47a62b165b6cc4be81e18",
+   "sha1": "098583da455f94ab8bd9655bfa3d010304274870",
    "path": "test/text-extraction/suite/phase0/expected-tokens.tsv"
   },
   {
@@ -229,6 +239,11 @@
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.original.txt",
    "sha1": "4a0bf90e9cb865922fe269c986e6b9a54610e65d",
    "path": "test/text-extraction/suite/phase0/extraction-probe-external.original.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-html.docx",
+   "sha1": "f88b63e6cd2915141c9cf3a40299c0d3a96bb03b",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-html.docx"
   },
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-inspect.docx",
@@ -382,7 +397,7 @@
   },
   {
    "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect_oracle.py",
-   "sha1": "24d63bec6698b05f34f49dbb9630c3e3d67cfca0",
+   "sha1": "002ab08fb2b543145f5e9493b1a5bc7b0252aca1",
    "path": "test/text-extraction/suite/support/inspect_oracle.py"
   },
   {
@@ -1016,6 +1031,11 @@
    "path": "test/text-extraction/revisions/editor/review/review-for-word-word2010.docx"
   },
   {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word365-rejected.docx",
+   "sha1": "7160649b091a5cf1f0a4a2aee40bcd1b118313cb",
+   "path": "test/text-extraction/revisions/editor/review/review-for-word-word365-rejected.docx"
+  },
+  {
    "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word.docx",
    "sha1": "32c4df2141fd2539d9c844c2ea79e216f5f795b5",
    "path": "test/text-extraction/revisions/editor/review/review-for-word.docx"
@@ -1034,6 +1054,21 @@
    "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/revisions/revisions-word2010.docx",
    "sha1": "329a8aa2999f0c8547cfd8889509cde3bd22ace6",
    "path": "test/text-extraction/revisions/editor/revisions/revisions-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/python/artefact8/8-tracked-changes.docx",
+   "sha1": "a4dfb557387be642b79aa3bbc1a6aa27756011b7",
+   "path": "test/text-extraction/revisions/python/artefact8/8-tracked-changes.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/python/artefact8/8-word-accepted.docx",
+   "sha1": "b4eab103324d7c52862cc6d4eafae423fd55eab1",
+   "path": "test/text-extraction/revisions/python/artefact8/8-word-accepted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/python/artefact8/8-word-rejected.docx",
+   "sha1": "adbf1ee627916fab17ae69c62aeb795b39bff802",
+   "path": "test/text-extraction/revisions/python/artefact8/8-word-rejected.docx"
   }
  ]
 }

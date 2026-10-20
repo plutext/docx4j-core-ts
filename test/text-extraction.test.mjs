@@ -19,7 +19,7 @@ import {
 } from '../dist/index.mjs';
 import {
   table, normalize, count, verify, verifyGolden, run, INSPECTION_TABLE, INSPECTION_STATUS,
-  INSPECTION_LIMITATIONS, HTML_READER_ABSENT,
+  INSPECTION_HTML_TABLE, INSPECTION_HTML_STATUS, INSPECTION_LIMITATIONS, HTML_READER_ABSENT, HTML_READER_PRESENT,
 } from './text-extraction/conformance.mjs';
 import { agreement, agreementFixtures } from './text-extraction/agreement.mjs';
 
@@ -178,7 +178,7 @@ test('an inspection is compared by occurrence: a finding missing, doubled or of 
   const expected = table(join(dir, INSPECTION_TABLE));
   let reported = expected;
   const engine = {
-    implementedStatements: () => ['REQ-901', 'REQ-902', 'REQ-904', 'REQ-905', 'REQ-906', 'REQ-907', 'REQ-1204'],
+    implementedStatements: () => ['REQ-901', 'REQ-902', 'REQ-904', 'REQ-905', 'REQ-906', 'REQ-907', 'REQ-1204', HTML_READER_ABSENT],
     extract: () => { throw new Error('not an extraction'); },
     inspect: async () => ({ findings: reported, status: 'COMPLETE', skipped: [], undecided: [], limitations: INSPECTION_LIMITATIONS }),
   };
@@ -191,6 +191,37 @@ test('an inspection is compared by occurrence: a finding missing, doubled or of 
   }
 });
 
+test('an HTML reader\'s inspection: parsed is compared, and a row pending a ruling is left out and reported', async () => {
+  // docx4j CR-053 phase 3's htmlInspections, which docx4j's own tests reach only through its engine
+  const dir = scratch('inspected-html');
+  writeFileSync(join(dir, 'expected-tokens.tsv'), EMPTY_TOKENS);
+  writeFileSync(join(dir, 'expected-findings.tsv'), EMPTY_FINDINGS);
+  writeFileSync(join(dir, 'goldens.tsv'), EMPTY_GOLDENS);
+  const header = 'fixture\tcase\tkind\tchain\tpart\tpath\tstart\tend_path\tend\taddress\tvisible\treveal\tplain\tmarkdown'
+    + '\tblocks\thidden\tembedded\tcomments\texcerpt_length\texcerpt_cut\tselector\tsummary\tparsed\tstatements\tevidence\tpending\n';
+  const checked = 'h.docx\t0\ttext.hidden\t\t/word/chunk.htm\t/html[1]/body[1]/p[1]\t\t\t\t\tno\toptions: hidden: true; html reader present'
+    + '\tomitted\tomitted\tomitted\tunseen\tomitted\tomitted\t6\tfalse\tH_SEEN\t\thtml\tREQ-902\tr10-1\t\n';
+  const waiting = checked.replace('p[1]', 'p[2]').replace('H_SEEN', 'H_WAITS').replace('\tr10-1\t\n', '\tr11-2\tWD 0.29: a rule not yet ruled on\n');
+  writeFileSync(join(dir, INSPECTION_HTML_TABLE), header + checked + waiting);
+  // the HTML pass runs inside the inspection pass, which needs its own tables, here empty
+  writeFileSync(join(dir, INSPECTION_TABLE), header.split('\tparsed')[0] + '\n');
+  writeFileSync(join(dir, INSPECTION_STATUS), 'fixture\tstatus\tskipped\tundecided\n');
+  writeFileSync(join(dir, INSPECTION_HTML_STATUS), 'fixture\tstatus\tskipped\tundecided\nh.docx\tCOMPLETE\t\t\n');
+  const [seen, waits] = table(join(dir, INSPECTION_HTML_TABLE));
+  let reported = [seen, { ...waits, plain: 'unseen' }];
+  const engine = {
+    implementedStatements: () => ['REQ-901', 'REQ-902', 'REQ-904', 'REQ-905', 'REQ-906', 'REQ-907', 'REQ-1204', 'REQ-513', HTML_READER_PRESENT],
+    extract: () => { throw new Error('not an extraction'); },
+    inspect: async () => ({ findings: reported, status: 'COMPLETE', skipped: [], undecided: [], limitations: INSPECTION_LIMITATIONS }),
+  };
+  // the pending row is left out on both sides, whatever the inspector reports there
+  const result = await run(dir, engine);
+  assert.ok(result.report.includes(`h.docx\t0\tinspection\t-\t${HTML_READER_PRESENT}\tPASS\t`));
+  assert.ok(result.report.includes(`h.docx\t0\tinspect:text.hidden:H_WAITS\t-\t${HTML_READER_PRESENT}\tPENDING\tWD 0.29: a rule not yet ruled on`));
+  reported = [{ ...seen, parsed: 'xml' }];
+  await assert.rejects(run(dir, engine), /inspection differs[\s\S]*parsed/);
+});
+
 // ---------------------------------------------------------------- the suite, with no engine
 
 test('the suite: every row pending, with its phase, until phase 2 installs an engine', async () => {
@@ -199,10 +230,10 @@ test('the suite: every row pending, with its phase, until phase 2 installs an en
   assert.ok(text.includes('VBA51_MODULE_MARK'));
   assert.ok(text.includes('ALT47_NESTED_CHUNK'));
   assert.ok(text.includes('the inspector (CR-050)'));
-  // docx4j 1d108c0af's suite: 1,583 rows, the same rows in the same order as docx4j's own run, less
-  // the 7 of the fifth fixture its CR-053 phase 3 has still to commit (CR-012 section 13)
+  // docx4j 198d015a3's suite: 1,584 rows, the same rows in the same order as docx4j's own run (CR-012
+  // section 13.3)
   assert.equal(result.passed, 0);
-  assert.equal(result.pending, 1583, 'the suite changed: recount, and compare with docx4j\'s run');
+  assert.equal(result.pending, 1584, 'the suite changed: recount, and compare with docx4j\'s run');
   for (const line of result.report.slice(1)) assert.match(line, /\tPENDING\t(phase [123]|the inspector \(CR-050\)); .*; Texts adapter not installed$/);
 });
 
@@ -210,9 +241,9 @@ test('the suite: every row pending, with its phase, until phase 2 installs an en
 
 const fixtures = agreementFixtures();
 
-test('the agreement test\'s fixtures: docx4j\'s 128 revisions fixtures and 14 text-extraction documents', () => {
-  assert.equal(fixtures.filter((f) => f.name.startsWith('revisions/')).length, 128);
-  assert.equal(fixtures.filter((f) => f.name.startsWith('text-extraction/')).length, 14);
+test('the agreement test\'s fixtures: docx4j\'s 132 revisions fixtures and 15 text-extraction documents', () => {
+  assert.equal(fixtures.filter((f) => f.name.startsWith('revisions/')).length, 132);
+  assert.equal(fixtures.filter((f) => f.name.startsWith('text-extraction/')).length, 15);
 });
 
 test('the agreement test\'s copy route, the reference, runs on every fixture in both views', async () => {

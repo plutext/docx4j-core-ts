@@ -8,7 +8,7 @@ CR-053). The specification is the portfolio's `docs/text_extraction_specificatio
 | Path | What |
 |---|---|
 | `suite/` | docx4j's `docx4j-core-tests/src/test/resources/text-extraction/`, whole and unedited: the fixtures (`phase0/*.docx`, `*.docm`), the tables (`expected-tokens.tsv`, `expected-findings.tsv`, `expected-order.tsv`, `case-statements.tsv`, `goldens.tsv`, `expected-inspection*.tsv`), the goldens (`phase0/*.txt`, `*.md`), the contracts (`GOLDENS.md`, `INSPECTION.md`), the probes' Word evidence and the builder's support files. Its own READMEs describe it. |
-| `revisions/` | The CR-043 fixtures of docx4j's `revisions/` that `test/fixtures/` does not already hold (9 of 128), at their paths there. |
+| `revisions/` | The CR-043 fixtures of docx4j's `revisions/` that `test/fixtures/` does not already hold (13 of 132), at their paths there. |
 | `understood-namespaces.txt` | docx4j's published understood set (`docx4j-core/src/main/resources/org/docx4j/jaxb/`, REQ-306). |
 | `manifest.json` | The docx4j commit, and for every file docx4j's path, its SHA-1 and its path here. The 119 revisions fixtures this repository already held are listed at their `test/fixtures/` paths. |
 | `conformance.mjs` | The runner: docx4j's `ExtractionConformance`, mirrored. |
@@ -25,12 +25,15 @@ The suite lives here rather than under `test/fixtures/`: the weekly parity workf
 
 ## Provenance
 
-Copied 2026-10-21 from docx4j `1d108c0af` (`VERSION_17_3_4`, CR-053 phase 2, committed 2026-10-21 and
-not yet pushed), the newest committed suite WD 0.27 (portfolio `804007d`) cites. Its suite differs
-from the pushed `5c691fc1f`, which equals WD 0.26's `86449c013`, in case 36's and case 63's HTML
-chunk rows, which need an HTML reader, and in three goldens recut without one. WD 0.27 also cites
-CR-053 phase 3, a fifth fixture (`extraction-probe-html.docx`), not yet committed in docx4j: copy
-again once it is.
+Copied 2026-10-21 from docx4j `198d015a3` (`VERSION_17_3_4`, CR-053 under WD 0.28, Word's rounds 11 and
+12; committed 2026-10-21 and not yet pushed). Its suite is the one WD 0.28 (portfolio `f2046e5`) cites
+at `4a8833eea`, with only `support/inspect_oracle.py`'s decoder changed. `4a8833eea` added a fifth
+fixture, `extraction-probe-html.docx`, read only by an inspector with an HTML reader, with its tables
+`expected-inspection-html.tsv` and `expected-inspection-html-status.tsv`. `d18693760`, just before,
+added four CR-043 fixtures under `revisions/` (`python/artefact8/`, and the editor's
+`review-for-word-word365-rejected.docx`).
+
+The first copy (`77c5e1e`) was at `1d108c0af`, CR-053 phase 2, which WD 0.27 cited.
 
 ## Copying again
 
