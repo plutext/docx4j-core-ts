@@ -3281,9 +3281,53 @@ async function check() {
    - **What this package gives**, on the same file in a kept load: case 1 `""`, case 2 `""`, case 6
      `I prefer `, and `search('flat')` nothing. A run-level element is one object segment of no text
      (CR-010 section 13.1). Case 8 reads `bold ying plain ying` through `textOf`, but an edit there throws
-     (CR-012 section 12.4). For cases 3, 4 and 7, `selectedBranchOf` takes another branch than Word's.
+     (CR-012 section 12.4). For cases 3, 4 and 7, `selectedBranchOf` took another branch than Word's
+     until CR-010 section 15 (`65de0fd`), which makes it take Word's.
      Resolved, they read `fallback shown`, `""` (the element is kept whole, nothing selectable) and
      `I prefer w14` (CR-010 section 15).
    - **Also found: a line break is U+000B in Office JS.** Case 2's `w:br` reads as `\u000b`, where
      `Paragraph.text` (`textOf`) gives `\n`. It was measured on a break inside a branch. Whether
      Office JS gives U+000B for every `w:br` isn't measured here; check 48 can take it.
+
+50. Whether Word 365 reads a `Requires` prefix alike wherever it is declared (CR-010 section 14.9,
+   2026-10-20; Jason: "yes", to building it). The ports declare a prefix only the source bound in
+   different places: objects CR-011 on the part root, docx4j CR-052 D4 on the `mc:AlternateContent`,
+   and Word 365's own saves on the `mc:Choice` that names it. The three are equivalent XML; this check
+   asks whether Word treats them so. The file is `__tmp/50/50-declarations.docx` on the share, a copy
+   of `fixtures/check50/50-declarations.docx` (built by `fixtures/check50/build.mjs`, which writes
+   `word/document.xml` as text, so each declaration stays where it is put). It has five cases, each a
+   paragraph `Case n: ` followed by one run-level `mc:AlternateContent`:
+   - **The Choice holds a text box** (inline, blue outline) reading `n: the Choice (a text box)`; the
+     Fallback is plain text, `n: the Fallback (plain text, no box)`. A box means Word took the Choice.
+   - **Case 1** is Word's own form: `Requires="wps"`, declared on the root. Expected: a box.
+   - **Cases 2 to 4** bind the `wps` namespace to another prefix and write the Choice's shape elements
+     with it: `sroot` declared on the root (2), `sac` on the `mc:AlternateContent` (3), `schoice` on the
+     `mc:Choice` (4). If Word resolves `Requires` through the namespace in scope, as Markup
+     Compatibility says, all three are boxes.
+   - **Case 5** requires `zz9`, a namespace Word does not know. Expected: plain text, which shows what
+     taking a Fallback looks like.
+   - **Steps, in Word 365 only.** Open `__tmp/50/50-declarations.docx`. Say whether Word reports a
+     problem or offers a repair. Before anything else, File > Save As `50-declarations-word365.docx` in
+     the same folder. For each case 1 to 5, say whether it shows a box or plain text, and the words it
+     shows (or take a screenshot). Close without saving again.
+   - **What this package gives**, in a kept load: `selectedBranchOf` takes the Choice in case 1 and the
+     Fallback in cases 2 to 5, since it matches `Requires` by prefix (REQ-303) and `sroot`, `sac` and
+     `schoice` are not in `READ_UNDERSTOOD_PREFIXES`. The keeping pass's `mce.branches_differ`
+     warnings, which resolve by namespace, name the Choice as read in cases 2 to 4. So the two disagree
+     on an aliased prefix, the reverse of CR-010 section 14.8's case (a Choice whose prefix doesn't
+     resolve: the keeping pass takes the Fallback there, the readers the Choice).
+   - **Run 2026-10-20 (Jason; Word 365).** Cases 1 to 4 show a box with a blue outline, each reading
+     `n: the Choice (a text box)`; case 5 shows plain text, `5: the Fallback (plain text, no box)` (his
+     screenshot). No problem on opening was mentioned. **Word reads a `Requires` prefix alike whether
+     it is declared on the root, on the `mc:AlternateContent` or on the `mc:Choice`.** His save is
+     `fixtures/check50/50-declarations-word365.docx` (copied from the share):
+     - cases 1 to 4 are kept, each now `Requires="wps"` with `wps:wsp`, `wps` declared on the root.
+       Word renamed the three aliases to its own prefix; `sroot`, `sac` and `schoice` are gone from the
+       Choices;
+     - case 5 is resolved: its Fallback's text is a plain run, and the Choice is gone;
+     - each kept `mc:Fallback` carries unused copies of the source's declarations outside Word's fixed
+       set: `zz9`, `sroot` and `a` from the root on all four, and `sac` on case 3's, from its
+       `mc:AlternateContent`. `schoice`, declared on the Choice Word rewrote, isn't copied. This is the
+       Fallback pattern the 2,728 saves show (CR-010 section 14.9).
+     - So in cases 2 to 4 Word takes the Choice where this package's readers take the Fallback: a
+       prefix it doesn't list, bound to a namespace it understands, is matched by name here (REQ-303).

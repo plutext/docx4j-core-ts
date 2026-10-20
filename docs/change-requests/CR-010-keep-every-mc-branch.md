@@ -1359,6 +1359,57 @@ No WordprocessingML element is DOM.
   convention, where docx4j declares it on each `mc:AlternateContent` for a loaded part and docx4j
   CR-052's D4 recommends the same. Both are valid. Whether the ports should agree is for Jason
   (objects CR-011's Consumers section).
+  - **What Word 365 writes** (measured 2026-10-20; Jason: "namespace declarations typically go on the
+    document root, do they not?"). The sample is 2,728 Word 365 saves, with 24,075 WordprocessingML
+    parts. A save counts when `app.xml` says Word 16 and `w:document` declares `cx8` and `w16du`, which
+    are in Word's fixed set and which docx4j never writes. They come from the Word VM share
+    (`~/vbShares`, which docx4j-64 pointed to), docx4j's checkout and Plutext-Enterprise-Java-11's
+    Office files, read in place, counts only.
+  - A `Requires` prefix in Word's fixed root set is declared on the root: 664 of 664 (`wps` 432,
+    `cx1` 140, `wpg` 73, `cx2` 10, `v` 5, `wpi` 2, `wpc` 1, `wp14` 1).
+  - A `Requires` prefix outside that set is declared on the `mc:Choice` that names it: `zz9`, 3 of 3.
+    These are Word's saves (build 16.0.20326) of docx4j's fallback-rule probes, among them
+    `p3-cases-1-to-8.auto-resave.docx`, whose sources declare `zz9` on `mc:AlternateContent`. Word
+    kept the element and moved the declaration onto the Choice, and onto a sibling `mc:Fallback`.
+    It did not add `zz9` to `mc:Ignorable`.
+  - In a WordprocessingML part Word never declares on `mc:AlternateContent`. Its other declarations
+    below the root (32,970, of which 418 repeat a root prefix) are where the prefix is used, such as
+    `xmlns:a` on `a:graphic`. Some are on `mc:Fallback`, which carries copies nothing inside it uses
+    (3,768, over 59 prefixes).
+  - In chart parts Word declares `xmlns:mc` on `mc:AlternateContent` and `c14` on `mc:Choice`, 37 of
+    37; Excel and PowerPoint do the same.
+  - docx4j's `extraction-probe.word-resave.docx` says nothing about placement. The probe holds an
+    altChunk, so Word resolved every element.
+  - So for a source-only prefix Word's placement is the `mc:Choice`. Objects CR-011 uses the root and
+    docx4j CR-052 D4 recommends `mc:AlternateContent`, so neither matches it, though D4's is local.
+    The three are equivalent XML. Whether Word reads them alike is not checked. The counts went to
+    docx4j-25 (CR-052) and the objects session (CR-011) the same day (Jason: "yes, send the counts and
+    record them").
+  - On these counts docx4j-25 added a third option to CR-052 D4, (c), Word's own placement: a prefix
+    in the prefix table on the root, any other on the `mc:Choice` that names it. It moved its
+    recommendation from (a) to (c), uncommitted there. It notes that the Choice sample is three Word
+    saves of docx4j's own probes. The decision stays with Jason.
+  - **Word reads all three placements alike** (check 50, run by Jason 2026-10-20 in Word 365). A text
+    box whose Choice requires the `wps` namespace under another prefix shows as the Choice whether
+    the prefix is declared on the root, on the `mc:AlternateContent` or on the `mc:Choice`, as Word's
+    own form does. A Choice requiring an unknown namespace shows its Fallback. So the placement is a
+    matter of matching Word's output, not of Word reading it. Word's save renames the aliases to
+    `wps`, declared on the root.
+  - Check 50 also shows a difference in this package's readers. `selectedBranchOf` matches `Requires`
+    by prefix name (REQ-303), so it takes the Fallback in those three cases, where Word takes the
+    Choice. The keeping pass's `mce.branches_differ` warning resolves by namespace and names the Choice,
+    so it disagrees with the readers there. Only a prefix outside `NAMESPACE_PREFIXES` bound to an
+    understood namespace is affected. Word's own saves always use its prefixes, so the cases are
+    hand-built files, like docx4j's probe with `shape2010`. Not changed; for Jason.
+  - **Decided: (c), Word's placement** (Jason, 2026-10-20: "(c) placement"). In both ports, a
+    `Requires` prefix in the prefix table is declared on the part root. Any other prefix is declared on
+    the `mc:Choice` that names it, with the binding the source gave it. A prefix in the root's
+    `mc:Ignorable` stays on the root. Nothing is copied onto `mc:Fallback`. Chart parts follow the
+    same rule, so a re-marshalled one keeps `c14` on the root, where Word declares it locally.
+    Untouched parts are copied byte for byte. The change is the objects package's (a follow-up to its
+    CR-011, then a release) and docx4j's (CR-052 D4). Here there is nothing to change but the
+    lockfile: the test asserts bindings, not placement, and its one root assertion is an
+    `mc:Ignorable` prefix.
 - **The raise.** `package.json` requires `^0.4.3`. The lockfile holds 0.4.3 (integrity as above) with
   `@docx4j/jsonix` 3.5.0 (`sha512-sAOKd3YM…UKy2w==`). npm wrote the entries of jsonix's two dependencies,
   `@xmldom/xmldom` and `xmlhttprequest`, back without their informational `license` field; their
