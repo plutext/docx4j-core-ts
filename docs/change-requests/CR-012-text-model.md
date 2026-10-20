@@ -5,7 +5,9 @@ CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18).
 (section 6) were taken by Jason on 2026-10-21, all as recommended ("CR-012 all decisions as
 recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-012 phases 0 and
 1"), not released: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
-test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). D2 starts from his decision of 2026-10-19, that the
+test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Word
+check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
+all of it (Jason, the same day); which view, check 48b. D2 starts from his decision of 2026-10-19, that the
 Office JS readers keep calling the objects package's `textOf` and that it is not deprecated. It
 takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the read-time
 `mce.branches_differ` warning (section 14.7). The editor reviewed it the same day (section 11), and
@@ -463,6 +465,13 @@ above. Read against what has moved since the CR was written:
   - whether every `w:br` reads as U+000B (section 12.3).
 
   It comes before phase 4 moves `Paragraph.text`. Until it is run, `Paragraph.text` is unchanged.
+  - **Written 2026-10-21 and run the same day** (`test/README.md` check 48,
+    `test/fixtures/check48/build.mjs`; Jason: "Write Word check 48"); section 6.2 has the answers. It measures every kind of inline content the run reader will map,
+    not only the two above: note and comment references, the four breaks, tabs, hyphens, a symbol,
+    hidden text, both revision kinds, both field forms, a hyperlink, a content control, a picture, an
+    equation and a table. For each it reads `paragraph.text`, the paragraph's range, `body.text`,
+    `search` across the item (with Word's `^` Find codes) and a range from one side to the other. This
+    package's answers on the same file are recorded beside it.
 - **D8 (c) no longer waits.** docx4j's `VERSION_17_3_4` is public: on GitHub at `5c691fc1f`
   (committed 2026-10-20) as of this writing. It holds `8d32bf928`'s address fix and `d9acdf5e2`'s
   level owner, and the parity workflow checks it out since CR-011 phase 0. So the block-model
@@ -487,6 +496,88 @@ above. Read against what has moved since the CR was written:
 - **Still open, and not one of the nine:** whether the editor's `ms-docx-250.docx` may be committed
   here (section 4.4). Until Jason says so, phase 2 reads it from the editor's checkout. **Answered
   2026-10-21: no** (Jason, by way of the editor's session; section 4.4).
+
+### 6.2 Check 48's answers, and what they ask of phase 4 (2026-10-21)
+
+Jason ran check 48 in Word 365 (16.0.20326.20232, PC) on 2026-10-21. His JSON is
+`test/fixtures/check48/48-text-word365.json`, and `test/README.md` check 48 has the whole table.
+`paragraph.text` and a range over the same content agree in every case. Office JS's text is Word's own
+character stream, and it differs from `Paragraph.text` here (through `textOf`) in most of the 18 cases:
+
+| Content | Office JS | Here |
+|---|---|---|
+| Footnote or endnote reference | U+0002 | nothing |
+| `w:br`, page break, column break, `w:cr` | U+000B, U+000C, U+000E, U+000D | `\n` each |
+| `w:ptab` | `0` | nothing |
+| Non-breaking, optional hyphen | U+001E, U+001F | U+2011, U+00AD |
+| `w:sym` (Wingdings F04A) | `(` | U+F04A |
+| Hidden run | left out | kept |
+| Tracked deletion | in | out |
+| Equation `x=1` | ` 𝑥=1 `, Word's math italic | nothing |
+| Between paragraphs (`body.text`), after a cell | `\r`; `\t` | `\n`; `\n` |
+
+The comment reference, the tab, the insertion, both field forms, a hyperlink, a content control and a
+picture agree: nothing for the reference and the picture, the text for the rest.
+
+Office JS's `search` follows its own rules over that stream:
+- a plain query matches across a comment reference and an optional hyphen, and `-` matches a
+  non-breaking hyphen;
+- it doesn't match across a note reference, a break, a tab, a symbol or a picture;
+- Word's Find codes do (`^f`, `^e`, `^l`, `^m`, `^t`, `^~`, `^-`, `^g`);
+- the picture is a position in a search (`^g`) but nothing in the text;
+- it finds a hidden word, its hit's text `""`, and a deleted word.
+
+So D6 was too narrow. U+0002 is one of eight characters, and hidden and deleted text go the other way
+from this package's. Phase 4 needs Jason's answer to three questions first:
+
+1. **How far `Paragraph.text` follows Office JS.** Recommended: all of it.
+   - Every character as the table gives it: hidden text out, deleted text in, the equation as Word's
+     math text. In `Body.text`, `\r` between paragraphs and `\t` after each cell.
+   - D2's contract is Office JS's text, and an offset the editor counts in `Paragraph.text` is then
+     the one Word counts.
+   - A reader that wants clean text has the text model, from phase 2.
+   - The alternative, Office JS's characters with this package's content rules (hidden kept, deleted
+     out), is neither Office JS's text nor the model's.
+2. **Which view.** Whether Office JS's text drops hidden text and keeps deleted text may depend on
+   Word's view: whether hidden text is shown (File > Options > Display), and Review > Display for
+   Review (Simple Markup, All Markup, No Markup, Original). The run didn't record it. This package has
+   no view, so it needs one rule.
+   - Recommended: a short follow-up, check 48b. The same file and snippet, run with hidden text shown
+     and not, under each of the four markup displays.
+   - Then take Word's default view: hidden text not shown, and Simple Markup, Word 365's default, as
+     check 48b confirms.
+3. **Search.** Recommended: phase 4's `search` takes Office JS's rules, Word's Find codes included,
+   each matching its character in the table. A `^g` matches a picture's position, which takes no
+   character in the text and so needs an offset map of its own.
+
+**Jason's answers, 2026-10-21: questions 1 and 3 as recommended** ("q1 and q3: i agree").
+`Paragraph.text` follows Office JS in all of it, and phase 4's `search` takes Office JS's rules, Word's
+Find codes included. Question 2, the view, waits on check 48b (`test/README.md`).
+
+**The editor's answers** (2026-10-21, its ED-008 section 8.3, editor `1505b8e`; for Jason):
+1. Yes, all of it, as D2's contract. Its `atomText` moves with the install that carries it: the
+   characters above, a `w:cr` told apart from a `w:br` at import (today both are one break there), the
+   equation read through this package. Hidden text and deletions are not a character table; it pins
+   them as known differences until it models `w:vanish` (effective, styles included) and question 3.
+2. Check 48b, as recommended, and two refinements to it:
+   - A second Wingdings symbol and a `Symbol`-font one. F04A reads as `(`, which is not its low byte
+     (`J`), so one sample doesn't say whether Word maps each symbol or writes one constant character.
+   - `getReviewedText('Current')` and `getReviewedText('Original')` per paragraph (Office JS, WordApi
+     1.4). With them one run can say whether `text` is the displayed text or everything, without a
+     run per markup display.
+3. Yes. Its find bar holds to the engine's search, and finding a deleted word fits what it intends for
+   ED-008 step 2: the find bar matches what its markup view shows, and the agent's find keeps counting
+   in the accepted text (ED-008 section 3.1).
+
+It also notes that a `w:cr` reads as U+000D, the character `body.text` puts between paragraphs, so in
+`body.text` a `w:cr` can't be told from a paragraph's end.
+
+**What it costs.** In any paragraph holding one of these (a break, a note reference, a hyphen, a
+symbol, hidden text, a tracked deletion, an equation), the editor's spans move. So its `paragraphText`
+changes in the same install (section 4.4, the editor's fifth ask). Phase 4 grows by about a day: the
+character table, the view rule, the search rules and the offset map. `TrackedChange.text`, `Table.values`
+and the other readers of section 4.2's first row aren't measured here; they follow `Paragraph.text`
+unless a check says otherwise.
 
 ## 7. Phases and sizes
 

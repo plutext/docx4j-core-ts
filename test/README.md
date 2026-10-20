@@ -3276,11 +3276,185 @@ async function check() {
 }
 ```
 
+48. What Office JS's text holds for each kind of inline content (CR-012 D6 and section 12.3, 2026-10-21;
+   Jason: "Write Word check 48"). Under D2 the Office JS readers keep Office JS's text, and phase 4 moves
+   `Paragraph.text` off the objects package's `textOf` onto this package's own run reader, which then has
+   to give what Office JS gives. Check 42 found a footnote or endnote reference read as U+0002 and a
+   comment reference as nothing; check 49 found a `w:br` in a branch read as U+000B. This check measures
+   every kind of inline content that reader maps, and what `search` and a range do across each. The file
+   is `__tmp/48/48-text.docx` on the share, as `fixtures/check48/build.mjs` writes it (its parts as
+   text). The file isn't committed: case 11's tracked change would make the weekly `RevisionsHarness`
+   cut a CR-011 golden for it. Each case is one paragraph,
+   `Case n: <what>.`, then two upper-case marker words with the item between them:
+   - **1** `FOOTA`, a footnote reference, `FOOTB`; then `ENDA`, an endnote reference, `ENDB`.
+   - **2** `COMA COMMENTED`, a comment on `COMMENTED`, its reference, `COMB`.
+   - **3 to 6** `LINEA`/`LINEB` around a `w:br`; `PAGEA`/`PAGEB` a page break; `COLA`/`COLB` a column
+     break; `CRA`/`CRB` a `w:cr`.
+   - **7** `TABA`, a tab, `TABB`, a right-aligned `w:ptab`, `RIGHTB`.
+   - **8** `HYPHA`, a non-breaking hyphen, `HYPHB`, an optional hyphen, `HYPHC`.
+   - **9** `SYMA`, a Wingdings `w:sym` (F04A, a smiling face), `SYMB`.
+   - **10** `HIDA`, a hidden run `HIDDENTEXT` (`w:vanish`), `HIDB`.
+   - **11** `REVA`, a tracked deletion `DELETEDTEXT`, a tracked insertion `INSERTEDTEXT`, `REVB`.
+   - **12** `FLDA`, a field with code `QUOTE "CODETWELVE"` and result `RESULTTWELVE`, `FLDB`; **13** the
+     same as a `w:fldSimple` (`CODETHIRTEEN`, `RESULTTHIRTEEN`), between `SIMA` and `SIMB`.
+   - **14** `LINKA`, a hyperlink `LINKTEXT` to a bookmark, `LINKB`; **15** `SDTA`, an inline content
+     control holding `SDTTEXT`, `SDTB`.
+   - **16** `PICA`, an inline picture (a green rectangle), `PICB`; **17** `MATHA`, an equation `x=1`
+     (`m:oMath`), `MATHB`.
+   - **18** a table of one row, cells `CELLA` and `CELLB`, then a paragraph `AFTERTABLE`.
+   - **Steps, in Word 365 only.** Open `__tmp/48/48-text.docx`, and say whether Word reports a problem or
+     offers a repair. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New
+     snippet), paste the HTML and Script tabs of the snippet for 48 below over the defaults (both tabs
+     are also on the share, `__tmp/48/check48-script-lab.html` and `check48-script-lab.js`), click
+     **Run the check** and copy the JSON back. Nothing is edited; close without saving.
+   - **What the JSON holds:** each paragraph's `text` and its whole range's text (`paragraphs`);
+     `bodyText`; each query's hits, as their texts, or the error where Office JS refuses the query
+     (`searches`); and the text of a range from one marker to the other, through `expandTo` (`spans`).
+     Every character outside printable ASCII is written `\uXXXX`. The `^f`, `^e`, `^l`, `^m`, `^t`, `^~`,
+     `^-` and `^g` queries are Word's Find codes for a footnote mark, an endnote mark, a line break, a
+     page break, a tab, a non-breaking hyphen, an optional hyphen and a graphic; whether Office JS's
+     `search` takes them is part of the question.
+   - **What this package gives**, on the same file (`Paragraph.text`, through `textOf`):
+     - note and comment references: nothing (`FOOTAFOOTB`, `ENDAENDB`, `COMMENTEDCOMB`);
+     - every break, of any type, and the `w:cr`: `\n` (U+000A); the tab `\t`; the `w:ptab` nothing;
+     - the hyphens U+2011 and U+00AD; the symbol U+F04A, its private-use code point;
+     - hidden text: kept (`HIDAHIDDENTEXTHIDB`);
+     - the revisions: the accepted view, the insertion in and the deletion out (`REVAINSERTEDTEXTREVB`);
+     - a field: its result only, in both forms; the hyperlink's and the content control's text;
+     - the picture: nothing (`PICAPICB`); the equation: nothing (`MATHA  MATHB`);
+     - `Body.text`: the paragraphs joined by `\n`, each cell's paragraph a line of its own;
+     - `search`: one hit across a note or comment reference and across the picture, and one each for
+       the hidden word (and `HIDAHIDDENTEXTHIDB`, not `HIDAHIDB`), the inserted word and each field's
+       result; none across any break, tab, hyphen or symbol, none for the deleted word, a field-code
+       word or the equation, and none for a `^` code. There is no `expandTo`.
+   - **What follows from it** (CR-012 phase 4, D6): each item's character in Office JS's text is what
+     the run reader writes, and `search` and `Range` offsets count it. Where Office JS's `search` doesn't
+     match across a character its `text` holds, this package's search keeps that rule too.
+   - **Run 2026-10-21 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** His JSON is
+     `fixtures/check48/48-text-word365.json`. The view Word was in (hidden text shown or not, the
+     markup shown for review) wasn't recorded. `paragraph.text` and a range from one marker to the
+     other agree in every case:
+
+     | Case | Office JS's text | This package's |
+     |---|---|---|
+     | 1 footnote, endnote reference | U+0002 each | nothing |
+     | 2 comment reference | nothing | nothing |
+     | 3 `w:br` | U+000B | `\n` |
+     | 4 page break | U+000C | `\n` |
+     | 5 column break | U+000E | `\n` |
+     | 6 `w:cr` | U+000D, within the paragraph | `\n` |
+     | 7 tab; `w:ptab` | `\t`; `0` (U+0030) | `\t`; nothing |
+     | 8 non-breaking, optional hyphen | U+001E, U+001F | U+2011, U+00AD |
+     | 9 Wingdings `w:sym` F04A | `(` (U+0028) | U+F04A |
+     | 10 hidden run | left out (`HIDAHIDB`) | kept |
+     | 11 deletion, insertion | both in (`REVADELETEDTEXTINSERTEDTEXTREVB`) | the insertion only |
+     | 12, 13 fields | the result | the result |
+     | 14, 15 hyperlink, content control | the text | the text |
+     | 16 inline picture | nothing (`PICAPICB`) | nothing |
+     | 17 equation `x=1` | ` 𝑥=1 ` (U+1D465, mathematical italic x) | nothing (`MATHA  MATHB`) |
+     | 18 a cell's paragraph | its text; its whole range ends with `\t` | its text |
+
+     - **A paragraph's whole range ends with `\r`** (U+000D), and `body.text` joins the paragraphs with
+       `\r`: `...paragraph.\rCELLA\tCELLB\t\tAFTERTABLE\r...`, each cell ending in `\t` and the row in
+       another `\t`. Here `Body.text` joins with `\n`, each cell a line.
+     - **`search`:**
+       - It matches across a comment reference (`COMMENTEDCOMB`), and across an optional hyphen with
+         the plain query (`HYPHBHYPHC`, its hit `HYPHB\u001fHYPHC`).
+       - A non-breaking hyphen is matched by a plain `-` (`HYPHA-HYPHB`) and by `^~`.
+       - Across a note reference, a break, a tab, the `w:ptab`, the symbol or the picture the plain
+         query finds nothing. Word's Find codes do work there: `^f`, `^e`, `^l`, `^m`, `^t`, `^~`, `^-`
+         and `^g` each match once, each hit's text holding the character above (`FOOTA\u0002FOOTB`).
+         `^g`'s hit is `PICAPICB`, so the picture is a position in the search and nothing in the
+         text. Nothing matched across the column break or the `w:cr` (no Find code was tried for
+         the first, and `^l` doesn't match the second).
+       - The hidden word is found, with a hit whose text is `""`. `HIDAHIDDENTEXTHIDB` is found, its
+         text `HIDAHIDB`; `HIDAHIDB` is not.
+       - The deleted word is found, and so is `REVADELETEDTEXTINSERTEDTEXTREVB`;
+         `REVAINSERTEDTEXTREVB` is not.
+       - A field's result is found and its code isn't. `x=1` isn't found (the text has `𝑥`), and neither
+         is `CELLACELLB`.
+     - So Office JS's text is Word's own character stream, and its search reads hidden and deleted
+       words too. CR-012 section 6.2 has what follows for phase 4.
+
+
+   The Script Lab snippet for 48 (Word, Office JS, WordApi 1.3), on `__tmp/48/48-text.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+// every character outside printable ASCII as \uXXXX, so a control character shows
+const vis = (s) => s.replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+
+const QUERIES = ['FOOTAFOOTB', 'FOOTA^fFOOTB', 'ENDAENDB', 'ENDA^eENDB', 'COMMENTEDCOMB',
+  'LINEALINEB', 'LINEA^lLINEB', 'PAGEAPAGEB', 'PAGEA^mPAGEB', 'COLACOLB', 'CRACRB', 'CRA^lCRB',
+  'TABATABB', 'TABA^tTABB', 'TABBRIGHTB', 'HYPHAHYPHB', 'HYPHA-HYPHB', 'HYPHA^~HYPHB', 'HYPHBHYPHC',
+  'HYPHB^-HYPHC', 'SYMASYMB', 'HIDAHIDB', 'HIDDENTEXT', 'HIDAHIDDENTEXTHIDB', 'REVAREVB', 'DELETEDTEXT',
+  'INSERTEDTEXT', 'REVAINSERTEDTEXTREVB', 'REVADELETEDTEXTINSERTEDTEXTREVB', 'RESULTTWELVE', 'CODETWELVE',
+  'RESULTTHIRTEEN', 'CODETHIRTEEN', 'LINKTEXT', 'SDTTEXT', 'PICAPICB', 'PICA^gPICB', 'x=1', 'MATHAx=1',
+  'CELLA', 'CELLACELLB'];
+
+const SPANS = [['FOOTA', 'FOOTB'], ['ENDA', 'ENDB'], ['COMA', 'COMB'], ['LINEA', 'LINEB'], ['PAGEA', 'PAGEB'],
+  ['COLA', 'COLB'], ['CRA', 'CRB'], ['TABA', 'RIGHTB'], ['HYPHA', 'HYPHC'], ['SYMA', 'SYMB'], ['HIDA', 'HIDB'],
+  ['REVA', 'REVB'], ['FLDA', 'FLDB'], ['SIMA', 'SIMB'], ['LINKA', 'LINKB'], ['SDTA', 'SDTB'], ['PICA', 'PICB'],
+  ['MATHA', 'MATHB'], ['CELLA', 'CELLB']];
+
+async function check() {
+  await Word.run(async (context) => {
+    const body = context.document.body;
+    const paragraphs = body.paragraphs;
+    paragraphs.load('items/text');
+    body.load('text');
+    await context.sync();
+    const wholes = paragraphs.items.map((p) => p.getRange('Whole'));
+    wholes.forEach((r) => r.load('text'));
+    await context.sync();
+    const report = {
+      host: Office.context.diagnostics,
+      paragraphs: paragraphs.items.map((p, i) => ({ text: vis(p.text), whole: vis(wholes[i].text) })),
+      bodyText: vis(body.text),
+      searches: {},
+      spans: {},
+    };
+    // one query per sync, so that a query Office JS refuses fails alone
+    for (const q of QUERIES) {
+      try {
+        const hits = body.search(q, { matchCase: true });
+        hits.load('items/text');
+        await context.sync();
+        report.searches[q] = hits.items.map((h) => vis(h.text));
+      } catch (e) {
+        report.searches[q] = 'error: ' + (e.code || e.message);
+      }
+    }
+    for (const [a, b] of SPANS) {
+      try {
+        const span = body.search(a, { matchCase: true }).getFirst().expandTo(body.search(b, { matchCase: true }).getFirst());
+        span.load('text');
+        await context.sync();
+        report.spans[`${a}..${b}`] = vis(span.text);
+      } catch (e) {
+        report.spans[`${a}..${b}`] = 'error: ' + (e.code || e.message);
+      }
+    }
+    out.value = JSON.stringify(report, null, 1);
+  });
+}
+```
+
 49. What Office JS reads over a kept `mc:AlternateContent`'s branch (CR-012 section 12, 2026-10-20).
    Under CR-012's D2 the Office JS readers keep Office JS's text, so the editor's ED-009 rule (read a
    run-level element as its selected branch's items, a paragraph-level one as its runs, and edit in
-   the selected branch) is Office JS's only if Office JS reads the branch. (48 is CR-012 D6's check,
-   not yet written.) The file is the editor's `mc-branches.docx`: eight kept elements, none edited,
+   the selected branch) is Office JS's only if Office JS reads the branch. (48, written later, is
+   CR-012 D6's check.) The file is the editor's `mc-branches.docx`: eight kept elements, none edited,
    each under a paragraph naming its case. The snippet, `check49-script-lab.js`, is beside it on the
    share (`Office 2016/mc-fun/`); the editor's ED-009 section 9.2 item 4 has the cases.
    - **Run 2026-10-20 (Jason; Word 365, Script Lab).** His save is the editor's
