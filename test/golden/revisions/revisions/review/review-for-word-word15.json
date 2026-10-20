@@ -1,0 +1,1201 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:18Z",
+    "fixture": "revisions/review/review-for-word-word15.docx",
+    "fixtureBytes": 21104,
+    "timeZone": "UTC",
+    "authors": [
+      "Author A",
+      "Author B",
+      "Claude"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T18:18:00Z",
+      "id": 0,
+      "text": " ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 2,
+      "text": "very ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 3,
+      "text": "old ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 4,
+      "text": "",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 5,
+      "text": "green ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 6,
+      "text": "7 days",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 7,
+      "text": "14 days",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 8,
+      "text": "alpha",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 9,
+      "text": "bravo",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 10,
+      "text": "Centre this paragraph.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 11,
+      "text": "Indent this paragraph.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 12,
+      "text": "Give this paragraph the style Heading 2.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "PARAGRAPH_MARK_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 13,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "PARAGRAPH_MARK_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 14,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "ROW_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 15,
+      "text": "new\tnew\tnew\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "ROW_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 22,
+      "text": "3\tDelete\tthis row is deleted\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_DELETION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 29,
+      "text": "\t",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 30,
+      "text": "\t",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 31,
+      "text": "",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 32,
+      "text": "",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 33,
+      "text": "This paragraph becomes a numbered list item.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 34,
+      "text": "docx4j site",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 35,
+      "text": "colour",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 36,
+      "text": "color",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 37,
+      "text": "colour",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 38,
+      "text": "color",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 39,
+      "text": "colour",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 40,
+      "text": "color",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Claude",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 42,
+      "text": "The tenant pays rent monthly in arrears.\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Claude",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 44,
+      "text": "Rent\rThe tenant pays rent monthly in advance, as the lease says.\rThe first obligation.\rThe second obligation.\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION",
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Claude",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 54,
+      "text": "30 days",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Claude",
+      "date": "2026-09-30T13:34:00Z",
+      "id": 55,
+      "text": "60 days",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 32,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 32,
+      "left": []
+    },
+    "rejectAuthor": {
+      "filter": {
+        "authors": [
+          "Author B"
+        ]
+      },
+      "count": 15,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T18:18:00Z",
+          "id": 0,
+          "text": " ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 2,
+          "text": "very ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 4,
+          "text": "green ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "RUN_DELETION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 6,
+          "text": "7 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 7,
+          "text": "14 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 8,
+          "text": "alpha",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 10,
+          "text": "Centre this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 12,
+          "text": "Give this paragraph the style Heading 2.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 13,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 15,
+          "text": "new\tnew\tnew\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "RUN_DELETION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 29,
+          "text": "\t",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 30,
+          "text": "\t",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 33,
+          "text": "This paragraph becomes a numbered list item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "DELETION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 42,
+          "text": "The tenant pays rent monthly in arrears.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_DELETION",
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 44,
+          "text": "Rent\rThe tenant pays rent monthly in advance, as the lease says.\rThe first obligation.\rThe second obligation.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "RUN_DELETION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 54,
+          "text": "30 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 55,
+          "text": "60 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 12,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T18:18:00Z",
+          "id": 0,
+          "text": " ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 2,
+          "text": "very ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 4,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 7,
+          "text": "14 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 8,
+          "text": "alpha",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 9,
+          "text": "bravo",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 10,
+          "text": "Centre this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 11,
+          "text": "Indent this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 12,
+          "text": "Give this paragraph the style Heading 2.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 13,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 15,
+          "text": "new\tnew\tnew\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 30,
+          "text": "\t",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 31,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 33,
+          "text": "This paragraph becomes a numbered list item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 34,
+          "text": "docx4j site",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 36,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 38,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 40,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 44,
+          "text": "Rent\rThe tenant pays rent monthly in advance, as the lease says.\rThe first obligation.\rThe second obligation.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 55,
+          "text": "60 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 10,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T18:18:00Z",
+          "id": 0,
+          "text": " ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 2,
+          "text": "very ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 4,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 7,
+          "text": "14 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 8,
+          "text": "alpha",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 9,
+          "text": "bravo",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 10,
+          "text": "Centre this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 11,
+          "text": "Indent this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 12,
+          "text": "Give this paragraph the style Heading 2.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 13,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 14,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 15,
+          "text": "new\tnew\tnew\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "ROW_DELETION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 22,
+          "text": "3\tDelete\tthis row is deleted\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 30,
+          "text": "\t",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 31,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 33,
+          "text": "This paragraph becomes a numbered list item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 34,
+          "text": "docx4j site",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 36,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 38,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 40,
+          "text": "color",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 41,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 44,
+          "text": "Rent\rThe tenant pays rent monthly in advance, as the lease says.\rThe first obligation.\rThe second obligation.\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION",
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Claude",
+          "date": "2026-09-30T13:34:00Z",
+          "id": 55,
+          "text": "60 days",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

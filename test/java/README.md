@@ -19,19 +19,20 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.3.2` (`pom.xml`'s `docx4j.version`, the latest
-release, on Maven Central since 2026-10-09; overridable with `-Ddocx4j.version=...`; **harness
-version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have**, so it
-does not compile against 17.3.0 or earlier) and the JAXB implementation and four font jars
+The harness resolves `org.docx4j:docx4j-core:17.3.3` (`pom.xml`'s `docx4j.version`, the latest
+release, on Maven Central since 2026-10-17; overridable with `-Ddocx4j.version=...`; **harness
+version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have, and
+`RevisionsHarness` docx4j CR-043's `org.docx4j.model.revisions`, first released in 17.3.3**, so the
+project does not compile against anything earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
-**docx4j's answers move on its development branch, `VERSION_17_3_3`** (`<revision>`
-`17.3.3-SNAPSHOT`, since 17.3.2 was released on 2026-10-09 from `VERSION_17_3_2`, commit
-`856afc5da`, tag `docx4j-17.3.2`; the release branches are frozen at their releases:
-`VERSION_17_3_2` at 17.3.2, `VERSION_17_3_1` at 17.3.1, `VERSION_17_3_0` at 17.3.0,
-`VERSION_17_2_1` at 17.2.1, and before them development was on `VERSION_17_2_0`, itself the
-renamed `VERSION_17_1_1`).
-So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_3` and pass
-`-Ddocx4j.version=17.3.3-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
+**docx4j's answers move on its development branch, `VERSION_17_3_4`** (`<revision>`
+`17.3.4-SNAPSHOT`, since 17.3.3 was released on 2026-10-17 from `VERSION_17_3_3`, commit
+`c95b55be6`, tag `docx4j-17.3.3`; the release branches are frozen at their releases:
+`VERSION_17_3_3` at 17.3.3, `VERSION_17_3_2` at 17.3.2, `VERSION_17_3_1` at 17.3.1,
+`VERSION_17_3_0` at 17.3.0, `VERSION_17_2_1` at 17.2.1, and before them development was on
+`VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
+So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_4` and pass
+`-Ddocx4j.version=17.3.4-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
 its pom. A released version number is a trap a SNAPSHOT was not: if nothing was installed locally,
 Maven takes Central's release and the harness measures that, not the head; the workflow builds
 first, and so must you:
@@ -146,25 +147,29 @@ A golden is committed and diffed weekly, so two runs on two machines must agree.
   harness's: `TraversalUtil` in its default `McMode.READ` gives up the one branch
   `org.docx4j.jaxb.McSelection` selects (docx4j CR-021 phase 1) — the first `mc:Choice` whose
   `Requires` prefixes are all named in `docx4j.jaxb.mc.preferChoice`, else the `mc:Fallback`.
-  The harness sets that property, before any walk, to the prefixes of this package's
-  `UNDERSTOOD_NAMESPACES` (`src/opc/mce/understood.mts`) through the objects package's
-  `NAMESPACE_PREFIXES` table, which is `Harness.MC_PREFER_CHOICE` and is recorded in every
-  golden's header as `mcPreferChoice`:
+  The harness sets that property, before any walk, to this package's `READ_UNDERSTOOD_PREFIXES`
+  (`src/opc/mce/understood.mts`): the prefixes of `UNDERSTOOD_NAMESPACES` and of the four
+  namespaces a reader also counts as understood (CR-010 section 15), through the objects
+  package's `NAMESPACE_PREFIXES` table. It is `Harness.MC_PREFER_CHOICE`, also set by
+  `RevisionsHarness`, and is recorded in every golden's header as `mcPreferChoice`:
 
   ```
-  a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c173
-  cdr cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink
-  o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez
-  pslz psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp wne wp wp14 wp15
-  wpc wpg wps xdr xdr14 xvml
+  a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3
+  cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc
+  m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop
+  properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex
+  w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac
+  x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml
   ```
 
-  Eighty-four prefixes. Nine understood namespaces have no entry in that table (MathML,
-  InkML, the two Excel mains, the three encryption ones) and SpreadsheetML's entry there is
+  A hundred and four prefixes. Six of the 111 namespaces have no entry in that table (MathML,
+  InkML, the Excel 2008 main, the three encryption ones) and SpreadsheetML's entry there is
   the default namespace, so none of those is nameable; a `Requires` naming one would diverge,
-  and no fixture has one. The TypeScript side resolves every `mc:AlternateContent` on the DOM
-  before unmarshalling, taking the first choice whose `Requires` namespaces are in that set
-  (`wps` among them), so naming the same prefixes here is what makes the two walk the same
+  and no fixture has one. Until CR-011's phase 0 (2026-10-20) the list was an older copy of
+  load's set, 84 prefixes (CR-010 section 11.5, D6); refreshing it moved no answer. The
+  TypeScript side's readers of a kept `mc:AlternateContent` (`selectedBranchOf`, which the
+  parity test's walks go through) take the first choice whose `Requires` prefixes are in that
+  set (`wps` among them), so naming the same prefixes here is what makes the two walk the same
   document — a text box once, from its `wps` Choice, which is what Word draws. The property
   goes through `Docx4jProperties`, which wins over anything the environment supplies, so the
   weekly workflow makes the same choice without setting anything of its own. Before CR-021
@@ -243,6 +248,33 @@ Under two seconds for 46 fixtures; the same rules as above for which docx4j it r
   every prefix a path uses; the test asserts they are the objects package's before it compares a
   path, so a prefix that came to differ would say so.
 
+## The revisions harness (CR-011)
+
+A third main class, the oracle for `getAllTrackedChanges` and the tracked-change filters (CR-011
+section 4): docx4j 17.3.3's `org.docx4j.model.revisions` (its CR-043). For every `.docx` under the
+fixtures directory, **at any depth**, whose `word/` parts hold revision markup (the names of
+`REVISION_MARKUP` in `WordprocessingMLPackage.mts`), it records what `TrackedChanges.in` lists - each
+change's type, kind, author, date, id, text, part name and the kinds of its pieces - and then, each
+on a fresh load, the count returned and what is listed after `acceptAll` and `rejectAll`,
+`rejectAll(authors(<the second author listed>))` where there are two or more, `acceptAll(types(DELETED))`
+and `acceptAll(kinds(RUN_DELETION))`. One golden per fixture under
+[`../golden/revisions/`](../golden/revisions/), at the fixture's own path, compared by
+`test/revisions-parity.test.mjs`.
+
+```
+mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.RevisionsHarness \
+  -Dfixtures=../fixtures -Dout=../golden/revisions -Ddocx4j.commit=<hash>
+```
+
+About six seconds for 90 fixtures; the same rules as above for which docx4j it runs against.
+
+- **Dates.** `TrackedChange.getDate()` reads a `w:date` without `w16du:dateUtc` as local wall-clock
+  time in the JVM's time zone, as Office JS reads it in the add-in's. The harness sets the default
+  time zone to UTC first and records it in the header's `timeZone`; the test sets `TZ=UTC`.
+- **Branches.** docx4j lists a text box in a kept `mc:AlternateContent` from the first branch that
+  has one, this package from the selected branch; with every fixture's Choice requiring `wps`, the
+  two are the same. The harness sets `MC_PREFER_CHOICE` all the same.
+
 ## Files
 
 - `pom.xml` — Java 21, `docx4j-core` and friends from the local repository, `exec-maven-plugin`;
@@ -250,5 +282,7 @@ Under two seconds for 46 fixtures; the same rules as above for which docx4j it r
 - `src/main/java/org/docx4j/parity/Harness.java` — the parity harness.
 - `src/main/java/org/docx4j/parity/XPathHarness.java` — the XPath harness (CR-006), which shares
   the parity harness's fixture list and provenance helpers.
+- `src/main/java/org/docx4j/parity/RevisionsHarness.java` — the revisions harness (CR-011), which
+  finds its own fixtures and shares the provenance helpers.
 - `src/main/java/org/docx4j/parity/Json.java` — a small JSON writer, so the only dependency
   is docx4j.

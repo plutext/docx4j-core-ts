@@ -1,0 +1,83 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check36/36c-w16du-undeclared-word2010.docx",
+    "fixtureBytes": 13877,
+    "timeZone": "UTC",
+    "authors": [
+      "Check 36"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Check 36",
+      "date": "2026-10-04T10:00:00Z",
+      "id": 0,
+      "text": "inserted text",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 1,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 1,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Check 36",
+          "date": "2026-10-04T10:00:00Z",
+          "id": 0,
+          "text": "inserted text",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Check 36",
+          "date": "2026-10-04T10:00:00Z",
+          "id": 0,
+          "text": "inserted text",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

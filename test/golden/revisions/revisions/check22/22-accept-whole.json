@@ -1,0 +1,96 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check22/22-accept-whole.docx",
+    "fixtureBytes": 16296,
+    "timeZone": "UTC",
+    "authors": [
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "DELETED",
+      "kind": "PARAGRAPH_MARK_DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T00:55:00Z",
+      "id": 0,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T00:55:00Z",
+      "id": 2,
+      "text": "six.\rSeven ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "PARAGRAPH_MARK_DELETION",
+        "RUN_DELETION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 2,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 2,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 2,
+      "left": []
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Author A",
+          "date": "2026-09-28T00:55:00Z",
+          "id": 0,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Author A",
+          "date": "2026-09-28T00:55:00Z",
+          "id": 1,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        }
+      ]
+    }
+  }
+}

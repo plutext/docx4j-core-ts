@@ -30,7 +30,9 @@ So are CR-001 Phases C and D
 XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0), and CR-006 (`selectObjects` and
 `Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). CR-008 phase 1 (docx4j CR-034's colour merge rules in the
 catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
-0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it. The editor's release requests are
+0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it.
+CR-011 (every story's tracked changes in one listing, and filters on it and the resolve-all verbs,
+docx4j CR-043's, held to its answers by 90 revisions goldens) is implemented, not yet released. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -94,6 +96,8 @@ src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, 
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler);
                   opendope.mts (the tag's parameters, the XPaths part's entries), xhtml.mts and pictures.mts: the tag-bound passes, od:ContentType=application/xhtml+xml and od:Handler=picture (CR-005 sections 8 and 9)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it);
+                  pkg.getAllTrackedChanges(filter?) lists every story in docx4j's order, TrackedChange.kind/part/pieces are docx4j's, and trackedChangeFilter.mts
+                  is the filter (docx4j's TrackedChangeFilter, or a function) the listing, acceptAllRevisions/rejectAllRevisions and Body.acceptAll/rejectAll take (CR-011);
                   tableRevisions.mts: a table's property revisions, listed as one change and resolved as Word does (CR-002 section 35)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
                   supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change
@@ -192,7 +196,10 @@ Regenerate by hand (build docx4j, then `mvn -q -o compile exec:java -Dfixtures=.
 when an answer moves. Parity is zero differences. `test/golden/xpath/` is CR-006's oracle: what
 docx4j's `getJAXBNodesViaXPath` selects for 47 expressions per fixture, made by the same Maven
 project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and compared by
-`test/xpath-parity.test.mjs`.
+`test/xpath-parity.test.mjs`. `test/golden/revisions/` is CR-011's: what docx4j's
+`org.docx4j.model.revisions` (its CR-043) lists of each of the 90 fixtures with revision markup, at
+any depth, and what each resolve-all leaves, with and without a filter (`RevisionsHarness`, in UTC; a
+golden's path mirrors its fixture's), compared by `test/revisions-parity.test.mjs`.
 
 ## Rules
 
@@ -238,9 +245,8 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   XML), to `VERSION_17_3_3` on 2026-10-09 when 17.3.2 was released (tag `docx4j-17.3.2`,
   `856afc5da`), and to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
   `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows). The
-  parity workflow still checks out `VERSION_17_3_3`, which is now frozen at the 17.3.3 release, and
-  `test/java/pom.xml` still resolves 17.3.2 for a hand-run (the workflow reads docx4j's `<revision>`
-  instead); moving both is CR-011's phase 0. The classes being
+  parity workflow checks out `VERSION_17_3_4`, and `test/java/pom.xml` resolves the 17.3.3 release
+  for a hand-run (the workflow reads docx4j's `<revision>` instead), since CR-011's phase 0. The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
@@ -250,9 +256,10 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
   ported against `7fba7a150`; the goldens recorded `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, then `0349796f9`
   (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
-  section 22), and now record `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge; local in docx4j
-  when taken, CR-008 section 6, and part of the 17.3.3 release since), harness version 4, which needs docx4j 17.3.1's table context and does not
-  compile against 17.3.0. Build docx4j from the commit you mean to record before regenerating them
+  section 22), then `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge, CR-008 section 6), and now
+  record `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), harness
+  version 4, which needs docx4j 17.3.1's table context; the project does not compile against anything
+  before 17.3.3, whose `org.docx4j.model.revisions` `RevisionsHarness` calls. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.
 
 ## Portfolio task registry

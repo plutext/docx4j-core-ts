@@ -1,0 +1,95 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:18Z",
+    "fixture": "tracked-changes.docx",
+    "fixtureBytes": 142893,
+    "timeZone": "UTC",
+    "authors": [
+      "Jason Harrop"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Jason Harrop",
+      "date": "2007-12-09T10:14:00Z",
+      "id": 1,
+      "text": "An insertion",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Jason Harrop",
+      "date": "2007-12-09T10:14:00Z",
+      "id": 2,
+      "text": " A deletion",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 2,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 2,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Jason Harrop",
+          "date": "2007-12-09T10:14:00Z",
+          "id": 1,
+          "text": "An insertion",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Jason Harrop",
+          "date": "2007-12-09T10:14:00Z",
+          "id": 1,
+          "text": "An insertion",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

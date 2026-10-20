@@ -16,10 +16,27 @@ import { revisionDateOf, toRestoredText, toDeletedText, restoreRPr, restorePPr, 
 import { tableRecordsOf, hasTableRecords, tableChangeText, rowText as tableRowText, acceptTable, rejectTable } from './tableRevisions.mjs';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import type { Part } from '../../parts/Part.mjs';
+import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { relationshipIdsIn, dropRelationshipsUnused, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 /** Office JS `Word.ChangeTrackingState` (`Unknown` is not produced here). */
 export type TrackedChangeType = 'Added' | 'Deleted' | 'Formatted' | 'None' | 'Unknown';
+
+/**
+ * docx4j's finer kind of change (its `TrackedChange.Kind`, CR-043), the names verbatim, as data values
+ * a filter written for docx4j or passed as JSON carries over in (CR-011 D3). `INSERTION`, `DELETION` and
+ * `FORMATTING` are a group's whose pieces are of more than one kind.
+ */
+export type TrackedChangeKind =
+  | 'RUN_INSERTION' | 'RUN_DELETION' | 'MOVE'
+  | 'PARAGRAPH_MARK_INSERTION' | 'PARAGRAPH_MARK_DELETION'
+  | 'RUN_PROPERTIES' | 'PARAGRAPH_MARK_PROPERTIES' | 'PARAGRAPH_PROPERTIES'
+  | 'ROW_INSERTION' | 'ROW_DELETION'
+  | 'FIELD_INSERTION' | 'CONTENT_CONTROL_INSERTION'
+  | 'MATH_STRUCTURE_INSERTION' | 'MATH_STRUCTURE_DELETION'
+  | 'INSERTION' | 'DELETION' | 'FORMATTING'
+  | 'TABLE_PROPERTIES' | 'SECTION_PROPERTIES'
+  | 'CELL_INSERTION' | 'CELL_DELETION';
 
 /** Which piece of revision markup a `TrackedChange` is over (an extension: Office JS has no such member). */
 export type TrackedChangeTarget =
@@ -101,8 +118,9 @@ export type TrackedChangeTarget =
 
 /**
  * A subset of Office JS `Word.TrackedChange`: `type`, `author`, `date`, `text`, `accept()`,
- * `reject()` and `getRange()`, plus `element`, `id` and `target` as extensions. A view, like
- * `Paragraph` and `Range`: it holds the markup it is over, nothing is cached.
+ * `reject()` and `getRange()`, plus `element`, `id`, `target`, and docx4j's `kind`, `part` and
+ * `pieces` (CR-011) as extensions. A view, like `Paragraph` and `Range`: it holds the markup it is
+ * over, nothing is cached.
  */
 export class TrackedChange {
   constructor(
@@ -145,6 +163,53 @@ export class TrackedChange {
   /** The annotation id (`w:id`; an extension). */
   get id(): number {
     return this.target.value.id;
+  }
+
+  /**
+   * docx4j's kind of change (an extension; its `TrackedChange.getKind()`, CR-011): `target.kind` in
+   * docx4j's names, an equation's runs as runs. A group's is its pieces' when they are all of one kind,
+   * else `INSERTION`, `DELETION` or `FORMATTING`.
+   */
+  get kind(): TrackedChangeKind {
+    const t = this.target;
+    switch (t.kind) {
+      case 'run': return t.revision === 'ins' ? 'RUN_INSERTION' : t.revision === 'del' ? 'RUN_DELETION' : 'MOVE';
+      case 'mark': return t.mark === 'ins' ? 'PARAGRAPH_MARK_INSERTION' : 'PARAGRAPH_MARK_DELETION';
+      case 'runProperties': return 'RUN_PROPERTIES';
+      case 'markProperties': return 'PARAGRAPH_MARK_PROPERTIES';
+      case 'paragraphProperties': return 'PARAGRAPH_PROPERTIES';
+      case 'row': return t.row === 'ins' ? 'ROW_INSERTION' : 'ROW_DELETION';
+      case 'field': return 'FIELD_INSERTION';
+      case 'holder': return 'CONTENT_CONTROL_INSERTION';
+      case 'mathRun': return t.revision === 'ins' ? 'RUN_INSERTION' : 'RUN_DELETION';
+      case 'mathStructure': return t.revision === 'ins' ? 'MATH_STRUCTURE_INSERTION' : 'MATH_STRUCTURE_DELETION';
+      case 'tableProperties': return 'TABLE_PROPERTIES';
+      case 'sectionProperties': return 'SECTION_PROPERTIES';
+      case 'cell': return t.cell === 'ins' ? 'CELL_INSERTION' : 'CELL_DELETION';
+      case 'group': {
+        const first = t.pieces[0]!.kind;
+        if (t.pieces.every((piece) => piece.kind === first)) return first;
+        return t.revision === 'ins' ? 'INSERTION' : t.revision === 'del' ? 'DELETION' : 'FORMATTING';
+      }
+    }
+  }
+
+  /**
+   * The part the change's story is in (an extension; docx4j's `getPart()`, CR-011): the main document
+   * part, a header or footer part, the footnotes, endnotes or comments part. A text box's change gives
+   * the part the text box is in.
+   */
+  get part(): XmlPart<unknown> | undefined {
+    return this.body_?.part;
+  }
+
+  /**
+   * The single changes this one groups, in document order (an extension; docx4j's `getPieces()`,
+   * CR-011); a change that is no group is its own one piece. A filter's conditions are met or not by
+   * each piece, and each can be accepted or rejected on its own.
+   */
+  get pieces(): readonly TrackedChange[] {
+    return this.target.kind === 'group' ? this.target.pieces : [this];
   }
 
   /** The markup this change is over (an extension): the `w:ins` element, the `w:rPrChange`, ... */
@@ -520,7 +585,7 @@ function indentWithin(ind: wml.PPrBase.Ind, level: wml.PPrBase.Ind): boolean {
  * never strands a piece still to do. Office JS and Word's Review tab resolve the group as one (checks
  * 22 and 23), and so, piece by piece, does this.
  */
-function resolvePieces(pieces: TrackedChange[], what: 'accept' | 'reject'): void {
+export function resolvePieces(pieces: readonly TrackedChange[], what: 'accept' | 'reject'): void {
   const runs = pieces.filter((piece) => piece.target.kind !== 'mark');
   const marks = pieces.filter((piece) => piece.target.kind === 'mark');
   for (let i = runs.length - 1; i >= 0; i--) runs[i]![what]();
@@ -743,6 +808,20 @@ function noteReferencesIn(tree: unknown, into: NoteRemovals): void {
   visit(tree);
 }
 
+/**
+ * The notes `pending` holds that `flushPendingNoteRemovals` will take away: those whose reference no
+ * longer stands in the main document's tree. A listing of every story leaves them out, as docx4j's,
+ * which removes them when its resolution ends, does (CR-011).
+ */
+export function notesGoing(mainTree: unknown, pending: NoteRemovals): NoteRemovals {
+  const standing: NoteRemovals = { footnote: new Set(), endnote: new Set() };
+  if (pending.footnote.size + pending.endnote.size > 0) noteReferencesIn(mainTree, standing);
+  return {
+    footnote: new Set([...pending.footnote].filter((id) => !standing.footnote.has(id))),
+    endnote: new Set([...pending.endnote].filter((id) => !standing.endnote.has(id))),
+  };
+}
+
 /** What `flushPendingNoteRemovals` needs of the main document part. */
 interface NotesHost {
   getContents(): Promise<unknown>;
@@ -833,7 +912,7 @@ function unwrapHolder(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void
  * content starts with that marker's `w:customXmlInsRangeEnd` and ends with a second start, and that
  * one's end right after the element. Anything else is not one (a marker on its own is left alone).
  */
-export function holderInsertionAt(items: Element[], i: number, paragraph: Paragraph | undefined): TrackedChange | undefined {
+export function holderInsertionAt(items: Element[], i: number, paragraph: Paragraph | undefined, body?: Body): TrackedChange | undefined {
   const start = items[i]!;
   if (start.name?.localPart !== 'customXmlInsRangeStart') return undefined;
   const holder = items[i + 1];
@@ -845,7 +924,7 @@ export function holderInsertionAt(items: Element[], i: number, paragraph: Paragr
   if (inner.length < 2 || !innerEnd || !innerStart || innerEnd.name?.localPart !== 'customXmlInsRangeEnd' || innerStart.name?.localPart !== 'customXmlInsRangeStart') return undefined;
   const idOf = (marker: Element): unknown => (marker.value as { id?: unknown }).id;
   if (idOf(innerEnd) !== idOf(start) || idOf(outerEnd) !== idOf(innerStart)) return undefined;
-  return new TrackedChange({ kind: 'holder', holder, owner: items, outer: [start, outerEnd], inner: [innerEnd, innerStart], value: start.value as wml.CTTrackChange }, paragraph);
+  return new TrackedChange({ kind: 'holder', holder, owner: items, outer: [start, outerEnd], inner: [innerEnd, innerStart], value: start.value as wml.CTTrackChange }, paragraph, body);
 }
 
 /**
@@ -1038,7 +1117,11 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
   discarding();
   const container = currentOwner(paragraph.container, paragraph.element as Element);
   const i = container.indexOf(paragraph.element);
-  const next = i >= 0 ? container[i + 1] : undefined;
+  // range markers between the two (a bookmark's end, a move's range end) go into the joined paragraph
+  // where they stood, as docx4j's join (its CR-043, C10 and C10b) and Word's: found by CR-011's goldens
+  let j = i + 1;
+  while (i >= 0 && j < container.length && isRangeMarker(container[j]!)) j++;
+  const next = i >= 0 ? container[j] : undefined;
   const p = paragraph.p;
   if (!next || typeNameOf(next) !== 'org_docx4j_wml.P') {
     const previous = fallbackToPrevious && i > 0 ? container[i - 1] : undefined;
@@ -1058,6 +1141,7 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
   }
   const nextP = next.value as wml.P;
   const content = (p.content ??= []);
+  for (const item of container.slice(i + 1, j)) content.push(item as never);
   for (const item of (nextP.content ?? []).splice(0)) content.push(item as never);   // the next keeps nothing
   linkParents(content, p);
   discarding(undefined, p.pPr);                                        // a section break's sectPr goes with it
@@ -1071,7 +1155,14 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
     const value = nextP[key];
     if (value === undefined) delete p[key]; else p[key] = value;
   }
-  container.splice(i + 1, 1);
+  container.splice(i + 1, j - i);
+}
+
+/** A marker that stands between two paragraphs without keeping them apart: a range's start or end, a bookmark's, a permission's, a proofing mark. */
+function isRangeMarker(el: Element): boolean {
+  const name = el.name?.localPart ?? '';
+  return name.endsWith('RangeStart') || name.endsWith('RangeEnd') || name === 'bookmarkStart' || name === 'bookmarkEnd'
+    || name === 'permStart' || name === 'permEnd' || name === 'proofErr';
 }
 
 /** A `w:p`'s own attributes, which go with its mark. */
@@ -1616,7 +1707,7 @@ export function groupTouching(tokens: TrackedChangeToken[]): TrackedChange[] {
     if (!Array.isArray(item)) return item;
     const first = item[0]!;
     if (item.length === 1) return first;
-    return new TrackedChange({ kind: 'group', revision: groupable(first)!, pieces: item, value: first.target.value as wml.CTTrackChange }, first.paragraph);
+    return new TrackedChange({ kind: 'group', revision: groupable(first)!, pieces: item, value: first.target.value as wml.CTTrackChange }, first.paragraph, first.body);
   });
 }
 
@@ -1635,9 +1726,9 @@ export function trackedChangesOfRow(tr: Element<wml.Tr>, owner: Element[], inner
 // --- CR-002 section 35: tables, cells, marks and sections --------------------------------------------
 
 /** The change a table's property records make, one per table, or undefined when they make none. */
-export function tablePropertiesChangeOf(tbl: Element<wml.Tbl>): TrackedChange | undefined {
+export function tablePropertiesChangeOf(tbl: Element<wml.Tbl>, body?: Body): TrackedChange | undefined {
   const records = tableRecordsOf(tbl.value);
-  return records ? new TrackedChange({ kind: 'tableProperties', tbl, value: records.value }, undefined) : undefined;
+  return records ? new TrackedChange({ kind: 'tableProperties', tbl, value: records.value }, undefined, body) : undefined;
 }
 
 /** A cell's own revision, `w:cellIns` or `w:cellDel`, or undefined. */
@@ -1649,11 +1740,11 @@ export function cellChangeOf(tc: Element<wml.Tc>, owner: Element[], tr: wml.Tr, 
 }
 
 /** The change to the body's last section (`w:body/w:sectPr/w:sectPrChange`), its text the section's paragraphs'. */
-export function bodySectionChangeOf(container: { content?: Element[]; sectPr?: wml.SectPr }): TrackedChange | undefined {
+export function bodySectionChangeOf(container: { content?: Element[]; sectPr?: wml.SectPr }, body?: Body): TrackedChange | undefined {
   const sectPr = container.sectPr;
   if (!sectPr?.sectPrChange) return undefined;
   const items = container.content ?? [];
-  return new TrackedChange({ kind: 'sectionProperties', sectPr, value: sectPr.sectPrChange, text: sectionText(items, items.length) }, undefined);
+  return new TrackedChange({ kind: 'sectionProperties', sectPr, value: sectPr.sectPrChange, text: sectionText(items, items.length) }, undefined, body);
 }
 
 /**

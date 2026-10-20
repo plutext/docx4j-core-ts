@@ -27,7 +27,8 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, resolvePieces } from './TrackedChange.mjs';
+import { pieceMatcher, type TrackedChangeSelection } from './trackedChangeFilter.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
@@ -441,7 +442,7 @@ export class Body {
         if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this))); continue; }
         // a block control or custom XML element that is itself an insertion (check 30): one piece,
         // grouping with the insertions around and inside it, as Word lists them
-        const inserted = holderInsertionAt(items, i, undefined);
+        const inserted = holderInsertionAt(items, i, undefined, this);
         if (inserted) {
           into.push(inserted);
           visit(childrenOf(items[i + 1]!.value as object) ?? [], into);
@@ -456,7 +457,7 @@ export class Body {
           // inserted paragraphs is one change; rows added at a table's end with a paragraph typed after
           // it, one; a paragraph whose mark is plain before rows added at the start, two). Its property
           // records are one change of their own where the table stands (CR-002 section 35), kept apart.
-          const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>);
+          const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>, this);
           if (tableChange) into.push(BREAK, tableChange, BREAK);
           for (const row of rowsOf(v)) {
             // A row that is itself a revision reports as one change, as Office JS does: the
@@ -484,7 +485,7 @@ export class Body {
     };
     visit(this.content, out);
     // the body's last section, after everything in it
-    const section = bodySectionChangeOf(this.container as { content?: Element[]; sectPr?: wml.SectPr });
+    const section = bodySectionChangeOf(this.container as { content?: Element[]; sectPr?: wml.SectPr }, this);
     if (section) out.push(BREAK, section);
     return groupTouching(out);
   }
@@ -492,37 +493,56 @@ export class Body {
   /**
    * Accepts every tracked change, last first so that a paragraph join never disturbs one still
    * to do (docx4j `AcceptTrackedChanges` is the reference). Returns how many were listed.
+   *
+   * With a filter (an extension, CR-011), only the single changes it matches are accepted, so a group
+   * can be resolved in part, and what no change owns is left alone; the count is of the listed changes
+   * with a matching piece (docx4j's `TrackedChanges.acceptAll(pkg, filter)`).
    */
-  acceptAll(): number {
-    return this.resolveAll('accept');
+  acceptAll(filter?: TrackedChangeSelection): number {
+    return this.resolveAll('accept', filter);
   }
 
-  /** Rejects every tracked change, last first. Returns how many were listed. */
-  rejectAll(): number {
-    return this.resolveAll('reject');
+  /** Rejects every tracked change, last first, as `acceptAll` accepts them. Returns how many were listed. */
+  rejectAll(filter?: TrackedChangeSelection): number {
+    return this.resolveAll('reject', filter);
   }
 
   /**
    * Resolving one change can leave another to be listed afresh: accepting a move carries a deletion
    * nested in its moved text out of it, and resolving a broken move dissolves the rest of it into a
    * new `w:ins` or `w:del` (CR-002 section 29), so the list read first goes stale. The list is read
-   * again after each pass until nothing is left, as "all" promises (found by the editor's C5); a
-   * pass that resolves nothing ends it.
+   * again after each pass until nothing is left, as "all" promises (found by the editor's C5); as
+   * docx4j's `TrackedChanges.resolveAll` does it (CR-011): a change whose pieces all match is resolved
+   * whole, one with some matching its matching pieces alone, for up to 20 passes, and two passes in a
+   * row that leave as many matching changes as the one before end it. Then, with no filter, what is
+   * never listed is swept.
    */
-  private resolveAll(what: 'accept' | 'reject'): number {
+  private resolveAll(what: 'accept' | 'reject', filter: TrackedChangeSelection | undefined): number {
+    const matches = filter === undefined ? undefined : pieceMatcher(filter);
+    const matching = (change: TrackedChange): readonly TrackedChange[] => (matches ? change.pieces.filter(matches) : change.pieces);
     let count = 0;
     // one resolution for the lot, so the bookmarks are read before the first and after the last
     resolving(this.package_, this, () => {
       let changes = this.getTrackedChanges();
-      count = changes.length;
-      while (changes.length > 0) {
-        for (let i = changes.length - 1; i >= 0; i--) changes[i]![what]();
-        const left = this.getTrackedChanges();
-        if (left.length >= changes.length) break;
-        changes = left;
+      count = changes.filter((change) => matching(change).length > 0).length;
+      let left = Infinity;
+      let stalled = 0;
+      for (let pass = 0; pass < 20 && stalled < 2; pass++) {
+        if (pass > 0) changes = this.getTrackedChanges();
+        let matched = 0;
+        for (let i = changes.length - 1; i >= 0; i--) {
+          const change = changes[i]!;
+          const pieces = matching(change);
+          if (pieces.length === 0) continue;
+          matched++;
+          if (pieces.length === change.pieces.length) change[what](); else resolvePieces(pieces, what);
+        }
+        if (matched === 0) break;
+        stalled = matched >= left ? stalled + 1 : 0;
+        left = matched;
       }
       // and what is never listed: a cell merge, a numbering change, records that change nothing
-      resolveUnlisted(this.content, what);
+      if (!matches) resolveUnlisted(this.content, what);
     });
     return count;
   }
@@ -782,22 +802,33 @@ function describe(el: Element): string {
 }
 
 /**
- * A story's tracked changes resolved (`Body.acceptAll` or `rejectAll`), then those of each text box in
- * it - a `w:txbxContent`, in a DrawingML shape or a VML one - which Word counts as a story of its own
- * (CR-002 section 49). A text box inside a text box is reached through its own story. Returns how many
- * changes were listed.
+ * A story's tracked changes resolved (`Body.acceptAll` or `rejectAll`, with the filter if one is given),
+ * then those of each text box in it - a `w:txbxContent`, in a DrawingML shape or a VML one - which Word
+ * counts as a story of its own (CR-002 section 49). A text box inside a text box is reached through its
+ * own story. Returns how many changes were listed (with a filter, how many had a matching piece).
  *
  * In a kept `mc:AlternateContent` the text box of every branch is resolved, so that each says the same
  * afterwards (docx4j's `McMode.ALL`), and the changes are counted in the selected branch alone, so a
  * text box held in both counts once, as a resolved load's does (CR-010 phase 3).
  */
-export function resolveStory(body: Body, what: 'accept' | 'reject'): number {
-  let count = what === 'accept' ? body.acceptAll() : body.rejectAll();
+export function resolveStory(body: Body, what: 'accept' | 'reject', filter?: TrackedChangeSelection): number {
+  let count = what === 'accept' ? body.acceptAll(filter) : body.rejectAll(filter);
   for (const { box, selected } of textBoxesIn(body.container)) {
-    const resolved = resolveStory(body.sub(box), what);
+    const resolved = resolveStory(body.sub(box), what, filter);
     if (selected) count += resolved;
   }
   return count;
+}
+
+/**
+ * A story's tracked changes (`Body.getTrackedChanges`), then each text box's in it, as `resolveStory`
+ * resolves them: docx4j's order (its CR-043 `Lister`, CR-011). In a kept `mc:AlternateContent` the
+ * selected branch's text boxes alone are listed, so a text box held in both branches is listed once.
+ */
+export function trackedChangesOfStory(body: Body): TrackedChange[] {
+  const out = body.getTrackedChanges();
+  for (const { box, selected } of textBoxesIn(body.container)) if (selected) out.push(...trackedChangesOfStory(body.sub(box)));
+  return out;
 }
 
 /**

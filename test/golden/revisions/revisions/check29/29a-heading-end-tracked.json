@@ -1,0 +1,230 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check29/29a-heading-end-tracked.docx",
+    "fixtureBytes": 16170,
+    "timeZone": "UTC",
+    "authors": [
+      "Author B",
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Author B",
+      "date": "2026-09-28T19:51:00Z",
+      "id": 0,
+      "text": "\rNew",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author B",
+      "date": "2026-09-28T19:51:00Z",
+      "id": 1,
+      "text": "New",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "PARAGRAPH_MARK_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-29T09:00:00Z",
+      "id": 3,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "PARAGRAPH_MARK_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-29T09:00:00Z",
+      "id": 4,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 4,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 4,
+      "left": []
+    },
+    "rejectAuthor": {
+      "filter": {
+        "authors": [
+          "Author A"
+        ]
+      },
+      "count": 2,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 0,
+          "text": "\rNew",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 1,
+          "text": "New",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        }
+      ]
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 0,
+          "text": "\rNew",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 1,
+          "text": "New",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-29T09:00:00Z",
+          "id": 3,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-29T09:00:00Z",
+          "id": 4,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 0,
+          "text": "\rNew",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author B",
+          "date": "2026-09-28T19:51:00Z",
+          "id": 1,
+          "text": "New",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-29T09:00:00Z",
+          "id": 3,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-29T09:00:00Z",
+          "id": 4,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

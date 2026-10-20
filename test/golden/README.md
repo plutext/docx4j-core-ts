@@ -227,3 +227,33 @@ now inheriting as one: `fonts-modesOfApplication` (main paragraph 5, run 3: the 
 colour loses `Heading1`'s `themeShade`) and `invoice2013` (table 0: the `effectiveTableStyle`
 borders take the table's own `color="auto"` over `TableGrid`'s `themeColor`). No XPath hit moved.
 CR-008 section 6.
+
+## docx4j 17.3.3, and `revisions/` (2026-10-20)
+
+All 62 goldens and the 62 under `xpath/` were regenerated from the docx4j 17.3.3 release on Maven
+Central (`docx4j-core-17.3.3.jar`, SHA-256 `ec27210095a880f3…`, tag `docx4j-17.3.3` at
+`c95b55be6832ff716131ffdbd7006755db92f696`, a descendant of `2e381ef26`), harness version 4, with a
+scratch Maven repository. The harness's `MC_PREFER_CHOICE`, recorded in every header as
+`mcPreferChoice`, now names the readers' 104 prefixes (`READ_UNDERSTOOD_PREFIXES`, CR-010 sections
+11.5 and 15) where it named an older copy of load's 84. Header fields aside, no answer moved and no
+XPath hit. CR-011 phase 0.
+
+## `revisions/`: every story's tracked changes, and what each resolve-all leaves (CR-011)
+
+One JSON file per `.docx` fixture whose `word/` parts hold revision markup, 90 of them, at the
+fixture's own path under `test/fixtures/` (`revisions/check20/12-partner-missing.json`). Each records
+what docx4j 17.3.3's `org.docx4j.model.revisions` answers (its CR-043): `listing`, what
+`TrackedChanges.in` lists, each change's type, kind, author, date, id, text, part and the kinds of its
+pieces; and `resolved`, for each of `acceptAll` and `rejectAll` with no filter, `rejectAll` by the
+second author listed (where there are two or more), `acceptAll` of the `DELETED` type and `acceptAll`
+of the `RUN_DELETION` kind (which splits a deleted paragraph, docx4j's U19), the count returned and
+what is listed after. Written by [`../java/`](../java/README.md#the-revisions-harness-cr-011)'s
+`RevisionsHarness` in the UTC time zone, which the header records, and compared by
+`test/revisions-parity.test.mjs`, which runs in it too: a `w:date` without `w16du:dateUtc` is local
+wall-clock time on both sides.
+
+| | |
+|---|---|
+| docx4j | the 17.3.3 release, as above |
+| harness version | 1 |
+| fixtures | the 90 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,737 changes listed |

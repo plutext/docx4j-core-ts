@@ -1,0 +1,436 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:18Z",
+    "fixture": "revisions/cr043/tracked-changes-equations.docx",
+    "fixtureBytes": 17241,
+    "timeZone": "UTC",
+    "authors": [
+      "Jason Harrop"
+    ]
+  },
+  "listing": [
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 0,
+      "text": "\\,s^{-1}.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 2,
+      "text": "\u2009s-1.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION",
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 7,
+      "text": "\\,m^{-3}.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 9,
+      "text": "\u2009m-3.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION",
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 14,
+      "text": "U",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_DELETION",
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 16,
+      "text": "U",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 18,
+      "text": "[U].",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 19,
+      "text": "U.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 23,
+      "text": "E[U]\u2260",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_DELETION",
+        "RUN_DELETION",
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 26,
+      "text": "EU\u2260",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 31,
+      "text": "[PU].",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "MATH_STRUCTURE_DELETION",
+        "RUN_DELETION",
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "INSERTION",
+      "author": "Jason Harrop",
+      "date": "2026-09-01T02:43:00Z",
+      "id": 35,
+      "text": "PU.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "MATH_STRUCTURE_INSERTION",
+        "RUN_INSERTION",
+        "RUN_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 12,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 12,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 6,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 2,
+          "text": "\u2009s-1.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 9,
+          "text": "\u2009m-3.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 16,
+          "text": "U",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 19,
+          "text": "U.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 26,
+          "text": "EU\u2260",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 35,
+          "text": "PU.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 6,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 2,
+          "text": "\u2009s-1.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 9,
+          "text": "\u2009m-3.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "MATH_STRUCTURE_DELETION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 14,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 16,
+          "text": "U",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 19,
+          "text": "U.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "MATH_STRUCTURE_DELETION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 23,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 26,
+          "text": "EU\u2260",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "MATH_STRUCTURE_DELETION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 32,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "INSERTION",
+          "author": "Jason Harrop",
+          "date": "2026-09-01T02:43:00Z",
+          "id": 35,
+          "text": "PU.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "MATH_STRUCTURE_INSERTION",
+            "RUN_INSERTION",
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

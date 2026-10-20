@@ -244,6 +244,30 @@ as Word's Review tab does. `accept()` and `reject()` return whether they acted: 
 resolved since it was listed, by its own view or another, is left alone and gives `false` (Office
 JS's return nothing).
 
+A body is one story. Every story at once - the main document, each footnote, endnote and comment,
+the headers and footers in the order the sections reference them, and the text boxes in each - is
+the package's, as docx4j lists it (`TrackedChanges.in`), with docx4j's kind and the part of each
+change. The listing and the resolve-all verbs take a filter: docx4j's conditions as an object, which
+travels as JSON, or a function over each single change. A group of touching changes is listed whole
+when any of its pieces matches, and resolved only in the pieces that match:
+
+```ts
+for (const change of await pkg.getAllTrackedChanges()) {
+  change.kind;        // docx4j's: 'RUN_INSERTION', 'PARAGRAPH_MARK_DELETION', 'TABLE_PROPERTIES', ...
+  change.part.partName.name;   // '/word/document.xml', '/word/footnotes.xml', '/word/header1.xml', ...
+}
+await pkg.rejectAllRevisions({ authors: ['Author B'] });
+await pkg.acceptAllRevisions({ types: ['Deleted'], from: '2026-10-01', parts: ['/word/document.xml'] });
+await pkg.acceptAllRevisions((change) => change.author === 'Claude');
+body.acceptAll({ kinds: ['RUN_DELETION'] });   // one story; a deleted paragraph's text goes, its mark stays
+```
+
+The conditions are `authors`, `types` (Office JS's names or docx4j's `ADDED`, `DELETED`,
+`FORMATTED`), `kinds`, `from` (inclusive) and `to` (exclusive), and `parts` (a part or its name).
+A key or a value the filter does not know throws a `TypeError`, before anything is resolved. With a
+filter, what no change owns (a `w:cellMerge`, a `w:numberingChange`) is left alone; without one it is
+swept, as before. Each verb returns how many listed changes had a matching piece.
+
 To record one caller's edits without touching the document's own setting - an agent working in a
 document whose `w:trackRevisions` belongs to its owner - use `withTracking`. Nothing is written
 to the settings part, and the author, date and mode are put back when `fn` returns or throws:

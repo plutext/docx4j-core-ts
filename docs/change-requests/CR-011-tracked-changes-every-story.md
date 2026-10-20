@@ -1,13 +1,16 @@
 # CR-011: Tracked changes in every story: one listing and filters (docx4j CR-043's `TrackedChanges.in` and `TrackedChangeFilter`)
 
-**Status:** Proposed 2026-10-18, at Jason's request ("write a CR which covers listing every story in
+**Status:** Implemented 2026-10-20, all three phases (Jason: "do CR-011"; section 10): the parity on
+docx4j 17.3.3 with 90 revisions goldens at zero differences, `getAllTrackedChanges`, `kind`, `part`
+and `pieces`, and the filters; two resolution defects the goldens found are fixed (section 10.4).
+Not released. Proposed 2026-10-18, at Jason's request ("write a CR which covers listing every story in
 one call, filters, and a report; a package-level getTrackedChanges over every story, plus an
 author/type/date filter on the resolve-all verbs"). Revised the same day, at Jason's word ("yes,
 revise it that way please"): trimmed to the listing and the filters, with the report left until
-someone asks for it (section 7). It is to follow the 0.5.0 release, and is not scheduled. It builds
+someone asks for it (section 7). It came after the 0.5.0 release. It builds
 on CR-002 sections 49 to 51 (`b6ef16a`, released in 0.5.0). Decisions D1 to D4 (section 6) were taken
 by Jason on 2026-10-20, each as recommended: D3 with docx4j's three type names also taken by the
-filter's `types`, and D4 as CR-002 section 53. Not scheduled.
+filter's `types`, and D4 as CR-002 section 53.
 
 ## 1. Why
 
@@ -351,3 +354,159 @@ The editor (`docx4j-ts-editor`) reviewed this CR with the 0.5.0 release, on main
    do today. The editor's "all" settle depends on the sweep. The semantics, in which a listed change
    is the whole change and resolving takes only its matching pieces, suit it: it resolves its own
    listing by key, and the changes it preserves through this package.
+
+## 10. Implemented (2026-10-20)
+
+Jason: "do CR-011". All three phases, in one session. Uncommitted when this was written.
+
+### 10.1 Phase 0: the parity on docx4j 17.3.3, and the revisions harness
+
+- **The pom and the workflow.** `test/java/pom.xml` resolves the 17.3.3 release (Maven Central,
+  tag `docx4j-17.3.3` at `c95b55be6`), and `.github/workflows/parity.yml` checks out
+  `VERSION_17_3_4`, docx4j's development branch since 17.3.3 was released. The workflow runs the new
+  harness after the XPath one, compares `test/golden/revisions/` at any depth, uploads it and takes it
+  with the rest. CLAUDE.md, `test/java/README.md` and `test/golden/README.md` say so.
+- **`MC_PREFER_CHOICE`** now names `READ_UNDERSTOOD_PREFIXES`, 104 prefixes, where D6 of CR-010
+  (section 11.5) said `UNDERSTOOD_NAMESPACES`' 100. D6 was decided before CR-010 section 15, which gave
+  the readers their own set. The parity test's walks go through `selectedBranchOf`, which reads that
+  set, so docx4j is told the same set. The four namespaces section 15 adds are `w16sdtdh`,
+  `w16sdtfl`, `w16du` and `x14ac`. `c173`, in the old list but not understood, is gone.
+- **The goldens.** All 62 parity goldens and the 62 XPath goldens were regenerated from the 17.3.3
+  release jars (a scratch Maven repository; the docx4j checkout is shared and was not built). Header
+  fields aside, including `mcPreferChoice`, **no answer moved** and no XPath hit. Every header now
+  records `c95b55be6`, `docx4j-core-17.3.3.jar` and its hash, `ec27210095a880f3`.
+- **`RevisionsHarness`** (`test/java`, a third main class). For each of the 90 fixtures whose `word/`
+  parts hold revision markup (any depth under `test/fixtures/`, `REVISION_MARKUP`'s names), it
+  records:
+  - the listing, each change as section 4 says, with the kinds of its pieces rather than only their
+    number;
+  - then, each on a fresh load, the count returned and what is left listed after five resolutions:
+    `acceptAll` and `rejectAll` unfiltered, `rejectAll` by the second author listed (where the
+    listing has two or more: 63 fixtures), `acceptAll(types(DELETED))`, and
+    `acceptAll(kinds(RUN_DELETION))`, which splits a deleted paragraph (U19).
+
+  It runs in UTC, which the header records, because docx4j reads a `w:date` without `w16du:dateUtc`
+  in the JVM's zone. The test sets `TZ=UTC` for the same reason. A golden's path mirrors its
+  fixture's, so the check folders' names never collide.
+- **docx4j's head.** `VERSION_17_3_4` at `5c691fc1f` was exported with `git archive`, built into
+  the scratch repository, and run through all three harnesses: the same answers on all 214 goldens.
+  So the first weekly run on the new branch has nothing to report, as of that commit.
+- **docx4j's commits since `2e381ef26`** up to the release touch nothing this package ports. `McSelection` gained
+  `selectedBranch(ac, host)` for chartex output (`dd4a79cda`), which the READ walk does not use;
+  `Mapper` changed only a comment (`1af3088b3`); `AutofitLayout` is layout (`30fe44c95`); the rest
+  is CR-043's revisions package, the oracle itself.
+
+### 10.2 Phase 1: the listing
+
+- `await pkg.getAllTrackedChanges(filter?)`. Its stories are `revisedStories()`, the same ones
+  `acceptAllRevisions` resolves. Each story's changes are its `Body.getTrackedChanges()`, then each
+  selected-branch text box's in it (`trackedChangesOfStory`, beside `resolveStory`).
+- **Headers and footers in section order** (`inSectionOrder`), docx4j's `Lister.headersAndFooters`:
+  - the `w:sectPr`s in document order, not inside a run, the body's last;
+  - each one's references in their order, a part once;
+  - then any other header or footer, in the order of the main part's relationships.
+
+  This is worked out only when two or more headers or footers hold markup, since otherwise there is
+  nothing to order. The main part's tree is read with `readContents()`, so a main part with no
+  revision keeps its bytes. `acceptAllRevisions` resolves in the same order.
+- **`TrackedChange.kind`** is the table in section 2, a group's as docx4j's `getKind()`.
+  **`TrackedChange.part`** is the part of the change's body. **`TrackedChange.pieces`** is docx4j's
+  `getPieces()`: a group's pieces, else the change itself. `pieces` is one more than section 3.1
+  named. The filter's semantics are stated over pieces, and the function form is given pieces, so a
+  caller needs to see them.
+- **Every change now knows its body.** A table's records, the body's last section and a block-level
+  inserted control were made with no paragraph and no body, so they had no `part`. So was a group
+  whose first piece is one of those. `tablePropertiesChangeOf`, `bodySectionChangeOf`,
+  `holderInsertionAt` and `groupTouching` now pass the body. That also gives such a change, resolved on
+  its own, the bookmark and relationship bookkeeping of `resolving`, which inside a resolve-all it
+  already had from the outer resolution.
+- **The listing goldens agreed at once: 0 differences on all 90.**
+
+### 10.3 Phase 2: the filters
+
+- `src/model/content/trackedChangeFilter.mts`: `TrackedChangeFilter`, `TrackedChangeSelection`, and
+  `pieceMatcher`, which turns either form into a test over one piece. The conditions, both
+  spellings of `types` and the semantics are section 3.2's. Two departures from the sketch there:
+  - **`from` and `to` also take a string**, read by `Date`, since a tool's JSON arguments carry no
+    `Date`.
+  - **An object filter is checked before use.** An unknown key, a value not in the vocabulary, or a
+    date that does not parse throws a `TypeError`, and nothing is read or resolved. docx4j's builder
+    cannot be misspelt, but a JSON object can, and `{ author: 'Author B' }` silently ignored would
+    accept every change. `within` and `withinBookmark` are refused the same way, since they come
+    later (D2).
+- **Taken by** `getAllTrackedChanges`, `acceptAllRevisions`, `rejectAllRevisions`, `Body.acceptAll`
+  and `Body.rejectAll`. `resolveStory` passes the filter to each text box's story. The count is of
+  the listed changes with a matching piece, the selected branch's in a kept `mc:AlternateContent`, as
+  before.
+- **The loop is docx4j's, filtered or not.** A change whose pieces all match is resolved whole, and
+  one with only some matching has those resolved alone (`resolvePieces`, now exported). Passes repeat
+  up to 20 times, and two passes in a row that leave as many matching changes as before end it. Until
+  now one such pass ended it. The unfiltered sweep (`resolveUnlisted`) runs only without a filter.
+  Measured on the corpus below, the loop changed no result.
+
+### 10.4 What the goldens found, and fixed
+
+1. **A deleted paragraph mark did not join across a range marker.** `joinWithNext` joined only when
+   the very next item was a paragraph. A `w:moveFromRangeEnd`, a `w:bookmarkEnd` or a `w:permEnd`
+   between the two made it only drop the mark, and the paragraph stayed, empty.
+
+   docx4j's join skips such markers (`*RangeStart`, `*RangeEnd`, `bookmarkStart`, `bookmarkEnd`,
+   `permStart`, `permEnd`, `proofErr`) and carries them into the joined paragraph where they stood.
+   That is its CR-043 rule, from Word's saves C10 and C10b. It is ported.
+
+   - **Why the unfiltered goldens missed it.** After an unfiltered accept nothing is left to list, so
+     those goldens could not show it. `acceptAll(types(DELETED))` on check 20's 13-moveTo-no-ranges
+     files left the section's `w:sectPrChange`, whose text, every paragraph of the section, carried the
+     empty paragraph.
+   - **What moved.** Over the corpus below, Accept All or Reject All changed on 11 files, all check
+     20's broken moves (case 12's resave, case 13 three times, case 14 seven times), and nothing else.
+   - **They now agree with docx4j** (section 10.5); before, all 11 differed. The single-change tests
+     against Word's own saves of those cases (check 20) pass as before.
+2. **A note whose reference a resolution took was still a story until save.**
+   `acceptAll(kinds(RUN_DELETION))` on the CR-043 probe takes C12's endnote reference. This package
+   settles the note itself on save (CR-002 section 44); docx4j settles it when the resolve-all ends.
+   So this package went on listing the note's deleted mark.
+
+   Now `revisedStories()` leaves out a footnote or endnote that `notesGoing` says will go, meaning
+   pending and with no reference standing, and a comment pending removal. That covers the listing
+   and the resolve-alls alike. When anything is removed is unchanged.
+
+After both, **the revisions goldens are at 0 differences on all 90**: the listing, five
+resolutions each, every count.
+
+### 10.5 Checks beyond the goldens
+
+- **The ports' agreement run, repeated** (one-off, scratchpad). docx4j's own `PortsAgreement` and
+  `DocumentDescription` (its CR-043 section 14, copied from `docx4j-core-tests` at the 17.3.3 tag)
+  compared docx4j's Accept All and Reject All of the 90 fixtures with this package's saved results.
+  - With this build, **179 of 180 describe the same**. The one is the CR-043 probe's Reject All, its
+    C23 table grid, which is CR-002 section 46.2, recorded for later.
+  - The build before differed on those 11 broken-move files as well.
+- **The corpus**: the 520 `.docx` of this repository's fixtures and docx4j-core-tests' resources.
+  - On 519, the listing's count equals what `acceptAllRevisions` returns and what
+    `rejectAllRevisions` returns. The 520th is the strict-conformance sample, which does not load.
+  - 191 hold changes, 3,698 in all.
+  - On the 328 with none, a listing unmarshals no part.
+  - The all-verbs hash comparison of CR-002 section 53, against a baseline from before this CR: only
+    the 11 files of item 1 changed. With the marker skip disabled, the rest of this CR changed none.
+
+### 10.6 Tests
+
+- `test/revisions-parity.test.mjs`: 91 tests, one per golden and one over their headers.
+- `test/tracking.test.mjs`: 8 more tests. Each fails on the build before; the 77 already there pass
+  on both.
+  - date ranges (`from` inclusive, `to` exclusive, an ISO string, no date matching no range), over
+    three authors' insertions made with `withTracking` at three dates;
+  - the function form, `types` in both spellings, `kinds` and `parts` by name and by part;
+  - a misread filter throwing before anything is resolved;
+  - `kind`, `part` and `pieces`, and U19 on check 22;
+  - no sweep with a filter;
+  - the join across a bookmark end and a range end;
+  - section order, with the main part and a footer without markup left unread;
+  - a note pending removal not listed, and gone on save.
+- The suite: 977 tests, all passing; the typecheck passes.
+
+### 10.7 Not done
+
+- The range conditions (D2: later) and the report (section 7).
+- The editor's own author filter: whether to move to this one is the editor's call (section 9).

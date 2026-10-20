@@ -1,0 +1,83 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check24/24a-bold.docx",
+    "fixtureBytes": 14185,
+    "timeZone": "UTC",
+    "authors": [
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T07:11:00Z",
+      "id": 0,
+      "text": "beta",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 1,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 1,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T07:11:00Z",
+          "id": 0,
+          "text": "beta",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T07:11:00Z",
+          "id": 0,
+          "text": "beta",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check32/check32-typed.docx",
+    "fixtureBytes": 15583,
+    "timeZone": "UTC",
+    "authors": [
+      "Author B"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-10-01T20:10:00Z",
+      "id": 0,
+      "text": "z",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-10-01T20:10:00Z",
+      "id": 1,
+      "text": "x",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-10-01T20:10:00Z",
+      "id": 2,
+      "text": "y",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 3,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 3,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 0,
+          "text": "z",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 1,
+          "text": "x",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 2,
+          "text": "y",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 0,
+          "text": "z",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 1,
+          "text": "x",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-10-01T20:10:00Z",
+          "id": 2,
+          "text": "y",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

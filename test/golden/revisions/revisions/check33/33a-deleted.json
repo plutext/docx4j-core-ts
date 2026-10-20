@@ -1,0 +1,71 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:17Z",
+    "fixture": "revisions/check33/33a-deleted.docx",
+    "fixtureBytes": 14053,
+    "timeZone": "UTC",
+    "authors": [
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "DELETED",
+      "kind": "DELETION",
+      "author": "Author A",
+      "date": "2026-10-01T21:34:00Z",
+      "id": 1,
+      "text": "A heading deleted whole\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION",
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 1,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 1,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 1,
+      "left": []
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 1,
+      "left": [
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Author A",
+          "date": "2026-10-01T21:34:00Z",
+          "id": 0,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        }
+      ]
+    }
+  }
+}

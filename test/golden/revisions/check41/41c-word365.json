@@ -1,0 +1,227 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:13Z",
+    "fixture": "check41/41c-word365.docx",
+    "fixtureBytes": 18167,
+    "timeZone": "UTC",
+    "authors": [
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-10-08T22:00:00Z",
+      "id": 0,
+      "text": "F1D",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-10-08T22:00:00Z",
+      "id": 1,
+      "text": "F2D",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "TABLE_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-10-08T22:00:00Z",
+      "id": 2,
+      "text": "G1A\tG1B\tG1C\tG1D\r\nG2A\tG2B\tG2C\tG2D\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "TABLE_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-10-08T22:00:00Z",
+      "id": 8,
+      "text": "G1D",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-10-08T22:00:00Z",
+      "id": 13,
+      "text": "G2D",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 5,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 5,
+      "left": []
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 0,
+          "text": "F1D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 1,
+          "text": "F2D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "TABLE_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 2,
+          "text": "G1A\tG1B\tG1C\tG1D\r\nG2A\tG2B\tG2C\tG2D\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "TABLE_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 8,
+          "text": "G1D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 13,
+          "text": "G2D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 0,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 0,
+          "text": "F1D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 1,
+          "text": "F2D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "TABLE_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 2,
+          "text": "G1A\tG1B\tG1C\tG1D\r\nG2A\tG2B\tG2C\tG2D\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "TABLE_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 8,
+          "text": "G1D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-10-08T22:00:00Z",
+          "id": 13,
+          "text": "G2D",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        }
+      ]
+    }
+  }
+}

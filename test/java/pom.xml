@@ -24,15 +24,16 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
     <!-- Harness version 4 (core-ts CR-007) calls docx4j CR-030's table context, released in docx4j 17.3.1
-         (Maven Central, 2026-10-07); against 17.3.0 or earlier the harness does not compile.  This is the
-         latest release (17.3.2, Maven Central, 2026-10-09), for a hand-run check; to measure docx4j's head,
-         build its development branch (VERSION_17_3_3, <revision> 17.3.3-SNAPSHOT) and pass
-         -Ddocx4j.version=17.3.3-SNAPSHOT, as the README says and as the workflow does after reading
-         docx4j's pom. -->
-    <docx4j.version>17.3.2</docx4j.version>
+         (Maven Central, 2026-10-07), and RevisionsHarness (core-ts CR-011) docx4j CR-043's
+         org.docx4j.model.revisions, released in 17.3.3 (Maven Central, 2026-10-17); against anything
+         earlier the project does not compile.  This is the latest release, for a hand-run check; to
+         measure docx4j's head, build its development branch (VERSION_17_3_4, <revision> 17.3.4-SNAPSHOT)
+         and pass -Ddocx4j.version=17.3.4-SNAPSHOT, as the README says and as the workflow does after
+         reading docx4j's pom. -->
+    <docx4j.version>17.3.3</docx4j.version>
     <!-- the parity harness by default; -Dexec.mainClass=org.docx4j.parity.XPathHarness runs CR-006's
-         XPath oracle instead (a property, since a mainClass fixed in the plugin configuration would
-         win over the command line) -->
+         XPath oracle instead, and org.docx4j.parity.RevisionsHarness CR-011's tracked changes (a
+         property, since a mainClass fixed in the plugin configuration would win over the command line) -->
     <exec.mainClass>org.docx4j.parity.Harness</exec.mainClass>
   </properties>
 

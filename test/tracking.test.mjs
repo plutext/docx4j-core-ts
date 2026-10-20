@@ -2526,3 +2526,156 @@ test('a view whose change is already resolved does nothing, whichever verb resol
   assert.equal(joined.body.getTrackedChanges().length, 0);
   assert.doesNotMatch(await joined.getMainDocumentPart().getXml(), /<w:ins /);
 });
+
+
+// --- CR-011: every story listed in docx4j's order, and filters on the listing and the resolve-all verbs ---
+
+/** Three paragraphs, each with an insertion by its own author at its own date (withTracking writes w16du:dateUtc). */
+const DATES = [1, 2, 3].map((day) => new Date(Date.UTC(2026, 9, day, 12, 0, 0)));
+async function threeAuthors() {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  for (const text of ['One', 'Two', 'Three']) pkg.body.insertParagraph(text, 'End');
+  for (const [i, name] of ['Author A', 'Author B', 'Author C'].entries()) {
+    await pkg.withTracking({ author: { name }, date: DATES[i] }, () => pkg.body.paragraphs[i].getRange('End').insertText(` by ${name.slice(-1)}`, 'End'));
+  }
+  return pkg;
+}
+const authorsOf = (changes) => changes.map((c) => c.author);
+
+test('CR-011: a filter by date takes [from, to), a Date or an ISO string, and a change with no date matches no range', async () => {
+  const pkg = await threeAuthors();
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges()), ['Author A', 'Author B', 'Author C']);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ from: DATES[1] })), ['Author B', 'Author C'], 'from is inclusive');
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ to: DATES[1] })), ['Author A'], 'to is exclusive');
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ from: '2026-10-02T00:00:00Z', to: DATES[2] })), ['Author B'], 'a string, as JSON carries it');
+  assert.equal(await pkg.acceptAllRevisions({ from: DATES[1], to: DATES[2] }), 1);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges()), ['Author A', 'Author C']);
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['One by A', 'Two by B', 'Three by C']);
+
+  const undated = await WordprocessingMLPackage.createPackage();
+  undated.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body><w:p><w:ins w:id="1" w:author="X"><w:r><w:t>new</w:t></w:r></w:ins></w:p><w:sectPr/></w:body></w:document>`);
+  await undated.getMainDocumentPart().getContents();
+  assert.equal((await undated.getAllTrackedChanges()).length, 1);
+  assert.equal((await undated.getAllTrackedChanges({ from: new Date(0) })).length, 0, 'no date, no match for a range');
+  assert.equal((await undated.getAllTrackedChanges({ authors: ['X'] })).length, 1);
+});
+
+test('CR-011: a filter as a function over each piece, and types in Office JS\'s spelling or docx4j\'s', async () => {
+  const pkg = await threeAuthors();
+  assert.equal(await pkg.rejectAllRevisions((change) => change.author === 'Author B'), 1);
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['One by A', 'Two', 'Three by C']);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ types: ['Added'] })), ['Author A', 'Author C']);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ types: ['ADDED'] })), ['Author A', 'Author C']);
+  assert.deepEqual(await pkg.getAllTrackedChanges({ types: ['DELETED', 'Formatted'] }), []);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ authors: ['Author C'], kinds: ['RUN_INSERTION'], parts: ['/word/document.xml'] })), ['Author C']);
+  assert.deepEqual(await pkg.getAllTrackedChanges({ parts: ['/word/footnotes.xml'] }), []);
+  assert.deepEqual(authorsOf(await pkg.getAllTrackedChanges({ parts: [pkg.getMainDocumentPart()] })), ['Author A', 'Author C'], 'a part itself');
+});
+
+test('CR-011: a filter that is misread throws before anything is read or resolved', async () => {
+  const pkg = await threeAuthors();
+  await assert.rejects(() => pkg.acceptAllRevisions({ author: 'Author A' }), /Unknown tracked-change filter condition 'author'/);
+  await assert.rejects(() => pkg.acceptAllRevisions({ kinds: ['RUN_INSERT'] }), /'kinds' has "RUN_INSERT"/);
+  await assert.rejects(() => pkg.getAllTrackedChanges({ types: 'Added' }), /'types' is an array/);
+  await assert.rejects(() => pkg.rejectAllRevisions({ from: 'yesterday' }), /'from' is not a date/);
+  assert.throws(() => pkg.body.acceptAll({ within: 'x' }), TypeError, 'the range conditions are not here (D2)');
+  assert.equal((await pkg.getAllTrackedChanges()).length, 3, 'nothing was resolved');
+});
+
+test('CR-011: kind, part and pieces; a kinds filter resolves a group in part, a deleted paragraph\'s text without its mark (docx4j U19)', async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('revisions/check22/22-deleted.docx'));
+  const [first] = await pkg.getAllTrackedChanges();
+  assert.deepEqual([first.type, first.kind, first.text, first.pieces.map((p) => p.kind), first.part], ['Deleted', 'DELETION', 'Two.\r', ['RUN_DELETION', 'PARAGRAPH_MARK_DELETION'], pkg.getMainDocumentPart()]);
+  assert.equal(first.pieces[0].pieces[0], first.pieces[0], 'a change that is no group is its own one piece');
+  const before = pkg.body.paragraphs.length;
+  assert.equal(await pkg.acceptAllRevisions({ kinds: ['RUN_DELETION'] }), 2, 'the two changes with a deleted run');
+  const left = await pkg.getAllTrackedChanges();
+  assert.deepEqual(left.map((c) => c.kind), ['PARAGRAPH_MARK_DELETION', 'PARAGRAPH_MARK_DELETION', 'PARAGRAPH_MARK_DELETION'], 'the marks stay, each now a change of its own');
+  assert.equal(pkg.body.paragraphs.length, before, 'no paragraph joined');
+  assert.equal(pkg.body.paragraphs.find((p) => p.p.pPr?.rPr?.del)?.text, '', 'the deleted paragraph is empty, its mark still deleted');
+});
+
+test('CR-011: with a filter nothing is swept; with none, what no change owns is (a lone w:customXmlInsRangeStart)', async () => {
+  for (const [filter, markers] of [[{ authors: ['Author A'] }, 1], [undefined, 0]]) {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body>`
+      + '<w:customXmlInsRangeStart w:id="7" w:author="Author A" w:date="2026-10-20T00:00:00Z"/>'
+      + '<w:p><w:ins w:id="1" w:author="Author A" w:date="2026-10-20T00:00:00Z"><w:r><w:t>new</w:t></w:r></w:ins></w:p><w:sectPr/></w:body></w:document>');
+    assert.equal((await pkg.getBody()).acceptAll(filter), 1);
+    assert.equal((await pkg.getMainDocumentPart().getXml()).match(/customXmlInsRangeStart/g)?.length ?? 0, markers, JSON.stringify(filter));
+  }
+});
+
+// docx4j's join (its CR-043, C10 and C10b): range markers between the two paragraphs go into the joined one
+// where they stood. Before, the join stopped at the marker and only dropped the mark: found by the revisions
+// goldens on check 20's broken moves (13-moveTo-no-ranges, a w:moveFromRangeEnd after the deleted paragraph)
+test('CR-011: accepting a deleted mark joins across a bookmark end or a range end between the paragraphs', async () => {
+  const A = 'w:author="Author A" w:date="2026-10-20T00:00:00Z"';
+  const pkg = await WordprocessingMLPackage.createPackage();
+  pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}"><w:body>`
+    + `<w:p><w:pPr><w:rPr><w:del w:id="1" ${A}/></w:rPr></w:pPr><w:bookmarkStart w:id="0" w:name="b"/><w:r><w:t>One</w:t></w:r></w:p>`
+    + '<w:bookmarkEnd w:id="0"/><w:moveFromRangeEnd w:id="5"/>'
+    + '<w:p><w:r><w:t>Two</w:t></w:r></w:p><w:sectPr/></w:body></w:document>');
+  assert.equal((await pkg.getBody()).acceptAll(), 1);
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['OneTwo']);
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.match(xml, /<w:p><w:bookmarkStart w:id="0" w:name="b"\/><w:r><w:t>One<\/w:t><\/w:r><w:bookmarkEnd w:id="0"\/><w:moveFromRangeEnd w:id="5"\/><w:r><w:t>Two<\/w:t><\/w:r><\/w:p>/);
+});
+
+/** A flat OPC package of a main part, headers and footers, and notes, each part's XML given. */
+function flatPackage(parts) {
+  const NS = `xmlns:w="${W}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"`;
+  const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const RELS = 'application/vnd.openxmlformats-package.relationships+xml';
+  const WML = 'application/vnd.openxmlformats-officedocument.wordprocessingml';
+  const part = (name, type, xml) => `<pkg:part pkg:name="${name}" pkg:contentType="${type}"><pkg:xmlData>${xml}</pkg:xmlData></pkg:part>`;
+  const rels = (r) => `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${r.map(([id, type, target]) => `<Relationship Id="${id}" Type="${REL}/${type}" Target="${target}"/>`).join('')}</Relationships>`;
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">'
+    + part('/_rels/.rels', RELS, rels([['rId1', 'officeDocument', 'word/document.xml']]))
+    + part('/word/_rels/document.xml.rels', RELS, rels(parts.slice(1).map(([id, type, name]) => [id, type, name])))
+    + parts.map(([, type, name, xml]) => part(`/word/${name}`, `${WML}.${type === 'document' ? 'document.main' : type}+xml`, xml.replaceAll('NS', NS))).join('')
+    + '</pkg:package>';
+}
+
+test('CR-011: headers and footers are listed in the order the sections reference them, then the others; a part with no markup is not read', async () => {
+  const ins = (text) => `<w:p><w:ins w:id="${text.length}" w:author="Author A" w:date="2026-10-20T00:00:00Z"><w:r><w:t>${text}</w:t></w:r></w:ins></w:p>`;
+  const flat = flatPackage([
+    ['', 'document', 'document.xml', '<w:document NS><w:body>'
+      + '<w:p><w:pPr><w:sectPr><w:footerReference w:type="default" r:id="rId4"/><w:headerReference w:type="default" r:id="rId3"/></w:sectPr></w:pPr><w:r><w:t>First section</w:t></w:r></w:p>'
+      + '<w:p><w:r><w:t>Second section</w:t></w:r></w:p><w:sectPr><w:headerReference w:type="default" r:id="rId2"/></w:sectPr></w:body></w:document>'],
+    ['rId2', 'header', 'header1.xml', `<w:hdr NS>${ins('h1')}</w:hdr>`],
+    ['rId3', 'header', 'header2.xml', `<w:hdr NS>${ins('h2..')}</w:hdr>`],
+    ['rId4', 'footer', 'footer1.xml', `<w:ftr NS>${ins('f1.')}</w:ftr>`],
+    ['rId5', 'header', 'header3.xml', `<w:hdr NS>${ins('h3...')}</w:hdr>`],
+    ['rId6', 'footer', 'footer2.xml', '<w:ftr NS><w:p><w:r><w:t>plain</w:t></w:r></w:p></w:ftr>'],
+  ]);
+  const pkg = await WordprocessingMLPackage.load(flat);
+  const changes = await pkg.getAllTrackedChanges();
+  assert.deepEqual(changes.map((c) => [c.part.partName.name, c.text]),
+    [['/word/footer1.xml', 'f1.'], ['/word/header2.xml', 'h2..'], ['/word/header1.xml', 'h1'], ['/word/header3.xml', 'h3...']],
+    'the first section\'s references in their order, then the second\'s, then the header no section references');
+  const main = pkg.getMainDocumentPart();
+  assert.equal(main.isUnmarshalled, false, 'the main part, which holds no revision, is read privately for the order');
+  assert.equal(main.footerParts.find((p) => p.partName.name === '/word/footer2.xml').isUnmarshalled, false, 'a footer with no revision is not read');
+  // acceptAllRevisions takes the same order: rejected, each story's insertion goes
+  assert.equal(await pkg.rejectAllRevisions(), 4);
+  assert.deepEqual(await pkg.getAllTrackedChanges(), []);
+});
+
+test('CR-011: a note whose reference a resolution took is no story any more, though it goes only on save', async () => {
+  const flat = flatPackage([
+    ['', 'document', 'document.xml', '<w:document NS><w:body><w:p><w:r><w:t>One</w:t></w:r>'
+      + '<w:del w:id="90" w:author="Author A" w:date="2026-10-16T00:00:00Z"><w:r><w:footnoteReference w:id="1"/></w:r></w:del></w:p>'
+      + '<w:p><w:r><w:footnoteReference w:id="2"/></w:r></w:p></w:body></w:document>'],
+    ['rId2', 'footnotes', 'footnotes.xml', '<w:footnotes NS>'
+      + '<w:footnote w:id="1"><w:p><w:ins w:id="91" w:author="Author B" w:date="2026-10-16T00:00:00Z"><w:r><w:t>in the note going</w:t></w:r></w:ins></w:p></w:footnote>'
+      + '<w:footnote w:id="2"><w:p><w:ins w:id="92" w:author="Author B" w:date="2026-10-16T00:00:00Z"><w:r><w:t>in the note staying</w:t></w:r></w:ins></w:p></w:footnote></w:footnotes>'],
+  ]);
+  const pkg = await WordprocessingMLPackage.load(flat);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => c.text), ['', 'in the note going', 'in the note staying']);
+  assert.equal(await pkg.acceptAllRevisions({ authors: ['Author A'] }), 1);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => c.text), ['in the note staying'], 'docx4j\'s listing, which has removed the note by now');
+  assert.match(await pkg.getMainDocumentPart().footnotesPart.getXml(), /in the note going/, 'the entry itself goes on save (CR-002 section 44)');
+  const back = await WordprocessingMLPackage.load(await pkg.save());
+  assert.doesNotMatch(await back.getMainDocumentPart().footnotesPart.getXml(), /in the note going/);
+});

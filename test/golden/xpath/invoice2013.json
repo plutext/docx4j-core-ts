@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "2e381ef26",
-    "docx4jVersion": "docx4j-core-17.3.3-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "f805ae4be89897e3",
-    "date": "2026-10-11T23:52:14Z",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:10Z",
     "fixture": "invoice2013.docx",
     "fixtureBytes": 49797,
     "part": "/word/document.xml",

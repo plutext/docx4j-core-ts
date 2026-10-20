@@ -16,7 +16,7 @@
  *  - physical font discovery is turned off, so the IdentityPlusMapper's decisions do not
  *    depend on what is installed on the machine that ran the harness (see FONT_NOTE);
  *  - an mc:AlternateContent is resolved by docx4j's own McSelection, with
- *    docx4j.jaxb.mc.preferChoice set to the prefixes this package understands, so docx4j
+ *    docx4j.jaxb.mc.preferChoice set to the prefixes this package's readers understand, so docx4j
  *    walks the branch the TypeScript side resolves on the DOM (see MC_PREFER_CHOICE);
  *  - the only date is in the header, and the weekly workflow ignores it.
  */
@@ -108,25 +108,30 @@ public class Harness {
 
 	/**
 	 * The {@code mc:Choice/@Requires} prefixes docx4j is told it understands
-	 * ({@code docx4j.jaxb.mc.preferChoice}, docx4j CR-021 phase 1): the prefixes of this
-	 * package's {@code UNDERSTOOD_NAMESPACES} ({@code src/opc/mce/understood.mts}) through
-	 * the objects package's {@code NAMESPACE_PREFIXES} table.  The TypeScript side takes the
-	 * first {@code mc:Choice} whose {@code Requires} namespaces are all in that set, so
-	 * naming the same prefixes here is what makes the two walk the same branch - a text box
-	 * once, from its {@code wps} Choice, which is what Word draws.
+	 * ({@code docx4j.jaxb.mc.preferChoice}, docx4j CR-021 phase 1): this package's
+	 * {@code READ_UNDERSTOOD_PREFIXES} ({@code src/opc/mce/understood.mts}), the prefixes of
+	 * {@code UNDERSTOOD_NAMESPACES} and of the four namespaces a reader also counts as understood
+	 * (CR-010 section 15) through the objects package's {@code NAMESPACE_PREFIXES} table, 104 in
+	 * all.  The readers of a kept {@code mc:AlternateContent} ({@code selectedBranchOf}, which the
+	 * parity test's walks go through) take the first {@code mc:Choice} whose {@code Requires}
+	 * prefixes are all in that set, so naming the same prefixes here is what makes the two walk the
+	 * same branch - a text box once, from its {@code wps} Choice, which is what Word draws.  Until
+	 * core-ts CR-011's phase 0 this named 84 prefixes, an older copy of load's set (CR-010 section
+	 * 11.5, D6); no golden's answer moved when it was refreshed.
 	 *
-	 * <p>The property is read on every selection, so it must be set before any walk.  Nine
-	 * of the understood namespaces have no prefix in that table (MathML, InkML, the two
-	 * Excel mains, the three encryption ones) and SpreadsheetML's binding there is the
-	 * default namespace; none of them is nameable here, so a {@code Requires} naming one
+	 * <p>The property is read on every selection, so it must be set before any walk.  Six of
+	 * the 111 understood namespaces have no prefix in that table (MathML, InkML, the Excel 2008
+	 * main, the three encryption ones) and SpreadsheetML's binding there is the default
+	 * namespace; none of them is nameable here, so a {@code Requires} naming one
 	 * would diverge.  No fixture has one.</p>
 	 */
 	static final String MC_PREFER_CHOICE =
 			"a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac "
-			+ "c173 cdr cdr14 comp cp cppr cs cx dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m "
-			+ "mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop "
-			+ "properties psez pslz psuz pvml r rel sl thm15 v vt w w10 w14 w15 w16cid w16se we wetp "
-			+ "wne wp wp14 wp15 wpc wpg wps xdr xdr14 xvml";
+			+ "c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact "
+			+ "ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 "
+			+ "pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 "
+			+ "w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg "
+			+ "wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml";
 
 	static final String W = Namespaces.NS_WORD12;
 

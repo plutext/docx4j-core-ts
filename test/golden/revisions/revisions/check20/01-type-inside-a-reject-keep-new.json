@@ -1,0 +1,934 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "c95b55be6832ff716131ffdbd7006755db92f696",
+    "docx4jVersion": "docx4j-core-17.3.3.jar",
+    "docx4jCoreJarSha256": "ec27210095a880f3",
+    "date": "2026-10-20T11:04:14Z",
+    "fixture": "revisions/check20/01-type-inside-a-reject-keep-new.docx",
+    "fixtureBytes": 26383,
+    "timeZone": "UTC",
+    "authors": [
+      "Author B",
+      "Author A"
+    ]
+  },
+  "listing": [
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author B",
+      "date": "2026-09-28T05:51:00Z",
+      "id": 0,
+      "text": "red ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:46:00Z",
+      "id": 1,
+      "text": "very ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T05:46:00Z",
+      "id": 2,
+      "text": "old ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-28T05:51:00Z",
+      "id": 3,
+      "text": " at dawn",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:46:00Z",
+      "id": 4,
+      "text": "",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author B",
+      "date": "2026-09-28T05:51:00Z",
+      "id": 5,
+      "text": "green ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-27T22:56:00Z",
+      "id": 6,
+      "text": "quickly ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 7,
+      "text": "alpha",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 8,
+      "text": " bravo ",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "RUN_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 9,
+      "text": "charlie",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 10,
+      "text": "Centre this paragraph.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 11,
+      "text": "Indent this paragraph by one step.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 12,
+      "text": "Give this paragraph the style Heading 2.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "PARAGRAPH_MARK_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:47:00Z",
+      "id": 13,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "PARAGRAPH_MARK_DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T05:48:00Z",
+      "id": 14,
+      "text": "\r",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "ROW_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:48:00Z",
+      "id": 15,
+      "text": "New\tNew\tnew\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_INSERTION"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "ROW_DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T05:48:00Z",
+      "id": 22,
+      "text": "3\tDelete\tthis row is deleted\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "ROW_DELETION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "TABLE_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 29,
+      "text": "Top left\tTop right\r\nBottom left\tBottom right\r\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "TABLE_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 35,
+      "text": "The first numbered item.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 36,
+      "text": "The second numbered item.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 37,
+      "text": "The third numbered item.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "PARAGRAPH_PROPERTIES"
+      ]
+    },
+    {
+      "type": "DELETED",
+      "kind": "RUN_DELETION",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 38,
+      "text": "\t",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_DELETION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 39,
+      "text": "\n",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 40,
+      "text": "",
+      "part": "/word/document.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "SECTION_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:50:00Z",
+      "id": 46,
+      "text": "Revision fixtures for the docx4j editor\rThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\rBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\rThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\r1. Insertions and deletions by two authors\r[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\r[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\rThe quick brown red fox jumps over the very lazy dog near the stone bridge.\r2. An insertion deleted by another author\r[A] Type the word \"green \" before \"field\".\r[B] Select the word \"green \" that Author A typed and delete it.\rCows graze in the field beside the river.\r3. A move\r[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\rThe first paragraph of the move: it stays where it is.\rThe second paragraph of the move: it goes quickly before the first.\rThe third paragraph of the move: it stays where it is.\r4. Run formatting changed\r[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\rThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\r5. Paragraph properties changed\r[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\rCentre this paragraph.\rIndent this paragraph by one step.\rGive this paragraph the style Heading 2.\r6. Paragraph marks inserted and deleted\r[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\rSplit this paragraph after the colon:\r the rest becomes a paragraph of its own.\rJoin this paragraph with the next one.\rThis is the paragraph it joins.\r7. Table rows inserted and deleted\r[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\rThe paragraph after the table of rows.\r8. Table properties changed\r[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\rThe paragraph after the table of properties.\r9. Numbering changed\r[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\rThe first numbered item.\rThe second numbered item.\rThe third numbered item.\rThe paragraph after the list.\r10. Inline items inserted and deleted\r[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\rLeftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence.\r11. Comments (Word 15; in Word 2010 only the two comments)\r[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\r[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\r[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\rAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone.\r12. Section properties changed\r[A] Page Layout (Layout in Word 15), Margins, Narrow.\rThe last paragraph of the document.",
+      "part": "/word/document.xml",
+      "pieces": [
+        "SECTION_PROPERTIES"
+      ]
+    },
+    {
+      "type": "ADDED",
+      "kind": "RUN_INSERTION",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 42,
+      "text": " A tracked footnote.",
+      "part": "/word/footnotes.xml",
+      "pieces": [
+        "RUN_INSERTION"
+      ]
+    },
+    {
+      "type": "FORMATTED",
+      "kind": "PARAGRAPH_MARK_PROPERTIES",
+      "author": "Author A",
+      "date": "2026-09-28T05:49:00Z",
+      "id": 41,
+      "text": "\r",
+      "part": "/word/footnotes.xml",
+      "pieces": [
+        "PARAGRAPH_MARK_PROPERTIES"
+      ]
+    }
+  ],
+  "resolved": {
+    "acceptAll": {
+      "count": 27,
+      "left": []
+    },
+    "rejectAll": {
+      "count": 27,
+      "left": []
+    },
+    "rejectAuthor": {
+      "filter": {
+        "authors": [
+          "Author A"
+        ]
+      },
+      "count": 24,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T05:51:00Z",
+          "id": 0,
+          "text": "red ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "RUN_DELETION",
+          "author": "Author B",
+          "date": "2026-09-28T05:51:00Z",
+          "id": 3,
+          "text": " at dawn",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_DELETION"
+          ]
+        }
+      ]
+    },
+    "acceptDeleted": {
+      "filter": {
+        "types": [
+          "DELETED"
+        ]
+      },
+      "count": 6,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T05:51:00Z",
+          "id": 0,
+          "text": "red ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:46:00Z",
+          "id": 1,
+          "text": "very ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:46:00Z",
+          "id": 4,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-27T22:56:00Z",
+          "id": 6,
+          "text": "quickly ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 7,
+          "text": "alpha",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 8,
+          "text": " bravo ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 9,
+          "text": "charlie",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 10,
+          "text": "Centre this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 11,
+          "text": "Indent this paragraph by one step.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 12,
+          "text": "Give this paragraph the style Heading 2.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 13,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:48:00Z",
+          "id": 15,
+          "text": "New\tNew\tnew\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "TABLE_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 29,
+          "text": "Top left\tTop right\r\nBottom left\tBottom right\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "TABLE_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 35,
+          "text": "The first numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 36,
+          "text": "The second numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 37,
+          "text": "The third numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 39,
+          "text": "\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 40,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "SECTION_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:50:00Z",
+          "id": 46,
+          "text": "Revision fixtures for the docx4j editor\rThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\rBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\rThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\r1. Insertions and deletions by two authors\r[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\r[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\rThe quick brown red fox jumps over the very lazy dog near the stone bridge.\r2. An insertion deleted by another author\r[A] Type the word \"green \" before \"field\".\r[B] Select the word \"green \" that Author A typed and delete it.\rCows graze in the field beside the river.\r3. A move\r[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\rThe first paragraph of the move: it stays where it is.\rThe second paragraph of the move: it goes quickly before the first.\rThe third paragraph of the move: it stays where it is.\r4. Run formatting changed\r[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\rThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\r5. Paragraph properties changed\r[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\rCentre this paragraph.\rIndent this paragraph by one step.\rGive this paragraph the style Heading 2.\r6. Paragraph marks inserted and deleted\r[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\rSplit this paragraph after the colon:\r the rest becomes a paragraph of its own.\rJoin this paragraph with the next one.This is the paragraph it joins.\r7. Table rows inserted and deleted\r[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\rThe paragraph after the table of rows.\r8. Table properties changed\r[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\rThe paragraph after the table of properties.\r9. Numbering changed\r[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\rThe first numbered item.\rThe second numbered item.\rThe third numbered item.\rThe paragraph after the list.\r10. Inline items inserted and deleted\r[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\rLeftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence.\r11. Comments (Word 15; in Word 2010 only the two comments)\r[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\r[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\r[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\rAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone.\r12. Section properties changed\r[A] Page Layout (Layout in Word 15), Margins, Narrow.\rThe last paragraph of the document.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "SECTION_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 42,
+          "text": " A tracked footnote.",
+          "part": "/word/footnotes.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_MARK_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 41,
+          "text": "\r",
+          "part": "/word/footnotes.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_PROPERTIES"
+          ]
+        }
+      ]
+    },
+    "acceptRunDeletions": {
+      "filter": {
+        "kinds": [
+          "RUN_DELETION"
+        ]
+      },
+      "count": 4,
+      "left": [
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author B",
+          "date": "2026-09-28T05:51:00Z",
+          "id": 0,
+          "text": "red ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:46:00Z",
+          "id": 1,
+          "text": "very ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:46:00Z",
+          "id": 4,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-27T22:56:00Z",
+          "id": 6,
+          "text": "quickly ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 7,
+          "text": "alpha",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 8,
+          "text": " bravo ",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "RUN_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 9,
+          "text": "charlie",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 10,
+          "text": "Centre this paragraph.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 11,
+          "text": "Indent this paragraph by one step.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 12,
+          "text": "Give this paragraph the style Heading 2.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "PARAGRAPH_MARK_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:47:00Z",
+          "id": 13,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "PARAGRAPH_MARK_DELETION",
+          "author": "Author A",
+          "date": "2026-09-28T05:48:00Z",
+          "id": 14,
+          "text": "\r",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_DELETION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "ROW_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:48:00Z",
+          "id": 15,
+          "text": "New\tNew\tnew\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_INSERTION"
+          ]
+        },
+        {
+          "type": "DELETED",
+          "kind": "ROW_DELETION",
+          "author": "Author A",
+          "date": "2026-09-28T05:48:00Z",
+          "id": 22,
+          "text": "3\tDelete\tthis row is deleted\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "ROW_DELETION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "TABLE_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 29,
+          "text": "Top left\tTop right\r\nBottom left\tBottom right\r\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "TABLE_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 35,
+          "text": "The first numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 36,
+          "text": "The second numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 37,
+          "text": "The third numbered item.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "PARAGRAPH_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 39,
+          "text": "\n",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 40,
+          "text": "",
+          "part": "/word/document.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "SECTION_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:50:00Z",
+          "id": 46,
+          "text": "Revision fixtures for the docx4j editor\rThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\rBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\rThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\r1. Insertions and deletions by two authors\r[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\r[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\rThe quick brown red fox jumps over the very lazy dog near the stone bridge.\r2. An insertion deleted by another author\r[A] Type the word \"green \" before \"field\".\r[B] Select the word \"green \" that Author A typed and delete it.\rCows graze in the field beside the river.\r3. A move\r[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\rThe first paragraph of the move: it stays where it is.\rThe second paragraph of the move: it goes quickly before the first.\rThe third paragraph of the move: it stays where it is.\r4. Run formatting changed\r[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\rThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\r5. Paragraph properties changed\r[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\rCentre this paragraph.\rIndent this paragraph by one step.\rGive this paragraph the style Heading 2.\r6. Paragraph marks inserted and deleted\r[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\rSplit this paragraph after the colon:\r the rest becomes a paragraph of its own.\rJoin this paragraph with the next one.\rThis is the paragraph it joins.\r7. Table rows inserted and deleted\r[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\rThe paragraph after the table of rows.\r8. Table properties changed\r[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\rThe paragraph after the table of properties.\r9. Numbering changed\r[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\rThe first numbered item.\rThe second numbered item.\rThe third numbered item.\rThe paragraph after the list.\r10. Inline items inserted and deleted\r[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\rLeftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence.\r11. Comments (Word 15; in Word 2010 only the two comments)\r[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\r[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\r[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\rAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone.\r12. Section properties changed\r[A] Page Layout (Layout in Word 15), Margins, Narrow.\rThe last paragraph of the document.",
+          "part": "/word/document.xml",
+          "pieces": [
+            "SECTION_PROPERTIES"
+          ]
+        },
+        {
+          "type": "ADDED",
+          "kind": "RUN_INSERTION",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 42,
+          "text": " A tracked footnote.",
+          "part": "/word/footnotes.xml",
+          "pieces": [
+            "RUN_INSERTION"
+          ]
+        },
+        {
+          "type": "FORMATTED",
+          "kind": "PARAGRAPH_MARK_PROPERTIES",
+          "author": "Author A",
+          "date": "2026-09-28T05:49:00Z",
+          "id": 41,
+          "text": "\r",
+          "part": "/word/footnotes.xml",
+          "pieces": [
+            "PARAGRAPH_MARK_PROPERTIES"
+          ]
+        }
+      ]
+    }
+  }
+}

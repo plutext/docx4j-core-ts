@@ -15,7 +15,8 @@ import {
   newFontSettings, themeOfSettings, type FontSettings, type DefaultThemeValue,
 } from '../model/fonts/defaultTheme.mjs';
 import { HeaderPart, FooterPart } from '../parts/wml/index.mjs';
-import { Body, resolveStory, type Address, type Outline, type OutlineParagraph, type OutlineTable } from '../model/content/Body.mjs';
+import { Body, resolveStory, trackedChangesOfStory, type Address, type Outline, type OutlineParagraph, type OutlineTable } from '../model/content/Body.mjs';
+import { pieceMatcher, type TrackedChangeSelection } from '../model/content/trackedChangeFilter.mjs';
 import type { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Author } from '../model/content/comments.mjs';
 import { CustomXmlPartCollection } from '../model/customxml/CustomXmlPartCollection.mjs';
@@ -28,7 +29,7 @@ import type { Bound } from '../model/content/binder.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
 import { PropertyResolverNotCreatedException } from '../opc/exceptions.mjs';
-import { type TrackedChange, type NoteRemovals, flushPendingNoteRemovals } from '../model/content/TrackedChange.mjs';
+import { type TrackedChange, type NoteRemovals, flushPendingNoteRemovals, notesGoing } from '../model/content/TrackedChange.mjs';
 import { type RelationshipRemovals, flushPendingRelationshipRemovals } from '../model/content/relationships.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
 import type { PartSink } from '../opc/PartStore.mjs';
@@ -456,11 +457,31 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
 
   /**
    * Office JS `document.getTrackedChanges()`: every tracked change in the main document part,
-   * in document order (headers and footers have their own `Body`). The part must be
-   * unmarshalled, as `body` needs it to be.
+   * in document order (headers and footers have their own `Body`; `getAllTrackedChanges` lists
+   * every story). The part must be unmarshalled, as `body` needs it to be.
    */
   getTrackedChanges(): TrackedChange[] {
     return this.body.getTrackedChanges();
+  }
+
+  /**
+   * Every tracked change in every story, in docx4j's order (its CR-043 `TrackedChanges.in`, CR-011):
+   * the main document, each footnote, each endnote, each comment, then the headers and footers in the
+   * order the sections reference them; a text box's after the story it is in. Each story's are its
+   * `Body.getTrackedChanges()`, grouped as Office JS groups them, so changes never group across two
+   * stories. `TrackedChange.part` says which part each is in.
+   *
+   * With a filter, the changes with a piece it matches, each whole (docx4j's `in(pkg, filter)`).
+   *
+   * A story part whose source holds no revision markup is not read, so it keeps its bytes; one that
+   * does is unmarshalled, since the views returned must be resolvable, and so is re-marshalled on save.
+   * An extension: Office JS lists one body at a time.
+   */
+  async getAllTrackedChanges(filter?: TrackedChangeSelection): Promise<TrackedChange[]> {
+    const matches = filter === undefined ? undefined : pieceMatcher(filter);
+    const out: TrackedChange[] = [];
+    for (const body of await this.revisedStories()) out.push(...trackedChangesOfStory(body));
+    return matches ? out.filter((change) => change.pieces.some(matches)) : out;
   }
 
   /**
@@ -470,43 +491,57 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * revision in any story; `Body.acceptAll` resolves its own story only, as Office JS's `body` does
    * (CR-002 section 49). A story part with no revision markup is not read, so it keeps its bytes.
    * Returns how many changes were listed, story by story. An extension, named after Word's verb.
+   *
+   * With a filter (CR-011), only the single changes it matches are accepted, as `Body.acceptAll`
+   * takes one, and the count is of the listed changes with a matching piece.
    */
-  async acceptAllRevisions(): Promise<number> {
-    return this.resolveEveryStory('accept');
+  async acceptAllRevisions(filter?: TrackedChangeSelection): Promise<number> {
+    return this.resolveEveryStory('accept', filter);
   }
 
   /** Rejects every tracked change in every story, as `acceptAllRevisions` accepts them (Word's `Document.RejectAllRevisions`). */
-  async rejectAllRevisions(): Promise<number> {
-    return this.resolveEveryStory('reject');
+  async rejectAllRevisions(filter?: TrackedChangeSelection): Promise<number> {
+    return this.resolveEveryStory('reject', filter);
   }
 
-  private async resolveEveryStory(what: 'accept' | 'reject'): Promise<number> {
+  private async resolveEveryStory(what: 'accept' | 'reject', filter: TrackedChangeSelection | undefined): Promise<number> {
+    if (filter !== undefined) pieceMatcher(filter);        // a filter misread throws before anything is read or resolved
     let count = 0;
-    for (const body of await this.revisedStories()) count += resolveStory(body, what);
+    for (const body of await this.revisedStories()) count += resolveStory(body, what, filter);
     return count;
   }
 
   /**
    * The body of every story whose part holds revision markup, in docx4j's order (its CR-043
    * `TrackedChanges.in`): the main document, each footnote, each endnote, each comment, then the
-   * headers and footers. A footnote, an endnote or a comment is a body of its own over its content.
+   * headers and footers in section order (`inSectionOrder`). A footnote, an endnote or a comment is a
+   * body of its own over its content.
    */
   private async revisedStories(): Promise<Body[]> {
     const main = this.getMainDocumentPart();
     const out: Body[] = [];
     if (await holdsRevisions(main)) out.push(await main.getBody());
+    // a note or comment a resolution has taken the reference or anchor of goes on save; it is no story now
+    const pending = this.pendingNoteRemovals;
+    const going = pending.footnote.size + pending.endnote.size > 0 ? notesGoing(await main.readContents(), pending) : pending;
     for (const [part, kind] of [[main.footnotesPart, 'footnote'], [main.endnotesPart, 'endnote']] as const) {
       if (!part || !(await holdsRevisions(part))) continue;
       const contents = await part.getContents();
       for (const note of (kind === 'footnote' ? (contents as wml.CTFootnotes).footnote : (contents as wml.CTEndnotes).endnote) ?? []) {
+        if ((note.type === undefined || note.type === 'normal') && going[kind].has(Number(note.id))) continue;
         out.push(new Body(part, note as { content?: never[] }, `${kind}:${note.id}`, this));
       }
     }
     const comments = main.commentsPart;
     if (comments && (await holdsRevisions(comments))) {
-      for (const comment of (await comments.getContents()).comment ?? []) out.push(new Body(comments, comment as { content?: never[] }, `comment:${comment.id}`, this));
+      for (const comment of (await comments.getContents()).comment ?? []) {
+        if (this.pendingCommentRemovals.has(comment.id as number)) continue;
+        out.push(new Body(comments, comment as { content?: never[] }, `comment:${comment.id}`, this));
+      }
     }
-    for (const part of [...main.headerParts, ...main.footerParts]) if (await holdsRevisions(part)) out.push(await part.getBody());
+    const revised: (HeaderPart | FooterPart)[] = [];
+    for (const part of [...main.headerParts, ...main.footerParts]) if (await holdsRevisions(part)) revised.push(part);
+    for (const part of revised.length > 1 ? await inSectionOrder(main, revised) : revised) out.push(await part.getBody());
     return out;
   }
 
@@ -762,6 +797,47 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
   protected override get progId(): string {
     return 'Word.Document';
   }
+}
+
+/**
+ * Headers and footers in docx4j's order (its CR-043 `Lister.headersAndFooters`): as the sections
+ * reference them, in document order, a part once, then any other in the order of the main part's
+ * relationships. The main part's tree is read privately, so a main part nobody has otherwise read keeps
+ * its bytes.
+ */
+async function inSectionOrder<P extends HeaderPart | FooterPart>(main: MainDocumentPart, parts: P[]): Promise<P[]> {
+  const rels = main.relationshipsPart;
+  if (!rels) return parts;
+  const order: P[] = [];
+  const add = (part: Part | undefined): void => {
+    const known = parts.find((p) => p === part);
+    if (known && !order.includes(known)) order.push(known);
+  };
+  const body = (await main.readContents()).body;
+  for (const sectPr of sectionsOf(body)) for (const ref of sectPr.egHdrFtrReferences ?? []) add(rels.getPart(ref.id));
+  for (const rel of rels.list) add(rels.getPart(rel));
+  for (const part of parts) if (!order.includes(part)) order.push(part);
+  return order;
+}
+
+/**
+ * The body's `w:sectPr`s in document order, the paragraphs' first and the body's own last, as docx4j's
+ * walk finds them: not inside a run (where a text box's paragraphs are), DOM the model does not type
+ * left alone.
+ */
+function sectionsOf(body: wml.Body | undefined): wml.SectPr[] {
+  const out: wml.SectPr[] = [];
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null || typeof (o as { nodeType?: unknown }).nodeType === 'number') return;
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    const typeName = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (typeName === 'org_docx4j_wml.SectPr') { out.push(o as wml.SectPr); return; }
+    if (typeName === 'org_docx4j_wml.R') return;
+    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key]);
+  };
+  visit(body?.content);
+  if (body?.sectPr) out.push(body.sectPr);
+  return out;
 }
 
 /** Revision markup, by local name in any prefix: what a story part holds when it has a tracked change to resolve. */
