@@ -4,7 +4,7 @@
 // documents.  This file is the unit net under it: the formatter table, and the docx4j tests
 // whose documents or rules the parity fixtures do not reach - `LabelFormatterTest`,
 // `NumberingRestartTest` (probe P8), `NumberingStoriesTest` (P7), `StartOverrideTest`,
-// `IsLglTest`, `ListNumberIndTest`, `StyleLinkedLevelTest`, `DefaultStyleNumberedTest` and
+// `IsLglTest`, `ListNumberIndTest`, `StyleLinkedLevelTest`, `DefaultStyleNumberedTest`, `LevelOwnerTest` and
 // `LevelWithoutIlvlTest`, each named where it is ported.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -564,6 +564,15 @@ test('DefaultStyleNumberedTest: paragraphs naming no style are numbered (CR-014 
   assert.equal(Emulator.getNumber(pkg, noStyle).numString, '3.');
 });
 
+test('DefaultStyleNumberedTest: a paragraph with no w:pPr at all is numbered as one with an empty w:pPr (17.3.4)', async () => {
+  const pkg = await packageWithNumberedNormal();
+  assert.equal(Emulator.getNumber(pkg, undefined).numString, '1.');
+  assert.equal(Emulator.getNumber(pkg, { TYPE_NAME: 'org_docx4j_wml.PPr' }).numString, '2.');
+  assert.equal(Emulator.peek(pkg, undefined).numString, '3.');
+  // docx4j's numRefFor still answers a null w:pPr "not numbered" (CR-012 section 14)
+  assert.equal(Emulator.numRefFor(pkg, undefined).notNumbered, true);
+});
+
 test('DefaultStyleNumberedTest: a style based on nothing is not', async () => {
   const pkg = await packageWithNumberedNormal();
   const pPr = await pPrOf('<w:pPr><w:pStyle w:val="Unlinked"/></w:pPr>');
@@ -789,6 +798,118 @@ test('LevelWithoutIlvlTest: the empty level 0 has no indent, and the document is
   } finally {
     setLogger();
   }
+});
+
+// ---------------------------------------------------------------- the level's owner (REQ-510)
+
+/*
+ * docx4j `LevelOwnerTest` (d9acdf5e2, 17.3.4), ported as CR-012 phase 1 (D9). A numbering level
+ * belongs to one paragraph style: the one its `w:lvl/w:pStyle` names, else the first paragraph
+ * style in styles.xml whose own `w:numPr` names it. A paragraph whose numbering comes from any
+ * other style gets no label and is not counted (`Emulator.levelStyleId`).
+ *
+ * The three documents are docx4j's layout-fidelity probes as Word 365 converted them
+ * (fixtures/listnumbering/); the expected labels are read off Word's PDFs, one per body
+ * paragraph, "-" for none. Every label names its list, level and counter (A0-3 is list A, level
+ * 0, the third). The text model's half of docx4j's test (`TextNumbering`) is phase 2's.
+ */
+
+/**
+ * List A's level 0 names LinkA, level 1 nothing, levels 2 and 3 LinkL2 and LinkL3; list C names
+ * nothing. Unlabelled: another style on level 0 with no w:ilvl (P02, before LinkA's first use, and
+ * P04), with w:ilvl 0 (P06), through a second w:num on the same list (P12); LinkL2 and LinkL3,
+ * which levels 2 and 3 name but whose w:numPr reads level 0 (P14, P16); SecondC, which list C's
+ * first style in styles.xml, FirstC, has taken (P23). Labelled: a style at the free level 1 (P08),
+ * one based on LinkA (P10), direct w:numPr (P18-P20).
+ */
+const LINKED = '- - A0-1 - A0-2 - A0-3 A1-1 A0-4 A0-5 A0-6 - A0-7 - A0-8 - A0-9 A0-10 A0-11 A0-12 A0-13 C0-1 - C0-2 A0-14';
+
+/**
+ * No level names a style. Two styles carry each list: the first in styles.xml numbers, whatever
+ * the names and whichever the document uses first (D: DZebra, E: EAlpha, F: FZebra), even a style
+ * no paragraph uses (G: GAlphaUnused, so GZebra's paragraphs are unlabelled); a style based on the
+ * owner is numbered (H); list J's level 1 goes to OtherIlvl1, first in styles.xml, and OtherIlvl1B,
+ * used first, is unlabelled.
+ */
+const UNLINKED = '- - D0-1 - D0-2 - E0-1 - E0-2 F0-1 - F0-2 - - - H0-1 H0-2 H0-3 H0-4 I0-1 - I0-2 J0-1 - J1-1 - J1-2';
+
+/**
+ * The owner is a level of the w:abstractNum, not of a w:num: two styles each using its own w:num
+ * over one abstractNum, at a level naming no style (list K), and the same where the second w:num
+ * overrides the level with a w:lvl of its own (list L, whose override labels would read M0-n): the
+ * second style's paragraphs are unlabelled in both.
+ */
+const SHARED = '- K0-1 - K0-2 - L0-1 - L0-2 -';
+
+async function levelOwnerPackage(name) {
+  const pkg = await WordprocessingMLPackage.load(await fixture(join('listnumbering', `${name}.docx`)));
+  await pkg.getPropertyResolver();
+  return pkg;
+}
+
+/** The Emulator's label for each body paragraph, in one story's state, as docx4j's test numbers them. */
+async function bodyLabels(pkg) {
+  const main = pkg.getMainDocumentPart();
+  const state = new NumberingStates().forPart(main);
+  return (await main.getContents()).body.content
+    .map((item) => (item && typeof item === 'object' && 'value' in item ? item.value : item))
+    .filter((value) => value?.TYPE_NAME === 'org_docx4j_wml.P')
+    .map((p) => Emulator.getNumber(pkg, p.pPr, state)?.numString ?? '-')
+    .join(' ');
+}
+
+test('LevelOwnerTest: a linked level numbers only its own style', async () => {
+  assert.equal(await bodyLabels(await levelOwnerPackage('numbering-linked-level-other-style')), LINKED);
+});
+
+test('LevelOwnerTest: an unlinked level belongs to the first style in styles.xml', async () => {
+  assert.equal(await bodyLabels(await levelOwnerPackage('numbering-unlinked-level-claim')), UNLINKED);
+});
+
+test('LevelOwnerTest: the owner is a level of the w:abstractNum, not of a w:num', async () => {
+  assert.equal(await bodyLabels(await levelOwnerPackage('numbering-shared-abstract-styles')), SHARED);
+});
+
+test('LevelOwnerTest: the content API\'s labels (Body.listLabels, which ListItem.listString reads) are Word\'s', async () => {
+  for (const [name, expected] of [['numbering-linked-level-other-style', LINKED],
+    ['numbering-unlinked-level-claim', UNLINKED], ['numbering-shared-abstract-styles', SHARED]]) {
+    const body = await (await levelOwnerPackage(name)).getBody();
+    const labels = body.listLabels();
+    assert.equal(body.paragraphs.map((p) => labels.get(p.p)?.listString ?? '-').join(' '), expected, name);
+  }
+});
+
+test('LevelOwnerTest: the owners', async () => {
+  const pkg = await levelOwnerPackage('numbering-unlinked-level-claim');
+  const ndp = pkg.numberingDefinitionsPart;
+  const owners = [['110', '0', 'DZebra'], ['111', '0', 'EAlpha'], ['112', '0', 'FZebra'], ['113', '0', 'GAlphaUnused'],
+    ['114', '0', 'HBase'], ['115', '0', 'IOwner'], ['116', '0', 'JLinked'], ['116', '1', 'OtherIlvl1']];
+  for (const [numId, ilvl, owner] of owners) {
+    assert.equal(Emulator.levelStyleId(ndp, numId, ilvl), owner, `w:num ${numId} level ${ilvl}`);
+  }
+  assert.equal(Emulator.levelStyleId(ndp, '116', '2'), undefined, 'a level no style carries belongs to none');
+  // a w:lvl/w:pStyle is the owner, as getLinkedStyleId reads it
+  const linked = await levelOwnerPackage('numbering-linked-level-other-style');
+  const listA = [...linked.numberingDefinitionsPart.instanceListDefinitions.values()]
+    .find((list) => list.level('0')?.pStyle === 'LinkA');
+  assert.ok(listA, 'list A');
+  assert.equal(Emulator.levelStyleId(linked.numberingDefinitionsPart, listA.numId, '0'), 'LinkA');
+  assert.equal(Emulator.levelStyleId(linked.numberingDefinitionsPart, listA.numId, ''), 'LinkA', 'an empty ilvl is level 0');
+});
+
+/**
+ * A paragraph of a style that lost the level keeps the level's indent: Word's re-save writes w:ind
+ * left 720 hanging 720 into IOther, and its PDF wraps P21's second line at 36pt.
+ */
+test('LevelOwnerTest: the style that lost the level keeps its indent', async () => {
+  const pkg = await levelOwnerPackage('numbering-unlinked-level-claim');
+  const pPr = await pPrOf('<w:pPr><w:pStyle w:val="IOther"/></w:pPr>');
+  const ind = (await pkg.getPropertyResolver()).getEffectivePPr(pPr).ind;
+  assert.ok(ind);
+  assert.equal(Number(ind.left), 720);
+  assert.equal(Number(ind.hanging), 720);
+  // and gets no label
+  assert.equal(Emulator.getNumber(pkg, pPr), undefined);
 });
 
 // ---------------------------------------------------------------- the round trip

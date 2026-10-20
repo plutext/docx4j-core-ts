@@ -127,6 +127,25 @@ The seven flat OPC documents of docx4j's `ListNumberIndTest`, copied unchanged f
 `w:pStyle` does, or neither; `numbering.test.mjs` asserts the `w:ind/@w:left`
 `NumberingDefinitionsPart.getIndOf('1', '0')` answers (2880, 12, 13, none, 23, 11, 31).
 
+## Level owner fixtures (`fixtures/listnumbering/`, CR-012 phase 1)
+
+The three documents of docx4j's `LevelOwnerTest`, copied unchanged from
+`docx4j-core-tests/src/test/java/org/docx4j/model/listnumbering/` at `1d108c0af` (added in
+`d9acdf5e2`, Apache-2.0): `numbering-linked-level-other-style`, `numbering-unlinked-level-claim` and
+`numbering-shared-abstract-styles`. They are docx4j's layout-fidelity probes as Word 365 converted
+them, with several paragraph styles carrying one numbering level. `numbering.test.mjs` asserts Word's
+labels, read off Word's PDFs, through the `Emulator` and `Body.listLabels` (REQ-510: a level
+belongs to one paragraph style). They are outside `fixtures/parity/`, so the parity harness writes
+no golden for them, and they hold no revision markup.
+
+## The text extraction suite (`text-extraction/`, CR-012 phase 0)
+
+docx4j's text extraction conformance suite and the agreement test's fixtures, copied unedited, with
+the Node runners that mirror docx4j's `ExtractionConformance` and `ViewAgreementTest`. Its own
+`README.md` gives the provenance and how to copy it again. It is kept outside `fixtures/` because
+the weekly `RevisionsHarness` writes a golden for every `.docx` with revision markup under
+`fixtures/`.
+
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 
 What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written

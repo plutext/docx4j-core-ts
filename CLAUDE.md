@@ -32,7 +32,10 @@ XHTML through the `html` module, and picture bindings; implemented 2026-10-08, r
 catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
 0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it.
 CR-011 (every story's tracked changes in one listing, and filters on it and the resolve-all verbs,
-docx4j CR-043's, held to its answers by 90 revisions goldens) is implemented, not yet released. The editor's release requests are
+docx4j CR-043's, held to its answers by 90 revisions goldens) is implemented, not yet released. So
+are CR-012's phases 0 and 1 (the text model's conformance suite and agreement test, copied from
+docx4j into `test/text-extraction/` with their runners, every row pending until phase 2; REQ-510's
+level owner in the `Emulator`). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -178,6 +181,8 @@ Key mechanics:
 `clone()`, `omml.test.mjs` an equation in DrawingML text (docx4j `OmmlInDrawingMLTextTest`),
 `sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004),
 `kept-branches.test.mjs` the content API over kept `mc:AlternateContent`, resolved and kept loads compared (CR-010 phase 3),
+`text-extraction.test.mjs` the text extraction suite and agreement test (CR-012 phase 0: `test/text-extraction/`, docx4j's
+suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

@@ -388,6 +388,16 @@ export class PropertyResolver {
   }
 
   /**
+   * The styles part's `w:style` elements in document order, from the tree this resolver reads (its
+   * private copy, or the part's own once that is unmarshalled); empty where there is no styles part.
+   * docx4j reads `StyleDefinitionsPart.getJaxbElement().getStyle()` where order matters
+   * (`Emulator.levelStyleId`: the first paragraph style in styles.xml carrying a level owns it).
+   */
+  getStylesInOrder(): readonly wml.Style[] {
+    return this.source.styles?.style ?? [];
+  }
+
+  /**
    * The list definitions of the numbering part this resolver read (CR-001 Phase B step 3), or
    * undefined where the package has none. The resolver builds them because the paragraph merge
    * folds a numbering level's `w:ind` into every layer (`NumberingDefinitionsPart.getInd`);

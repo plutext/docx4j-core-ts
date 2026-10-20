@@ -1,0 +1,1039 @@
+{
+ "docx4j": {
+  "commit": "1d108c0af28f09c8d0178e911dcad8d399ffa2fe",
+  "date": "2026-10-21",
+  "subject": "CR-053 phase 2: HTML, XHTML and MHT altChunks read as Word reads them, through docx4j-ImportXHTML"
+ },
+ "files": [
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/GOLDENS.md",
+   "sha1": "36d424579b2beed9c58fce442e9b24071448e5db",
+   "path": "test/text-extraction/suite/GOLDENS.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/INSPECTION.md",
+   "sha1": "c56e5ca219d5e4fe2d82dc4f20946afe1cf540a3",
+   "path": "test/text-extraction/suite/INSPECTION.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/README.md",
+   "sha1": "6821f55c21a587c47c1f83fbb3de5d6cd9639c21",
+   "path": "test/text-extraction/suite/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/expected-tokens.tsv",
+   "sha1": "e447774c4f6c435c0950aa80ebe228eef69b343e",
+   "path": "test/text-extraction/suite/expected-tokens.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/extraction-probe.docx",
+   "sha1": "9eb625b73ef3eacb396aceceac2e3acef61296bb",
+   "path": "test/text-extraction/suite/extraction-probe.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/extraction-probe.word-resave.docx",
+   "sha1": "4d1b7e281f39dcd2948e579d7bd44cb76c5efc91",
+   "path": "test/text-extraction/suite/extraction-probe.word-resave.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/formtext/README.md",
+   "sha1": "f13ca9c4edeadeb4ec3e22f77ec3adea7fe842d4",
+   "path": "test/text-extraction/suite/formtext/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/formtext/cr046-formtext-protected-update-on-open.docx",
+   "sha1": "300c95fa0268277d4d553f8e2d50bae6809a4caa",
+   "path": "test/text-extraction/suite/formtext/cr046-formtext-protected-update-on-open.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/formtext/cr046-formtext-unprotected-after-f9.docx",
+   "sha1": "98fe454b661b3551a418c7094b6842aadfe3d4c0",
+   "path": "test/text-extraction/suite/formtext/cr046-formtext-unprotected-after-f9.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/formtext/cr046-formtext-unprotected.docx",
+   "sha1": "d26ff87a8872d00cb4ad13bd01437193a236ee31",
+   "path": "test/text-extraction/suite/formtext/cr046-formtext-unprotected.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/README.md",
+   "sha1": "049e37372782cbcb29a80ef40ff475f4afa300ae",
+   "path": "test/text-extraction/suite/phase0/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/RUN.txt",
+   "sha1": "ef9c3ca35c91771fdf621cd1e5766cfaf66728f3",
+   "path": "test/text-extraction/suite/phase0/RUN.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/counts.tsv",
+   "sha1": "4488736df0d8b54f88039f8d61ae62ac5a480eaf",
+   "path": "test/text-extraction/suite/phase0/baseline/counts.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe-external.html.html",
+   "sha1": "e15c8e19e316d1c9c1f134d72003c3e44143a999",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe-external.html.html"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe-external.markdown.md",
+   "sha1": "97cf3c9bd69107f0bb02ddfdfc68bd9741a49c2e",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe-external.markdown.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe-external.textutils.txt",
+   "sha1": "cee194dd5406239a512f3f79d2f2245c0bcb40e1",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe-external.textutils.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe.html.html",
+   "sha1": "e324946b319554e59c6274d5688629854659a32e",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe.html.html"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe.markdown.md",
+   "sha1": "7a98367c33f73b125cc3fa25265656f99a6fcfe6",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe.markdown.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/extraction-probe.textutils.txt",
+   "sha1": "5a0fb72d4acfac13a20d120c95262629ec016f5e",
+   "path": "test/text-extraction/suite/phase0/baseline/extraction-probe.textutils.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/baseline/manifest.txt",
+   "sha1": "69d68cfd4323eeaa260cd7c5d9b02b595684b464",
+   "path": "test/text-extraction/suite/phase0/baseline/manifest.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/case-statements.tsv",
+   "sha1": "0ec56debe9ece444e1d22e470a09a494c839fe16",
+   "path": "test/text-extraction/suite/phase0/case-statements.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/README.md",
+   "sha1": "84811a474341c0fdebca86ef6dec8921100857e7",
+   "path": "test/text-extraction/suite/phase0/evidence/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/README-preservation.md",
+   "sha1": "8b8e518fcc490f035f5ee27bc7799b34d5d6376f",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/README-preservation.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/README.md",
+   "sha1": "1d9ddce5539b827d0a9d4aa672555cd3ed4d6f36",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/case-statements.tsv",
+   "sha1": "ca00bb36061255291f82ca994724795630da8b20",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/case-statements.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/expected-findings.tsv",
+   "sha1": "8eab947d0b414b7585439116a4ebf0230ba54f5e",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/expected-findings.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/expected-tokens.tsv",
+   "sha1": "4596adb82e7c571a0f99780afbc6909dfdfeef4d",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/expected-tokens.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/checked-52/extraction-probe.docx",
+   "sha1": "c814f526eb2f3cc76841876a34c6e6fb3ca401e3",
+   "path": "test/text-extraction/suite/phase0/evidence/checked-52/extraction-probe.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-external-word-save.docm",
+   "sha1": "f8bd0bc00f3109f6b1e9039b92e8835aa5401cb9",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-external-word-save.docm"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-r2-word-save.docx",
+   "sha1": "a1fedb7c88ce832c9bfa8a65b3eb876ad000d0c3",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-r2-word-save.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-r3-word-save.docx",
+   "sha1": "76fddd72a39c54849038f2120be48d9b23315f04",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-r3-word-save.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-structure-word365.docx",
+   "sha1": "c272d0684bd2cd82c20069705392d31b1a6a5836",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-structure-word365.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-v1-rejected.docx",
+   "sha1": "fe1fe934ef5cfbb3bf943569b00ac4ee1418b89f",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-v1-rejected.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/extraction-probe-v1-word-repaired.docx",
+   "sha1": "dc5db8862f01679db1c8ea25e73ce4e102355db2",
+   "path": "test/text-extraction/suite/phase0/evidence/extraction-probe-v1-word-repaired.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/evidence/word-open-results.md",
+   "sha1": "4fa934a8b33da21ebc917c1f271cfd1970d3ef28",
+   "path": "test/text-extraction/suite/phase0/evidence/word-open-results.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-findings.tsv",
+   "sha1": "077d5dc12ae7832297c51a510346c6a7d6d956f2",
+   "path": "test/text-extraction/suite/phase0/expected-findings.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-inspection-status.tsv",
+   "sha1": "9783c4d0a2983474edf4d8a3426987c095fb79f6",
+   "path": "test/text-extraction/suite/phase0/expected-inspection-status.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-inspection.tsv",
+   "sha1": "f4ae99672aaa1ca2fbcb2c34eb3c4e43023f9fe0",
+   "path": "test/text-extraction/suite/phase0/expected-inspection.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-order.tsv",
+   "sha1": "65c4762f55a4f4ff5fcf9e7a9bc2465ef11e2e3c",
+   "path": "test/text-extraction/suite/phase0/expected-order.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/expected-tokens.tsv",
+   "sha1": "38884275e6bf546dcce47a62b165b6cc4be81e18",
+   "path": "test/text-extraction/suite/phase0/expected-tokens.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.accepted.txt",
+   "sha1": "4a0bf90e9cb865922fe269c986e6b9a54610e65d",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-external.accepted.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.docm",
+   "sha1": "c6162094dbc614fd10beaa948de1833cee479a17",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-external.docm"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.markup.txt",
+   "sha1": "4a0bf90e9cb865922fe269c986e6b9a54610e65d",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-external.markup.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.md",
+   "sha1": "deda169ba7832e3939f7c8f21a8f3a4ea5dc298c",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-external.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-external.original.txt",
+   "sha1": "4a0bf90e9cb865922fe269c986e6b9a54610e65d",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-external.original.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-inspect.docx",
+   "sha1": "0bbf4010a1d235cd17b15bdbf082c78a32530e47",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-inspect.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-structure.accepted.txt",
+   "sha1": "b9393ba4a5cfa253e869ccb6faf350eb126376e5",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-structure.accepted.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-structure.docx",
+   "sha1": "f3690b16532932cee1989cbb521cd0eac581a1f4",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-structure.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-structure.markup.txt",
+   "sha1": "b9393ba4a5cfa253e869ccb6faf350eb126376e5",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-structure.markup.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-structure.md",
+   "sha1": "a1242030f69a0de6744825ec158e54c9584860d0",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-structure.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe-structure.original.txt",
+   "sha1": "b9393ba4a5cfa253e869ccb6faf350eb126376e5",
+   "path": "test/text-extraction/suite/phase0/extraction-probe-structure.original.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe.accepted.txt",
+   "sha1": "05a321b6f28028943e5b89e9f8837d0830b41867",
+   "path": "test/text-extraction/suite/phase0/extraction-probe.accepted.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe.docx",
+   "sha1": "2d2b13c1874698f35ef732ad3c8deaf6b6cfcf5a",
+   "path": "test/text-extraction/suite/phase0/extraction-probe.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe.markup.txt",
+   "sha1": "266f39c00767768705e1cc910ec32a08a4733162",
+   "path": "test/text-extraction/suite/phase0/extraction-probe.markup.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe.md",
+   "sha1": "047fd4eb93443b56e0848b32109ff21502398760",
+   "path": "test/text-extraction/suite/phase0/extraction-probe.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/extraction-probe.original.txt",
+   "sha1": "89d64cb25fda5ace8d4d86387147b2eab7db7968",
+   "path": "test/text-extraction/suite/phase0/extraction-probe.original.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/phase0/goldens.tsv",
+   "sha1": "3ea616a82dee5723ef5e8e19b9c4528a7ca13589",
+   "path": "test/text-extraction/suite/phase0/goldens.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/run-phase0.sh",
+   "sha1": "2f241438416766deaf74a1ec2e12481c0b5f2144",
+   "path": "test/text-extraction/suite/run-phase0.sh"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/README.md",
+   "sha1": "ce0caffcff3a3db5cf87347078ddbd00b48de446",
+   "path": "test/text-extraction/suite/support/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/additional-case-statements.tsv",
+   "sha1": "2fe022594d0cabc81893d3ffef2694939e40d7f5",
+   "path": "test/text-extraction/suite/support/additional-case-statements.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/appendix-a-statements.tsv",
+   "sha1": "b0b7b15ca92d692deced7db312ef2a72423255c5",
+   "path": "test/text-extraction/suite/support/appendix-a-statements.tsv"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/OFL.txt",
+   "sha1": "0898cb73de9283d38e6f4cef45ce79efbfafb0b2",
+   "path": "test/text-extraction/suite/support/inspect-fonts/OFL.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/README.md",
+   "sha1": "28c0afd24ab03335ebd5ee30945bb507807328ca",
+   "path": "test/text-extraction/suite/support/inspect-fonts/README.md"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-blank.ttf",
+   "sha1": "c85563f55bff63f5bcf2fff598bbac041e96e927",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-blank.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-careful.ttf",
+   "sha1": "9b7f9da6c9c04f04101d8d2bc230412df714d41b",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-careful.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-named.ttf",
+   "sha1": "914205ad469ae5d5c525ea19ce7fe3e9359d2b5a",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-named.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-plain.ttf",
+   "sha1": "d2522acf4c68bfe3f6deb321e2f301133e04e7a3",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-plain.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-shared.ttf",
+   "sha1": "63db1aeada8664744e5658198ffced33b59e4495",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-shared.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-substitution.ttf",
+   "sha1": "792d52e8d787df0a02eec6d92a4a010a0d755b0d",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-substitution.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-symbol.ttf",
+   "sha1": "66f7d0087a06b15177d83944baf822f0bce6a25f",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-symbol.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-twin-installed.ttf",
+   "sha1": "0f01f76a0946160baa9222c082f0aa8cfa26debc",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-twin-installed.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-twin.ttf",
+   "sha1": "0ad55a826ace4cb5218515535fdc4f3f6c423f6e",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-twin.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-word.ttf",
+   "sha1": "73556da40c6d1c8069cd473b849d9a421c97aa14",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-word.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/inspect-probe-zero.ttf",
+   "sha1": "1d3e6b703a74a360c4ddbc0e040c8da4ab3d7ac3",
+   "path": "test/text-extraction/suite/support/inspect-fonts/inspect-probe-zero.ttf"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect-fonts/make_fonts.py",
+   "sha1": "9badd0a24d1a28617ff6afb34d20e5141533d55f",
+   "path": "test/text-extraction/suite/support/inspect-fonts/make_fonts.py"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/inspect_oracle.py",
+   "sha1": "24d63bec6698b05f34f49dbb9630c3e3d67cfca0",
+   "path": "test/text-extraction/suite/support/inspect_oracle.py"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/text-extraction/support/vba-project.bin",
+   "sha1": "9ca9b111d752f38c6c5e8a6505f147594e26c269",
+   "path": "test/text-extraction/suite/support/vba-project.bin"
+  },
+  {
+   "docx4j": "docx4j-core/src/main/resources/org/docx4j/jaxb/understood-namespaces.txt",
+   "sha1": "e022cf138f3ffa64007e6c714441c83fd08ccc80",
+   "path": "test/text-extraction/understood-namespaces.txt"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/accept-all.docx",
+   "sha1": "fe00040aa4b86f8a85b7609a4dc541a765b16058",
+   "path": "test/fixtures/revisions/check18/accept-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/accept-destination.docx",
+   "sha1": "9b7733bd1898ab86e25026374f477e6ce48410f3",
+   "path": "test/fixtures/revisions/check18/accept-destination.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/accept-source.docx",
+   "sha1": "cbf1e95916dd5181684b4642e75c0ce9e9fa0ec5",
+   "path": "test/fixtures/revisions/check18/accept-source.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/reject-all.docx",
+   "sha1": "8b5fe48c89e7018c709154674255cf116b0e7d42",
+   "path": "test/fixtures/revisions/check18/reject-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/reject-destination.docx",
+   "sha1": "29ca736d4aaa5c8a0ec2cd2f5a4181aeebe66edf",
+   "path": "test/fixtures/revisions/check18/reject-destination.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check18/reject-source.docx",
+   "sha1": "11209b23703bcca009b24e8281438a3128159ec6",
+   "path": "test/fixtures/revisions/check18/reject-source.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/01-type-inside-a-accept.docx",
+   "sha1": "3cb23a1c3e7c6ea99ee63eb7683d3afa719b16d8",
+   "path": "test/fixtures/revisions/check20/01-type-inside-a-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/01-type-inside-a-reject-keep-new.docx",
+   "sha1": "b74495ca45b2b13d3bc22778ffdf95995e91be61",
+   "path": "test/fixtures/revisions/check20/01-type-inside-a-reject-keep-new.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/01-type-inside-a-reject.docx",
+   "sha1": "e61054b3ec7c6b63f19c26df2172a9cedae87d21",
+   "path": "test/fixtures/revisions/check20/01-type-inside-a-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/01-type-inside-a.docx",
+   "sha1": "80a537555e49426e14e6cb2a2aa816cabcf4c70c",
+   "path": "test/fixtures/revisions/check20/01-type-inside-a.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/02-type-inside-b.docx",
+   "sha1": "2e57dcc38b142200aa172d81c1e0e5271685bc7b",
+   "path": "test/fixtures/revisions/check20/02-type-inside-b.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/03-type-at-start-accept.docx",
+   "sha1": "3d7bc3180667c6eee5f9aa93a3a9ffcb69c5fba7",
+   "path": "test/fixtures/revisions/check20/03-type-at-start-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/03-type-at-start-reject.docx",
+   "sha1": "0d67ac783cbddb7df76a68f6e18c7400ab616c94",
+   "path": "test/fixtures/revisions/check20/03-type-at-start-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/03-type-at-start.docx",
+   "sha1": "1883b55df707367e1d14d04818c7d71066cacb77",
+   "path": "test/fixtures/revisions/check20/03-type-at-start.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/04-type-at-end-accept.docx",
+   "sha1": "5e3a79ec60e03a33bb281d3f9ddaedbdb80b8403",
+   "path": "test/fixtures/revisions/check20/04-type-at-end-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/04-type-at-end-reject-keep-new.docx",
+   "sha1": "c8cc52eb314f4339cf73c75012c399626b0e5f0e",
+   "path": "test/fixtures/revisions/check20/04-type-at-end-reject-keep-new.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/04-type-at-end-reject.docx",
+   "sha1": "ebc6d7efbd6ffb38ea906fabdc5da5add7551fb2",
+   "path": "test/fixtures/revisions/check20/04-type-at-end-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/04-type-at-end.docx",
+   "sha1": "dc0dd7d7037a3577e25257ae3963ac82b3ea0bed",
+   "path": "test/fixtures/revisions/check20/04-type-at-end.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/05-type-in-source.docx",
+   "sha1": "204f9ec80c671af2145ecdf4698e3dc124db9ece",
+   "path": "test/fixtures/revisions/check20/05-type-in-source.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/06-delete-part-a-accept.docx",
+   "sha1": "b6aaf04b140e10f6865b334220e849e4e9d79c37",
+   "path": "test/fixtures/revisions/check20/06-delete-part-a-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/06-delete-part-a-reject-keep-new.docx",
+   "sha1": "bbc56d9b5b5b5e02ed6294aa54547afda3aaa7f5",
+   "path": "test/fixtures/revisions/check20/06-delete-part-a-reject-keep-new.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/06-delete-part-a-reject.docx",
+   "sha1": "db79d50ca6c60383388eff0e9365def6678985ee",
+   "path": "test/fixtures/revisions/check20/06-delete-part-a-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/06-delete-part-a.docx",
+   "sha1": "67aabb025f0cda065b615553fe59e878408b1b4a",
+   "path": "test/fixtures/revisions/check20/06-delete-part-a.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/07-delete-part-b-accept.docx",
+   "sha1": "52dad4354a473e3f6357558bcd02286db46056a2",
+   "path": "test/fixtures/revisions/check20/07-delete-part-b-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/07-delete-part-b-reject-keep-new.docx",
+   "sha1": "5cbf3105bff37b6649de99187e419901f30af69a",
+   "path": "test/fixtures/revisions/check20/07-delete-part-b-reject-keep-new.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/07-delete-part-b-reject.docx",
+   "sha1": "569298dbeed1627b4f4efca14214cc4e433fd9b6",
+   "path": "test/fixtures/revisions/check20/07-delete-part-b-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/07-delete-part-b.docx",
+   "sha1": "251d56163015a6fbb139502254b83337f8e635db",
+   "path": "test/fixtures/revisions/check20/07-delete-part-b.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/08-delete-all-accept.docx",
+   "sha1": "160429188e1300a47ba529a5d7b198af050f3950",
+   "path": "test/fixtures/revisions/check20/08-delete-all-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/08-delete-all-reject-keep-new.docx",
+   "sha1": "b5dfb659a03f90260f03c04ede9350dd8d653ff1",
+   "path": "test/fixtures/revisions/check20/08-delete-all-reject-keep-new.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/08-delete-all-reject.docx",
+   "sha1": "4e4c072e5c9d0cc1dacfe183f22f3bfaedc45cb4",
+   "path": "test/fixtures/revisions/check20/08-delete-all-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/08-delete-all.docx",
+   "sha1": "8a368d6e27072391c8007a83ed1ad1adc055f8d8",
+   "path": "test/fixtures/revisions/check20/08-delete-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/09-delete-in-source.docx",
+   "sha1": "b44a437142878f407a82230005260644c32f2c8d",
+   "path": "test/fixtures/revisions/check20/09-delete-in-source.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/10-move-again-accept.docx",
+   "sha1": "d0dfd94db2376d33f6b40b628f1f582e3435e18d",
+   "path": "test/fixtures/revisions/check20/10-move-again-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/10-move-again-reject.docx",
+   "sha1": "001c20b6806a828c724686eeaa55cba046ca1e27",
+   "path": "test/fixtures/revisions/check20/10-move-again-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/10-move-again.docx",
+   "sha1": "1e4582a1663286ea8e3c6571e905b50f684adb9f",
+   "path": "test/fixtures/revisions/check20/10-move-again.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/11-phrase-move.docx",
+   "sha1": "f5016fb28b34c71429ac5c2d19b6619f5dc24a43",
+   "path": "test/fixtures/revisions/check20/11-phrase-move.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/12-partner-missing-accept.docx",
+   "sha1": "d1dc293a3460454e36afb6439254691d7f51c460",
+   "path": "test/fixtures/revisions/check20/12-partner-missing-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/12-partner-missing-reject.docx",
+   "sha1": "807dde39e41646471aff1982cba1b9484880dfa1",
+   "path": "test/fixtures/revisions/check20/12-partner-missing-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/12-partner-missing-resaved.docx",
+   "sha1": "e189552977e006007e8464ba8e566532c82c4fbd",
+   "path": "test/fixtures/revisions/check20/12-partner-missing-resaved.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/12-partner-missing.docx",
+   "sha1": "83600ab0c2d8699486504091ce290f809c1c004d",
+   "path": "test/fixtures/revisions/check20/input/partner-missing.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/13-moveTo-no-ranges-accept.docx",
+   "sha1": "11202e25cb5741b60f50c94640a7c707981aa25d",
+   "path": "test/fixtures/revisions/check20/13-moveTo-no-ranges-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/13-moveTo-no-ranges-reject.docx",
+   "sha1": "858e471183ed53c53c48804005635c2a14fa31f6",
+   "path": "test/fixtures/revisions/check20/13-moveTo-no-ranges-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/13-moveTo-no-ranges-resaved.docx",
+   "sha1": "cb8b519b81db1625b24c092731a0217396ce39f7",
+   "path": "test/fixtures/revisions/check20/13-moveTo-no-ranges-resaved.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/13-moveTo-no-ranges.docx",
+   "sha1": "eb468c365cde9a968ddf6aa583c901e171e77f47",
+   "path": "test/fixtures/revisions/check20/input/moveTo-no-ranges.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-accept-dest-input.docx",
+   "sha1": "f2465185d2f36f44807020b452e7209f3209d025",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-accept-dest-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-accept-input.docx",
+   "sha1": "3a9611051b811ac9cd103e1117e97ae91db3f7cb",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-accept-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-accept.docx",
+   "sha1": "f4fb26dfb1a9c53937e94c29ec401d982a3a2c56",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-accept.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-reject-dest-input.docx",
+   "sha1": "129fcf5c6c2d8c465a1eac1642f4360014ecec40",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-reject-dest-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-reject-input.docx",
+   "sha1": "f4686f21ac2282ce47b162913e10303f5d617383",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-reject-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-reject.docx",
+   "sha1": "bb52091eb932131bee6b781fbd937dbe92176e5b",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges-resaved.docx",
+   "sha1": "0c4232d6816b0f0d709e282cecae6d8c0345d345",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges-resaved.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/14-moveFrom-no-ranges.docx",
+   "sha1": "4c4aef51091cbad296fd38e85c125c2ad7b74744",
+   "path": "test/fixtures/revisions/check20/14-moveFrom-no-ranges.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/moveFrom-no-ranges.docx",
+   "sha1": "2fe684df14541c8d456b99fee8d1b1e262a4b61c",
+   "path": "test/fixtures/revisions/check20/input/moveFrom-no-ranges.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/moveTo-no-ranges.docx",
+   "sha1": "eb468c365cde9a968ddf6aa583c901e171e77f47",
+   "path": "test/fixtures/revisions/check20/input/moveTo-no-ranges.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check20/partner-missing.docx",
+   "sha1": "83600ab0c2d8699486504091ce290f809c1c004d",
+   "path": "test/fixtures/revisions/check20/input/partner-missing.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check21/21a-in-insertion.docx",
+   "sha1": "0ceacfb491b698e03f34d8a73a76aa9ab9082387",
+   "path": "test/fixtures/revisions/check21/21a-in-insertion.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check21/21b-at-insertion-end.docx",
+   "sha1": "e3848c804f025bbdc2d12e85d0bb41d502944139",
+   "path": "test/fixtures/revisions/check21/21b-at-insertion-end.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check21/21c-in-deletion.docx",
+   "sha1": "61e8699c81ee2bb77b632199dcda8d9f4abbdad5",
+   "path": "test/fixtures/revisions/check21/21c-in-deletion.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check21/21d-in-own-insertion.docx",
+   "sha1": "9f035679b0c770d9bccfb5a11aedd82cfec9aa0a",
+   "path": "test/fixtures/revisions/check21/21d-in-own-insertion.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check22/22-accept-across.docx",
+   "sha1": "12caa961c6aba8dd125f87de21adb288d63137d1",
+   "path": "test/fixtures/revisions/check22/22-accept-across.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check22/22-accept-whole.docx",
+   "sha1": "053fa2e58cda3b511e598989ddcbe0d7b1f39b5f",
+   "path": "test/fixtures/revisions/check22/22-accept-whole.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check22/22-deleted.docx",
+   "sha1": "a216288a93e823b10a99897c9172ee6b337b4112",
+   "path": "test/fixtures/revisions/check22/22-deleted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check22/22-reject-across.docx",
+   "sha1": "121f56de56d2925b237c019a6d5ae6a7c7794ad0",
+   "path": "test/fixtures/revisions/check22/22-reject-across.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check22/22-reject-whole.docx",
+   "sha1": "1d82b2a485ef644a0aa2d8500843bab755473c4d",
+   "path": "test/fixtures/revisions/check22/22-reject-whole.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check24/24a-bold.docx",
+   "sha1": "0bef94424aeda56c11583b8bc58d63c70cd1d26d",
+   "path": "test/fixtures/revisions/check24/24a-bold.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check24/24b-unbold.docx",
+   "sha1": "5ca92b664ac3b90fcf6293a8e55d9ff6eaffa192",
+   "path": "test/fixtures/revisions/check24/24b-unbold.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check24/24c-unbold-by-b.docx",
+   "sha1": "322bd56134fd0224896f52a92dd3ea0571801667",
+   "path": "test/fixtures/revisions/check24/24c-unbold-by-b.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check24/24d-style.docx",
+   "sha1": "3a46a511e81e129b0b62de9a551f7a8f6cb2e557",
+   "path": "test/fixtures/revisions/check24/24d-style.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check24/24e-style-cleared.docx",
+   "sha1": "329c8b8e6999033e5fd40c07472248921661ee06",
+   "path": "test/fixtures/revisions/check24/24e-style-cleared.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25-input.docx",
+   "sha1": "5c139af6d9c0b66ae555f9c90b3549d07229532d",
+   "path": "test/fixtures/revisions/check25/25-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25a-bullets.docx",
+   "sha1": "502ace0cbce96f2ea83885ec080929be64a68d31",
+   "path": "test/fixtures/revisions/check25/25a-bullets.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25b-bullets-reject.docx",
+   "sha1": "790ed1d652e34b6d57d79ca76907ce95d7641d08",
+   "path": "test/fixtures/revisions/check25/25b-bullets-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25c-demote.docx",
+   "sha1": "ab90b4466f1b21f5403d161851e67f675998ecc1",
+   "path": "test/fixtures/revisions/check25/25c-demote.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25d-demote-reject.docx",
+   "sha1": "74e4f8ed91a678fe0bc0e22fe8e3465bc3095e69",
+   "path": "test/fixtures/revisions/check25/25d-demote-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25e-bullet-demote.docx",
+   "sha1": "5f6749142bce334cecb5adc36fbe58eee8071827",
+   "path": "test/fixtures/revisions/check25/25e-bullet-demote.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check25/25f-bullet-demote-reject.docx",
+   "sha1": "6885b83de36bf9327ef46650563191b4e5117631",
+   "path": "test/fixtures/revisions/check25/25f-bullet-demote-reject.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26-input.docx",
+   "sha1": "dbbd57a6e5d55e7a3bced0db188d8c0a46d9d368",
+   "path": "test/fixtures/revisions/check26/26-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26a-centred.docx",
+   "sha1": "fd3af466d19bb12c3463538b049beb5e5b65b655",
+   "path": "test/fixtures/revisions/check26/26a-centred.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26b-left-again.docx",
+   "sha1": "6500ed12a4ca52b7c7a95dd06f03defb21706c73",
+   "path": "test/fixtures/revisions/check26/26b-left-again.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26c-left-by-b.docx",
+   "sha1": "9b907556d8183f5dc56b7abcf829a14d1745c435",
+   "path": "test/fixtures/revisions/check26/26c-left-by-b.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26d-indented-back.docx",
+   "sha1": "f92b5176ef8c1700ea6c7caed5fe0ad4c2925162",
+   "path": "test/fixtures/revisions/check26/26d-indented-back.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check26/26d-indented.docx",
+   "sha1": "61a60a78257b9591eff4387dbc64b2ee7b9f43a4",
+   "path": "test/fixtures/revisions/check26/26d-indented.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check28/28-input.docx",
+   "sha1": "22a0097bab51b4bb02160515e91e3f74ddb9aa13",
+   "path": "test/fixtures/revisions/check28/28-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check28/28a-accept-all.docx",
+   "sha1": "1ea31def2a5c134995da65ce87eb13ba8f005fe6",
+   "path": "test/fixtures/revisions/check28/28a-accept-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check28/28a-changes.docx",
+   "sha1": "eb008af128cab4af2a9307e684ef885959c19466",
+   "path": "test/fixtures/revisions/check28/28a-changes.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check28/28a-reject-all.docx",
+   "sha1": "6ff97b297af37b5844cde3468efa2e4e4690bacd",
+   "path": "test/fixtures/revisions/check28/28a-reject-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29-input.docx",
+   "sha1": "182d3989baad9061fa3d5c29e2e5f321961e003d",
+   "path": "test/fixtures/revisions/check29/29-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29a-heading-end-tracked.docx",
+   "sha1": "81172c93afbecf97390608de9779ba16e3d1c006",
+   "path": "test/fixtures/revisions/check29/29a-heading-end-tracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29b-normal-end-tracked.docx",
+   "sha1": "04a0f20916fb902f19ab28edfecefe51062c6cda",
+   "path": "test/fixtures/revisions/check29/29b-normal-end-tracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29c-inserted-mark-end-untracked.docx",
+   "sha1": "313444a8c76f8224fca0fcaf54dcbf15daed4070",
+   "path": "test/fixtures/revisions/check29/29c-inserted-mark-end-untracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29d-inserted-mark-end-tracked.docx",
+   "sha1": "ded8a9bde4d2001cf4db5b53dcc8541d6ee53e67",
+   "path": "test/fixtures/revisions/check29/29d-inserted-mark-end-tracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check29/29e-inserted-mark-middle-untracked.docx",
+   "sha1": "8ad452517ad074a18fe1e4f944b54ffbc5b27045",
+   "path": "test/fixtures/revisions/check29/29e-inserted-mark-middle-untracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check32/check32-typed.docx",
+   "sha1": "6b862d924615d237acac15a9b111c43dbeae9c2e",
+   "path": "test/fixtures/revisions/check32/check32-typed.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check33/33-input.docx",
+   "sha1": "3296e33b0bdee2322f6117131ea9c3815f2ea0f4",
+   "path": "test/fixtures/revisions/check33/33-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check33/33a-deleted.docx",
+   "sha1": "f6140201827692f58fdd65db50d72eb9b0d46037",
+   "path": "test/fixtures/revisions/check33/33a-deleted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check33/33b-accepted.docx",
+   "sha1": "293ec510a01de07b023d63c215f3f683af10f5e6",
+   "path": "test/fixtures/revisions/check33/33b-accepted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check34/34-input.docx",
+   "sha1": "e4c14116f04bd4b4be6c90065a7a9bffc92fff65",
+   "path": "test/fixtures/revisions/check34/34-input.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check34/34a-mapped.docx",
+   "sha1": "7955dbfdf27cd0c328725a3ba928a4e71826d7e2",
+   "path": "test/fixtures/revisions/check34/34a-mapped.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check34/34b-tracked.docx",
+   "sha1": "22187b2dbfd47251b56c1c1a8a927c5764a59677",
+   "path": "test/fixtures/revisions/check34/34b-tracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check34/34c-vba.docx",
+   "sha1": "74a82dcd34ab08319ff0d7f10ad88fe3bb90f9a7",
+   "path": "test/fixtures/revisions/check34/34c-vba.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check34/34d-mapped-existing.docx",
+   "sha1": "d83d83a29a34e8d97a1d583c996c007b77974749",
+   "path": "test/fixtures/revisions/check34/34d-mapped-existing.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36a-w15-undeclared-word365.docx",
+   "sha1": "13275d19454c1df9cb0587491076140fdd9dfe07",
+   "path": "test/fixtures/revisions/check36/36a-w15-undeclared-word365.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36a-w15-undeclared.docx",
+   "sha1": "43f4aca844d0b4885c95fa130942a8f058a635de",
+   "path": "test/fixtures/revisions/check36/36a-w15-undeclared.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36b-w15-declared-word2010.docx",
+   "sha1": "b2b8838773c7cf91ea569c60b820c73270e7d4fc",
+   "path": "test/fixtures/revisions/check36/36b-w15-declared-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36b-w15-declared.docx",
+   "sha1": "de8d56a7bf1f358c110eb9fc8bd9b35546783698",
+   "path": "test/fixtures/revisions/check36/36b-w15-declared.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36c-w16du-undeclared-word2010.docx",
+   "sha1": "8e5b82e68bf426f937310694baee15cfce49c713",
+   "path": "test/fixtures/revisions/check36/36c-w16du-undeclared-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36c-w16du-undeclared-word365.docx",
+   "sha1": "b3f601465ff5ea427c66aa39802e51629f079bdc",
+   "path": "test/fixtures/revisions/check36/36c-w16du-undeclared-word365.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36c-w16du-undeclared.docx",
+   "sha1": "9e6381a27c8e5e22bb0192341e7a1c027f87796c",
+   "path": "test/fixtures/revisions/check36/36c-w16du-undeclared.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36d-w16du-declared-word2010.docx",
+   "sha1": "a142b39c87abc5817e566dcac41901e3d844c6fe",
+   "path": "test/fixtures/revisions/check36/36d-w16du-declared-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/core-ts/check36/36d-w16du-declared.docx",
+   "sha1": "a3524a82dbea397a0d7e57431deec2beca4274ae",
+   "path": "test/fixtures/revisions/check36/36d-w16du-declared.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/cr043-accept-all.docx",
+   "sha1": "9861daf1a351f6b8120f50ac76f84dcdf081d2fe",
+   "path": "test/fixtures/revisions/cr043/cr043-accept-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/cr043-base.docx",
+   "sha1": "e4529947a6d0a147b58ebe10ce7be291c0eb6505",
+   "path": "test/text-extraction/revisions/cr043/cr043-base.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/cr043-reject-all.docx",
+   "sha1": "166444ff0de821e73e3eb1f08718ff24988ce3c7",
+   "path": "test/fixtures/revisions/cr043/cr043-reject-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/cr043-tracked.docx",
+   "sha1": "52d107779385a5bd782b1ecc8745f95933b7f9bf",
+   "path": "test/fixtures/revisions/cr043/cr043-tracked.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/equations-accept-all.docx",
+   "sha1": "4462ee60ade32fe84fb2d01bcc214d7220ca01d1",
+   "path": "test/fixtures/revisions/cr043/equations-accept-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/cr043/equations-reject-all.docx",
+   "sha1": "4fa6a0736da507a2ba3264aad7180e0772dee2d3",
+   "path": "test/fixtures/revisions/cr043/equations-reject-all.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/measure-word15.docx",
+   "sha1": "7869103170619fe382b40d77bfd07e7c1b3617e5",
+   "path": "test/text-extraction/revisions/editor/review/measure-word15.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/measure-word2010.docx",
+   "sha1": "487c176e39c025eedcfbb3044a28a9b2cc99baac",
+   "path": "test/text-extraction/revisions/editor/review/measure-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word15-accepted.docx",
+   "sha1": "15ab9c52e92144a2ba7db39f12c72320bccfec52",
+   "path": "test/fixtures/revisions/review/review-for-word-word15-accepted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word15-rejected.docx",
+   "sha1": "038f713bac1e3ba2e733ab038a7d02a114a7c4ab",
+   "path": "test/fixtures/revisions/review/review-for-word-word15-rejected.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word15.docx",
+   "sha1": "104c67a54f5ca1f166c7b63d03bb256cc897cba5",
+   "path": "test/fixtures/revisions/review/review-for-word-word15.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word2010-accepted.docx",
+   "sha1": "46fcd22dee89f7aed772cf8207121e63867c47af",
+   "path": "test/text-extraction/revisions/editor/review/review-for-word-word2010-accepted.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word2010-rejected.docx",
+   "sha1": "2d0aa024a5b231fd04346a4c1a28783ebb1e8839",
+   "path": "test/text-extraction/revisions/editor/review/review-for-word-word2010-rejected.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word-word2010.docx",
+   "sha1": "90aba2ffa465af1c8ae38964183b059df28514ed",
+   "path": "test/text-extraction/revisions/editor/review/review-for-word-word2010.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/review/review-for-word.docx",
+   "sha1": "32c4df2141fd2539d9c844c2ea79e216f5f795b5",
+   "path": "test/text-extraction/revisions/editor/review/review-for-word.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/revisions/revisions-base.docx",
+   "sha1": "d2c0b8bb782091feae505a021014d689df2e2fe3",
+   "path": "test/text-extraction/revisions/editor/revisions/revisions-base.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/revisions/revisions-word15.docx",
+   "sha1": "f66218e8c3deab296dba35175b6d6f7a4786e8a7",
+   "path": "test/fixtures/revisions/revisions-word15.docx"
+  },
+  {
+   "docx4j": "docx4j-core-tests/src/test/resources/revisions/editor/revisions/revisions-word2010.docx",
+   "sha1": "329a8aa2999f0c8547cfd8889509cde3bd22ace6",
+   "path": "test/text-extraction/revisions/editor/revisions/revisions-word2010.docx"
+  }
+ ]
+}

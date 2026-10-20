@@ -106,7 +106,8 @@ export interface NumberingResult {
   ilvl: string | undefined;
   /** The level definition, merged. Not docx4j's: a port convenience for CR-002 phase H. */
   level: LevelDefinition | undefined;
-  /** The counter's value at this level, before formatting. Not docx4j's. */
+  /** The count this paragraph's level shows (the 3 of "1.3."), its counter once this paragraph is
+   *  counted. docx4j `getValue()` (17.3.4), which this preceded. */
   count: number | undefined;
   /** No label was produced. docx4j returns an *empty* `ResultTriple` where a `w:num` or its
    *  level has no definition; this flags that case rather than leaving every member undefined
@@ -179,10 +180,20 @@ export class Emulator {
    * to.  The style itself, or any style it is based on, counts as the level's own.  Direct
    * formatting is never suppressed: a paragraph whose *own* `w:numPr` names such a level is
    * numbered.
+   *
+   * A level which names no style belongs to one all the same: the first paragraph style in
+   * styles.xml whose own `w:numPr` names it ({@link levelStyleId}, docx4j 17.3.4, measured in
+   * Word 365 on the three documents of docx4j's `LevelOwnerTest`).  Of two styles carrying such
+   * a level Word numbers the first in styles.xml - whatever their names, whichever the document
+   * uses first, whether or not it uses that style at all - and gives the other style's paragraphs
+   * no label and no count.  They keep the level's indent, which the effective indent already
+   * gives them.  A paragraph naming no style is the default paragraph style's in this check.
    */
   styleLinkedElsewhere(numId: string, ilvl: string, pStyleVal: string | undefined): boolean {
-    const linked = this.definitions.getLinkedStyleId(numId, ilvl);
+    const linked = this.levelStyleId(numId, ilvl);
     if (linked === undefined || linked === '') return false;
+    // a paragraph naming no style is in the default paragraph style, which can own a level
+    if (pStyleVal === undefined && this.resolver !== undefined) pStyleVal = this.resolver.getDefaultParagraphStyleId();
     if (pStyleVal === undefined) return true;
     const seen = new Set<string>();
     let id: string | undefined = pStyleVal;
@@ -193,6 +204,38 @@ export class Emulator {
       id = style?.basedOn?.val;
     }
     return true;
+  }
+
+  /**
+   * The paragraph style a numbering level belongs to: the one its `w:lvl/w:pStyle` names (the
+   * `w:num`'s override level's first, as {@link NumberingDefinitions.getLinkedStyleId} reads it),
+   * else the first paragraph style in styles.xml whose own `w:numPr` names a `w:num` on the same
+   * `w:abstractNum` at that level (its `w:ilvl`, 0 where it states none).  Undefined where neither:
+   * no style carries the level, so a paragraph reaches it only through its own `w:numPr`.
+   *
+   * The level is the `w:abstractNum`'s, not a `w:num`'s: a style reaching it through a second
+   * `w:num` is on the same level, even where that `w:num` overrides it with a `w:lvl` of its own.
+   * A style's level is its `w:numPr`'s `w:ilvl`, not the level whose `w:pStyle` names it, as Word
+   * reads it (ECMA-376 17.9.24 has the naming level). docx4j `Emulator.levelStyleId` (17.3.4).
+   *
+   * @param numId a `w:numId` (not 0)
+   * @param ilvl  a `w:ilvl`; undefined or empty for 0
+   */
+  levelStyleId(numId: string, ilvl: string | undefined): string | undefined {
+    const linked = this.definitions.getLinkedStyleId(numId, ilvl);
+    if (linked !== undefined && linked !== '') return linked;
+
+    const abstract = this.definitions.list(numId)?.abstractDefinition;
+    if (abstract === undefined) return undefined;
+    const level = ilvl === undefined || ilvl === '' ? '0' : ilvl;
+    for (const style of this.resolver?.getStylesInOrder() ?? []) {
+      const own = style.pPr?.numPr;
+      if (style.type !== 'paragraph' || style.styleId === undefined || own?.numId?.val === undefined) continue;
+      if (this.definitions.list(String(own.numId.val))?.abstractDefinition !== abstract) continue;
+      const ownLevel = own.ilvl?.val === undefined ? '0' : String(own.ilvl.val);
+      if (ownLevel === level) return style.styleId;
+    }
+    return undefined;
   }
 
   /**
@@ -297,10 +340,13 @@ export class Emulator {
    * The next number for a paragraph, from its `w:pPr` (its own `w:numPr`, else its style's),
    * counted in `state` or in this emulator's default state.
    *
+   * A paragraph with no `w:pPr` resolves as one with an empty `w:pPr` does, against the default
+   * paragraph style, which may be numbered (docx4j 17.3.4; before, it was not numbered).
+   *
    * @returns undefined where the paragraph is not numbered
    */
   getNumber(pPr: wml.PPr | undefined, state?: NumberingState): NumberingResult | undefined {
-    if (pPr === undefined) return undefined;
+    if (pPr === undefined) return this.getNumberOf(undefined, undefined, undefined, false, state);
     const [pStyleVal, numId, ilvl] = readNumPr(pPr);
     return this.getNumberOf(pStyleVal, numId, ilvl, numId !== undefined && numId !== '', state);
   }
@@ -424,6 +470,11 @@ export class Emulator {
       return NumRef.not('no property resolver: await getPropertyResolver() first');
     }
     return part.getEmulator().numRefFor(pPr);
+  }
+
+  /** docx4j `Emulator.levelStyleId(numberingPart, numId, levelId)`: the paragraph style a level belongs to. */
+  static levelStyleId(part: NumberingPartLike, numId: string, ilvl: string | undefined): string | undefined {
+    return part.getEmulator().levelStyleId(numId, ilvl);
   }
 
   /** docx4j `Emulator.getInd(wmlPackage, pStyleVal, numId, levelId)`. */
