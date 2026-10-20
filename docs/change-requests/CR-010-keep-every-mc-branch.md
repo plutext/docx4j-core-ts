@@ -17,7 +17,7 @@ its declaration on save, an objects package defect, fixed by its CR-011 in objec
 package requires since the same day. Section 15
 (2026-10-20, the editor's ED-009 question 2): the readers count `w16sdtdh`, `w16sdtfl`, `w16du`
 and `x14ac` as understood by their `Requires` alone. All four are on docx4j's published list, and
-`w16du` and `x14ac` were measured in Word 365. Taken as the editor asked and rewritten to that simpler
+Word 365 understands all four (measured 2026-10-20). Taken as the editor asked and rewritten to that simpler
 rule the same day (Jason: "do as the editor asks re Q1, Q2"; "yes, rewrite section 15 to the simpler
 rule"; "yes to 1, 2, and 3"); proposed, not scheduled. The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
@@ -1389,8 +1389,13 @@ in that order, and each holds its own prefix as text.
 - **Measured for `w16du`.** Jason opened the editor's check file in Word 365 on 2026-10-20 (ED-009
   section 9.2; his save is the editor's `test/fixtures/mc/mc-for-word-word365.docx`, editor
   `8410226`). Its case 7, the ten Choices with `w16du` first, shows "I prefer w16du" in Word, where
-  this package reads "I prefer w14". `w16sdtdh` and `w16sdtfl` are not measured: in Jason's probe
-  `w14` comes first, so Word showing `w14` says nothing about them.
+  this package reads "I prefer w14".
+- **And for `w16sdtdh` and `w16sdtfl`.** In Jason's probe `w14` comes first, so Word showing `w14`
+  said nothing about them. The editor's `mc-branches.docx` gained a case for each, with the ten
+  Choices and that one first: case 9 `w16sdtdh` and case 10 `w16sdtfl` (editor `4e02089`). Jason
+  read both in Word 365 the same day: "Word understands that namespace" (case 9) and "Word
+  understands this as well" (case 10). Here `selectedBranchOf` takes the `w14` Choice in both, and a
+  resolved load reads "I prefer w14".
 - **`x14ac` too.** The same file's case 3 is a Choice requiring Excel's `x14ac`, with a Fallback. Word
   365 shows the Choice in a Word part, where this package takes the Fallback. So the namespaces Office
   understands are Office-wide, not one application's. `x14ac` is on docx4j's list as well (line 112,
@@ -1447,11 +1452,10 @@ For the branch the readers take (`selectedBranchOf`), a Choice is understood whe
 
 ### 15.5 Before it's implemented
 
-- **The Word check, half done.** `w16du` and `x14ac` are measured (section 15.1). `w16sdtdh` and
-  `w16sdtfl` each need a paragraph with that Choice first, which the editor's build script can add.
+- **The Word check is done.** Word 365 understands all four (section 15.1).
 - **The other seven of docx4j's 11** are on its list but not measured in Word, so they wait for
   CR-012's phase 0.
 - **Size.** About two hours:
   - the readers' set beside `UNDERSTOOD_PREFIXES`, and `selectedBranchOf` over it;
-  - a test over cases 3, 4, 6 and 7, kept and resolved;
+  - a test over cases 3, 4, 6, 7, 9 and 10, kept and resolved;
   - the documentation.
