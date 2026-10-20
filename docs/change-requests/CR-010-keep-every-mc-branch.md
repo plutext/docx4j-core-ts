@@ -12,7 +12,11 @@ implemented 2026-10-18 at Jason's request ("implement CR-010 phase 4, coordinati
 appropriate"; section 14): load keeps the element by default. It needs `@docx4j/jsonix` 3.4.2,
 published the same day, which objects 0.4.1 requires (section 14.4). This package requires objects
 0.4.2 since 2026-10-19, which also declares the prefixes a kept `mc:Choice`'s `Requires` names
-(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). The policy is docx4j's CR-021 (done
+(section 14.8). The read-time warning moved to CR-012, the text-model CR, on 2026-10-19 (section 14.7). Phases 0 to 4 **released in 0.5.0** (2026-10-19). Section 14.9 (2026-10-20, found by the editor): a `Requires` prefix the prefix table lacks loses
+its declaration on save, an objects package defect, sent there as a CR at Jason's word. Section 15
+(2026-10-20, the editor's ED-009 question 2): the `Requires` gate alone picks the readers' branch
+for a Choice whose content is in bound namespaces, taken as the editor asked (Jason: "do as the
+editor asks re Q1, Q2"); proposed, not scheduled. The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why
@@ -1254,3 +1258,119 @@ No WordprocessingML element is DOM.
   `sha512-rRINQ9FA…GShLAlA==`) with `@docx4j/jsonix` 3.4.2. A lockfile holding 0.4.1 no longer
   satisfies the range, so no install of this package's release keeps the defect. The test above
   asserts none undeclared; the suite passes (875) and typecheck passes.
+
+### 14.9 A `Requires` prefix the prefix table lacks loses its declaration (found 2026-10-20)
+
+- **Found by the editor** (`docx4j-ts-editor-50`), building ED-009's fixture. The fixture's first
+  version had a Choice with `Requires="zz9"`, and `xmlns:zz9` declared on `w:document`. A save
+  through the engine wrote the root without the declaration. The fixture now uses `x14ac`, which the
+  prefix table has.
+- **Reproduced** on `f8617e8`, with objects 0.4.2. The source root carries
+  `xmlns:zz9="urn:example:zz9"` and `mc:Ignorable="zz9"`, and a run holds an element with
+  `Requires="zz9"`. After one `insertParagraph` and a save:
+  - the root declares `w` and `mc` only;
+  - `Requires="zz9"` is kept, so the part names a prefix nothing declares;
+  - `zz9` is dropped from `mc:Ignorable`;
+  - the marshal warns of both ("...which no declaration or NAMESPACE_PREFIXES entry resolves;
+    kept", "...; dropped").
+
+  With `mcePreprocess: true` the Fallback replaces the element, so no Choice is written. The
+  Ignorable entry is still dropped, as it was before 0.5.0. So the `Requires` half is new with
+  phase 4.
+- **A real fixture has it.** docx4j's `text-extraction/extraction-probe.docx` (`4a89a5967`) has
+  four Choices whose prefix the table lacks: `zz9` three times, and `shape2010`, a second prefix for
+  the `wps` namespace. It declares each on its own `mc:AlternateContent`, not on the root. Kept,
+  edited and saved, all four resolve nowhere. CR-012's phase 0 copies these probes into this
+  repository.
+- **Over the corpus**, 834 elements with a Choice in 719 packages (this repository's fixtures and
+  docx4j-core-tests' resources). Only those probes have a `Requires` prefix that
+  `UNDERSTOOD_PREFIXES` lacks: `zz9` 12, `shape2010` 4 and `wpi` 1. The `wpi` probe saves clean.
+- **The cause is the objects package's.** The object tree keeps none of the source's namespace
+  declarations. `fixRootNamespaceDeclarations` declares a `Requires` or `mc:Ignorable` prefix only
+  from `NAMESPACE_PREFIXES` and `IGNORABLE_PREFIX_ALIASES`, so a binding only the source had is
+  lost. Section 14.8's fix, the objects package's CR-001 section 3.2, can't reach it. For
+  `shape2010`, the table can't help even though it knows the namespace, since it gives that
+  namespace's prefix as `wps`.
+- **Sent to the objects package** (`docx4j-generated-objects-ts-82`, 2026-10-20) at Jason's word ("Send
+  this declaration defect to the objects session as a CR there"). The request is to keep the declarations
+  of the part it unmarshalled, on the root and below it, and fall back to them for the prefixes a
+  `Requires` or an `mc:Ignorable` names. It's preferably all inside the facade, since this package
+  touches no prefixes.
+- **Objects CR-011** (`e311ef1`, proposed 2026-10-20) takes it. The facade records the source's
+  bindings at unmarshal: what is in scope at the root, and at each `mc:Choice` the binding of every
+  prefix its `Requires` names. At marshal it finds the record from the element or its nearest
+  `PARENT`. A prefix resolves from the source first, then the table, then the aliases. The source
+  comes first because three VML parts in its corpus bind `x` to the Excel office namespace, where the
+  aliases give SpreadsheetML. Its prototype brings back this section's repro and the probe with
+  every prefix bound, and leaves its 341 corpus hashes as 0.4.2's.
+- **Two things for this package, from the objects session:**
+  - **`XmlPart.recordDeclarations` and `declareIgnorablePrefixes`** (CR-001 section 17) have had
+    nothing to do since objects 0.1.5. `marshalNode`'s own pass declares or drops every
+    `mc:Ignorable` prefix before `marshalToNode` calls the second, so it finds none undeclared.
+    Confirmed here: the repro logs the facade's "dropped", never this package's own warning. Both
+    go when the range is raised to the release carrying objects CR-011.
+  - **Inserts.** `insertOoxml` brings in a Choice whose prefix only the inserted OOXML declares, as a
+    bare fragment and as flat OPC. Each is unmarshalled on its own and its content moved into the
+    destination tree, so a record keyed by the fragment's root isn't found from there. Measured:
+    both forms save the Choice with `zz9` bound nowhere. Suggested to the objects session: key the
+    per-Choice record by the Choice's own value, so it moves with it and `deepCopy` can carry it.
+    Its own suggestion, an `adoptSourceBindings(from, to)` that `ooxml.mts` would call, works too.
+    Its call.
+- **docx4j**, read, not run: `Docx4jUnmarshallerListener` records each Choice's `Requires` as
+  prefixes on the part (`JaxbXmlPart.addMcChoiceNamespace`, since 6.0.0), and the marshal declares
+  them through its prefix mapper. Whether that mapper can declare a prefix its own table lacks
+  wasn't checked.
+- **The test.** `mce.test.mjs` asserts the defect as it is (CLAUDE.md), over `zz9` on the root,
+  `zz8` on the element and `shape2010`. Each `Requires` is kept and nothing declares it, and `zz9`
+  leaves `mc:Ignorable`. The fix announces itself by failing it.
+
+## 15. The readers' branch: the `Requires` gate alone (the editor's ED-009, 2026-10-20)
+
+**Status:** Proposed 2026-10-20 at the editor's request (ED-009 section 3.8, its proposal P7). Taken
+as the editor asked (Jason, 2026-10-20: "do as the editor asks re Q1, Q2"). Not scheduled.
+
+### 15.1 What the editor measured
+
+Jason's probe paragraph has one run-level element with ten Choices and a Fallback. The Choices
+require `w14`, `w15`, `w16se`, `w16cid`, `w16`, `w16cex`, `w16sdtdh`, `w16sdtfl`, `w16du` and `wp14`,
+in that order, and each holds its own prefix as text.
+- `selectedBranchOf` takes `w14`, the Choice Word 365 shows.
+- `UNDERSTOOD_PREFIXES` lacks `w16sdtdh`, `w16sdtfl` and `w16du`, which the editor reports Word 365
+  understands. All three are in `NAMESPACE_PREFIXES`. No generated module binds them, which is why
+  `UNDERSTOOD_NAMESPACES` doesn't have them.
+- So with one of the three first, Word shows it and this package takes the next Choice it
+  understands. The editor's `mc-branches.docx` case 7 (`w16du` first) reads "I prefer w14" here, resolved.
+  Word's display is the editor's report from Jason's probe; it wasn't checked here.
+
+### 15.2 The rule
+
+For the branch the readers take (`selectedBranchOf`), a Choice is understood when:
+- every namespace its `Requires` names is one Word 365 understands; and
+- everything inside it is in namespaces the model binds, so it unmarshals typed and round-trips.
+
+So the gate alone decides, and section 11.5's round-trip guard (docx4j CR-021 section 8.9) moves
+from the `Requires` namespaces onto the Choice's content. In the probes the prefix is only a gate,
+and the content is plain WordprocessingML.
+
+- **Kept loads, the default.** The choice decides only what the readers read and the mutators edit.
+  The save writes every branch as loaded, so a wider set can't lose content.
+- **`mcePreprocess: true`.** Today it uses the same set to choose which branch replaces the element,
+  and that converts DOM into typed content (CLAUDE.md). Under the content condition, the guard is
+  checked on what is converted. Content the model binds only partly still loses the unbound part
+  (CR-004 section 7). So resolving keeps `UNDERSTOOD_NAMESPACES` until the round trip of such a
+  Choice is measured. The rule here is for kept loads first.
+- **Which namespaces Word understands.** Only the three are measured. The list goes with section 3's
+  item 6, D4 item 2's published list.
+- **Matching by URI** (D4 item 1, an objects change) is related. `shape2010` in docx4j's extraction
+  probe is the `wps` namespace under another prefix (section 14.9), and today's prefix match
+  doesn't take it.
+
+### 15.3 What it changes
+
+- **In the corpus, nothing.** No `Requires` in its 834 elements names `w16du`, `w16sdtdh` or
+  `w16sdtfl` (section 14.9's count), so no fixture and no parity golden changes branch.
+- **docx4j.** It's a departure from CR-021 section 8.9, to raise with docx4j through the portfolio
+  when this is scheduled. The parity harness's `preferChoice` (section 11.5) has to follow, so docx4j
+  reads the branch this package reads.
+- **The editor** shows whatever `selectedBranchOf` selects, and records the difference meanwhile in
+  its `docs/word-divergences.md`.

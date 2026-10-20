@@ -6,7 +6,10 @@ Decisions D1 to D9 (section 6) are Jason's. D2 starts from his decision of the s
 Office JS readers keep calling the objects package's `textOf` and that it is not deprecated. It
 takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the read-time
 `mce.branches_differ` warning (section 14.7). The editor reviewed it the same day (section 11), and
-its asks are in section 4.4.
+its asks are in section 4.4. Section 12 (2026-10-20) takes the editor's ED-009 rule for run content
+in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason: "do as the editor
+asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
+paragraph-level element's text land outside it.
 
 ## 1. Why
 
@@ -435,7 +438,7 @@ Declared as not implemented when phase 3 lands, each pending in the suite until 
 | 1 | REQ-510's level ownership in the Emulator (D9), with `LevelOwnerTest`'s documents and Word's labels | ½ to 1 day |
 | 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx` | 7 to 9 days |
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks` | 2 to 3 days |
-| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48 | 2 days |
+| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, after check 49 (section 12) | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
 | 6 | Block-model parity goldens (D8 c), once docx4j's 17.3.4 work is public | 1 day |
 
@@ -547,3 +550,91 @@ Smaller points, recorded:
 - The warnings' block-grammar addresses are what `read` needs.
 - The editor's pending insertions in a room are `w:ins` by the agent and read as accepted text. No
   special case is needed.
+
+## 12. Run content in a kept branch (the editor's ED-009, 2026-10-20)
+
+The editor's ED-009 (accepted by Jason on 2026-10-20, editor main `0a2ec4d`) covers Jason's probes,
+`mc-simple.docx`, `mc-run.docx` and a paragraph with ten Choices. They put bare `w:t` in the branches
+of a run-level `mc:AlternateContent`, and runs in those of a paragraph-level one. Word 365 shows the
+first Choice it understands. The editor now projects the selected branch's items as the run's own,
+editable. Its question 1 (ED-009 section 6, proposal P4) is for this CR. Jason, 2026-10-20: "do as the
+editor asks re Q1, Q2". Question 2 is CR-010 section 15.
+
+### 12.1 What this package reads and edits today
+
+Measured on `f8617e8` over the editor's `mc-branches.docx`. It is built from `mc-simple.docx`,
+case by case.
+
+| Case | Shape | `Paragraph.text`, kept | resolved (`mcePreprocess: true`) |
+|---|---|---|---|
+| 1 | `w:r/mc:AlternateContent`, a `w:t` in each branch | `""` | `"The Earth is flat"` |
+| 2 | the same, with a tab and a break in the Choice | `""` | `"Before\tafter the tab\nafter the break"` |
+| 6 | ten Choices after a run `I prefer ` | `"I prefer "` | `"I prefer w14"` |
+| 8 | `w:p/mc:AlternateContent`, runs in each branch | `"bold ying plain ying"` | `"bold ying plain ying"` |
+
+- **Run-level** (cases 1, 2 and 6). The element is one object segment of no text (CR-010 section
+  13.1), so `search('flat')` finds nothing in case 1. That is the difference the editor pins in its
+  `alternate-content.test.mts`, naming ED-009.
+- **Paragraph-level** (case 8). `Paragraph.text` and `search` go through the objects package's
+  `textOf`, which reads the branch. The mutators go through `segmentsOf`, which doesn't list the
+  element ("Word writes none, and the corpus has none", CR-010 section 13.1). So a `Range` that
+  `search` returns inside the branch lies past every segment, and on a kept load:
+  - `insertText('very ', 'Start')` writes a new run after the element, at the paragraph's end;
+  - `insertText('PLAIN', 'Replace')` writes `PLAIN` there and leaves ` plain ying` in place, so
+    the text reads `bold ying plain yingPLAIN`;
+  - `delete()` and `font.italic = true` change nothing.
+
+  None of them throws. This is a defect in 0.5.0, whose load keeps the element by default.
+  Resolved, the element is gone and all four edit as they should.
+- **Where the shape occurs.** Not in a Word-written file in the corpus. Over its 490 `.docx` files
+  (this repository's fixtures and docx4j-core-tests' resources at `VERSION_17_3_4`), 13
+  paragraph-level elements hold runs in their branches. All 13 are in docx4j's hand-built
+  text-extraction probes (`extraction-probe.docx` and its four copies under `phase0/`), which phase 0
+  copies here. CR-010 section 13.1's "the corpus has none" was measured before those probes. Jason's
+  probe was built by hand too.
+- **Through the editor's agent.** The companion's `find` returns spans from `Paragraph.search`, and
+  its `edit` deletes or replaces through the engine's `Range`. So an agent that finds text in such a
+  branch and edits it gets a success for an edit that went wrong or did nothing (the editor,
+  2026-10-20; its `docs/upstream-limitations.md` item 23).
+
+### 12.2 The rule (the editor's, as asked)
+
+1. **A run-level element** whose selected branch (`selectedBranchOf`) holds run items reads as
+   those items. Its `w:t` are text segments at the run's offsets, its tabs and breaks their
+   characters, and its objects objects.
+2. **A paragraph-level element** reads as the runs its selected branch holds. That goes for
+   `segmentsOf` too, so the text and the mutators agree.
+3. **An edit** through the content API over such a paragraph lands in the selected branch. The
+   other branches are kept as they were read.
+4. **A deletion** that takes the whole element takes every branch with it, as now (CR-010 section
+   13.1).
+5. **CR-010's one-object rule stays** for the shape Word writes, a text box. A selected branch
+   holding a `w:drawing` or a `w:pict` reads as one object, and D5's text-box views are unchanged.
+
+### 12.3 What follows
+
+- **Item 3 departs from CR-010's D2** (mutators edit every branch, decided 2026-10-17) for this
+  shape. Nothing maps a Fallback's text to the Choice's, as D5 says of text boxes. So after an edit
+  the branches disagree. That is what the editor's ED-009 writes, and the next load's
+  `mce.branches_differ` reports it. Taken with the rule; Jason's to reverse.
+- **D2, the Office JS readers.** Items 1 and 2 change `Paragraph.text`, `search`, `Range` offsets
+  and `replaceText` for these shapes. Under D2 those keep Office JS's text, and what Office JS's
+  `paragraph.text` reads for a branch's text isn't measured. Word displays the selected Choice;
+  that's the probe. So **check 49** comes first. It reads `paragraph.text`, `search('flat')` and a
+  range over the branch's text in Word 365, on the editor's check file (`mc-for-word.docx`, ED-009
+  step S6) or on `mc-branches.docx`, for cases 1, 2, 6 and 8. If Office JS reads the branch, the rule
+  is Office JS's and D2 holds. If it doesn't, the question goes back to Jason.
+- **`textOf`.** `Paragraph.text` calls it (D2), and it reads a paragraph-level branch but not a
+  run-level one. Its branch choice is its own prefix set (section 1), and its output is kept stable
+  (objects `c31cb83`). So item 1 is the same move as D6: `Paragraph.text` onto this package's run
+  reader, which then takes `selectedBranchOf`'s branch. Phase 4 does both together.
+- **The model** takes the selected branch wherever the element is (section 4.1, item 1). So the
+  blocks read these shapes whatever the Office JS readers do, and the agreement test (D8 b) covers
+  the probes.
+- **The defect in 12.1.** Item 2 closes it. If it shouldn't wait for phase 4, there are two smaller
+  fixes. One is `segmentsOf` listing a paragraph-level element's selected runs, items 2 and 3 for
+  that shape alone (about half a day). The other is a mutator throwing `NotSupportedError` for a
+  range its segments can't place. The editor would take the error first: its companion maps an
+  engine error to a refusal with a reason, where today a silent no-op reports success. Jason's call.
+- **Size.** Phase 4 grows by 1½ to 2½ days: the run reader under item 1 (shared with D6), items
+  2 and 3, and the tests over the editor's eight cases.
