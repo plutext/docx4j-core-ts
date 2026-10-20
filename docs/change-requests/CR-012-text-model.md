@@ -7,7 +7,8 @@ recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR
 1"), not released: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
 test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
-all of it (Jason, the same day); which view, check 48b. D2 starts from his decision of 2026-10-19, that the
+all of it, in Word's default view, Simple Markup with hidden text not shown (Jason, the same day, after
+check 48b). D2 starts from his decision of 2026-10-19, that the
 Office JS readers keep calling the objects package's `textOf` and that it is not deprecated. It
 takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the read-time
 `mce.branches_differ` warning (section 14.7). The editor reviewed it the same day (section 11), and
@@ -510,9 +511,9 @@ character stream, and it differs from `Paragraph.text` here (through `textOf`) i
 | `w:br`, page break, column break, `w:cr` | U+000B, U+000C, U+000E, U+000D | `\n` each |
 | `w:ptab` | `0` | nothing |
 | Non-breaking, optional hyphen | U+001E, U+001F | U+2011, U+00AD |
-| `w:sym` (Wingdings F04A) | `(` | U+F04A |
-| Hidden run | left out | kept |
-| Tracked deletion | in | out |
+| `w:sym`, any font or code (check 48b) | `(` | the code point (U+F04A) |
+| Hidden run, its own `w:vanish` or its style's (check 48b) | left out | kept |
+| Tracked deletion | in, in All Markup, check 48's view (out in Word's default, check 48b) | out |
 | Equation `x=1` | ` 𝑥=1 `, Word's math italic | nothing |
 | Between paragraphs (`body.text`), after a cell | `\r`; `\t` | `\n`; `\n` |
 
@@ -527,8 +528,8 @@ Office JS's `search` follows its own rules over that stream:
 - the picture is a position in a search (`^g`) but nothing in the text;
 - it finds a hidden word, its hit's text `""`, and a deleted word.
 
-So D6 was too narrow. U+0002 is one of eight characters, and hidden and deleted text go the other way
-from this package's. Phase 4 needs Jason's answer to three questions first:
+So D6 was too narrow. U+0002 is one of eight characters, and hidden text goes the other way from this
+package's. Check 48b (below) found that deleted text, and what `search` finds, depend on Word's view. Phase 4 needs Jason's answer to three questions first:
 
 1. **How far `Paragraph.text` follows Office JS.** Recommended: all of it.
    - Every character as the table gives it: hidden text out, deleted text in, the equation as Word's
@@ -550,9 +551,43 @@ from this package's. Phase 4 needs Jason's answer to three questions first:
    each matching its character in the table. A `^g` matches a picture's position, which takes no
    character in the text and so needs an offset map of its own.
 
-**Jason's answers, 2026-10-21: questions 1 and 3 as recommended** ("q1 and q3: i agree").
+**Jason's answers, 2026-10-21: questions 1 and 3 as recommended** ("q1 and q3: i agree"); question 2
+below, after check 48b.
 `Paragraph.text` follows Office JS in all of it, and phase 4's `search` takes Office JS's rules, Word's
-Find codes included. Question 2, the view, waits on check 48b (`test/README.md`).
+Find codes included. Question 2, the view, waits on check 48b (`test/README.md`; written the same day,
+with the editor's two refinements and a run hidden through its character style, five views in one run
+of the snippet).
+
+**Check 48b's answer to question 2** (run 2026-10-21; `test/README.md` check 48b). The five views were
+measured on check 48's file. A second run in Word's defaults, on 48b's own file, took its cases 19 and
+20: every `w:sym` reads `(`, whatever its font or code (the editor's question), and a run hidden through
+its character style is left out as a run's own `w:vanish` is.
+- **`paragraph.text` never holds hidden text**, shown or not.
+- **It follows Review > Display for Review:**
+  - Simple Markup, Word 365's default, and No Markup give the accepted text;
+  - All Markup gives deleted and inserted text both;
+  - Original gives the original text.
+- **`search` matches what is displayed.** A hidden word is found only while hidden text is shown;
+  otherwise a query matches across it. A deleted word is found in All Markup and Original.
+- **`getReviewedText('Current')` and `getReviewedText('Original')` don't depend on the view.** They
+  give Word's raw stream of the accepted or original text: hidden text kept, a field as U+0013 code
+  U+0014 result U+0015, a hyperlink as its `HYPERLINK` field, a content control as `<...>`, a picture
+  as `/`.
+
+**Decided 2026-10-21 (Jason: "Word's default view: Simple Markup, with hidden text not shown"), as
+recommended.** The rule is Word's default view, Simple Markup with hidden text not shown:
+- `Paragraph.text` is the accepted text, leaving hidden text out, in check 48's characters.
+- `search` matches over that: it neither finds a hidden word nor a deleted one, and matches across
+  both.
+- That is what an add-in reads in Word's default view. In content it is the accepted view that
+  `getText({ view: 'accepted' })` reads, less hidden text; only the characters differ.
+- `getReviewedText` is Office JS's own view-independent reader. It could be added to the content API
+  later, as Word's stream with its field and object characters, but phase 4 doesn't need it.
+
+The editor accepts the rule (2026-10-21, its ED-008 section 8.3, editor `d10f116`). Its find bar and its
+agent's spans read the accepted view already, so only check 48's characters and hidden text move for it
+at phase 4's install. Whether its find bar matches deleted text in All Markup, as Word's Find does, is
+its own choice, stated as a departure from `body.search` if made.
 
 **The editor's answers** (2026-10-21, its ED-008 section 8.3, editor `1505b8e`; for Jason):
 1. Yes, all of it, as D2's contract. Its `atomText` moves with the install that carries it: the
@@ -571,6 +606,10 @@ Find codes included. Question 2, the view, waits on check 48b (`test/README.md`)
 
 It also notes that a `w:cr` reads as U+000D, the character `body.text` puts between paragraphs, so in
 `body.text` a `w:cr` can't be told from a paragraph's end.
+
+**`officeOffset`** (section 4.4) counts in this stream: a `TextRun`'s offset in `Paragraph.text` steps
+over each U+0002 and break character, and over hidden text where Office JS leaves it out, as the
+portfolio session noted (REQ-202's emulated-API exemption asks only that the two map onto each other).
 
 **What it costs.** In any paragraph holding one of these (a break, a note reference, a hyphen, a
 symbol, hidden text, a tracked deletion, an equation), the editor's spans move. So its `paragraphText`

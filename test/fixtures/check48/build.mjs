@@ -1,10 +1,11 @@
-// The file for Word check 48 (CR-012 D6 and section 12.3): what Office JS's text holds for each kind of
-// inline content, before phase 4 moves Paragraph.text onto this package's own run reader. Run from the
-// repository root after `npm run build`:
+// The files for Word checks 48 and 48b (CR-012 D6, sections 6.2 and 12.3): what Office JS's text holds for
+// each kind of inline content, before phase 4 moves Paragraph.text onto this package's own run reader. Run
+// from the repository root after `npm run build`:
 //
 //   node test/fixtures/check48/build.mjs
 //
-// writes 48-text.docx into this directory, which git ignores (test/README.md check 48 says why, and
+// writes 48-text.docx, and 48b-text.docx with two cases more (symbols in other fonts, a run hidden through
+// its character style), into this directory, which git ignores (test/README.md check 48 says why, and
 // what to do with it; the share holds the copy Word reads). Each case is one paragraph, "Case n:
 // <what>.", then two upper-case marker words with the item between them (FOOTA, a footnote reference,
 // FOOTB), so the snippet can read each paragraph's text, search across the item, and read a range from
@@ -55,8 +56,7 @@ const table = '<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>'
   + `<w:tr>${cell('CELLA')}${cell('CELLB')}</w:tr></w:tbl>`;
 
 const superscript = '<w:vertAlign w:val="superscript"/>';
-const body = [
-  para(t('Check 48. Each case is one paragraph: two upper-case markers with the item between them.')),
+const cases = [
   testCase(1, 'a footnote reference, then an endnote reference',
     t('FOOTA') + run('<w:footnoteReference w:id="1"/>', superscript) + t('FOOTB and ENDA')
     + run('<w:endnoteReference w:id="1"/>', superscript) + t('ENDB')),
@@ -93,11 +93,29 @@ const body = [
   para(t('Case 18: a table of one row and two cells, then a paragraph.')),
   table,
   para(t('AFTERTABLE')),
-  para('<w:bookmarkStart w:id="480" w:name="check48end"/>' + t('End of check 48.') + '<w:bookmarkEnd w:id="480"/>'),
-].join('');
+];
+
+/**
+ * Check 48b's two cases more (CR-012 section 6.2, the editor's refinements): symbols in other fonts,
+ * to tell a table of Word's from one constant character, and a run hidden through a character style.
+ */
+const cases48b = [
+  testCase(19, 'w:sym: a Wingdings check mark (F0FC), Symbol alpha (F061) and plus-minus (F0B1), Segoe UI Symbol 263A',
+    t('SYM2A') + run('<w:sym w:font="Wingdings" w:char="F0FC"/>') + t('SYM2B SYM3A') + run('<w:sym w:font="Symbol" w:char="F061"/>')
+    + t('SYM3B SYM4A') + run('<w:sym w:font="Symbol" w:char="F0B1"/>') + t('SYM4B SYM5A')
+    + run('<w:sym w:font="Segoe UI Symbol" w:char="263A"/>') + t('SYM5B')),
+  testCase(20, 'a run hidden through its character style (Check48Hidden, w:vanish)',
+    t('HIDSA') + run('<w:t>STYLEHIDDEN</w:t>', '<w:rStyle w:val="Check48Hidden"/>') + t('HIDSB')),
+];
+const hiddenStyle = '<w:style w:type="character" w:customStyle="1" w:styleId="Check48Hidden"><w:name w:val="Check48Hidden"/>'
+  + '<w:rPr><w:vanish/></w:rPr></w:style>';
 
 const sectPr = '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>';
-const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document${ROOT_NS}><w:body>${body}${sectPr}</w:body></w:document>`;
+const documentOf = (name, extra) => {
+  const body = [para(t(`${name}. Each case is one paragraph: two upper-case markers with the item between them.`)), ...cases, ...extra,
+    para('<w:bookmarkStart w:id="480" w:name="check48end"/>' + t(`End of ${name.toLowerCase()}.`) + '<w:bookmarkEnd w:id="480"/>')];
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document${ROOT_NS}><w:body>${body.join('')}${sectPr}</w:body></w:document>`;
+};
 
 /** Word writes a separator and a continuation separator first in each notes part. */
 const separators = (kind) => `<w:${kind} w:type="separator" w:id="-1">${para(run('<w:separator/>'))}</w:${kind}>`
@@ -107,28 +125,35 @@ const notes = (kind, ref, text) => `<?xml version="1.0" encoding="UTF-8" standal
 const comments = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:comments${ROOT_NS}>`
   + `<w:comment w:id="0" ${REVISION} w:initials="C48">${para(run('<w:annotationRef/>') + t('The comment of case 2.'))}</w:comment></w:comments>`;
 
-const pkg = await WordprocessingMLPackage.createPackage();
-const entries = unzipSync(await pkg.save());
-const put = (name, text) => { entries[name] = strToU8(text); };
-const edit = (name, f) => { if (!entries[name]) throw new Error(`no ${name} in the created package`); put(name, f(strFromU8(entries[name]))); };
+/** Writes one file: check 48's cases, and 48b's after them where `extra` holds them. */
+async function build(file, name, extra) {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const entries = unzipSync(await pkg.save());
+  const put = (part, text) => { entries[part] = strToU8(text); };
+  const edit = (part, f) => { if (!entries[part]) throw new Error(`no ${part} in the created package`); put(part, f(strFromU8(entries[part]))); };
 
-put('word/document.xml', document);
-put('word/footnotes.xml', notes('footnote', 'footnoteRef', 'The footnote of case 1.'));
-put('word/endnotes.xml', notes('endnote', 'endnoteRef', 'The endnote of case 1.'));
-put('word/comments.xml', comments);
-entries['word/media/check48.png'] = new Uint8Array(Buffer.from(pngOf(48, 24, [0, 160, 80]), 'base64'));
-edit('word/_rels/document.xml.rels', (xml) => xml.replace('</Relationships>',
-  `<Relationship Id="rIdCheck48Footnotes" Type="${REL}/footnotes" Target="footnotes.xml"/>`
-  + `<Relationship Id="rIdCheck48Endnotes" Type="${REL}/endnotes" Target="endnotes.xml"/>`
-  + `<Relationship Id="rIdCheck48Comments" Type="${REL}/comments" Target="comments.xml"/>`
-  + `<Relationship Id="rIdCheck48Image" Type="${REL}/image" Target="media/check48.png"/></Relationships>`));
-edit('[Content_Types].xml', (xml) => xml.replace('</Types>',
-  (xml.includes('Extension="png"') ? '' : '<Default Extension="png" ContentType="image/png"/>')
-  + `<Override PartName="/word/footnotes.xml" ContentType="${CT}.footnotes+xml"/>`
-  + `<Override PartName="/word/endnotes.xml" ContentType="${CT}.endnotes+xml"/>`
-  + `<Override PartName="/word/comments.xml" ContentType="${CT}.comments+xml"/></Types>`));
+  put('word/document.xml', documentOf(name, extra));
+  if (extra.length > 0) edit('word/styles.xml', (xml) => xml.replace('</w:styles>', `${hiddenStyle}</w:styles>`));
+  put('word/footnotes.xml', notes('footnote', 'footnoteRef', 'The footnote of case 1.'));
+  put('word/endnotes.xml', notes('endnote', 'endnoteRef', 'The endnote of case 1.'));
+  put('word/comments.xml', comments);
+  entries['word/media/check48.png'] = new Uint8Array(Buffer.from(pngOf(48, 24, [0, 160, 80]), 'base64'));
+  edit('word/_rels/document.xml.rels', (xml) => xml.replace('</Relationships>',
+    `<Relationship Id="rIdCheck48Footnotes" Type="${REL}/footnotes" Target="footnotes.xml"/>`
+    + `<Relationship Id="rIdCheck48Endnotes" Type="${REL}/endnotes" Target="endnotes.xml"/>`
+    + `<Relationship Id="rIdCheck48Comments" Type="${REL}/comments" Target="comments.xml"/>`
+    + `<Relationship Id="rIdCheck48Image" Type="${REL}/image" Target="media/check48.png"/></Relationships>`));
+  edit('[Content_Types].xml', (xml) => xml.replace('</Types>',
+    (xml.includes('Extension="png"') ? '' : '<Default Extension="png" ContentType="image/png"/>')
+    + `<Override PartName="/word/footnotes.xml" ContentType="${CT}.footnotes+xml"/>`
+    + `<Override PartName="/word/endnotes.xml" ContentType="${CT}.endnotes+xml"/>`
+    + `<Override PartName="/word/comments.xml" ContentType="${CT}.comments+xml"/></Types>`));
 
-const bytes = zipSync(entries);
-await WordprocessingMLPackage.load(bytes);   // it loads here, at least
-await writeFile(join(here, '48-text.docx'), bytes);
-console.log(`wrote 48-text.docx (${bytes.length} bytes)`);
+  const bytes = zipSync(entries);
+  await WordprocessingMLPackage.load(bytes);   // it loads here, at least
+  await writeFile(join(here, file), bytes);
+  console.log(`wrote ${file} (${bytes.length} bytes)`);
+}
+
+await build('48-text.docx', 'Check 48', []);
+await build('48b-text.docx', 'Check 48b', cases48b);

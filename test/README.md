@@ -3450,6 +3450,142 @@ async function check() {
 }
 ```
 
+48b. Whether Office JS's text depends on Word's view (CR-012 section 6.2, question 2, 2026-10-21; Jason:
+   "proceed as suggested"). Check 48 found hidden text left out of `paragraph.text` and deleted text
+   kept, but not which view Word was in. This package has no view, so phase 4 needs one rule. The file
+   is `__tmp/48/48b-text.docx` on the share, check 48's file with two cases more, written by the same
+   `fixtures/check48/build.mjs` (and not committed, for check 48's reason):
+   - **19** symbols in other fonts, between `SYM2A`/`SYM2B` to `SYM5A`/`SYM5B`: a Wingdings check mark
+     (F0FC), Symbol's alpha (F061) and plus-minus (F0B1), and Segoe UI Symbol's U+263A. Check 48's
+     Wingdings F04A read as `(`, not its low byte `J`; these say whether Word writes `(` for every
+     symbol (the editor's question).
+   - **20** `HIDSA`, a run hidden through its character style (`Check48Hidden`, `w:vanish`),
+     `STYLEHIDDEN`, `HIDSB`: whether the style's `w:vanish` counts as a run's own does.
+   - Each run reads every paragraph's `text` with `getReviewedText('Current')` and
+     `getReviewedText('Original')` (WordApi 1.4, the editor's suggestion), and searches for the hidden
+     and deleted words and across them.
+   - **Steps, in Word 365 only.** Open `__tmp/48/48b-text.docx`, and say whether Word reports a problem
+     or offers a repair. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code >
+     New snippet) and paste the HTML and Script tabs of the snippet for 48b below over the defaults
+     (both are also on the share, `__tmp/48/check48b-script-lab.html` and `check48b-script-lab.js`).
+     Then run it five times, in five views. Each run adds its JSON to the box, so copy the box back
+     once, after the fifth:
+     1. **A, Word's defaults.** File > Options > Display: **Hidden text** unticked. Home > Show/Hide ¶
+        off. Review > Display for Review (the list in the Tracking group): **Simple Markup**. Type
+        `A simple markup, hidden not shown` in the snippet's box and click **Run the check**.
+     2. **B, hidden text shown.** File > Options > Display: tick **Hidden text**, then OK. Type
+        `B simple markup, hidden shown` and click **Run the check**. Then untick **Hidden text** again.
+     3. **C.** Review > Display for Review: **All Markup**. Type `C all markup` and run.
+     4. **D.** Review > Display for Review: **No Markup**. Type `D no markup` and run.
+     5. **E.** Review > Display for Review: **Original**. Type `E original` and run.
+
+     Copy the whole box back, set Display for Review to Simple Markup again, and close without saving.
+     Nothing is edited.
+   - **What this package gives**, on the same file: case 19 `SYM2A\uf0fcSYM2B SYM3A\uf061SYM3B
+     SYM4A\uf0b1SYM4B SYM5A\u263aSYM5B` (each symbol's code point); case 20 `HIDSASTYLEHIDDENHIDSB`
+     (kept, as case 10's direct `w:vanish`); and the rest as check 48.
+   - **Run 2026-10-21 (Jason; Word 365, 16.0.20326.20232; Script Lab), on check 48's file.** The five
+     runs were made on `48-text.docx`, not `48b-text.docx` (23 paragraphs, its first `Check 48.`), with
+     the views as headings in the copied text and each run's `label` empty. So cases 19 and 20 are
+     still to run. The views are what this check is for, and cases 10 and 11 are in both files. The
+     result is `fixtures/check48/48-text-views-word365.txt`, five JSON objects in order A to E.
+     - **`paragraph.text` never holds hidden text.** Case 10 reads `HIDAHIDB` in all five, hidden text
+       shown (B) or not.
+     - **`paragraph.text` follows Display for Review**, and only case 11 changes with it:
+       - Simple Markup (A, B) and No Markup (D): `REVAINSERTEDTEXTREVB`, the accepted text;
+       - All Markup (C): `REVADELETEDTEXTINSERTEDTEXTREVB`, both;
+       - Original (E): `REVADELETEDTEXTREVB`, the original text.
+
+       Check 48's run reads as C, so it was made in All Markup.
+     - **`search` follows the display:**
+       - the hidden word is found only with hidden text shown (B, as in check 48's run), its hit `""`;
+         otherwise `HIDAHIDB` matches across it;
+       - the deleted word is found in All Markup and Original;
+       - the inserted word is found in all but Original.
+     - **`getReviewedText('Current')` and `('Original')` don't depend on the view.** They are the
+       accepted and the original text, each ending with `\r`. They are Word's raw stream:
+       - hidden text kept (`HIDAHIDDENTEXTHIDB`);
+       - a field as U+0013, its code, U+0014, its result, U+0015
+         (`FLDA \u0013 QUOTE "CODETWELVE" \u0014RESULTTWELVE\u0015 FLDB`), a `w:fldSimple` alike;
+       - the hyperlink as its field, `\u0013HYPERLINK \l "check48end" \h\u0001\u0014LINKTEXT\u0015`;
+       - the content control as `<SDTTEXT>`;
+       - the picture as `/`.
+
+       Every other paragraph reads the same through them as through `text`.
+     - So Office JS's `text` is the text Word displays for the markup shown, never hidden text, and
+       `search` matches what is displayed. CR-012 section 6.2 has the rule this package takes.
+   - **Take 2, the same day, on `48b-text.docx`, in Word's defaults (A).** The result is
+     `fixtures/check48/48b-text-word365.json`. Every paragraph the two files share reads as in the first
+     run's A, through `text` and both `getReviewedText`s.
+     - **Case 19: every `w:sym` reads `(`**: `SYM2A(SYM2B SYM3A(SYM3B SYM4A(SYM4B SYM5A(SYM5B`, the
+       Wingdings check mark, Symbol's alpha and plus-minus, and Segoe UI Symbol's U+263A alike, through
+       `getReviewedText` too. So Word writes one constant character for a symbol, whatever its font or
+       code, as for check 48's F04A.
+     - **Case 20: a run hidden through its character style is left out** of `text` (`HIDSAHIDSB`), as a
+       run's own `w:vanish` is; `search` matches across it and doesn't find its word; both
+       `getReviewedText`s keep it. So the style's `w:vanish` counts, as the effective value.
+
+
+   The Script Lab snippet for 48b (Word, Office JS, WordApi 1.4), on `__tmp/48/48b-text.docx`. The HTML tab:
+
+```html
+<p>View: <input id="label" size="40" placeholder="A simple markup, hidden not shown"></p>
+<button id="run">Run the check</button>
+<p>Copy all of this back after the last run:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value += '\n' + String(e.stack || e); }));
+
+// every character outside printable ASCII as \uXXXX, so a control character shows
+const vis = (s) => s.replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+
+const QUERIES = ['HIDDENTEXT', 'HIDAHIDB', 'HIDAHIDDENTEXTHIDB', 'STYLEHIDDEN', 'HIDSAHIDSB', 'HIDSASTYLEHIDDENHIDSB',
+  'DELETEDTEXT', 'INSERTEDTEXT', 'REVAREVB', 'REVAINSERTEDTEXTREVB', 'REVADELETEDTEXTREVB', 'REVADELETEDTEXTINSERTEDTEXTREVB'];
+
+async function check() {
+  const label = document.getElementById('label').value;
+  await Word.run(async (context) => {
+    const paragraphs = context.document.body.paragraphs;
+    paragraphs.load('items/text');
+    await context.sync();
+    const report = { label, host: Office.context.diagnostics, paragraphs: [], searches: {} };
+    let current = [];
+    let original = [];
+    try {
+      current = paragraphs.items.map((p) => p.getReviewedText('Current'));
+      original = paragraphs.items.map((p) => p.getReviewedText('Original'));
+      await context.sync();
+    } catch (e) {
+      report.reviewedTextError = 'error: ' + (e.code || e.message);
+      current = [];
+      original = [];
+    }
+    report.paragraphs = paragraphs.items.map((p, i) => ({
+      text: vis(p.text),
+      current: current[i] ? vis(current[i].value) : null,
+      original: original[i] ? vis(original[i].value) : null,
+    }));
+    // one query per sync, so that a query Office JS refuses fails alone
+    for (const q of QUERIES) {
+      try {
+        const hits = context.document.body.search(q, { matchCase: true });
+        hits.load('items/text');
+        await context.sync();
+        report.searches[q] = hits.items.map((h) => vis(h.text));
+      } catch (e) {
+        report.searches[q] = 'error: ' + (e.code || e.message);
+      }
+    }
+    out.value += (out.value === '' ? '' : '\n') + JSON.stringify(report, null, 1);
+  });
+}
+```
+
 49. What Office JS reads over a kept `mc:AlternateContent`'s branch (CR-012 section 12, 2026-10-20).
    Under CR-012's D2 the Office JS readers keep Office JS's text, so the editor's ED-009 rule (read a
    run-level element as its selected branch's items, a paragraph-level one as its runs, and edit in
