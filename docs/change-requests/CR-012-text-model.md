@@ -238,12 +238,15 @@ or comments part, and `Texts.of(pkg, content, options?, context?)`, for a conten
   - Math compares by its own rule, so the equation CR-010 section 9.2 recorded (an OMML Choice
     against its linear Fallback) is no longer a false positive.
   - Load's warning stays as it is.
-- **The understood set** is published as `UNDERSTOOD_NAMESPACES` (REQ-306). A test asserts it
-  against docx4j's list.
-  - It equals the list's first 107 URIs today.
-  - Phase 0 measures, over the corpus, whether any `mc:Choice` requires one of the other 11. If none
-    does, the 11 are documented as the difference.
-  - If one does, adding it goes through CLAUDE.md's round-trip test first.
+- **The understood set** is published as `UNDERSTOOD_NAMESPACES` (REQ-306). Since CR-010 section 15
+  the readers also count `READ_ONLY_UNDERSTOOD_NAMESPACES`, and the walk takes `selectedBranchOf`'s
+  branch, so the extractor's set is the two together. A test asserts it against docx4j's list.
+  - It equals 111 of the list's 118 URIs: the first 107, then lines 109 to 112 (`w16sdtdh`, `w16du`,
+    `w16sdtfl` and `x14ac`), which Word 365 understands.
+  - Phase 0 measures, over the corpus, whether any `mc:Choice` requires one of the other 7. If none
+    does, the 7 are documented as the difference.
+  - If one does, adding it to the readers needs a Word check. Adding it to load goes through
+    CLAUDE.md's round-trip test first.
   - REQ-303's prefix table is documented as this package's matching.
 
 ### 4.2 What the existing readers do (D2 and D3)

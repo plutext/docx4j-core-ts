@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, TableContextTracker, NAMESPACE_PREFIXES, UNDERSTOOD_NAMESPACES,
-  UNDERSTOOD_PREFIXES, selectedBranchOf, deepCopy,
+  UNDERSTOOD_PREFIXES, READ_ONLY_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_PREFIXES, selectedBranchOf, deepCopy,
 } from '../dist/index.mjs';
 import { mcBranchOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { fixture } from './helpers.mjs';
@@ -52,15 +52,23 @@ async function load(name, kept) {
   return { pkg, body: await pkg.getBody() };
 }
 
-test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; selectedBranchOf reads the branch load resolves to', () => {
+// CR-010 section 15: the readers also count four namespaces load leaves alone, which Word 365
+// understands (measured 2026-10-20) and docx4j's published understood list has.
+const READ_ONLY = { w16sdtdh: 'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash', w16sdtfl: 'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock', w16du: 'http://schemas.microsoft.com/office/word/2023/wordml/word16du', x14ac: 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac' };
+
+test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; selectedBranchOf reads that branch, or a Choice requiring one of the four read-only namespaces', () => {
   const byUri = new Map([...UNDERSTOOD_NAMESPACES].filter((uri) => NAMESPACE_PREFIXES[uri]).map((uri) => [uri, NAMESPACE_PREFIXES[uri]]));
   assert.deepEqual([...UNDERSTOOD_PREFIXES].sort(), [...new Set(byUri.values())].sort());
   for (const prefix of ['w', 'wps', 'wp14', 'w14', 'cx1', 'cx2', 'a14']) assert.ok(UNDERSTOOD_PREFIXES.has(prefix), prefix);
-  // conventional prefixes the objects package knows and load does not understand (CR-010 section 11.5)
-  for (const prefix of ['w16du', 'x14ac', 'cx3']) {
-    assert.ok(Object.values(NAMESPACE_PREFIXES).includes(prefix), `${prefix} is conventional`);
-    assert.ok(!UNDERSTOOD_PREFIXES.has(prefix), `${prefix} is not understood`);
+  // the read-only four: conventional, not understood by load, understood by the readers
+  assert.deepEqual([...READ_ONLY_UNDERSTOOD_NAMESPACES].sort(), Object.values(READ_ONLY).sort());
+  for (const [prefix, uri] of Object.entries(READ_ONLY)) {
+    assert.equal(NAMESPACE_PREFIXES[uri], prefix, `${prefix} is conventional`);
+    assert.ok(!UNDERSTOOD_NAMESPACES.has(uri) && !UNDERSTOOD_PREFIXES.has(prefix), `${prefix} is not understood by load`);
   }
+  assert.deepEqual([...READ_UNDERSTOOD_PREFIXES].sort(), [...UNDERSTOOD_PREFIXES, ...Object.keys(READ_ONLY)].sort());
+  // a conventional prefix neither understands (CR-010 section 11.5)
+  assert.ok(Object.values(NAMESPACE_PREFIXES).includes('cx3') && !READ_UNDERSTOOD_PREFIXES.has('cx3'));
   const choiceItems = [];
   const fallbackItems = [];
   const element = (requires) => ({
@@ -69,9 +77,22 @@ test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; select
     fallback: { TYPE_NAME: `${AC}.Fallback`, any: fallbackItems },
   });
   assert.equal(selectedBranchOf(element('wps')), choiceItems);
-  assert.equal(selectedBranchOf(element('w16du')), fallbackItems, 'load takes the Fallback here');
-  assert.equal(mcBranchOf(element('w16du')), choiceItems, "mcBranchOf's own default would take the Choice");
-  assert.equal(selectedBranchOf(element('wps w16du')), fallbackItems);
+  for (const prefix of Object.keys(READ_ONLY)) {
+    assert.equal(selectedBranchOf(element(prefix)), choiceItems, `${prefix}: the Choice, as Word takes it`);
+    assert.equal(selectedBranchOf(element(`wps ${prefix}`)), choiceItems);
+  }
+  assert.equal(selectedBranchOf(element('cx3')), fallbackItems, 'not understood: the Fallback');
+  assert.equal(mcBranchOf(element('cx3')), choiceItems, "mcBranchOf's own default would take the Choice");
+  assert.equal(selectedBranchOf(element('wps cx3')), fallbackItems);
+  // the ten Choices of Jason's probe (w14 to wp14), with each of the four put first: the editor's
+  // mc-branches.docx cases 7, 9 and 10, and x14ac
+  const tenChoices = (first) => {
+    const order = ['w14', 'w15', 'w16se', 'w16cid', 'w16', 'w16cex', 'w16sdtdh', 'w16sdtfl', 'w16du', 'wp14'];
+    const prefixes = [first, ...order.filter((p) => p !== first)];
+    return { TYPE_NAME: AC, choice: prefixes.map((requires) => ({ TYPE_NAME: `${AC}.Choice`, requires, any: [requires] })), fallback: { TYPE_NAME: `${AC}.Fallback`, any: ['fallback'] } };
+  };
+  assert.deepEqual(selectedBranchOf(tenChoices('w14')), ['w14']);
+  for (const first of ['w16du', 'w16sdtdh', 'w16sdtfl', 'x14ac']) assert.deepEqual(selectedBranchOf(tenChoices(first)), [first], `${first} first`);
   assert.equal(selectedBranchOf({ TYPE_NAME: AC }), undefined);
 });
 
@@ -165,10 +186,19 @@ test('a picture in the selected branch is listed once, from that branch; deletin
     assert.equal(pictures[0].holder?.value.TYPE_NAME, kept ? AC : undefined);
   }
   // with the Choice's prefix not understood, load takes the Fallback, and a kept load reads it too
-  const fallback = await pictureInBranch('w16du');
+  const fallback = await pictureInBranch('cx3');
   for (const kept of [false, true]) {
     const pictures = (await (await WordprocessingMLPackage.load(fallback, kept ? KEPT : RESOLVED)).getBody()).inlinePictures;
     assert.deepEqual(pictures.map((p) => p.altTextDescription), ['the Fallback'], kept ? 'kept' : 'resolved');
+  }
+  // a Choice requiring one of the four read-only namespaces (CR-010 section 15): a kept load reads the
+  // Choice, as Word does, and a resolved load, which leaves them alone, the Fallback
+  for (const prefix of Object.keys(READ_ONLY)) {
+    const readOnly = await pictureInBranch(prefix);
+    for (const kept of [false, true]) {
+      const pictures = (await (await WordprocessingMLPackage.load(readOnly, kept ? KEPT : RESOLVED)).getBody()).inlinePictures;
+      assert.deepEqual(pictures.map((p) => p.altTextDescription), [kept ? '' : 'the Fallback'], `${prefix}, ${kept ? 'kept' : 'resolved'}`);
+    }
   }
 
   // deleted outright: the element goes whole, and on save the image with it

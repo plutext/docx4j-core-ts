@@ -19,7 +19,8 @@ package requires since the same day. Section 15
 and `x14ac` as understood by their `Requires` alone. All four are on docx4j's published list, and
 Word 365 understands all four (measured 2026-10-20). Taken as the editor asked and rewritten to that simpler
 rule the same day (Jason: "do as the editor asks re Q1, Q2"; "yes, rewrite section 15 to the simpler
-rule"; "yes to 1, 2, and 3"); proposed, not scheduled. The policy is docx4j's CR-021 (done
+rule"; "yes to 1, 2, and 3"). Implemented 2026-10-20 at Jason's request ("do section 15"; section
+15.6), not released. The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why
@@ -1375,7 +1376,7 @@ No WordprocessingML element is DOM.
 as the editor asked (Jason: "do as the editor asks re Q1, Q2"). Rewritten the same day to the simpler
 rule below (Jason: "yes, rewrite section 15 to the simpler rule"). The first version also required
 the Choice's content to be in namespaces the model binds. `x14ac` was added after the Word 365 check
-(Jason, 2026-10-20: "yes to 1, 2, and 3", 1 being `x14ac`). Not scheduled.
+(Jason, 2026-10-20: "yes to 1, 2, and 3", 1 being `x14ac`). Implemented the same day (section 15.6).
 
 ### 15.1 What the editor measured
 
@@ -1442,6 +1443,10 @@ For the branch the readers take (`selectedBranchOf`), a Choice is understood whe
   only.
 - **In the corpus, nothing.** No `Requires` among its 834 elements names one of the four (section
   14.9's count). So no fixture, no kept-and-resolved agreement test and no parity golden changes.
+  - Since then, docx4j's working tree has gained 30 untracked probes of Jason's
+    (`docx4j-core-tests/src/test/resources/mc-fun/`, 2026-10-20). In 11 of their elements the first
+    Choice requires `w16sdtfl`, and `w16du` and `w16sdtdh` each appear in 11. They aren't in this
+    repository, and section 15.6 measures them against Word's saves.
 - **The parity harness.** Its `preferChoice` (section 11.5) is refreshed when CR-011's phase 0
   regenerates the goldens. No fixture needs it before then.
 - **`textOf`** is unaffected. `mcBranchOf`'s default set, which it uses, takes all four already.
@@ -1459,3 +1464,49 @@ For the branch the readers take (`selectedBranchOf`), a Choice is understood whe
   - the readers' set beside `UNDERSTOOD_PREFIXES`, and `selectedBranchOf` over it;
   - a test over cases 3, 4, 6, 7, 9 and 10, kept and resolved;
   - the documentation.
+
+### 15.6 Implemented (2026-10-20)
+
+Jason, 2026-10-20: "do section 15".
+
+- **`READ_ONLY_UNDERSTOOD_NAMESPACES`** (`./opc`, `src/opc/mce/understood.mts`) holds the four URIs.
+  **`READ_UNDERSTOOD_PREFIXES`** is `UNDERSTOOD_PREFIXES` with their conventional prefixes, 104 in all.
+  `selectedBranchOf` passes it to `mcBranchOf`, where it passed `UNDERSTOOD_PREFIXES`.
+- **Every reader follows**, since each takes `selectedBranchOf`'s branch:
+  - `inlinePictures` and `picturesIn`;
+  - the list walk under `listLabels` and `listString`;
+  - `TableContextTracker.walk`;
+  - the resolve-all verbs' count of a text box's changes.
+- **Load is unchanged.** The preprocessor, `mceKeep`'s warning and `UNDERSTOOD_PREFIXES` still use
+  `UNDERSTOOD_NAMESPACES`.
+- **Measured.**
+  - **Against Word.** Thirteen of the `mc-fun` probes come with Jason's Word 365 save, in which Word
+    has resolved every element it could. For each probe, every `w:t` was read in document order,
+    entering at each kept element only the branch a chooser takes, and compared with Word's save:
+    - with `UNDERSTOOD_PREFIXES`, the old choice, 5 of the 13 read as Word's save;
+    - with `READ_UNDERSTOOD_PREFIXES`, all 13 do.
+
+    The 8 the new set gains put a `w16sdtfl` Choice first. They are the block, cell, row, content
+    control (block, cell, row and run) and in-cell shapes, and the element with no Fallback. One
+    probe, `mc-mixed.docx`, agrees only once run boundaries are ignored: Word's save joins two runs
+    into one `w:t`.
+  - `acceptAllRevisions` and `rejectAllRevisions` give the same trees and counts as before on
+    CR-002 section 53's 488 files. On the 518 there are now, the 30 probes among them, they give the
+    same under the old choice and the new.
+  - The parity tests, whose walks take `selectedBranchOf`, pass unchanged. No fixture has a Choice
+    requiring one of the four (section 15.4).
+- **Tests.** `kept-branches.test.mjs`:
+  - the four are conventional prefixes that load doesn't understand and the readers do;
+  - `READ_UNDERSTOOD_PREFIXES` is exactly `UNDERSTOOD_PREFIXES` and their four prefixes;
+  - `selectedBranchOf` takes a Choice requiring each of them, alone and beside `wps`, and the
+    Fallback for `cx3`, which neither set understands;
+  - over Jason's ten Choices it takes `w14` first, and each of the four when put first: the editor's
+    cases 7, 9 and 10, and `x14ac`;
+  - a picture in a Choice requiring each of the four is read from the Choice in a kept load, as Word
+    does, and from the Fallback in a resolved load.
+
+  With `selectedBranchOf` on `UNDERSTOOD_PREFIXES` again, two of the tests fail. The suite passes and
+  so does typecheck.
+- **Still Word's difference, until CR-012 section 12.** A run-level element reads as no text. So the
+  editor's cases 3, 4, 7, 9 and 10 now select Word's branch, but read as Word's only once a run-level
+  element's branch is read.

@@ -142,15 +142,39 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
 ]);
 
+const prefixesOf = (namespaces: Iterable<string>): string[] =>
+  [...namespaces].map((uri) => NAMESPACE_PREFIXES[uri]).filter((prefix): prefix is string => prefix !== undefined && prefix !== '');
+
 /**
- * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), which is what a reader of a
- * kept mc:AlternateContent matches `mc:Choice/@Requires` against (CR-010 section 11.5): the unmarshalled
- * model does not keep the declarations in force at the element, so the objects package's `mcBranchOf`
- * compares prefixes, and its default set, every prefix `NAMESPACE_PREFIXES` knows, is wider than what
- * load understands. Through this set a reader takes the branch the preprocessor would have resolved to,
- * wherever the document writes the conventional prefixes. An understood namespace with no conventional
+ * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), the preprocessor's choice
+ * expressed as prefixes (CR-010 section 11.5): the unmarshalled model does not keep the declarations in
+ * force at the element, so the objects package's `mcBranchOf` compares prefixes, and its default set,
+ * every prefix `NAMESPACE_PREFIXES` knows, is wider than what load understands. The readers match
+ * against `READ_UNDERSTOOD_PREFIXES`, this and four more. An understood namespace with no conventional
  * prefix has no entry.
  */
-export const UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set(
-  [...UNDERSTOOD_NAMESPACES].map((uri) => NAMESPACE_PREFIXES[uri]).filter((prefix): prefix is string => prefix !== undefined && prefix !== ''),
-);
+export const UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set(prefixesOf(UNDERSTOOD_NAMESPACES));
+
+/**
+ * The namespaces a reader of a kept mc:AlternateContent counts as understood beyond `UNDERSTOOD_NAMESPACES`
+ * (CR-010 section 15): Word 365 takes a Choice requiring any of them (measured 2026-10-20), and docx4j's
+ * published understood list (`understood-namespaces.txt`) has all four, among the 11 its JAXB contexts
+ * bind and no generated module here does. For reading only: resolving (`mcePreprocess: true`) turns the
+ * Choice it takes into typed content, and anything of these namespaces inside it would be lost on a
+ * re-marshal, so load keeps `UNDERSTOOD_NAMESPACES`. A kept load saves every branch as loaded, so what a
+ * reader takes cannot cost content.
+ */
+export const READ_ONLY_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
+  'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',     // w16sdtdh
+  'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock',   // w16sdtfl
+  'http://schemas.microsoft.com/office/word/2023/wordml/word16du',        // w16du
+  'http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac',          // x14ac
+]);
+
+/**
+ * What a reader of a kept mc:AlternateContent matches `mc:Choice/@Requires` against (`selectedBranchOf`,
+ * docx4j's `McMode.READ`): `UNDERSTOOD_PREFIXES` and the conventional prefixes of
+ * `READ_ONLY_UNDERSTOOD_NAMESPACES`. A Choice requiring only these is taken by the gate alone, as REQ-302
+ * of the text extraction specification reads, whatever its content (CR-010 section 15).
+ */
+export const READ_UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set([...UNDERSTOOD_PREFIXES, ...prefixesOf(READ_ONLY_UNDERSTOOD_NAMESPACES)]);

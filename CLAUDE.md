@@ -119,8 +119,9 @@ Key mechanics:
   part stays untouched).
 - **`mc:AlternateContent` is kept on load** with every branch, as docx4j keeps it, since CR-010
   phase 4 (`mcePreprocess` defaults to false). Readers take `selectedBranchOf`'s branch (`mcBranchOf`
-  over `UNDERSTOOD_PREFIXES`: the first `mc:Choice` whose `Requires` prefixes are all in
-  `UNDERSTOOD_NAMESPACES`, else `mc:Fallback`), mutators every branch, a run's element is one object
+  over `READ_UNDERSTOOD_PREFIXES`: the first `mc:Choice` whose `Requires` prefixes are all in
+  `UNDERSTOOD_NAMESPACES` or in `READ_ONLY_UNDERSTOOD_NAMESPACES`, the four Word 365 understands that
+  load leaves alone, CR-010 section 15; else `mc:Fallback`), mutators every branch, a run's element is one object
   segment, and a save writes every branch. The default pass (`mceKeep`) changes nothing and reports
   `mce.branches_differ` on `XmlPart.warnings` where the branches' text differs (`OpcPackage.warnings`
   gathers them). `mcePreprocess: true` resolves on the DOM before unmarshalling instead, as Word does
