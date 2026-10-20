@@ -9,7 +9,8 @@ takes over CR-010's text-box view (D8), the U+0002 rule (section 12.6) and the r
 its asks are in section 4.4. Section 12 (2026-10-20) takes the editor's ED-009 rule for run content
 in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason: "do as the editor
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
-paragraph-level element's text land outside it.
+paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
+(section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released.
 
 ## 1. Why
 
@@ -638,3 +639,36 @@ case by case.
   engine error to a refusal with a reason, where today a silent no-op reports success. Jason's call.
 - **Size.** Phase 4 grows by 1½ to 2½ days: the run reader under item 1 (shared with D6), items
   2 and 3, and the tests over the editor's eight cases.
+
+### 12.4 Until then: an edit the runs can't place throws (implemented 2026-10-20)
+
+Jason, 2026-10-20, asked whether to fix the defect now: "yes to all 3 questions". Of section 12.3's
+two smaller fixes, this is the error, the one the editor asked for first. Making the branch editable
+now would take items 2 to 4 with it: a deletion emptying the branch, tracked changes inside it, the
+run listings. Those are phase 4.
+
+- **The rule.** `Paragraph.splitAt`, `splice` and `insertItemsAt` compare `Paragraph.text` with the
+  segments' text. Where the two differ, they refuse an offset past the first difference, and an
+  insertion at it, with `NotSupportedError` (`Word.ErrorCodes.notImplemented`), naming CR-012
+  section 12. Every text edit goes through one of the three: `insertText`, `delete`, `replaceText`,
+  `Range.font` writes, `insertOoxml`, content controls, hyperlinks and comments. Each refuses before
+  it changes anything. A tracked `insertInlinePictureFromBase64(..., 'Replace')` checks before it adds
+  its image part, which it otherwise does before its `splice`. A break or a picture at the paragraph's
+  `Start` or `End` goes to the ends of its content, so it is placed right and not refused.
+- **What still works.** An edit before the element. `Paragraph.text = value` with change tracking
+  off, which replaces the whole content, every branch with it, as item 4 says. Every edit in a
+  resolved load.
+- **Where it applies.** Over the corpus's 14,236 body paragraphs (486 of its 490 `.docx` files load),
+  `Paragraph.text` and the segments differ in 9. All 9 are in docx4j's text-extraction probes, and
+  all are this shape. So no edit in a Word-written file is newly refused.
+- **One consequence.** `Body.replaceText` works paragraph by paragraph, so a refusal in a later
+  paragraph leaves the earlier paragraphs' replacements made.
+- **Measured.** On the editor's case 8, kept: replace, insert at a range's start, delete, italic and
+  `insertText('!', 'End')` each throw. Resolved, each edits as it says. `acceptAllRevisions` and
+  `rejectAllRevisions` give the same trees and counts as before on the 488 files of CR-002 section 53.
+- **Tests.** `kept-branches.test.mjs`: seven edits past the element each throw and leave the part
+  unchanged, and so do a tracked replace and a tracked picture Replace, which adds no part. Edits
+  before it work and keep every branch, the same seven edit the resolved paragraph exactly, and an
+  edit beside a run-level element works. With the picture's check after `addImage`, the test fails
+  ("no part added"). Against `8d90308` it fails ("Missing
+  expected exception: replace"). The suite passes (878) and so does typecheck.

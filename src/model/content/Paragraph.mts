@@ -3,6 +3,7 @@ import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { CellContext } from '../properties/table.mjs';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
 import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
@@ -363,8 +364,10 @@ export class Paragraph {
   insertInlinePictureFromBase64(base64: string, location: 'Start' | 'End' | 'Replace', options?: InlinePictureOptions): InlinePicture {
     const part = this.parentBody.part;
     if (!part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
-    const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
     const tracker = this.changeTracker;
+    // refused before the image part is added, not after (CR-012 section 12.4)
+    if (location === 'Replace' && tracker) this.assertPlaceable(this.text.length, false);
+    const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
     // under tracking the picture is an insertion, and what it replaces is deleted as insertText's is
     if (location === 'Replace' && tracker) this.splice(0, this.text.length, '', 'before', WHOLE);
     const content = (this.p.content ??= []) as Element[];
@@ -620,6 +623,7 @@ export class Paragraph {
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
+    this.assertPlaceable(end, text.length > 0 && end === start);
     const tracker = this.changeTracker;
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
@@ -719,6 +723,7 @@ export class Paragraph {
    */
   insertItemsAt(offset: number, items: Element[]): void {
     if (items.length === 0) return;
+    this.assertPlaceable(offset, true);
     const tracker = this.changeTracker;
     if (tracker) {
       // With tracking on, what goes in is an insertion: its runs in w:ins, in a link, a control or a
@@ -747,6 +752,7 @@ export class Paragraph {
 
   /** Splits the run at a text offset so that [offset, ...) begins a run; returns nothing when the offset is already a boundary. */
   splitAt(offset: number): void {
+    this.assertPlaceable(offset, false);
     const seg = this.segments().find((s) => s.editable && s.start < offset && offset < s.end);
     if (!seg) return;
     const at = offset - seg.start;
@@ -1118,6 +1124,29 @@ export class Paragraph {
       if (!split) return inside;
     }
     return this.segments({ objects: true }).filter(inSpan);
+  }
+
+  /**
+   * Refuses an edit at an offset the segments can't place (CR-012 section 12.1). `text` is the objects
+   * package's `textOf`, which reads the selected branch of a kept `mc:AlternateContent` standing among
+   * the paragraph's runs rather than in one; the segments, which every edit works on, don't list such
+   * an element (CR-010 section 13.1). From the first character where the two differ, an offset names no
+   * place in the runs: an insertion landed after the element, a replacement left the text it replaced,
+   * and a deletion or a format did nothing, each without an error. Until CR-012 section 12's rule reads
+   * and edits the branch, an edit there throws. An offset at the first difference is a boundary the
+   * runs agree on, but an insertion there is refused too (`atBoundary`): to the segments, the element's
+   * start and the text after it are the same offset. In the corpus only docx4j's hand-built
+   * text-extraction probes have the shape; Word writes none.
+   */
+  private assertPlaceable(offset: number, atBoundary: boolean): void {
+    const text = this.text;
+    const placed = this.segments().map((s) => s.text).join('');
+    if (text === placed) return;
+    let common = 0;
+    while (common < text.length && common < placed.length && text[common] === placed[common]) common++;
+    if (offset < common || (offset === common && !atBoundary)) return;
+    throw new NotSupportedError('Paragraph', 'edit', `offset ${offset} is at or past offset ${common}, where this paragraph's text runs into an mc:AlternateContent `
+      + "standing outside a run, whose selected branch's text the edits cannot reach yet (CR-012 section 12)");
   }
 
   /** Moves the items before `seg` into a run of their own, in front of `seg`'s run. */

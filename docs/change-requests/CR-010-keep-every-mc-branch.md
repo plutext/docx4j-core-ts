@@ -1316,6 +1316,16 @@ No WordprocessingML element is DOM.
     per-Choice record by the Choice's own value, so it moves with it and `deepCopy` can carry it.
     Its own suggestion, an `adoptSourceBindings(from, to)` that `ooxml.mts` would call, works too.
     Its call.
+- **Revised the same day** (objects `9cb64f0`): each Choice's record is kept on its own typed
+  object, so it moves with the Choice through `insertOoxml`, `insertXml` and a cut and paste, and
+  `deepCopy` carries it. This package calls nothing. To pair a typed Choice with its DOM element at
+  unmarshal, the runtime needs an unmarshal-side `onElement`, the counterpart of the marshal one in
+  jsonix's CR-006. **Jason chose a jsonix CR for it** (2026-10-20: "objects CR-011: the jsonix CR"),
+  not the interim wrapper on runtime internals that could have shipped as objects 0.4.3. So the fix
+  waits on a jsonix release, then an objects one. The objects session asks jsonix for it.
+  - **Cost here.** Once any record exists, a whole-document `deepCopy` costs about 60% more and a
+    marshal 5 to 8% more (the objects session's measurement). `clone()` is a save and a reload, and
+    this package deep-copies only paragraph-sized pieces, so only the marshal's share reaches it.
 - **docx4j**, read, not run: `Docx4jUnmarshallerListener` records each Choice's `Requires` as
   prefixes on the part (`JaxbXmlPart.addMcChoiceNamespace`, since 6.0.0), and the marshal declares
   them through its prefix mapper. Whether that mapper can declare a prefix its own table lacks

@@ -47,7 +47,9 @@ it) marks a part for re-marshalling. `mc:AlternateContent` is kept with every br
 keeps it: the content API reads the branch Word would (the first `mc:Choice` whose namespaces are
 understood, else the `mc:Fallback`), an edit lands in every branch, and a save writes them all
 (`{ mcePreprocess: true }` resolves the element when a part is unmarshalled instead, as Word does on
-open). Subpaths
+open). An element standing among a paragraph's runs rather than in one, a shape Word doesn't write,
+is read in `Paragraph.text` but can't be edited yet: an edit at or past it throws `NotSupportedError`
+(CR-012 section 12). Subpaths
 `@docx4j/core-ts/opc`, `/parts`, `/packages` and `/model` give the layers separately,
 `/office-js` the `Word` shim (below), `/html` HTML to WordprocessingML (a converter to an
 intermediate form and a builder from it, CR-005 section 8; the HTML parser is yours, a browser's
