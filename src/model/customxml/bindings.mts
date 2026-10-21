@@ -88,55 +88,71 @@ function placeholderRun(rPr: wml.RPr | undefined): Element {
  * `dddd, d MMMM yyyy`, `d/MM/yyyy`), in the control's `w:lid` locale. Month and day names come
  * from `Intl`; text inside single or double quotes is literal. docx4j uses Java's
  * `SimpleDateFormat` with `dddd` mapped to `EEEE`; this is the same vocabulary.
+ *
+ * The date's **UTC fields** are formatted: a bound date is its nominal date, the fields as written,
+ * which `w:fullDate` keeps with a `Z` and `DatePickerContentControl.fullDate` returns as a `Date` in
+ * UTC, so the day shown is the same whatever the machine's time zone (CR-002 section 56).
  */
 export function formatDate(pattern: string, date: Date, locale = 'en-US'): string {
   const pad = (n: number, width: number): string => String(n).padStart(width, '0');
   const name = (options: Intl.DateTimeFormatOptions): string => {
     try {
-      return new Intl.DateTimeFormat(locale, options).format(date);
+      return new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }).format(date);
     } catch {
-      return new Intl.DateTimeFormat('en-US', options).format(date);
+      return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(date);
     }
   };
-  const hours12 = date.getHours() % 12 === 0 ? 12 : date.getHours() % 12;
+  const hours = date.getUTCHours();
+  const hours12 = hours % 12 === 0 ? 12 : hours % 12;
   return pattern.replace(/d{1,4}|M{1,4}|y{2,4}|H{1,2}|h{1,2}|m{1,2}|s{1,2}|tt|'[^']*'|"[^"]*"/g, (token) => {
     if (token.startsWith("'") || token.startsWith('"')) return token.slice(1, -1);
     switch (token) {
-      case 'd': return String(date.getDate());
-      case 'dd': return pad(date.getDate(), 2);
+      case 'd': return String(date.getUTCDate());
+      case 'dd': return pad(date.getUTCDate(), 2);
       case 'ddd': return name({ weekday: 'short' });
       case 'dddd': return name({ weekday: 'long' });
-      case 'M': return String(date.getMonth() + 1);
-      case 'MM': return pad(date.getMonth() + 1, 2);
+      case 'M': return String(date.getUTCMonth() + 1);
+      case 'MM': return pad(date.getUTCMonth() + 1, 2);
       case 'MMM': return name({ month: 'short' });
       case 'MMMM': return name({ month: 'long' });
-      case 'yy': return pad(date.getFullYear() % 100, 2);
-      case 'yyy': case 'yyyy': return String(date.getFullYear());
-      case 'H': return String(date.getHours());
-      case 'HH': return pad(date.getHours(), 2);
+      case 'yy': return pad(date.getUTCFullYear() % 100, 2);
+      case 'yyy': case 'yyyy': return String(date.getUTCFullYear());
+      case 'H': return String(hours);
+      case 'HH': return pad(hours, 2);
       case 'h': return String(hours12);
       case 'hh': return pad(hours12, 2);
-      case 'm': return String(date.getMinutes());
-      case 'mm': return pad(date.getMinutes(), 2);
-      case 's': return String(date.getSeconds());
-      case 'ss': return pad(date.getSeconds(), 2);
-      case 'tt': return date.getHours() < 12 ? 'AM' : 'PM';
+      case 'm': return String(date.getUTCMinutes());
+      case 'mm': return pad(date.getUTCMinutes(), 2);
+      case 's': return String(date.getUTCSeconds());
+      case 'ss': return pad(date.getUTCSeconds(), 2);
+      case 'tt': return hours < 12 ? 'AM' : 'PM';
       default: return token;
     }
   });
 }
 
-/** Word's stored date form, `2015-01-29T00:00:00` (local, as `w:fullDate` without a zone). */
+/** Word's stored date form, `2015-01-29T00:00:00`: a nominal date's fields, with no zone (CR-002 section 56). */
 function isoOf(date: Date): string {
   const pad = (n: number): string => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`
+    + `T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
 }
 
-/** The date a bound value holds, when it is one (`2015-01-29T00:00:00`, `2015-01-29`, or with a Z). */
+/**
+ * The date a bound value holds, when it is one (`2015-01-29`, `2015-01-29T00:00:00`, with seconds' fractions,
+ * a `Z` or an offset), as its nominal date: the fields as written, in UTC, the zone marker ignored, so that
+ * `2026-10-22T00:00:00Z` and `2026-10-22T00:00:00+05:00` are 22 October in any time zone (docx4j f62314d3b's
+ * rule, as Word shows them; CR-002 section 56). A date that doesn't exist (`2026-02-30`) is not one.
+ */
 function dateOf(value: string): Date | undefined {
-  if (!/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?/.test(value)) return undefined;
-  const parsed = new Date(value.replace(/Z$/, '').replace(' ', 'T'));
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(?:Z|[+-]\d{2}:?\d{2})?$/.exec(value);
+  if (!m) return undefined;
+  const [year, month, day, hour, minute, second] = m.slice(1).map((f) => Number(f ?? 0)) as [number, number, number, number, number, number];
+  const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  // Date.UTC rolls an impossible field over (30 February is 2 March): such a value is not a date
+  const exists = date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    && date.getUTCHours() === hour && date.getUTCMinutes() === minute && date.getUTCSeconds() === second;
+  return exists ? date : undefined;
 }
 
 /**

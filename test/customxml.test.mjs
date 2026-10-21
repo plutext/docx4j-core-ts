@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, ContentControl, CustomXmlPart, CustomXmlNode,
   CustomXmlDataStoragePart, CustomXmlDataStoragePropertiesPart, canonicalXPathOf, parsePrefixMappings, formatPrefixMappings,
-  sdtProperty, DefaultXPathEngine, parseXml,
+  sdtProperty, DefaultXPathEngine, parseXml, formatDate,
 } from '../dist/index.mjs';
 import { fixture, bytesEqual } from './helpers.mjs';
 
@@ -681,4 +681,60 @@ test('content brought in by insertOoxml has its extension namespaces declared ig
   // and through a save
   const again = await WordprocessingMLPackage.load(await control.save());
   assert.equal(await ignorableOf(again), 'w15');
+});
+
+// CR-002 section 56: a bound date is its nominal date, the fields as written, whatever its zone marker and whatever
+// the machine's time zone (docx4j-25's measured rule, docx4j f62314d3b: 2026-10-22T00:00:00Z shows 22 October
+// everywhere). Node takes a new process.env.TZ at once, so each zone is tried in this process.
+test('CR-002 section 56: a bound date shows its nominal day, and w:fullDate and the reverse keep it, in any time zone', async () => {
+  const values = ['2026-10-22T00:00:00Z', '2026-10-22T00:00:00', '2026-10-22', '2026-10-22T00:00:00+05:00', '2026-10-22T00:00:00-08:00',
+    '2026-10-22T23:30:00.000Z', '2026-10-22 00:00'];
+  const saved = process.env.TZ;
+  try {
+    for (const zone of ['UTC', 'Australia/Sydney', 'America/New_York', 'Pacific/Kiritimati', 'Pacific/Pago_Pago']) {
+      process.env.TZ = zone;
+      const pkg = await WordprocessingMLPackage.createPackage();
+      const body = await pkg.getBody();
+      const controls = [];
+      for (const value of values) {
+        const control = body.insertParagraph('date', 'End').insertContentControl('DatePicker');
+        control.datePickerContentControl.dateFormat = 'dddd, d MMMM yyyy HH:mm';
+        const data = pkg.customXmlParts.add(`<root><d>${value}</d></root>`);
+        await pkg.customXmlParts.load();
+        assert.ok(control.xmlMapping.setMapping('/root[1]/d[1]', '', data), `${zone} ${value}`);
+        controls.push(control);
+      }
+      await pkg.customXmlParts.applyBindings();
+      const time = (value) => (/[T ](\d\d:\d\d)/.exec(value)?.[1] ?? '00:00');
+      assert.deepEqual(controls.map((c) => c.text), values.map((v) => `Thursday, 22 October 2026 ${time(v)}`), zone);
+      const saveXml = new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
+      assert.deepEqual([...saveXml.matchAll(/w:fullDate="([^"]*)"/g)].map((m) => m[1]),
+        values.map((v) => `2026-10-22T${time(v)}:00Z`), zone);
+      // the reverse writes Word's stored form of the same nominal date back
+      for (const c of controls) c.xmlMapping.customXmlNode.text = 'changed';
+      await pkg.customXmlParts.updateFromContentControls();
+      assert.deepEqual(controls.map((c) => c.xmlMapping.customXmlNode.text), values.map((v) => `2026-10-22T${time(v)}:00`), zone);
+      // formatDate reads a Date's UTC fields, the nominal date w:fullDate keeps
+      assert.equal(formatDate('d MMMM yyyy', controls[0].datePickerContentControl.fullDate), '22 October 2026', zone);
+    }
+  } finally {
+    if (saved === undefined) delete process.env.TZ; else process.env.TZ = saved;
+  }
+});
+
+test('CR-002 section 56: what is not a date is shown as written, and a date that does not exist is not one', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const controls = [];
+  for (const value of ['22/10/2026', '2026-02-30', '2026-10-22Tnoon', 'soon']) {
+    const control = body.insertParagraph('date', 'End').insertContentControl('DatePicker');
+    control.datePickerContentControl.dateFormat = 'd MMMM yyyy';
+    const data = pkg.customXmlParts.add(`<root><d>${value}</d></root>`);
+    await pkg.customXmlParts.load();
+    control.xmlMapping.setMapping('/root[1]/d[1]', '', data);
+    controls.push(control);
+  }
+  await pkg.customXmlParts.applyBindings();
+  assert.deepEqual(controls.map((c) => c.text), ['22/10/2026', '2026-02-30', '2026-10-22Tnoon', 'soon']);
+  assert.deepEqual(controls.map((c) => c.datePickerContentControl.fullDate), [undefined, undefined, undefined, undefined]);
 });
