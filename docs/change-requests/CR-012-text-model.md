@@ -8,7 +8,11 @@ recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR
 test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Phase 2
 implemented 2026-10-21 (Jason: "start CR-012 phase 2"), not released: the plain-text model, `Texts.of` and the
 block model in `src/model/text/`, its views a plan over the unresolved tree (`ResolvedView`), held to the
-suite's 735 rows it claims and the agreement test's 588 comparisons with no difference (section 15). Word
+suite's 735 rows it claims and the agreement test's 588 comparisons with no difference (section 15). Phase 3
+implemented 2026-10-21 (Jason: "start CR-012 phase 3"), not released: Markdown, `MarkdownExporter` with
+`blocks`, docx4j's `WmlToMarkdown` over the block model and a port of commonmark-java's renderer, so the
+Markdown is docx4j's byte for byte; 786 suite rows pass, and 1,320 of 1,420 exports over `test/` equal
+docx4j's, the rest differing only where phase 5 or REQ-303 does (section 16). Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
 all of it, in Word's default view, Simple Markup with hidden text not shown (Jason, the same day, after
 check 48b). D2 starts from his decision of 2026-10-19, that the
@@ -631,7 +635,7 @@ unless a check says otherwise.
 | 0 | The suite and the oracle (D8 a and b). Copy the fixtures, TSVs and goldens with provenance; the Node conformance runner with an engine that implements nothing (everything pending); the agreement test's runner; the understood-set assertion and the measurement of the 11 (7 since CR-010 section 15). **Done 2026-10-21, section 13** | 1 day |
 | 1 | REQ-510's level ownership in the Emulator (D9), with `LevelOwnerTest`'s documents and Word's labels. **Done 2026-10-21, section 14** | ½ to 1 day |
 | 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx`. **Done 2026-10-21, section 15** (`paragraphAt`'s `footnote:`, `endnote:` and `comment:` with phase 4's views) | 7 to 9 days |
-| 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks` | 2 to 3 days |
+| 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks`. **Done 2026-10-21, section 16** | 2 to 3 days |
 | 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12) | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
 | 6 | Block-model parity goldens (D8 c). docx4j's 17.3.4 work is now public, so this can go with phase 2 (section 6.1) | 1 day |
@@ -1359,7 +1363,8 @@ the editor about a fifth of what the document's own load does. Section 8's per-p
 
 ### 15.9 What phase 2 leaves
 
-- **Phase 3**, Markdown (`MarkdownExporter`, `blocks`): the 54 rows waiting on REQ-703.
+- **Phase 3**, Markdown (`MarkdownExporter`, `blocks`): the 54 rows waiting on REQ-703. *Done 2026-10-21,
+  section 16.*
 - **Phase 4**, the readers:
   - `outline()` on the model;
   - text-box `Paragraph` views at `textbox:` addresses, and `pkg.paragraphAt` resolving `footnote:`,
@@ -1371,3 +1376,158 @@ the editor about a fifth of what the document's own load does. Section 8's per-p
   boundaries where `Paragraph.text` holds more, and the content overload's part.
 - **REQ-303 by URI**, if Jason wants it (section 15.3): a reader in the objects package for each `mc:Choice`'s
   source bindings, then `selectedBranchOf` over it.
+
+## 16. Phase 3: Markdown (implemented 2026-10-21)
+
+Jason, 2026-10-21: "start CR-012 phase 3".
+
+### 16.1 What was built
+
+All three modules are in `src/model/text/`, exported from `./model` and `.`:
+- **`MarkdownExporter.mts`**: docx4j-markdown's `MarkdownExporter` and `MarkdownExportOptions`, at
+  `VERSION_17_3_4`. Their main sources haven't changed since `d9acdf5e2`, before the suite's `198d015a3`.
+  - `export(pkg)` reads the package under `options.textOptions`.
+  - `export(result, pkg?)` writes a result under the options it was read with. The package, where given,
+    is asked for the quote style's indent.
+  - `blocks(...)` (section 16.4, item 5).
+  - The static forms, `MarkdownExporter.export(...)` and `MarkdownExporter.blocks(...)`, use the default
+    options, section 4.1's form.
+  - `MarkdownExporter.frontMatter(result)` is REQ-704's YAML.
+  - `MarkdownExportOptions` holds `textOptions` and `view`, its alias, and `imageDestination` (section
+    16.4, item 2).
+- **`WmlToMarkdown.mts`**: docx4j's `WmlToMarkdown`, which builds the Markdown tree from the block model:
+  - headings by outline level, not style name;
+  - lists by the numbering model, with REQ-703's interrupted-list rules: a margin paragraph ends the list,
+    which resumes at Word's count; an indented paragraph continues the deepest item it reaches; an empty
+    paragraph leaves the list alone; an adjacent list takes the other delimiter;
+  - a label level as a bold label;
+  - code blocks from the code styles or a mono paragraph style; inline code, bold, italic and strikethrough
+    where a run adds them to its style;
+  - links; pictures with the describer's text;
+  - notes as `[^1]` and `[^e1]` with their definitions after the body;
+  - GFM tables: the `w:tblHeader` rows as the header, alignment from the header cells, a span padded, a
+    cell's paragraphs `<br>` apart;
+  - block quotes from the Quote styles, nested by the indent beyond the style's own;
+  - thematic breaks; display math;
+  - CriticMarkup in `markup`, with `markup_detail`.
+- **`commonmark.mts`**: a port of commonmark-java 0.30.0's Markdown renderer, which docx4j serializes
+  with (section 16.2). It covers `MarkdownWriter`, `CoreMarkdownNodeRenderer` and the Markdown renderers of
+  its GFM tables, strikethrough and footnotes extensions, plus docx4j-markdown's math renderer, for the
+  nodes `WmlToMarkdown` builds. commonmark-java is BSD-2-Clause. Its notice is kept in the file, and
+  `NOTICE` names it.
+
+### 16.2 The renderer: a port, not a dependency
+
+docx4j writes a commonmark-java tree and renders it with commonmark-java's `MarkdownRenderer`. So the
+escaping, the list markers, the block separators and the line prefixes in docx4j's output are
+commonmark-java's.
+- **The alternative** was a JavaScript Markdown library. It would write its own escaping and markers, not
+  commonmark-java's. The suite would mostly not see the difference, since REQ-1201's normalisation strips
+  `*`, `_`, `\`, `{`, `}`, `$` and white space. But two ports' Markdown would differ for the same document.
+  And `package.json` would gain a dependency where the runtime has `fflate` alone.
+- **Ported:** the renderer's five classes docx4j uses are 1,032 lines of Java with their comments. The
+  port leaves out the nodes docx4j never builds (indented code, HTML blocks, soft breaks, inline footnotes)
+  and is 649 lines of TypeScript, the licence included. No dependency was added.
+- **The result is docx4j's Markdown byte for byte** wherever the block models agree (section 16.5).
+
+### 16.3 What the suite says
+
+**786 rows pass and 798 pend.** The adapter writes Markdown for format `md`, with the package, as docx4j's
+adapter does, and claims REQ-703 and REQ-704 besides phase 2's statements. Every one of the 51 rows that
+waited on REQ-703 alone passes:
+- case 21's six Markdown rows: a link's target, from the relationship and from the field code;
+- case 56's 30 rows: the interrupted list's tokens;
+- case 64's 15 rows: the links' texts.
+
+What still pends is section 15.3's table less those 51 rows. REQ-1203 now holds 12: the three Markdown
+goldens wait on it as the nine plain-text ones do.
+
+**The goldens.** The test holds the Markdown goldens as it holds the plain-text ones (section 15.3):
+- the external and structure probes' Markdown is exact;
+- the main probe's differs only in case 6's block (REQ-303) and phase 5's: the equation (32), the chart
+  (34), the SmartArt (35) and the chunks (43 to 47).
+
+So 8 of the 12 goldens are exact.
+
+### 16.4 Departures from docx4j
+
+1. **Async.** `export` and `blocks` return promises, because a picture's bytes are read from its part
+   (`getBytes()`) and `Texts.of` is async. `PlainText.of` stays synchronous.
+2. **`imageDestination`, not `imageDirPath` and `imageTargetUri`.** Nothing outside `./node` writes a file
+   (CLAUDE.md's rule). Where docx4j writes each image to a directory, a host here passes a function. It
+   is given the bytes, the content type, the part, the picture's number and docx4j's file name
+   (`image1.png`), and it returns the link. The default is docx4j's: a data URI.
+3. **An SVG picture's data URI holds the part's bytes as stored.** docx4j's holds the SVG re-serialized
+   from its `XmlPart`, with the attributes in another order. REQ-703 leaves destinations to the
+   implementation, and the suite's runner compares them as `…`.
+4. **One `export` for a package or a result.** docx4j's three overloads are `export(source, pkg?)`.
+   docx4j's deprecated `TrackedChangesPolicy` isn't ported: the view is the option.
+5. **`blocks(...)`** is this package's, the editor's ask (sections 4.4 and 11). It gives the front matter,
+   each block with its Markdown, and the whole. Joined, the front matter and the blocks' Markdown are
+   `export`'s.
+   - A block's Markdown is whole lines, from the start of the line its first character is on to the
+     next block's, with the blank line after it.
+   - A block that writes nothing has `''`: an empty paragraph, or a code paragraph merged into the fence
+     before it.
+   - Where a block begins is recorded as the renderer writes. Each node made for a block carries the block
+     as its `tag`, and the writer notes the line its first character lands on.
+6. **Not here:** docx4j's Markdown importer (`MarkdownImporter`, `MarkdownToWmlVisitor` and `LatexToOmml`).
+   It turns Markdown into WordprocessingML, which isn't text extraction. Math as LaTeX waits on phase 5b,
+   and until then an equation is its `m:t` text between the delimiters (section 15.6, item 5).
+
+### 16.5 Checked against docx4j itself (a sweep, not committed)
+
+docx4j-core and docx4j-markdown were built from a read-only export of `198d015a3`, with `mvn package` and
+nothing installed into the shared repository. A runner wrote docx4j's Markdown of each of the 284 `.docx`,
+`.docm` and `.dotx` files of `test/` in five readings:
+- `accepted`, `markup` and `original`;
+- `accepted` with `metadata: true`;
+- `markup` with `markup_detail: author_date` and `comments: true`.
+
+That is 1,420 exports, each read with `export(result, pkg)` as the adapter reads it. This package wrote
+the same in the same way.
+- **1,290 are byte-identical.**
+- **1,320 are identical once image destinations are masked.** Of the 497 pictures, 467 point to the same
+  data URI. The other 30 are one SVG picture in each of the three files of check 38b and the three of check
+  47, in five readings each (section 16.4, item 3).
+- **The other 100 differ only in content that phase 5 or REQ-303 governs**, which the plain text leaves
+  pending too:
+  - LaTeX (5b): docx4j-python's artefact 8 in six copies, CR-043's three equation fixtures, and
+    `loadAndSave.docx`, which also has a chart;
+  - charts (5c): `charts/waterfall.docx`;
+  - REQ-303: check 50's rebound prefixes;
+  - the probe in its eight copies: case 6, and phase 5's cases.
+
+The tests' own expectations were checked the same way: block quotes with and without the package, the
+thematic break, emphasis, the escaping case, a mono document default and a code fence. docx4j writes the
+same strings.
+
+### 16.6 Cost
+
+On the editor's `ms-docx-250.docx` (section 15.7; Node 22, the median of five, a result read once under a
+context), the Markdown takes 62 ms with `export(result, pkg)` and 53 ms with `blocks(result, pkg)`, against
+3 ms for `PlainText.of`. That is 693,135 characters of Markdown, and 4,109 of the 6,684 blocks write any.
+Joined, the blocks are the export.
+
+### 16.7 Tests
+
+- **`markdown.test.mjs`** (43 tests):
+  - docx4j's `MarkdownTextModelTest`, all 19 of its tests;
+  - its `MarkdownExportTest`, all 11. `markdownSignificantTextIsEscaped` reads its Markdown back through
+    docx4j's importer, so here it compares docx4j's string instead;
+  - its `MarkdownExportExtensionsTest`, its 9 tests in 5. The image tests import Markdown, so here they
+    build the picture;
+  - its `MarkdownAlternateContentTest`: built, loaded kept, and loaded with `mcePreprocess: true`;
+  - this package's own: block quotes with and without the package, the thematic break, emphasis, two of
+    `blocks()`, REQ-204, and the options.
+- **REQ-204** is tested on the three probes. After a Markdown export in every view, with metadata, every
+  story, hidden text, list labels and field codes, no part is unmarshalled and each probe saves byte for
+  byte as before.
+- **`text-extraction.test.mjs`**: the counts above. The goldens test reads the Markdown goldens too.
+- 1,097 tests pass.
+
+### 16.8 What phase 3 leaves
+
+- **The editor** can replace its own writer (ED-008 P3) with `blocks()` once a release carries phase 3.
+- **Phase 6** could hold the Markdown too: section 16.5's runner as a harness, its outputs as goldens.
+- Phases 4 and 5 are as section 15.9 has them.

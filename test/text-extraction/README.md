@@ -13,14 +13,14 @@ CR-053). The specification is the portfolio's `docs/text_extraction_specificatio
 | `manifest.json` | The docx4j commit, and for every file docx4j's path, its SHA-1 and its path here. The 119 revisions fixtures this repository already held are listed at their `test/fixtures/` paths. |
 | `conformance.mjs` | The runner: docx4j's `ExtractionConformance`, mirrored. |
 | `agreement.mjs` | The agreement test's runner: docx4j's `ViewAgreementTest`, mirrored. |
-| `adapter.mjs` | The engine over this package's text model (CR-012 phase 2): docx4j's `TextsAdapter`, mirrored, advertising the statements this package implements (`IMPLEMENTED`), and the agreement test's engine. |
+| `adapter.mjs` | The engine over this package's text model (CR-012 phases 2 and 3): docx4j's `TextsAdapter`, mirrored, advertising the statements this package implements (`IMPLEMENTED`), writing plain text or, for format `md`, Markdown (`MarkdownExporter`), and the agreement test's engine. |
 
 `test/text-extraction.test.mjs` checks every file against the manifest, the protocol (the
 runner's own tests, as docx4j's `ExtractionConformanceTest` has them), the suite with no engine
 (every row pending, with its phase) and with the text model (every row it claims passing, the others
-pending for a statement it doesn't claim; CR-012 section 15.3), the whole-document goldens as far as
-phase 2 can hold them, the agreement test over its fixtures, and the understood set against docx4j's
-list.
+pending for a statement it doesn't claim; CR-012 sections 15.3 and 16.3), the whole-document goldens,
+plain text and Markdown, as far as phases 2 and 3 can hold them, the agreement test over its fixtures,
+and the understood set against docx4j's list.
 
 The suite lives here rather than under `test/fixtures/`: the weekly parity workflow's
 `RevisionsHarness` writes a golden for every `.docx` with revision markup at any depth under

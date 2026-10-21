@@ -4740,7 +4740,9 @@ fixtures added from docx4j's resources at that commit, the Word 365 files above:
   `review-for-word` and Word 15's save of it, artefact 8, U21, U22 and U23.
 - `a8bc6cda9` is on docx4j's `VERSION_17_3_4` but was not yet on GitHub (at `5c691fc1f`, before the
   rule). Until it is pushed, the weekly workflow, which builds GitHub's head, would record the old
-  comments in those six and open a pull request.
+  comments in those six and open a pull request. *Pushed 2026-10-21: GitHub's `VERSION_17_3_4` is
+  `69af8cf42`, which holds `d18693760` and `a8bc6cda9` (and `198d015a3` and docx4j CR-052), so the weekly
+  run builds the rule.*
 
 **Before and after** on 564 files (this package's fixtures, the text extraction suite's, and every
 `.docx` in docx4j-core-tests' resources), each through `acceptAllRevisions` and `rejectAllRevisions`,

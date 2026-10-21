@@ -12,3 +12,7 @@ export {
   type ImageDescriber, type TextBlockKind, type TextStory, type TextRunKind, type NoteType, type TextRunSource,
 } from './TextResult.mjs';
 export { PlainText, INDENT_SPACES, LISTED_FORMAT_NOTE } from './PlainText.mjs';
+export {
+  MarkdownExporter, MarkdownExportOptions,
+  type MarkdownExportOptionsInit, type MarkdownImage, type MarkdownImageDestination, type MarkdownBlock, type MarkdownBlocks,
+} from './MarkdownExporter.mjs';

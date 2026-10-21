@@ -1,4 +1,4 @@
-// CR-012 phases 0 and 2: the text extraction specification's conformance suite (D8 a), its agreement
+// CR-012 phases 0, 2 and 3: the text extraction specification's conformance suite (D8 a), its agreement
 // test (D8 b) and the understood set (REQ-306), and this package's text model held to them.
 //
 // test/text-extraction/suite/ is docx4j's docx4j-core-tests text-extraction/ directory, copied
@@ -6,7 +6,7 @@
 // (text-extraction/conformance.mjs) mirrors docx4j's ExtractionConformance, and the tests below
 // mirror its ExtractionConformanceTest's checks of the protocol, which use built tables and engines.
 // Phase 2 installs the engine (text-extraction/adapter.mjs, docx4j's TextsAdapter): the rows whose
-// statements it claims run, and the others stay pending with their phase.
+// statements it claims run, and the others stay pending with their phase. Phase 3 adds Markdown (format md).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -18,7 +18,7 @@ import {
   WordprocessingMLPackage, UNDERSTOOD_NAMESPACES, READ_ONLY_UNDERSTOOD_NAMESPACES,
 } from '../dist/index.mjs';
 import {
-  table, normalize, count, verify, verifyGolden, run, INSPECTION_TABLE, INSPECTION_STATUS,
+  table, normalize, count, verify, verifyGolden, imageDestinations, run, INSPECTION_TABLE, INSPECTION_STATUS,
   INSPECTION_HTML_TABLE, INSPECTION_HTML_STATUS, INSPECTION_LIMITATIONS, HTML_READER_ABSENT, HTML_READER_PRESENT,
 } from './text-extraction/conformance.mjs';
 import { agreement, agreementFixtures } from './text-extraction/agreement.mjs';
@@ -238,12 +238,12 @@ test('the suite with no engine: every row pending, with its phase', async () => 
   for (const line of result.report.slice(1)) assert.match(line, /\tPENDING\t(phase [123]|the inspector \(CR-050\)); .*; Texts adapter not installed$/);
 });
 
-test('the suite with the text model (CR-012 phase 2): every row it claims passes, the others pend for a statement it does not claim', async () => {
+test('the suite with the text model (CR-012 phases 2 and 3): every row it claims passes, the others pend for a statement it does not claim', async () => {
   const result = await run(phase0, ENGINE);
   // run() throws at the first row that fails; these are the counts at docx4j 198d015a3's suite
   assert.equal(result.passed + result.pending, 1584);
-  assert.equal(result.passed, 735, 'a row moved: recount (CR-012 section 15)');
-  assert.equal(result.pending, 849);
+  assert.equal(result.passed, 786, 'a row moved: recount (CR-012 sections 15 and 16)');
+  assert.equal(result.pending, 798);
   const claimed = new Set(IMPLEMENTED);
   for (const line of result.report.slice(1)) {
     const [, , , , , status, reason] = line.split('\t');
@@ -251,11 +251,12 @@ test('the suite with the text model (CR-012 phase 2): every row it claims passes
     const missing = reason.split('; ')[1].split(', ');
     assert.ok(missing.length > 0 && missing.every((r) => !claimed.has(r)), line);
   }
-  // what pends, by what it waits for: phase 5's statements, Markdown, the inspector, and REQ-303 and REQ-1203
+  // what pends, by what it waits for: phase 5's statements, the inspector, and REQ-303 and REQ-1203
   const waits = (statement) => result.report.filter((l) => l.includes('\tPENDING\t') && l.split('; ')[1].split(', ').includes(statement)).length;
   assert.equal(waits('REQ-303'), 9, 'case 6: the URI decides; this package matches by prefix (REQ-303\'s permitted route)');
   assert.equal(waits('REQ-1203'), 12, 'the whole-document goldens hold phase 5\'s content');
-  for (const statement of ['REQ-506', 'REQ-511', 'REQ-512', 'REQ-513', 'REQ-604', 'REQ-703', 'REQ-901']) assert.ok(waits(statement) > 0, statement);
+  for (const statement of ['REQ-506', 'REQ-511', 'REQ-512', 'REQ-513', 'REQ-604', 'REQ-901']) assert.ok(waits(statement) > 0, statement);
+  assert.equal(waits('REQ-703'), 0, 'Markdown (phase 3)');
 });
 
 test('the whole-document goldens (REQ-1203, not claimed until phase 5): exact but for phase 5\'s content and case 6', async () => {
@@ -264,16 +265,19 @@ test('the whole-document goldens (REQ-1203, not claimed until phase 5): exact bu
   // the lines phase 5 adds (5b LaTeX, 5c the chart and SmartArt, 5e the chunks) and case 6's (REQ-303 by prefix)
   const PENDING = /MCE6_|MTH32|CHT34_|SMA35_|ALT4[3-7]_|^\[chart: /;
   const without = (text) => text.split('\n').filter((line) => !PENDING.test(line)).join('\n');
+  // in Markdown, each block a paragraph apart, its underscores escaped
+  const PENDING_MD = /MCE6\\_|MTH32|CHT34\\_|SMA35\\_|ALT4[3-7]\\_/;
+  const withoutMd = (text) => text.split('\n\n').filter((block) => !PENDING_MD.test(block)).join('\n\n');
   let exact = 0;
   for (const row of table(join(phase0, 'goldens.tsv'))) {
-    if (row.format !== 'txt') continue;
-    const ours = asWritten((await ENGINE.extract(join(phase0, row.fixture), row.view, row.scenario, 'txt')).text);
+    const ours = asWritten(imageDestinations((await ENGINE.extract(join(phase0, row.fixture), row.view, row.scenario, row.format)).text));
     const golden = readFileSync(join(phase0, row.golden), 'utf8');
     if (ours === golden) { exact++; continue; }
     assert.equal(row.fixture, 'extraction-probe.docx', `${row.golden} differs`);
-    assert.equal(without(ours), without(golden), row.golden);
+    if (row.format === 'md') assert.equal(withoutMd(ours), withoutMd(golden), row.golden);
+    else assert.equal(without(ours), without(golden), row.golden);
   }
-  assert.equal(exact, 6, 'the external and structure probes\' goldens, in every view');
+  assert.equal(exact, 8, 'the external and structure probes\' goldens, in every view and in Markdown');
 });
 
 // ---------------------------------------------------------------- the agreement test

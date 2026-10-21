@@ -10,3 +10,7 @@ resolution utilities follow docx4j's design and names. It depends on @docx4j/gen
 (https://github.com/plutext/docx4j-generated-objects-ts) for the Office Open XML object model and on
 @docx4j/jsonix (https://github.com/plutext/jsonix) for XML binding; see their NOTICE files for the
 material they derive from (ECMA-376, Microsoft Open Specifications, Jsonix).
+
+The Markdown writer (src/model/text/commonmark.mts) is a port of the Markdown renderer of
+commonmark-java (https://github.com/commonmark/commonmark-java), Copyright (c) 2015, Atlassian Pty
+Ltd, under the BSD 2-Clause License; its notice and conditions are kept in that file.
