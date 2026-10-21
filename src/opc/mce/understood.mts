@@ -146,7 +146,7 @@ const prefixesOf = (namespaces: Iterable<string>): string[] =>
   [...namespaces].map((uri) => NAMESPACE_PREFIXES[uri]).filter((prefix): prefix is string => prefix !== undefined && prefix !== '');
 
 /**
- * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), the preprocessor's choice
+ * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), the object model's namespaces
  * expressed as prefixes (CR-010 section 11.5): the unmarshalled model does not keep the declarations in
  * force at the element, so the objects package's `mcBranchOf` compares prefixes, and its default set,
  * every prefix `NAMESPACE_PREFIXES` knows, is wider than what load understands. The readers match
@@ -159,10 +159,11 @@ export const UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set(prefixesOf(UNDER
  * The namespaces a reader of a kept mc:AlternateContent counts as understood beyond `UNDERSTOOD_NAMESPACES`
  * (CR-010 section 15): Word 365 takes a Choice requiring any of them (measured 2026-10-20), and docx4j's
  * published understood list (`understood-namespaces.txt`) has all four, among the 11 its JAXB contexts
- * bind and no generated module here does. For reading only: resolving (`mcePreprocess: true`) turns the
- * Choice it takes into typed content, and anything of these namespaces inside it would be lost on a
- * re-marshal, so load keeps `UNDERSTOOD_NAMESPACES`. A kept load saves every branch as loaded, so what a
- * reader takes cannot cost content.
+ * bind and no generated module here does. The name is CR-010's, when only the readers counted them;
+ * since CR-013 (D3) resolving does too (`READ_UNDERSTOOD_NAMESPACES`). Resolving turns the Choice it takes
+ * into typed content, which no module types here, but what Word writes in these namespaces survives a
+ * re-marshal: in every file seen it is attributes only (`w16du:dateUtc`, `w16sdtdh:storeItemChecksum`,
+ * `x14ac:dyDescent` and `x14ac:knownFonts`; `w16sdtfl` is only declared), measured 2026-10-21.
  */
 export const READ_ONLY_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',     // w16sdtdh
@@ -178,3 +179,11 @@ export const READ_ONLY_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
  * of the text extraction specification reads, whatever its content (CR-010 section 15).
  */
 export const READ_UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set([...UNDERSTOOD_PREFIXES, ...prefixesOf(READ_ONLY_UNDERSTOOD_NAMESPACES)]);
+
+/**
+ * What load selects by, as namespaces: `UNDERSTOOD_NAMESPACES` and `READ_ONLY_UNDERSTOOD_NAMESPACES`, the
+ * readers' set (`READ_UNDERSTOOD_PREFIXES`) by URI. Resolving (`mcePreprocess: true`) takes the Choice it
+ * names, and the default load's `mce.branches_differ` reports it as the selected branch, so a resolved load
+ * takes the branch the readers of a kept load take, as Word 365 does (CR-013 D3).
+ */
+export const READ_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([...UNDERSTOOD_NAMESPACES, ...READ_ONLY_UNDERSTOOD_NAMESPACES]);

@@ -626,6 +626,28 @@ test('REQ-509: the bound value where the binding resolves; the surface where it 
   assert.deepEqual(b.warnings.map(String), ['sdt.binding_differs at body/4']);
 });
 
+test('REQ-509 in a branch: a bound control\'s surface is its selected branch, not every branch (CR-013)', async () => {
+  const ac = (choice, fallback) => '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">'
+    + `<mc:Choice Requires="w14">${choice}</mc:Choice><mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent>`;
+  const run = (text) => `<w:r><w:t>${text}</w:t></w:r>`;
+  const bound = (content) => `<w:p><w:sdt><w:sdtPr>${binding('/t:d/t:a', STORE)}<w:text/></w:sdtPr><w:sdtContent>${content}</w:sdtContent></w:sdt></w:p>`;
+  const pkg = await miniDocx(
+    bound(ac(run('Bound A'), run('Old A')))                                                // run-level: agrees
+    + bound(`<w:r>${ac('<w:t>Bound A</w:t>', '<w:t>Old A</w:t>')}</w:r>`)                  // in a w:r: agrees
+    + bound(ac(run('Other'), run('Bound A'))))                                             // the selected branch differs
+    .relationship('rIdXml', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml', '../customXml/item1.xml')
+    .entry('customXml/item1.xml', null, '<d xmlns="urn:t"><a>Bound A</a></d>')
+    .entry('customXml/_rels/item1.xml.rels', null, '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps" Target="itemProps1.xml"/></Relationships>')
+    .entry('customXml/itemProps1.xml', 'application/vnd.openxmlformats-officedocument.customXmlProperties+xml',
+      `<ds:datastoreItem xmlns:ds="http://schemas.openxmlformats.org/officeDocument/2006/customXml" ds:itemID="${STORE}"/>`)
+    .load();
+  const b = await Texts.of(pkg);
+  assert.equal(PlainText.of(b), 'Bound A\nBound A\nBound A\n');
+  // every branch's text made the first two surfaces "Bound AOld A", and warned (CR-013's audit)
+  assert.deepEqual(b.warnings.filter((w) => w.kind === 'sdt.binding_differs').map(String), ['sdt.binding_differs at body/2']);
+});
+
 test('REQ-708: [page n] at each w:lastRenderedPageBreak of the main story, under page_markers: true only', async () => {
   const resaved = await WordprocessingMLPackage.load(readFileSync(join(here, 'text-extraction', 'suite', 'extraction-probe.word-resave.docx')));
   assert.ok(!(await text(resaved)).includes('[page '));

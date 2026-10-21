@@ -38,7 +38,9 @@ whole wherever its markers were, and the comment parts with the last, as Word 36
 revisions goldens record each resolution's comments since) and CR-012's phases 0 to 3 (the text model's conformance suite and agreement test, copied from
 docx4j into `test/text-extraction/` with their runners; REQ-510's level owner in the `Emulator`; the
 plain-text model, `Texts.of` and the block model in `src/model/text/`; Markdown, `MarkdownExporter`, docx4j's
-byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing). The editor's release requests are
+byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing), and CR-013's phases 0 and 1
+(`mc:AlternateContent` at block, row and cell level: docx4j's `mc-fun` probes in `test/mc-fun/`, the walker audit, the
+text model's rows and cells in the selected branch, `mcePreprocess: true` over the readers' set). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -138,11 +140,12 @@ Key mechanics:
   phase 4 (`mcePreprocess` defaults to false). Readers take `selectedBranchOf`'s branch (`mcBranchOf`
   over `READ_UNDERSTOOD_PREFIXES`: the first `mc:Choice` whose `Requires` prefixes are all in
   `UNDERSTOOD_NAMESPACES` or in `READ_ONLY_UNDERSTOOD_NAMESPACES`, the four Word 365 understands that
-  load leaves alone, CR-010 section 15; else `mc:Fallback`), mutators every branch, a run's element is one object
+  no module binds, CR-010 section 15; else `mc:Fallback`), mutators every branch, a run's element is one object
   segment, and a save writes every branch. The default pass (`mceKeep`) changes nothing and reports
   `mce.branches_differ` on `XmlPart.warnings` where the branches' text differs (`OpcPackage.warnings`
   gathers them). `mcePreprocess: true` resolves on the DOM before unmarshalling instead, as Word does
-  on open, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the SpreadsheetML workbook) and
+  on open, by the same set (`READ_UNDERSTOOD_NAMESPACES`, CR-013 D3: what Word writes in the four is
+  attributes, which survive a re-marshal), but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the SpreadsheetML workbook) and
   where nothing can be selected (CR-010 phase 1). Since objects 0.4.0 a kept branch's `w:drawing` and
   `w:pict` are typed (objects CR-009, CR-010 phase 2); the `xdr:` and `p:` drawing content, a
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
@@ -198,6 +201,8 @@ the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed ro
 this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`),
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest` and
 `MarkdownAlternateContentTest`, with docx4j's strings, and `blocks()`),
+`mc-fun.test.mjs` CR-013's: docx4j's `mc-fun` probes (`test/mc-fun/`, copied with a manifest, outside `fixtures/`) read by
+every reader against Word 365's saves, the Office JS readers' block-, row- and cell-level gaps asserted as they are (phase 2's),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

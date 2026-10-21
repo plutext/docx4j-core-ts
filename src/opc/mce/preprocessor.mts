@@ -5,8 +5,9 @@
 // content API reads says something other than one it doesn't.
 //
 // Resolving (`mcePreprocess: true` on load, the pass `mcePreprocess`) replaces each element by the
-// content of the first mc:Choice whose Requires prefixes all name namespaces the object model
-// understands, else by its mc:Fallback content. This is what Word does on open. It runs only for
+// content of the first mc:Choice whose Requires prefixes all name namespaces in
+// `READ_UNDERSTOOD_NAMESPACES` (the object model's, and the four Word 365 understands that no module
+// binds: CR-013 D3), else by its mc:Fallback content. This is what Word does on open. It runs only for
 // parts that are unmarshalled, so untouched parts keep every branch.
 //
 // Two kinds are left whole even so (CR-010 phase 1), so a save writes them back with every branch:
@@ -20,7 +21,7 @@
 //   where it does not, as it drops any unexpected element, so keeping never loses more than
 //   removing did.
 import type { XmlPart } from '../../parts/XmlPart.mjs';
-import { UNDERSTOOD_NAMESPACES } from './understood.mjs';
+import { READ_UNDERSTOOD_NAMESPACES } from './understood.mjs';
 
 export const MCE_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
 
@@ -34,7 +35,7 @@ export const KEPT_HOSTS: ReadonlySet<string> = new Set([
 ]);
 
 export interface McePreprocessOptions {
-  /** Namespaces counted as understood; defaults to the object model's modules. */
+  /** Namespaces counted as understood; defaults to `READ_UNDERSTOOD_NAMESPACES` (CR-013 D3). */
   understood?: ReadonlySet<string>;
   /** Hosts, as `{namespace}localName`, whose mc:AlternateContent is left whole; defaults to `KEPT_HOSTS`. */
   keptHosts?: ReadonlySet<string>;
@@ -84,7 +85,7 @@ export function mceKeep(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
   return preprocessAlternateContent(doc, { resolve: false, partName: part?.partName.name }).warnings;
 }
 
-/** The resolving preprocessor (`mcePreprocess: true`), over the object model's namespaces. Returns the part's warnings. */
+/** The resolving preprocessor (`mcePreprocess: true`), over `READ_UNDERSTOOD_NAMESPACES`. Returns the part's warnings. */
 export function mcePreprocess(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
   return preprocessAlternateContent(doc, { partName: part?.partName.name }).warnings;
 }
@@ -98,7 +99,7 @@ export function createMcePreprocessor(options: McePreprocessOptions): (doc: Docu
  * Resolves every mc:AlternateContent under a node, outermost first, but those `KEPT_HOSTS` and the
  * nothing-selectable rule keep (see the file comment). Returns the number resolved.
  */
-export function resolveAlternateContent(root: Node, understood: ReadonlySet<string> = UNDERSTOOD_NAMESPACES): number {
+export function resolveAlternateContent(root: Node, understood: ReadonlySet<string> = READ_UNDERSTOOD_NAMESPACES): number {
   return preprocessAlternateContent(root, { understood }).resolved;
 }
 
@@ -108,7 +109,7 @@ export function resolveAlternateContent(root: Node, understood: ReadonlySet<stri
  * and leaves the DOM as it was.
  */
 export function preprocessAlternateContent(root: Node, options: McePreprocessOptions & { partName?: string } = {}): MceResult {
-  const understood = options.understood ?? UNDERSTOOD_NAMESPACES;
+  const understood = options.understood ?? READ_UNDERSTOOD_NAMESPACES;
   const keptHosts = options.keptHosts ?? KEPT_HOSTS;
   const resolve = options.resolve ?? true;
   const result: MceResult = { resolved: 0, kept: 0, warnings: [] };

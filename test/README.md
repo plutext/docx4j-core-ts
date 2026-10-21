@@ -159,6 +159,16 @@ the Node runners that mirror docx4j's `ExtractionConformance` and `ViewAgreement
 the weekly `RevisionsHarness` writes a golden for every `.docx` with revision markup under
 `fixtures/`.
 
+## The `mc-fun` probes (`mc-fun/`, CR-013 phase 0)
+
+docx4j's 30 probes of `mc:AlternateContent` at every level (run, paragraph, block, row, cell, in content
+controls and around text boxes) and Word 365's saves of them, copied unedited from docx4j at `69af8cf42`
+(added in `1cff2cd5c`, docx4j CR-051, Apache-2.0). Their `README.md` says what each holds and
+`manifest.json` gives each file's SHA-1, which `mc-fun.test.mjs` checks. A Word save shows the branch
+Word took, so the test holds every reader to it: the text model, kept and resolved, and the Office JS
+readers, whose block-, row- and cell-level gaps (CR-013 phase 2's) it asserts as they are. They are kept
+outside `fixtures/` for the reason the suite is.
+
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 
 What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written

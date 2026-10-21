@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, TableContextTracker, NAMESPACE_PREFIXES, UNDERSTOOD_NAMESPACES,
-  UNDERSTOOD_PREFIXES, READ_ONLY_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_PREFIXES, selectedBranchOf, deepCopy,
+  UNDERSTOOD_PREFIXES, READ_ONLY_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_PREFIXES, selectedBranchOf, deepCopy,
 } from '../dist/index.mjs';
 import { mcBranchOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { fixture } from './helpers.mjs';
@@ -60,13 +60,14 @@ test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; select
   const byUri = new Map([...UNDERSTOOD_NAMESPACES].filter((uri) => NAMESPACE_PREFIXES[uri]).map((uri) => [uri, NAMESPACE_PREFIXES[uri]]));
   assert.deepEqual([...UNDERSTOOD_PREFIXES].sort(), [...new Set(byUri.values())].sort());
   for (const prefix of ['w', 'wps', 'wp14', 'w14', 'cx1', 'cx2', 'a14']) assert.ok(UNDERSTOOD_PREFIXES.has(prefix), prefix);
-  // the read-only four: conventional, not understood by load, understood by the readers
+  // the read-only four: conventional, in no module, understood by the readers and, since CR-013 (D3), by a resolving load
   assert.deepEqual([...READ_ONLY_UNDERSTOOD_NAMESPACES].sort(), Object.values(READ_ONLY).sort());
   for (const [prefix, uri] of Object.entries(READ_ONLY)) {
     assert.equal(NAMESPACE_PREFIXES[uri], prefix, `${prefix} is conventional`);
-    assert.ok(!UNDERSTOOD_NAMESPACES.has(uri) && !UNDERSTOOD_PREFIXES.has(prefix), `${prefix} is not understood by load`);
+    assert.ok(!UNDERSTOOD_NAMESPACES.has(uri) && !UNDERSTOOD_PREFIXES.has(prefix), `${prefix} is in no module`);
   }
   assert.deepEqual([...READ_UNDERSTOOD_PREFIXES].sort(), [...UNDERSTOOD_PREFIXES, ...Object.keys(READ_ONLY)].sort());
+  assert.deepEqual([...READ_UNDERSTOOD_NAMESPACES].sort(), [...UNDERSTOOD_NAMESPACES, ...Object.values(READ_ONLY)].sort());
   // a conventional prefix neither understands (CR-010 section 11.5)
   assert.ok(Object.values(NAMESPACE_PREFIXES).includes('cx3') && !READ_UNDERSTOOD_PREFIXES.has('cx3'));
   const choiceItems = [];
@@ -192,12 +193,12 @@ test('a picture in the selected branch is listed once, from that branch; deletin
     assert.deepEqual(pictures.map((p) => p.altTextDescription), ['the Fallback'], kept ? 'kept' : 'resolved');
   }
   // a Choice requiring one of the four read-only namespaces (CR-010 section 15): a kept load reads the
-  // Choice, as Word does, and a resolved load, which leaves them alone, the Fallback
+  // Choice, as Word does, and since CR-013 (D3) so does a resolved load, which until then took the Fallback
   for (const prefix of Object.keys(READ_ONLY)) {
     const readOnly = await pictureInBranch(prefix);
     for (const kept of [false, true]) {
       const pictures = (await (await WordprocessingMLPackage.load(readOnly, kept ? KEPT : RESOLVED)).getBody()).inlinePictures;
-      assert.deepEqual(pictures.map((p) => p.altTextDescription), [kept ? '' : 'the Fallback'], `${prefix}, ${kept ? 'kept' : 'resolved'}`);
+      assert.deepEqual(pictures.map((p) => p.altTextDescription), [''], `${prefix}, ${kept ? 'kept' : 'resolved'}`);
     }
   }
 

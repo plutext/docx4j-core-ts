@@ -1479,6 +1479,10 @@ For the branch the readers take (`selectedBranchOf`), a Choice is understood whe
   typed content (CLAUDE.md), and no generated module binds the four namespaces. Anything of theirs
   inside a taken Choice would then be lost on a re-marshal. Whether any of the 11 joins
   `UNDERSTOOD_NAMESPACES` goes through CLAUDE.md's round-trip test, in CR-012's phase 0.
+  - *Superseded 2026-10-21 by CR-013 D3.* Measured, the loss doesn't happen: what Word writes in the four
+    namespaces is attributes only, in every file seen, and they survive a re-marshal unbound (CR-013
+    section 3, item 6). So resolving now counts the four too (`READ_UNDERSTOOD_NAMESPACES`), and the two
+    loads take the same branch. `UNDERSTOOD_NAMESPACES` is unchanged.
 - **Why no content condition.** REQ-302 has none. `mcBranchOf` takes only a set of prefixes, so a
   condition on the content would need an objects change, or a branch selection of this package's own,
   which CLAUDE.md rules out. The rule needs neither: `selectedBranchOf` passes `mcBranchOf` the wider
@@ -1488,8 +1492,9 @@ For the branch the readers take (`selectedBranchOf`), a Choice is understood whe
 
 ### 15.4 What it changes
 
-- **The two loads can disagree.** On a Choice requiring one of the four, a kept load's readers take
-  it, and a resolved load takes the next understood Choice or the Fallback. Section 13.1's "a reader
+- **The two loads can disagree** (until CR-013 D3, 2026-10-21, after which they agree). On a Choice
+  requiring one of the four, a kept load's readers take it, and a resolved load takes the next understood
+  Choice or the Fallback. Section 13.1's "a reader
   takes the branch load would have resolved the element to" then holds for `UNDERSTOOD_NAMESPACES`
   only.
 - **In the corpus, nothing.** No `Requires` among its 834 elements names one of the four (section

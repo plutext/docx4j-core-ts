@@ -1,0 +1,131 @@
+{
+ "docx4j": {
+  "commit": "69af8cf42598593c036a903c2e182360f7846187",
+  "branch": "VERSION_17_3_4",
+  "added": "1cff2cd5c",
+  "path": "docx4j-core-tests/src/test/resources/mc-fun/",
+  "licence": "Apache-2.0"
+ },
+ "files": [
+  {
+   "name": "mc-block-newest-first.docx",
+   "sha1": "2d31c183d2d16d96ae4ac014523d4c5bd6d622b5"
+  },
+  {
+   "name": "mc-block-nofallback-word365.docx",
+   "sha1": "8b0534814db8e0516c40bb9b71d72a42b6a5d924"
+  },
+  {
+   "name": "mc-block-nofallback.docx",
+   "sha1": "2614d7e6e84d1178184ff2201cd9c06868241210"
+  },
+  {
+   "name": "mc-cell-newest-first-word365.docx",
+   "sha1": "315719690d26e4a4fb7aa2189ae399d9a1ec05f7"
+  },
+  {
+   "name": "mc-cell-newest-first.docx",
+   "sha1": "a8672a92a6cf6d66ba02e54a2dee4cca2279e7a2"
+  },
+  {
+   "name": "mc-mixed-word365.docx",
+   "sha1": "990a40d26710b334e7bfc909570d20a08ecd148f"
+  },
+  {
+   "name": "mc-mixed.docx",
+   "sha1": "aba0ef17262cd998074ce9c1cd5f00bb454734aa"
+  },
+  {
+   "name": "mc-row-newest-first-word365.docx",
+   "sha1": "e572a5fb709d4595ed308cca16060af30854c2ec"
+  },
+  {
+   "name": "mc-row-newest-first.docx",
+   "sha1": "146206caa671826bd940bca9d5deb5cdd4d53cf6"
+  },
+  {
+   "name": "mc-run-newest-first.docx",
+   "sha1": "2fb1ce4dd403e07379abe18ae42f41f35a47ebc6"
+  },
+  {
+   "name": "mc-run-word365.docx",
+   "sha1": "1142b9c8634649e22205149aa81ac6370aff9a58"
+  },
+  {
+   "name": "mc-sdt-block-newest-first-word365.docx",
+   "sha1": "a4877160cb74e10751aa4ba7c87b69088f9aee48"
+  },
+  {
+   "name": "mc-sdt-block-newest-first.docx",
+   "sha1": "60d3f733a96967e7b81d8dd47046ebe1018fe645"
+  },
+  {
+   "name": "mc-sdt-cell-newest-first-word365.docx",
+   "sha1": "ac89a4b70516529b0efe6d122aa11c88a5b31c5a"
+  },
+  {
+   "name": "mc-sdt-cell-newest-first.docx",
+   "sha1": "d64921d3437607666c25c9dc52d226cc0afad69f"
+  },
+  {
+   "name": "mc-sdt-row-newest-first-word365.docx",
+   "sha1": "a356a53cd69e414995df5cdbd2d74005af628128"
+  },
+  {
+   "name": "mc-sdt-row-newest-first.docx",
+   "sha1": "bf66bb90121ce838d543da05754a14e920a8fbc9"
+  },
+  {
+   "name": "mc-sdt-run-newest-first-word365.docx",
+   "sha1": "32f660069a3483dad980c91f3c9c968007736d6f"
+  },
+  {
+   "name": "mc-sdt-run-newest-first.docx",
+   "sha1": "f767b2bcee06e50542baf13fc22404fc4a342285"
+  },
+  {
+   "name": "mc-tc-block-newest-first-word365.docx",
+   "sha1": "04360bab9950007e4e80c28da0f25eb7c3c18c8b"
+  },
+  {
+   "name": "mc-tc-block-newest-first.docx",
+   "sha1": "8a8e525fef7671320d7087c6cd7b9da0f5e788a9"
+  },
+  {
+   "name": "mc-text-newest-first.docx",
+   "sha1": "2b303dcc9e8a80afaefc51d70bad837eebdf5ff8"
+  },
+  {
+   "name": "mc-txbx-block-word365.docx",
+   "sha1": "d1951ed9f4c3852cc6efad1376dfe6e9c8596841"
+  },
+  {
+   "name": "mc-txbx-block.docx",
+   "sha1": "c019578e640f2bb0315d6e775f4b149ad073fdc9"
+  },
+  {
+   "name": "mc-txbx-run-word365.docx",
+   "sha1": "b240be7c596ef5d06169b3f82402c26a7704c068"
+  },
+  {
+   "name": "mc-txbx-run.docx",
+   "sha1": "b98826424d5367ff12f4f3a6368ffff6880eb8df"
+  },
+  {
+   "name": "mc-txbx-sdt-block-word365.docx",
+   "sha1": "c2dadc8a3539b7d49b61a299c23e13998d037736"
+  },
+  {
+   "name": "mc-txbx-sdt-block.docx",
+   "sha1": "8727bb170bf6c17d07f592c9e27ae060cd0f2515"
+  },
+  {
+   "name": "mc-txbx-tc-block-word365.docx",
+   "sha1": "465e32796f4f94987e38b27ed299ea6f1c032ce0"
+  },
+  {
+   "name": "mc-txbx-tc-block.docx",
+   "sha1": "9cdb988b978101e4ad23f324dff3f11190329b72"
+  }
+ ]
+}

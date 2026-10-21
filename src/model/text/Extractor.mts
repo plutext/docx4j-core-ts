@@ -648,23 +648,31 @@ export class Extractor {
     return this.options.bindings === 'surface' ? undefined : value;
   }
 
-  /** A control's surface in the view: its `w:t`, tabs and breaks, what the view removes left out. */
+  /**
+   * A control's surface in the view: its `w:t`, tabs and breaks, what the view removes left out, and of an
+   * mc:AlternateContent the selected branch only, as the reading takes it (CR-013: every branch's text
+   * made a surface no binding could match, and a false `sdt.binding_differs`).
+   */
   private surfaceText(sdt: { sdtContent?: unknown }): string {
     let out = '';
-    for (const o of sdtContentOf(sdt) ?? []) {
-      if (this.removes(o)) continue;
-      walk(unwrap(o), 0, {
-        item: (item) => {
-          if (this.removes(item)) return false;
-          const name = nameOf(item);
-          const v = unwrap(item);
-          if (name === 't' && typeOf(v) === 'org_docx4j_wml.Text') out += String((v as wml.Text).value ?? '');
-          else if (name === 'tab') out += '\t';
-          else if (name === 'br' || name === 'cr') out += '\n';
-          return name !== 'instrText';
-        },
-      });
-    }
+    // every item, a branch's own included (a branch in a w:r holds w:t directly), goes through item()
+    const item = (o: unknown): boolean => {
+      if (this.removes(o)) return false;
+      const name = nameOf(o);
+      const v = unwrap(o);
+      if (typeOf(v) === AC) {
+        visit(selectedBranchOf(v as mce.AlternateContent));
+        return false;
+      }
+      if (name === 't' && typeOf(v) === 'org_docx4j_wml.Text') out += String((v as wml.Text).value ?? '');
+      else if (name === 'tab') out += '\t';
+      else if (name === 'br' || name === 'cr') out += '\n';
+      return name !== 'instrText';
+    };
+    const visit = (items: unknown[] | undefined): void => {
+      for (const o of items ?? []) if (item(o)) walk(unwrap(o), 0, { item });
+    };
+    visit(sdtContentOf(sdt));
     return out;
   }
 
@@ -815,6 +823,11 @@ export class Extractor {
         table.rows.push(row);
       } else if (isSdt(v)) {
         this.rows(sdtContentOf(v), address, story, table, state);
+      } else if (typeOf(v) === AC) {
+        // a row-level mc:AlternateContent: its selected branch's rows, addressed from the element (CR-013)
+        const ac = v as mce.AlternateContent;
+        this.compareBranches(ac, address);
+        this.rows(selectedBranchOf(ac), address, story, table, state);
       } else {
         const inner = blockItems(v);
         if (inner && typeOf(v) !== TC) this.rows(inner, address, story, table, state);
@@ -850,6 +863,11 @@ export class Extractor {
         row.cells.push(cell);
       } else if (isSdt(v)) {
         this.cells(sdtContentOf(v), address, story, row, state);
+      } else if (typeOf(v) === AC) {
+        // a cell-level mc:AlternateContent: its selected branch's cells, addressed from the element (CR-013)
+        const ac = v as mce.AlternateContent;
+        this.compareBranches(ac, address);
+        this.cells(selectedBranchOf(ac), address, story, row, state);
       } else {
         const inner = blockItems(v);
         if (inner) this.cells(inner, address, story, row, state);
