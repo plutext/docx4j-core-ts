@@ -4,7 +4,11 @@
 Word's is not, and whether we should align. To the answer, open a CR with the editor's review and a Word check
 first, and stop the silent partial results meanwhile, he said "yes please". The stopgap went in with CR-012
 phase 4: a multi-paragraph block control's range reads as Office JS's and refuses every write (CR-012 section
-17.12). Nothing of this CR is implemented. Decisions D1 to D4 (section 5) are open.
+17.12). Nothing of this CR is implemented. Decisions D1 to D4 (section 5) were decided 2026-10-22 as recommended
+(Jason: "CR-014 decisions D1 to D4: recommendations accepted."): one `Range` with an end paragraph;
+`Comment.getRange()` returns one `Range`, the per-paragraph array kept as `getRanges()`; whole tables read and
+deleted, a range starting or ending inside a table read and its writes refused unless check 52 shows a simple rule;
+and the editor's answer stands, so phase 1 needn't wait on it. Check 52 (phase 0) is next.
 
 ## 1. Why
 
@@ -91,18 +95,20 @@ measured it on a block content control of three paragraphs. Its 'Whole' range re
 | 2 | The writes across paragraphs: `delete`, `Replace`, `font`, `insertText`, `insertParagraph`, untracked and tracked; tables per D3 | 2 to 3 days |
 | 3 | Comments and content controls on such a range; `^p` in `search` | 1 day |
 
-## 5. Decisions (open)
+## 5. Decisions
 
-1. **D1, the shape.** Recommended: one `Range` class with an end paragraph, a single-paragraph range unchanged,
+All four were decided 2026-10-22 as recommended (Jason: "CR-014 decisions D1 to D4: recommendations accepted.").
+
+1. **D1, the shape** (decided 2026-10-22, as recommended). Recommended: one `Range` class with an end paragraph, a single-paragraph range unchanged,
    rather than a second class beside `Range`. Office JS has one `Range`, and two classes would make every caller
    ask which it has.
-2. **D2, `Comment.getRange()`.** Office JS returns one `Range`; this package has returned `Range[]` since CR-002
+2. **D2, `Comment.getRange()`** (decided 2026-10-22, as recommended). Office JS returns one `Range`; this package has returned `Range[]` since CR-002
    phase G. Recommended: return one `Range` as Office JS does, and keep the per-paragraph array as
    `getRanges()`. It breaks a caller that indexes the array, which on 0.x is allowed.
-3. **D3, tables.** Recommended: a range holding whole tables reads and deletes them. One that starts or ends
+3. **D3, tables** (decided 2026-10-22, as recommended). Recommended: a range holding whole tables reads and deletes them. One that starts or ends
    inside a table reads in `body.text`'s form, and its writes throw `NotSupportedError` unless check 52 shows a
    rule simple enough to follow.
-4. **D4, the editor.** Its spans are per paragraph, so this is additive for it, but its agent's verbs (`delete`,
+4. **D4, the editor** (decided 2026-10-22, as recommended: its answer below stands). Its spans are per paragraph, so this is additive for it, but its agent's verbs (`delete`,
    `replace`, `comment` over a span) could take ranges across paragraphs. Ask it, as with CR-012, before phase 1.
    - **Its answer (2026-10-21, ED-008 section 8.8):** additive. Its agent's span stays inside one paragraph's text
      (its `docs/agent.md` section 2.3); several whole blocks go through its own verbs. The first uses it would
