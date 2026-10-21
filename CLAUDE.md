@@ -231,6 +231,11 @@ refusals, and the mutators reaching every branch,
 comments and notes of several paragraphs, equations, hidden text, the `textbox:`
 addresses agreeing with the text model over every fixture holding a text box, the read-only boxes, the notes' and comments'
 addresses, and `outline()`,
+`ranges.test.mjs` CR-014's: check 52's file (`check52Bytes`, `test/fixtures/check52/`) and its Script Lab snippet held to each
+other, every case parsed by the snippet's own parser and every word it searches for in the file once, Word 365's run and its
+report after Accept All of the same cases, and `acceptAllRevisions()` on Word's save after the run held to Word's own Accept All,
+region for region (`test/check52/`, Word's saves, outside `fixtures/` like `mc-fun/`, with a SHA-1 manifest; phase 0; cases 86
+to 95 are CR-002 section 55's),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

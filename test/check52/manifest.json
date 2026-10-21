@@ -1,0 +1,19 @@
+{
+ "check": 52,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-22), Display for Review: All Markup",
+ "source": "test/fixtures/check52/build.mjs (52-ranges.docx, 95 cases), after the Script Lab snippet's \"Run the check\"",
+ "saves": {
+  "52-ranges-word365.docx": "saved after the run (the snippet's JSON: test/fixtures/check52/52-ranges-word365-run.json)",
+  "52-ranges-word365-accepted.docx": "the same, after Review > Accept All Changes (the report: test/fixtures/check52/52-ranges-word365-accepted.json)"
+ },
+ "files": [
+  {
+   "name": "52-ranges-word365.docx",
+   "sha1": "15f505306f8faf95f6946b47789849ccbf34603b"
+  },
+  {
+   "name": "52-ranges-word365-accepted.docx",
+   "sha1": "3d2a37367822fc323c0905e30b0931c6a3a4f58d"
+  }
+ ]
+}

@@ -8,7 +8,11 @@ phase 4: a multi-paragraph block control's range reads as Office JS's and refuse
 (Jason: "CR-014 decisions D1 to D4: recommendations accepted."): one `Range` with an end paragraph;
 `Comment.getRange()` returns one `Range`, the per-paragraph array kept as `getRanges()`; whole tables read and
 deleted, a range starting or ending inside a table read and its writes refused unless check 52 shows a simple rule;
-and the editor's answer stands, so phase 1 needn't wait on it. Check 52 (phase 0) is next.
+and the editor's answer stands, so phase 1 needn't wait on it. Check 52 (phase 0) was written 2026-10-22 (Jason:
+"implement CR-014 phase 0"): 85 cases, a region each, in one file and one Script Lab run (section 6.1), and ten
+more for CR-002 section 55's D2 (Word's table rule). Jason ran
+it the same day, in All Markup, and saved Word's file after the run and after Accept All (section 6.2): every question of
+section 2 and every addition of the editor's has its answer. **Phase 0 is done**; phase 1 (the reads) is next.
 
 ## 1. Why
 
@@ -121,7 +125,7 @@ All four were decided 2026-10-22 as recommended (Jason: "CR-014 decisions D1 to 
    - **On D2:** nothing of the editor's indexes `Comment.getRange()`'s array, and one `Range` as Office JS
      has is fine.
 
-## 6. Check 52 (to write)
+## 6. Check 52
 
 A file with paragraphs of distinct formatting (a heading, a body paragraph, a list item), a table of two rows,
 and a three-paragraph block control. A Script Lab snippet:
@@ -146,6 +150,105 @@ The editor's additions (2026-10-21, its D4 answer):
 5. `expandTo` from inside a cell to the paragraph after the table, under tracking: which rows are marked deleted,
    and whether the table survives. The editor's Accept All removes a table whose every row is deleted (its ED-005
    section 12.109).
+
+### 6.1 As written (2026-10-22)
+
+`test/README.md` check 52 is the check: its steps, what the JSON holds, and its run once it is back. The file is
+`test/fixtures/check52/build.mjs`'s (`check52Bytes`; the `.docx` git-ignored, Word reading the share's copy), the
+snippet `test/fixtures/check52/check52-script-lab.js` and `.html`.
+
+- **A region per case, not a fresh copy per case.** Office JS can't reopen a file, and 85 copies would be 85 runs.
+  Each case is a region, `BEGIN<n> <kind> <operation> <tracking> <range>`, the kind's content, `END<n>`, so the
+  operations of one case never touch another's content, and one run measures them all. Cases 1 to 85 are this
+  CR's. Cases 86 to 95 were added the same day for CR-002 section 55's D2 (what Office JS's edits leave in a table
+  cell), since check 52 had not run: one run for both. The document says what each
+  case is, and the snippet reads it from there: the file is the only list of cases.
+- **The kinds of range** (thirteen): heading to body and the ends swapped (HB, BH; the editor's addition 1), from and
+  to a list item (LB, BL), a whole paragraph between (HMB), the whole table between (TBL), ending inside the table
+  (INTO), starting inside it (CELL; addition 5), across a hidden run (HID) and a footnote reference (FN; addition 2),
+  a block control's content (CC), a paragraph's whole range (W1) and a range ending at a mark (W2; addition 3).
+- **The operations:** `delete` and `Replace` (section 2, items 1, 2 and 4), `font.bold` and `insertParagraph`
+  (item 3), `insertText` at Start and End, `insertComment` (item 6), each in both tracking modes where tracking can
+  change the answer. Each kind's reads come first (items 5 and 7: `text`, `font`, `getRange` of each location,
+  `paragraphs`, `^p` within it, `expandTo` with its ends swapped). Two regions are read only: `^p` against
+  paragraphs, a cell's end and a row's end (addition 4), and a comment and tracked changes that span paragraphs,
+  with their `getRange()` (section 1's `Comment.getRange()` and `TrackedChange.getRange()`).
+- **Word's two saves** come back with the JSON, after the run and after Accept All: the first shows the markup Word
+  writes (the deleted marks, `w:pPrChange`, where `insertComment` puts its markers), the second what accepting it
+  leaves (whether CELL's table survives, addition 5).
+- **Phase 1 runs the same snippet here.** `CHECK52.runCheck(run, mode)` takes `Word.run` as an argument and nothing
+  of Script Lab, so phase 1's test can run it through the Word shim (`Word.run(pkg, …)`) on `check52Bytes` and
+  compare the result with Word's JSON case for case, once the shim has `expandTo`. `test/ranges.test.mjs` holds the
+  file and the snippet to each other meanwhile.
+
+### 6.2 The run (2026-10-22)
+
+Jason ran check 52 on Word 365 (16.0.20326.20232, PC) the same day, in All Markup, then saved Word's file, accepted all
+and saved again. `test/README.md` check 52 has the run case by case, and Word's markup. The saves are `test/check52/`,
+outside `fixtures/` as `test/mc-fun/` is, so that the weekly `RevisionsHarness` cuts no golden for them (Jason).
+`test/fixtures/check52/52-ranges-word365-run.json` is the run and `52-ranges-word365-accepted.json` the report after
+Accept All. The text reads under tracking include deleted text, as All Markup shows it.
+
+**What it settles for phase 1 (the reads):**
+- `text` is `body.text`'s form between the ends, as section 3 proposed: a mark `\r`, a table's rows ended `\r\n`
+  and cells a `\t` apart, a note reference `\u0002`, hidden text left out.
+- `getRange('Whole')` is the range itself, not widened to its paragraphs. `'Content'` is the same without a last mark
+  where the range ends with one. `'Start'`, `'End'` and `'After'` are empty, `'After'` in the next paragraph where the
+  range ends with a mark.
+- `paragraphs` is every paragraph the range touches, a table's cells' too. `expandTo` doesn't care which end is
+  first.
+- **`font` reads `null` where the paragraphs differ** (`''` for the name, `Mixed` for underline), not the first
+  run's as section 3 proposed. Phase 1 follows Word.
+- **A tracked change across paragraphs is one change** (case 1: `Deleted`, `HEAD1B\rBODY1A `), and its `getRange()`
+  spans it. This package already lists it as one; its `getRange()` gives the first paragraph's part (section 1), and
+  phase 1 widens it. **A comment's `getRange()` spans its paragraphs** (`BODY1B\rLIST1A`), as D2 has it.
+- **`^p`** matches a paragraph's mark outside a table, and never a cell's or row's end. It doesn't match across the
+  boundary between a paragraph and a table either, so phase 3's rule is that simple.
+
+**What it settles for phase 2 (the writes):**
+- **`delete()` joins the paragraphs in the properties of the paragraph the range ends in**, whichever kind it is
+  (heading, body, list item), each run keeping its own formatting. Blocks between go whole, a table too.
+- **A last mark in the range goes with it**: a paragraph's whole range deletes the paragraph, and a range ending with a
+  mark joins its head to the next paragraph, in that paragraph's properties.
+- **`Replace` is `delete()` and then the text, but keeps a last mark.**
+- **A range starting or ending inside a table: Word refuses `delete()` and `Replace`** (`GeneralException`, nothing
+  changed). D3's refusal is Word's own. Word does apply `font`, `insertParagraph` and `insertComment` to such a range,
+  so phase 2 refuses only the two Word refuses.
+- **`font` writes every run in the range**, a table's cells too.
+- **`insertParagraph` splits the paragraph** at the range's start (`'Before'`) or end (`'After'`), the new paragraph
+  in that paragraph's properties. Where the range starts at a paragraph's start or ends with its mark, nothing is
+  split. This is not section 3's "before the first or after the last paragraph". Today's `Range.insertParagraph`, on a
+  one-paragraph range, goes before or after the whole paragraph; whether Word splits a one-paragraph range the same
+  way isn't measured, and phase 2 asks.
+- **`insertText` at `'Start'` and `'End'`** goes at the first and last character, before a last mark.
+- **`insertComment`**'s range is the range's text, a last mark not included.
+- **A footnote reference in a deleted range takes its note.**
+- **Under tracking**, a deletion is one `Deleted` change, and the paragraphs stay until accepted. Every mark in the
+  range is marked deleted (`w:pPr/w:rPr/w:del`), and the last paragraph's mark stays. **No `w:pPrChange` is written**:
+  the editor's addition 1, whose carry rule (its ED-005 section 12.44) is for a mark deleted alone. A table in the
+  range has every row and every cell's mark deleted.
+- **Accept All gives the untracked answer**: the paragraph the range ends in keeps its properties, and the table goes.
+  This package's `acceptAllRevisions()` on Word's save after the run agrees with Word's save after Accept All in 94 of
+  the 95 regions, read through the content API (each paragraph's text, style, alignment, list and table nesting). The
+  95th, case 26, differs only by Word's filler: Word's emptied control holds five spaces, this package's nothing.
+  `test/ranges.test.mjs` holds it so.
+  Phase 2's tracked deletions write Word's markup, and the existing resolution already joins as Word does.
+- **Tracked `Replace`** writes the insertion before the deletion, the marks deleted as `delete()` deletes them,
+  except a last mark. Office JS's `getTrackedChanges()` listed only the insertion, but the deletion is in the markup.
+- **Untracked `Replace` gives the new text the first replaced character's formatting as direct run properties**: from
+  a heading, Heading 1's font, size, colour and bold, in a joined body paragraph. Tracked, it has none.
+- **`font.bold` adds `w:b` only where a run isn't bold already** (a heading's run, bold through its style, gets none,
+  and no tracked change). A mark inside the range is formatted too.
+- **`insertComment`**: the start before the range's first run, the end after its last character before any mark,
+  the reference after the end. On a control's content range, the start goes before the first paragraph, inside
+  `w:sdtContent`.
+- **A hidden run and a footnote reference in the range** go with it: untracked, the note leaves `footnotes.xml`;
+  tracked, both stand inside the `w:del` (the editor's addition 2).
+- **The editor's addition 5**, from inside a cell to after the table under tracking, is refused by Word, so no row
+  is marked deleted. Addition 4 (`^p` against a cell's or row's end) never matches. Addition 3 (a comment on a whole
+  range ending at a mark) ends before the mark.
+- Two quirks of Word's are not proposed for copying: on a control's content range, `insertParagraph` adds an empty
+  paragraph as well, before `NEWPARA` for `'Before'`, after it for `'After'`.
 
 ## 7. Risks
 

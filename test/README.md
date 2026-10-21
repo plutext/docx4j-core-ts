@@ -170,6 +170,15 @@ readers, kept and resolved. Since phase 3 it also holds the mutators to docx4j's
 `TrackedChangesAlternateContentTest`, built in memory as docx4j builds them, and to every branch. They are
 kept outside `fixtures/` for the reason the suite is.
 
+## Check 52's Word saves (`check52/`, CR-014 phase 0)
+
+Word 365's two saves of check 52's file after its Script Lab run (2026-10-22): `52-ranges-word365.docx` as the run left
+it, and `52-ranges-word365-accepted.docx` after Accept All. `manifest.json` gives each one's SHA-1, which
+`ranges.test.mjs` checks, with the Word build and the view. They hold Word's own markup for ranges across paragraphs, tracked
+and not, and for CR-002 section 55's cells. `ranges.test.mjs` accepts the first with `acceptAllRevisions()` and compares
+it with the second, region for region. They are kept outside `fixtures/` because they hold tracked changes, for which the
+weekly `RevisionsHarness` would cut CR-011 goldens. Check 52 in the manual checklist below has the run.
+
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 
 What docx4j answers for every fixture above and for the eight `.docx` in `fixtures/`, written
@@ -3868,3 +3877,215 @@ async function check() {
   });
 }
 ```
+
+52. Ranges across paragraphs (CR-014 phase 0, 2026-10-22; Jason: "implement CR-014 phase 0"). What Office JS does
+   with a `Word.Range` that spans paragraphs, where a `Range` here is one paragraph's: CR-014 section 2's seven
+   questions and the editor's five additions (its section 6). Cases 86 to 95 measure CR-002 section 55's D2 as well:
+   what Office JS's edits leave in a table cell (Word's table rule). The file is `__tmp/52/52-ranges.docx` on the share, as
+   `fixtures/check52/build.mjs` writes it (its parts as text; git ignores the `.docx`, and `check52Bytes` gives a test
+   the same bytes). The snippet is beside it, `check52-script-lab.html` and `check52-script-lab.js` (WordApi 1.6),
+   copies of `fixtures/check52/`'s, which are too long to repeat here.
+   - **A region per case.** Each of the 95 cases is a region of its own: a paragraph `BEGIN<n> <kind> <operation>
+     <tracking> <range>`, the kind's content, and a paragraph `END<n>`. So one run measures every case on content no
+     other case has touched, where a fresh copy per case would be 95 runs. The range is written in lower case in the
+     `BEGIN` paragraph, and the content's words in upper case, so the snippet's whole-word, case-sensitive search
+     finds a word (`HEAD7B`) in the content only. The paragraphs are told apart by their formatting:
+     - a heading (Heading 1, `HEAD<n>A HEAD<n>B`);
+     - a body paragraph (centred, its runs italic, `BODY<n>A BODY<n>B`);
+     - a list item (List Paragraph, numbered `1.` in each case, its runs underlined, `LIST<n>A LIST<n>B`);
+     - a right-aligned paragraph (`NEXT<n>A NEXT<n>B`) and a plain one (`PLAIN<n>A PLAIN<n>B`);
+     - a table of two rows of two cells, each cell's words `T<n>R1C1A T<n>R1C1B` and so on.
+   - **The kinds of range.** "From a word to a word" is the first word's search hit `expandTo` the second's, so it
+     runs from the start of the first to the end of the second:
+     - **HB**: from the heading's second word to the body paragraph's first; **BH**: the same with the body paragraph
+       first, from its second word to the heading's first;
+     - **LB**: from the list item's second word to the body paragraph's first; **BL**: from the body paragraph's
+       second word to the list item's first;
+     - **HMB**: as HB, with a plain paragraph between the two;
+     - **TBL**: as HB, with the table between (the whole table in the range);
+     - **INTO**: from the heading's second word to the first word of the table's second row (ending inside the
+       table);
+     - **CELL**: from the first cell's second word to the first word of the body paragraph after the table (starting
+       inside the table);
+     - **HID**: as HB, the heading holding a hidden run (`HIDDEN<n>`) and a third word after its second;
+     - **FN**: as HB, the heading holding a footnote reference after its second word (the note reads `NOTE<n>`), and
+       a third word;
+     - **CC**: the content (`getRange('Content')`) of a block content control tagged `c52-<n>`, which holds a
+       heading, a body paragraph and a list item;
+     - **W1**: a body paragraph's whole range (`getRange('Whole')`, its mark included), a right-aligned paragraph
+       after it;
+     - **W2**: from the heading's second word to the end of the body paragraph after it, its mark included, a
+       right-aligned paragraph after that.
+   - **The cells of cases 86 to 95** (CR-002 section 55). Each is a table of one row, whose second cell holds
+     `T<n>R1C2A T<n>R1C2B`, and whose first cell holds a list item (List Paragraph, numbered, underlined, `LIST<n>A
+     LIST<n>B`), so that what Word keeps of a paragraph's properties shows:
+     - **TC1**: the list item alone;
+     - **TC2**: a nested table of one cell (`N<n>A N<n>B`), then the list item;
+     - **TC3**: a block content control tagged `c52-<n>` around the list item.
+
+     Their `BEGIN` paragraphs name `cell list<n>a` (the cell holding the word, through `parentTableCell`),
+     `paragraph list<n>a`, or `control c52-<n>`.
+   - **The operations:**
+     - `delete()` on every kind, and `insertText('NEWTEXT', 'Replace')` on all but HMB, HID and FN, each untracked and
+       tracked;
+     - `font.bold = true` on HB, TBL, CELL and CC, untracked and tracked;
+     - `insertParagraph('NEWPARA', 'Before')` and `('NEWPARA', 'After')` on HB, TBL, CELL, CC, W1 and W2 untracked,
+       and on HB tracked;
+     - `insertText('NEWSTART', 'Start')` and `insertText('NEWEND', 'End')` on HB, CC, W1 and W2, untracked;
+     - `insertComment('NEWCOMMENT')` on HB, TBL, CELL, CC, W1, W2 and FN, untracked;
+     - for CR-002 section 55: the cell's `body.insertTable(1, 1, 'End', [['NEWCELL']])` on TC1;
+       `Paragraph.delete()` of the list item on TC1 (the cell's only paragraph) and TC2 (its last, after the nested
+       table); the cell's `body.clear()` on TC1, each untracked and tracked; the cell's `body.insertOoxml(…,
+       'Replace')` on TC1, untracked, with a flat OPC package whose body is a one-cell table (`NEWOOXML`) and nothing
+       after it (the snippet's `TABLE_OOXML`); and `ContentControl.delete(false)` on TC3, untracked.
+
+     Tracked is `document.changeTrackingMode` set to `TrackAll` by the snippet for the case; it sets it back to
+     `Off` at the end.
+   - **Two regions are only read.** **VIEWS** (case 1): a tracked deletion from the heading's second word through
+     its mark into the body paragraph, a comment from the body paragraph's second word to the list item's first, a
+     tracked insertion from the list item's second word through its mark into a plain paragraph, and a table. It
+     shows what `getTrackedChanges()`, `getComments()` and their `getRange()` read when they span paragraphs.
+     **SEARCH** (case 2): `^p` alone, `^p^p`, and `^p` between two paragraphs, between a list item and the table,
+     after a cell's last word, between two cells, at a row's end, and between the table and the paragraph after it.
+   - **Steps, in Word 365 only.**
+     1. Open `__tmp/52/52-ranges.docx`, and say whether Word reports a problem or offers a repair. Leave Word's view as
+        it opens (Simple Markup, hidden text not shown).
+     2. File > Save As `52-ranges-word365.docx`, in the same folder, before anything else, so that the run's changes
+        don't go into `52-ranges.docx`.
+     3. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet), and paste the HTML
+        and Script tabs from the share's `check52-script-lab.html` and `check52-script-lab.js` over the defaults.
+     4. Click **Run the check**, once. It changes the document case by case, showing which case it is on, and may
+        take a few minutes. When it says Done, copy the box into a new file `__tmp/52/result-run.txt`.
+     5. Ctrl+S, which saves `52-ranges-word365.docx` as the run left it.
+     6. File > Save As `52-ranges-word365-accepted.docx`, then Review > Accept > Accept All Changes. Click
+        **Report only** (it changes nothing), copy the box into a new file `__tmp/52/result-accepted.txt`, then
+        Ctrl+S and close.
+   - **What the JSON holds.** In `reads`, for each kind, what its range reads before anything is written: `text`,
+     `isEmpty`, `style`, `font`; `getRange` of Whole, Start, End, Content and After, with each one's text and its
+     first paragraph's; `paragraphs`; `tables`; the hits of `^p` searched in it; and, as `swapped`, `expandTo` with its
+     ends the other way round. In `cases`, for each case: the range's text just before the operation; what the
+     operation returned (the new range's, paragraph's or comment's text, a new table's values); and the region after it. The region is its
+     text, each paragraph's text, style, alignment, list string and level, table nesting level and font (for bold,
+     each word's bold), its tables' values and whole range, its tracked changes (type, text, range), comments
+     (content, range), content controls and footnotes. `result-accepted.txt` holds the regions only. A step Office JS
+     refuses reads `error: <code>` in place of its value. Every character outside printable ASCII is written
+     `\uXXXX`.
+   - **What this package gives:** nothing to compare yet, since a `Range` here is one paragraph's and there is no
+     `expandTo`. Phase 1's test is to run the same snippet (`CHECK52.runCheck`) through the Word shim on
+     `check52Bytes` and compare it with Word's JSON, case for case. Until then `ranges.test.mjs` holds the file and the
+     snippet to each other: each `BEGIN` paragraph parses with the snippet's own parser to the case it was built as,
+     and each word the snippet searches for is in the file once. A stand-in for Office JS, where every member exists,
+     ran all 95 cases through the snippet with no error in the script (not committed). For CR-002 section 55,
+     nothing either: it is proposed, and these cases decide its D2, whether its repair follows Word's edits or Word's
+     repair on opening.
+   - **Run 2026-10-22 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), in All Markup.** His JSON is
+     `fixtures/check52/52-ranges-word365-run.json`, all 95 cases. The text reads under tracking include deleted text
+     (case 1's `HEAD1B`), which check 48 found Word's default view, Simple Markup, leaves out; only those reads depend
+     on the view.
+     - **Reads**, for every kind, before any write:
+       - A range's `text` is in `body.text`'s form between its ends: `HEAD3B\rBODY3A`, a table's rows ended
+         `\r\n` and its cells a `\t` apart, a footnote reference `\u0002`, hidden text left out.
+       - `getRange('Whole')` is the range itself, not widened. `'Content'` is the same, without a last mark where
+         the range ends with one (W1, W2).
+       - `'Start'` and `'End'` are empty, in the first and the last paragraph. `'After'` is empty, in the last
+         paragraph, or in the next where the range ends with a mark.
+       - `paragraphs` lists every paragraph the range touches, a table's cells' too. `expandTo` with its ends swapped
+         gives the same range.
+       - `font` reads `null` (`''` for the name, `Mixed` for underline) where the paragraphs differ.
+     - **`^p`** (case 2) finds the marks of the paragraphs outside the table, and nothing else:
+       - no cell's or row's end;
+       - no hit for `^p` between a paragraph and a table's first cell, or after the table's last cell;
+       - `HEAD2B^pBODY2A` finds one hit across the two paragraphs.
+     - **Views that span paragraphs** (case 1):
+       - the tracked deletion through the heading's mark is one `Deleted` change, its text and range
+         `HEAD1B\rBODY1A `;
+       - the tracked insertion through the list item's mark is one `Added` change;
+       - the comment's range is `BODY1B\rLIST1A`.
+     - **`delete()`, untracked:**
+       - The paragraphs join. The joined paragraph has the properties of the paragraph the range ends in (HB: centred
+         Normal; BH: Heading 1; LB: centred Normal; BL: the list item, numbered), and each run keeps its own
+         formatting. HMB's paragraph between and TBL's whole table go.
+       - A range ending with a paragraph's mark takes the mark: W1's paragraph goes whole, and W2's head joins the
+         next paragraph, in the next paragraph's properties.
+       - A range starting or ending inside a table (INTO, CELL) throws `GeneralException` and changes nothing,
+         tracked or not. So does `Replace`.
+       - FN's footnote goes with its reference.
+       - CC's control stays, holding one empty paragraph in its last paragraph's properties (the list item's,
+         numbered).
+     - **`delete()`, tracked:** one `Deleted` change across the paragraphs (`HEAD16B\rBODY16A`), with TBL's table
+       inside it. The paragraphs stay until accepted.
+     - **`insertText('NEWTEXT', 'Replace')`, untracked:** as `delete()`, then the text at the join (`HEAD29A NEWTEXT
+       BODY29B`, centred Normal).
+       - A range ending with a mark keeps that mark: W1 leaves `NEWTEXT` in the body paragraph's properties; W2 leaves
+         `HEAD38A NEWTEXT` in them, the next paragraph apart.
+       - CC's control holds one paragraph, `NEWTEXT`, in the list item's properties.
+     - **`insertText('NEWTEXT', 'Replace')`, tracked:** every case lists only `Added: NEWTEXT`, inserted before the
+       range's first word (`HEAD39A NEWTEXTHEAD39B`), and no deletion. The save shows the deletion is there (below).
+     - **`font.bold`** bolds every word in the range, a table's cells too. Tracked, it gives `Formatted` changes,
+       none for the heading's word that was bold already.
+     - **`insertParagraph`** splits the paragraph:
+       - `'Before'` at the range's start (`HEAD57A`, `NEWPARA`, `HEAD57B`, all Heading 1), inside the cell for CELL;
+       - `'After'` at its end (`BODY63A`, `NEWPARA`, ` BODY63B`, centred);
+       - where the range starts at a paragraph's start or ends with its mark, the new paragraph goes before or after
+         that paragraph, in its paragraph properties;
+       - on CC's content Word adds an empty paragraph as well: before `NEWPARA` for `'Before'` (in the control,
+         Heading 1), after it for `'After'` (numbered 2. and 3.);
+       - tracked: `Added: \rNEWPARA\r`.
+     - **`insertText` at `'Start'` and `'End'`** goes at the range's first and last character, never past a last
+       mark (W1's `'End'`: `BODY77A BODY77BNEWEND`).
+     - **`insertComment`** works on every kind, CELL's too. Its range is the range's text, W1's without the mark
+       (`BODY83A BODY83B`).
+     - **CR-002 section 55's cells (cases 86 to 95): Word never leaves a cell without its last paragraph.**
+       - `Paragraph.delete()` of the cell's only paragraph, or of its last after a nested table, leaves that
+         paragraph empty, keeping its properties (List Paragraph, numbered `1.`). `body.clear()` does the same.
+       - `ContentControl.delete(false)` of a control around the cell's paragraph leaves an empty paragraph in that
+         paragraph's properties, outside any control.
+       - Tracked, `Paragraph.delete()` and `body.clear()` each give one `Deleted` change of the text alone
+         (`LIST90A LIST90B`), not of the mark.
+       - `body.insertTable(…, 'End')` puts the table after the cell's last paragraph, and an empty paragraph after
+         the table in that paragraph's properties (numbered `3.`). The new table's own paragraph takes them too (List
+         Paragraph, `2.`). Tracked: `Added: \rNEWCELL\r\n`.
+       - `body.insertOoxml(table, 'Replace')` leaves the inserted table and, after it, the cell's paragraph, emptied,
+         numbered `1.`.
+     - **Word's saves and the report after Accept All** (the same day): `52-ranges-word365.docx`, saved after the
+       run, and `52-ranges-word365-accepted.docx`, after Review > Accept All Changes, are in `check52/`; the report is
+       `fixtures/check52/52-ranges-word365-accepted.json`. Display for Review was **All Markup** (Jason), so the text
+       reads under tracking include deleted text. The markup:
+       - **A tracked deletion across paragraphs** marks every mark in the range deleted (`w:pPr/w:rPr/w:del`) and
+         puts each paragraph's text in `w:del`. The last paragraph's mark stays, and **no `w:pPrChange` is written**
+         (the editor's addition 1). A whole table in the range has every row's `w:trPr/w:del`, and every cell's mark and
+         text deleted. A hidden run and a footnote reference go inside the `w:del`.
+       - **Accept All gives the untracked answer**: one paragraph in the last paragraph's properties, TBL's table gone,
+         W1's paragraph gone, W2's head joined to the next paragraph. This package's `acceptAllRevisions()` on the save
+         after the run gives the same paragraphs as Word's accepted save in 94 of the 95 regions (each paragraph's text,
+         style, alignment, list and table nesting). The 95th, case 26, differs by Word's filler of five spaces in the
+         emptied control. `ranges.test.mjs` holds it so.
+       - **Untracked `delete()`** takes the hidden run with it, and the footnote leaves `footnotes.xml`. Emptying CC's
+         control leaves one paragraph in the list item's `w:pPr`, holding a bold run of five spaces (Word's filler for
+         an empty control).
+       - **Tracked `Replace`** writes `w:ins` with the new text, then `w:del` with the range, the marks deleted as
+         `delete()` deletes them, except that a last mark in the range stays. So the deletion is there, though
+         `getTrackedChanges()` listed only the insertion. Accepted, the new text has no formatting of its own.
+       - **Untracked `Replace`** gives the new text the replaced range's first character's formatting, as direct run
+         properties: from a heading, Heading 1's font, size, colour and bold (`HEAD29A NEWTEXT BODY29B`, in a centred
+         Normal paragraph); W1's the body run's italic.
+       - **`font.bold`** writes `w:b` on each run in the range that isn't bold already. A heading's run, bold through
+         its style, gets nothing, and under tracking gives no change. A mark in the range is bolded too (CC's middle
+         paragraph's `w:pPr/w:rPr/w:b`). Tracked, each run has a `w:rPrChange`.
+       - **`insertComment`** puts `w:commentRangeStart` before the range's first run and `w:commentRangeEnd` after its
+         last character, before any mark, then the reference run. CELL's start is inside the cell. On CC's content
+         range the start goes at the start of `w:sdtContent`, before the first paragraph
+         (`w:displacedByCustomXml="prev"`), and the end in the last paragraph.
+       - **`insertParagraph`**: both halves of a split paragraph keep its `w:pPr`. `'After'` gives the new paragraph
+         the run properties at the split (italic). Tracked, the split's new marks are inserted (`w:pPr/w:rPr/w:ins`):
+         the first half's and `NEWPARA`'s.
+       - **Cases 86 to 95**: the cell's kept paragraph keeps its `w:pPr` whole (`w:pStyle`, `w:numPr`).
+         - Tracked `Paragraph.delete()` and `body.clear()` put the text in `w:del` and leave the mark unmarked.
+         - `insertTable(…, 'End')` splits the cell's paragraph. The table goes between the halves; the first half, which
+           keeps the text, gains its last run's `w:u` as mark properties. Tracked, that first half's mark is the
+           inserted one, with the table's rows; the empty paragraph after the table is the cell's own mark, unmarked.
+         - Accept All leaves each cell ending in that paragraph.
+     - **The saves are `check52/`** (Jason: "test/check52/, outside fixtures/ like test/mc-fun/"), since under
+       `fixtures/` the weekly `RevisionsHarness` would cut CR-011 goldens for them. Its `manifest.json` gives each one's
+       SHA-1. `ranges.test.mjs` holds this package's `acceptAllRevisions()` on the first to the second, region for
+       region.
