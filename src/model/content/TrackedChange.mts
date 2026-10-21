@@ -240,10 +240,10 @@ export class TrackedChange {
       case 'tableProperties': return tableChangeText(t.tbl.value);
       case 'cell': return tableRowText(t.tr);
       case 'sectionProperties': return t.text;
-      case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original' }).map((s) => s.text).join('');
+      case 'run': return segmentsOf(t.element.value as object, { view: t.revision === 'ins' || t.revision === 'moveTo' ? 'accepted' : 'original', characters: 'textOf' }).map((s) => s.text).join('');
       case 'runProperties': return textOf(t.run);
       // the field's result: its instruction is no text, as Office JS reports it (check 30: "1")
-      case 'field': return segmentsOf({ content: t.span }, { view: 'accepted' }).map((s) => s.text).join('');
+      case 'field': return segmentsOf({ content: t.span }, { view: 'accepted', characters: 'textOf' }).map((s) => s.text).join('');
       case 'paragraphProperties': return this.paragraph?.text ?? '';
       // a deleted row's content is `w:delText` inside `w:del`, which the accepted view skips:
       // its text is what the row said before, as for a run deletion
@@ -270,17 +270,21 @@ export class TrackedChange {
       return new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
     }
     if (t.kind === 'field') {
-      const start = acceptedOffsetOf(p.p, t.span[0]!);
-      return new Range(p, start, start + this.text.length);
+      const [start] = spanOf(p, t.span[0]!);
+      const length = segmentsOf({ content: t.span }, { hidden: p.hiddenRuns() }).map((s) => s.text).join('').length;
+      return new Range(p, start, start + length);
     }
     if (t.kind === 'runProperties') {
       const segs = p.segments().filter((s) => s.run === t.run);
       if (segs.length === 0) return p.getRange('Start');
       return new Range(p, segs[0]!.start, segs[segs.length - 1]!.end);
     }
-    // an equation's text is not in the paragraph's: collapsed where the equation stands
+    // the equation's text, Word's drawing of it, since CR-012 phase 4; collapsed where it stands when the
+    // view leaves it none
     if ((t.kind === 'mathRun' || t.kind === 'mathStructure') && t.equation) {
-      const at = acceptedOffsetOf(p.p, t.equation);
+      const equation = p.segments().find((seg) => seg.math && seg.item === t.equation);
+      if (equation) return new Range(p, equation.start, equation.end);
+      const [at] = spanOf(p, t.equation);
       return new Range(p, at, at);
     }
     return p.getRange('Whole');
@@ -510,7 +514,7 @@ function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
     for (const el of childrenOf(tc) ?? []) {
       const tn = typeNameOf(el);
       if (tn === 'org_docx4j_wml.P') {
-        out += (afterParagraph ? '\r' : '') + textOfView(el.value as object, { view });
+        out += (afterParagraph ? '\r' : '') + textOfView(el.value as object, { view, characters: 'textOf' });
         afterParagraph = true;
       } else if (tn === 'org_docx4j_wml.Tbl') {
         for (const row of rowsOf(el.value as wml.Tbl)) out += rowText(row.element.value, view);
@@ -518,7 +522,7 @@ function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
       } else if (typeof el.value === 'object' && el.value !== null) {
         // a block control or custom XML element: what it holds, as if it were not there
         for (const inner of childrenOf(el.value) ?? []) {
-          if (typeNameOf(inner) === 'org_docx4j_wml.P') { out += (afterParagraph ? '\r' : '') + textOfView(inner.value as object, { view }); afterParagraph = true; }
+          if (typeNameOf(inner) === 'org_docx4j_wml.P') { out += (afterParagraph ? '\r' : '') + textOfView(inner.value as object, { view, characters: 'textOf' }); afterParagraph = true; }
         }
       }
     }
@@ -1233,30 +1237,13 @@ function pruneRowProperties(tr: wml.Tr): void {
 
 /** The span of a run-level revision in the paragraph's accepted text; collapsed for a deletion. */
 function spanOf(paragraph: Paragraph, element: Element): [number, number] {
-  const segs = paragraph.segments();
+  // where the walk passes the element: a deletion stands there in the accepted text, before what follows it
+  let at: number | undefined;
+  const segs = paragraph.segments({ visit: (el, offset) => { if (el === element && at === undefined) at = offset; } });
   const inside = segs.filter((s) => s.revision?.element === element);
   if (inside.length > 0) return [inside[0]!.start, inside[inside.length - 1]!.end];
-  const at = acceptedOffsetOf(paragraph.p, element);
-  return [at, at];
-}
-
-/** How much accepted text comes before `target` in the paragraph. */
-function acceptedOffsetOf(p: wml.P, target: Element): number {
-  let pos = 0;
-  let found = -1;
-  const visit = (items: Element[] | undefined): void => {
-    if (!items || found >= 0) return;
-    for (const el of items) {
-      if (found >= 0) return;
-      if (el === target) { found = pos; return; }
-      if (typeNameOf(el) === 'org_docx4j_wml.R') { pos += segmentsOf({ content: [el] }).map((s) => s.text).join('').length; continue; }
-      const kind = revisionKindOf(el);
-      if (kind === 'del' || kind === 'moveFrom') continue;
-      visit(runItemsOf(el.value as object));
-    }
-  };
-  visit(runItemsOf(p));
-  return found >= 0 ? found : pos;
+  const end = segs.length > 0 ? segs[segs.length - 1]!.end : 0;
+  return [at ?? end, at ?? end];
 }
 
 // --- math (CR-002 section 51) ------------------------------------------------------------------
@@ -1659,7 +1646,7 @@ function sectionText(items: Element[], end: number): string {
   let from = end - 1;
   while (from > 0 && !(typeNameOf(items[from - 1]!) === 'org_docx4j_wml.P' && (items[from - 1]!.value as wml.P).pPr?.sectPr)) from--;
   return items.slice(Math.max(from, 0), end).filter((el) => typeNameOf(el) === 'org_docx4j_wml.P')
-    .map((el) => textOfView(el.value as object, { view: 'accepted' })).join('\r');
+    .map((el) => textOfView(el.value as object, { view: 'accepted', characters: 'textOf' })).join('\r');
 }
 
 function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[]): void {

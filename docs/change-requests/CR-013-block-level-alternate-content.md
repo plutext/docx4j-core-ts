@@ -394,3 +394,37 @@ readers Word's branch; every element saved whole after a re-marshal, on all 30 f
 `w16du:dateUtc` in a taken `w16du` Choice and check 35's `w16sdtdh:storeItemChecksum` in a taken
 `w16sdtdh` one. `text-model.test.mjs` adds a bound control's surface in a branch: run-level, in a `w:r`,
 and a selected branch that does differ, which still warns. The first two warned before. 1,105 tests pass.
+
+### 8.5 What CR-012 phase 4 changes here (2026-10-21)
+
+CR-012 phase 4 (its section 17) came between this CR's phases 1 and 2, as agreed. It changes what section
+7.3's audit found in three places:
+- **`textOf` is gone from the cell, table and control readers.** `TableCell.text` and `value`, `Table.text`
+  and `ContentControl.text` read their paragraphs' `Paragraph.text`. So `TableCell.values` and `paragraphs`
+  no longer disagree. Both miss a block-level element in the cell until phase 2, and `mc-fun.test.mjs`
+  asserts it so. Section 7.3's choice between an objects CR and these readers leaving `textOf` is made: they
+  left.
+- **The run reader reads a branch at run and paragraph level** (`segmentsOf`, the editor's ED-009). Block,
+  row and cell level are still phase 2's.
+- **A PARENT climb steps out of a text box.** `addressOf` goes from a box's paragraph to its anchor
+  (`textbox:N`). A text box inside a block-level element is not addressed: its paragraph's address starts
+  in the element, which `elementAt` doesn't enter. The three `mc-fun` `txbx` probes are asserted as that
+  gap (CR-012 section 17.4), for phase 2's addresses (D2) to close.
+
+### 8.6 docx4j CR-051 phase 2, for phases 2 and 3 (2026-10-21)
+
+docx4j-25 handed over CR-051 phase 2 (`9db1a3cbd`, unpushed when told). In `preserve` mode docx4j now keeps the
+element whole at row and cell level too, so its `preserve` load matches this package's default at every
+level. It becomes docx4j's default at 17.4.0.
+- **Addresses.** docx4j addresses the element as a level, a row inside it `body/3/1/0`. This package's text
+  model has done the same since phase 1: on the probes the row-level element is `body/1/1`, its row
+  `body/1/1/0`; the cell-level one is `body/1/0/1`. `mce.branches_differ` is raised at the element's address.
+  Nothing differs, and docx4j was told so.
+- **Its fixes are the shapes section 7.3 found here:**
+  - `Lister.hasRows` decides over every branch whether a table keeps a row: phase 3's first item (`removeRow`,
+    `Table.deleteColumns`);
+  - `Lister.alternateRows` and `alternateCells` list a row's or a cell's revisions in a branch: phase 2's
+    listing.
+- **Its tests are the oracle for those phases:** `McBlockLevelProbesTest.preserveModeReadsAsWordsSave`,
+  `McBlockLevelReadersTest` (the element's address, both modes) and `TrackedChangesAlternateContentTest` (row and
+  cell bodies), with `acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow`.

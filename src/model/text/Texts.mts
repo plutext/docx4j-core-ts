@@ -187,17 +187,28 @@ export class Texts {
   }
 
   private static async context(pkg: TextPackage, given: TextContext | undefined, o: TextOptions): Promise<TextContext> {
-    if (given !== undefined && given.pkg !== pkg) throw new Docx4JException('This TextContext was made for another package');
-    const context = given ?? await Texts.contextOf(pkg);
-    if (context.view !== undefined && context.view !== o.view) {
-      throw new TextOptionError(`This TextContext read in the ${context.view} view, and its note numbers and list counts are that view's: make another for ${o.view}`,
-        'view', 'REQ-401', 'invalid');
-    }
-    context.view = o.view;
-    if (o.includes.has('glossary')) await context.trees.readGlossary();
-    return context;
+    return contextFor(pkg, given, o);
   }
 }
+
+/**
+ * The context a call reads under: the one given, checked against the package and the view, or a new one
+ * (internal: `Texts` and the outline reader share it).
+ */
+export async function contextFor(pkg: TextPackage, given: TextContext | undefined, o: TextOptions): Promise<TextContext> {
+  if (given !== undefined && given.pkg !== pkg) throw new Docx4JException('This TextContext was made for another package');
+  const context = given ?? await Texts.contextOf(pkg);
+  if (context.view !== undefined && context.view !== o.view) {
+    throw new TextOptionError(`This TextContext read in the ${context.view} view, and its note numbers and list counts are that view's: make another for ${o.view}`,
+      'view', 'REQ-401', 'invalid');
+  }
+  context.view = o.view;
+  if (o.includes.has('glossary')) await context.trees.readGlossary();
+  return context;
+}
+
+/** Options checked as `Texts.of` checks them (internal). */
+export { optionsOf, isPackage };
 
 /** The id of the main document part's relationship to a part. */
 function relationshipIdOf(main: Part, part: Part): string | undefined {

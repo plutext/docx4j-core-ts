@@ -4,6 +4,8 @@
 //
 //   node test/fixtures/check48/build.mjs
 //
+// (`readers.test.mjs` imports `check48Bytes` instead, which builds them in memory: CR-012 phase 4)
+//
 // writes 48-text.docx, and 48b-text.docx with two cases more (symbols in other fonts, a run hidden through
 // its character style), into this directory, which git ignores (test/README.md check 48 says why, and
 // what to do with it; the share holds the copy Word reads). Each case is one paragraph, "Case n:
@@ -125,8 +127,8 @@ const notes = (kind, ref, text) => `<?xml version="1.0" encoding="UTF-8" standal
 const comments = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:comments${ROOT_NS}>`
   + `<w:comment w:id="0" ${REVISION} w:initials="C48">${para(run('<w:annotationRef/>') + t('The comment of case 2.'))}</w:comment></w:comments>`;
 
-/** Writes one file: check 48's cases, and 48b's after them where `extra` holds them. */
-async function build(file, name, extra) {
+/** One file's bytes: check 48's cases, and 48b's after them where `extra` holds them. */
+async function bytesOf(name, extra) {
   const pkg = await WordprocessingMLPackage.createPackage();
   const entries = unzipSync(await pkg.save());
   const put = (part, text) => { entries[part] = strToU8(text); };
@@ -151,9 +153,21 @@ async function build(file, name, extra) {
 
   const bytes = zipSync(entries);
   await WordprocessingMLPackage.load(bytes);   // it loads here, at least
+  return bytes;
+}
+
+/** Check 48's file (`'48'`) or 48b's, in memory: what a test reads beside Word's answers (CR-012 phase 4). */
+export async function check48Bytes(which) {
+  return which === '48b' ? bytesOf('Check 48b', cases48b) : bytesOf('Check 48', []);
+}
+
+async function build(file, which) {
+  const bytes = await check48Bytes(which);
   await writeFile(join(here, file), bytes);
   console.log(`wrote ${file} (${bytes.length} bytes)`);
 }
 
-await build('48-text.docx', 'Check 48', []);
-await build('48b-text.docx', 'Check 48b', cases48b);
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  await build('48-text.docx', '48');
+  await build('48b-text.docx', '48b');
+}

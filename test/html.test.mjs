@@ -72,7 +72,8 @@ test('every capture builds: the fragment parses to as many blocks as the form ha
     await (await pkg.getMainDocumentPart().getBody()).insertXml(xml, 'End');
     const again = await WordprocessingMLPackage.load(await pkg.save());
     const paragraphs = (await again.getMainDocumentPart().getBody()).paragraphs;
-    const expected = blocks.filter((b) => b.kind === 'paragraph').map((b) => b.inlines.map((i) => ('text' in i ? i.text : 'tab' in i ? '\t' : '\n')).join(''));
+    // a line break reads as U+000B in Paragraph.text, as in Office JS's (check 48; CR-012 phase 4)
+    const expected = blocks.filter((b) => b.kind === 'paragraph').map((b) => b.inlines.map((i) => ('text' in i ? i.text : 'tab' in i ? '\t' : '\u000B')).join(''));
     const got = paragraphs.map((p) => p.text).filter((t, i) => i < expected.length || t !== '');
     for (const [i, text] of expected.entries()) assert.ok(got.includes(text), `${name}: paragraph ${i} ${JSON.stringify(text)} present after the round trip`);
   }

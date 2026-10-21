@@ -288,6 +288,16 @@ test('REQ-1001: every WD option name and value accepted; anything else refused; 
 
 // ---------------------------------------------------------------- this package's own
 
+/** The characters Office JS's text may hold where the model writes `c` (check 48; CR-012 phase 4). */
+function officeCharacterOf(c) {
+  switch (c) {
+    case '\n': return '\u000B\u000C\u000E\r';
+    case '\u2011': return '\u001E';
+    case '\u00AD': return '\u001F';
+    default: return '(';                                               // a symbol, whatever its code
+  }
+}
+
 test('CR-012 section 4.4: a run\'s officeOffset is where its text lies in its paragraph\'s Paragraph.text', async () => {
   const pkg = await WordprocessingMLPackage.load(PROBE);
   await pkg.getBody();
@@ -300,7 +310,13 @@ test('CR-012 section 4.4: a run\'s officeOffset is where its text lies in its pa
         const source = run.source;
         assert.ok(source, `${block.address}: a run with an officeOffset has a source`);
         const office = new Paragraph({ name: { namespaceURI: W, localPart: 'p' }, value: source.paragraph }, [], pkg.body).text;
-        assert.equal(office.slice(run.officeOffset, run.officeOffset + run.text.length), run.text, `${view} ${block.address}: '${run.text}'`);
+        // character for character, in Office JS's characters where the model writes its own (check 48: a
+        // break \n there, U+000B to U+000E here; the hyphens; any symbol `(`)
+        const span = office.slice(run.officeOffset, run.officeOffset + run.text.length);
+        assert.equal(span.length, run.text.length, `${view} ${block.address}: '${run.text}'`);
+        for (let i = 0; i < span.length; i++) {
+          assert.ok(span[i] === run.text[i] || officeCharacterOf(run.text[i]).includes(span[i]), `${view} ${block.address}: '${run.text}' at ${i}: ${JSON.stringify(span[i])}`);
+        }
         mapped++;
       }
     }
@@ -312,15 +328,17 @@ test('CR-012 section 4.4: a run\'s officeOffset is where its text lies in its pa
   for (const block of model.blocks) for (const run of block.runs) if (run.kind !== 'TEXT') assert.equal(run.officeOffset, undefined, `${run.kind} at ${block.address}`);
 });
 
-test('CR-012 section 4.4: hidden text Paragraph.text holds is the gap between two runs\' officeOffsets', async () => {
+test('CR-012 section 4.4 and phase 4: hidden text, which Paragraph.text leaves out as Office JS does, has no officeOffset; a note reference is U+0002 there', async () => {
   const pkg = await miniDocx('<w:p><w:r><w:t xml:space="preserve">before </w:t></w:r><w:r><w:rPr><w:vanish/></w:rPr><w:t>HIDDEN</w:t></w:r>'
     + '<w:r><w:t xml:space="preserve"> after</w:t></w:r><w:r><w:footnoteReference w:id="7"/></w:r><w:r><w:t>!</w:t></w:r></w:p>').footnotes(NOTES).load();
   const block = (await Texts.of(pkg)).blocks[0];
   assert.deepEqual(block.runs.map((r) => [r.kind, r.text, r.officeOffset]), [
-    ['TEXT', 'before ', 0], ['TEXT', ' after', 13], ['NOTE_REFERENCE', '', undefined], ['TEXT', '!', 19],
+    ['TEXT', 'before ', 0], ['TEXT', ' after', 7], ['NOTE_REFERENCE', '', undefined], ['TEXT', '!', 14],
   ]);
+  const shown = (await Texts.of(pkg, { hidden: true })).blocks[0];
+  assert.deepEqual(shown.runs.map((r) => [r.text, r.officeOffset]), [['before ', 0], ['HIDDEN', undefined], [' after', 7], ['', undefined], ['!', 14]]);
   await pkg.getBody();
-  assert.equal(pkg.body.paragraphs[0].text, 'before HIDDEN after!');
+  assert.equal(pkg.body.paragraphs[0].text, 'before  after\u0002!');
 });
 
 test('CR-012 section 4.4: the part overloads under one TextContext, concatenated, are the package\'s text', async () => {

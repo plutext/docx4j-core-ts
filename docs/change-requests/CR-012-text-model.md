@@ -12,7 +12,12 @@ suite's 735 rows it claims and the agreement test's 588 comparisons with no diff
 implemented 2026-10-21 (Jason: "start CR-012 phase 3"), not released: Markdown, `MarkdownExporter` with
 `blocks`, docx4j's `WmlToMarkdown` over the block model and a port of commonmark-java's renderer, so the
 Markdown is docx4j's byte for byte; 786 suite rows pass, and 1,320 of 1,420 exports over `test/` equal
-docx4j's, the rest differing only where phase 5 or REQ-303 does (section 16). Word
+docx4j's, the rest differing only where phase 5 or REQ-303 does (section 16). Phase 4 implemented
+2026-10-21 (Jason: "start CR-012 phase 4"), not released: the readers, `Paragraph.text` and `search` in
+Office JS's characters and rules in Word's default view, equal to Word 365's answers on checks 48, 48b and 51;
+ED-009's branch content read and edited; text boxes at `textbox:` addresses, read-only; `pkg.paragraphAt`
+over notes and comments; `outline()` on the model and async (the editor asked, Jason chose); three defects
+in 0.5.0 found and fixed (section 17). Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
 all of it, in Word's default view, Simple Markup with hidden text not shown (Jason, the same day, after
 check 48b). D2 starts from his decision of 2026-10-19, that the
@@ -23,7 +28,8 @@ its asks are in section 4.4. Section 12 (2026-10-20) takes the editor's ED-009 r
 in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason: "do as the editor
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
-(section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released.
+(section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
+which reads and edits the branch (section 17.3).
 
 ## 1. Why
 
@@ -636,7 +642,7 @@ unless a check says otherwise.
 | 1 | REQ-510's level ownership in the Emulator (D9), with `LevelOwnerTest`'s documents and Word's labels. **Done 2026-10-21, section 14** | ½ to 1 day |
 | 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx`. **Done 2026-10-21, section 15** (`paragraphAt`'s `footnote:`, `endnote:` and `comment:` with phase 4's views) | 7 to 9 days |
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks`. **Done 2026-10-21, section 16** | 2 to 3 days |
-| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12) | 3½ to 4½ days |
+| 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12). **Done 2026-10-21, section 17** | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
 | 6 | Block-model parity goldens (D8 c). docx4j's 17.3.4 work is now public, so this can go with phase 2 (section 6.1) | 1 day |
 
@@ -852,6 +858,9 @@ case by case.
   2 and 3, and the tests over the editor's eight cases.
 
 ### 12.4 Until then: an edit the runs can't place throws (implemented 2026-10-20)
+
+*Superseded 2026-10-21 by phase 4 (section 17.3): the segments read the branch, so every offset is a place
+in the runs, and these edits land in the selected branch.*
 
 Jason, 2026-10-20, asked whether to fix the defect now: "yes to all 3 questions". Of section 12.3's
 two smaller fixes, this is the error, the one the editor asked for first. Making the branch editable
@@ -1370,7 +1379,7 @@ the editor about a fifth of what the document's own load does. Section 8's per-p
   - text-box `Paragraph` views at `textbox:` addresses, and `pkg.paragraphAt` resolving `footnote:`,
     `endnote:` and `comment:` (D4);
   - `Paragraph.text` in check 48's characters, `officeOffset` with it;
-  - ED-009.
+  - ED-009. *Done 2026-10-21, section 17.*
 - **Phase 5**, a to e, each on Jason's go.
 - **Phase 6** (D8 c): the block-model parity goldens. They will meet sections 15.5 and 15.6's departures: run
   boundaries where `Paragraph.text` holds more, and the content overload's part.
@@ -1531,3 +1540,300 @@ Joined, the blocks are the export.
 - **The editor** can replace its own writer (ED-008 P3) with `blocks()` once a release carries phase 3.
 - **Phase 6** could hold the Markdown too: section 16.5's runner as a harness, its outputs as goldens.
 - Phases 4 and 5 are as section 15.9 has them.
+
+## 17. Phase 4: the readers (implemented 2026-10-21)
+
+Jason, 2026-10-21: "start CR-012 phase 4". It went as section 7's row and section 15.9 have it. One question
+came up first: `outline()` going async. The editor was asked ("ask the editor for its opinion on outline()")
+and Jason decided it (section 17.6).
+
+### 17.1 One run reader: `Paragraph.text` is Office JS's (D2, D6, section 6.2)
+
+`Paragraph.text` no longer calls the objects package's `textOf`. It is the text of its segments
+(`segmentsOf`, `tree.mts`), the same reader every edit, `Range` and `search` use, so there is one text and
+one set of offsets.
+- **Office JS's characters** (`officeItemText`, check 48):
+
+  | Item | Character |
+  |---|---|
+  | footnote or endnote reference | U+0002 |
+  | the note's own mark (`w:footnoteRef`, `w:endnoteRef`) | U+0002 (check 51) |
+  | `w:br` | U+000B |
+  | page break | U+000C |
+  | column break | U+000E |
+  | `w:cr` | U+000D |
+  | `w:ptab` | `0` |
+  | non-breaking hyphen | U+001E |
+  | optional hyphen | U+001F |
+  | any `w:sym` | `(` |
+
+  A comment reference, a field's code and a picture add nothing.
+- **Word's default view** (section 6.2, Jason's question 2): the accepted text, with hidden text left out.
+  Hidden means a run's own `w:vanish`, else its paragraph style's and character style's: the text model's
+  rule (REQ-507), and Word's in check 48b case 20. It is decided by `PropertyResolver.isVanishedByStyles`,
+  cached per style pair, and `hiddenRunsOf`.
+- **An equation** (`m:oMath`, `m:oMathPara`) is one segment, its text as Word's (`mathTextOf`, `mathText.mts`;
+  checks 48 case 17 and 51):
+  - each letter is in Unicode's mathematical alphabet for its run's `m:sty` and `m:scr`, Greek capitals and
+    nabla included, and each digit upright in its script's family;
+  - a hyphen-minus is the minus sign U+2212;
+  - `m:nor` text is as stored;
+  - each structure is `,`, its arguments a `-` apart, then `.` (a fraction a over b `,𝑎-𝑏.`), its operator and
+    delimiter characters not written, and a degree `m:degHide` hides left out.
+- **`Body.text`** is `body.text`'s form in Word's default view (checks 30, 31 and 51):
+  - each paragraph's text is followed by `\r`, the last paragraph's left out;
+  - in a table a row's cells are a `\t` apart, a cell's last mark is not written, and each row ends with
+    `\r\n`. Check 48's `\t` after every cell and row was All Markup's, with hidden text shown (section 17.11).
+
+  `getText({ view: 'original' })` has the same form. A paragraph's `getRange('Whole').text` ends with its
+  mark, `\r`, or `\t` for a cell's last paragraph. That mark is no offset: edits and `search` work on the
+  text before it. `'Content'` ends with the text.
+- **The other readers in section 4.2's first row** use `Paragraph.text` per paragraph:
+  - `TableCell.text` and `value` (so `values`), a block `ContentControl.text` and `Comment.content` are their
+    content's `Body.text`, the paragraphs a mark `\r` apart, as check 51 measured;
+  - `Table.text`, this package's extension, keeps a line per paragraph;
+  - a block control's `getRange()` is its first paragraph's, the mark at the end of 'Whole' (a `Range` is one
+    paragraph's; Office JS's holds the whole control, check 51).
+- **Agreement with Word.**
+  - All 23 paragraphs of check 48's file equal Word 365's `paragraph.text` in check 48b's run A, Word's
+    default view.
+  - All 25 of 48b's file equal its take 2.
+  - Each 'Whole' range and `Body.text` equal check 48's, but for case 11, whose deleted text check 48 read
+    in All Markup.
+
+### 17.2 `search` by Office JS's rules (section 6.2, question 3)
+
+`officeMatches` (`search.mts`) is the one search behind `Paragraph.search`, `searchMatches`, `replaceText`
+and `Range.search`. It reads `Paragraph.text` with these rules:
+- a picture is U+FFFC, a place a plain query doesn't match across and `^g` matches;
+- hidden text is not there;
+- an optional hyphen is passed over unless the query names it (`^-`).
+
+A plain query takes Word's Find codes: `^f`, `^e`, `^l`, `^m`, `^t`, `^~`, `^-`, `^g` and `^^`. `^f` and `^e`
+each match only their own kind of reference, though both read U+0002. A plain `-` matches a non-breaking
+hyphen too. Wildcards read the same text with the codes untranslated. A regular expression
+(`matchRegExp`, this package's extension) reads `Paragraph.text` itself. A paragraph with nothing but text
+is searched as it stands, a fast path.
+
+Word's own queries on its files:
+- 12 of 12 hits equal run A's and 12 of 12 equal 48b take 2's;
+- check 48's 41 give 35, every Find code among them. The other six are the hidden and deleted words, which
+  check 48 read with hidden text shown, in All Markup.
+
+### 17.3 ED-009's run content in a kept branch (section 12.2)
+
+The segments read a kept `mc:AlternateContent` as its selected branch:
+- **In a run**, a branch holding run items reads as those items at the run's offsets. One holding a
+  drawing, a picture or an object, or content the model doesn't bind (DOM), is one object, as before.
+- **Among the runs**, the element reads as the runs its branch holds.
+- **The segments carry `alternate`**, so edits land in the branch, and the other branches are kept as they
+  were read:
+  - a run split inside a run-level branch splits the element as the editor's ED-009 section 3.4 (P2) does:
+    the first piece keeps the element and its other branches, and a later piece gets an element of its own,
+    the same branches with the selected one holding the rest and the others empty;
+  - a tracked deletion writes the selected branch's `w:delText` and keeps the Fallback's `w:t` (ED-009 P3,
+    `toDeletedText`);
+  - an edit that empties the branch takes the element, every branch with it (item 4), at run and paragraph
+    level.
+- **Section 12.4's `NotSupportedError` is gone.** Each of its seven edits now gives the text a resolved
+  load gives, the Choice holding the edit and the Fallback as read. `kept-branches.test.mjs` asserts this.
+- **`runsOf`** reads a paragraph-level branch's runs too.
+
+### 17.4 Text boxes at `textbox:` addresses (D4, D5), and the notes' and comments' addresses
+
+- **`textBoxesOf(p)`** (`textBoxes.mts`) numbers a paragraph's text boxes as the text model's `anchored`
+  walk does:
+  - the accepted view's drawings, VML pictures and kept elements, the selected branch only;
+  - a hidden run's and a field code's left out;
+  - nothing in a chart, SmartArt, a picture or an embedded object;
+  - legacy WordArt counted, with no paragraphs.
+- **The addresses resolve both ways.**
+  - `Body.elementAt` and `paragraphAt` resolve `body/3/textbox:0/1`. `addressOf` gives it back, stepping
+    from a box's paragraph to its anchor.
+  - An address that names nothing is `undefined`, never an error, as the editor asked.
+  - Over every `.docx` in `test/` holding a text box, 129 of the 132 text-box paragraphs the text model
+    reports resolve to the same `w:p` and give back the same address. WordArt is another 8, with no
+    paragraph.
+  - The other 3 are in a block-level element (`mc-fun`'s `txbx` probes), which `elementAt` doesn't step
+    into: CR-013 phase 2's addresses.
+- **D5: a text box's paragraph is read-only.** It reads as any paragraph does (`text`, `search`, `font`).
+  `Paragraph.inTextBox` says it is one. Every write through it, a `Range` on it or its `Font` throws
+  `NotSupportedError` before changing anything (`assertWritable`). Text boxes are not among the body's
+  paragraphs, as check 42 found Office JS's are not.
+- **`pkg.paragraphAt`** resolves `footnote:2/0`, `endnote:1/0` and `comment:5/0`: the note's or comment's
+  body by its `w:id`, as the text model and `Comment` address them.
+
+### 17.5 What was found on the way (defects in 0.5.0, fixed)
+
+1. **`Range.font` writes formatted more than the span.** A span ending at a `w:t`'s end in a run holding more
+   (a tab, more text) formatted the rest of the run too: bold on `lat` in `flat⇥really` bolded `⇥really`. A
+   write now isolates the span's runs, as a tracked deletion does (`splitRunsAround`).
+2. **A `Font` read split runs.** Reading `range.font.bold` split the runs at the range's edges. `Font`'s
+   holders now take a write flag, and a read splits nothing.
+3. **`Paragraph.insertContentControl` linked the new control's PARENT into itself.** The builders' `sdt()`
+   relinked the paragraph before its parent was read, so the control's PARENT was its own content. Every
+   PARENT climb through such a control ran out its guard, so `addressOf` of its paragraph was `undefined`.
+   An unguarded climb looped, which is how phase 4's `inTextBox` found it.
+
+### 17.6 `outline()` on the model (D3), async
+
+The text model's reading is async: building a `TextContext` reads parts privately. `Body.outline()` was
+sync, and the editor called it synchronously four times.
+- **Asked of the editor** (2026-10-21). Its answer (ED-008 section 8.7) was (a), both async: one definition
+  of a paragraph's text, and no second behaviour hidden behind a context argument. Its calls are in
+  `readTree` callbacks, which take async functions, and its panel moves to a `useEffect`.
+- **Its conditions:**
+  - a text-box flag on each entry;
+  - `elementAt` over a `textbox:` address returns `undefined` rather than throwing;
+  - the cost reported (section 17.8).
+- **Jason took (a).**
+- **What it is now.**
+  - `Body.outline(options?, context?)` and `pkg.outline(options?, context?)` return Promises. They take
+    `Texts.of`'s options and read under one context.
+  - Each paragraph's text is the model's (`TextBlock.text`): hidden text out unless `hidden: true`, a
+    deleted mark joined, the view asked for.
+  - A text box's paragraphs follow their anchor, or the table it is in, flagged `textbox: true`.
+  - The shape is otherwise the same.
+- **No import cycle.** `Body` can't import the text model, which imports it. So the text model registers
+  its reader (`model/text/outline.mts`), as the comment API registers itself, and the package class loads
+  that module.
+
+### 17.7 Departures and choices, recorded
+
+- **`TrackedChange.text` keeps docx4j's characters.** The revisions goldens hold docx4j's text (`\n` for a
+  break, nothing for a note reference), so a tracked change's text, a row's and a section's are read with
+  `segmentsOf`'s `characters: 'textOf'`, the reader as it was before this phase. Section 6.2 had them
+  follow `Paragraph.text` unless a check said otherwise. The goldens are that check.
+- **An equation in an edit.**
+  - A span may take an equation whole, untracked.
+  - A span that cuts one, an insertion inside one, or any tracked edit taking one throws
+    `NotSupportedError`: its math runs' own revisions are nothing this package writes.
+  - A `Font` write over a span leaves the equation's runs as they are.
+- **Hidden text in an edit** is an object to the span, as a picture is (CR-002 section 48): a deletion takes
+  the hidden text strictly inside it, and an insertion beside it goes into the visible run. Word's
+  behaviour is not measured.
+- **`textbox:N` counts per paragraph.** The text model numbers a joined chain's boxes on from its first
+  paragraph, so a box in a paragraph whose mark the view deletes is addressed differently by the two. None
+  of the fixtures has one.
+- **Not measured.** A note's own mark as U+0002, the math alphabets beyond case 17, a multi-paragraph
+  cell's, control's or comment's joiner, and Office JS's search inside a text box. A short follow-up check
+  could take them; nothing here waits on one.
+  - **Check 51 takes the first three** (`test/README.md`, written 2026-10-21; Jason: "we'd better measure
+    those 3 things against Word"). It also reads a block control's `Whole` and `Content` ranges, here its
+    first paragraph's only, and the math structures. The text box search stays unmeasured. Run the same
+    day: section 17.11.
+- **Public behaviour that moves** with a release carrying this phase:
+  - `Paragraph.text` and everything counted in it: offsets, `search`, `Range` and the editor's spans (its
+    install, section 4.4);
+  - `Body.text`'s joiners;
+  - `segmentsOf`'s and `textOfView`'s default characters;
+  - `outline()` becomes async.
+
+### 17.8 Cost, on the editor's `ms-docx-250.docx` (Node 22, the median of five)
+
+| Reader | 0.5.0 | Phase 4 |
+|---|---|---|
+| `Body.text` | 14 ms | 16 ms |
+| `Paragraph.text`, all 9,178 | 13 ms | 14 ms |
+| `body.search('the')` | 34 ms | 38 ms |
+| `Body.outline()` | 16 ms (sync) | 198 ms under a context made once; 355 ms with a fresh context |
+
+`outline()` costs what the text model's reading costs (section 15.7's 198 ms under a context). It is the
+"tens of ms or more" case the editor named. Its remedies are its own `touches()` gate, or an outline per
+block under the context: its choice. The sweep took 8.7 s over the 608 loadable `.docx` files of `test/` and
+docx4j's test resources, every paragraph's text and whole range, `Body.text` in both views, three searches,
+the headers and footers, and `pkg.outline()`, with no exception. The other four are Strict, which nothing
+here reads.
+
+### 17.9 Tests
+
+- **`readers.test.mjs`** (12 tests):
+  - check 48's and 48b's files against Word 365's JSON, paragraph for paragraph, the whole ranges and
+    `Body.text`;
+  - check 51's file against its JSON: every paragraph and whole range, `Body.text`, the cell, the controls,
+    the comment, the notes, the equations;
+  - search, against all of Word's queries;
+  - hidden text read and edited;
+  - equations: the alphabets, a whole deletion, the refusals, a format;
+  - the `textbox:` agreement over every fixture with a text box;
+  - D5's refusals, one per kind of write, and addresses naming nothing;
+  - the notes' and comments' addresses;
+  - `outline()`: its text boxes, options, view and context, and REQ-204;
+  - the three defects of section 17.5.
+- **`kept-branches.test.mjs`**: section 12.4's refusal test became ED-009's: the seven edits in the branch
+  (equal to a resolved load), a tracked replacement, an emptied branch, and the run-level element's
+  replace, split, tracked deletion, whole deletion and drawn branch.
+- **Moved because the measured text moved:**
+  - `content`, `content-c`, `office-js` and `tracking`: `Body.text`'s `\r` and `\t`;
+  - `html`: a break U+000B;
+  - `text-model`: `officeOffset` in Office JS's characters, hidden text outside `Paragraph.text`;
+  - `tracking`: an equation's range is its text;
+  - `tracking` again: a search across a picture takes `^g`;
+  - `mc-fun`: a block-level element in a cell is in neither the cell's paragraphs nor its value, where
+    `textOf` read it into the value.
+- **`check48/build.mjs`** exports its files' bytes (`check48Bytes`) and writes them only when run, so the
+  tests read check 48's file without it being committed.
+- No suite row, agreement comparison or golden moves. 1,117 tests pass.
+
+### 17.10 What phase 4 leaves
+
+- **The editor's install.** `Paragraph.text`'s characters, hidden text and `outline()`'s Promise (sections
+  4.4, 6.2 and 17.6).
+- **CR-013 phase 2.**
+  - A block-level element's paragraphs, rows and cells for the content API, and their addresses: the three
+    text boxes of section 17.4.
+  - The audit's `textOf` question is moot for `TableCell.text`, `Table.text` and `ContentControl.text`,
+    which no longer call it.
+- **Text boxes in `search` and `replaceText`, and writes into text boxes** (section 9).
+- **Ranges across paragraphs**: CR-014, proposed (section 17.12).
+- **Phases 5 and 6**, as section 15.9 has them.
+
+### 17.11 Check 51's answers (2026-10-21)
+
+Jason ran check 51 in Word 365 the same day, in Word's defaults, with a screenshot of the equations (`test/README.md`
+check 51; his JSON is `test/fixtures/check51/51-text-word365.json`). It answered section 17.7's three, and two
+things more:
+- **The joiner is `\r`.** A cell's `value` and `body.text`, a block control's `text` and a comment's
+  `content` are their content's `body.text`. They moved from `\n`.
+- **A note's own mark is U+0002**, as implemented.
+- **The equations.**
+  - Word draws Greek capitals and nabla italic too. I had them upright.
+  - A digit takes its script's upright family: bold under bold italic, sans-serif under sans-serif.
+  - A hyphen-minus is U+2212.
+  - A structure is written `,`, its arguments a `-` apart, `.`. All of it is in `mathText.mts` now.
+- **`body.text` ends a table row with `\r\n`** in Word's default view: cells a `\t` apart and nothing after the
+  last. Checks 30 and 31's saved `body.text` agree, every row `\r\n`. Check 48's `\t\t` was read in All Markup
+  with hidden text shown, so the row's end depends on the view, and section 6.2's rule, Word's default view,
+  takes `\r\n`. `Body.text` moved.
+- **A block control's range** in Office JS holds all its paragraphs (`CCP1\rCCP2\rCCP3\r` for 'Whole'). Here a
+  `Range` is one paragraph's, so it held the first. That is the content API's shape since CR-002, not a
+  character question. Section 17.12 makes it read as Word's and refuse writes, and CR-014 proposes ranges across
+  paragraphs. A one-paragraph control's 'Whole' range ends with its mark, as Word's does.
+
+Every paragraph and whole range, `body.text`, the cell, the controls' text, the comment and the notes of check
+51's file now read as Word's. `readers.test.mjs` holds them to the JSON. The tests that read the joiners and
+`body.text` over a table moved with them: `comments`, `content-c`, `customxml`, `tracking`. An equation's
+range in `tracking` is its structure's text, `,𝑥-2.`. 1,117 tests pass.
+
+### 17.12 A block control's range across paragraphs: read as Word's, writes refused (2026-10-21)
+
+Jason asked why a `Range` here is one paragraph's where check 51's is not, and whether we should align. The answer:
+CR-002 scoped it so, for phase B's edits, without a measurement, and a control's range was the first paragraph's,
+silently. He accepted both recommendations: CR-014 proposes ranges across paragraphs, and this stopgap went in
+here ("yes please").
+- **`SpanningRange`** (`Range.mts`) is what `ContentControl.getRange('Whole'|'Content')` gives for a block control
+  of more than one paragraph:
+  - its `text` is the control's `Body.text`, 'Whole' with the last paragraph's mark: check 51's
+    `CCP1\rCCP2\rCCP3\r` and `CCP1\rCCP2\rCCP3`;
+  - `paragraphs` are all of them, `search` finds over all of them, and the tracked changes and comments are all
+    of theirs;
+  - `font` reads the first run's.
+- **Every write throws `NotSupportedError` naming CR-014**, before changing anything: `text`, `insertText`,
+  `delete`, `font`, the style, `insertParagraph`, `insertOoxml`, `replaceText`, `insertComment`,
+  `insertContentControl` and `hyperlink`. The control's own verbs (`text`, `insertText`, `insertParagraph`,
+  `clear`, `delete`) act on all of it, as they did.
+- **`getRange('End')`** is the last paragraph's end, for any control, where it was the first paragraph's.
+- **Left as they are** (CR-014's): `Comment.getRange()`'s array, and `TrackedChange.getRange()` for a change across
+  paragraphs (its first paragraph's part).
+- `readers.test.mjs`'s check 51 test holds the range to Word's text and each write to its refusal. 1,117 tests
+  pass.

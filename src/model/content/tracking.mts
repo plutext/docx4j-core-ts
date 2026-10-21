@@ -12,7 +12,8 @@ import {
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf, childrenOf, rowsOf, cellsOf } from './tree.mjs';
+import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf, childrenOf, rowsOf, cellsOf, isAlternateContent, selectedBranchOf } from './tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Author } from './comments.mjs';
 
 /** Office JS `Word.ChangeTrackingMode`. */
@@ -569,10 +570,24 @@ export function toRestoredText(run: wml.R): void {
 }
 
 function rename(run: wml.R, table: Record<string, string>, deleting: boolean): void {
-  const content = run.content;
+  renameIn(run.content as Element[] | undefined, run, table, deleting);
+}
+
+/**
+ * `rename` over a run's items, and over a kept `mc:AlternateContent`'s selected branch among them: a
+ * deletion of a branch's text writes the selected branch's `w:delText` and keeps the other branches as
+ * they were (CR-012 section 12.2, the editor's ED-009 section 3.6).
+ */
+function renameIn(content: Element[] | undefined, parent: object, table: Record<string, string>, deleting: boolean): void {
   if (!content) return;
   for (let i = 0; i < content.length; i++) {
     const item = content[i]!;
+    if (isAlternateContent(item)) {
+      const branch = selectedBranchOf(item.value as mce.AlternateContent);
+      const holder = branch === undefined ? undefined : ((branch[0]?.value as { PARENT?: object } | undefined)?.PARENT ?? parent);
+      if (branch && holder) renameIn(branch, holder, table, deleting);
+      continue;
+    }
     const to = table[item.name.localPart];
     if (to === undefined) continue;
     const v = item.value as wml.Text;
@@ -580,7 +595,7 @@ function rename(run: wml.R, table: Record<string, string>, deleting: boolean): v
       ? createDelText({ value: v.value, ...(v.space === undefined ? {} : { space: v.space }) })
       : { TYPE_NAME: 'org_docx4j_wml.Text', value: v.value, ...(v.space === undefined ? {} : { space: v.space }) };
     content[i] = element(to, value) as (typeof content)[number];
-    linkParents(content[i], run);
+    linkParents(content[i], parent);
   }
 }
 

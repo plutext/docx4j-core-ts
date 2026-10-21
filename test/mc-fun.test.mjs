@@ -115,8 +115,9 @@ test('the Office JS readers miss a block-, row- or cell-level element (phase 2\'
   assert.deepEqual((await office('mc-sdt-row-newest-first.docx')).tables, [{ values: [['I prefer', 'below']], cells: [[['I prefer'], ['below']]] }]);
   assert.deepEqual((await office('mc-cell-newest-first.docx')).tables, [{ values: [['I prefer']], cells: [[['I prefer']]] }]);
   assert.deepEqual((await office('mc-sdt-cell-newest-first.docx')).tables, [{ values: [['I prefer']], cells: [[['I prefer']]] }]);
-  // a block-level element in a cell: values reads it, the cell's paragraphs don't
-  assert.deepEqual((await office('mc-tc-block-newest-first.docx')).tables, [{ values: [['I prefer', 'w16sdtfl']], cells: [[['I prefer'], []]] }]);
+  // a block-level element in a cell: neither the cell's paragraphs nor its value read it. Its value read it
+  // through the objects package's textOf until CR-012 phase 4 put TableCell.text on the paragraphs' text
+  assert.deepEqual((await office('mc-tc-block-newest-first.docx')).tables, [{ values: [['I prefer', '']], cells: [[['I prefer'], []]] }]);
   // what Word's saves give them, every element resolved
   assert.deepEqual((await office('mc-row-newest-first-word365.docx')).tables[0].values, [['I prefer', 'below'], ['row', 'w16sdtfl']]);
   assert.deepEqual((await office('mc-cell-newest-first-word365.docx')).tables[0].values, [['I prefer', 'w16sdtfl']]);

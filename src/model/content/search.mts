@@ -140,3 +140,118 @@ export function expandReplacement(replacement: string, match: RegExpExecArray, o
   }
   return replacement;
 }
+
+// --- Office JS's search over a paragraph (CR-012 phase 4, section 6.2 question 3; check 48) -------------
+
+/** What `officeMatches` reads of a paragraph: its segments in Office JS's characters, the objects and hidden items listed. */
+export interface SearchSegment {
+  text: string;
+  start: number;
+  object?: boolean;
+  hidden?: boolean;
+  item: { name: { localPart: string } };
+}
+
+/** One match, as offsets in `Paragraph.text`, with the expression's match over the search's own text. */
+export interface OfficeMatch { start: number; end: number; match: RegExpExecArray }
+
+/** The object replacement character: a picture's place in the text `search` reads, which `^g` matches. */
+const OBJECT = '￼';
+
+/**
+ * Word's Find codes a plain query may hold (check 48: each matched its character in Office JS's text):
+ * `^f` a footnote reference, `^e` an endnote reference, `^l` a line break, `^m` a page break, `^t` a tab,
+ * `^~` a non-breaking hyphen, `^-` an optional hyphen, `^g` a picture, `^^` a caret.
+ */
+const FIND_CODES: Record<string, string> = { f: '\u0002', e: '\u0002', l: '\u000B', m: '\u000C', t: '\t', '~': '\u001E', '-': '\u001F', g: OBJECT, '^': '^' };
+
+/**
+ * Every match of a query in a paragraph's text by Office JS's rules (check 48, Word's default view): the
+ * text is `Paragraph.text` (hidden text left out, so a query matches across it and never in it), where a
+ * picture is a place of no text that a plain query doesn't match across and `^g` matches, and an optional
+ * hyphen is passed over unless the query names it (`^-`). A plain query takes Word's Find codes
+ * (`FIND_CODES`), and its `-` matches a non-breaking hyphen too. Wildcards read the same text, the codes
+ * not translated; a regular expression (`matchRegExp`, this package's extension) reads `Paragraph.text`
+ * itself. Only text in [from, to) is read: a range's search.
+ */
+export function officeMatches(segments: readonly SearchSegment[], query: string, options: SearchOptions = {}, from = 0, to = Number.POSITIVE_INFINITY): OfficeMatch[] {
+  const plain = !options.matchRegExp && !options.matchWildcards;
+  const keepSoftHyphens = !plain || /\^-/.test(query.replace(/\^\^/g, ''));
+  let pattern: RegExp;
+  let tokens: (string | undefined)[] = [];
+  if (plain) {
+    const translated = plainQuery(query);
+    tokens = translated.tokens;
+    pattern = patternOf(translated.source, options);
+  } else {
+    pattern = searchPattern(query, options);
+  }
+  // the usual paragraph: nothing but text, no optional hyphen to pass over, no reference a code must tell
+  // apart, so the text searched is Paragraph.text's own [from, to), each offset itself
+  if (segments.every((seg) => !seg.object && !seg.hidden) && tokens.every((kind) => kind === undefined)) {
+    const whole = segments.map((seg) => seg.text).join('');
+    const start = Math.max(0, from);
+    const span = whole.substring(start, Math.min(whole.length, to));
+    if (keepSoftHyphens || !span.includes('\u001F')) {
+      return matchesOf(span, pattern).map((match) => ({ start: start + match.index, end: start + match.index + match[0].length, match }));
+    }
+  }
+  let text = '';
+  const starts: number[] = [];
+  const ends: number[] = [];
+  const notes: (string | undefined)[] = [];
+  for (const seg of segments) {
+    if (seg.hidden) continue;
+    if (seg.object) {
+      if (!options.matchRegExp && from < seg.start && seg.start < to) { text += OBJECT; starts.push(seg.start); ends.push(seg.start); notes.push(undefined); }
+      continue;
+    }
+    for (let i = 0; i < seg.text.length; i++) {
+      const at = seg.start + i;
+      if (at < from || at >= to) continue;
+      const c = seg.text[i]!;
+      if (c === '\u001F' && !keepSoftHyphens) continue;
+      text += c;
+      starts.push(at);
+      ends.push(at + 1);
+      notes.push(c === '\u0002' ? seg.item.name.localPart : undefined);
+    }
+  }
+  const out: OfficeMatch[] = [];
+  for (const match of matchesOf(text, pattern)) {
+    const a = match.index;
+    const b = a + match[0].length;
+    // ^f and ^e both read U+0002: each matches only its own kind of reference
+    if (tokens.some((kind, i) => kind !== undefined && !(notes[a + i] ?? '').startsWith(kind))) continue;
+    out.push({ start: starts[a]!, end: ends[b - 1]!, match });
+  }
+  return out;
+}
+
+/** A plain query as an expression over `officeMatches`' text, and which of its characters are `^f` or `^e`. */
+function plainQuery(query: string): { source: string; tokens: (string | undefined)[] } {
+  let source = '';
+  const tokens: (string | undefined)[] = [];
+  for (let i = 0; i < query.length; i++) {
+    const c = query[i]!;
+    const code = c === '^' ? query[i + 1] : undefined;
+    if (code !== undefined && FIND_CODES[code] !== undefined) {
+      source += escapeRegExp(FIND_CODES[code]!);
+      tokens.push(code === 'f' ? 'footnote' : code === 'e' ? 'endnote' : undefined);
+      i++;
+    } else if (c === '-') {
+      source += '[-\\u001E]';                                         // a non-breaking hyphen is a hyphen to a plain query
+      tokens.push(undefined);
+    } else {
+      source += escapeRegExp(c);
+      tokens.push(undefined);
+    }
+  }
+  return { source, tokens };
+}
+
+/** `searchPattern`'s flags and whole-word guard over a source already written as an expression. */
+function patternOf(source: string, options: SearchOptions): RegExp {
+  const guarded = options.matchWholeWord ? `(?<![\\w])${source}(?![\\w])` : source;
+  return new RegExp(guarded, options.matchCase ? 'g' : 'gi');
+}

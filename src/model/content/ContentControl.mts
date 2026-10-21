@@ -20,10 +20,10 @@ import {
 import { runsForValue, updateFromControl, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { declareIgnorable } from './tracking.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, typeNameOf, childrenOf, textOf, runItemsOf, segmentsOf, linkParents, runOf, SDT_TYPES } from './tree.mjs';
+import { type Element, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
-import { Range } from './Range.mjs';
+import { Range, SpanningRange } from './Range.mjs';
 import { Table } from './Table.mjs';
 import type { SearchOptions } from './search.mjs';
 
@@ -108,9 +108,18 @@ export class ContentControl {
     return typeof val === 'number' ? val : 0;
   }
 
-  /** The control's text, a line per paragraph (docx4j TextUtils). */
+  /**
+   * The control's text as Office JS gives it (CR-012 phase 4): a run-level control's span of
+   * `Paragraph.text`; a block-level one's content as `Body.text` reads it, its paragraphs a mark `\r` apart
+   * (check 51); a row or cell control's paragraphs, `\r` apart too (not measured).
+   */
   get text(): string {
-    return textOf(this.sdt.sdtContent ?? {});
+    if (this.form === 'Run') {
+      const span = this.runSpan();
+      return span ? span.paragraph.text.substring(span.start, span.end) : '';
+    }
+    if (this.form === 'Block') return this.body().text;
+    return this.paragraphs.map((p) => p.text).join('\r');
   }
 
   /** Every paragraph in the control; for a run-level control, the paragraph it is in. */
@@ -201,8 +210,17 @@ export class ContentControl {
       if (location === 'End') return new Range(paragraph, end, end);
       return new Range(paragraph, start, end);
     }
-    const first = this.paragraphs[0];
+    const paragraphs = this.paragraphs;
+    const first = paragraphs[0];
     if (!first) throw new Docx4JException('This content control holds no paragraph');
+    const last = paragraphs[paragraphs.length - 1]!;
+    if (location === 'End') return last.getRange('End');
+    // a block control of several paragraphs: Office JS's range holds them all (check 51), which a Range
+    // here can't, so it is a SpanningRange: all of their text, and every write refused (CR-012 section
+    // 17.12; CR-014). Its 'Whole' ends with the last paragraph's mark, as Office JS's does
+    if (this.form === 'Block' && paragraphs.length > 1 && location !== 'Start') {
+      return new SpanningRange(first, paragraphs, () => this.body().text, location === 'Whole');
+    }
     return first.getRange(location);
   }
 
@@ -272,32 +290,16 @@ export class ContentControl {
     };
     let start: number | undefined;
     let end = 0;
-    const segs = segmentsOf(paragraph.p);
+    // where the walk passes the control: a control holding no text stands there, after the text before it
+    // in the paragraph (before, it was reported at 0, and text put into it went to the paragraph's start)
+    let at = 0;
+    const segs = paragraph.segments({ visit: (el, offset) => { if (el === (this.element as Element)) at = offset; } });
     for (const seg of segs) {
       if (!inside(seg.run)) continue;
       if (start === undefined) start = seg.start;
       end = seg.end;
     }
-    if (start === undefined) {
-      // a control holding no text: its position is the end of the last text before it in the
-      // paragraph (before, it was reported at 0, and text put into it went to the paragraph's start)
-      let pos = 0;
-      let found = false;
-      const visit = (items: Element[] | undefined): void => {
-        for (const el of items ?? []) {
-          if (found) return;
-          if (el === (this.element as Element)) { found = true; return; }
-          const v = el.value;
-          if (typeof v !== 'object' || v === null) continue;
-          if (typeNameOf(el) === 'org_docx4j_wml.R') {
-            const last = segs.filter((seg) => seg.run === v).pop();
-            if (last) pos = last.end;
-          } else visit(runItemsOf(v));
-        }
-      };
-      visit(paragraph.p.content as Element[] | undefined);
-      return { paragraph, start: pos, end: pos, empty: true };
-    }
+    if (start === undefined) return { paragraph, start: at, end: at, empty: true };
     return { paragraph, start, end };
   }
 

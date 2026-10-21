@@ -4,6 +4,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { isElement, typeNameOf, runItemsOf, mcBranchOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 import { READ_UNDERSTOOD_PREFIXES } from '../../opc/mce/understood.mjs';
+import { isMath, mathTextOf } from './mathText.mjs';
 
 export { isElement, typeNameOf, walk, find, linkParents, textOf, W_NS, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
@@ -15,13 +16,40 @@ export interface TextViewOptions {
   view?: TextView;
 }
 
-/** `segmentsOf`'s options: a view, and whether drawn objects get a segment of their own. */
+/** Whether a run is hidden: its effective `w:vanish` (`hiddenRunsOf` makes one for a paragraph). */
+export type HiddenRuns = (run: wml.R) => boolean;
+
+/** `segmentsOf`'s options: a view, whether drawn objects get a segment of their own, which runs are hidden. */
 export interface SegmentOptions extends TextViewOptions {
   /**
    * True to list each picture or other drawn object (`OBJECT_ITEMS`) as a segment of no text at its
    * place in the text (`object` set), so that a deletion of a span can find it (CR-002 section 48).
+   * Hidden runs' items are listed with them.
    */
   objects?: boolean;
+  /**
+   * Which runs are hidden. Office JS's text leaves hidden text out, a run's own `w:vanish` or its
+   * styles' (check 48b), so `Paragraph.text` does too (CR-012 phase 4): a hidden run's items take no
+   * offset, and are listed only with the objects, each `object` and `hidden`, so that a span's deletion
+   * takes the hidden text strictly inside it as it takes a picture. Undefined: no run is hidden.
+   */
+  hidden?: HiddenRuns;
+  /**
+   * Called for every element the walk passes that adds no text: each element of a run holder's list
+   * (runs, revision holders, markers, before it is entered) and each item of a run that adds none (a
+   * comment reference, a field character, a drawing, a hidden run's text), with the offset it stands at,
+   * the list holding it and its run. What gives a comment marker or a revision its offset in the same text.
+   */
+  visit?: (item: Element, at: number, owner: Element[], run: { element: Element<wml.R>; owner: Element[] } | undefined) => void;
+  /**
+   * `office` (the default): Office JS's characters (`officeItemText`), a kept `mc:AlternateContent`'s
+   * selected branch read, an equation's drawn text. `textOf`: the characters of the objects package's
+   * `textOf` and docx4j's `TextUtils`, as this function read before CR-012 phase 4 (a break `\n`, the
+   * hyphens U+2011 and U+00AD, a symbol its code point, a note reference nothing), a run-level element
+   * one object, a paragraph-level one and an equation nothing: what a tracked change's `text` is, which
+   * the revisions goldens hold to docx4j's.
+   */
+  characters?: 'office' | 'textOf';
 }
 
 /**
@@ -110,6 +138,35 @@ export interface TextSegment {
    * next to it goes beside it (`revision.owner`) unless the same author may extend it.
    */
   revision?: RevisionHolder;
+  /**
+   * An item of a hidden run (`SegmentOptions.hidden`): no text, listed with the objects, `object` set too;
+   * a drawing in a hidden run is one (Word's default view doesn't show it: `search`'s `^g` passes it by).
+   */
+  hidden?: boolean;
+  /**
+   * An equation (`m:oMath`, `m:oMathPara`): one segment holding its text as Word draws it
+   * (`mathTextOf`). `item` is the equation and `owner` the list holding it, as `runOwner` is; `run`
+   * is a frozen stand-in, since an equation is in no run. An edit may take it whole, not in part.
+   */
+  math?: boolean;
+  /**
+   * The kept `mc:AlternateContent` whose selected branch holds this item (a run-level element) or its
+   * run (a paragraph-level one), the innermost: an edit lands in that branch, the others kept as they
+   * were read (CR-012 section 12.2).
+   */
+  alternate?: AlternateLocation;
+}
+
+/** Where a kept `mc:AlternateContent` whose selected branch holds text stands (CR-012 section 12.2). */
+export interface AlternateLocation {
+  /** The element pair. */
+  element: Element;
+  /** The array holding it: a run's content (`run` level) or a run holder's list (`paragraph` level). */
+  owner: Element[];
+  /** Its selected branch's items (`selectedBranchOf`). */
+  branch: Element[];
+  /** `run`: the element is run content and its branch holds run items; `paragraph`: it stands among runs and its branch holds runs. */
+  level: 'run' | 'paragraph';
 }
 
 /** Types whose value holds runs (directly or through sdtContent); the revision holders are separate. */
@@ -136,6 +193,44 @@ function shows(view: TextView, kind: RevisionKind): boolean {
 
 export { runItemsOf };
 
+/**
+ * An item's text in Office JS's text, Word's own character stream (CR-012 phase 4; check 48, Word 365):
+ * a `w:br` U+000B, of type page U+000C and column U+000E; a `w:cr` U+000D; a `w:ptab` `0`; the
+ * non-breaking and optional hyphens U+001E and U+001F; any `w:sym` `(`, whatever its font or code
+ * (check 48b); a footnote or endnote reference U+0002, and so the note's own mark (`w:footnoteRef`,
+ * `w:endnoteRef`, not measured). Undefined for an item that adds no text: a comment reference, a
+ * field's characters and code, a drawing.
+ */
+export function officeItemText(item: Element): string | undefined {
+  const v = item.value as Record<string, unknown>;
+  switch (item.name.localPart) {
+    case 't': case 'delText': return String(v.value ?? '');
+    case 'tab': return '\t';
+    case 'br': return v.type === 'page' ? '\f' : v.type === 'column' ? '\u000E' : '\u000B';
+    case 'cr': return '\r';
+    case 'ptab': return '0';
+    case 'noBreakHyphen': return '\u001E';
+    case 'softHyphen': return '\u001F';
+    case 'sym': return '(';
+    case 'footnoteReference': case 'endnoteReference': case 'footnoteRef': case 'endnoteRef': return '\u0002';
+    default: return undefined;
+  }
+}
+
+/** An item a run-level element's selected branch may hold that makes the element one object (CR-012 section 12.2 item 5). */
+function isDrawn(item: Element): boolean {
+  return OBJECT_ITEMS.has(item.name.localPart);
+}
+
+/** The `run` of an equation's segment: it is in no run, and nothing may be written to this one. */
+function standIn(math: Element): wml.R {
+  return Object.freeze({ TYPE_NAME: 'org_docx4j_wml.R', PARENT: (math.value as { PARENT?: object }).PARENT }) as unknown as wml.R;
+}
+
+/**
+ * The item text the revision listings and the text model's plan count (`itemTextOf`): whether a run
+ * holds text, in the characters `textOf` gives. Not Office JS's (`officeItemText`).
+ */
 function itemText(item: Element): string | undefined {
   const t = item.name.localPart;
   const v = item.value as Record<string, unknown>;
@@ -155,70 +250,133 @@ function itemText(item: Element): string | undefined {
 }
 
 /**
- * The text segments of a paragraph (or any run holder) in order. The default view is the
- * accepted one: the runs of a `w:ins` or `w:moveTo` count, those of a `w:del` or `w:moveFrom`
- * do not. `{ view: 'original' }` is the other way round (CR-002 phase F). `{ objects: true }`
- * lists the drawn objects too, each a segment of no text where it stands (CR-002 section 48).
+ * The text segments of a paragraph (or any run holder) in order, in Office JS's characters
+ * (`officeItemText`). The default view is the accepted one: the runs of a `w:ins` or `w:moveTo`
+ * count, those of a `w:del` or `w:moveFrom` do not. `{ view: 'original' }` is the other way round
+ * (CR-002 phase F). `{ objects: true }` lists the drawn objects too, each a segment of no text where
+ * it stands (CR-002 section 48), and the items of hidden runs (`hidden`).
  *
- * A kept `mc:AlternateContent` in a run is one object segment, whatever its branches hold, so that
- * removing a span removes every branch with it (CR-010 phase 3). A drawing adds no text, so the
- * offsets are a resolved load's. One in a paragraph's content, outside a run, is not listed: Word
- * writes none, and the corpus has none (CR-010 section 11.3).
+ * A kept `mc:AlternateContent` reads as its selected branch (CR-012 section 12.2, ED-009): in a run,
+ * a branch holding run items reads as those items, at the run's offsets, and one holding a drawing,
+ * a picture or an object is one object segment, as a drawing is (CR-010 phase 3); among a paragraph's
+ * runs, it reads as the runs its branch holds. Either way the segments carry `alternate`, so that an
+ * edit lands in that branch. An equation is one segment of its drawn text (`math`).
  */
 export function segmentsOf(container: object, options?: SegmentOptions): TextSegment[] {
   const view = options?.view ?? 'accepted';
   const objects = options?.objects === true;
+  const hiddenRun = options?.hidden;
+  const visit = options?.visit;
+  const office = options?.characters !== 'textOf';
+  const charactersOf = office ? officeItemText : itemText;
   const out: TextSegment[] = [];
   let pos = 0;
-  const visitRuns = (items: Element[] | undefined, revision: RevisionHolder | undefined): void => {
+  const runContent = (run: wml.R, runEl: Element<wml.R>, content: Element[], runOwner: Element[], runIndex: number,
+    revision: RevisionHolder | undefined, alternate: AlternateLocation | undefined, hidden: boolean): void => {
+    for (let j = 0; j < content.length; j++) {
+      const item = content[j]!;
+      const where = { owner: content, index: j, run, runOwner, runIndex };
+      if (office && isAlternateContent(item)) {
+        const branch = selectedBranchOf(item.value as mce.AlternateContent);
+        // a branch holding content the model doesn't bind (DOM) is one object, as a drawing is
+        if (branch && branch.every(isElement) && !branch.some(isDrawn)) {
+          runContent(run, runEl, branch, runOwner, runIndex, revision, { element: item, owner: content, branch, level: 'run' }, hidden);
+          continue;
+        }
+      }
+      const text = charactersOf(item);
+      if (text === undefined || (hidden && text !== '')) {
+        const drawn = OBJECT_ITEMS.has(item.name.localPart) || isAlternateContent(item);
+        if (objects && (drawn || (hidden && text !== undefined))) {
+          const seg: TextSegment = { item, ...where, text: '', start: pos, end: pos, editable: false, object: true };
+          if (hidden) seg.hidden = true;
+          if (revision) seg.revision = revision;
+          if (alternate) seg.alternate = alternate;
+          out.push(seg);
+        }
+        visit?.(item, pos, content, { element: runEl, owner: runOwner });
+        continue;
+      }
+      const seg: TextSegment = { item, ...where, text, start: pos, end: pos + text.length, editable: item.name.localPart === 't' };
+      if (revision) seg.revision = revision;
+      if (alternate) seg.alternate = alternate;
+      out.push(seg);
+      pos += text.length;
+    }
+  };
+  const visitRuns = (items: Element[] | undefined, revision: RevisionHolder | undefined, alternate: AlternateLocation | undefined): void => {
     if (!items) return;
     for (let i = 0; i < items.length; i++) {
       const el = items[i]!;
+      if (!isElement(el)) continue;                                   // a kept branch's unbound content (DOM)
+      visit?.(el, pos, items, undefined);
       const tn = typeNameOf(el);
       if (tn === 'org_docx4j_wml.R') {
         const run = el.value as wml.R;
-        const content = run.content ?? [];
-        for (let j = 0; j < content.length; j++) {
-          const item = content[j]!;
-          const text = itemText(item);
-          if (text === undefined) {
-            if (objects && (OBJECT_ITEMS.has(item.name.localPart) || isAlternateContent(item))) {
-              const seg: TextSegment = { item, owner: content, index: j, run, runOwner: items, runIndex: i, text: '', start: pos, end: pos, editable: false, object: true };
-              if (revision) seg.revision = revision;
-              out.push(seg);
-            }
-            continue;
-          }
-          const seg: TextSegment = {
-            item, owner: content, index: j, run, runOwner: items, runIndex: i, text,
-            start: pos, end: pos + text.length, editable: item.name.localPart === 't',
-          };
-          if (revision) seg.revision = revision;
-          out.push(seg);
-          pos += text.length;
-        }
+        runContent(run, el as Element<wml.R>, run.content ?? [], items, i, revision, alternate, hiddenRun?.(run) === true);
+        continue;
+      }
+      if (!office) {
+        // textOf's reader: no branch among the runs, no equation
+      } else if (isAlternateContent(el)) {
+        const branch = selectedBranchOf(el.value as mce.AlternateContent);
+        if (branch) visitRuns(branch, revision, { element: el, owner: items, branch, level: 'paragraph' });
+        continue;
+      } else if (isMath(el)) {
+        const text = mathTextOf(el.value, view);
+        if (text === '') continue;
+        const seg: TextSegment = {
+          item: el, owner: items, index: i, run: standIn(el), runOwner: items, runIndex: i, text,
+          start: pos, end: pos + text.length, editable: false, math: true,
+        };
+        if (revision) seg.revision = revision;
+        if (alternate) seg.alternate = alternate;
+        out.push(seg);
+        pos += text.length;
         continue;
       }
       const kind = revisionKindOf(el);
       if (kind !== undefined) {
         if (!shows(view, kind)) continue;
         const nested = runItemsOf(el.value as object);
-        if (nested) visitRuns(nested, { kind, element: el, value: el.value as wml.CTTrackChange, items: nested, owner: items });
+        if (nested) visitRuns(nested, { kind, element: el, value: el.value as wml.CTTrackChange, items: nested, owner: items }, alternate);
       } else if (tn !== undefined && RUN_HOLDERS.has(tn)) {
-        visitRuns(runItemsOf(el.value as object), revision);
+        visitRuns(runItemsOf(el.value as object), revision, alternate);
       }
     }
   };
-  visitRuns(runItemsOf(container), undefined);
+  visitRuns(runItemsOf(container), undefined, undefined);
   return out;
 }
 
-/** The text of a paragraph or container in one of the two views (`textOf` is the accepted one). */
-export function textOfView(container: object, options?: TextViewOptions): string {
+/** What `hiddenRunsOf` asks of a `PropertyResolver`. */
+export interface VanishResolver {
+  isVanishedByStyles(paragraphStyleId: string | undefined, runStyleId: string | undefined): boolean;
+}
+
+/**
+ * Which of a paragraph's runs are hidden, as the text model's rule has it (REQ-507) and Office JS's text
+ * leaves them out (check 48b): a run's own `w:vanish`, else its paragraph style's and character style's.
+ * Without a resolver only a run's own counts.
+ */
+export function hiddenRunsOf(resolver: VanishResolver | undefined, p: wml.P): HiddenRuns {
+  const pStyle = p.pPr?.pStyle?.val;
+  return (run) => {
+    const own = run.rPr?.vanish;
+    if (own !== undefined && own !== null) return own.val !== false;
+    return resolver?.isVanishedByStyles(pStyle, run.rPr?.rStyle?.val) ?? false;
+  };
+}
+
+/** The text of a paragraph or container in one of the two views, in Office JS's characters (`segmentsOf`). */
+export function textOfView(container: object, options?: SegmentOptions): string {
   return segmentsOf(container, options).map((s) => s.text).join('');
 }
 
-/** The runs of a paragraph, direct and nested in hyperlinks, content controls and insertions, in order. */
+/**
+ * The runs of a paragraph, direct and nested in hyperlinks, content controls and insertions, in order,
+ * and in the selected branch of a kept `mc:AlternateContent` among them (CR-012 section 12.2).
+ */
 export function runsOf(container: object, options?: TextViewOptions): Element<wml.R>[] {
   const view = options?.view ?? 'accepted';
   const out: Element<wml.R>[] = [];
@@ -227,6 +385,7 @@ export function runsOf(container: object, options?: TextViewOptions): Element<wm
     for (const el of items) {
       const tn = typeNameOf(el);
       if (tn === 'org_docx4j_wml.R') { out.push(el as Element<wml.R>); continue; }
+      if (isAlternateContent(el)) { visit(selectedBranchOf(el.value as mce.AlternateContent)); continue; }
       const kind = revisionKindOf(el);
       if (kind !== undefined) { if (shows(view, kind)) visit(runItemsOf(el.value as object)); }
       else if (tn !== undefined && RUN_HOLDERS.has(tn)) visit(runItemsOf(el.value as object));

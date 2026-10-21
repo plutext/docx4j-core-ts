@@ -38,7 +38,10 @@ whole wherever its markers were, and the comment parts with the last, as Word 36
 revisions goldens record each resolution's comments since) and CR-012's phases 0 to 3 (the text model's conformance suite and agreement test, copied from
 docx4j into `test/text-extraction/` with their runners; REQ-510's level owner in the `Emulator`; the
 plain-text model, `Texts.of` and the block model in `src/model/text/`; Markdown, `MarkdownExporter`, docx4j's
-byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing), and CR-013's phases 0 and 1
+byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing; phase 4, the readers:
+`Paragraph.text` and `search` in Office JS's characters and rules in Word's default view, held to Word 365's checks 48,
+48b and 51, a kept branch's text read and edited (ED-009), text boxes at `textbox:` addresses read-only, `outline()` on the
+model and async), and CR-013's phases 0 and 1
 (`mc:AlternateContent` at block, row and cell level: docx4j's `mc-fun` probes in `test/mc-fun/`, the walker audit, the
 text model's rows and cells in the selected branch, `mcePreprocess: true` over the readers' set). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
@@ -97,7 +100,8 @@ src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, Numbe
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
-                  tree.mts is the paragraph text model (segmentsOf, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
+                  tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
+                  textBoxes.mts numbers a paragraph's text boxes as the text model does (`textbox:N`); outline.mts is the registry the text model's outline reader joins (model/text/outline.mts; Body can't import the text model);
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
@@ -170,7 +174,17 @@ Key mechanics:
   the element and the array containing it; nothing is cached but the `Body` per container
   (a WeakMap in `parts/wml`). Text edits work on the paragraph's text segments (`segmentsOf`)
   and edit `w:t` values in place, split runs only when formatting a span, and link `PARENT`
-  on everything inserted (`linkParents`). `Font` and `Paragraph` reads report **effective**
+  on everything inserted (`linkParents`). `Paragraph.text` is those segments' text, Office JS's
+  (CR-012 phase 4): check 48's characters (`officeItemText`: a note reference U+0002, a break
+  U+000B, a symbol `(`, an equation as Word draws it, `mathText.mts`), hidden runs left out
+  (`hiddenRunsOf`, zero-width segments listed with the objects), a kept `mc:AlternateContent`'s
+  selected branch read and edited in place (`alternate` on a segment; a run split inside a run-level
+  branch writes the editor's ED-009 P2 pieces), so text, offsets, `Range`, `search` (`officeMatches`,
+  Word's Find codes) and every edit share one reader. A tracked change's `text` reads
+  `characters: 'textOf'`, the old reader, which the revisions goldens hold to docx4j's. A paragraph in
+  a text box (`textbox:` addresses, `textBoxes.mts`) is read-only: mutators call `assertWritable()`. A `Range` is
+  one paragraph's (CR-014 proposes ranges across paragraphs); a block control of several paragraphs gives a
+  `SpanningRange`, which reads all of them and refuses every write. `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
   direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
@@ -203,6 +217,11 @@ this package's own: a byte-for-byte save after a reading, `officeOffset`, the pa
 `MarkdownAlternateContentTest`, with docx4j's strings, and `blocks()`),
 `mc-fun.test.mjs` CR-013's: docx4j's `mc-fun` probes (`test/mc-fun/`, copied with a manifest, outside `fixtures/`) read by
 every reader against Word 365's saves, the Office JS readers' block-, row- and cell-level gaps asserted as they are (phase 2's),
+`readers.test.mjs` CR-012 phase 4's: `Paragraph.text`, `Body.text`, whole ranges and `search` against Word 365's JSON on check
+48's, 48b's and 51's files (`check48Bytes`, `check51Bytes` build them in memory; never commit the `.docx`), cells, controls,
+comments and notes of several paragraphs, equations, hidden text, the `textbox:`
+addresses agreeing with the text model over every fixture holding a text box, the read-only boxes, the notes' and comments'
+addresses, and `outline()`,
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

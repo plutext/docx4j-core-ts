@@ -5,7 +5,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { tr as rowOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, typeNameOf, childrenOf, linkParents, textOf, rowsOf, cellsOf } from './tree.mjs';
+import { type Element, typeNameOf, childrenOf, linkParents, rowsOf, cellsOf } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -196,9 +196,9 @@ export class Table {
     return cellOf(this.tbl, this.parentBody);
   }
 
-  /** The text of the table: a line per paragraph, as docx4j TextUtils (extension). */
+  /** The text of the table: a line per paragraph, each `Paragraph.text` (extension; CR-012 phase 4). */
   get text(): string {
-    return textOf(this.tbl);
+    return this.rows.flatMap((row) => row.cells.flatMap((cell) => cell.paragraphs)).map((p) => p.text).join('\n');
   }
 
   /** The column widths in twips, from the grid or from the first row (extension). */
@@ -334,9 +334,12 @@ export class TableCell {
     return this.body.tables;
   }
 
-  /** The cell's text, a line per paragraph. */
+  /**
+   * The cell's text as Office JS's `tableCell.value` gives it: its body's text (`Body.text`), its paragraphs'
+   * `Paragraph.text` a mark `\r` apart (check 51: `value`, `values` and `body.text` alike).
+   */
   get text(): string {
-    return textOf(this.tc);
+    return this.body.text;
   }
 
   /** Office JS TableCell.value: the text, replaced as one paragraph when set. */

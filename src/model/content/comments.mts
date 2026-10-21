@@ -10,7 +10,7 @@ import type * as w16cid from '@docx4j/generated-objects-ts/modules/org_docx4j_w1
 import type { XmlCalendar } from '@docx4j/generated-objects-ts';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { typeNameOf, childrenOf, runItemsOf, itemTextOf, revisionKindOf, RUN_HOLDERS, type Element } from './tree.mjs';
+import { typeNameOf, childrenOf, segmentsOf, type HiddenRuns, type Element } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
@@ -187,52 +187,44 @@ const COMMENT_REFERENCE = 'org_docx4j_wml.R.CommentReference';
  * Every comment marker under a container (a body, a cell, a paragraph), in document order.
  * Deleted content (`w:del`) is not entered, as the text model does not enter it either.
  */
-export function markersOf(container: object): CommentMarker[] {
+export function markersOf(container: object, hidden?: (p: wml.P) => HiddenRuns): CommentMarker[] {
   const out: CommentMarker[] = [];
-  collect(out, container);
+  collect(out, container, undefined, hidden);
   return out;
 }
 
-/** The markers of one paragraph, with their offsets in its text. */
-export function markersOfParagraph(element: Element<wml.P>, container: Element[]): CommentMarker[] {
+/** The markers of one paragraph, with their offsets in its text (`Paragraph.text` where `hidden` is its `hiddenRuns()`). */
+export function markersOfParagraph(element: Element<wml.P>, container: Element[], hidden?: HiddenRuns): CommentMarker[] {
   const out: CommentMarker[] = [];
-  collect(out, undefined, { element, container });
+  collect(out, undefined, { element, container }, hidden === undefined ? undefined : () => hidden);
   return out;
 }
 
-function collect(out: CommentMarker[], container: object | undefined, paragraph?: { element: Element<wml.P>; container: Element[] }): void {
+/**
+ * The walk behind both. A paragraph's markers are found by the same walk as its text (`segmentsOf`, in
+ * the accepted view: a `w:ins` and a `w:moveTo` hold text and markers, a `w:del` and a `w:moveFrom` hold
+ * neither), so that each offset is one in `Paragraph.text`, hidden runs left out where `hidden` says
+ * which they are, and a kept `mc:AlternateContent`'s selected branch read (CR-012 phase 4).
+ */
+function collect(out: CommentMarker[], container: object | undefined, paragraph?: { element: Element<wml.P>; container: Element[] }, hidden?: (p: wml.P) => HiddenRuns): void {
   const visitParagraph = (element: Element<wml.P>, blockContainer: Element[]): void => {
-    let pos = 0;
-    const visitRuns = (items: Element[] | undefined): void => {
-      if (!items) return;
-      for (const el of items) {
+    segmentsOf(element.value, {
+      hidden: hidden?.(element.value),
+      visit: (el, at, owner, run) => {
         const tn = typeNameOf(el);
-        if (tn === 'org_docx4j_wml.R') {
-          const content = (el.value as wml.R).content ?? [];
-          for (const item of content) {
-            if (typeNameOf(item) === COMMENT_REFERENCE) {
-              out.push({
-                id: (item.value as wml.R.CommentReference).id, kind: 'reference', item, owner: content as Element[],
-                run: el as Element<wml.R>, runOwner: items, paragraph: element, paragraphContainer: blockContainer, offset: pos,
-              });
-            } else pos += itemTextOf(item)?.length ?? 0;
-          }
+        if (tn === COMMENT_REFERENCE && run) {
+          out.push({
+            id: (el.value as wml.R.CommentReference).id, kind: 'reference', item: el, owner,
+            run: run.element, runOwner: run.owner, paragraph: element, paragraphContainer: blockContainer, offset: at,
+          });
         } else if (tn === COMMENT_RANGE_START || tn === COMMENT_RANGE_END) {
           out.push({
             id: (el.value as wml.CommentRangeStart).id, kind: tn === COMMENT_RANGE_START ? 'start' : 'end',
-            item: el, owner: items, paragraph: element, paragraphContainer: blockContainer, offset: pos,
+            item: el, owner, paragraph: element, paragraphContainer: blockContainer, offset: at,
           });
-        } else if (tn !== undefined && RUN_HOLDERS.has(tn)) {
-          visitRuns(runItemsOf(el.value as object));
-        } else {
-          // the accepted view, which is what the offsets are in: a w:ins and a w:moveTo hold text
-          // and markers, a w:del and a w:moveFrom hold neither (CR-002 phase F)
-          const kind = revisionKindOf(el);
-          if (kind === 'ins' || kind === 'moveTo') visitRuns(runItemsOf(el.value as object));
         }
-      }
-    };
-    visitRuns(runItemsOf(element.value));
+      },
+    });
   };
   const visitBlocks = (items: Element[]): void => {
     for (const el of items) {

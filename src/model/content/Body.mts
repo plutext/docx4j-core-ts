@@ -4,9 +4,11 @@ import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, type TextViewOptions, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, textOf, textOfView, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
+import { type Element, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf, runsOf } from './tree.mjs';
+import { textBoxesOf } from './textBoxes.mjs';
+import { outlineReader } from './outline.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table, type TableRow, type TableCell } from './Table.mjs';
@@ -44,7 +46,10 @@ export interface OutlineParagraph {
   address: string;
   paraId?: string;
   style: string;
+  /** The text model's text of the paragraph (CR-012 D3): hidden text left out, a deleted mark joined, in the options' view. */
   text: string;
+  /** True for a paragraph in a text box, listed after its anchor at a `textbox:` address (CR-012 D3, D4). */
+  textbox?: true;
 }
 
 export interface OutlineTable {
@@ -86,6 +91,12 @@ export class Body {
     const resolver = pkg?.propertyResolverOrUndefined;
     if (!resolver) throw new PropertyResolverNotCreatedException();
     return resolver;
+  }
+
+  /** Which of a paragraph's runs are hidden: a run's own `w:vanish`, else its styles' (`hiddenRunsOf`; CR-012 phase 4). */
+  hiddenRuns(p: wml.P): HiddenRuns {
+    const pkg = this.package_ as { propertyResolverOrUndefined?: VanishResolver } | undefined;
+    return hiddenRunsOf(pkg?.propertyResolverOrUndefined, p);
   }
 
   /** The live content array (docx4j getContent()); block-level elements only, sectPr excluded. */
@@ -236,9 +247,14 @@ export class Body {
     return element && container ? new Paragraph(element, container, this) : undefined;
   }
 
-  /** The text, a paragraph per line. */
+  /**
+   * The text as Office JS's `body.text` gives it in Word's default view (CR-012 phase 4; checks 30, 31, 48
+   * and 51): each paragraph's text (`Paragraph.text`) followed by its mark, `\r`, the last paragraph's left
+   * out; in a table a row's cells a `\t` apart, each cell's paragraphs a mark apart (its last mark not
+   * written), and the row ended by `\r\n`. Text boxes are not the body's (check 42).
+   */
   get text(): string {
-    return this.paragraphs.map((p) => p.text).join('\n');
+    return this.textIn('accepted');
   }
 
   /**
@@ -246,8 +262,43 @@ export class Body {
    * `{ view: 'original' }` reads the document as it was before the tracked changes.
    */
   getText(options?: TextViewOptions): string {
-    if (options?.view !== 'original') return this.text;
-    return this.paragraphs.map((p) => textOfView(p.p, options)).join('\n');
+    return this.textIn(options?.view ?? 'accepted');
+  }
+
+  private textIn(view: TextView): string {
+    // pieces, each paragraph's text then its mark, so that a cell's last mark becomes its end without
+    // copying the text before it
+    const pieces: string[] = [];
+    const visit = (items: Element[]): void => {
+      for (const el of items) {
+        const tn = typeNameOf(el);
+        if (tn === 'org_docx4j_wml.P') {
+          const p = new Paragraph(el as Element<wml.P>, items, this);
+          pieces.push(view === 'original' ? p.getText({ view }) : p.text, '\r');
+          continue;
+        }
+        const v = el.value;
+        if (typeof v !== 'object' || v === null) continue;
+        if (tn === 'org_docx4j_wml.Tbl') {
+          // Word's default view: the cells a tab apart, the row ended by \r\n (checks 30, 31 and 51; check
+          // 48's \t after every cell and row was All Markup's, with hidden text shown)
+          for (const row of rowsOf(v)) {
+            cellsOf(row.element.value).forEach((cell, i) => {
+              if (i > 0) pieces.push('\t');
+              visit(childrenOf(cell.element.value) ?? []);
+              if (pieces[pieces.length - 1] === '\r') pieces.pop();
+            });
+            pieces.push('\r\n');
+          }
+          continue;
+        }
+        const children = childrenOf(v);
+        if (children) visit(children);
+      }
+    };
+    visit(this.content);
+    if (pieces[pieces.length - 1] === '\r') pieces.pop();
+    return pieces.join('');
   }
 
   /** The package's change tracker while `changeTrackingMode` is on; undefined when it is off (CR-002 phase F). */
@@ -577,7 +628,11 @@ export class Body {
 
   // --- addresses (CR-002 section 3.3) ---
 
-  /** The element at an address: 'body/3' (fourth block), 'body/3/1/0/2' (table row 1, cell 0, block 2), a paraId, or a text match. */
+  /**
+   * The element at an address: 'body/3' (fourth block), 'body/3/1/0/2' (table row 1, cell 0, block 2),
+   * 'body/3/textbox:0/1' (the second block of the first text box body/3 anchors, CR-012 D4), a paraId, or a
+   * text match. Undefined, never an error, where the address names nothing.
+   */
   elementAt(address: Address): BlockElement | undefined {
     if (typeof address === 'string' && address.startsWith('w14:')) address = { paraId: address.substring(4) };
     if (typeof address === 'object') {
@@ -594,9 +649,20 @@ export class Body {
     let container: Element[] | undefined;
     let element: Element | undefined;
     for (const seg of tail === '' ? [] : tail.substring(1).split('/')) {
+      if (seg.startsWith('textbox:')) {
+        // the n-th text box the paragraph here anchors, as the text model numbers them (CR-012 D4)
+        if (typeNameOf(element ?? ({} as Element)) !== 'org_docx4j_wml.P') return undefined;
+        const n = Number(seg.substring('textbox:'.length));
+        const box = Number.isInteger(n) && n >= 0 ? textBoxesOf(current as wml.P, this.hiddenRuns(current as wml.P))[n] : undefined;
+        if (!box?.content) return undefined;                          // none, or legacy WordArt: no paragraphs
+        current = box.content;
+        element = undefined;
+        container = undefined;
+        continue;
+      }
       container = childrenOf(current);
       const i = Number(seg);
-      if (!container || !Number.isInteger(i) || i < 0 || i >= container.length) return undefined;
+      if (!container || seg === '' || !Number.isInteger(i) || i < 0 || i >= container.length) return undefined;
       element = container[i]!;
       current = element.value as object;
     }
@@ -615,33 +681,18 @@ export class Body {
     return path ? [this.prefix, ...path].join('/') : undefined;
   }
 
-  /** What an agent asks for first: every paragraph and table with its address, style and text. */
-  outline(): Outline {
-    const paragraphs: OutlineParagraph[] = [];
-    const tables: OutlineTable[] = [];
-    const visit = (items: Element[], path: number[]): void => {
-      items.forEach((el, i) => {
-        const tn = typeNameOf(el);
-        const here = [...path, i];
-        const address = [this.prefix, ...here].join('/');
-        if (tn === 'org_docx4j_wml.P') {
-          const p = el.value as wml.P;
-          const entry: OutlineParagraph = { address, style: p.pPr?.pStyle?.val ?? 'Normal', text: textOf(p) };
-          if (p.paraId) entry.paraId = p.paraId;
-          paragraphs.push(entry);
-        } else if (tn === 'org_docx4j_wml.Tbl') {
-          const rows = childrenOf(el.value as object) ?? [];
-          const cols = rows.length ? (childrenOf(rows[0]!.value as object) ?? []).filter((c) => typeNameOf(c) === 'org_docx4j_wml.Tc').length : 0;
-          tables.push({ address, rows: rows.filter((r) => typeNameOf(r) === 'org_docx4j_wml.Tr').length, cols });
-          rows.forEach((row, ri) => (childrenOf(row.value as object) ?? []).forEach((cell, ci) => visit(childrenOf(cell.value as object) ?? [], [...here, ri, ci])));
-        } else if (typeof el.value === 'object' && el.value !== null) {
-          const children = childrenOf(el.value);
-          if (children) visit(children, here);
-        }
-      });
-    };
-    visit(this.content, []);
-    return { paragraphs, tables };
+  /**
+   * What an agent asks for first: every paragraph and table with its address, style and text, read by the
+   * text model (CR-012 D3; `Texts.of`'s options, `TextOptionsInit`): each paragraph's text is the model's
+   * (hidden text left out, a paragraph whose mark the view deletes joined to the next, in the view asked
+   * for), and each text box's paragraphs follow their anchoring paragraph, or the table it is in (REQ-518),
+   * at `textbox:` addresses (`body/3/textbox:0/1`), flagged `textbox`. A cell's paragraphs and tables follow
+   * their table's entry.
+   * Async since phase 4, as the model's reading is; calls under one `TextContext` (`Texts.contextOf`) read
+   * the package's stories once. The package is not changed (REQ-204).
+   */
+  async outline(options?: object, context?: object): Promise<Outline> {
+    return outlineReader()(this, options, context);
   }
 
   // --- docx4j names ---
@@ -721,8 +772,8 @@ export class Body {
     return found;
   }
 
-  private pathOf(value: object): number[] | undefined {
-    const path: number[] = [];
+  private pathOf(value: object): (number | string)[] | undefined {
+    const path: (number | string)[] = [];
     let child: object = value;
     for (let guard = 0; guard < 64; guard++) {
       let parent = (child as { PARENT?: object }).PARENT;
@@ -736,6 +787,16 @@ export class Body {
       if (i < 0) return undefined;
       path.unshift(i);
       if (parent === this.container) return path;
+      if ((parent as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') {
+        // a text box's block: addressed from the paragraph that anchors it, `textbox:n` its place among
+        // that paragraph's boxes; none for a box the text model doesn't number (another branch's, a hidden run's)
+        const anchor = anchorOf(parent);
+        const n = anchor ? textBoxesOf(anchor, this.hiddenRuns(anchor)).findIndex((box) => box.content === parent) : -1;
+        if (!anchor || n < 0) return undefined;
+        path.unshift(`textbox:${n}`);
+        child = anchor;
+        continue;
+      }
       child = parent;
     }
     return undefined;
@@ -856,4 +917,13 @@ function textBoxesIn(container: { content?: Element[] }): { box: { content?: Ele
   };
   visit(container.content, true);
   return out;
+}
+
+/** The paragraph a text box's content is anchored in: its nearest `w:p` ancestor. */
+function anchorOf(box: object): wml.P | undefined {
+  let o = (box as { PARENT?: object }).PARENT;
+  for (let guard = 0; o && guard < 64; guard++, o = (o as { PARENT?: object }).PARENT) {
+    if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.P') return o as wml.P;
+  }
+  return undefined;
 }

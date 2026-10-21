@@ -74,7 +74,7 @@ export function hasTableRecords(tbl: wml.Tbl): boolean {
 
 /** A cell's text as Office JS reports it in a table's change: its paragraphs, a `\r` between them. */
 function cellText(tc: wml.Tc): string {
-  return (childrenOf(tc) ?? []).filter((el) => typeNameOf(el) === 'org_docx4j_wml.P').map((el) => textOfView(el.value as object, { view: 'accepted' })).join('\r');
+  return (childrenOf(tc) ?? []).filter((el) => typeNameOf(el) === 'org_docx4j_wml.P').map((el) => textOfView(el.value as object, { view: 'accepted', characters: 'textOf' })).join('\r');
 }
 
 /** A row's text as Office JS reports it: its cells with a tab between them, then `\r\n` (checks 27 and 28). */

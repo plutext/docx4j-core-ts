@@ -192,7 +192,7 @@ test('insertParagraph marks the new mark inserted; delete() marks the mark delet
   xml = await xmlOf(pkg);
   assert.match(xml, /<w:pPr><w:rPr><w:del w:id="4"[^>]*\/><\/w:rPr><\/w:pPr><w:del w:id="3"[^>]*><w:r><w:delText>two<\/w:delText><\/w:r><\/w:del>/);
   assert.equal(body.paragraphs.length, 3, 'the paragraph is still there while the change is pending');
-  assert.equal(body.getText({ view: 'original' }), 'one\ntwo\n');
+  assert.equal(body.getText({ view: 'original' }), 'one\rtwo\r', "body.text's form: a mark \\r per paragraph but the last (check 48)");
 
   assert.equal(xml.includes('pPrChange'), false, 'the next paragraph has the same properties: nothing recorded on it');
 
@@ -260,7 +260,7 @@ test('table rows: w:trPr/w:ins and w:trPr/w:del, and an inserted table marks eve
   // a row's text as Office JS gives it: the cells, then \r\n (checks 30 and 31)
   assert.deepEqual(body.getTrackedChanges().map((c) => [c.type, c.target.kind, c.text]), [['Deleted', 'row', 'r1\r\n'], ['Added', 'row', 'r2\r\n']]);
   assert.equal(body.acceptAll(), 2);
-  assert.equal(body.text, 'r2');
+  assert.equal(body.text, 'r2\r\n', "a row ended by \\r\\n, as Office JS's body.text has it in Word's default view (checks 31 and 51)");
 
   // a table inserted while tracking marks each row and each paragraph
   const [added] = await body.insertXml('<w:tbl><w:tr><w:tc><w:p><w:r><w:t>new</w:t></w:r></w:p></w:tc></w:tr></w:tbl>', 'End');
@@ -2191,7 +2191,9 @@ test('a range over a paragraph\'s whole content takes its pictures; a span of te
     assert.deepEqual([p.text, p.inlinePictures.length], ['x', 1], `tracked: ${tracked}; the picture beside both hits stays`);
     const inside = await withPicture('ab', PIC, 'cd');
     if (tracked) tracking(inside);
-    inside.body.paragraphs[0].search('bc')[0].delete();
+    // Office JS's plain search doesn't match across a picture; Word's ^g does (check 48; CR-012 phase 4)
+    assert.equal(inside.body.paragraphs[0].search('bc').length, 0);
+    inside.body.paragraphs[0].search('b^gc')[0].delete();
     if (tracked) inside.body.acceptAll();
     assert.deepEqual([inside.body.paragraphs[0].text, inside.body.inlinePictures.length], ['ad', 0], `tracked: ${tracked}; the picture inside the hit goes`);
   }
@@ -2366,7 +2368,10 @@ test('revisions inside equations are listed and resolved as Word resolved them: 
     const pkg = await WordprocessingMLPackage.createPackage();
     pkg.getMainDocumentPart().setXml(`<w:document ${W}><w:body>${argument}</w:body></w:document>`);
     const [change] = (await pkg.getBody()).getTrackedChanges();
-    assert.deepEqual([change.getRange().start, change.getRange().end], [7, 7], 'collapsed where the equation stands: its text is not the paragraph\'s');
+    // the equation's text is the paragraph's since CR-012 phase 4, Word's drawing of it (check 48 case 17)
+    // a structure as Word's text writes it: `,`, its arguments a `-` apart, `.` (check 51 case 12)
+    assert.equal(pkg.body.paragraphs[0].text, 'Before ,\u{1D465}-2. after');
+    assert.deepEqual([change.getRange().start, change.getRange().end], [7, 13], 'the equation the change is in');
     assert.equal(pkg.body[what](), 1);
     assert.deepEqual(await equationsOf(pkg), ['sSup(e(x)sup(2))'], `${what}: the structure stays`);
     assert.deepEqual(await controlsOf(pkg), ['<w:rPr><w:i/></w:rPr>'], what);

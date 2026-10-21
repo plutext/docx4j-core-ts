@@ -44,7 +44,7 @@ test('Word.run: an add-in callback against a created package, saved and reloaded
     assert.ok(ooxml.value.includes('pkg:package'), 'getOoxml is the flat OPC package');
     return body.text;
   });
-  assert.equal(seen, 'Title\nHello World');
+  assert.equal(seen, 'Title\rHello World', "Office JS's body.text: \\r between paragraphs (check 48)");
 
   const back = await WordprocessingMLPackage.load(await pkg.save());
   const body = await back.getBody();

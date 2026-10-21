@@ -22,7 +22,8 @@ test('body: insertParagraph, text, paragraphs, docx4j aliases, round trip', asyn
   body.addStyledParagraphOfText('Heading2', 'Sub');
   body.addParagraphOfText('Tab\there');
   assert.deepEqual(body.paragraphs.map((p) => p.text), ['Title', 'Hello World', 'Sub', 'Tab\there']);
-  assert.equal(body.text, 'Title\nHello World\nSub\nTab\there');
+  // Office JS's body.text: each paragraph's mark \r, the last left out (check 48; CR-012 phase 4)
+  assert.equal(body.text, 'Title\rHello World\rSub\rTab\there');
   assert.equal(body.paragraphs[3].p.content[0].value.content.length, 3, 'tab became w:tab');
   // PARENT is linked on inserted content
   assert.equal(p1.p.PARENT, pkg.getMainDocumentPart().contents.body);
@@ -171,7 +172,7 @@ test('insertXml and insertElement: fragments, targets, validation, PARENT', asyn
 test('addresses, paraIds and outline on a loaded document', async () => {
   const pkg = await WordprocessingMLPackage.load(await fixture('loadAndSave.docx'));
   const body = await pkg.getBody();
-  const outline = body.outline();
+  const outline = await body.outline();                              // the text model's, async (CR-012 D3)
   assert.ok(outline.paragraphs.length > 5);
   assert.ok(outline.paragraphs.every((p) => /^body\/\d+/.test(p.address)));
   assert.ok(outline.paragraphs.some((p) => p.paraId), 'Word wrote paraIds');

@@ -278,7 +278,7 @@ test('insertContentControl on a body, a paragraph and a range', async () => {
   const bodyControl = body.insertContentControl('Group');
   assert.equal(body.content.length, 1);
   assert.equal(bodyControl.type, 'Group');
-  assert.equal(bodyControl.text, 'The quick brown fox\nSecond');
+  assert.equal(bodyControl.text, 'The quick brown fox\rSecond', "a block control's text: its paragraphs a mark \\r apart (check 51)");
   assert.ok(bodyControl.groupContentControl);
   assert.equal(body.contentControls.length, 3);
 

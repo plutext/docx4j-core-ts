@@ -8,3 +8,5 @@ node_modules
 # check 48's file holds a tracked change, so the weekly RevisionsHarness would cut a CR-011 golden
 # for it under fixtures/: it is built by fixtures/check48/build.mjs, and Word reads the share's copy
 /test/fixtures/check48/*.docx
+# check 51's file, built in memory by its tests as check 48's is (fixtures/check51/build.mjs); Word reads the share's copy
+/test/fixtures/check51/*.docx

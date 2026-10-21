@@ -288,13 +288,12 @@ test("Accept All and Reject All resolve every branch's text box, and count the s
   }
 });
 
-// CR-012 section 12.1: an mc:AlternateContent among a paragraph's runs, not in one (the editor's
-// ED-009 case 8, the shape of docx4j's text-extraction probes; Word writes none). Paragraph.text reads
-// its selected branch through textOf, but the segments every edit works on don't list it, so from the
-// first character where the two differ an offset names no place in the runs. In 0.5.0 an edit there
-// landed after the element or did nothing, without an error; it throws until section 12's rule reads
-// and edits the branch. Before the element, and in a resolved load, edits work as they always have.
-test('an edit the segments cannot place, past a paragraph-level kept element, throws NotSupportedError and changes nothing', async () => {
+// CR-012 section 12.2 (the editor's ED-009 rule, phase 4): a kept mc:AlternateContent whose selected
+// branch holds text reads as that branch's items, among the runs (the editor's case 8, the shape of
+// docx4j's text-extraction probes) or in a run (cases 1, 2 and 6), and an edit lands in that branch,
+// the other branches kept as they were read. Section 12.4's NotSupportedError (0.5.0's silent misplaced
+// edits) is gone with it. Each edit gives the text a resolved load gives.
+test('ED-009: an edit over a kept element\'s text lands in its selected branch, the others kept; resolved, the same text', async () => {
   const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   const WPS = 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape';
   const make = await WordprocessingMLPackage.createPackage();
@@ -304,66 +303,83 @@ test('an edit the segments cannot place, past a paragraph-level kept element, th
     + '<w:r><w:t xml:space="preserve"> after</w:t></w:r></w:p><w:sectPr/></w:body></w:document>');
   const source = await make.save();
   const edits = {
-    'replace': (p) => p.search('plain')[0].insertText('PLAIN', 'Replace'),
-    'insert at a range start': (p) => p.search('plain')[0].insertText('very ', 'Start'),
-    'delete': (p) => p.search('plain')[0].delete(),
-    'format': (p) => { p.search('plain')[0].font.italic = true; },
-    'insert at the paragraph end': (p) => p.insertText('!', 'End'),
-    'replace across the element': (p) => p.search('Before bold')[0].insertText('x', 'Replace'),
-    'insert where the element starts': (p) => p.search('Before ')[0].getRange('End').insertText('x', 'Start'),
+    'replace': [(p) => p.search('plain')[0].insertText('PLAIN', 'Replace'), 'Before bold ying PLAIN ying after', 'bold ying PLAIN ying'],
+    'insert at a range start': [(p) => p.search('plain')[0].insertText('very ', 'Start'), 'Before bold ying very plain ying after', 'bold ying very plain ying'],
+    'delete': [(p) => p.search('plain')[0].delete(), 'Before bold ying  ying after', 'bold ying  ying'],
+    'format': [(p) => { p.search('plain')[0].font.italic = true; }, 'Before bold ying plain ying after', 'bold ying plain ying'],
+    'insert at the paragraph end': [(p) => p.insertText('!', 'End'), 'Before bold ying plain ying after!', 'bold ying plain ying'],
+    'replace across the element': [(p) => p.search('Before bold')[0].insertText('x', 'Replace'), 'x ying plain ying after', ' ying plain ying'],
+    'insert where the element starts': [(p) => p.search('Before ')[0].getRange('End').insertText('x', 'Start'), 'Before xbold ying plain ying after', 'xbold ying plain ying'],
   };
   const documentXml = async (pkg) => new TextDecoder().decode(new ZipPartStore(await pkg.save()).loadSync('word/document.xml'));
-  for (const [name, edit] of Object.entries(edits)) {
+  const choiceText = (xml) => [...xml.match(/<mc:Choice Requires="wps">(.*?)<\/mc:Choice>/s)[1].matchAll(/<w:t(?: [^>]*)?>([^<]*)</g)].map((m) => m[1]).join('');
+  for (const [name, [edit, expected, choice]] of Object.entries(edits)) {
     const pkg = await WordprocessingMLPackage.load(source, KEPT);
     const p = (await pkg.getBody()).paragraphs[0];
     assert.equal(p.text, 'Before bold ying plain ying after');
-    assert.deepEqual(p.segments().map((s) => s.text).join(''), 'Before  after', 'the segments step over the element');
-    const before = await documentXml(pkg);
-    assert.throws(() => edit(p), (e) => e.name === 'NotSupportedError' && e.code === 'NotImplemented' && /CR-012 section 12/.test(e.message), name);
-    assert.equal(await documentXml(pkg), before, `${name}: nothing changed`);
-  }
-  // Under tracking too, and a tracked picture Replace is refused before its image part is added.
-  for (const [name, edit] of Object.entries({
-    'tracked replace': (p) => p.search('plain')[0].insertText('PLAIN', 'Replace'),
-    'tracked picture Replace': (p) => p.insertInlinePictureFromBase64(PNG, 'Replace'),
-  })) {
-    const pkg = await WordprocessingMLPackage.load(source, KEPT);
-    pkg.changeTrackingMode = 'TrackAll';
-    const p = (await pkg.getBody()).paragraphs[0];
-    const parts = [...pkg.parts].length;
-    const before = await documentXml(pkg);
-    assert.throws(() => edit(p), (e) => e.name === 'NotSupportedError', name);
-    assert.equal([...pkg.parts].length, parts, `${name}: no part added`);
-    assert.equal(await documentXml(pkg), before, `${name}: nothing changed`);
-  }
-  // Before the element the runs and the text agree, so an edit there works in the kept load.
-  const kept = await WordprocessingMLPackage.load(source, KEPT);
-  const p = (await kept.getBody()).paragraphs[0];
-  p.search('Before')[0].insertText('Now', 'Replace');
-  p.insertText('>', 'Start');
-  assert.equal(p.text, '>Now bold ying plain ying after');
-  assert.match(await documentXml(kept), /<mc:Choice Requires="wps">.*bold ying.*plain ying.*<\/mc:Choice><mc:Fallback>.*yang/s, 'every branch kept');
-  // Resolved, the element is gone and each edit does what it says.
-  const resolved = {
-    'replace': 'Before bold ying PLAIN ying after',
-    'insert at a range start': 'Before bold ying very plain ying after',
-    'delete': 'Before bold ying  ying after',
-    'format': 'Before bold ying plain ying after',
-    'insert at the paragraph end': 'Before bold ying plain ying after!',
-    'replace across the element': 'x ying plain ying after',
-    'insert where the element starts': 'Before xbold ying plain ying after',
-  };
-  for (const [name, edit] of Object.entries(edits)) {
-    const pkg = await WordprocessingMLPackage.load(source, RESOLVED);
-    const q = (await pkg.getBody()).paragraphs[0];
+    assert.equal(p.segments().map((s) => s.text).join(''), p.text, 'the segments are the text');
+    edit(p);
+    assert.equal(p.text, expected, name);
+    const xml = await documentXml(pkg);
+    assert.match(xml, /<mc:Fallback><w:r><w:t>yang<\/w:t><\/w:r><\/mc:Fallback>/, `${name}: the Fallback as it was read`);
+    assert.equal(choiceText(xml), choice, `${name}: the Choice`);
+    if (name === 'format') assert.equal(p.search('plain')[0].font.italic, true);
+    const resolved = await WordprocessingMLPackage.load(source, RESOLVED);
+    const q = (await resolved.getBody()).paragraphs[0];
     edit(q);
-    assert.equal(q.text, resolved[name], name);
-    if (name === 'format') assert.equal(q.search('plain')[0].font.italic, true);
+    assert.equal(q.text, expected, `${name}, resolved`);
   }
-  // A run-level element (one object segment, no text) is not this case: an edit beside it works.
+  // a tracked replacement: the w:del and the w:ins in the Choice
+  const tracked = await WordprocessingMLPackage.load(source, KEPT);
+  tracked.changeTrackingMode = 'TrackAll';
+  const t = (await tracked.getBody()).paragraphs[0];
+  t.search('plain')[0].insertText('PLAIN', 'Replace');
+  assert.equal(t.text, 'Before bold ying PLAIN ying after');
+  assert.match(await documentXml(tracked), /<mc:Choice Requires="wps">.*<w:del [^>]*><w:r><w:delText>plain<\/w:delText><\/w:r><\/w:del><w:ins [^>]*><w:r><w:t>PLAIN<\/w:t><\/w:r><\/w:ins>.*<\/mc:Choice><mc:Fallback><w:r><w:t>yang/s);
+  // the branch's text deleted whole: the element goes, every branch with it (section 12.2 item 4)
+  const emptied = await WordprocessingMLPackage.load(source, KEPT);
+  const e = (await emptied.getBody()).paragraphs[0];
+  e.search('bold ying plain ying')[0].delete();
+  assert.equal(e.text, 'Before  after');
+  assert.doesNotMatch(await documentXml(emptied), /AlternateContent|yang/);
+
+  // A run-level element (cases 1 and 2): its branch's items are the run's own, at the run's offsets.
   const runLevel = await WordprocessingMLPackage.createPackage();
-  runLevel.getMainDocumentPart().setXml(`<w:document xmlns:w="${W_NS}" xmlns:mc="${MCE}" xmlns:wps="${WPS}"><w:body><w:p><w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:t>flat</w:t></mc:Choice><mc:Fallback><w:t>round</w:t></mc:Fallback></mc:AlternateContent></w:r></w:p><w:sectPr/></w:body></w:document>`);
-  const r = (await (await WordprocessingMLPackage.load(await runLevel.save(), KEPT)).getBody()).paragraphs[0];
-  r.insertText('The Earth is ', 'Start');
-  assert.equal(r.text, 'The Earth is ');
+  runLevel.getMainDocumentPart().setXml(`<w:document xmlns:w="${W_NS}" xmlns:mc="${MCE}" xmlns:wps="${WPS}" mc:Ignorable="wps"><w:body><w:p><w:r><w:t xml:space="preserve">The Earth is </w:t></w:r>`
+    + '<w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:t>flat</w:t><w:tab/><w:t>really</w:t></mc:Choice><mc:Fallback><w:t>round</w:t></mc:Fallback></mc:AlternateContent><w:t>!</w:t></w:r></w:p><w:sectPr/></w:body></w:document>');
+  const runSource = await runLevel.save();
+  const runParagraph = async () => (await (await WordprocessingMLPackage.load(runSource, KEPT)).getBody()).paragraphs[0];
+  const r = await runParagraph();
+  assert.equal(r.text, 'The Earth is flat\treally!');
+  assert.equal(r.search('flat').length, 1, 'search finds the branch\'s word (check 49)');
+  assert.equal(r.search('round').length, 0, 'and never the Fallback\'s');
+  r.search('flat')[0].insertText('oblate', 'Replace');
+  assert.equal(r.text, 'The Earth is oblate\treally!');
+  assert.match(await r.getXml(), /<mc:Choice Requires="wps"><w:t>oblate<\/w:t><w:tab\/><w:t>really<\/w:t><\/mc:Choice><mc:Fallback><w:t>round<\/w:t><\/mc:Fallback>/);
+  // formatting part of it splits the run, and the element with it: the first piece keeps the Fallback, a
+  // later piece's other branches are empty (ED-009 section 3.4, P2); only the span is formatted
+  const f = await runParagraph();
+  f.search('lat')[0].font.bold = true;
+  assert.equal(f.text, 'The Earth is flat\treally!');
+  assert.match(await f.getXml(), new RegExp('<w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:t>f</w:t></mc:Choice><mc:Fallback><w:t>round</w:t></mc:Fallback></mc:AlternateContent></w:r>'
+    + '<w:r><w:rPr><w:b/><w:bCs/></w:rPr><mc:AlternateContent><mc:Choice Requires="wps"><w:t>lat</w:t></mc:Choice><mc:Fallback/></mc:AlternateContent></w:r>'
+    + '<w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:tab/><w:t>really</w:t></mc:Choice><mc:Fallback/></mc:AlternateContent><w:t>!</w:t></w:r>'));
+  // a tracked deletion: the Choice's w:delText inside w:del, the Fallback's w:t kept (ED-009 section 3.6, P3)
+  const d = await runParagraph();
+  d.parentBody.package_.changeTrackingMode = 'TrackAll';
+  d.search('flat')[0].delete();
+  assert.equal(d.text, 'The Earth is \treally!');
+  assert.match(await d.getXml(), /<w:del [^>]*><w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:delText>flat<\/w:delText><\/mc:Choice><mc:Fallback><w:t>round<\/w:t><\/mc:Fallback><\/mc:AlternateContent><\/w:r><\/w:del>/);
+  // all of its text deleted: the element goes, the run keeps what else it held
+  const all = await runParagraph();
+  all.search('flat\treally')[0].delete();
+  assert.equal(all.text, 'The Earth is !');
+  assert.doesNotMatch(await all.getXml(), /AlternateContent|round/);
+  // a branch holding a drawing stays one object of no text (section 12.2 item 5): an edit beside it works
+  const drawn = await WordprocessingMLPackage.createPackage();
+  drawn.getMainDocumentPart().setXml(`<w:document xmlns:w="${W_NS}" xmlns:mc="${MCE}" xmlns:wps="${WPS}"><w:body><w:p><w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:drawing/></mc:Choice><mc:Fallback><w:t>round</w:t></mc:Fallback></mc:AlternateContent></w:r></w:p><w:sectPr/></w:body></w:document>`);
+  const o = (await (await WordprocessingMLPackage.load(await drawn.save(), KEPT)).getBody()).paragraphs[0];
+  assert.equal(o.text, '');
+  o.insertText('The Earth is ', 'Start');
+  assert.equal(o.text, 'The Earth is ');
 });

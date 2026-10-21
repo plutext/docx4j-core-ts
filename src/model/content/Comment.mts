@@ -90,11 +90,13 @@ export class Comment {
 
   /** The comment's text, a paragraph per line; setting it replaces the paragraphs. */
   get content(): string {
+    // Office JS's comment.content: its body's text, the paragraphs a mark \r apart (check 51)
     return this.commentBody.text;
   }
   set content(text: string) {
     const paraId = commentParaId(this.element);
-    const paragraphs = text.split('\n').map((line, i) => commentParagraph(line, i === 0));
+    // a paragraph per line, \r (as the getter gives it) or \n
+    const paragraphs = text.split(/\r\n|\r|\n/).map((line, i) => commentParagraph(line, i === 0));
     if (paraId) paragraphs[0]!.value.paraId = paraId;
     this.element.content = paragraphs as wml.Comments.Comment['content'];
     linkParents(this.element.content, this.element);
@@ -173,7 +175,7 @@ export class Comment {
    * returns one `Range`). Empty when the comment has no markers in this body.
    */
   getRange(): Range[] {
-    const markers = markersOf(this.body.container).filter((m) => m.id === this.id && m.paragraph !== undefined);
+    const markers = markersOf(this.body.container, (p) => this.body.hiddenRuns(p)).filter((m) => m.id === this.id && m.paragraph !== undefined);
     if (markers.length === 0) return [];
     const paragraphs = this.body.paragraphs;
     const indexOf = (marker: CommentMarker): number => paragraphs.findIndex((p) => p.element === marker.paragraph);
@@ -610,7 +612,7 @@ function viewsOf(parts: CommentParts, body: Body): Map<number, Comment> {
 function idsInRange(range: Range): number[] {
   const spans = new Map<number, { from: number; to: number }>();
   const order: number[] = [];
-  for (const marker of markersOfParagraph(range.paragraph.element, range.paragraph.container)) {
+  for (const marker of markersOfParagraph(range.paragraph.element, range.paragraph.container, range.paragraph.hiddenRuns())) {
     const at = marker.offset ?? 0;
     const span = spans.get(marker.id);
     if (span) { span.from = Math.min(span.from, at); span.to = Math.max(span.to, at); } else { spans.set(marker.id, { from: at, to: at }); order.push(marker.id); }

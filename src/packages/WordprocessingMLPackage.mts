@@ -36,6 +36,12 @@ import type { PartSink } from '../opc/PartStore.mjs';
 // Registers the comment parts with the content API (CR-002 phase G); no cycle: the model half
 // never imports a part, as packages/registry.mts does for the package classes.
 import '../parts/wml/comments.mjs';
+// Registers the text model's outline reader with Body.outline (CR-012 D3), the same way: the content API
+// can't import the text model, which imports it.
+import '../model/text/outline.mjs';
+import { Texts } from '../model/text/Texts.mjs';
+import type { TextContext } from '../model/text/TextContext.mjs';
+import type { TextOptions, TextOptionsInit } from '../model/text/TextOptions.mjs';
 
 /** The outline of a document: the body's paragraphs and tables, then each header's and footer's (loaded ones only). */
 export interface DocumentOutline extends Outline {
@@ -681,7 +687,11 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return super.saveTo(sink);
   }
 
-  /** The paragraph at an address anywhere in the document: 'body/3', 'header:rId5/0', a paraId, or a text match. */
+  /**
+   * The paragraph at an address anywhere in the document: 'body/3', 'header:rId5/0', 'footnote:2/0',
+   * 'endnote:1/0', 'comment:5/0', 'body/3/textbox:0/1' (a text box's paragraph, read-only: CR-012 D4 and
+   * D5), a paraId, or a text match. Undefined where the address names no paragraph.
+   */
   async paragraphAt(address: Address): Promise<Paragraph | undefined> {
     for (const body of await this.bodies(address)) {
       const p = body.paragraphAt(address);
@@ -690,17 +700,22 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     return undefined;
   }
 
-  /** Every paragraph and table with its address, style and text (CR-002 section 3.3). Unmarshals the main part, headers and footers. */
-  async outline(): Promise<DocumentOutline> {
+  /**
+   * Every paragraph and table with its address, style and text (CR-002 section 3.3), read by the text model
+   * under one context (CR-012 D3: `Body.outline`, whose options it takes): the main document, then each
+   * header and footer. Unmarshals the main part, headers and footers.
+   */
+  async outline(options?: TextOptionsInit | TextOptions, context?: TextContext): Promise<DocumentOutline> {
     const main = await this.getBody();
-    const out: DocumentOutline = { ...main.outline(), headers: [], footers: [] };
+    const ctx = context ?? await Texts.contextOf(this);
+    const out: DocumentOutline = { ...await main.outline(options, ctx), headers: [], footers: [] };
     for (const part of this.getMainDocumentPart().headerParts) {
       const body = await part.getBody();
-      out.headers.push({ relId: part.sourceRelationship?.id ?? '', partName: part.partName.name, ...body.outline() });
+      out.headers.push({ relId: part.sourceRelationship?.id ?? '', partName: part.partName.name, ...await body.outline(options, ctx) });
     }
     for (const part of this.getMainDocumentPart().footerParts) {
       const body = await part.getBody();
-      out.footers.push({ relId: part.sourceRelationship?.id ?? '', partName: part.partName.name, ...body.outline() });
+      out.footers.push({ relId: part.sourceRelationship?.id ?? '', partName: part.partName.name, ...await body.outline(options, ctx) });
     }
     return out;
   }
@@ -711,6 +726,15 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
       const prefix = address.split('/')[0]!;
       if (prefix === 'body') return [await main.getBody()];
       const [kind, relId] = prefix.split(':');
+      if (kind === 'footnote' || kind === 'endnote' || kind === 'comment') {
+        // a note's or a comment's body, by its w:id, as the text model and Comment address them (CR-012 D4)
+        const part = kind === 'footnote' ? main.footnotesPart : kind === 'endnote' ? main.endnotesPart : main.commentsPart;
+        if (!part) return [];
+        const contents = await part.getContents() as { footnote?: { id?: unknown }[]; endnote?: { id?: unknown }[]; comment?: { id?: unknown }[] };
+        const entry = (contents[kind] ?? []).find((e) => String(e.id) === relId);
+        await this.getPropertyResolver().catch(() => undefined);
+        return entry ? [new Body(part, entry as { content?: never[] }, `${kind}:${relId}`, this)] : [];
+      }
       const parts = kind === 'header' ? main.headerParts : kind === 'footer' ? main.footerParts : [];
       const part = parts.find((p) => p.sourceRelationship?.id === relId || p.partName.fileName === relId);
       return part instanceof HeaderPart || part instanceof FooterPart ? [await part.getBody()] : [];

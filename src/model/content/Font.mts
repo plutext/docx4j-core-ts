@@ -36,7 +36,8 @@ export interface FontTracking {
  */
 export class Font {
   constructor(
-    private readonly holders: () => RPrHolder[],
+    /** The runs in scope; `write` is true for a write, which may split runs to have them, and false for a read, which must not. */
+    private readonly holders: (write: boolean) => RPrHolder[],
     /** The change tracker and this author's own insertions, when the package is tracking changes. */
     private readonly tracking?: () => FontTracking | undefined,
     /** The effective `w:rPr` of the first run in scope; absent for a direct-formatting view. */
@@ -48,7 +49,7 @@ export class Font {
   ) {}
 
   private effectiveRPr(): wml.RPr | undefined {
-    const direct = this.holders()[0]?.rPr;
+    const direct = this.holders(false)[0]?.rPr;
     return this.effective ? this.effective(direct) : direct;
   }
 
@@ -58,7 +59,7 @@ export class Font {
 
   private apply(opts: RunOptions): void {
     const tracking = this.tracking?.();
-    for (const h of this.holders()) {
+    for (const h of this.holders(true)) {
       h.rPr ??= { TYPE_NAME: 'org_docx4j_wml.RPr' };
       // the properties as they are now become w:rPrChange, unless this run is our own insertion
       if (tracking && !tracking.ownInsertions.has(h)) tracking.tracker.recordRPrChange(h.rPr);

@@ -158,7 +158,7 @@ test('reply, resolve and delete: the thread, w15:done and everything removed', a
 
   // content can be replaced
   top[0].content = 'Needs more work\nsecond paragraph';
-  assert.equal(top[0].content, 'Needs more work\nsecond paragraph');
+  assert.equal(top[0].content, 'Needs more work\rsecond paragraph', "Office JS's comment.content: a mark \\r between paragraphs (check 51)");
   assert.equal(top[0].paragraphs.length, 2);
   assert.equal(top[0].paraId, top[0].paragraphs[0].paraId, 'the paraId is kept, so the side entries still match');
   assert.equal(top[0].resolved, true);
@@ -309,10 +309,10 @@ test('a comment can be given paragraphs rather than a string', async () => {
   pkg.body.insertParagraph('anchor', 'End');
   const paragraphs = [wp([wr('first line')]), wp([wr('second line')])];
   const comment = await pkg.body.paragraphs[0].getRange().insertComment(paragraphs);
-  assert.equal(comment.content, 'first line\nsecond line');
+  assert.equal(comment.content, 'first line\rsecond line', 'check 51: \\r between paragraphs');
   const back = await WordprocessingMLPackage.load(await pkg.save());
   await back.getMainDocumentPart().getContents();
-  assert.equal((await back.body.getComments())[0].content, 'first line\nsecond line');
+  assert.equal((await back.body.getComments())[0].content, 'first line\rsecond line');
   // Refused before anything is written: the markers used to be placed first, and were left naming a
   // w:comment that was never made (CR-002 section 31). The same for a reply.
   const markers = async () => {

@@ -5,7 +5,8 @@ import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, textOf, textOfView, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
@@ -15,7 +16,7 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
 import { Font, type FontTracking } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
-import { searchPattern, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, expandReplacement, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
@@ -111,13 +112,20 @@ export class Paragraph {
     return this.container.indexOf(this.element);
   }
 
-  /** The paragraph's text: runs joined, tabs as \t, breaks as \n; deleted text excluded. */
+  /**
+   * The paragraph's text as Office JS gives it in Word's default view (CR-012 phase 4, section 6.2):
+   * the accepted text, hidden text left out, in Word's characters (check 48: a note reference U+0002,
+   * a line break U+000B, a page break U+000C, a column break U+000E, a `w:cr` U+000D, the hyphens
+   * U+001E and U+001F, a symbol `(`, an equation as Word draws it). A kept `mc:AlternateContent`
+   * reads as its selected branch (check 49). Every offset a `Range` or `search` takes counts in it.
+   */
   get text(): string {
-    return textOf(this.p);
+    return this.segments().map((s) => s.text).join('');
   }
 
   /** Replaces the content with one run of the text, keeping the first run's formatting. */
   set text(value: string) {
+    this.assertWritable();
     if (this.changeTracker) { this.splice(0, this.text.length, value, 'before', WHOLE); return; }
     const rPr = runsOf(this.p)[0]?.value.rPr;
     this.releaseRelationships(this.p.content);
@@ -130,7 +138,7 @@ export class Paragraph {
    * reads the document as it was before the tracked changes: `w:del` included, `w:ins` excluded.
    */
   getText(options?: TextViewOptions): string {
-    return options?.view === 'original' ? textOfView(this.p, options) : this.text;
+    return options?.view === 'original' ? this.segments({ view: 'original' }).map((s) => s.text).join('') : this.text;
   }
 
   /** The style id (w:pStyle; docx4j's name for it); 'Normal' when none is set. Extension: Office JS has `style` and `styleBuiltIn` only. */
@@ -274,7 +282,10 @@ export class Paragraph {
 
   /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
   getFont(options?: FormattingOptions): Font {
-    const holders = (): wml.R[] => runsOf(this.p).map((r) => r.value);
+    const holders = (write: boolean): wml.R[] => {
+      if (write) this.assertWritable();
+      return runsOf(this.p).map((r) => r.value);
+    };
     if (options?.direct === true) return new Font(holders, () => this.fontTracking());
     return new Font(holders, () => this.fontTracking(),
       (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr, this.cellContext),
@@ -286,6 +297,7 @@ export class Paragraph {
     return this.p.paraId;
   }
   set paraId(id: string | undefined) {
+    this.assertWritable();
     if (id === undefined) delete this.p.paraId; else this.p.paraId = id;
   }
 
@@ -332,6 +344,7 @@ export class Paragraph {
 
   /** A new paragraph of the text before or after this one, with this paragraph's properties (as Word). */
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
+    this.assertWritable();
     const pPr = this.p.pPr ? deepCopy(this.p.pPr) : undefined;
     if (pPr) { delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; delete pPr.pPrChange; }
     const el = paragraphOf(text === '' ? [] : [textRun(text)], pPr);
@@ -339,6 +352,7 @@ export class Paragraph {
   }
 
   insertBreak(type: 'Page' | 'Line', location: 'Before' | 'After' | 'Start' | 'End'): void {
+    this.assertWritable();
     const brk = breakItem(type === 'Page' ? 'page' : undefined);
     if (location === 'Before' || location === 'After') {
       const p = this.insertParagraph('', location);
@@ -362,11 +376,12 @@ export class Paragraph {
    * start or the end of this paragraph, or in place of its content (Office JS).
    */
   insertInlinePictureFromBase64(base64: string, location: 'Start' | 'End' | 'Replace', options?: InlinePictureOptions): InlinePicture {
+    this.assertWritable();
     const part = this.parentBody.part;
     if (!part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
     const tracker = this.changeTracker;
     // refused before the image part is added, not after (CR-012 section 12.4)
-    if (location === 'Replace' && tracker) this.assertPlaceable(this.text.length, false);
+    if (location === 'Replace' && tracker) this.assertPlaceable(0, this.text.length, true);
     const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
     // under tracking the picture is an insertion, and what it replaces is deleted as insertText's is
     if (location === 'Replace' && tracker) this.splice(0, this.text.length, '', 'before', WHOLE);
@@ -385,6 +400,7 @@ export class Paragraph {
    * paragraph was and removes it.
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    this.assertWritable();
     const preprocess = this.parentBody.package_?.loadOptions.preprocessor;
     const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: this.parentBody.part });
     if (elements.length === 0) return [];
@@ -416,8 +432,8 @@ export class Paragraph {
    * and `Body.replaceText` the other.
    */
   searchMatches(text: string, options?: SearchOptions): { range: Range; match: RegExpExecArray }[] {
-    return matchesOf(this.text, searchPattern(text, options))
-      .map((match) => ({ range: new Range(this, match.index, match.index + match[0].length), match }));
+    return officeMatches(this.segments({ objects: true }), text, options)
+      .map(({ start, end, match }) => ({ range: new Range(this, start, end), match }));
   }
 
   /**
@@ -442,12 +458,22 @@ export class Paragraph {
   /**
    * The paragraph's range: 'Whole' and 'Content' hold its whole content, the pictures at its start and
    * end among them, so deleting it deletes them (CR-002 section 48); 'Start' and 'End' are collapsed.
+   * 'Whole' holds the paragraph's mark too, so its `text` ends with `markText`, as Office JS's does
+   * (check 48); 'Content' ends with the paragraph's text.
    */
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     const length = this.text.length;
     if (location === 'Start') return new Range(this, 0, 0);
     if (location === 'End') return new Range(this, length, length);
-    return new Range(this, 0, length, true);
+    return new Range(this, 0, length, true, location === 'Whole');
+  }
+
+  /**
+   * The character Office JS gives for this paragraph's mark at the end of its 'Whole' range (check 48):
+   * `\t` for the last paragraph of a table cell, the cell's end, and `\r` for any other.
+   */
+  get markText(): string {
+    return lastInCell(this.p) ? '\t' : '\r';
   }
 
   /**
@@ -456,6 +482,7 @@ export class Paragraph {
    * whole paragraph was this author's own insertion, which Word simply takes back.
    */
   delete(): void {
+    this.assertWritable();
     const tracker = this.changeTracker;
     if (tracker) { this.trackedDelete(tracker); return; }
     const i = this.index;
@@ -494,6 +521,7 @@ export class Paragraph {
    * Does nothing when the mark is already deleted.
    */
   markDeletedInPlace(tracker: ChangeTracker): void {
+    this.assertWritable();
     if (markDeleted(this.p)) return;
     this.deleteText(tracker, 0, this.text.length, WHOLE);
     tracker.markParagraphDeleted(this.p);
@@ -534,6 +562,7 @@ export class Paragraph {
    * @internal public so that the list views (CR-002 phase H) write `w:numPr` the same way.
    */
   pPr(): wml.PPr {
+    this.assertWritable();
     const pPr = (this.p.pPr ??= { TYPE_NAME: 'org_docx4j_wml.PPr' });
     linkParents(pPr, this.p);
     this.changeTracker?.recordPPrChange(pPr);
@@ -604,9 +633,42 @@ export class Paragraph {
     return { tracker, ownInsertions };
   }
 
-  /** The text segments (w:t, w:tab, ...) with their offsets; `{ objects: true }` adds the pictures. */
+  /**
+   * The text segments (w:t, w:tab, ...) with their offsets in `text`; `{ objects: true }` adds the
+   * pictures and the hidden runs' items.
+   */
   segments(options?: SegmentOptions): TextSegment[] {
-    return segmentsOf(this.p, options);
+    return segmentsOf(this.p, { hidden: this.hiddenRuns(), ...options });
+  }
+
+  /**
+   * True for a paragraph in a text box (`w:txbxContent`), at a `textbox:` address (CR-012 D4). Such a view
+   * reads as any paragraph does and is read-only (D5): every write throws `NotSupportedError`.
+   */
+  get inTextBox(): boolean {
+    let o = (this.p as { PARENT?: object }).PARENT;
+    for (let guard = 0; o && guard < 256; guard++, o = (o as { PARENT?: object }).PARENT) {
+      if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') return true;
+    }
+    return false;
+  }
+
+  /**
+   * Refuses a write to a paragraph in a text box (CR-012 D5): a box is in each branch of its
+   * `mc:AlternateContent`, `wps:txbx` in the Choice and `v:textbox` in the Fallback, and nothing maps the
+   * one's paragraphs to the other's, so an edit could not reach every branch as CR-010's D2 has mutators do.
+   * Internal: the content API's mutators call it first.
+   */
+  assertWritable(): void {
+    if (this.inTextBox) {
+      throw new NotSupportedError('Paragraph', 'edit', 'this paragraph is in a text box, whose paragraphs are read-only (CR-012 D5): '
+        + "writes into a text box would have to reach its other branch's box too, which nothing maps yet");
+    }
+  }
+
+  /** Which of this paragraph's runs are hidden: a run's own `w:vanish`, else its styles' (CR-012 phase 4). */
+  hiddenRuns(): HiddenRuns {
+    return this.parentBody.hiddenRuns(this.p);
   }
 
   /**
@@ -620,11 +682,12 @@ export class Paragraph {
    * delete a picture (CR-002 section 48).
    */
   splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges): Range {
+    this.assertWritable();
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
-    this.assertPlaceable(end, text.length > 0 && end === start);
     const tracker = this.changeTracker;
+    this.assertPlaceable(start, end, tracker !== undefined);
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
       const deletions = end > start || edges ? this.deleteText(tracker, start, end, edges) : [];
@@ -661,6 +724,7 @@ export class Paragraph {
         const i = seg.owner.indexOf(seg.item);
         if (i >= 0) seg.owner.splice(i, 1);
       }
+      removeEmptiedAlternates([...toRemove, ...objects]);
       this.releaseRelationships(objects.map((seg) => seg.item));
       if (inserted && text.length > 0) {
         this.removeEmptyRuns();
@@ -722,8 +786,9 @@ export class Paragraph {
    * run there when the offset falls inside one. PARENT is linked on what is inserted.
    */
   insertItemsAt(offset: number, items: Element[]): void {
+    this.assertWritable();
     if (items.length === 0) return;
-    this.assertPlaceable(offset, true);
+    this.assertPlaceable(offset, offset, false);
     const tracker = this.changeTracker;
     if (tracker) {
       // With tracking on, what goes in is an insertion: its runs in w:ins, in a link, a control or a
@@ -752,16 +817,41 @@ export class Paragraph {
 
   /** Splits the run at a text offset so that [offset, ...) begins a run; returns nothing when the offset is already a boundary. */
   splitAt(offset: number): void {
-    this.assertPlaceable(offset, false);
+    this.assertWritable();
+    this.assertPlaceable(offset, offset, false);
     const seg = this.segments().find((s) => s.editable && s.start < offset && offset < s.end);
     if (!seg) return;
     const at = offset - seg.start;
     const t = seg.item.value as wml.Text;
     const head = seg.text.substring(0, at);
-    const tail = seg.text.substring(at);
+    const tail = textItem(seg.text.substring(at));
     setText(t, head);
-    const rest = seg.owner.splice(seg.index + 1);
-    const second = runOf([textItem(tail), ...rest], seg.run.rPr ? deepCopy(seg.run.rPr) : undefined);
+    seg.owner.splice(seg.index + 1, 0, tail);
+    linkParents(tail, (t as { PARENT?: object }).PARENT ?? seg.run);
+    this.splitRunAtItem(seg, seg.owner, seg.index + 1);
+  }
+
+  /**
+   * Splits `seg`'s run so that the items of `owner` from `index` on begin a run of their own, behind it.
+   * `owner` is the run's content, or the selected branch of a run-level `mc:AlternateContent` in it
+   * (CR-012 section 12.2): a run holds the element whole, so the branch splits with it, as the editor's
+   * ED-009 section 3.4 has it. The first piece keeps the element, its other branches as they were; the
+   * second gets an element of its own, the same branches in the same order with the same `Requires`, the
+   * selected one holding the rest of its items and the others empty, so that a reader taking any branch
+   * takes the same one in both. The run's items after the element go with the second piece.
+   */
+  private splitRunAtItem(seg: TextSegment, owner: Element[], index: number): void {
+    const alternate = seg.alternate?.level === 'run' && owner === seg.alternate.branch ? seg.alternate : undefined;
+    let moved: Element[];
+    if (alternate) {
+      const piece = alternatePiece(alternate, owner.splice(index));
+      const at = alternate.owner.indexOf(alternate.element);
+      moved = [piece, ...alternate.owner.splice(at + 1)];
+    } else {
+      moved = owner.splice(index);
+    }
+    if (moved.length === 0) return;
+    const second = runOf(moved, seg.run.rPr ? deepCopy(seg.run.rPr) : undefined);
     seg.runOwner.splice(seg.runIndex + 1, 0, second);
     linkParents(second, (seg.run as { PARENT?: object }).PARENT ?? this.p);
   }
@@ -807,16 +897,19 @@ export class Paragraph {
    * unmarshalled (CR-002 section 17).
    */
   startNewList(options?: StartListOptions): Promise<List> {
+    this.assertWritable();
     return startNewList(this, options);
   }
 
   /** Office JS `paragraph.attachToList(listId, level)`: this paragraph joins that list. */
   attachToList(listId: number | string, level = 0): List {
+    this.assertWritable();
     return attachToList(this, listId, level);
   }
 
   /** Office JS `paragraph.detachFromList()`: this paragraph leaves its list. */
   detachFromList(): void {
+    this.assertWritable();
     detachFromList(this);
   }
 
@@ -825,6 +918,7 @@ export class Paragraph {
    * `w:abstractNum` with a `w:startOverride` (extension; `List.restart()` is the verb).
    */
   restartList(): List {
+    this.assertWritable();
     const list = this.list;
     const level = this.listItem.level;
     const restarted = list.restart();
@@ -841,6 +935,7 @@ export class Paragraph {
 
   /** Comments the whole paragraph (sugar over `getRange().insertComment`). */
   async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    this.assertWritable();
     return commentApi().insertComment(this.getRange(), content, options);
   }
 
@@ -852,11 +947,15 @@ export class Paragraph {
    * the body. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
+    this.assertWritable();
     const at = this.index;
     if (at < 0) throw new Docx4JException('This paragraph is not in its container any more');
+    // the paragraph's parent read before the builder makes the control its parent: read after, it was the
+    // control's own content, and the control's PARENT pointed into itself (found in CR-012 phase 4)
+    const parent = (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container;
     const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
-    linkParents(sdt, (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container);
+    linkParents(sdt, parent);
     declareSdtExtensions(this.parentBody, sdt);
     // under tracking the control itself is the insertion, the paragraph what it was (check 30)
     const tracker = this.changeTracker;
@@ -871,6 +970,13 @@ export class Paragraph {
         const v = el.value as { TYPE_NAME?: string; content?: Element[]; sdtContent?: { content?: Element[] } };
         if (v.TYPE_NAME === 'org_docx4j_wml.R') {
           if (!v.content || v.content.length === 0) items.splice(i, 1);
+        } else if (isAlternateContent(el)) {
+          // among the runs: a selected branch an edit has emptied takes the element, every branch with
+          // it, as a deletion of all of a run-level element's text does (CR-012 section 12.2 item 4)
+          const branch = selectedBranchOf(el.value as mce.AlternateContent);
+          if (!branch || branch.length === 0) continue;
+          prune(branch);
+          if (branch.length === 0) items.splice(i, 1);
         } else if (v.TYPE_NAME !== 'org_docx4j_wml.P') {
           const nested = runItemsOf(v);
           if (nested) {
@@ -1098,6 +1204,14 @@ export class Paragraph {
   }
 
   /**
+   * Splits runs so that every run holding text in [start, end) holds nothing else (internal: what a
+   * `Range.font` write formats). A kept `mc:AlternateContent`'s branch splits with its run (section 12.2).
+   */
+  splitRunsAround(start: number, end: number): void {
+    this.isolate(start, end);
+  }
+
+  /**
    * Splits runs so that every run holding text in [start, end) holds nothing else, and returns
    * the segments inside the span. `splitAt` does the `w:t` boundaries; this also moves the items
    * of a run that straddles a boundary (a tab, a break, a drawing) out into runs of their own.
@@ -1115,11 +1229,12 @@ export class Paragraph {
       for (const seg of inside) {
         if (seen.has(seg.run)) continue;
         seen.add(seg.run);
+        if (seg.math) continue;                                    // in no run: taken whole or refused
         const ofRun = inside.filter((s) => s.run === seg.run);
         const first = ofRun[0]!;
         const last = ofRun[ofRun.length - 1]!;
-        if (first.index > 0) { this.splitRunBefore(first); split = true; break; }
-        if (last.index < last.owner.length - 1) { this.splitRunAfter(last); split = true; break; }
+        if (this.splitRunBefore(first)) { split = true; break; }
+        if (this.splitRunAfter(last)) { split = true; break; }
       }
       if (!split) return inside;
     }
@@ -1127,43 +1242,44 @@ export class Paragraph {
   }
 
   /**
-   * Refuses an edit at an offset the segments can't place (CR-012 section 12.1). `text` is the objects
-   * package's `textOf`, which reads the selected branch of a kept `mc:AlternateContent` standing among
-   * the paragraph's runs rather than in one; the segments, which every edit works on, don't list such
-   * an element (CR-010 section 13.1). From the first character where the two differ, an offset names no
-   * place in the runs: an insertion landed after the element, a replacement left the text it replaced,
-   * and a deletion or a format did nothing, each without an error. Until CR-012 section 12's rule reads
-   * and edits the branch, an edit there throws. An offset at the first difference is a boundary the
-   * runs agree on, but an insertion there is refused too (`atBoundary`): to the segments, the element's
-   * start and the text after it are the same offset. In the corpus only docx4j's hand-built
-   * text-extraction probes have the shape; Word writes none.
+   * Refuses an edit that would cut an equation (CR-012 phase 4). Its text is one segment, Word's drawing of
+   * its math runs (`mathTextOf`), so an edit may take it whole but not part of it, nor insert into it, nor,
+   * under change tracking, take it at all: a tracked change inside an equation is its math runs' own, which
+   * nothing here writes. Since phase 4 every other offset is a place in the runs: `text` is the segments'
+   * text, where before it was the objects package's `textOf` and section 12.4 refused an offset past a kept
+   * `mc:AlternateContent` among the runs.
    */
-  private assertPlaceable(offset: number, atBoundary: boolean): void {
-    const text = this.text;
-    const placed = this.segments().map((s) => s.text).join('');
-    if (text === placed) return;
-    let common = 0;
-    while (common < text.length && common < placed.length && text[common] === placed[common]) common++;
-    if (offset < common || (offset === common && !atBoundary)) return;
-    throw new NotSupportedError('Paragraph', 'edit', `offset ${offset} is at or past offset ${common}, where this paragraph's text runs into an mc:AlternateContent `
-      + "standing outside a run, whose selected branch's text the edits cannot reach yet (CR-012 section 12)");
+  private assertPlaceable(start: number, end: number, tracked: boolean): void {
+    for (const seg of this.segments()) {
+      if (!seg.math) continue;
+      const cuts = (seg.start < start && start < seg.end) || (seg.start < end && end < seg.end);
+      const takes = start < seg.end && seg.start < end;
+      if (!cuts && !(tracked && takes)) continue;
+      throw new NotSupportedError('Paragraph', 'edit', `[${start}, ${end}) ${cuts ? 'cuts' : 'takes'} the equation at [${seg.start}, ${seg.end})`
+        + `${cuts ? '' : ' under change tracking'}: an edit here takes an equation whole and untracked, or not at all (CR-012 phase 4)`);
+    }
   }
 
-  /** Moves the items before `seg` into a run of their own, in front of `seg`'s run. */
-  private splitRunBefore(seg: TextSegment): void {
-    const head = seg.owner.splice(0, seg.index);
-    const first = runOf(head, copyRPr(seg.run.rPr));
-    seg.runOwner.splice(seg.runIndex, 0, first);
-    linkParents(first, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  /** Moves the items before `seg` into a run of their own, in front of the rest; false where there are none. */
+  private splitRunBefore(seg: TextSegment): boolean {
+    if (seg.index > 0) { this.splitRunAtItem(seg, seg.owner, seg.index); return true; }
+    const alternate = seg.alternate?.level === 'run' && seg.owner === seg.alternate.branch ? seg.alternate : undefined;
+    if (!alternate) return false;
+    const at = alternate.owner.indexOf(alternate.element);
+    if (at <= 0) return false;
+    this.splitRunAtItem(seg, alternate.owner, at);
+    return true;
   }
 
-  /** Moves the items after `seg` into a run of their own, behind `seg`'s run. */
-  private splitRunAfter(seg: TextSegment): void {
-    const tail = seg.owner.splice(seg.index + 1);
-    if (tail.length === 0) return;
-    const rest = runOf(tail, copyRPr(seg.run.rPr));
-    seg.runOwner.splice(seg.runIndex + 1, 0, rest);
-    linkParents(rest, (seg.run as { PARENT?: object }).PARENT ?? this.p);
+  /** Moves the items after `seg` into a run of their own, behind it; false where there are none. */
+  private splitRunAfter(seg: TextSegment): boolean {
+    if (seg.index < seg.owner.length - 1) { this.splitRunAtItem(seg, seg.owner, seg.index + 1); return true; }
+    const alternate = seg.alternate?.level === 'run' && seg.owner === seg.alternate.branch ? seg.alternate : undefined;
+    if (!alternate) return false;
+    const at = alternate.owner.indexOf(alternate.element);
+    if (at < 0 || at >= alternate.owner.length - 1) return false;
+    this.splitRunAtItem(seg, alternate.owner, at + 1);
+    return true;
   }
 }
 
@@ -1224,3 +1340,69 @@ function setText(t: wml.Text, value: string): void {
   else delete t.space;
 }
 
+
+/**
+ * The element a run-level `mc:AlternateContent`'s later piece is written as (CR-012 section 12.2; the
+ * editor's ED-009 section 3.4, P2): its branches in order with their `Requires`, the selected one holding
+ * `items` and every other one empty.
+ */
+function alternatePiece(alternate: AlternateLocation, items: Element[]): Element {
+  const ac = alternate.element.value as mce.AlternateContent & { choice?: { any?: unknown[] }[]; fallback?: { any?: unknown[] } };
+  const emptied = (branch: { any?: unknown[] } | undefined): { any?: unknown[] } | undefined => {
+    if (branch === undefined) return undefined;
+    const copy: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(branch)) if (key !== 'any' && key !== 'PARENT') copy[key] = value;
+    copy.any = branch.any === alternate.branch ? items : [];
+    return copy as { any?: unknown[] };
+  };
+  const value: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(ac)) {
+    if (key === 'PARENT') continue;
+    if (key === 'choice') value.choice = (v as { any?: unknown[] }[]).map(emptied);
+    else if (key === 'fallback') value.fallback = emptied(v as { any?: unknown[] });
+    else value[key] = v;
+  }
+  return { name: alternate.element.name, value } as Element;
+}
+
+/**
+ * After an untracked deletion: a run-level `mc:AlternateContent` whose selected branch the deletion
+ * emptied goes, every branch with it (CR-012 section 12.2 item 4; ED-009 section 3.5). A branch that
+ * was empty before is left as it is.
+ */
+function removeEmptiedAlternates(removed: TextSegment[]): void {
+  const seen = new Set<Element>();
+  for (const seg of removed) {
+    const alternate = seg.alternate;
+    if (alternate?.level !== 'run' || seen.has(alternate.element)) continue;
+    seen.add(alternate.element);
+    if (alternate.branch.length > 0) continue;
+    const i = alternate.owner.indexOf(alternate.element);
+    if (i >= 0) alternate.owner.splice(i, 1);
+  }
+}
+
+/** Block holders a cell's paragraph may stand in: a block content control, its content, custom XML. */
+const BLOCK_HOLDERS = new Set(['org_docx4j_wml.SdtBlock', 'org_docx4j_wml.SdtContentBlock', 'org_docx4j_wml.CTSdtContentBlock', 'org_docx4j_wml.CTCustomXmlBlock']);
+
+/** True for the last paragraph of a table cell, through the block holders between them. */
+function lastInCell(p: wml.P): boolean {
+  let holder = (p as { PARENT?: object }).PARENT;
+  for (let guard = 0; holder && guard < 16 && BLOCK_HOLDERS.has((holder as { TYPE_NAME?: string }).TYPE_NAME ?? ''); guard++) {
+    holder = (holder as { PARENT?: object }).PARENT;
+  }
+  if ((holder as { TYPE_NAME?: string } | undefined)?.TYPE_NAME !== 'org_docx4j_wml.Tc') return false;
+  let last: wml.P | undefined;
+  const visit = (items: Element[] | undefined): void => {
+    for (const el of items ?? []) {
+      const tn = typeNameOf(el);
+      if (tn === 'org_docx4j_wml.P') last = el.value as wml.P;
+      else if (tn !== 'org_docx4j_wml.Tbl' && typeof el.value === 'object' && el.value !== null) {
+        const v = el.value as { content?: Element[]; sdtContent?: { content?: Element[] } };
+        visit(v.sdtContent ? v.sdtContent.content : v.content);
+      }
+    }
+  };
+  visit((holder as wml.Tc).content as Element[] | undefined);
+  return last === p;
+}

@@ -85,7 +85,7 @@ test('table cell: a body of its own, addresses, parentTableCell', async () => {
   cell.insertParagraph('second', 'End');
   assert.deepEqual(cell.paragraphs.map((p) => p.text), ['c', 'second']);
   cell.insertText('!', 'End');
-  assert.equal(cell.text, 'c\nsecond!');
+  assert.equal(cell.text, 'c\rsecond!', "Office JS's tableCell.value: the cell body's text, a mark \\r between paragraphs (check 51)");
 
   const inCell = cell.paragraphs[0];
   assert.equal(inCell.parentTableCell?.cellIndex, 0);
@@ -231,7 +231,7 @@ test('insertOoxml: a pkg:package with an image is copied in with fresh names and
   assert.notEqual(carried.relId, pictures[0].relId);
   assert.equal(target.body.tables.length, 1);
   assert.deepEqual(target.body.tables[0].values, [['x', 'y']]);
-  assert.match(target.body.text, /before\nfrom the other package/);
+  assert.match(target.body.text, /before\rfrom the other package/);
 
   const back = await WordprocessingMLPackage.load(await target.save());
   const body = await back.getBody();
@@ -244,7 +244,8 @@ test('insertOoxml: a bare fragment, Replace, and merging one paragraph at range 
   const body = pkg.body;
   const inserted = await body.insertOoxml('<w:p><w:r><w:t>from a fragment</w:t></w:r></w:p><w:tbl><w:tblPr/><w:tblGrid><w:gridCol w:w="100"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>', 'End');
   assert.equal(inserted.length, 2);
-  assert.equal(body.text, 'from a fragment\ncell');
+  // Office JS's body.text in Word's default view: a mark \r per paragraph, a row ended by \r\n (checks 31 and 51)
+  assert.equal(body.text, 'from a fragment\rcell\r\n');
   assert.equal(body.tables.length, 1);
 
   const p = body.paragraphs[0];
@@ -282,7 +283,7 @@ test('content controls: the four forms of w:sdt in invoice.docx', async () => {
 
   // block control: text, insertText, search and a range
   const customer = controls[0];
-  assert.equal(customer.getRange().text, 'Joe Bloggs');
+  assert.equal(customer.getRange().text, 'Joe Bloggs\r', "its 'Whole' range ends with the paragraph's mark, as Office JS's (check 51)");
   assert.deepEqual(customer.search('Bloggs').map((r) => r.text), ['Bloggs']);
   customer.insertText('Jane Doe', 'Replace');
   assert.equal(customer.text, 'Jane Doe');

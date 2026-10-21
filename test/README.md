@@ -3398,6 +3398,10 @@ async function check() {
          is `CELLACELLB`.
      - So Office JS's text is Word's own character stream, and its search reads hidden and deleted
        words too. CR-012 section 6.2 has what follows for phase 4.
+   - **Since CR-012 phase 4 (2026-10-21, its section 17)** this package gives Word's answers in Word's default
+     view. `readers.test.mjs` builds this file in memory (`check48Bytes`) and holds `Paragraph.text`, the whole
+     ranges, `Body.text` and every query to the JSON. Only case 11's deleted text and the six hidden- and
+     deleted-word queries differ, which this run read in All Markup with hidden text shown.
 
 
    The Script Lab snippet for 48 (Word, Office JS, WordApi 1.3), on `__tmp/48/48-text.docx`. The HTML tab:
@@ -3536,7 +3540,9 @@ async function check() {
 
        Every other paragraph reads the same through them as through `text`.
      - So Office JS's `text` is the text Word displays for the markup shown, never hidden text, and
-       `search` matches what is displayed. CR-012 section 6.2 has the rule this package takes.
+       `search` matches what is displayed. CR-012 section 6.2 has the rule this package takes. Since phase 4
+       (CR-012 section 17) every paragraph of run A and of take 2 below reads here as it did in Word, and every
+       query of both finds what Word's found.
    - **Take 2, the same day, on `48b-text.docx`, in Word's defaults (A).** The result is
      `fixtures/check48/48b-text-word365.json`. Every paragraph the two files share reads as in the first
      run's A, through `text` and both `getReviewedText`s.
@@ -3683,3 +3689,181 @@ async function check() {
        Fallback pattern the 2,728 saves show (CR-010 section 14.9).
      - So in cases 2 to 4 Word takes the Choice where this package's readers take the Fallback: a
        prefix it doesn't list, bound to a namespace it understands, is matched by name here (REQ-303).
+
+51. What CR-012 phase 4 left unmeasured (its section 17.7, 2026-10-21; Jason: "we'd better measure those 3
+   things against Word"). The file is `__tmp/51/51-text.docx` on the share, as `fixtures/check51/build.mjs`
+   writes it (its parts as text; git ignores the `.docx`, and `check51Bytes` gives a test the same bytes). The
+   snippet is beside it, `check51-script-lab.html` and `check51-script-lab.js` (WordApi 1.5, for the notes).
+   Each case is a paragraph `Case n: <what>.`, then its item, between upper-case markers where it is inline:
+   - **The joiner** (`Table.values`, `TableCell.value`, `ContentControl.text`, `Comment.content` hold several
+     paragraphs: what goes between them?). **1** a table whose first cell holds `CELLP1`, `CELLP2`, `CELLP3`
+     and whose second holds `OTHER`; **2** a block content control (rich text, titled `Check 51 block`) of
+     `CCP1`, `CCP2`, `CCP3`; **3** an inline control (`Check 51 inline`) holding `INLINECC`, for its range;
+     **4** a comment of `COMP1`, `COMP2`, `COMP3` on `COMMENTED`.
+   - **A note's own mark** (`w:footnoteRef`, `w:endnoteRef`, at the start of the note's first paragraph).
+     **5** a footnote of two paragraphs, `NOTEP1` and `NOTEP2`, then an endnote of one, `ENDP1`.
+   - **The letters of an equation** (check 48 measured only `x`, U+1D465). Each equation stands between
+     markers `MnA` and `MnB`:
+     - **6** the default style: `abhxyzABHXYZ`; digits and operators `0123+-=<>()`;
+     - **7** the default style: small Greek `αβγδεθλμπσςφω`, capital Greek `ΓΔΘΛΠΣΦΨΩ`, the variants and
+       nabla `ϑϕϖϵϱϰ∂∇`;
+     - **8** `m:sty` plain (`sinx2Γ`), bold (`bx2Γ`), italic (`ix2Γ`) and bold italic (`bix2Γ`);
+     - **9** `m:scr` script (`BELeagz1`), fraktur (`CHIRZgz1`), double-struck (`CNRZz1`), sans-serif
+       (`ab1α`), monospace (`az1`);
+     - **10** bold script, bold fraktur, bold sans-serif, bold italic sans-serif;
+     - **11** `m:nor` (normal text) `nx`, then `nx` followed by a math run `y`;
+     - **12** the structures: a fraction a over b, x squared, the square root of x, a sum from i=1 to n of x,
+       x in parentheses, sin x (`m:func`);
+     - **13** a display equation (`m:oMathPara`) of two equations, `x=1` and `y=2`, alone in its paragraph.
+   - **Steps, in Word 365 only.** Open `__tmp/51/51-text.docx`, and say whether Word reports a problem or
+     offers a repair. Leave Word's view as it opens (Simple Markup, hidden text not shown). Open Script Lab
+     (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet), paste the HTML and Script tabs
+     from the share's two files over the defaults, click **Run the check** and copy the JSON back. Nothing is
+     edited; close without saving. A screenshot of the equations (cases 6 to 13) as Word draws them helps
+     tell a drawn letter from the text Office JS gives.
+   - **What the JSON holds:** each body paragraph's `text` and whole range; `bodyText`; the table's
+     `values`, and for each cell of its row its `value`, `body.text`, its body's whole range and its
+     paragraphs; each control's `text`, its `Whole` and `Content` ranges and paragraphs; each comment's
+     `content`; each footnote's and endnote's `body.text`, whole range, paragraphs and `reference` text.
+     Every character outside printable ASCII is written `\uXXXX`, a surrogate pair as two.
+   - **What this package gives**, on the same file (CR-012 phase 4, uncommitted when written):
+     - the cell's value `CELLP1\nCELLP2\nCELLP3` (`values` the same), its body's text
+       `CELLP1\rCELLP2\rCELLP3`; the block control's text `CCP1\nCCP2\nCCP3`, its `Whole` and `Content`
+       ranges `CCP1`, its first paragraph's (a range is one paragraph's here); the inline control's
+       `INLINECC` all three ways; the comment's content `COMP1\nCOMP2\nCOMP3`;
+     - the footnote's paragraphs `\u0002 NOTEP1` and `NOTEP2`, the endnote's `\u0002 ENDP1`;
+     - the equations in Unicode's mathematical alphabets: case 6 `𝑎𝑏ℎ𝑥𝑦𝑧𝐴𝐵𝐻𝑋𝑌𝑍` and `0123+-=<>()`; case 7
+       small Greek italic (`𝛼𝛽𝛾...`), capital Greek upright, the variants italic and nabla upright; case 8
+       `sinx2Γ`, `𝐛𝐱𝟐𝚪`, `𝑖𝑥2𝛤`, `𝒃𝒊𝒙2𝜞`; case 9 `ℬℰℒℯ𝒶ℊ𝓏1`, `ℭℌℑℜℨ𝔤𝔷1`, `ℂℕℝℤ𝕫𝟙`, `𝖺𝖻1α`,
+       `𝚊𝚣𝟷`; case 11 `nx` and `nx𝑦`; case 12 each structure's runs in order with nothing between
+       (`𝑎𝑏`, `𝑥2`, `𝑥`, `𝑖=1𝑛𝑥`, `𝑥`, `sin𝑥`); case 13 `𝑥=1𝑦=2`.
+   - **Run 2026-10-21 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), in Word's defaults**, with a
+     screenshot of cases 6 to 13. His JSON is `fixtures/check51/51-text-word365.json`. Whether Word reported a
+     problem on opening wasn't said.
+     - **The joiner is the paragraph mark, `\r`**, as `body.text` has it:
+       - a cell's `value` (and `values`) and its `body.text` are both `CELLP1\rCELLP2\rCELLP3`;
+       - the block control's `text` is `CCP1\rCCP2\rCCP3`, its `Content` range the same, and its `Whole`
+         range that and a last `\r`;
+       - the comment's `content` is `COMP1\rCOMP2\rCOMP3`;
+       - the inline control is `INLINECC` all three ways, with no mark.
+     - **`body.text` ends a table row with `\r\n`.** The cells are a `\t` apart and there is no `\t` after the
+       last: `CELLP1\rCELLP2\rCELLP3\tOTHER\r\nAFTERTABLE`. Check 48's single-row table read `CELLA\tCELLB\t\t`,
+       but that run was in All Markup with hidden text shown. Checks 30 and 31's saved `body.text`, in Word's
+       defaults, end every row `\r\n` too (`row one\r\nrow two\r\n`; a nested table `nested\r\nouter cell\r\n`).
+       So the row's end depends on the view. A paragraph's whole range in a cell ends `\t` in both.
+     - **A note's own mark reads U+0002**, as its reference does: the footnote's paragraphs are `\u0002 NOTEP1`
+       and `NOTEP2`, its `body.text` `\u0002 NOTEP1\rNOTEP2`, and its reference `\u0002`; the endnote's
+       `\u0002 ENDP1`.
+     - **The equations:**
+       - Every letter is in the alphabet Word draws it in, Greek capitals and nabla italic too (the screenshot
+         shows them slanted).
+       - A digit is upright in its script's family: bold under bold italic (`𝒃𝒊𝒙𝟐𝜞`), sans-serif under
+         sans-serif (`𝘢𝘣𝟣α`, the alpha plain); script and fraktur have none of their own.
+       - A hyphen-minus reads as the minus sign U+2212 (`0123+−=<>()`). `m:nor` text is as stored (`nx`).
+       - **A structure is `,`, its arguments a `-` apart, then `.`**: the fraction `,𝑎-𝑏.`, x squared `,𝑥-2.`,
+         the radical with its degree hidden `,𝑥.`, the sum `,𝑖=1-𝑛-𝑥.` (its `∑` not in the text), the
+         parentheses `,𝑥.` (their characters not in the text), `sin x` `,sin-𝑥.`.
+       - The display equation's two parts read with nothing between them, `𝑥=1𝑦=2`.
+     - **This package since** (CR-012 sections 17.11 and 17.12): every paragraph and whole range, `body.text`,
+       the cell, the controls' text and ranges, the comment and the notes read as Word's. The block control's
+       range is a `SpanningRange`: all of its text, its writes refused until CR-014 makes a `Range` span
+       paragraphs. `readers.test.mjs` holds them all to the JSON.
+
+   The Script Lab snippet for 51 (Word, Office JS, WordApi 1.5), on `__tmp/51/51-text.docx`. The HTML tab:
+
+```html
+<button id="run">Run the check</button>
+<p>Copy this back:</p>
+<textarea id="out" rows="30" style="width: 100%; font-family: monospace;"></textarea>
+```
+
+The Script tab:
+
+```js
+const out = document.getElementById('out');
+document.getElementById('run').addEventListener('click', () => check().catch((e) => { out.value = String(e.stack || e); }));
+
+// every character outside printable ASCII as \uXXXX (a surrogate pair as two), so a control character shows
+const vis = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+const failed = (e) => 'error: ' + (e.code || e.message);
+
+async function check() {
+  await Word.run(async (context) => {
+    const body = context.document.body;
+    const paragraphs = body.paragraphs;
+    paragraphs.load('items/text');
+    body.load('text');
+    const tables = body.tables;
+    tables.load('items/values');
+    const controls = body.contentControls;
+    controls.load('items/title,items/text');
+    await context.sync();
+    const wholes = paragraphs.items.map((p) => p.getRange('Whole'));
+    wholes.forEach((r) => r.load('text'));
+    await context.sync();
+    const report = {
+      host: Office.context.diagnostics,
+      paragraphs: paragraphs.items.map((p, i) => ({ text: vis(p.text), whole: vis(wholes[i].text) })),
+      bodyText: vis(body.text),
+      tables: [], contentControls: [], comments: [], footnotes: [], endnotes: [],
+    };
+    // (1) a cell, a control and a comment of several paragraphs
+    for (const table of tables.items) {
+      const entry = { values: table.values.map((row) => row.map(vis)), cells: [] };
+      const cells = table.rows.getFirst().cells;
+      cells.load('items/value');
+      await context.sync();
+      for (const cell of cells.items) {
+        const cellParagraphs = cell.body.paragraphs;
+        cellParagraphs.load('items/text');
+        cell.body.load('text');
+        const whole = cell.body.getRange('Whole');
+        whole.load('text');
+        await context.sync();
+        entry.cells.push({ value: vis(cell.value), bodyText: vis(cell.body.text), bodyWhole: vis(whole.text), paragraphs: cellParagraphs.items.map((p) => vis(p.text)) });
+      }
+      report.tables.push(entry);
+    }
+    for (const control of controls.items) {
+      const whole = control.getRange('Whole');
+      const content = control.getRange('Content');
+      whole.load('text');
+      content.load('text');
+      const controlParagraphs = control.paragraphs;
+      controlParagraphs.load('items/text');
+      await context.sync();
+      report.contentControls.push({ title: control.title, text: vis(control.text), whole: vis(whole.text), content: vis(content.text), paragraphs: controlParagraphs.items.map((p) => vis(p.text)) });
+    }
+    try {
+      const comments = body.getComments();
+      comments.load('items/content');
+      await context.sync();
+      report.comments = comments.items.map((c) => ({ content: vis(c.content) }));
+    } catch (e) {
+      report.comments = failed(e);
+    }
+    // (2) the notes: their text, their paragraphs and their reference (WordApi 1.5)
+    for (const kind of ['footnotes', 'endnotes']) {
+      try {
+        const notes = body[kind];
+        notes.load('items');
+        await context.sync();
+        for (const note of notes.items) {
+          note.body.load('text');
+          const noteParagraphs = note.body.paragraphs;
+          noteParagraphs.load('items/text');
+          const whole = note.body.getRange('Whole');
+          whole.load('text');
+          const reference = note.reference;
+          reference.load('text');
+          await context.sync();
+          report[kind].push({ bodyText: vis(note.body.text), bodyWhole: vis(whole.text), paragraphs: noteParagraphs.items.map((p) => vis(p.text)), reference: vis(reference.text) });
+        }
+      } catch (e) {
+        report[kind] = failed(e);
+      }
+    }
+    out.value = JSON.stringify(report, null, 1);
+  });
+}
+```

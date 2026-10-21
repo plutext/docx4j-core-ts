@@ -11,13 +11,12 @@
 // expanded, `altchunk.not_expanded`).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { mcBranchOf } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Part } from '../../parts/Part.mjs';
 import { AlternativeFormatInputPart } from '../../parts/BinaryPart.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import { Emulator, type NumberingResult, type NumberedPackageLike, type NumberingPartLike } from '../listnumbering/Emulator.mjs';
 import type { NumberingState } from '../listnumbering/state.mjs';
-import { type Element, runItemsOf, selectedBranchOf, SDT_TYPES } from '../content/tree.mjs';
+import { type Element, runItemsOf, selectedBranchOf, segmentsOf, hiddenRunsOf, SDT_TYPES } from '../content/tree.mjs';
 import type { ResolvedView } from '../content/ResolvedView.mjs';
 import type { TextOptions, TextModelView } from './TextOptions.mjs';
 import {
@@ -190,52 +189,16 @@ function revisionOf(tc: { author?: string; date?: unknown }, type: 'INSERTION' |
 
 interface OfficeSpan { offset: number; length: number }
 
-const OFFICE_CONTAINERS = new Set([
-  'org_docx4j_wml.P', 'org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.SdtRun', 'org_docx4j_wml.CTSdtContentRun', 'org_docx4j_wml.RunIns',
-  'org_docx4j_wml.RunTrackChange', 'org_docx4j_wml.CTSmartTagRun', 'org_docx4j_wml.CTCustomXmlRun', 'org_docx4j_wml.P.Dir', 'org_docx4j_wml.P.Bdo',
-  'org_docx4j_wml.CTSimpleField', AC,
-]);
-
 /**
- * Each run item's place in `Paragraph.text`, which is the objects package's `textOf` (CR-012 D2): its
- * containers, branch choice and characters, run for run. An item it does not read has no place.
+ * Each item's place in `Paragraph.text` (CR-012 D2, section 4.4): the content API's own reader since phase 4
+ * (`segmentsOf`, Office JS's characters, hidden runs left out by the same rule), so an item that adds a
+ * character there has its offset, and one it leaves out (hidden text, a comment reference) has none.
  */
-function officeSpans(p: wml.P): Map<unknown, OfficeSpan> {
+function officeSpans(p: wml.P, resolver: PropertyResolver | undefined): Map<unknown, OfficeSpan> {
   const out = new Map<unknown, OfficeSpan>();
-  let pos = 0;
-  const itemLength = (item: Element): number | undefined => {
-    const v = item.value as { value?: unknown; _char?: unknown };
-    switch (item.name.localPart) {
-      case 't': return String(v.value ?? '').length;
-      case 'tab': case 'br': case 'cr': case 'noBreakHyphen': case 'softHyphen': return 1;
-      case 'sym': return typeof v._char === 'string' && /^[0-9A-Fa-f]{4}$/.test(v._char) ? 1 : 0;
-      default: return undefined;
-    }
-  };
-  const members = (v: Obj): unknown[] => {
-    if (typeOf(v) === AC) return (mcBranchOf(v as unknown as mce.AlternateContent) ?? []).map(unwrap);
-    if (isSdt(v) && typeof (v as { sdtContent?: unknown }).sdtContent === 'object') return members((v as { sdtContent: Obj }).sdtContent);
-    for (const key of ['content', 'customXmlOrSmartTagOrSdt', 'accOrBarOrBox']) {
-      const list = v[key];
-      if (Array.isArray(list)) return list.filter((item) => nameOf(item) !== 'moveFrom').map(unwrap);
-    }
-    return [];
-  };
-  const visit = (v: unknown): void => {
-    if (typeof v !== 'object' || v === null) return;
-    const tn = typeOf(v);
-    if (tn === R) {
-      for (const item of ((v as wml.R).content ?? []) as Element[]) {
-        const n = itemLength(item);
-        if (n === undefined) continue;
-        out.set(item, { offset: pos, length: n });
-        pos += n;
-      }
-      return;
-    }
-    if (tn !== undefined && OFFICE_CONTAINERS.has(tn)) for (const m of members(v as Obj)) visit(m);
-  };
-  visit(p);
+  for (const seg of segmentsOf(p, { hidden: hiddenRunsOf(resolver, p) })) {
+    if (!seg.math) out.set(seg.item, { offset: seg.start, length: seg.end - seg.start });
+  }
   return out;
 }
 
@@ -311,6 +274,11 @@ class Story {
 
   constructor(private readonly x: Extractor, readonly kind: TextStory, readonly prefix: string, readonly part: Part | undefined) {}
 
+  /** The resolver the walk reads styles with, for `officeSpans`' hidden rule. */
+  get resolver(): PropertyResolver | undefined {
+    return this.x.resolver;
+  }
+
   numbering(): NumberingState {
     this.numberingState ??= this.part === undefined ? this.x.context.numberingStates.main() : this.x.context.numberingStates.forPart(this.part);
     return this.numberingState;
@@ -342,7 +310,7 @@ class ParagraphState {
 
   /** Where an item's text is in this paragraph's `Paragraph.text`. */
   officeSpan(item: Element): OfficeSpan | undefined {
-    this.office ??= officeSpans(this.p);
+    this.office ??= officeSpans(this.p, this.story.resolver);
     return this.office.get(item);
   }
 }

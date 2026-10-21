@@ -205,6 +205,9 @@ export class PropertyResolver {
    */
   private docDefaultsStateSize = false;
 
+  /** Whether a paragraph style and a character style hide a run, by paragraph style then character style (`isVanishedByStyles`). */
+  private readonly vanishCache = new Map<string | undefined, Map<string | undefined, boolean>>();
+
   /** Missing styles are logged once each per resolver. */
   private readonly missingLogged = new Set<string>();
 
@@ -356,6 +359,7 @@ export class PropertyResolver {
     this.chainRPrCache.clear();
     this.effectivePPrByStyle.clear();
     this.effectiveRPrByStyle.clear();
+    this.vanishCache.clear();
     this.clearTableCaches();
     this.missingLogged.clear();
     this.source = this.provider();
@@ -604,6 +608,29 @@ export class PropertyResolver {
     applyRPr<wml.RPr>(this.getChainRPr(this.paragraphStyleOf(pPr)), effective);
     this.applyCharacterStyleAndDirect(arg, effective);
     return effective;
+  }
+
+  /**
+   * Whether a run with no `w:vanish` of its own is hidden by its styles: the effective `w:vanish` of its
+   * paragraph style (undefined: the default paragraph style) and its character style, the table style left
+   * out, as the text model's hidden rule has it (REQ-507). What `Paragraph.text` leaves out, as Office JS
+   * does (CR-012 phase 4, check 48b case 20). Cached per pair; a pair naming a style the part lacks is
+   * not cached, so that adding the style is seen.
+   */
+  isVanishedByStyles(paragraphStyleId: string | undefined, runStyleId: string | undefined): boolean {
+    let byRunStyle = this.vanishCache.get(paragraphStyleId);
+    const cached = byRunStyle?.get(runStyleId);
+    if (cached !== undefined) return cached;
+    const rPr = runStyleId === undefined ? undefined : { TYPE_NAME: 'org_docx4j_wml.RPr', rStyle: { TYPE_NAME: 'org_docx4j_wml.RStyle', val: runStyleId } } as wml.RPr;
+    const pPr = paragraphStyleId === undefined ? undefined : { TYPE_NAME: 'org_docx4j_wml.PPr', pStyle: { TYPE_NAME: 'org_docx4j_wml.PPrBase.PStyle', val: paragraphStyleId } } as wml.PPr;
+    const vanish = this.getEffectiveRPr(rPr, pPr).vanish;
+    const hidden = vanish !== undefined && vanish !== null && vanish.val !== false;
+    if ((paragraphStyleId === undefined || this.getLiveStyle(paragraphStyleId) !== undefined)
+      && (runStyleId === undefined || this.getLiveStyle(runStyleId) !== undefined)) {
+      if (!byRunStyle) this.vanishCache.set(paragraphStyleId, byRunStyle = new Map());
+      byRunStyle.set(runStyleId, hidden);
+    }
+    return hidden;
   }
 
   private effectiveRPrOfStyle(styleId: string): wml.RPr | undefined {

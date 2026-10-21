@@ -1,7 +1,7 @@
 // The content API (CR-002 phases B, C, D, F and G): Office JS shapes over the docx4j tree.
 export { Body, type Address, type BlockElement, type Outline, type OutlineParagraph, type OutlineTable } from './Body.mjs';
 export { Paragraph, type Alignment } from './Paragraph.mjs';
-export { Range } from './Range.mjs';
+export { Range, SpanningRange } from './Range.mjs';
 export { BUILT_IN_STYLES, builtInOf, idOfBuiltIn, displayNameOf, styleNameOf, styleIdOf, type BuiltInStyle } from './styles.mjs';
 export { Comment, addCommentEntry } from './Comment.mjs';
 // lists (CR-002 phase H)
@@ -16,8 +16,10 @@ export { layoutModeOf, textWidthTwips, gridWidthsOf, widthTypeOf, insertGridColu
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, addImagePart, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture, type NewImagePart } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';
-export { type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement } from './search.mjs';
-export { segmentsOf, runsOf, runItemsOf, selectedBranchOf, isAlternateContent, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, type TextSegment, type Located, type TextView, type TextViewOptions, type RevisionKind, type RevisionHolder } from './tree.mjs';
+export { type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement, officeMatches, type OfficeMatch, type SearchSegment } from './search.mjs';
+export { segmentsOf, runsOf, runItemsOf, selectedBranchOf, isAlternateContent, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, officeItemText, hiddenRunsOf, type TextSegment, type Located, type TextView, type TextViewOptions, type SegmentOptions, type HiddenRuns, type AlternateLocation, type RevisionKind, type RevisionHolder } from './tree.mjs';
+export { mathTextOf, mathLetter } from './mathText.mjs';
+export { textBoxesOf, type AnchoredBox } from './textBoxes.mjs';
 // change tracking (CR-002 phase F)
 export { ResolvedView } from './ResolvedView.mjs';
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeKind, type TrackedChangeTarget, type NoteRemovals } from './TrackedChange.mjs';

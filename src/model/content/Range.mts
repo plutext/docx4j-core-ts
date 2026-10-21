@@ -5,6 +5,7 @@ import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, WHOLE, type SpanEdges, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 import { ContentControl, type ContentControlType } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
@@ -13,7 +14,7 @@ import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { markHolderInserted } from './tracking.mjs';
-import { searchPattern, findAll, matchesOf, expandReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, expandReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
@@ -30,7 +31,13 @@ import type { TrackedChange } from './TrackedChange.mjs';
  * hit replaced does not take the picture beside it (CR-002 section 48).
  */
 export class Range {
-  constructor(readonly paragraph: Paragraph, public start: number, public end: number, readonly whole = false) {}
+  constructor(readonly paragraph: Paragraph, public start: number, public end: number, readonly whole = false,
+    /**
+     * A paragraph's 'Whole' range: its text ends with the paragraph's mark, as Office JS's does (check 48:
+     * `\r`, and `\t` for a cell's last paragraph, the cell's end), where 'Content' ends with its text.
+     * The mark is no offset: every edit and search works on the text before it.
+     */
+    readonly mark = false) {}
 
   /** The edges `Paragraph.splice` is given: both for a whole range. */
   private get edges(): SpanEdges | undefined {
@@ -42,8 +49,11 @@ export class Range {
   }
 
   get text(): string {
-    return this.paragraph.text.substring(this.start, this.end);
+    const text = this.paragraph.text;
+    const span = text.substring(this.start, this.end);
+    return this.mark && this.end >= text.length ? span + this.paragraph.markText : span;
   }
+
   set text(value: string) {
     this.insertText(value, 'Replace');
   }
@@ -85,10 +95,12 @@ export class Range {
 
   /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
   getFont(options?: FormattingOptions): Font {
-    const holders = (): wml.R[] => {
+    const holders = (write: boolean): wml.R[] => {
       if (this.start === this.end) return [];
-      this.paragraph.splitAt(this.start);
-      this.paragraph.splitAt(this.end);
+      // a write formats runs holding the span and nothing else: a tab, a break or text after the span in
+      // the same run is split off too, where splitting at the two offsets left it in the run and formatted
+      // it; a read splits nothing, the first run's properties being the same either way (CR-012 phase 4)
+      if (write) this.paragraph.splitRunsAround(this.start, this.end);
       return this.runs.map((r) => r.value);
     };
     if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking());
@@ -102,7 +114,8 @@ export class Range {
     const out: Element<wml.R>[] = [];
     const seen = new Set<wml.R>();
     for (const seg of this.paragraph.segments()) {
-      if (seg.end <= this.start || seg.start >= this.end) continue;
+      // an equation is in no run, and its math runs' formatting is their own (CR-012 phase 4)
+      if (seg.end <= this.start || seg.start >= this.end || seg.math) continue;
       if (seen.has(seg.run)) continue;
       seen.add(seg.run);
       out.push(seg.runOwner[seg.runIndex] as Element<wml.R>);
@@ -134,6 +147,7 @@ export class Range {
    * `insertXml` does.
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    this.paragraph.assertWritable();
     const body = this.paragraph.parentBody;
     const preprocess = body.package_?.loadOptions.preprocessor;
     const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part });
@@ -158,8 +172,8 @@ export class Range {
   }
 
   search(text: string, options?: SearchOptions): Range[] {
-    const base = this.start;
-    return findAll(this.text, searchPattern(text, options)).map(([s, e]) => new Range(this.paragraph, base + s, base + e));
+    return officeMatches(this.paragraph.segments({ objects: true }), text, options, this.start, this.end)
+      .map(({ start, end }) => new Range(this.paragraph, start, end));
   }
 
   /**
@@ -168,12 +182,10 @@ export class Range {
    * (section 26; this one was missed there, section 31).
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    const base = this.start;
-    const matches = matchesOf(this.text, searchPattern(find, options));
+    const matches = officeMatches(this.paragraph.segments({ objects: true }), find, options, this.start, this.end);
     for (let i = matches.length - 1; i >= 0; i--) {
-      const match = matches[i]!;
-      new Range(this.paragraph, base + match.index, base + match.index + match[0].length)
-        .insertText(expandReplacement(replace, match, options), 'Replace');
+      const { start, end, match } = matches[i]!;
+      new Range(this.paragraph, start, end).insertText(expandReplacement(replace, match, options), 'Replace');
     }
     return matches.length;
   }
@@ -190,7 +202,7 @@ export class Range {
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     if (location === 'Start') return new Range(this.paragraph, this.start, this.start);
     if (location === 'End') return new Range(this.paragraph, this.end, this.end);
-    return new Range(this.paragraph, this.start, this.end, this.whole);
+    return new Range(this.paragraph, this.start, this.end, this.whole, this.mark && location === 'Whole');
   }
 
   /** The span's text as it stands (extension; Office JS getOoxml wraps it in a package). */
@@ -211,6 +223,7 @@ export class Range {
    * the comment parts the document lacks. Asynchronous because it unmarshals those parts.
    */
   async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    this.paragraph.assertWritable();
     return commentApi().insertComment(this, content, options);
   }
 
@@ -222,6 +235,7 @@ export class Range {
    * span gets an empty control at its position. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
+    this.paragraph.assertWritable();
     const paragraph = this.paragraph;
     const body = paragraph.parentBody;
     // The control is built empty first: `sdt` refuses a kind that cannot be run-level (a repeating
@@ -308,6 +322,7 @@ export class Range {
   }
 
   set hyperlink(value: string) {
+    this.paragraph.assertWritable();
     // Office JS refuses a hyperlink set on an empty range - inside a link, in plain text, just after a
     // link, and "" alike - with GeneralException, and changes nothing (test/README.md check 19, Word
     // 16.0.20326.20158; CR-002 section 25). Before, the setter removed the link under a caret and
@@ -672,4 +687,135 @@ function containerOf(element: Element, paragraph: Paragraph): Element[] {
     return undefined;
   };
   return seek(runItemsOf(paragraph.p)) ?? ((paragraph.p.content ??= []) as Element[]);
+}
+
+/**
+ * A range over several paragraphs: what Office JS's `contentControl.getRange()` gives for a block content
+ * control of more than one paragraph (check 51). A `Range` here is one paragraph's (CR-002 section 7; CR-014
+ * proposes ranges across paragraphs), so this one reads as Office JS's does - its `text` all of the
+ * control's, `paragraphs` all of them, `search`, the tracked changes and the comments over all of them - and
+ * refuses every write with `NotSupportedError`, where a write to its first paragraph alone would have left
+ * the rest as they were without a word (CR-012 section 17.12). `start` and `end` are its first paragraph's;
+ * `getRange('Start')` and `getRange('End')` are the first paragraph's start and the last one's end.
+ */
+export class SpanningRange extends Range {
+  constructor(
+    paragraph: Paragraph,
+    private readonly all: readonly Paragraph[],
+    /** The text the paragraphs read as together (the control's body's). */
+    private readonly content: () => string,
+    /** True for a 'Whole' range: its text ends with the last paragraph's mark. */
+    private readonly withMark: boolean,
+  ) {
+    super(paragraph, 0, paragraph.text.length, true, false);
+  }
+
+  private refuse(member: string): never {
+    throw new NotSupportedError('Range', member, `this range spans ${this.all.length} paragraphs, which a Range here cannot edit yet (CR-014); `
+      + "edit through the content control (insertText, insertParagraph, clear, delete) or through each paragraph's range");
+  }
+
+  override get paragraphs(): Paragraph[] {
+    return [...this.all];
+  }
+
+  override get text(): string {
+    const text = this.content();
+    return this.withMark ? text + this.all[this.all.length - 1]!.markText : text;
+  }
+  override set text(_value: string) {
+    this.refuse('text');
+  }
+
+  override get styleId(): string {
+    return this.paragraph.styleId;
+  }
+  override set styleId(_id: string) {
+    this.refuse('styleId');
+  }
+
+  override get style(): string {
+    return this.paragraph.style;
+  }
+  override set style(_name: string) {
+    this.refuse('style');
+  }
+
+  override getFont(options?: FormattingOptions): Font {
+    const holders = (write: boolean): wml.R[] => {
+      if (write) this.refuse('font');
+      return this.all.flatMap((p) => p.runs.map((r) => r.value));
+    };
+    if (options?.direct === true) return new Font(holders);
+    return new Font(holders, undefined,
+      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr, this.paragraph.cellContext),
+      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr));
+  }
+
+  override get runs(): Element<wml.R>[] {
+    return this.all.flatMap((p) => p.runs);
+  }
+
+  override insertText(_text: string, _location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
+    this.refuse('insertText');
+  }
+
+  override insertParagraph(_text: string, _location: 'Before' | 'After'): Paragraph {
+    this.refuse('insertParagraph');
+  }
+
+  override async insertOoxml(_ooxml: string, _location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    this.refuse('insertOoxml');
+  }
+
+  override delete(): void {
+    this.refuse('delete');
+  }
+
+  override search(text: string, options?: SearchOptions): Range[] {
+    return this.all.flatMap((p) => p.search(text, options));
+  }
+
+  override replaceText(_find: string, _replace: string, _options?: SearchOptions): number {
+    this.refuse('replaceText');
+  }
+
+  override getTrackedChanges(): TrackedChange[] {
+    const seen = new Set<unknown>();
+    return this.all.flatMap((p) => p.getTrackedChanges()).filter((change) => {
+      const key = (change as { element?: unknown }).element ?? change;
+      return seen.has(key) ? false : (seen.add(key), true);
+    });
+  }
+
+  override getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
+    if (location === 'Start') return new Range(this.paragraph, 0, 0);
+    const last = this.all[this.all.length - 1]!;
+    if (location === 'End') return new Range(last, last.text.length, last.text.length);
+    return new SpanningRange(this.paragraph, this.all, this.content, location === 'Whole');
+  }
+
+  override async getComments(): Promise<Comment[]> {
+    const seen = new Set<number>();
+    const out: Comment[] = [];
+    for (const p of this.all) {
+      for (const comment of await p.getComments()) if (!seen.has(comment.id)) { seen.add(comment.id); out.push(comment); }
+    }
+    return out;
+  }
+
+  override async insertComment(_content: CommentContent, _options?: CommentOptions): Promise<Comment> {
+    this.refuse('insertComment');
+  }
+
+  override insertContentControl(_kind?: ContentControlType): ContentControl {
+    this.refuse('insertContentControl');
+  }
+
+  override get hyperlink(): string {
+    return super.hyperlink;
+  }
+  override set hyperlink(_value: string) {
+    this.refuse('hyperlink');
+  }
 }
