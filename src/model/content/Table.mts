@@ -136,7 +136,7 @@ export class Table {
     const rows = this.rows.slice(rowIndex, rowIndex + rowCount);
     for (const row of rows) row.assertWritable();
     const tracker = this.changeTracker;
-    if (tracker) { markRowsDeleted(tracker, rows); return; }
+    if (tracker) { markRowsDeleted(tracker, rows.map((row) => row.element), this.parentBody); return; }
     for (const row of rows.reverse()) {
       const i = row.container.indexOf(row.element);
       if (i >= 0) row.container.splice(i, 1);
@@ -198,7 +198,8 @@ export class Table {
   delete(): void {
     this.assertWritable();
     const tracker = this.changeTracker;
-    if (tracker) { markRowsDeleted(tracker, this.rows); return; }
+    // every branch's rows (CR-013 phase 3)
+    if (tracker) { markRowsDeleted(tracker, rowsOf(this.tbl, 'every').map((row) => row.element), this.parentBody); return; }
     const i = this.index;
     if (i >= 0) this.container.splice(i, 1);
   }
@@ -313,7 +314,7 @@ export class TableRow {
   delete(): void {
     this.assertWritable();
     const tracker = this.parentTable.changeTracker;
-    if (tracker) { markRowsDeleted(tracker, [this]); return; }
+    if (tracker) { markRowsDeleted(tracker, [this.element], this.parentTable.parentBody); return; }
     const i = this.container.indexOf(this.element);
     if (i >= 0) this.container.splice(i, 1);
   }
@@ -536,17 +537,11 @@ function ancestorOf(value: object, typeName: string, depth: number): object | un
  * with `w:delText` for its text, and every paragraph mark `w:pPr/w:rPr/w:del` (CR-002 section 13).
  * The mirror of `markRowsInserted`. Rows of a nested table go the same way.
  */
-function markRowsDeleted(tracker: ChangeTracker, rows: TableRow[]): void {
-  // what is in a branch of a kept mc:AlternateContent is stepped over, as before CR-013 phase 2, until its
-  // phase 3 reaches every branch
+function markRowsDeleted(tracker: ChangeTracker, rows: Element<wml.Tr>[], parentBody: Body): void {
+  // every branch of a kept mc:AlternateContent among the cells and in them (CR-013 phase 3)
   for (const row of rows.slice().reverse()) {
-    if (row.inBranch) continue;
-    tracker.markRowDeleted(row.tr);
-    for (const cell of row.cells) {
-      if (cell.inBranch) continue;
-      for (const paragraph of cell.paragraphs) if (!paragraph.inBranch) paragraph.markDeletedInPlace(tracker);
-      for (const nested of cell.tables) if (!nested.inBranch) markRowsDeleted(tracker, nested.rows);
-    }
+    tracker.markRowDeleted(row.value);
+    for (const cell of cellsOf(row.value, 'every')) parentBody.sub(cell.element.value as { content?: Element[] }).markContentDeleted(tracker);
   }
 }
 
@@ -555,7 +550,7 @@ function markRowsInserted(tracker: ChangeTracker | undefined, rows: Element<wml.
   if (!tracker) return;
   for (const row of rows) {
     if (!row.value.trPr?.ins) tracker.markRowInserted(row.value);
-    // nested tables and block controls in a new row's cells too (CR-002 section 37)
-    for (const cell of cellsOf(row.value)) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
+    // nested tables and block controls in a new row's cells too (CR-002 section 37), in every branch
+    for (const cell of cellsOf(row.value, 'every')) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
   }
 }

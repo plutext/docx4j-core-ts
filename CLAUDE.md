@@ -41,10 +41,11 @@ plain-text model, `Texts.of` and the block model in `src/model/text/`; Markdown,
 byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing; phase 4, the readers:
 `Paragraph.text` and `search` in Office JS's characters and rules in Word's default view, held to Word 365's checks 48,
 48b and 51, a kept branch's text read and edited (ED-009), text boxes at `textbox:` addresses read-only, `outline()` on the
-model and async, and per block under a context, section 17.13's `{ blocks }`), and CR-013's phases 0 to 2
+model and async, and per block under a context, section 17.13's `{ blocks }`), and CR-013, all four phases
 (`mc:AlternateContent` at block, row and cell level: docx4j's `mc-fun` probes in `test/mc-fun/`, the walker audit, the
 text model's rows and cells in the selected branch, `mcePreprocess: true` over the readers' set; the content API's readers and
-the tracked-change listing in the selected branch, a view in a branch read-only). The editor's release requests are
+the tracked-change listing in the selected branch, a view in a branch read-only; the mutators in every branch, a listed
+change's twins resolved with it, as docx4j's). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -156,9 +157,12 @@ Key mechanics:
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
   when resolved. A code path that walks the tree itself has to choose: `selectedBranchOf` to read,
   every branch to write. At block, row and cell level the walks take a `BranchMode` (CR-013 phase 2):
-  `childrenOf(v, 'read')`, `rowsOf(tbl, 'read')`, `cellsOf(tr, 'read')` for readers, `'every'` where every
-  branch counts (whether a table keeps a row, comment markers, the grid); no mode steps over the element, as
-  the mutators do until phase 3. A view in a branch (`inBranch`) refuses its writes (`assertOutsideBranch`, D4). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
+  `childrenOf(v, 'read')`, `rowsOf(tbl, 'read')`, `cellsOf(tr, 'read')` for readers, `'every'` for mutators
+  (`branchListsOf`; `cellLayoutsOf` gives a row's cells along each reading, for the grid); no mode steps over
+  the element. A view in a branch (`inBranch`) refuses its writes (`assertOutsideBranch`, D4); a bulk edit
+  writes there inside `writingEveryBranch`, and counts what a reader sees (`inUnreadBranch`). The tracked-change
+  listing pairs each other branch's changes with the selected branch's as twins, resolved with them (`Listing`,
+  `pairTwins`; resolve-all lists every branch's on their own, CR-013 phase 3). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
   `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
   it (CR-010 section 14.4). The floor is objects 0.4.3, over `@docx4j/jsonix` 3.5.0, whose marshal declares the
   prefixes a kept `mc:Choice`'s `Requires` names (0.4.2, CR-010 section 14.8), from the source where
@@ -220,7 +224,8 @@ this package's own: a byte-for-byte save after a reading, `officeOffset`, the pa
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest` and
 `MarkdownAlternateContentTest`, with docx4j's strings, and `blocks()`),
 `mc-fun.test.mjs` CR-013's: docx4j's `mc-fun` probes (`test/mc-fun/`, copied with a manifest, outside `fixtures/`) read by
-every reader against Word 365's saves, the tracked-change listing on docx4j's four shapes, D4's refusals, and what phase 3 leaves asserted as it is,
+every reader against Word 365's saves, docx4j's `TrackedChangesAlternateContentTest` (twins, resolve-all, rows, cells, records), D4's
+refusals, and the mutators reaching every branch,
 `readers.test.mjs` CR-012 phase 4's: `Paragraph.text`, `Body.text`, whole ranges and `search` against Word 365's JSON on check
 48's, 48b's and 51's files (`check48Bytes`, `check51Bytes` build them in memory; never commit the `.docx`), cells, controls,
 comments and notes of several paragraphs, equations, hidden text, the `textbox:`

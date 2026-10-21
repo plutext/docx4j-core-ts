@@ -11,7 +11,8 @@ import { Docx4JException } from '../opc/exceptions.mjs';
 import { Body } from '../model/content/Body.mjs';
 import { Paragraph } from '../model/content/Paragraph.mjs';
 import { Range } from '../model/content/Range.mjs';
-import { type Element, isElement, typeNameOf, textOf } from '../model/content/tree.mjs';
+import { type Element, isElement, typeNameOf, textOf, selectedBranchOf, ALTERNATE_CONTENT } from '../model/content/tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { paragraphElementOfRange } from './fragment.mjs';
 import { builtInOf, displayNameOf } from '../model/content/styles.mjs';
 
@@ -126,12 +127,19 @@ class Emitter {
     this.lines.push(this.indent + text);
   }
 
-  /** A block-level element: a paragraph, a table, or anything else through `insertXml`. */
+  /**
+   * A block-level element: a paragraph, a table, or anything else through `insertXml`. A kept
+   * `mc:AlternateContent` is its selected branch's content, as Word reads it and as its save writes it:
+   * `insertXml` refuses the element itself (CR-013 phase 3).
+   */
   async element(element: Element): Promise<void> {
     const typeName = typeNameOf(element);
     if (typeName === 'org_docx4j_wml.P') await this.paragraph(element as Element<wml.P>);
     else if (typeName === 'org_docx4j_wml.Tbl') await this.table(element as Element<wml.Tbl>);
-    else await this.fallback(element);
+    else if (typeName === ALTERNATE_CONTENT) {
+      this.line('// an mc:AlternateContent: its selected branch, as Word reads it');
+      for (const child of selectedBranchOf(element.value as mce.AlternateContent) ?? []) await this.element(child);
+    } else await this.fallback(element);
   }
 
   async paragraph(element: Element<wml.P>): Promise<void> {
@@ -329,9 +337,12 @@ function tableGrid(tbl: wml.Tbl): TableGrid | undefined {
   for (const item of (tbl.content ?? []) as Element[]) {
     const typeName = typeNameOf(item);
     if (typeName === 'org_docx4j_wml.CTTblGridCol' || typeName === 'org_docx4j_wml.TblGrid') continue;
+    // a row- or cell-level mc:AlternateContent is no plain grid: the table goes whole through insertXml (CR-013 phase 3)
+    if (typeName === ALTERNATE_CONTENT) return undefined;
     if (typeName !== 'org_docx4j_wml.Tr') continue;
     const row: string[] = [];
     for (const cell of ((item.value as wml.Tr).content ?? []) as Element[]) {
+      if (typeNameOf(cell) === ALTERNATE_CONTENT) return undefined;
       if (typeNameOf(cell) !== 'org_docx4j_wml.Tc') continue;
       const tc = cell.value as wml.Tc;
       const blocks = ((tc.content ?? []) as Element[]).filter((b) => typeNameOf(b) !== 'org_docx4j_wml.TcPr');

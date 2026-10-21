@@ -2,8 +2,8 @@
 // copied from docx4j at the commit its manifest.json names). Phase 0 recorded what each reader made of
 // them; phase 1 brought the text model's rows and cells, and mcePreprocess: true (D3), to Word 365's
 // reading; phase 2 the Office JS readers and the tracked-change listing, with every view in a branch
-// read-only (D4). What phase 3's mutators will change (the other branches' revisions, the bulk edits) is
-// asserted as it is, as CLAUDE.md's rule has a gap announce its fix.
+// read-only (D4); phase 3 the mutators reaching every branch: the other branches' revisions resolved with
+// their twins (docx4j's TrackedChangesAlternateContentTest), the bulk edits, the table edits, the ids.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -225,7 +225,7 @@ const LEVELS = {
   cell: `<w:tbl>${TBL}<w:tr>${AC(cell(changed('C')), cell(changed('F')))}</w:tr></w:tbl><w:p/>`,
 };
 
-test("a branch's tracked changes are listed once, from the selected branch, at every level; the text model's views planned from them (phase 2)", async () => {
+test("a branch's tracked changes are listed once, from the selected branch, at every level; the text model's views planned from them (phase 2); Accept All reaches every branch (phase 3)", async () => {
   for (const [level, xml] of Object.entries(LEVELS)) {
     const pkg = await mini(xml);
     const listed = (await pkg.getAllTrackedChanges()).map((c) => [c.type, c.text]);
@@ -235,19 +235,19 @@ test("a branch's tracked changes are listed once, from the selected branch, at e
     assert.ok(accepted.includes('C INSERTED') && !accepted.includes('DELETED') && !accepted.includes('F '), `${level}: ${accepted}`);
     const original = PlainText.of(await Texts.of(pkg, { view: 'original' }));
     assert.ok(original.includes('C DELETED') && !original.includes('INSERTED'), `${level}: ${original}`);
-    // Accept All resolves what it listed. The other branch keeps its revisions until phase 3's twins resolve
-    // them with these (docx4j's acceptAllResolvesEveryBranch): asserted as it is
+    // Accept All counts what it listed and resolves every branch (phase 3; docx4j's acceptAllResolvesEveryBranch)
     assert.equal(await pkg.acceptAllRevisions(), 2, level);
     const saved = await documentXml(pkg);
     const choice = saved.match(/<mc:Choice[^>]*>(.*?)<\/mc:Choice>/s)[1];
     const fallback = saved.match(/<mc:Fallback>(.*?)<\/mc:Fallback>/s)[1];
-    assert.ok(!/<w:(ins|del) /.test(choice) && choice.includes('INSERTED') && !choice.includes('DELETED'), `${level}: the Choice resolved`);
-    assert.equal((fallback.match(/<w:(ins|del) /g) ?? []).length, 2, `${level}: the Fallback's revisions left for phase 3`);
+    for (const [name, branch] of [['Choice', choice], ['Fallback', fallback]]) {
+      assert.ok(!/<w:(ins|del) /.test(branch) && branch.includes('INSERTED') && !branch.includes('DELETED'), `${level}: the ${name} resolved`);
+    }
     assert.deepEqual(await pkg.getAllTrackedChanges(), [], `${level}: nothing left to list`);
   }
 });
 
-test("a deleted row accepted leaves its table while a branch has a row (docx4j's Lister.hasRows); Table.deleteColumns likewise (phase 2)", async () => {
+test("a deleted row accepted leaves its table while a branch has a row (docx4j's Lister.hasRows), and takes it with its twin; Table.deleteColumns likewise (phases 2 and 3)", async () => {
   // the Choice's deleted row accepted, a plain row in the Fallback: the table stays, the Choice emptied
   // (docx4j's acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow)
   let pkg = await mini(`<w:tbl>${TBL}${AC(deletedRow(1, 'C'), row(run('F')))}</w:tbl><w:p/>`);
@@ -256,14 +256,14 @@ test("a deleted row accepted leaves its table while a branch has a row (docx4j's
   changes[0].accept();
   let xml = await documentXml(pkg);
   assert.ok(xml.includes('<w:tbl') && /<mc:Fallback><w:tr/.test(xml) && !/<mc:Choice Requires="w14"><w:tr/.test(xml), xml);
-  // a deleted row in every branch: listed once; accepted, the Choice's goes, and the Fallback's waits for
-  // phase 3's twin, so the table stays (docx4j, resolving both, removes it): asserted as it is
+  // a deleted row in every branch: listed once; accepted, its twin goes with it, and the table with both
+  // (phase 3; docx4j's acceptingADeletedRowInEveryBranchRemovesTheTable)
   pkg = await mini(`<w:p>${run('before')}</w:p><w:tbl>${TBL}${AC(deletedRow(1, 'C'), deletedRow(2, 'F'))}</w:tbl><w:p/>`);
   changes = await pkg.getAllTrackedChanges();
   assert.equal(changes.length, 1);
   changes[0].accept();
   xml = await documentXml(pkg);
-  assert.ok(xml.includes('<w:tbl') && /<mc:Fallback><w:tr><w:trPr><w:del /.test(xml), xml);
+  assert.ok(!xml.includes('<w:tbl') && !xml.includes('<w:tr') && xml.includes('before'), xml);
   // section 7.3's shape: a plain deleted row beside the element, whose rows were not counted, took the table
   pkg = await mini(`<w:tbl>${TBL}${deletedRow(1, 'D')}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
   assert.equal(await pkg.acceptAllRevisions(), 1);
@@ -275,7 +275,7 @@ test("a deleted row accepted leaves its table while a branch has a row (docx4j's
   assert.deepEqual(body.tables.map((t) => t.values), [[['w16sdtfl']]]);
 });
 
-test("a view in a branch is read-only (D4): paragraphs, bodies, tables, rows, cells and controls refuse every write; the bulk edits step over it", async () => {
+test("a view in a branch is read-only (D4): paragraphs, bodies, tables, rows, cells and controls refuse every write; the bulk edits reach every branch (phase 3)", async () => {
   const refuses = (name, f) => assert.throws(f, (e) => e.name === 'NotSupportedError' && /in a branch of an mc:AlternateContent, which is read-only \(CR-013 D4\)/.test(e.message), name);
   // a paragraph in a block-level branch, and the body beside it
   let pkg = await mini(LEVELS.block);
@@ -290,12 +290,17 @@ test("a view in a branch is read-only (D4): paragraphs, bodies, tables, rows, ce
   refuses('Paragraph.delete', () => p.delete());
   refuses('Paragraph.insertParagraph', () => p.insertParagraph('x', 'After'));
   refuses('Body.insertParagraph beside it', () => body.insertElement(body.content[0], 'After', p));
-  // the bulk edits step over a branch, as before this phase, until phase 3 has them reach every branch
-  assert.equal(body.replaceText('C INSERTED', 'Z'), 0);
+  // the bulk edits reach every branch (phase 3): replaceText counts what a reader sees, and a tracked
+  // clear marks every branch's paragraphs deleted
+  assert.equal(body.replaceText('INSERTED', 'Z'), 1);
+  let saved = await documentXml(pkg);
+  assert.ok(!saved.includes('INSERTED') && saved.includes('>C Z<') && saved.includes('>F Z<'), saved);
   pkg.changeTrackingMode = 'TrackAll';
   body.clear();
   pkg.changeTrackingMode = 'Off';
-  assert.equal(body.paragraphs[1].text, 'C INSERTED');
+  saved = await documentXml(pkg);
+  for (const branch of ['C', 'F']) assert.ok(saved.includes(`<w:delText>${branch} Z</w:delText>`), `${branch}: ${saved}`);
+  assert.equal((saved.match(/<w:pPr><w:rPr><w:del /g) ?? []).length, 4, 'every mark deleted, in both branches');
   // rows, cells and their bodies in a row-level branch
   pkg = await mini(`<w:tbl>${TBL}${row(run('plain'))}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
   body = await pkg.getBody();
@@ -351,4 +356,242 @@ test("the table context counts a branch's rows, and a comment in a branch is lis
   const saved = await documentXml(pkg);
   assert.ok(!/comment(RangeStart|RangeEnd|Reference)/.test(saved), 'the markers gone from every branch');
   assert.ok(saved.includes('>anchored<') && saved.includes('>fallback<'));
+});
+
+// --- CR-013 phase 3: the mutators reach every branch ---------------------------------------------------------
+
+const count = (s, token) => s.split(token).length - 1;
+const bodyXmlOf = async (pkg) => (await documentXml(pkg)).match(/<w:body>(.*)<\/w:body>/s)[1];
+
+test("docx4j's TrackedChangesAlternateContentTest: each listed change has its twin, resolved with it; Accept All resolves every branch (phase 3)", async () => {
+  for (const [level, xml] of Object.entries(LEVELS)) {
+    // listedOnceWithTwins: two listed, from the selected branch
+    let pkg = await mini(xml);
+    assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => c.kind), ['RUN_INSERTION', 'RUN_DELETION'], level);
+    // acceptingResolvesTheTwin: the insertion accepted in both branches, the deletion rejected in both
+    (await pkg.getAllTrackedChanges())[0].accept();
+    let out = await bodyXmlOf(pkg);
+    assert.ok(!out.includes('<w:ins '), `${level}: ${out}`);
+    assert.equal(count(out, 'INSERTED'), 2, `${level}: the insertion stays in both branches`);
+    assert.equal((await pkg.getAllTrackedChanges()).length, 1, `${level}: the deletions are still listed, once`);
+    (await pkg.getAllTrackedChanges())[0].reject();
+    out = await bodyXmlOf(pkg);
+    assert.ok(!out.includes('<w:del '), `${level}: ${out}`);
+    assert.equal(count(out, 'DELETED'), 2, `${level}: the deleted text is back in both branches`);
+    assert.deepEqual(await pkg.getAllTrackedChanges(), []);
+    // acceptAllResolvesEveryBranch: counts what it listed
+    pkg = await mini(xml);
+    assert.equal(await pkg.acceptAllRevisions(), 2, level);
+    out = await bodyXmlOf(pkg);
+    assert.ok(!out.includes('<w:ins ') && !out.includes('<w:del '), `${level}: ${out}`);
+    assert.deepEqual([count(out, 'INSERTED'), count(out, 'DELETED')], [2, 0], level);
+    assert.ok(out.includes('<mc:Choice') && out.includes('<mc:Fallback'), `${level}: the element is still whole`);
+    // Reject All, and a piece resolved on its own takes its twin too (docx4j leaves it to acceptAll)
+    pkg = await mini(xml);
+    assert.equal(await pkg.rejectAllRevisions(), 2, level);
+    out = await bodyXmlOf(pkg);
+    assert.deepEqual([count(out, 'INSERTED'), count(out, 'DELETED'), count(out, '<w:ins '), count(out, '<w:del ')], [0, 2, 0, 0], level);
+    pkg = await mini(xml);
+    (await pkg.getAllTrackedChanges())[1].pieces[0].accept();
+    assert.equal(count(await bodyXmlOf(pkg), 'DELETED'), 0, level);
+  }
+  // the accepted view of a cell holding a block-level element reads the branch Word reads (acceptedViewReadsTheBranchWordReads)
+  const pkg = await mini(`<w:tbl>${TBL}<w:tr><w:tc>${LEVELS.block}</w:tc></w:tr></w:tbl><w:p/>`);
+  assert.equal((await pkg.getAllTrackedChanges())[0].text, 'INSERTED');
+});
+
+test("a resolve-all with a filter matches each branch's changes on their own, as docx4j's (phase 3)", async () => {
+  const insBy = (id, author, text) => `<w:ins w:id="${id}" w:author="${author}"><w:r><w:t>${text}</w:t></w:r></w:ins>`;
+  const pkg = await mini(`<w:p>${run('x')}</w:p>${AC(`<w:p>${insBy(1, 'A', 'byA')}</w:p>`, `<w:p>${insBy(2, 'B', 'byB')}</w:p>`)}`);
+  assert.equal(await pkg.acceptAllRevisions({ authors: ['A'] }), 1);
+  let out = await bodyXmlOf(pkg);
+  assert.ok(!/<w:ins w:id="1"/.test(out) && /<w:ins w:id="2"/.test(out), out);
+  assert.equal(await pkg.acceptAllRevisions({ authors: ['B'] }), 0, 'counted as listed: the Fallback lists nothing');
+  out = await bodyXmlOf(pkg);
+  assert.ok(!out.includes('<w:ins '), 'but resolved, matched on its own');
+});
+
+test("a deleted cell's twin goes in its own branch, and a table's property records are one change over every branch (docx4j 60bd4b9ad, 901a922a3)", async () => {
+  const tcOf = (text, tcPr) => `<w:tc><w:tcPr>${tcPr}</w:tcPr><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc>`;
+  const deletedCell = (id, text) => tcOf(text, `<w:tcW w:w="1000" w:type="dxa"/><w:cellDel w:id="${id}" w:author="A"/>`);
+  const plainCell = (text) => tcOf(text, '<w:tcW w:w="1000" w:type="dxa"/>');
+  // acceptingADeletedCellResolvesItsTwinInItsOwnBranch: each branch's own neighbour widened once
+  let pkg = await mini(`<w:tbl>${TBL}<w:tr>${AC(deletedCell(1, 'C') + plainCell('Ckeep'), deletedCell(2, 'F') + plainCell('Fkeep'))}</w:tr></w:tbl><w:p/>`);
+  let changes = await pkg.getAllTrackedChanges();
+  assert.deepEqual(changes.map((c) => c.kind), ['CELL_DELETION']);
+  changes[0].accept();
+  let out = await bodyXmlOf(pkg);
+  assert.ok(!out.includes('cellDel') && !out.includes('>C<') && !out.includes('>F<') && out.includes('Ckeep') && out.includes('Fkeep'), out);
+  assert.deepEqual([count(out, '<w:gridSpan w:val="2"/>'), count(out, 'w:w="2000"')], [2, 2], 'each branch\'s neighbour widened once');
+  assert.deepEqual(await pkg.getAllTrackedChanges(), []);
+  // acceptingADeletedCellAloneInEachBranchWidensTheRowsNeighbourOnce
+  pkg = await mini(`<w:tbl>${TBL}<w:tr>${plainCell('keep')}${AC(deletedCell(1, 'C'), deletedCell(2, 'F'))}</w:tr></w:tbl><w:p/>`);
+  (await pkg.getAllTrackedChanges())[0].accept();
+  out = await bodyXmlOf(pkg);
+  assert.ok(!out.includes('cellDel') && !out.includes('>C<') && !out.includes('>F<'), out);
+  assert.deepEqual([count(out, '<w:gridSpan w:val="2"/>'), count(out, 'w:w="2000"')], [1, 1], 'the row\'s neighbour widened once');
+  assert.ok(out.includes('<mc:Choice') && out.includes('<mc:Fallback'), 'the element stays, its branches empty of cells');
+  // resolvingATablePropertyRecordReachesEveryBranchsCell
+  const changedCell = (id, text) => tcOf(text, `<w:tcW w:w="1000" w:type="dxa"/><w:shd w:val="clear" w:fill="FF0000"/><w:tcPrChange w:id="${id}" w:author="A"><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr></w:tcPrChange>`);
+  const records = `<w:tbl>${TBL}<w:tr>${AC(changedCell(1, 'C'), changedCell(2, 'F'))}</w:tr></w:tbl><w:p/>`;
+  pkg = await mini(records);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => [c.kind, c.text]), [['TABLE_PROPERTIES', 'C\r\n']]);
+  await pkg.acceptAllRevisions();
+  out = await bodyXmlOf(pkg);
+  assert.deepEqual([count(out, 'tcPrChange'), count(out, 'w:fill="FF0000"')], [0, 2], 'accepted: both branches keep the shading');
+  pkg = await mini(records);
+  await pkg.rejectAllRevisions();
+  out = await bodyXmlOf(pkg);
+  assert.deepEqual([count(out, 'tcPrChange'), count(out, 'w:fill="FF0000"'), count(out, '<w:tcW')], [0, 0, 2], 'rejected: both branches lose it');
+  // acceptingATablePropertyRecordReachesARowInAnotherBranch: listed, though only the Fallback's row has it,
+  // with no text, since Word shows none of it
+  const changedRow = `<w:tr><w:trPr><w:cantSplit/><w:trPrChange w:id="1" w:author="A"><w:trPr/></w:trPrChange></w:trPr>${plainCell('F')}</w:tr>`;
+  pkg = await mini(`<w:tbl>${TBL}${AC(row(run('C')), changedRow)}</w:tbl><w:p/>`);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => [c.kind, c.text]), [['TABLE_PROPERTIES', '']]);
+  await pkg.acceptAllRevisions();
+  out = await bodyXmlOf(pkg);
+  assert.ok(!out.includes('trPrChange') && out.includes('<w:cantSplit/>'), out);
+  assert.deepEqual(await pkg.getAllTrackedChanges(), []);
+  // aTableChangesTextReadsTheBranchWordReads: a whole-table change's text is the selected branch's rows
+  pkg = await mini(`<w:tbl><w:tblPr><w:jc w:val="center"/><w:tblPrChange w:id="1" w:author="A"><w:tblPr/></w:tblPrChange></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid>${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => [c.kind, c.text]), [['TABLE_PROPERTIES', 'C\r\n']]);
+  // a rejected grid record collapses the grid along each reading of a row (cellLayoutsOf): the recorded four
+  // columns become three, and each branch's cell keeps its span of two over them (counted along one row,
+  // as phase 2 did, the Fallback's cell lost its span)
+  const gridRecord = '<w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblPrChange w:id="8" w:author="A"><w:tblPr/></w:tblPrChange></w:tblPr>'
+    + '<w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="1000"/><w:tblGridChange w:id="9"><w:tblGrid><w:gridCol w:w="250"/><w:gridCol w:w="250"/><w:gridCol w:w="500"/><w:gridCol w:w="1000"/></w:tblGrid></w:tblGridChange></w:tblGrid>';
+  const spanning = (text, n) => tcOf(text, `<w:gridSpan w:val="${n}"/>`);
+  pkg = await mini(`<w:tbl>${gridRecord}<w:tr>${AC(spanning('C', 3), spanning('F', 3))}${tcOf('last', '')}</w:tr><w:tr>${spanning('a', 2)}${spanning('b', 2)}</w:tr></w:tbl><w:p/>`);
+  await pkg.rejectAllRevisions();
+  out = await bodyXmlOf(pkg);
+  assert.ok(out.includes('<w:tblGrid><w:gridCol w:w="500"/><w:gridCol w:w="500"/><w:gridCol w:w="1000"/></w:tblGrid>'), out);
+  for (const text of ['C', 'F', 'b']) assert.ok(out.includes(`<w:gridSpan w:val="2"/></w:tcPr><w:p><w:r><w:t>${text}</w:t>`), `${text}: ${out}`);
+});
+
+test("a single change in a text box resolves its mc:Fallback twin, as docx4j's (CR-011's gap, phase 3)", async () => {
+  const pkg = await WordprocessingMLPackage.load(readFileSync(new URL('./fixtures/revisions/cr043/cr043-tracked.docx', import.meta.url)));
+  const boxed = (await pkg.getAllTrackedChanges()).filter((c) => c.text === ' DELETEME' && c.part?.partName.name === '/word/document.xml');
+  assert.equal(boxed.length, 1);
+  boxed[0].accept();
+  const xml = await documentXml(pkg);
+  const ac = xml.match(/<mc:AlternateContent>(?:(?!<mc:AlternateContent>).)*?C22 text box.*?<\/mc:AlternateContent>/s)[0];
+  assert.equal(count(ac, 'C22 text box text'), 2, 'both boxes');
+  assert.equal(count(ac, 'DELETEME'), 0, 'the deletion accepted in the Choice\'s box and in its Fallback twin');
+  assert.equal(count(ac, 'C22 inserted'), 2);
+});
+
+test("a move in a branch is paired within it, the selected branch with its story (phase 3)", async () => {
+  const moved = (id, name) => `<w:p><w:moveFromRangeStart w:id="${id}" w:author="A" w:name="${name}"/><w:moveFrom w:id="${id + 1}" w:author="A"><w:r><w:t>moved</w:t></w:r></w:moveFrom><w:moveFromRangeEnd w:id="${id}"/></w:p>`
+    + `<w:p>${run('between')}</w:p>`
+    + `<w:p><w:moveToRangeStart w:id="${id + 2}" w:author="A" w:name="${name}"/><w:moveTo w:id="${id + 3}" w:author="A"><w:r><w:t>moved</w:t></w:r></w:moveTo><w:moveToRangeEnd w:id="${id + 2}"/></w:p>`;
+  const pkg = await mini(AC(moved(10, 'move1'), moved(20, 'move1')));
+  const changes = await pkg.getAllTrackedChanges();
+  assert.deepEqual(changes.map((c) => c.kind), ['MOVE', 'MOVE']);
+  changes[0].reject();
+  const out = await bodyXmlOf(pkg);
+  // rejected as a move in both branches: the source kept, the destination gone, the range markers with it
+  assert.ok(!/move(From|To)/.test(out), out);
+  assert.equal(count(out, '>moved<'), 2, out);
+  for (const branch of [out.match(/<mc:Choice[^>]*>(.*?)<\/mc:Choice>/s)[1], out.match(/<mc:Fallback>(.*?)<\/mc:Fallback>/s)[1]]) {
+    assert.ok(branch.indexOf('>moved<') < branch.indexOf('between'), branch);
+  }
+});
+
+test("the bulk edits reach every branch: a tracked row or table deletion, the binding passes, a reply, inserted content (phase 3)", async () => {
+  // a tracked table deletion marks every branch's rows and their content deleted
+  let pkg = await mini(`<w:tbl>${TBL}${row(run('plain'))}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  pkg.changeTrackingMode = 'TrackAll';
+  (await pkg.getBody()).tables[0].delete();
+  pkg.changeTrackingMode = 'Off';
+  let out = await bodyXmlOf(pkg);
+  assert.equal(count(out, '<w:trPr><w:del '), 3, out);
+  for (const text of ['plain', 'C', 'F']) assert.ok(out.includes(`<w:delText>${text}</w:delText>`) || out.includes(`<w:delText xml:space="preserve">${text}</w:delText>`), text);
+  assert.equal(await pkg.acceptAllRevisions(), 1);
+  assert.ok(!(await bodyXmlOf(pkg)).includes('<w:tbl'), 'and accepted, the table goes');
+
+  // the binding passes write every branch's controls and count what a reader sees; updateFromContentControls
+  // reads the selected branch
+  const ITEM = '{11111111-2222-3333-4444-555555555555}';
+  const bound = (text) => `<w:sdt><w:sdtPr><w:dataBinding w:xpath="/data[1]/name[1]" w:storeItemID="${ITEM}"/><w:text/></w:sdtPr><w:sdtContent><w:p>${run(text)}</w:p></w:sdtContent></w:sdt>`;
+  pkg = await mini(AC(bound('C'), bound('F')));
+  pkg.customXmlParts.add('<data><name>Bound</name></data>', { itemID: ITEM });
+  const result = await pkg.customXmlParts.applyBindings();
+  assert.deepEqual([result.bound, result.updated], [1, 1]);
+  out = await bodyXmlOf(pkg);
+  assert.equal(count(out, '>Bound<'), 2, out);
+  const body = await pkg.getBody();
+  assert.deepEqual(body.contentControls.map((c) => c.text), ['Bound']);
+  assert.deepEqual(body.contentControlsIn('every').map((c) => c.text), ['Bound', 'Bound']);
+  const back = await pkg.customXmlParts.updateFromContentControls();
+  assert.equal(back.bound, 1, 'the reverse pass reads what a reader sees');
+  pkg.customXmlParts.removePart(pkg.customXmlParts.getItem(ITEM));
+  assert.equal(count(await bodyXmlOf(pkg), 'dataBinding'), 0, 'the part removed: every branch\'s binding goes');
+
+  // a reply is anchored in every branch its parent is
+  const make = await mini(`<w:p>${run('anchored')}</w:p>`);
+  await (await make.getBody()).paragraphs[0].getRange().insertComment('parent');
+  const files = unzipSync(await make.save());
+  let xml = strFromU8(files['word/document.xml']);
+  const paragraph = xml.match(/<w:p\b(?:(?!<w:p\b).)*?anchored.*?<\/w:p>/s)[0];
+  xml = xml.replace(paragraph, AC(paragraph, paragraph.replace('anchored', 'fallback')));
+  if (!xml.includes(`xmlns:mc="${MC}"`)) xml = xml.replace('<w:document ', `<w:document xmlns:mc="${MC}" `);
+  if (!xml.includes(`xmlns:w14="${W14}"`)) xml = xml.replace('<w:document ', `<w:document xmlns:w14="${W14}" `);
+  files['word/document.xml'] = strToU8(xml);
+  pkg = await WordprocessingMLPackage.load(zipSync(files));
+  const [parent] = await (await pkg.getBody()).getComments();
+  const reply = await parent.reply('the reply');
+  out = await bodyXmlOf(pkg);
+  assert.equal(count(out, `<w:commentRangeStart w:id="${reply.id}"/>`), 2, out);
+  assert.equal(count(out, `<w:commentReference w:id="${reply.id}"/>`), 2, out);
+
+  // a table inserted under tracking with a row-level element: every branch's row is an insertion
+  pkg = await mini(`<w:p>${run('x')}</w:p>`);
+  pkg.changeTrackingMode = 'TrackAll';
+  await (await pkg.getBody()).insertXml(`<w:tbl xmlns:w="${W}" xmlns:mc="${MC}" xmlns:w14="${W14}">${TBL}${AC(row(run('C')), row(run('F')))}</w:tbl>`, 'End');
+  pkg.changeTrackingMode = 'Off';
+  out = await bodyXmlOf(pkg);
+  assert.equal(count(out, '<w:trPr><w:ins '), 2, out);
+  assert.equal(await pkg.acceptAllRevisions(), 1);
+  assert.equal(count(await bodyXmlOf(pkg), '<w:ins '), 0);
+});
+
+test("the column passes reach every branch's cells: a cell-level element's branches each gain and lose a column (phase 3)", async () => {
+  const probe = await load('mc-cell-newest-first.docx');
+  let body = await probe.getBody();
+  let table = body.tables[0];
+  const branches = (xml) => [xml.match(/<mc:Choice[^>]*>(.*?)<\/mc:Choice>/gs) ?? [], xml.match(/<mc:Fallback>(.*?)<\/mc:Fallback>/gs) ?? []].flat();
+  const before = branches(await documentXml(probe)).map((b) => count(b, '<w:tc>'));
+  table.addColumns('End', 1, [['new']]);
+  const after = branches(await documentXml(probe)).map((b) => count(b, '<w:tc>'));
+  assert.deepEqual(after, before.map((n) => n + 1), 'each branch\'s cell list gained the new cell');
+  assert.deepEqual(table.values, [['I prefer', 'w16sdtfl', 'new']]);
+  table.deleteColumns(2);
+  assert.deepEqual(branches(await documentXml(probe)).map((b) => count(b, '<w:tc>')), before, 'and lost it again');
+  // a row-level element's rows gain a column too
+  const pkg = await mini(`<w:tbl>${TBL}${row(run('plain'))}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  table = (await pkg.getBody()).tables[0];
+  table.addColumns('End', 1);
+  const out = await bodyXmlOf(pkg);
+  assert.equal(count(out, '<w:tc>') + count(out, '<w:tc '), 6, out);
+  assert.deepEqual(table.values, [['plain', ''], ['C', '']]);
+  // rows added beside the element go outside it, at either end
+  table.addRows('Start', 1, [['first', '']]);
+  table.addRows('End', 1, [['last', '']]);
+  assert.deepEqual(table.values, [['first', ''], ['plain', ''], ['C', ''], ['last', '']]);
+  const branchRows = (await bodyXmlOf(pkg)).match(/<mc:(Choice|Fallback)[^>]*>.*?<\/mc:(Choice|Fallback)>/gs).map((b) => count(b, '<w:tr>') + count(b, '<w:tr '));
+  assert.deepEqual(branchRows, [1, 1]);
+});
+
+test("ids see every branch, a comment's paraId reads the selected branch, and toApiScript writes a branch Word reads (phase 3)", async () => {
+  // a w14:paraId only in the Fallback still says the document uses them
+  const pkg = await mini(`<w:p>${run('x')}</w:p>${AC(`<w:p>${run('C')}</w:p>`, `<w:p w14:paraId="12345678">${run('F')}</w:p>`)}`);
+  const body = await pkg.getBody();
+  const p = body.insertParagraph('new', 'End');
+  assert.match(p.paraId ?? '', /^[0-9A-F]{8}$/);
+  assert.notEqual(p.paraId, '12345678');
+  // toApiScript: the element's selected branch through the verbs, a table with a row-level element as XML
+  const { toApiScript } = await import('../dist/office-js/index.mjs');
+  const script = await toApiScript(await (await mini(`${AC(`<w:p>${run('Choice text')}</w:p>`, `<w:p>${run('Fallback text')}</w:p>`)}<w:tbl>${TBL}${AC(row(run('C')), row(run('F')))}</w:tbl>`)).getBody());
+  assert.ok(script.includes('Choice text') && !script.includes('Fallback text') && !/insertXml\(`<mc:AlternateContent/.test(script), script);
+  assert.ok(/insertXml\(`<w:tbl[^`]*mc:AlternateContent/s.test(script), script);
 });

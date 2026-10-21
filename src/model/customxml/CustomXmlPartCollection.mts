@@ -21,6 +21,7 @@ import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
 import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
 import { applyPictureHandlersTo, updateFromPictureControls } from './pictures.mjs';
+import { inUnreadBranch, writingEveryBranch } from '../content/tree.mjs';
 
 /**
  * What the collection needs of its package. A structural interface, so that this module does not
@@ -153,9 +154,13 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     part.package?.parts.remove(part.partName);
     if (part.itemId) this.host.customXmlDataStorageParts.delete(part.itemId);
     this.views.delete(part);
-    for (const control of this.controlsOf(this.host.boundBodies())) {
-      if (normaliseId(control.xmlMapping.storeItemID) === normaliseId(view.id)) control.xmlMapping.delete();
-    }
+    // every branch's controls (CR-013 phase 3)
+    const { read, unread } = this.controlsOf(this.host.boundBodies());
+    writingEveryBranch(() => {
+      for (const control of [...read, ...unread]) {
+        if (normaliseId(control.xmlMapping.storeItemID) === normaliseId(view.id)) control.xmlMapping.delete();
+      }
+    });
   }
 
   /**
@@ -165,10 +170,19 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    */
   async applyBindings(options: { html?: XhtmlBindingOptions } = {}): Promise<BindingResult> {
     await this.load();
-    const controls = this.controlsOf(await this.host.getBoundBodies());
-    const result = applyBindingsTo(controls);
+    // every branch of a kept mc:AlternateContent is bound, as Word binds what it reads; the result counts
+    // what a reader sees, the other branches' controls bound after them and not counted (CR-013 phase 3)
+    const { read, unread } = this.controlsOf(await this.host.getBoundBodies());
+    const result = await this.bind(read, options);
+    if (unread.length > 0) await this.bind(unread, options);
+    return result;
+  }
+
+  /** The three passes over some controls: the text bindings, the pictures, the XHTML. */
+  private async bind(controls: ContentControl[], options: { html?: XhtmlBindingOptions }): Promise<BindingResult> {
+    const result = writingEveryBranch(() => applyBindingsTo(controls));
     // od:Handler=picture through the tag's od:xpath entry (CR-005 section 9): after the text bindings, which took the picture controls.
-    applyPictureHandlersTo(controls, this, result);
+    writingEveryBranch(() => applyPictureHandlersTo(controls, this, result));
     // Escaped XHTML through the tag's od:xpath entry (CR-005 section 8.2): after the text bindings, asynchronous.
     if (this.host.xhtmlHost) await applyXhtmlBindingsTo(controls, this, this.host.xhtmlHost, result, options.html ?? {});
     else if (controls.some(isXhtmlBound)) (result.notes ??= []).push('XHTML-bound controls left: the collection has no package to make their lists, styles and links');
@@ -182,7 +196,8 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    */
   async updateFromContentControls(): Promise<BindingResult> {
     await this.load();
-    const controls = this.controlsOf(await this.host.getBoundBodies());
+    // what a reader sees of the controls: the selected branch's, as Word writes back what it shows (CR-013 phase 3)
+    const controls = this.controlsOf(await this.host.getBoundBodies()).read;
     const result = updateFromControls(controls);
     // a mapped picture control's image back to its node, as Word 15 writes it (CR-005 section 9, check 38)
     await updateFromPictureControls(controls, result);
@@ -190,11 +205,14 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
   }
 
   /**
-   * The controls the binding passes take: those in a branch of a kept `mc:AlternateContent` are stepped
-   * over, as before CR-013 phase 2, until its phase 3 has the passes reach every branch.
+   * The controls the binding passes take, in every branch of a kept `mc:AlternateContent` (CR-013 phase 3):
+   * those a reader sees (`read`: outside the elements and in their selected branches) and the others.
    */
-  private controlsOf(bodies: Body[]): ContentControl[] {
-    return bodies.flatMap((body) => body.contentControls).filter((control) => !control.inBranch);
+  private controlsOf(bodies: Body[]): { read: ContentControl[]; unread: ContentControl[] } {
+    const read: ContentControl[] = [];
+    const unread: ContentControl[] = [];
+    for (const control of bodies.flatMap((body) => body.contentControlsIn('every'))) (inUnreadBranch(control.sdt) ? unread : read).push(control);
+    return { read, unread };
   }
 
   /** The view of a part: its itemID and schema references, read from the properties part's DOM. */

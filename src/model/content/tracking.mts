@@ -12,7 +12,7 @@ import {
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf, childrenOf, rowsOf, cellsOf, isAlternateContent, selectedBranchOf } from './tree.mjs';
+import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf, revisionKindOf, childrenOf, rowsOf, cellsOf, isAlternateContent, selectedBranchOf, branchesOf, ALTERNATE_CONTENT } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Author } from './comments.mjs';
 
@@ -433,10 +433,11 @@ export function wrapInsertedRuns(tracker: ChangeTracker, items: Element[] | unde
 
 /** A whole table inserted: every row is marked inserted and everything in its cells is an insertion (`trackInsertedBlocks`). */
 export function trackInsertedTable(tracker: ChangeTracker, tbl: wml.Tbl): void {
-  for (const row of rowsOf(tbl)) {
+  // every branch of a kept row- or cell-level mc:AlternateContent (CR-013 phase 3)
+  for (const row of rowsOf(tbl, 'every')) {
     const tr = row.element.value;
     if (!tr.trPr?.ins) tracker.markRowInserted(tr);
-    for (const cell of cellsOf(tr)) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
+    for (const cell of cellsOf(tr, 'every')) trackInsertedBlocks(tracker, childrenOf(cell.element.value));
   }
 }
 
@@ -453,6 +454,8 @@ export function trackInsertedBlock(tracker: ChangeTracker, block: Element, owner
   else if (tn === 'org_docx4j_wml.Tbl') trackInsertedTable(tracker, block.value as wml.Tbl);
   else if (typeof block.value !== 'object' || block.value === null) return;
   else if (HOLDER_TYPES.has(tn ?? '')) markHolderInserted(tracker, block, owner, () => trackInsertedBlocks(tracker, childrenOf(block.value as object)));
+  // a kept block-level mc:AlternateContent: every branch's content (CR-013 phase 3)
+  else if (tn === ALTERNATE_CONTENT) for (const branch of branchesOf(block.value as mce.AlternateContent)) trackInsertedBlocks(tracker, branch);
   else trackInsertedBlocks(tracker, childrenOf(block.value));
 }
 

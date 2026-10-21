@@ -20,7 +20,7 @@ import {
 import { runsForValue, updateFromControl, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { declareIgnorable } from './tracking.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, selectedBranchOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -602,78 +602,93 @@ export class ContentControl {
   }
 }
 
-/** Every content control under a list of block-level items, in document order, nested ones included. */
-export function collectControls(items: Element[], body: Body, out: ContentControl[]): void {
+/**
+ * Every content control under a list of block-level items, in document order, nested ones included. In a
+ * kept `mc:AlternateContent` a reader's (`'read'`, the default) takes the selected branch's controls (CR-013
+ * phase 2), the binding passes (`'every'`) every branch's, each other branch's where the element stands
+ * (phase 3).
+ */
+export function collectControls(items: Element[], body: Body, out: ContentControl[], mode: BranchMode = 'read'): void {
   for (const element of items) {
     const tn = typeNameOf(element);
     if (tn === undefined) continue;
     if (SDT_TYPES.has(tn)) {
       const control = new ContentControl(element as Element<wml.SdtBlock>, items, body);
       out.push(control);
-      collectControls(control.content, body, out);
+      collectControls(control.content, body, out, mode);
       continue;
     }
     if (tn === 'org_docx4j_wml.P') {
-      collectRunControls(element.value as wml.P, body, out);
+      collectRunControls(element.value as wml.P, body, out, mode);
       continue;
     }
     if (tn === 'org_docx4j_wml.Tbl') {
-      collectInRows(childrenOf(element.value as object) ?? [], body, out);
+      collectInRows(childrenOf(element.value as object) ?? [], body, out, mode);
       continue;
     }
-    // a kept mc:AlternateContent: its selected branch's controls (CR-013 phase 2)
-    const children = childrenOf(element.value as object, 'read');
-    if (children) collectControls(children, body, out);
+    if (tn === ALTERNATE_CONTENT) {
+      for (const branch of branchListsOf(element.value as mce.AlternateContent, mode)) collectControls(branch, body, out, mode);
+      continue;
+    }
+    const children = childrenOf(element.value as object);
+    if (children) collectControls(children, body, out, mode);
   }
 }
 
 /** Row-level controls and the controls inside the rows of a table. */
-function collectInRows(items: Element[], body: Body, out: ContentControl[]): void {
+function collectInRows(items: Element[], body: Body, out: ContentControl[], mode: BranchMode): void {
   for (const element of items) {
     const tn = typeNameOf(element);
     if (tn === undefined) continue;
     if (SDT_TYPES.has(tn)) {
       const control = new ContentControl(element as Element<wml.CTSdtRow>, items, body);
       out.push(control);
-      collectInRows(control.content, body, out);
+      collectInRows(control.content, body, out, mode);
       continue;
     }
-    if (tn === 'org_docx4j_wml.Tr') collectInCells(childrenOf(element.value as object) ?? [], body, out);
-    else if (tn === ALTERNATE_CONTENT) collectInRows(selectedBranchOf(element.value as mce.AlternateContent) ?? [], body, out);
+    if (tn === 'org_docx4j_wml.Tr') collectInCells(childrenOf(element.value as object) ?? [], body, out, mode);
+    else if (tn === ALTERNATE_CONTENT) for (const branch of branchListsOf(element.value as mce.AlternateContent, mode)) collectInRows(branch, body, out, mode);
   }
 }
 
 /** Cell-level controls and the controls inside the cells of a row. */
-function collectInCells(items: Element[], body: Body, out: ContentControl[]): void {
+function collectInCells(items: Element[], body: Body, out: ContentControl[], mode: BranchMode): void {
   for (const element of items) {
     const tn = typeNameOf(element);
     if (tn === undefined) continue;
     if (SDT_TYPES.has(tn)) {
       const control = new ContentControl(element as Element<wml.CTSdtCell>, items, body);
       out.push(control);
-      collectInCells(control.content, body, out);
+      collectInCells(control.content, body, out, mode);
       continue;
     }
-    if (tn === 'org_docx4j_wml.Tc') collectControls(childrenOf(element.value as object) ?? [], body, out);
-    else if (tn === ALTERNATE_CONTENT) collectInCells(selectedBranchOf(element.value as mce.AlternateContent) ?? [], body, out);
+    if (tn === 'org_docx4j_wml.Tc') collectControls(childrenOf(element.value as object) ?? [], body, out, mode);
+    else if (tn === ALTERNATE_CONTENT) for (const branch of branchListsOf(element.value as mce.AlternateContent, mode)) collectInCells(branch, body, out, mode);
   }
 }
 
 /** The run-level controls in a paragraph (or any run holder), in order, nested ones included. */
-export function collectRunControls(holder: object, body: Body, out: ContentControl[]): void {
-  // a kept mc:AlternateContent among runs: its selected branch's (CR-013 phase 2)
-  const items = (holder as { TYPE_NAME?: string }).TYPE_NAME === ALTERNATE_CONTENT ? selectedBranchOf(holder as mce.AlternateContent) : runItemsOf(holder);
-  if (!items) return;
+export function collectRunControls(holder: object, body: Body, out: ContentControl[], mode: BranchMode = 'read'): void {
+  // a kept mc:AlternateContent among runs: its selected branch's (CR-013 phase 2), or every branch's (phase 3)
+  if ((holder as { TYPE_NAME?: string }).TYPE_NAME === ALTERNATE_CONTENT) {
+    for (const branch of branchListsOf(holder as mce.AlternateContent, mode)) collectRunItems(branch, body, out, mode);
+    return;
+  }
+  const items = runItemsOf(holder);
+  if (items) collectRunItems(items, body, out, mode);
+}
+
+function collectRunItems(items: Element[], body: Body, out: ContentControl[], mode: BranchMode): void {
   for (const element of items) {
     const tn = typeNameOf(element);
     if (tn === undefined) continue;
     if (SDT_TYPES.has(tn)) {
       const control = new ContentControl(element as Element<wml.SdtRun>, items, body);
       out.push(control);
-      collectRunControls(element.value as object, body, out);
+      collectRunControls(element.value as object, body, out, mode);
       continue;
     }
-    if (tn !== 'org_docx4j_wml.R') collectRunControls(element.value as object, body, out);
+    if (tn !== 'org_docx4j_wml.R') collectRunControls(element.value as object, body, out, mode);
   }
 }
 

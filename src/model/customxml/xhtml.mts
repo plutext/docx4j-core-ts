@@ -15,7 +15,7 @@ import { deepCopy } from '@docx4j/generated-objects-ts';
 import { Namespaces } from '../../parts/Namespaces.mjs';
 import type { PropertyResolver } from '../properties/index.mjs';
 import type { Element } from '../content/tree.mjs';
-import { typeNameOf, linkParents, childrenOf } from '../content/tree.mjs';
+import { typeNameOf, linkParents, childrenOf, writingEveryBranch } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { contentOf } from '../content/ooxml.mjs';
 import { convertHtml, styleLookupOf, type PasteResult, type StyleNaming } from '../../html/convert.mjs';
@@ -146,7 +146,8 @@ export async function applyXhtmlBindingTo(control: ContentControl, parts: Custom
     content.push(...elements);
     linkParents(content, sdt.sdtContent as object);
   }
-  control.isShowingPlaceholder = false;
+  // a control in a branch of a kept mc:AlternateContent too: the pass reaches every branch (CR-013 phase 3)
+  writingEveryBranch(() => { control.isShowingPlaceholder = false; });
   return Object.keys(dropped).length > 0 ? { done: true, dropped } : { done: true };
 }
 

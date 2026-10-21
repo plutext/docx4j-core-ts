@@ -166,8 +166,9 @@ controls and around text boxes) and Word 365's saves of them, copied unedited fr
 (added in `1cff2cd5c`, docx4j CR-051, Apache-2.0). Their `README.md` says what each holds and
 `manifest.json` gives each file's SHA-1, which `mc-fun.test.mjs` checks. A Word save shows the branch
 Word took, so the test holds every reader to it: the text model and, since CR-013 phase 2, the Office JS
-readers, kept and resolved. What phase 3's mutators will change it asserts as it is. They are kept
-outside `fixtures/` for the reason the suite is.
+readers, kept and resolved. Since phase 3 it also holds the mutators to docx4j's
+`TrackedChangesAlternateContentTest`, built in memory as docx4j builds them, and to every branch. They are
+kept outside `fixtures/` for the reason the suite is.
 
 ## Parity goldens (`golden/`, CR-001 Phase B step 1)
 

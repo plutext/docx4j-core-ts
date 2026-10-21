@@ -17,7 +17,11 @@ section 17.13 then CR-013 phase 2"), not released: the content API's readers and
 selected branch at block, row and cell level (and the listing at paragraph level), so every probe with a Word save
 reads as the save does through every Office JS reader, kept or resolved; every view in a branch refuses its writes
 (D4); a table goes only when no branch keeps a row, which closes section 7.3's two content-losing shapes (section 9).
-Phase 3 not started.
+Phase 3 implemented 2026-10-22 (Jason: "start CR-013 phase 3"), not released: the mutators reach every branch. A
+listed change's twins in the other branches resolve with it and resolve-all resolves every branch, held to docx4j's
+`TrackedChangesAlternateContentTest`, all 20. A table's records, cells and columns span every branch. The bulk edits,
+the binding passes, replies, the ids and `toApiScript` reach every branch too. Views in a branch stay read-only
+(section 10). Every phase is done.
 
 ## 1. Why
 
@@ -149,7 +153,7 @@ The two load modes don't map one to one onto docx4j's:
 | 0 | The probes copied with provenance, to `test/mc-fun/` rather than `test/fixtures/` so that the parity, XPath and revisions harnesses don't take them up; tests asserting today's behaviour per reader and level (CLAUDE.md's rule: a gap fixed announces itself); the walker audit (section 3, item 4). **Done 2026-10-21, section 7** | 1 day |
 | 1 | The text model at row and cell level (`rows`, `cells`, `compareBranches`), held to the 13 Word saves; `mcePreprocess: true` over the readers' set (D3), with section 3 item 6's round trips as tests. **Done 2026-10-21, section 8**, with `surfaceText` (section 7.3) | ½ day |
 | 2 | The content API's readers: paragraphs, tables, rows, cells, controls, lists, outline, search, addresses; the views in a branch read-only (D4); since the audit (section 7.4) also the tracked-change listing, which the text model's views are planned from, the `TableContext`, and `textOf`'s readers. **Done 2026-10-21, section 9**, with phase 3's two content-losing shapes | 2½ to 3½ days |
-| 3 | The mutators the audit lists (section 7.3), the two that lose content first (`removeRow`, `Table.deleteColumns`): the resolve-all verbs, table edits and revisions, comments, the binding passes, the ids | 1½ to 2½ days |
+| 3 | The mutators the audit lists (section 7.3), the two that lose content first (`removeRow`, `Table.deleteColumns`): the resolve-all verbs, table edits and revisions, comments, the binding passes, the ids. **Done 2026-10-22, section 10**, the two in phase 2 | 1½ to 2½ days |
 
 ## 5. Decisions
 
@@ -560,6 +564,8 @@ passes (`applyBindings`, `updateFromContentControls`, the picture pass). Each fi
 
 ### 9.8 What phase 3 has left
 
+Done in phase 3 (section 10), every item.
+
 - **Resolve-all in every branch:** the other branches' revisions, docx4j's twins. This includes a deleted
   row in every branch, which then removes the table.
 - **The bulk edits that step over a branch** (section 9.5's list), and `resolveUnlisted`, `movePiecesOf`
@@ -569,3 +575,154 @@ passes (`applyBindings`, `updateFromContentControls`, the picture pass). Each fi
 - **The ids that should see every branch:** `assignParaId` and `usesParaIds` read the selected branch;
   `commentParaId`.
 - **`toApiScript`'s** block-level `insertXml`, and `joinWithNext` before an element (section 7.3).
+
+## 10. Phase 3: the mutators reach every branch (implemented 2026-10-22)
+
+Jason: "start CR-013 phase 3". Phase 3 began from `df5b4af`, phase 2. The oracle is docx4j's
+`TrackedChangesAlternateContentTest` at `VERSION_17_3_4`: its CR-051 phase 2 (`9db1a3cbd`), and two fixes made
+since, both from docx4j-python's port. `60bd4b9ad` removes a deleted cell's twin in its own branch. `901a922a3`
+lists and resolves a table's property records over every branch, and collapses the grid by each reading of a
+row. A third, in docx4j-25's working tree when read and committed since in `84b202c5a`, has a table change's
+text read Word's branch (`aTableChangesTextReadsTheBranchWordReads`).
+
+### 10.1 Twins
+
+- **Two listings**, docx4j's two `Lister`s (`Listing` in `TrackedChange.mts`):
+  - **The public listing** (`getTrackedChanges`, `getAllTrackedChanges`) lists the selected branch's changes
+    where the element stands, as phase 2 did. Each other branch's changes become their twins, paired by kind
+    and position, never by id (`pairTwins`, docx4j's). `accept()` and `reject()` resolve a change's twins
+    with it (`resolveTwins`), and each twin its own, for an element in an element's branch.
+  - **Resolve-all's listing** lists every other branch's changes on their own, after the story's. So each is
+    resolved, and a filter matches each on its own. The count stays the public listing's.
+- **At every level:** block, paragraph (`alternateTokens` among runs), row and cell. `Body.getTrackedChanges`
+  now walks a table's rows and a row's cells itself (`visitRows`, `visitCells`), to meet the element there.
+- **Departure: pieces are paired, not listed changes.** docx4j pairs listed changes, groups included. This
+  listing groups the selected branch's changes with what touches the element (phase 2 keeps nothing apart
+  there), so a group can run across the element's edge. Pairing pieces gives the same pairs on every shape
+  docx4j tests. It also means a piece resolved on its own resolves its twin, where docx4j leaves the twin to
+  `acceptAll`.
+- **Text boxes** (a gap CR-011 section 7 left open): a text box in a kept element's selected branch has as twin
+  the box at its place in each other branch (docx4j's `Lister.twins`), paired the same way. So one change
+  accepted in a text box resolves its `mc:Fallback` twin, as docx4j's does. Resolve-all already resolved
+  every branch's box (CR-010 section 11.2), so its results don't move.
+- A change in another branch that pairs with nothing is left to resolve-all, as in docx4j.
+
+### 10.2 Tables
+
+- **A deleted row in every branch:** accepted, its twin goes with it, and the table with both. docx4j's
+  `acceptingADeletedRowInEveryBranchRemovesTheTable` passes, which phase 2 asserted as differing.
+- **`removeCell`'s neighbour** is the row's as a reader sees it. A twin's is its own branch's, and a twin alone
+  in its branch widens nothing, the row's neighbour having been widened once (docx4j `60bd4b9ad`).
+- **A table's property records** are one change over every branch (docx4j `901a922a3`): `inChange`,
+  `hasTableRecords`, `tableRecordsOf`, `acceptTable` and `rejectTable` read every branch's rows and cells.
+  A record only another branch holds is listed and resolved. **The change's text** reads the selected branch,
+  what Word shows, so such a change has none, as in docx4j's `84b202c5a`.
+- **`collapseGrid`** counts the grid along each reading of a row (`cellLayoutsOf`, docx4j's `Lister.cellLayoutsOf`):
+  the selected branches' reading, then each other branch of each cell-level element in its place. Phase 2
+  counted every branch's cells along one row, which put the second branch's cells past the grid and dropped
+  their spans.
+  - **docx4j writes each reading's spans as it counts**, the last reading first. A cell outside the element is
+    in every reading, so the first reading counts it with the span already written. Where a collapse changes
+    such a cell's span, the cells after it are counted wrong. One example: a cell spanning two columns before
+    the element, its branches' cells spanning four, and six columns collapsed to three. Reading docx4j's code,
+    the Choice's cell would lose its span there. Here every span is counted before any is written, and the
+    result is the first cell at one column and each branch's at two. Reported to docx4j (section 10.7).
+- **The column passes** (`addColumns`, `insertColumns`, `deleteColumns`, `deleteColumn`, and their records) walk
+  every branch's rows and each row's readings:
+  - a new cell goes where the boundary falls in each reading, once where readings share the place, so each
+    branch of a cell-level element gains it;
+  - a deleted column's cell goes in every branch;
+  - `gridRangeOf` reads along the readings, so a cell after a cell-level element is placed past its columns.
+    It was placed as if the element weren't there.
+- **`addRows` beside an element** was right already: new rows go into the table's own content, outside it. A
+  test holds it.
+
+### 10.3 The bulk edits
+
+- **`writingEveryBranch`** (`tree.mts`): inside a bulk edit, the views it makes of what is in a branch write.
+  A caller's views still refuse (D4).
+- **`replaceText`** searches every branch's paragraphs (`paragraphsIn('every')`), each on its own, and counts
+  the matches a reader sees, as resolve-all counts the listed changes. A body in a branch refuses it (D4).
+- **A tracked `Body.clear`** marks every branch's paragraphs and rows deleted.
+- **A tracked row or table deletion** (`deleteRows`, `TableRow.delete`, `Table.delete`) marks every branch's rows
+  and their cells' content deleted (`Body.markContentDeleted`). **Inserted content** (`trackInsertedTable`,
+  `trackInsertedBlock`, `markRowsInserted`) marks every branch's rows, cells and blocks.
+- **The binding passes:**
+  - `applyBindings` binds every branch's controls (`Body.contentControlsIn('every')`, an extension) and counts
+    the ones a reader sees;
+  - `updateFromContentControls` reads the controls a reader sees, since the selected branch is what Word shows
+    and writes back;
+  - `removePart` unbinds every branch's controls.
+- **A reply** (`Comment.reply`) is anchored after its parent's markers in every branch that holds them.
+- **`resolveUnlisted`** sweeps every branch, and its markers sweep reaches run-level branches.
+- **Moves:** the selected branch is part of the story it stands in, and another branch is a story of its own
+  (`storyOf`; docx4j's twin stories). So a move is paired within its branch. `movePiecesOf` reads the selected
+  branch at block, row and cell level. A run-level element stays one object, as before.
+
+### 10.4 Ids, `toApiScript`, joins
+
+- **`assignParaId`** decides whether the document uses `w14:paraId`, and finds a free one, over every
+  branch. `paraIdTaken` and `nextCommentId` have since phase 2, and `nextSdtId` walks the whole tree.
+- **`commentParaId`**: a comment whose content starts with an element reads the selected branch's first
+  paragraph.
+- **`toApiScript`** writes a block-level element as its selected branch's content, through the verbs. That is
+  Word's reading, and what its save writes. A table with a row- or cell-level element goes whole through
+  `insertXml`, which takes it: only the element at block level is refused. Its plain-grid reading had dropped
+  the element's rows.
+- **`joinWithNext` before an element** stays as it is, decided as docx4j has it: a deleted mark before an
+  element, or at a branch's end, is dropped, not joined. "A join never crosses a container's boundary" (docx4j's
+  U1). What Word does there is unmeasured.
+
+### 10.5 What was checked
+
+- **docx4j's `TrackedChangesAlternateContentTest`**, all 20 cases, built in memory as docx4j builds them, give
+  docx4j's answers here. That includes the three phase 2 asserted as differing, and the four from docx4j's
+  fixes since (`60bd4b9ad`, `901a922a3` and `84b202c5a`'s text case).
+- **The sweep.** Over 797 `.docx` files (313 of this repository's, 296 of docx4j's test resources, 188 of the
+  editor's), this tree and `df5b4af` were compared on: the listing, Accept All, Reject All, every listed change
+  resolved one at a time, `replaceText`, a tracked `Body.clear`, `addColumns` then `deleteColumns`, a tracked
+  `Table.delete`, `applyBindings`, and `toApiScript`.
+  - **35 files differ, each as intended:**
+    - the `mc-fun` probes, both copies (25 files): the tracked clear, the tracked table deletion, the column
+      edits and `toApiScript` now reach the element;
+    - the 10 with revisions in a text box's `mc:Fallback` (`cr043-tracked` and the extraction probe's Word
+      saves, both copies): resolved one at a time, phase 2 left two revisions in each Fallback box and phase 3
+      leaves none.
+  - **The editor's `nested-table.docx` first differed in revision ids only**, from marking a nested table's rows
+    before its cell's paragraphs. `markContentDeleted` keeps the old order now, and the file is identical.
+  - **Everywhere else, nothing moves.** That covers Accept All, Reject All, the listing, `replaceText` and the
+    binding passes on all 797 files, since no file outside the probes has a block-, row- or cell-level element
+    with revisions or a bound control. Nothing throws.
+- **No suite row, agreement comparison or golden moves**: parity, XPath and the 96 revisions goldens.
+
+### 10.6 Tests
+
+- **`mc-fun.test.mjs`** (19 tests, 8 more). Phase 2's three gap tests now assert phase 3's answers: Accept All in
+  every branch, a deleted row in every branch taking its table, and the bulk edits reaching a branch. The new
+  tests:
+  - docx4j's twins at all four levels, Reject All, and a piece resolved alone;
+  - a filtered resolve-all, matching each branch's changes on their own;
+  - the cell and record cases, and a grid collapsed along each reading of a row;
+  - a text box's twin (`cr043-tracked`);
+  - a move within a branch;
+  - the tracked table deletion, the binding passes in both directions, `removePart`, a reply, a table inserted
+    under tracking;
+  - the column passes on `mc-cell-newest-first` and a row-level element, with rows added beside it;
+  - a `w14:paraId` only in a Fallback, and `toApiScript`.
+- 1,130 tests pass.
+
+### 10.7 What is left
+
+Nothing of this CR. Three notes:
+- **Views in a branch stay read-only** (D4). Editing there would be option (b), ED-009's rule at these levels,
+  which nobody has asked for.
+- **Comment markers in a run-level branch other than the selected one** aren't reached by the marker walk.
+  That walk reads a paragraph by its segments, so it sees the selected branch only. This is CR-010's run-level
+  rule (the editor's ED-009), not this CR's: no deleted comment has been found leaving one.
+- **docx4j's `collapseGrid`** reads a span it has already rewritten (section 10.2). Reported to docx4j-25 on 2026-10-22, from
+  reading its code. docx4j-25 measured the shape the same day: it gave the Choice's cell span 1 where 2, as
+  traced. It fixed it in `84b202c5a` (`VERSION_17_3_4`, unpushed when told): the counts are taken along every
+  reading from the spans as they were, then written. Its test is
+  `rejectingAGridChangeCountsEveryBranchsSpansFromTheOldOnes`, and its CR-051 section 12.5 records it. The same
+  commit has the table change's text read Word's branch. It also confirmed the table change's text: a record held only by another branch is
+  listed with empty text, as intended.

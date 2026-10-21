@@ -401,9 +401,8 @@ export const BRANCH_TYPES: ReadonlySet<string> = new Set(['org_docx4j_mce.Altern
 
 /**
  * How a walk takes a kept `mc:AlternateContent` among blocks, rows or cells (CR-013): `'read'`, a reader's,
- * its selected branch (`selectedBranchOf`), as Word reads it; `'every'`, every branch, Choices first. With
- * no mode the element is stepped over, as every walk did before CR-013 phase 2 and the mutators still do
- * until its phase 3.
+ * its selected branch (`selectedBranchOf`), as Word reads it; `'every'`, a mutator's, every branch, Choices
+ * first (phase 3). With no mode the element is stepped over, as every walk did before CR-013 phase 2.
  */
 export type BranchMode = 'read' | 'every';
 
@@ -434,13 +433,32 @@ export function branchesOf(value: mce.AlternateContent): Element[][] {
   return out;
 }
 
+/** How many bulk edits are writing in every branch now (`writingEveryBranch`). */
+let everyBranch = 0;
+
+/**
+ * Runs a bulk edit that reaches every branch of a kept `mc:AlternateContent` (CR-013 phase 3): a
+ * `replaceText`, a tracked clear or row deletion, the binding passes. Inside it the views it makes of
+ * what is in a branch write, where a caller's view refuses (D4): the edit itself reaches every branch,
+ * the selected one and the others alike, as CR-010's rule has mutators do.
+ */
+export function writingEveryBranch<T>(edit: () => T): T {
+  everyBranch++;
+  try {
+    return edit();
+  } finally {
+    everyBranch--;
+  }
+}
+
 /**
  * Refuses a write through a view in a branch of a kept `mc:AlternateContent` at block, row or cell level
  * (CR-013 D4): the view reads the selected branch, and a write would have to reach the element's other
- * branches too, which nothing maps (CR-013 phase 3). `className` is Office JS's ('Paragraph', 'Body').
+ * branches too, which nothing maps. A bulk edit reaching every branch writes there (`writingEveryBranch`).
+ * `className` is Office JS's ('Paragraph', 'Body').
  */
 export function assertOutsideBranch(value: object | undefined, className: string, what = `this ${className.toLowerCase()}`): void {
-  if (inBranch(value)) {
+  if (everyBranch === 0 && inBranch(value)) {
     throw new NotSupportedError(className, 'edit', `${what} is in a branch of an mc:AlternateContent, which is read-only (CR-013 D4): `
       + "a write would have to reach the element's other branches too, which nothing maps yet");
   }
@@ -459,6 +477,32 @@ export function inBranch(value: object | undefined): boolean {
     if (tn !== undefined && BRANCH_TYPES.has(tn)) return true;
   }
   return false;
+}
+
+/**
+ * True for a value no reader sees: inside a branch of a kept `mc:AlternateContent` other than the one
+ * `selectedBranchOf` takes, at any depth (CR-013 phase 3). What a bulk edit writes there it does not
+ * count, as resolve-all counts the listed changes: the count is of what a reader sees.
+ */
+export function inUnreadBranch(value: object | undefined): boolean {
+  let o = (value as { PARENT?: object } | undefined)?.PARENT;
+  for (let guard = 0; o && guard < 256; guard++, o = (o as { PARENT?: object }).PARENT) {
+    const tn = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (tn === undefined || !BRANCH_TYPES.has(tn)) continue;
+    const ac = (o as { PARENT?: object }).PARENT as mce.AlternateContent | undefined;
+    if (ac && selectedBranchOf(ac) !== (o as { any?: Element[] }).any) return true;
+  }
+  return false;
+}
+
+/**
+ * The lists a walk takes for a kept `mc:AlternateContent` among blocks, rows or cells: a reader's
+ * (`'read'`) its selected branch, a mutator's (`'every'`) every branch, the Choices first.
+ */
+export function branchListsOf(value: mce.AlternateContent, mode: BranchMode): Element[][] {
+  if (mode === 'every') return branchesOf(value);
+  const read = selectedBranchOf(value);
+  return read ? [read] : [];
 }
 
 /** An element with the array that holds it: what a view needs to edit it in place. */
@@ -485,7 +529,7 @@ export function cellsOf(tr: object, mode?: BranchMode): Located<wml.Tc>[] {
   return located(childrenOf(tr), 'org_docx4j_wml.Tc', CELL_HOLDERS, mode) as Located<wml.Tc>[];
 }
 
-function located(items: Element[] | undefined, typeName: string, holders: Set<string>, mode: BranchMode | undefined): Located[] {
+function located(items: Element[] | undefined, typeName: string, holders: Set<string>, mode: BranchMode | undefined, reading?: { ac: object; branch: Element[] }): Located[] {
   const out: Located[] = [];
   const visit = (list: Element[] | undefined): void => {
     if (!list) return;
@@ -494,12 +538,43 @@ function located(items: Element[] | undefined, typeName: string, holders: Set<st
       if (tn === typeName) out.push({ element, container: list });
       else if (tn !== undefined && holders.has(tn) && typeof element.value === 'object' && element.value !== null) visit(childrenOf(element.value));
       else if (tn === ALTERNATE_CONTENT && mode !== undefined) {
-        if (mode === 'read') visit(selectedBranchOf(element.value as mce.AlternateContent));
-        else for (const branch of branchesOf(element.value as mce.AlternateContent)) visit(branch);
+        if (reading && element.value === reading.ac) visit(reading.branch);
+        else for (const branch of branchListsOf(element.value as mce.AlternateContent, mode)) visit(branch);
       }
     }
   };
   visit(items);
+  return out;
+}
+
+/**
+ * A row's cells as laid along the grid, one list per reading of the row (docx4j's `Lister.cellLayoutsOf`,
+ * its CR-051 phase 2): the selected branches' first (`cellsOf(tr, 'read')`), then, for each cell-level
+ * `mc:AlternateContent` and each of its other branches, the row read with that branch in the element's
+ * place. Every branch spans the same grid columns, so every cell is in some list at its grid position:
+ * what a pass over the grid's columns walks (`collapseGrid`, the column passes; CR-013 phase 3).
+ */
+export function cellLayoutsOf(tr: object): Located<wml.Tc>[][] {
+  const out: Located<wml.Tc>[][] = [cellsOf(tr, 'read')];
+  const elements: mce.AlternateContent[] = [];
+  const collect = (list: Element[] | undefined): void => {
+    for (const element of list ?? []) {
+      const tn = typeNameOf(element);
+      if (tn === ALTERNATE_CONTENT) {
+        elements.push(element.value as mce.AlternateContent);
+        for (const branch of branchesOf(element.value as mce.AlternateContent)) collect(branch);
+      } else if (tn !== undefined && CELL_HOLDERS.has(tn) && typeof element.value === 'object' && element.value !== null) {
+        collect(childrenOf(element.value));
+      }
+    }
+  };
+  collect(childrenOf(tr));
+  for (const ac of elements) {
+    const read = selectedBranchOf(ac);
+    for (const branch of branchesOf(ac)) {
+      if (branch !== read) out.push(located(childrenOf(tr), 'org_docx4j_wml.Tc', CELL_HOLDERS, 'read', { ac, branch }) as Located<wml.Tc>[]);
+    }
+  }
   return out;
 }
 

@@ -26,7 +26,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { tc as cellElementOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, rowsOf, cellsOf, childrenOf, linkParents, paragraphOf } from './tree.mjs';
+import { type Element, type Located, rowsOf, cellsOf, cellLayoutsOf, childrenOf, linkParents, paragraphOf } from './tree.mjs';
 import { type ChangeTracker, wrapInsertedRuns } from './tracking.mjs';
 
 /** The default text width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
@@ -166,6 +166,31 @@ function paragraphPropertiesFrom(template: wml.Tc | undefined): wml.PPr | undefi
   return Object.keys(out).length > 0 ? (out as wml.PPr) : undefined;
 }
 
+/**
+ * The rows the column passes walk: every branch's of a kept row-level `mc:AlternateContent`, since the
+ * grid is every branch's; a row's cells along each of its layouts (`cellLayoutsOf`), so a cell-level
+ * element's every branch gains and loses the columns its selected branch does (CR-013 phase 3).
+ */
+function everyRow(tbl: wml.Tbl): wml.Tr[] {
+  return rowsOf(tbl, 'every').map((row) => row.element.value);
+}
+
+/** Each cell of a row once, with the grid columns it covers, along the row's layouts. */
+function cellExtentsOf(tr: wml.Tr): { cell: Located<wml.Tc>; start: number; end: number }[] {
+  const out: { cell: Located<wml.Tc>; start: number; end: number }[] = [];
+  const seen = new Set<wml.Tc>();
+  for (const layout of cellLayoutsOf(tr)) {
+    let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
+    for (const cell of layout) {
+      const tc = cell.element.value;
+      const end = at + spanOf(tc);
+      if (!seen.has(tc)) { seen.add(tc); out.push({ cell, start: at, end }); }
+      at = end;
+    }
+  }
+  return out;
+}
+
 /** Where a new column's cells go in one row, and which cell they take their properties from. */
 interface RowPlan {
   tr: wml.Tr;
@@ -220,39 +245,61 @@ export function insertGridColumns(tbl: wml.Tbl, textWidth: number, gridIndex: nu
   const unscaled = [...old.slice(0, gridIndex), ...Array.from({ length: count }, () => copied), ...old.slice(gridIndex)];
   const widths = mode === 'window' ? rescaled(unscaled, old.reduce((a, b) => a + b, 0)) : unscaled;
 
-  const rows = rowsOf(tbl).map((row) => row.element.value);
-  const plans: RowPlan[] = rows.map((tr) => planRow(tr, gridIndex));
+  // the rows a reader sees, which `values` and the result are by; then every other branch's (CR-013 phase 3)
+  const read = rowsOf(tbl, 'read').map((row) => row.element.value);
+  const rows = [...read, ...everyRow(tbl).filter((tr) => !read.includes(tr))];
+  // a row's plan per layout: a cell-level element's branches each get the new cells where the boundary falls in them
+  const plans: RowPlan[][] = rows.map((tr) => planRow(tr, gridIndex));
   // an AutoFit-to-contents add changes no width, and Office JS records nothing for it (check 41c)
   const record = tracker && mode !== 'contents' ? recordTable(tbl, rows, tracker) : undefined;
 
   const result: ColumnInsertion = { cells: [] };
-  plans.forEach((plan, rowIndex) => {
-    const tr = plan.tr;
-    if (plan.skipped) { plan.skipped.value.val = Number(plan.skipped.value.val ?? 0) + count; result.cells.push([]); return; }
-    const cells = newCells(count, values?.[rowIndex], plan.template);
-    plan.container!.splice(plan.at!, 0, ...cells);
-    const owner = ownerOfCells(tr, plan.container!);
-    for (const cell of cells) linkParents(cell, owner);
-    if (tracker) for (const cell of cells) for (const block of childrenOf(cell.value) ?? []) wrapInsertedRuns(tracker, childrenOf(block.value as object), block.value as object);
-    result.cells.push(cells);
+  const added: Element<wml.Tc>[] = [];
+  plans.forEach((rowPlans, rowIndex) => {
+    const shown: Element<wml.Tc>[] = [];
+    rowPlans.forEach((plan, layout) => {
+      const tr = plan.tr;
+      if (plan.skipped) { plan.skipped.value.val = Number(plan.skipped.value.val ?? 0) + count; return; }
+      const cells = newCells(count, rowIndex < read.length ? values?.[rowIndex] : undefined, plan.template);
+      plan.container!.splice(plan.at!, 0, ...cells);
+      const owner = ownerOfCells(tr, plan.container!);
+      for (const cell of cells) linkParents(cell, owner);
+      if (tracker) for (const cell of cells) for (const block of childrenOf(cell.value) ?? []) wrapInsertedRuns(tracker, childrenOf(block.value as object), block.value as object);
+      added.push(...cells);
+      if (layout === 0) shown.push(...cells);
+    });
+    if (rowIndex < read.length) result.cells.push(shown);
   });
 
   // the grid, the table's width, and the cells' widths in their forms
   writeGrid(tbl, widths);
   const tblW = tbl.tblPr?.tblW;
   if (mode === 'fixed' && tblW?.type === 'dxa') tblW.w = Number(tblW.w ?? 0) + copied * count;
-  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : result.cells.flat().map((c) => c.value));
-  if (record) record(result.cells.flat().map((c) => c.value), { unscaled, scaled: widths });
+  writeCellWidths(tbl, widths, mode === 'window' ? 'all' : added.map((c) => c.value));
+  if (record) record(added.map((c) => c.value), { unscaled, scaled: widths });
   return result;
 }
 
-/** Where the boundary falls in a row: at or inside a cell (the new cells go before it), in its skipped columns, or after its last cell. */
-function planRow(tr: wml.Tr, gridIndex: number): RowPlan {
+/**
+ * Where the boundary falls in a row, along each of its layouts (`cellLayoutsOf`): at or inside a cell
+ * (the new cells go before it), in its skipped columns, or after its last cell. A place two layouts
+ * share (outside a cell-level element) is planned once, so each list gains the new cells once.
+ */
+function planRow(tr: wml.Tr, gridIndex: number): RowPlan[] {
   const before = rowMember(tr, 'gridBefore');
   const after = rowMember(tr, 'gridAfter');
   const skippedBefore = Number(before?.value.val ?? 0);
-  if (before && gridIndex < skippedBefore) return { tr, skipped: before };
-  const cells = cellsOf(tr);
+  if (before && gridIndex < skippedBefore) return [{ tr, skipped: before }];
+  const plans: RowPlan[] = [];
+  const planned = (plan: RowPlan): boolean => plans.some((p) => (p.skipped !== undefined && p.skipped === plan.skipped) || (p.container !== undefined && p.container === plan.container && p.at === plan.at));
+  for (const cells of cellLayoutsOf(tr)) {
+    const plan = planLayout(tr, cells, gridIndex, skippedBefore, after);
+    if (!planned(plan)) plans.push(plan);
+  }
+  return plans;
+}
+
+function planLayout(tr: wml.Tr, cells: Located<wml.Tc>[], gridIndex: number, skippedBefore: number, after: RowMember | undefined): RowPlan {
   let at = skippedBefore;
   for (const cell of cells) {
     const tc = cell.element.value;
@@ -268,16 +315,12 @@ function planRow(tr: wml.Tr, gridIndex: number): RowPlan {
   return { tr, container: last.container, at: last.container.indexOf(last.element) + 1, template: last.element.value };
 }
 
-/** Every cell's `w:tcW` from the grid (`all`), or only the given cells', each in the form it takes. */
+/** Every cell's `w:tcW` from the grid (`all`), or only the given cells', each in the form it takes, in every branch. */
 function writeCellWidths(tbl: wml.Tbl, widths: number[], which: 'all' | wml.Tc[]): void {
-  for (const row of rowsOf(tbl)) {
-    const tr = row.element.value;
-    let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
-    for (const cell of cellsOf(tr)) {
+  for (const tr of everyRow(tbl)) {
+    for (const { cell, start, end } of cellExtentsOf(tr)) {
       const tc = cell.element.value;
-      const end = at + spanOf(tc);
-      if (which === 'all' || which.includes(tc)) writeCellWidth(tc, tbl, widths, at, end);
-      at = end;
+      if (which === 'all' || which.includes(tc)) writeCellWidth(tc, tbl, widths, start, end);
     }
   }
 }
@@ -306,7 +349,7 @@ function recordTable(tbl: wml.Tbl, rows: wml.Tr[], tracker: ChangeTracker): (add
   const oldTblPr = tblPr && !tblPr.tblPrChange ? without(tblPr, ['tblPrChange']) : undefined;
   const recordGrid = !tbl.tblGrid?.tblGridChange;
   const oldCells: [wml.Tc, wml.TcPrInner][] = [];
-  for (const tr of rows) for (const cell of cellsOf(tr)) {
+  for (const tr of rows) for (const cell of cellsOf(tr, 'every')) {
     const tc = cell.element.value;
     if (!tc.tcPr?.tcPrChange) oldCells.push([tc, recordedCellProperties(tc)]);
   }
@@ -358,16 +401,7 @@ function mergedEdges(unscaled: number[], scaled: number[]): { widths: number[]; 
 /** Each cell's column extent in the grid as it is now, through the rows' spans and skipped columns. */
 function cellExtents(tbl: wml.Tbl): Map<wml.Tc, { start: number; end: number }> {
   const out = new Map<wml.Tc, { start: number; end: number }>();
-  for (const row of rowsOf(tbl)) {
-    const tr = row.element.value;
-    let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
-    for (const cell of cellsOf(tr)) {
-      const tc = cell.element.value;
-      const end = at + spanOf(tc);
-      out.set(tc, { start: at, end });
-      at = end;
-    }
-  }
+  for (const tr of everyRow(tbl)) for (const { cell, start, end } of cellExtentsOf(tr)) out.set(cell.element.value, { start, end });
   return out;
 }
 
@@ -378,7 +412,7 @@ function recordedCellProperties(tc: wml.Tc): wml.TcPrInner {
 
 /** Whether a cell is still in the table (a deleted column's cells are not). */
 function isInTable(tc: wml.Tc, tbl: wml.Tbl): boolean {
-  return rowsOf(tbl).some((row) => cellsOf(row.element.value).some((cell) => cell.element.value === tc));
+  return everyRow(tbl).some((tr) => cellsOf(tr, 'every').some((cell) => cell.element.value === tc));
 }
 
 function without(value: object | undefined, keys: string[]): Record<string, unknown> {
@@ -401,31 +435,31 @@ export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: 
   const old = gridWidthsOf(tbl, textWidth);
   if (columnIndex < 0 || columnIndex + count > old.length) throw new Docx4JException(`No columns ${columnIndex} to ${columnIndex + count - 1} in a grid of ${old.length} columns`);
   const mode = layoutModeOf(tbl);
-  const record = tracker && mode !== 'contents' ? recordTable(tbl, rowsOf(tbl).map((row) => row.element.value), tracker) : undefined;
+  const record = tracker && mode !== 'contents' ? recordTable(tbl, everyRow(tbl), tracker) : undefined;
   const from = columnIndex;
   const to = columnIndex + count;
   const overlap = (start: number, end: number): number => Math.max(0, Math.min(end, to) - Math.max(start, from));
-  for (const row of rowsOf(tbl)) {
-    const tr = row.element.value;
+  // every branch's rows, and every branch's cells at their grid columns (CR-013 phase 3)
+  for (const tr of everyRow(tbl)) {
+    const extents = cellExtentsOf(tr);
     const before = rowMember(tr, 'gridBefore');
     const skippedBefore = Number(before?.value.val ?? 0);
+    // the row's last cell edge, before anything shrinks: every layout ends there
+    const lastEdge = extents.reduce((edge, extent) => Math.max(edge, extent.end), skippedBefore);
     if (before) before.value.val = skippedBefore - overlap(0, skippedBefore);
-    let at = skippedBefore;
-    for (const cell of cellsOf(tr)) {
+    for (const { cell, start, end } of extents) {
       const tc = cell.element.value;
-      const span = spanOf(tc);
-      const end = at + span;
-      const covered = overlap(at, end);
+      const span = end - start;
+      const covered = overlap(start, end);
       if (covered === span) {
         const i = cell.container.indexOf(cell.element);
         if (i >= 0) cell.container.splice(i, 1);
       } else if (covered > 0) {
         setSpan(tc, span - covered);
       }
-      at = end;
     }
     const after = rowMember(tr, 'gridAfter');
-    if (after) { const skippedAfter = Number(after.value.val ?? 0); after.value.val = skippedAfter - overlap(at, at + skippedAfter); }
+    if (after) { const skippedAfter = Number(after.value.val ?? 0); after.value.val = skippedAfter - overlap(lastEdge, lastEdge + skippedAfter); }
   }
   const removed = old.slice(from, to).reduce((a, b) => a + b, 0);
   let widths = [...old.slice(0, from), ...old.slice(to)];
@@ -441,15 +475,11 @@ export function deleteGridColumns(tbl: wml.Tbl, textWidth: number, columnIndex: 
 function shrunkCells(tbl: wml.Tbl): wml.Tc[] {
   const out: wml.Tc[] = [];
   const widths = tbl.tblGrid?.gridCol?.map((col) => Number(col.w ?? 0)) ?? [];
-  for (const row of rowsOf(tbl)) {
-    const tr = row.element.value;
-    let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
-    for (const cell of cellsOf(tr)) {
+  for (const tr of everyRow(tbl)) {
+    for (const { cell, start, end } of cellExtentsOf(tr)) {
       const tc = cell.element.value;
-      const end = at + spanOf(tc);
       const tcW = tc.tcPr?.tcW;
-      if (tcW?.type === 'dxa' && Number(tcW.w ?? 0) !== widths.slice(at, end).reduce((a, b) => a + b, 0)) out.push(tc);
-      at = end;
+      if (tcW?.type === 'dxa' && Number(tcW.w ?? 0) !== widths.slice(start, end).reduce((a, b) => a + b, 0)) out.push(tc);
     }
   }
   return out;
@@ -457,11 +487,7 @@ function shrunkCells(tbl: wml.Tbl): wml.Tc[] {
 
 /** The grid columns a cell covers: its start and the one past its end. */
 export function gridRangeOf(tr: wml.Tr, tc: wml.Tc): { start: number; end: number } | undefined {
-  let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
-  for (const cell of cellsOf(tr)) {
-    const end = at + spanOf(cell.element.value);
-    if (cell.element.value === tc) return { start: at, end };
-    at = end;
-  }
-  return undefined;
+  // along the row's layouts, so a cell after a cell-level mc:AlternateContent is placed past its columns
+  const extent = cellExtentsOf(tr).find(({ cell }) => cell.element.value === tc);
+  return extent ? { start: extent.start, end: extent.end } : undefined;
 }

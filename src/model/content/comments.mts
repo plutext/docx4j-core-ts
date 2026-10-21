@@ -295,10 +295,24 @@ export function randomHexId(taken: (id: string) => boolean): string {
   throw new Docx4JException('Could not allocate a paragraph id');
 }
 
-/** The `w14:paraId` of a comment's first paragraph: the key of its w15 and w16cid entries. */
+/**
+ * The `w14:paraId` of a comment's first paragraph: the key of its w15 and w16cid entries. A kept
+ * `mc:AlternateContent` before any paragraph is read in its selected branch, as Word reads it (CR-013
+ * phase 3; docx4j's `Trees.lastParaId` looks into the branch the same way).
+ */
 export function commentParaId(comment: wml.Comments.Comment): string | undefined {
-  for (const el of comment.content ?? []) if (typeNameOf(el) === 'org_docx4j_wml.P') return (el.value as wml.P).paraId;
-  return undefined;
+  const first = (items: Element[]): string | undefined | null => {
+    for (const el of items) {
+      const tn = typeNameOf(el);
+      if (tn === 'org_docx4j_wml.P') return (el.value as wml.P).paraId;
+      if (tn === ALTERNATE_CONTENT) {
+        const found = first(selectedBranchOf(el.value as mce.AlternateContent) ?? []);
+        if (found !== null) return found;
+      }
+    }
+    return null;
+  };
+  return first((comment.content ?? []) as Element[]) ?? undefined;
 }
 
 /** True when a paragraph id is already used by a comment or by a paragraph of the document. */

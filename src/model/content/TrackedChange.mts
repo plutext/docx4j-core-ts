@@ -7,7 +7,7 @@ import type * as math from '@docx4j/generated-objects-ts/modules/org_docx4j_math
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
+import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf, selectedBranchOf, branchesOf, BRANCH_TYPES, ALTERNATE_CONTENT } from './tree.mjs';
 import { removeMarkers } from './comments.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -300,8 +300,18 @@ export class TrackedChange {
    */
   accept(): boolean {
     if (!this.isCurrent()) return false;
-    resolving(this.package_, this.body_, () => this.acceptHere());
+    resolving(this.package_, this.body_, () => { this.acceptHere(); this.resolveTwins('accept'); });
     return true;
+  }
+
+  /**
+   * The change's twins resolved the same way: the changes in the other branches of the kept
+   * `mc:AlternateContent` this one was listed from, paired with it by kind and position (`pairTwins`,
+   * docx4j's; CR-013 phase 3), each with its own twins. A group's twins are its pieces', which its
+   * pieces resolve. A twin resolved since it was listed is passed over.
+   */
+  private resolveTwins(what: 'accept' | 'reject'): void {
+    for (const twin of twinsOf.get(this) ?? []) if (twin.isCurrent()) twin[what]();
   }
 
   private acceptHere(): void {
@@ -337,7 +347,7 @@ export class TrackedChange {
         return;
       case 'cell':
         // an inserted cell stays, a deleted one goes (check 27)
-        if (t.cell === 'ins') delete t.tc.value.tcPr?.cellIns; else removeCell(t.tc, t.owner);
+        if (t.cell === 'ins') delete t.tc.value.tcPr?.cellIns; else removeCell(t.tc, t.owner, t.tr);
         return;
       case 'markProperties': {
         const p = this.requireParagraph().p;
@@ -374,7 +384,7 @@ export class TrackedChange {
    */
   reject(): boolean {
     if (!this.isCurrent()) return false;
-    resolving(this.package_, this.body_, () => this.rejectHere());
+    resolving(this.package_, this.body_, () => { this.rejectHere(); this.resolveTwins('reject'); });
     return true;
   }
 
@@ -456,7 +466,7 @@ export class TrackedChange {
         rejectTable(t.tbl.value);
         return;
       case 'cell':
-        if (t.cell === 'del') delete t.tc.value.tcPr?.cellDel; else removeCell(t.tc, t.owner);
+        if (t.cell === 'del') delete t.tc.value.tcPr?.cellDel; else removeCell(t.tc, t.owner, t.tr);
         return;
       case 'markProperties':
         restoreMarkProperties(this.requireParagraph().p, t.value);
@@ -1393,7 +1403,7 @@ const RANGE_MARKERS: Readonly<Record<string, { kind: 'start' | 'end'; side: 'fro
 function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolean {
   const t = change.target;
   if (t.kind !== 'run' || !change.paragraph) return false;
-  const story = storyOf(change.paragraph.p);
+  const story = storyOf(t.element.value as object);
   const pieces = movePiecesOf(story);
   const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
   if (!half || half.kind !== 'half' || half.names.length === 0) return false;
@@ -1444,12 +1454,25 @@ function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolea
   return true;
 }
 
-/** The story a paragraph is in: the outermost array of block content above it (a body, a header, a note). */
-export function storyOf(p: wml.P): Element[] {
+/**
+ * The story a paragraph is in, for its moves: the outermost array of block content above it (a body, a
+ * header, a note). A kept `mc:AlternateContent`'s selected branch is part of the story it stands in, as
+ * Word reads it; another branch is a story of its own, its list (docx4j's twin stories, its CR-051 phase
+ * 2; CR-013 phase 3), so a move is paired within the branch. `value` may be the paragraph or anything in
+ * it, a run-level branch's revision among them.
+ */
+export function storyOf(value: object): Element[] {
   let story: Element[] | undefined;
-  for (let o: object | undefined = p; o !== undefined; o = (o as { PARENT?: object }).PARENT) {
+  for (let o: object | undefined = value; o !== undefined; o = (o as { PARENT?: object }).PARENT) {
+    const tn = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (tn !== undefined && BRANCH_TYPES.has(tn)) {
+      const ac = (o as { PARENT?: object }).PARENT as mce.AlternateContent | undefined;
+      const items = (o as { any?: Element[] }).any;
+      if (ac && items && selectedBranchOf(ac) !== items) return items;
+      continue;
+    }
     const content = (o as { content?: unknown }).content;
-    if (Array.isArray(content) && (o as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.P') story = content as Element[];
+    if (Array.isArray(content) && tn !== 'org_docx4j_wml.P') story = content as Element[];
   }
   return story ?? [];
 }
@@ -1479,6 +1502,9 @@ export function movePiecesOf(story: Element[]): MovePiece[] {
       }
       const v = el.value;
       if (typeof v !== 'object' || v === null) continue;
+      // a kept mc:AlternateContent at block, row or cell level: its selected branch, part of this story
+      // (`storyOf`); among runs it is one object, as before (CR-010 phase 3)
+      if (typeNameOf(el) === ALTERNATE_CONTENT) { if (!runLevel) visit(selectedBranchOf(v as mce.AlternateContent) ?? []); continue; }
       const children = childrenOf(v) ?? runItemsOf(v);
       if (children) visit(children, typeNameOf(el) === 'org_docx4j_wml.P');
       if (typeNameOf(el) === 'org_docx4j_wml.P') {
@@ -1505,7 +1531,7 @@ function resolveRangelessHalf(change: TrackedChange, action: 'accept' | 'reject'
   const t = change.target;
   const paragraph = change.paragraph;
   if (t.kind !== 'run' || (t.revision !== 'moveTo' && t.revision !== 'moveFrom') || !paragraph) return false;
-  const story = storyOf(paragraph.p);
+  const story = storyOf(t.element.value as object);
   const pieces = movePiecesOf(story);
   const half = pieces.find((piece) => piece.kind === 'half' && piece.element === t.element);
   if (!half || half.kind !== 'half' || half.names.length > 0) return false;
@@ -1620,15 +1646,83 @@ export const BREAK = 'break' as const;
 export type TrackedChangeToken = TrackedChange | typeof BREAK;
 
 /**
+ * How a listing takes the branches of a kept `mc:AlternateContent` (CR-013 phase 3), docx4j's two
+ * `Lister`s: `'listed'`, the public listing, lists the selected branch's changes where the element stands
+ * and pairs each other branch's with them as twins (`pairTwins`), so that resolving a listed change
+ * resolves its twins; `'every'`, resolve-all's, lists every other branch's changes on their own, into
+ * `extra`, which the caller puts after the story's, so that each is resolved, matched by a filter on its
+ * own, and the selected branch's grouping is the public listing's.
+ */
+export interface Listing {
+  mode: 'listed' | 'every';
+  extra: TrackedChangeToken[];
+}
+
+/** The public listing's (`Listing`). */
+export function listedListing(): Listing {
+  return { mode: 'listed', extra: [] };
+}
+
+/** The changes in the other branches each listed change resolves too (`TrackedChange.resolveTwins`). */
+const twinsOf = new WeakMap<TrackedChange, TrackedChange[]>();
+
+/**
+ * A kept `mc:AlternateContent`'s changes: its selected branch's into `into`, as Word reads them, keeping
+ * nothing apart (CR-013 phase 2); each other branch's paired with them as twins or, resolve-all's,
+ * listed on their own after the story's (`Listing`). `visit` lists one branch's items, at the element's
+ * level (blocks, rows, cells or runs).
+ */
+export function alternateTokens(ac: mce.AlternateContent, visit: (items: Element[], into: TrackedChangeToken[]) => void, into: TrackedChangeToken[], listing: Listing): void {
+  const read = selectedBranchOf(ac);
+  const primary: TrackedChangeToken[] = [];
+  visit(read ?? [], primary);
+  into.push(...primary);
+  for (const branch of branchesOf(ac)) {
+    if (branch === read) continue;
+    const tokens: TrackedChangeToken[] = [];
+    visit(branch, tokens);
+    if (listing.mode === 'every') listing.extra.push(BREAK, ...tokens, BREAK);
+    else pairTwins(primary, tokens);
+  }
+}
+
+/**
+ * Another branch's changes attached to the listed branch's as twins, piece by piece: the n-th single
+ * change of a kind with the n-th of that kind, never by id, as docx4j pairs a text box's `mc:Fallback`
+ * changes and a branch's (its `Lister.pairTwins`; Word gives twins different ids). docx4j pairs the
+ * listed changes, groups included; pieces are paired here, since this listing groups the selected
+ * branch's with what touches the element, so a piece resolved on its own resolves its twin too.
+ */
+export function pairTwins(primary: readonly TrackedChangeToken[], twins: readonly TrackedChangeToken[]): void {
+  const piecesOf = (tokens: readonly TrackedChangeToken[]): TrackedChange[] => tokens.flatMap((token) => (token === BREAK ? [] : token.pieces));
+  const byKind = new Map<TrackedChangeKind, TrackedChange[]>();
+  for (const twin of piecesOf(twins)) {
+    let list = byKind.get(twin.kind);
+    if (!list) byKind.set(twin.kind, list = []);
+    list.push(twin);
+  }
+  const seen = new Map<TrackedChangeKind, number>();
+  for (const piece of piecesOf(primary)) {
+    const n = seen.get(piece.kind) ?? 0;
+    seen.set(piece.kind, n + 1);
+    const twin = byKind.get(piece.kind)?.[n];
+    if (!twin) continue;
+    let list = twinsOf.get(piece);
+    if (!list) twinsOf.set(piece, list = []);
+    list.push(twin);
+  }
+}
+
+/**
  * A paragraph's single changes in document order, its mark last, with a `BREAK` wherever unrevised
  * content stands between two of them: `groupTouching` makes the groups from these.
  */
-export function trackedChangeTokensOfParagraph(paragraph: Paragraph): TrackedChangeToken[] {
+export function trackedChangeTokensOfParagraph(paragraph: Paragraph, listing: Listing = listedListing()): TrackedChangeToken[] {
   const out: TrackedChangeToken[] = [];
   const p = paragraph.p;
   const pPrChange = p.pPr?.pPrChange;
   if (pPrChange) out.push(new TrackedChange({ kind: 'paragraphProperties', value: pPrChange }, paragraph));
-  tokensOfRunLevel(paragraph, (p.content ?? []) as Element[], out);
+  tokensOfRunLevel(paragraph, (p.content ?? []) as Element[], out, listing);
   const rPr = p.pPr?.rPr;
   // a mark whose formatting changed is a piece, grouping with its runs' (check 27: "Before.\r")
   if (rPr?.rPrChange) out.push(new TrackedChange({ kind: 'markProperties', value: rPr.rPrChange }, paragraph));
@@ -1653,14 +1747,14 @@ function sectionText(items: Element[], end: number): string {
     .map((el) => textOfView(el.value as object, { view: 'accepted', characters: 'textOf' })).join('\r');
 }
 
-function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[]): void {
+function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[], listing: Listing): void {
   for (let i = 0; i < items.length; i++) {
     const el = items[i]!;
     // an inline control or custom XML element that is itself an insertion: a piece, then what is in it
     const inserted = holderInsertionAt(items, i, paragraph);
     if (inserted) {
       out.push(inserted);
-      tokensOfRunLevel(paragraph, childrenOf(items[i + 1]!.value as object) ?? [], out);
+      tokensOfRunLevel(paragraph, childrenOf(items[i + 1]!.value as object) ?? [], out, listing);
       i += 2;
       continue;
     }
@@ -1687,7 +1781,7 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       if (nested) {
         // a revision inside a revision (a deletion of inserted text) was not measured: listed apart
         const inner: TrackedChangeToken[] = [];
-        tokensOfRunLevel(paragraph, nested, inner);
+        tokensOfRunLevel(paragraph, nested, inner, listing);
         if (inner.some((token) => token !== BREAK && token.target.kind === 'run')) out.push(BREAK, ...inner, BREAK);
         else out.push(...inner.filter((token) => token !== BREAK));
       }
@@ -1703,9 +1797,9 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       continue;
     }
     // a kept mc:AlternateContent among runs: its selected branch, as Word reads it, keeping nothing apart
-    // (CR-013 phase 2; docx4j CR-051 section 10.5 item 3). The other branches' revisions are not listed
+    // (CR-013 phase 2; docx4j CR-051 section 10.5 item 3), the other branches' changes its twins (phase 3)
     if (typeNameOf(el) === ALTERNATE_CONTENT) {
-      tokensOfRunLevel(paragraph, selectedBranchOf(el.value as mce.AlternateContent) ?? [], out);
+      alternateTokens(el.value as mce.AlternateContent, (branch, into) => tokensOfRunLevel(paragraph, branch, into, listing), out, listing);
       continue;
     }
     // a run holder that is not itself an insertion - a hyperlink, a field, a control or custom XML
@@ -1714,7 +1808,7 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
     // over a w:fldSimple and an unmarked inline w:sdt (check 30, part C), against one change over an
     // inserted control (above) and over Word's own one-w:ins forms
     const nested = runItemsOf(el.value as object);
-    if (nested) { out.push(BREAK); tokensOfRunLevel(paragraph, nested, out); out.push(BREAK); }
+    if (nested) { out.push(BREAK); tokensOfRunLevel(paragraph, nested, out, listing); out.push(BREAK); }
   }
 }
 
@@ -1804,16 +1898,22 @@ export function bodySectionChangeOf(container: { content?: Element[]; sectPr?: w
 /**
  * A cell taken out of its row, the cell before it (else after it) widened over its grid columns, as
  * Word did rejecting an inserted cell and accepting a deleted one (check 27: `w:gridSpan` 2 and the
- * two widths added).
+ * two widths added). The neighbour is the row's as a reader sees it, through cell-level controls and a
+ * kept `mc:AlternateContent`'s selected branch; a cell in another branch (a twin) has its own branch's
+ * cells for neighbours, and one alone there widens none, the row's neighbour having been widened once
+ * when the selected branch's cell went, every branch spanning the same columns (CR-013 phase 3, docx4j's
+ * `Tables.removeCell`, its 60bd4b9ad and 901a922a3).
  */
-function removeCell(tc: Element<wml.Tc>, owner: Element[]): void {
-  const i = owner.indexOf(tc);
+function removeCell(tc: Element<wml.Tc>, owner: Element[], tr: wml.Tr): void {
+  const list = currentOwner(owner, tc as Element);
+  const i = list.indexOf(tc);
   if (i < 0) return;
-  const cells = owner.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tc') as Element<wml.Tc>[];
+  let cells = cellsOf(tr, 'read').map((cell) => cell.element);
+  if (!cells.includes(tc)) cells = list.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tc') as Element<wml.Tc>[];
   const at = cells.indexOf(tc);
   const neighbour = cells[at - 1] ?? cells[at + 1];
   discarding(tc);
-  owner.splice(i, 1);
+  list.splice(i, 1);
   if (!neighbour) return;
   const removed = tc.value.tcPr;
   const kept = (neighbour.value.tcPr ??= { TYPE_NAME: 'org_docx4j_wml.TcPr' } as wml.TcPr);
@@ -1861,7 +1961,8 @@ function restoreSection(sectPr: wml.SectPr, change: wml.CTSectPrChange): void {
  * writes and drops when one is put in, and whose record is the old number's text, so that a reject
  * too can only drop it; and a table's records that change nothing. A merge rejected gets the merge it
  * recorded back (docx4j's reading; unmeasured). A `w:customXmlInsRangeStart` or `End` left without
- * the form `holderInsertionAt` lists marks nothing that can be found, and goes either way.
+ * the form `holderInsertionAt` lists marks nothing that can be found, and goes either way. Every branch
+ * of a kept `mc:AlternateContent` at block, row and cell level is swept (CR-013 phase 3).
  */
 export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): void {
   const visit = (list: Element[] | undefined): void => {
@@ -1881,8 +1982,8 @@ export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): vo
       if (tn === 'org_docx4j_wml.Tbl') {
         const tbl = el.value as wml.Tbl;
         if (hasTableRecords(tbl) && !tableRecordsOf(tbl)) acceptTable(tbl);
-        for (const row of rowsOf(tbl)) {
-          for (const cell of cellsOf(row.element.value)) {
+        for (const row of rowsOf(tbl, 'every')) {
+          for (const cell of cellsOf(row.element.value, 'every')) {
             const tcPr = cell.element.value.tcPr;
             if (tcPr?.cellMerge) resolveCellMerge(tcPr, what);
             visit(childrenOf(cell.element.value));
@@ -1891,7 +1992,10 @@ export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): vo
         continue;
       }
       const v = el.value;
-      if (typeof v === 'object' && v !== null) visit(childrenOf(v));
+      if (typeof v !== 'object' || v === null) continue;
+      // every branch of a kept mc:AlternateContent (CR-013 phase 3)
+      if (tn === ALTERNATE_CONTENT) for (const branch of branchesOf(v as mce.AlternateContent)) visit(branch);
+      else visit(childrenOf(v));
     }
   };
   visit(items);
@@ -1904,7 +2008,9 @@ function sweepMarkers(items: Element[] | undefined): void {
     const name = items[i]!.name?.localPart;
     if (name === 'customXmlInsRangeStart' || name === 'customXmlInsRangeEnd') { items.splice(i, 1); continue; }
     const v = items[i]!.value;
-    if (typeof v === 'object' && v !== null) sweepMarkers(runItemsOf(v));
+    if (typeof v !== 'object' || v === null) continue;
+    if (typeNameOf(items[i]!) === ALTERNATE_CONTENT) for (const branch of branchesOf(v as mce.AlternateContent)) sweepMarkers(branch);
+    else sweepMarkers(runItemsOf(v));
   }
 }
 

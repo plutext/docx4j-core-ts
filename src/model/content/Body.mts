@@ -4,7 +4,7 @@ import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT, BRANCH_TYPES, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type Located, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, branchesOf, branchListsOf, ALTERNATE_CONTENT, BRANCH_TYPES, inUnreadBranch, assertOutsideBranch, writingEveryBranch, type BranchMode } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf, runsOf } from './tree.mjs';
 import { textBoxesOf } from './textBoxes.mjs';
@@ -29,7 +29,7 @@ export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentCon
 import { commentApi } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, resolvePieces } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
 import { pieceMatcher, type TrackedChangeSelection } from './trackedChangeFilter.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
@@ -121,6 +121,15 @@ export class Body {
    * (CR-013 phase 2). A paragraph in a branch is read-only (D4).
    */
   get paragraphs(): Paragraph[] {
+    return this.paragraphsIn('read');
+  }
+
+  /**
+   * The paragraphs a walk in this mode takes: a reader's, `paragraphs`; a bulk edit's (`'every'`), every
+   * branch's too, the selected branch's where a reader sees them and each other branch's after them,
+   * where the element stands (CR-013 phase 3).
+   */
+  private paragraphsIn(mode: BranchMode): Paragraph[] {
     const out: Paragraph[] = [];
     const visit = (items: Element[]): void => {
       for (const el of items) {
@@ -130,9 +139,11 @@ export class Body {
           const v = el.value;
           if (typeof v !== 'object' || v === null) continue;
           if (tn === 'org_docx4j_wml.Tbl') {
-            for (const row of rowsOf(v, 'read')) for (const cell of cellsOf(row.element.value, 'read')) visit(childrenOf(cell.element.value) ?? []);
+            for (const row of rowsOf(v, mode)) for (const cell of cellsOf(row.element.value, mode)) visit(childrenOf(cell.element.value) ?? []);
+          } else if (tn === ALTERNATE_CONTENT) {
+            for (const branch of branchListsOf(v as mce.AlternateContent, mode)) visit(branch);
           } else {
-            const children = childrenOf(v, 'read');
+            const children = childrenOf(v);
             if (children) visit(children);
           }
         }
@@ -140,11 +151,6 @@ export class Body {
     };
     visit(this.content);
     return out;
-  }
-
-  /** The paragraphs a mutator walks until CR-013 phase 3: `paragraphs` less those in a branch, which it steps over as before. */
-  private paragraphsOutsideBranches(): Paragraph[] {
-    return this.paragraphs.filter((p) => !inBranch(p.p));
   }
 
   /**
@@ -233,8 +239,17 @@ export class Body {
 
   /** Every content control in this body, in document order, nested ones included. */
   get contentControls(): ContentControl[] {
+    return this.contentControlsIn('read');
+  }
+
+  /**
+   * The content controls a walk in this mode takes: a reader's, `contentControls`; the binding passes'
+   * (`'every'`), every branch's of a kept `mc:AlternateContent` too, each other branch's where the element
+   * stands (CR-013 phase 3). An extension.
+   */
+  contentControlsIn(mode: BranchMode): ContentControl[] {
     const out: ContentControl[] = [];
-    collectControls(this.content, this, out);
+    collectControls(this.content, this, out, mode);
     return out;
   }
 
@@ -494,13 +509,17 @@ export class Body {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    // a branch's paragraphs are stepped over, as before CR-013 phase 2, until its phase 3 reaches every branch
-    const matches = this.paragraphsOutsideBranches().flatMap((p) => p.searchMatches(find, options));
-    for (let i = matches.length - 1; i >= 0; i--) {
-      const { range, match } = matches[i]!;
-      range.insertText(expandReplacement(replace, match, options), 'Replace');
-    }
-    return matches.length;
+    this.assertWritable();
+    // every branch of a kept mc:AlternateContent, each paragraph searched on its own; counted where a
+    // reader sees the match, as resolve-all counts the listed changes (CR-013 phase 3)
+    const matches = this.paragraphsIn('every').flatMap((p) => p.searchMatches(find, options).map((m) => ({ ...m, unread: inUnreadBranch(p.p) })));
+    writingEveryBranch(() => {
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const { range, match } = matches[i]!;
+        range.insertText(expandReplacement(replace, match, options), 'Replace');
+      }
+    });
+    return matches.filter((m) => !m.unread).length;
   }
 
   /**
@@ -518,8 +537,24 @@ export class Body {
       this.content.length = 0;
       return;
     }
-    for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
-    for (const p of this.paragraphsOutsideBranches()) p.delete();
+    // every branch of a kept mc:AlternateContent (CR-013 phase 3)
+    writingEveryBranch(() => {
+      for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
+      for (const p of this.paragraphsIn('every')) p.delete();
+    });
+  }
+
+  /**
+   * Marks everything in this body deleted in place, in every branch of a kept `mc:AlternateContent`: each
+   * paragraph's text and mark, each row of its tables (a tracked row or table deletion's cells; CR-013
+   * phase 3). Internal: what `Table.delete` and `deleteRows` write while changes are tracked.
+   */
+  markContentDeleted(tracker: ChangeTracker): void {
+    // the paragraphs, then the rows last first: the order, and so the ids, a row's deletion has always written
+    writingEveryBranch(() => {
+      for (const p of this.paragraphsIn('every')) p.markDeletedInPlace(tracker);
+      for (const row of this.rowElements().reverse()) tracker.markRowDeleted(row.value as wml.Tr);
+    });
   }
 
   // --- change tracking (CR-002 phase F) ---------------------------------------------------
@@ -528,14 +563,23 @@ export class Body {
    * Every tracked change in this body, in document order. Touching insertions or deletions by one
    * author - a deleted paragraph's text and mark, a deletion across a mark - are one change, as
    * Office JS lists them (CR-002 section 29, checks 22 and 23).
+   *
+   * In a kept `mc:AlternateContent` at block, paragraph, row or cell level the selected branch's changes
+   * are listed, as Word reads it (CR-013 phase 2); each other branch's are their twins, paired by kind and
+   * position, which resolving a listed change resolves too (phase 3, docx4j's twins).
    */
   getTrackedChanges(): TrackedChange[] {
+    return this.trackedChanges(listedListing());
+  }
+
+  /** The listing in either mode (`Listing`): resolve-all's puts every other branch's changes after the story's. */
+  private trackedChanges(listing: Listing): TrackedChange[] {
     const out: TrackedChangeToken[] = [];
     const visit = (items: Element[], into: TrackedChangeToken[]): void => {
       for (let i = 0; i < items.length; i++) {
         const el = items[i]!;
         const tn = typeNameOf(el);
-        if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this))); continue; }
+        if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this), listing)); continue; }
         // a block control or custom XML element that is itself an insertion (check 30): one piece,
         // grouping with the insertions around and inside it, as Word lists them
         const inserted = holderInsertionAt(items, i, undefined, this);
@@ -555,37 +599,67 @@ export class Body {
           // records are one change of their own where the table stands (CR-002 section 35), kept apart.
           const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>, this);
           if (tableChange) into.push(BREAK, tableChange, BREAK);
-          for (const row of rowsOf(v, 'read')) {
-            // A row that is itself a revision reports as one change, as Office JS does: the
-            // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
-            // belongs to that change, which accepts or rejects it along with the row.
-            const tokens: TrackedChangeToken[] = [];
-            for (const cell of cellsOf(row.element.value, 'read')) {
-              const cellChange = cellChangeOf(cell.element, cell.container, row.element.value, this);
-              if (cellChange) tokens.push(cellChange, BREAK);
-              visit(childrenOf(cell.element.value) ?? [], tokens);
-              tokens.push(BREAK);
-            }
-            const inner = groupTouching(tokens);
-            const rowChanges = trackedChangesOfRow(row.element, row.container, inner, { element: el as Element<wml.Tbl>, container: items }, this);
-            if (rowChanges.length > 0) into.push(...rowChanges);
-            else { into.push(BREAK); for (const change of inner) into.push(change, BREAK); }
-          }
+          visitRows(childrenOf(v) ?? [], { element: el as Element<wml.Tbl>, container: items }, into);
           continue;
         }
         // a kept mc:AlternateContent is its selected branch, as Word reads it, and keeps nothing apart
-        // (CR-013 phase 2): Word's save has no element there
-        if (tn === ALTERNATE_CONTENT) { visit(selectedBranchOf(v as mce.AlternateContent) ?? [], into); continue; }
+        // (CR-013 phase 2): Word's save has no element there. Its other branches' are twins (phase 3)
+        if (tn === ALTERNATE_CONTENT) { alternateTokens(v as mce.AlternateContent, visit, into, listing); continue; }
         // a block-level content control or custom XML element keeps what is inside it apart; a
         // marker between paragraphs (a bookmark or range end) keeps nothing apart
         const children = childrenOf(v);
         if (children) { into.push(BREAK); visit(children, into); into.push(BREAK); }
       }
     };
+    // a table's rows, through row-level controls and custom XML and a row-level mc:AlternateContent
+    const visitRows = (items: Element[], table: Located<wml.Tbl>, into: TrackedChangeToken[]): void => {
+      for (const el of items) {
+        const tn = typeNameOf(el);
+        const v = el.value;
+        if (typeof v !== 'object' || v === null) continue;
+        if (tn === 'org_docx4j_wml.Tr') {
+          // A row that is itself a revision reports as one change, as Office JS does: the markup its
+          // cells carry (Word marks every run and mark of a deleted or inserted row) belongs to that
+          // change, which accepts or rejects it along with the row.
+          const tokens: TrackedChangeToken[] = [];
+          visitCells(childrenOf(v) ?? [], el as Element<wml.Tr>, tokens);
+          const inner = groupTouching(tokens);
+          const rowChanges = trackedChangesOfRow(el as Element<wml.Tr>, items, inner, table, this);
+          if (rowChanges.length > 0) into.push(...rowChanges);
+          else { into.push(BREAK); for (const change of inner) into.push(change, BREAK); }
+        } else if (tn === ALTERNATE_CONTENT) {
+          alternateTokens(v as mce.AlternateContent, (branch, tokens) => visitRows(branch, table, tokens), into, listing);
+        } else if (tn !== 'org_docx4j_wml.Tc') {
+          const children = childrenOf(v);
+          if (children) visitRows(children, table, into);
+        }
+      }
+    };
+    // a row's cells, through cell-level controls and custom XML and a cell-level mc:AlternateContent
+    const visitCells = (items: Element[], row: Element<wml.Tr>, tokens: TrackedChangeToken[]): void => {
+      for (const el of items) {
+        const tn = typeNameOf(el);
+        const v = el.value;
+        if (typeof v !== 'object' || v === null) continue;
+        if (tn === 'org_docx4j_wml.Tc') {
+          const cellChange = cellChangeOf(el as Element<wml.Tc>, items, row.value, this);
+          if (cellChange) tokens.push(cellChange, BREAK);
+          visit(childrenOf(v) ?? [], tokens);
+          tokens.push(BREAK);
+        } else if (tn === ALTERNATE_CONTENT) {
+          alternateTokens(v as mce.AlternateContent, (branch, into) => visitCells(branch, row, into), tokens, listing);
+        } else {
+          const children = childrenOf(v);
+          if (children) visitCells(children, row, tokens);
+        }
+      }
+    };
     visit(this.content, out);
     // the body's last section, after everything in it
     const section = bodySectionChangeOf(this.container as { content?: Element[]; sectPr?: wml.SectPr }, this);
     if (section) out.push(BREAK, section);
+    // resolve-all's: every other branch's changes, each kept apart, after the story's (resolved first, last first)
+    if (listing.extra.length > 0) out.push(BREAK, ...listing.extra);
     return groupTouching(out);
   }
 
@@ -622,12 +696,13 @@ export class Body {
     let count = 0;
     // one resolution for the lot, so the bookmarks are read before the first and after the last
     resolving(this.package_, this, () => {
-      let changes = this.getTrackedChanges();
-      count = changes.filter((change) => matching(change).length > 0).length;
+      // counted as listed; resolved over every branch of a kept mc:AlternateContent, each other branch's
+      // changes on their own, as docx4j's resolveAll lists them (CR-013 phase 3)
+      count = this.getTrackedChanges().filter((change) => matching(change).length > 0).length;
       let left = Infinity;
       let stalled = 0;
       for (let pass = 0; pass < 20 && stalled < 2; pass++) {
-        if (pass > 0) changes = this.getTrackedChanges();
+        const changes = this.trackedChanges({ mode: 'every', extra: [] });
         let matched = 0;
         for (let i = changes.length - 1; i >= 0; i--) {
           const change = changes[i]!;
@@ -646,7 +721,7 @@ export class Body {
     return count;
   }
 
-  /** Every `w:tr` in this body's tables, in document order (rows of nested tables included). */
+  /** Every `w:tr` in this body's tables, in document order (rows of nested tables included), in every branch (CR-013 phase 3). */
   private rowElements(): Element<wml.Tr>[] {
     const out: Element<wml.Tr>[] = [];
     const visit = (items: Element[]): void => {
@@ -654,12 +729,13 @@ export class Body {
         const v = el.value;
         if (typeof v !== 'object' || v === null) continue;
         if (typeNameOf(el) === 'org_docx4j_wml.Tbl') {
-          for (const row of rowsOf(v)) {
+          for (const row of rowsOf(v, 'every')) {
             out.push(row.element);
-            for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
+            for (const cell of cellsOf(row.element.value, 'every')) visit(childrenOf(cell.element.value) ?? []);
           }
           continue;
         }
+        if (typeNameOf(el) === ALTERNATE_CONTENT) { for (const branch of branchesOf(v as mce.AlternateContent)) visit(branch); continue; }
         const children = childrenOf(v);
         if (children) visit(children);
       }
@@ -877,19 +953,16 @@ export class Body {
     return undefined;
   }
 
-  /** Gives a new paragraph a w14:paraId when the document already uses them. */
+  /** Gives a new paragraph a w14:paraId when the document already uses them, free in every branch (CR-013 phase 3). */
   private assignParaId(p: wml.P): void {
     if (p.paraId) return;
-    if (!this.usesParaIds()) return;
+    const paragraphs = this.paragraphsIn('every');
+    if (!paragraphs.some((q) => q.paraId !== undefined)) return;
     let id: string;
     do {
       id = Math.floor(Math.random() * 0x7fffffff).toString(16).toUpperCase().padStart(8, '0');
-    } while (this.paragraphs.some((q) => q.paraId === id));
+    } while (paragraphs.some((q) => q.paraId === id));
     p.paraId = id;
-  }
-
-  private usesParaIds(): boolean {
-    return this.paragraphs.some((q) => q.paraId !== undefined);
   }
 
   // --- comments (CR-002 phase G) ---
@@ -960,11 +1033,19 @@ export function resolveStory(body: Body, what: 'accept' | 'reject', filter?: Tra
 /**
  * A story's tracked changes (`Body.getTrackedChanges`), then each text box's in it, as `resolveStory`
  * resolves them: docx4j's order (its CR-043 `Lister`, CR-011). In a kept `mc:AlternateContent` the
- * selected branch's text boxes alone are listed, so a text box held in both branches is listed once.
+ * selected branch's text boxes alone are listed, so a text box held in both branches is listed once;
+ * each other branch's box at the same place is its twin, whose changes are paired with the listed ones
+ * by kind and position and resolved with them, as docx4j resolves a text box's `mc:Fallback` twin
+ * (`pairTwins`; CR-013 phase 3).
  */
 export function trackedChangesOfStory(body: Body): TrackedChange[] {
   const out = body.getTrackedChanges();
-  for (const { box, selected } of textBoxesIn(body.container)) if (selected) out.push(...trackedChangesOfStory(body.sub(box)));
+  for (const { box, selected, twins } of textBoxesIn(body.container)) {
+    if (!selected) continue;
+    const changes = trackedChangesOfStory(body.sub(box));
+    for (const twin of twins ?? []) pairTwins(changes, trackedChangesOfStory(body.sub(twin)));
+    out.push(...changes);
+  }
   return out;
 }
 
@@ -975,30 +1056,48 @@ export function trackedChangesOfStory(body: Body): TrackedChange[] {
  */
 const NO_TEXT_BOXES = new Set(['PARENT', 'name', 'pPr', 'rPr', 'tblPr', 'tblGrid', 'trPr', 'tcPr', 'sectPr', 'sdtPr', 'sdtEndPr']);
 
+/** A text box `textBoxesIn` found: its `w:txbxContent`, whether a reader takes it, and its twins. */
+interface FoundTextBox {
+  box: { content?: Element[] };
+  /** False inside a branch of a kept `mc:AlternateContent` other than its selected one. */
+  selected: boolean;
+  /** For a selected box in a kept `mc:AlternateContent`'s branch: the box at the same place in each other branch. */
+  twins?: { content?: Element[] }[];
+}
+
 /**
  * The `w:txbxContent` of every text box in a story's content, not descending into one found, each with
  * whether it is in a branch a reader takes: false inside a branch of a kept `mc:AlternateContent` other
- * than its selected one (`selectedBranchOf`).
+ * than its selected one (`selectedBranchOf`). A selected box in a branch has as twins the boxes at its
+ * place, by position, in the element's other branches (docx4j's `Lister.twins`).
  */
-function textBoxesIn(container: { content?: Element[] }): { box: { content?: Element[] }; selected: boolean }[] {
-  const out: { box: { content?: Element[] }; selected: boolean }[] = [];
+function textBoxesIn(container: { content?: Element[] }): FoundTextBox[] {
+  const out: FoundTextBox[] = [];
   const seen = new Set<object>();
-  const visit = (o: unknown, selected: boolean): void => {
+  const visit = (o: unknown, selected: boolean, into: FoundTextBox[]): void => {
     if (typeof o !== 'object' || o === null || seen.has(o)) return;
     if (typeof (o as { nodeType?: unknown }).nodeType === 'number') return;      // DOM the model does not type
     seen.add(o);
-    if (Array.isArray(o)) { for (const item of o) visit(item, selected); return; }
+    if (Array.isArray(o)) { for (const item of o) visit(item, selected, into); return; }
     const typeName = (o as { TYPE_NAME?: string }).TYPE_NAME;
-    if (typeName === 'org_docx4j_wml.CTTxbxContent') { out.push({ box: o as { content?: Element[] }, selected }); return; }
+    if (typeName === 'org_docx4j_wml.CTTxbxContent') { into.push({ box: o as { content?: Element[] }, selected }); return; }
     if (typeName === ALTERNATE_CONTENT) {
       const ac = o as mce.AlternateContent;
       const read = selectedBranchOf(ac);
-      for (const branch of [...(ac.choice ?? []), ...(ac.fallback ? [ac.fallback] : [])]) visit(branch.any, selected && branch.any === read);
+      let primary: FoundTextBox[] = [];
+      const others: FoundTextBox[][] = [];
+      for (const branch of [...(ac.choice ?? []), ...(ac.fallback ? [ac.fallback] : [])]) {
+        const found: FoundTextBox[] = [];
+        visit(branch.any, selected && branch.any === read, found);
+        into.push(...found);
+        if (branch.any === read) primary = found; else others.push(found);
+      }
+      for (const found of others) found.forEach(({ box }, i) => { const twin = primary[i]; if (twin) (twin.twins ??= []).push(box); });
       return;
     }
-    for (const key in o) if (!NO_TEXT_BOXES.has(key)) visit((o as Record<string, unknown>)[key], selected);
+    for (const key in o) if (!NO_TEXT_BOXES.has(key)) visit((o as Record<string, unknown>)[key], selected, into);
   };
-  visit(container.content, true);
+  visit(container.content, true, out);
   return out;
 }
 

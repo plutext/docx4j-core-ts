@@ -11,7 +11,8 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
-import { runOf, paragraphOf, typeNameOf, type Element, type TextSegment } from './tree.mjs';
+import { runOf, paragraphOf, typeNameOf, selectedBranchOf, BRANCH_TYPES, type Element, type TextSegment } from './tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { revisionDateOf, wordCalendarOf, copyRPr } from './tracking.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import {
@@ -321,6 +322,17 @@ function parentOf(element: Element): object | undefined {
   return (element.value as { PARENT?: object }).PARENT;
 }
 
+/** The innermost branch of a kept `mc:AlternateContent` no reader takes that holds a value, or undefined. */
+function unreadBranchOf(value: object): object | undefined {
+  for (let o = (value as { PARENT?: object }).PARENT, guard = 0; o && guard < 256; o = (o as { PARENT?: object }).PARENT, guard++) {
+    const tn = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (tn === undefined || !BRANCH_TYPES.has(tn)) continue;
+    const ac = (o as { PARENT?: object }).PARENT as mce.AlternateContent | undefined;
+    if (ac && selectedBranchOf(ac) !== (o as { any?: Element[] }).any) return o;
+  }
+  return undefined;
+}
+
 /**
  * Where a marker for this segment's run goes when it is not put inside the revision the run sits
  * in (`placeAround`): beside the run, but outside the `w:ins` or `w:del`, so that a comment made
@@ -381,14 +393,30 @@ function placeAround(range: Range, id: number): void {
 
 /** Writes the markers of a reply next to its parent's, as Word nests them. */
 function placeAfter(body: Body, parentId: number, id: number): void {
-  const markers = markersOf(body.container).filter((m) => m.id === parentId);
-  const start = markers.find((m) => m.kind === 'start');
-  const end = [...markers].reverse().find((m) => m.kind === 'end');
-  const reference = [...markers].reverse().find((m) => m.kind === 'reference');
-  if (!(reference?.run && reference.runOwner) && !end) {
+  // the parent's markers in every branch of a kept mc:AlternateContent, each branch no reader takes
+  // apart, so that the reply is anchored in each as its parent is (CR-013 phase 3)
+  const groups = new Map<object | undefined, CommentMarker[]>();
+  for (const marker of markersOf(body.container, undefined, 'every')) {
+    if (marker.id !== parentId) continue;
+    const key = unreadBranchOf(marker.item.value as object);
+    let group = groups.get(key);
+    if (!group) groups.set(key, group = []);
+    group.push(marker);
+  }
+  const read = groups.get(undefined) ?? [];
+  if (!read.some((m) => (m.kind === 'reference' && m.run && m.runOwner) || m.kind === 'end')) {
     // refused before anything is written, so that no marker is left naming a comment never made
     throw new Docx4JException(`Comment ${parentId} has no markers in this body; cannot anchor a reply`);
   }
+  for (const markers of groups.values()) placeAfterIn(markers, id);
+}
+
+/** A reply's markers after its parent's, in one branch's markers (or those outside any no reader takes). */
+function placeAfterIn(markers: CommentMarker[], id: number): void {
+  const start = markers.find((m) => m.kind === 'start');
+  const end = [...markers].reverse().find((m) => m.kind === 'end');
+  const reference = [...markers].reverse().find((m) => m.kind === 'reference');
+  if (!(reference?.run && reference.runOwner) && !end) return;
   if (start) insertAt(start.owner, start.owner.indexOf(start.item) + 1, [el.commentRangeStart(wmlFactory.createCommentRangeStart({ id }))], parentOf(start.item));
   if (end) insertAt(end.owner, end.owner.indexOf(end.item) + 1, [el.commentRangeEnd(wmlFactory.createCommentRangeEnd({ id }))], parentOf(end.item));
   if (reference?.run && reference.runOwner) {
