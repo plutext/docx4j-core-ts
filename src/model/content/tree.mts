@@ -5,6 +5,7 @@ import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { isElement, typeNameOf, runItemsOf, mcBranchOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 import { READ_UNDERSTOOD_PREFIXES } from '../../opc/mce/understood.mjs';
 import { isMath, mathTextOf } from './mathText.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 
 export { isElement, typeNameOf, walk, find, linkParents, textOf, W_NS, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 
@@ -395,15 +396,69 @@ export function runsOf(container: object, options?: TextViewOptions): Element<wm
   return out;
 }
 
+/** The TYPE_NAMEs of a kept `mc:AlternateContent`'s branches, whose items are their `any`. */
+export const BRANCH_TYPES: ReadonlySet<string> = new Set(['org_docx4j_mce.AlternateContent.Choice', 'org_docx4j_mce.AlternateContent.Fallback']);
+
+/**
+ * How a walk takes a kept `mc:AlternateContent` among blocks, rows or cells (CR-013): `'read'`, a reader's,
+ * its selected branch (`selectedBranchOf`), as Word reads it; `'every'`, every branch, Choices first. With
+ * no mode the element is stepped over, as every walk did before CR-013 phase 2 and the mutators still do
+ * until its phase 3.
+ */
+export type BranchMode = 'read' | 'every';
+
 /**
  * The block-level children of a container: body, header, footer, cell, sdt content, table (rows),
  * row (cells). A content control of any kind (block, row, cell, run) answers with its
- * `sdtContent`'s content, so that a traversal does not have to know the four types.
+ * `sdtContent`'s content, so that a traversal does not have to know the four types. A branch of a kept
+ * `mc:AlternateContent` (a Choice or the Fallback) answers with its items, so that a locator climbing
+ * `PARENT` from a branch's paragraph, row or cell finds the list it is in; the element itself answers
+ * in a reader's walk (`'read'`) with its selected branch (CR-013 phase 2), and otherwise not at all.
  */
-export function childrenOf(value: object): Element[] | undefined {
-  const v = value as { content?: Element[]; sdtContent?: { content?: Element[] } };
+export function childrenOf(value: object, mode?: 'read'): Element[] | undefined {
+  const v = value as { content?: Element[]; sdtContent?: { content?: Element[] }; any?: Element[]; TYPE_NAME?: string };
   if (v.sdtContent) return v.sdtContent.content;
-  return Array.isArray(v.content) ? v.content : undefined;
+  if (Array.isArray(v.content)) return v.content;
+  const tn = v.TYPE_NAME;
+  if (tn === undefined) return undefined;
+  if (BRANCH_TYPES.has(tn)) return v.any;
+  if (mode === 'read' && tn === ALTERNATE_CONTENT) return selectedBranchOf(v as mce.AlternateContent);
+  return undefined;
+}
+
+/** Every branch of a kept `mc:AlternateContent`, the Choices in order, then the Fallback. */
+export function branchesOf(value: mce.AlternateContent): Element[][] {
+  const out: Element[][] = [];
+  for (const choice of value.choice ?? []) if (choice.any) out.push(choice.any as Element[]);
+  if (value.fallback?.any) out.push(value.fallback.any as Element[]);
+  return out;
+}
+
+/**
+ * Refuses a write through a view in a branch of a kept `mc:AlternateContent` at block, row or cell level
+ * (CR-013 D4): the view reads the selected branch, and a write would have to reach the element's other
+ * branches too, which nothing maps (CR-013 phase 3). `className` is Office JS's ('Paragraph', 'Body').
+ */
+export function assertOutsideBranch(value: object | undefined, className: string, what = `this ${className.toLowerCase()}`): void {
+  if (inBranch(value)) {
+    throw new NotSupportedError(className, 'edit', `${what} is in a branch of an mc:AlternateContent, which is read-only (CR-013 D4): `
+      + "a write would have to reach the element's other branches too, which nothing maps yet");
+  }
+}
+
+/**
+ * True for a value inside a branch of a kept `mc:AlternateContent` at block, row or cell level: a
+ * paragraph, table, row, cell or content control a reader sees in the selected branch (CR-013 phase 2).
+ * A view of one is read-only (D4). From `PARENT` links; a run-level element's content is not reached
+ * from a paragraph, which is outside it.
+ */
+export function inBranch(value: object | undefined): boolean {
+  let o = (value as { PARENT?: object } | undefined)?.PARENT;
+  for (let guard = 0; o && guard < 256; guard++, o = (o as { PARENT?: object }).PARENT) {
+    const tn = (o as { TYPE_NAME?: string }).TYPE_NAME;
+    if (tn !== undefined && BRANCH_TYPES.has(tn)) return true;
+  }
+  return false;
 }
 
 /** An element with the array that holds it: what a view needs to edit it in place. */
@@ -417,17 +472,20 @@ const ROW_HOLDERS = new Set(['org_docx4j_wml.CTSdtRow', 'org_docx4j_wml.CTCustom
 /** The same at cell level. */
 const CELL_HOLDERS = new Set(['org_docx4j_wml.CTSdtCell', 'org_docx4j_wml.CTCustomXmlCell']);
 
-/** The rows of a table, in order, descending into row-level content controls (an OpenDoPE repeat). */
-export function rowsOf(tbl: object): Located<wml.Tr>[] {
-  return located(childrenOf(tbl), 'org_docx4j_wml.Tr', ROW_HOLDERS) as Located<wml.Tr>[];
+/**
+ * The rows of a table, in order, descending into row-level content controls (an OpenDoPE repeat), and,
+ * with a mode, into a row-level `mc:AlternateContent` (`BranchMode`; CR-013 phase 2).
+ */
+export function rowsOf(tbl: object, mode?: BranchMode): Located<wml.Tr>[] {
+  return located(childrenOf(tbl), 'org_docx4j_wml.Tr', ROW_HOLDERS, mode) as Located<wml.Tr>[];
 }
 
-/** The cells of a row, in order, descending into cell-level content controls. */
-export function cellsOf(tr: object): Located<wml.Tc>[] {
-  return located(childrenOf(tr), 'org_docx4j_wml.Tc', CELL_HOLDERS) as Located<wml.Tc>[];
+/** The cells of a row, in order, descending into cell-level content controls, and with a mode into a cell-level `mc:AlternateContent`. */
+export function cellsOf(tr: object, mode?: BranchMode): Located<wml.Tc>[] {
+  return located(childrenOf(tr), 'org_docx4j_wml.Tc', CELL_HOLDERS, mode) as Located<wml.Tc>[];
 }
 
-function located(items: Element[] | undefined, typeName: string, holders: Set<string>): Located[] {
+function located(items: Element[] | undefined, typeName: string, holders: Set<string>, mode: BranchMode | undefined): Located[] {
   const out: Located[] = [];
   const visit = (list: Element[] | undefined): void => {
     if (!list) return;
@@ -435,6 +493,10 @@ function located(items: Element[] | undefined, typeName: string, holders: Set<st
       const tn = typeNameOf(element);
       if (tn === typeName) out.push({ element, container: list });
       else if (tn !== undefined && holders.has(tn) && typeof element.value === 'object' && element.value !== null) visit(childrenOf(element.value));
+      else if (tn === ALTERNATE_CONTENT && mode !== undefined) {
+        if (mode === 'read') visit(selectedBranchOf(element.value as mce.AlternateContent));
+        else for (const branch of branchesOf(element.value as mce.AlternateContent)) visit(branch);
+      }
     }
   };
   visit(items);

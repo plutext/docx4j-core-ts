@@ -1,8 +1,9 @@
 // CR-013: mc:AlternateContent at block, row and cell level, on docx4j's mc-fun probes (test/mc-fun/,
 // copied from docx4j at the commit its manifest.json names). Phase 0 recorded what each reader made of
 // them; phase 1 brought the text model's rows and cells, and mcePreprocess: true (D3), to Word 365's
-// reading. The Office JS readers' assertions below are today's gaps, phase 2's: each fails when that
-// phase reads the branch, as CLAUDE.md's rule has a gap announce its fix.
+// reading; phase 2 the Office JS readers and the tracked-change listing, with every view in a branch
+// read-only (D4). What phase 3's mutators will change (the other branches' revisions, the bulk edits) is
+// asserted as it is, as CLAUDE.md's rule has a gap announce its fix.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -95,32 +96,53 @@ test('a branch\'s rows and cells are addressed from the element (D2), and its br
 // The Office JS readers today (CR-013 phase 2 will change each of these): a block-, row- or cell-level
 // element is invisible to Body.paragraphs, Body.text and a table's rows and cells, while TableCell.values
 // reads a block-level element in its cell, which the cell's paragraphs don't list.
-test('the Office JS readers miss a block-, row- or cell-level element (phase 2\'s gap, asserted as it is)', async () => {
-  const office = async (name) => {
-    const pkg = await load(name);
+test("the Office JS readers take the selected branch at block, row and cell level, as Word 365's saves read (CR-013 phase 2)", async () => {
+  const office = async (name, resolved) => {
+    const pkg = await load(name, resolved);
     await pkg.mainDocumentPart.getContents();
     const body = pkg.body;
     return {
+      body,
       paragraphs: body.paragraphs.map((p) => p.text),
-      tables: body.tables.map((t) => ({ values: t.values, cells: t.rows.map((row) => row.cells.map((c) => c.paragraphs.map((p) => p.text))) })),
+      text: body.text,
+      tables: body.tables.map((t) => ({ values: t.values, rows: t.rowCount, cells: t.rows.map((row) => row.cells.map((c) => c.paragraphs.map((p) => p.text))) })),
+      controls: body.contentControls.map((c) => [c.form, c.text]),
+      search: body.search('w16sdtfl').map((r) => body.addressOf(r.paragraphs[0])),
     };
   };
-  // the block level: the branch's paragraph isn't one of the body's
-  assert.deepEqual((await office('mc-block-newest-first.docx')).paragraphs, ['Block level test', '']);
-  assert.deepEqual((await office('mc-sdt-block-newest-first.docx')).paragraphs, ['Block sdt test', '']);
-  assert.deepEqual((await office('mc-mixed.docx')).paragraphs, ['Mixed test', 'sdt run: SDTRUN_W14', 'hyperlink: HLINK_W14', 'in p: INP_W14']);
-  assert.deepEqual((await office('mc-txbx-block.docx')).paragraphs, ['Text box, block level']);
-  // the row and cell levels: the branch's row, or cell, isn't the table's
-  assert.deepEqual((await office('mc-row-newest-first.docx')).tables, [{ values: [['I prefer', 'below']], cells: [[['I prefer'], ['below']]] }]);
-  assert.deepEqual((await office('mc-sdt-row-newest-first.docx')).tables, [{ values: [['I prefer', 'below']], cells: [[['I prefer'], ['below']]] }]);
-  assert.deepEqual((await office('mc-cell-newest-first.docx')).tables, [{ values: [['I prefer']], cells: [[['I prefer']]] }]);
-  assert.deepEqual((await office('mc-sdt-cell-newest-first.docx')).tables, [{ values: [['I prefer']], cells: [[['I prefer']]] }]);
-  // a block-level element in a cell: neither the cell's paragraphs nor its value read it. Its value read it
-  // through the objects package's textOf until CR-012 phase 4 put TableCell.text on the paragraphs' text
-  assert.deepEqual((await office('mc-tc-block-newest-first.docx')).tables, [{ values: [['I prefer', '']], cells: [[['I prefer'], []]] }]);
-  // what Word's saves give them, every element resolved
-  assert.deepEqual((await office('mc-row-newest-first-word365.docx')).tables[0].values, [['I prefer', 'below'], ['row', 'w16sdtfl']]);
-  assert.deepEqual((await office('mc-cell-newest-first-word365.docx')).tables[0].values, [['I prefer', 'w16sdtfl']]);
+  const probes = readdirSync(dir).filter((n) => n.endsWith('.docx') && !n.includes('word365')).sort();
+  let saves = 0;
+  for (const name of probes) {
+    const kept = await office(name);
+    // a resolved load (D3) and a kept one read alike
+    const resolved = await office(name, true);
+    for (const key of ['paragraphs', 'text', 'tables', 'controls']) assert.deepEqual(kept[key], resolved[key], `${name}, resolved: ${key}`);
+    // and Word 365's save of the probe, every element resolved by Word, reads alike
+    const save = name.replace('.docx', '-word365.docx');
+    if (!readdirSync(dir).includes(save)) continue;
+    saves++;
+    const word = await office(save);
+    for (const key of ['paragraphs', 'text', 'tables']) assert.deepEqual(kept[key], word[key], `${name}, Word's save: ${key}`);
+    // every paragraph's address (the element's form, D2) gives the paragraph back
+    for (const p of kept.body.paragraphs) {
+      const address = kept.body.addressOf(p);
+      assert.equal(kept.body.paragraphAt(address)?.p, p.p, `${name} ${address}`);
+    }
+  }
+  assert.equal(saves, 13);                                           // mc-run-word365 is the original-order probe's save
+  // the element's form (D2): a branch's paragraph addressed from the element, as the text model and docx4j have it
+  const addresses = async (name) => { const { body } = await office(name); return body.paragraphs.map((p) => body.addressOf(p)); };
+  assert.deepEqual(await addresses('mc-block-newest-first.docx'), ['body/0', 'body/1', 'body/2/0']);
+  assert.deepEqual(await addresses('mc-row-newest-first.docx'), ['body/0', 'body/1/0/0/0', 'body/1/0/1/0', 'body/1/1/0/0/0', 'body/1/1/0/1/0', 'body/2']);
+  assert.deepEqual(await addresses('mc-cell-newest-first.docx'), ['body/0', 'body/1/0/0/0', 'body/1/0/1/0/0', 'body/2']);
+  // the readers' answers on the probes
+  assert.deepEqual((await office('mc-row-newest-first.docx')).tables, [{ values: [['I prefer', 'below'], ['row', 'w16sdtfl']], rows: 2, cells: [[['I prefer'], ['below']], [['row'], ['w16sdtfl']]] }]);
+  assert.deepEqual((await office('mc-cell-newest-first.docx')).tables, [{ values: [['I prefer', 'w16sdtfl']], rows: 1, cells: [[['I prefer'], ['w16sdtfl']]] }]);
+  assert.deepEqual((await office('mc-tc-block-newest-first.docx')).tables[0].values, [['I prefer', 'w16sdtfl']]);
+  assert.deepEqual((await office('mc-sdt-row-newest-first.docx')).controls, [['Row', 'row\rw16sdtfl']]);
+  assert.deepEqual((await office('mc-mixed.docx')).paragraphs, ['Mixed test', 'sdt run: SDTRUN_W14', 'hyperlink: HLINK_W14', 'in p: INP_W14', 'BODY_W14']);
+  assert.deepEqual((await office('mc-block-newest-first.docx')).search, ['body/2/0']);
+  assert.deepEqual((await office('mc-cell-newest-first.docx')).search, ['body/1/0/1/0/0']);
 });
 
 test('a resolved load gives the Office JS readers Word 365\'s branch at every level (D3)', async () => {
@@ -170,4 +192,163 @@ test('a resolved load takes a Choice requiring w16du or w16sdtdh and keeps their
     assert.ok(saved.includes(attribute), `${attribute} kept`);
     assert.ok(!saved.includes('mc:AlternateContent') && !saved.includes('w16cex<') && !saved.includes('fallback'), 'resolved to the first Choice');
   }
+});
+
+// --- CR-013 phase 2: the tracked-change listing, the table's rows, the views' refusals (D4) -----------------
+
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const MC = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
+const W14 = 'http://schemas.microsoft.com/office/word/2010/wordml';
+/** A package of this body, saved and loaded again, so that every PARENT link is the load's. */
+async function mini(bodyXml) {
+  const make = await WordprocessingMLPackage.createPackage();
+  make.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}" xmlns:mc="${MC}" xmlns:w14="${W14}" mc:Ignorable="w14"><w:body>${bodyXml}<w:sectPr/></w:body></w:document>`);
+  const pkg = await WordprocessingMLPackage.load(await make.save());
+  await pkg.getBody();
+  return pkg;
+}
+const documentXml = async (pkg) => strFromU8(unzipSync(await pkg.save())['word/document.xml']);
+const AC = (choice, fallback) => `<mc:AlternateContent><mc:Choice Requires="w14">${choice}</mc:Choice><mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent>`;
+const ins = (id, text) => `<w:ins w:id="${id}" w:author="A"><w:r><w:t xml:space="preserve">${text}</w:t></w:r></w:ins>`;
+const del = (id, text) => `<w:del w:id="${id}" w:author="A"><w:r><w:delText xml:space="preserve">${text}</w:delText></w:r></w:del>`;
+const TBL = '<w:tblPr/><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid>';
+const run = (text) => `<w:r><w:t xml:space="preserve">${text}</w:t></w:r>`;
+const changed = (branch) => `${run(`${branch} `)}${ins(branch === 'C' ? 1 : 3, 'INSERTED')}${del(branch === 'C' ? 2 : 4, 'DELETED')}`;
+const cell = (content) => `<w:tc><w:p>${content}</w:p></w:tc>`;
+const row = (content) => `<w:tr>${cell(content)}</w:tr>`;
+const deletedRow = (id, text) => `<w:tr><w:trPr><w:del w:id="${id}" w:author="A"/></w:trPr><w:tc><w:p><w:r><w:delText>${text}</w:delText></w:r></w:p></w:tc></w:tr>`;
+// docx4j's TrackedChangesAlternateContentTest's four shapes (CR-051 phase 2, 9db1a3cbd)
+const LEVELS = {
+  block: `<w:p>${run('before')}</w:p>${AC(`<w:p>${changed('C')}</w:p>`, `<w:p>${changed('F')}</w:p>`)}<w:p>${run('after')}</w:p>`,
+  paragraph: `<w:p>${run('x ')}${AC(changed('C'), changed('F'))}</w:p>`,
+  row: `<w:tbl>${TBL}${AC(row(changed('C')), row(changed('F')))}</w:tbl><w:p/>`,
+  cell: `<w:tbl>${TBL}<w:tr>${AC(cell(changed('C')), cell(changed('F')))}</w:tr></w:tbl><w:p/>`,
+};
+
+test("a branch's tracked changes are listed once, from the selected branch, at every level; the text model's views planned from them (phase 2)", async () => {
+  for (const [level, xml] of Object.entries(LEVELS)) {
+    const pkg = await mini(xml);
+    const listed = (await pkg.getAllTrackedChanges()).map((c) => [c.type, c.text]);
+    assert.deepEqual(listed, [['Added', 'INSERTED'], ['Deleted', 'DELETED']], level);
+    // the accepted view takes the deletion out of the branch Word reads, where it read it before this phase
+    const accepted = PlainText.of(await Texts.of(pkg));
+    assert.ok(accepted.includes('C INSERTED') && !accepted.includes('DELETED') && !accepted.includes('F '), `${level}: ${accepted}`);
+    const original = PlainText.of(await Texts.of(pkg, { view: 'original' }));
+    assert.ok(original.includes('C DELETED') && !original.includes('INSERTED'), `${level}: ${original}`);
+    // Accept All resolves what it listed. The other branch keeps its revisions until phase 3's twins resolve
+    // them with these (docx4j's acceptAllResolvesEveryBranch): asserted as it is
+    assert.equal(await pkg.acceptAllRevisions(), 2, level);
+    const saved = await documentXml(pkg);
+    const choice = saved.match(/<mc:Choice[^>]*>(.*?)<\/mc:Choice>/s)[1];
+    const fallback = saved.match(/<mc:Fallback>(.*?)<\/mc:Fallback>/s)[1];
+    assert.ok(!/<w:(ins|del) /.test(choice) && choice.includes('INSERTED') && !choice.includes('DELETED'), `${level}: the Choice resolved`);
+    assert.equal((fallback.match(/<w:(ins|del) /g) ?? []).length, 2, `${level}: the Fallback's revisions left for phase 3`);
+    assert.deepEqual(await pkg.getAllTrackedChanges(), [], `${level}: nothing left to list`);
+  }
+});
+
+test("a deleted row accepted leaves its table while a branch has a row (docx4j's Lister.hasRows); Table.deleteColumns likewise (phase 2)", async () => {
+  // the Choice's deleted row accepted, a plain row in the Fallback: the table stays, the Choice emptied
+  // (docx4j's acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow)
+  let pkg = await mini(`<w:tbl>${TBL}${AC(deletedRow(1, 'C'), row(run('F')))}</w:tbl><w:p/>`);
+  let changes = await pkg.getAllTrackedChanges();
+  assert.equal(changes.length, 1);
+  changes[0].accept();
+  let xml = await documentXml(pkg);
+  assert.ok(xml.includes('<w:tbl') && /<mc:Fallback><w:tr/.test(xml) && !/<mc:Choice Requires="w14"><w:tr/.test(xml), xml);
+  // a deleted row in every branch: listed once; accepted, the Choice's goes, and the Fallback's waits for
+  // phase 3's twin, so the table stays (docx4j, resolving both, removes it): asserted as it is
+  pkg = await mini(`<w:p>${run('before')}</w:p><w:tbl>${TBL}${AC(deletedRow(1, 'C'), deletedRow(2, 'F'))}</w:tbl><w:p/>`);
+  changes = await pkg.getAllTrackedChanges();
+  assert.equal(changes.length, 1);
+  changes[0].accept();
+  xml = await documentXml(pkg);
+  assert.ok(xml.includes('<w:tbl') && /<mc:Fallback><w:tr><w:trPr><w:del /.test(xml), xml);
+  // section 7.3's shape: a plain deleted row beside the element, whose rows were not counted, took the table
+  pkg = await mini(`<w:tbl>${TBL}${deletedRow(1, 'D')}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  assert.equal(await pkg.acceptAllRevisions(), 1);
+  assert.deepEqual((await pkg.getBody()).tables.map((t) => t.values), [[['C']]]);
+  // Table.deleteColumns on a table whose other cells are in an element (section 7.3's second shape)
+  const probe = await load('mc-cell-newest-first.docx');
+  const body = await probe.getBody();
+  body.tables[0].deleteColumns(0);
+  assert.deepEqual(body.tables.map((t) => t.values), [[['w16sdtfl']]]);
+});
+
+test("a view in a branch is read-only (D4): paragraphs, bodies, tables, rows, cells and controls refuse every write; the bulk edits step over it", async () => {
+  const refuses = (name, f) => assert.throws(f, (e) => e.name === 'NotSupportedError' && /in a branch of an mc:AlternateContent, which is read-only \(CR-013 D4\)/.test(e.message), name);
+  // a paragraph in a block-level branch, and the body beside it
+  let pkg = await mini(LEVELS.block);
+  let body = await pkg.getBody();
+  const p = body.paragraphs[1];
+  assert.equal(p.text, 'C INSERTED');
+  assert.equal(p.inBranch, true);
+  assert.equal(body.paragraphs[0].inBranch, false);
+  refuses('Paragraph.insertText', () => p.insertText('x', 'End'));
+  refuses('Range.delete', () => p.search('C')[0].delete());
+  refuses('Font', () => { p.getRange().font.bold = true; });
+  refuses('Paragraph.delete', () => p.delete());
+  refuses('Paragraph.insertParagraph', () => p.insertParagraph('x', 'After'));
+  refuses('Body.insertParagraph beside it', () => body.insertElement(body.content[0], 'After', p));
+  // the bulk edits step over a branch, as before this phase, until phase 3 has them reach every branch
+  assert.equal(body.replaceText('C INSERTED', 'Z'), 0);
+  pkg.changeTrackingMode = 'TrackAll';
+  body.clear();
+  pkg.changeTrackingMode = 'Off';
+  assert.equal(body.paragraphs[1].text, 'C INSERTED');
+  // rows, cells and their bodies in a row-level branch
+  pkg = await mini(`<w:tbl>${TBL}${row(run('plain'))}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  body = await pkg.getBody();
+  const table = body.tables[0];
+  assert.deepEqual(table.values, [['plain'], ['C']]);
+  const [plain, branch] = table.rows;
+  assert.deepEqual([plain.inBranch, branch.inBranch, branch.cells[0].inBranch], [false, true, true]);
+  refuses('TableRow.delete', () => branch.delete());
+  refuses('TableRow.insertRows', () => branch.insertRows('After', 1));
+  refuses('Table.deleteRows', () => table.deleteRows(1));
+  refuses('TableCell.value', () => { branch.cells[0].value = 'x'; });
+  refuses('TableCell.width', () => { branch.cells[0].width = 30; });
+  refuses('TableCell.body', () => branch.cells[0].body.insertParagraph('x', 'End'));
+  refuses('Table.values', () => { table.values = [['first'], ['second']]; });
+  assert.deepEqual(table.values, [['plain'], ['C']], 'nothing written before the refusal');
+  table.deleteRows(0);
+  assert.deepEqual(table.values, [['C']], 'a row outside the branch is deleted as before');
+  // a control in a block-level branch, and its kinds
+  const sdt = (text) => `<w:sdt><w:sdtPr><w:tag w:val="t"/><w:dropDownList><w:listItem w:displayText="a" w:value="a"/></w:dropDownList></w:sdtPr><w:sdtContent><w:p>${run(text)}</w:p></w:sdtContent></w:sdt>`;
+  pkg = await mini(AC(sdt('C'), sdt('F')));
+  body = await pkg.getBody();
+  const [control] = body.contentControls;
+  assert.deepEqual([control.text, control.tag, control.inBranch], ['C', 't', true]);
+  refuses('ContentControl.tag', () => { control.tag = 'x'; });
+  refuses('ContentControl.delete', () => control.delete());
+  refuses('ContentControl.color', () => { control.color = '#FF0000'; });
+  refuses('ListContentControl.addListItem', () => control.dropDownListContentControl.addListItem('b'));
+  refuses('ContentControlListItem.value', () => { control.dropDownListContentControl.listItems[0].value = 'z'; });
+});
+
+test("the table context counts a branch's rows, and a comment in a branch is listed and deleted from every branch (phase 2)", async () => {
+  // a row-level branch's row is the table's last row for a style's conditional formats (TableContext)
+  const look = '<w:tblPr><w:tblLook w:val="0060" w:firstRow="1" w:lastRow="1" w:noHBand="1" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid>';
+  let pkg = await mini(`<w:tbl>${look}${row(run('one'))}${AC(row(run('C')), row(run('F')))}</w:tbl><w:p/>`);
+  let body = await pkg.getBody();
+  assert.deepEqual(body.paragraphs.slice(0, 2).map((p) => [p.text, [...p.cellContext.conditions]]), [['one', ['firstRow']], ['C', ['lastRow']]]);
+  // a comment on a paragraph, which is then made a block-level element's in both branches
+  const make = await mini(`<w:p>${run('before')}</w:p><w:p>${run('anchored')}</w:p>`);
+  await (await make.getBody()).paragraphs[1].getRange().insertComment('on the branch');
+  const files = unzipSync(await make.save());
+  let xml = strFromU8(files['word/document.xml']);
+  const paragraph = xml.match(/<w:p\b(?:(?!<w:p\b).)*?anchored.*?<\/w:p>/s)[0];
+  xml = xml.replace(paragraph, AC(paragraph, paragraph.replace('anchored', 'fallback')));
+  if (!xml.includes(`xmlns:mc="${MC}"`)) xml = xml.replace('<w:document ', `<w:document xmlns:mc="${MC}" `);
+  if (!xml.includes(`xmlns:w14="${W14}"`)) xml = xml.replace('<w:document ', `<w:document xmlns:w14="${W14}" `);
+  files['word/document.xml'] = strToU8(xml);
+  pkg = await WordprocessingMLPackage.load(zipSync(files));
+  body = await pkg.getBody();
+  const [comment] = await body.getComments();
+  assert.equal(comment.content, 'on the branch');
+  assert.deepEqual(comment.getRange().map((r) => [body.addressOf(r.paragraphs[0]), r.text]), [['body/1/0', 'anchored']]);
+  await comment.delete();
+  const saved = await documentXml(pkg);
+  assert.ok(!/comment(RangeStart|RangeEnd|Reference)/.test(saved), 'the markers gone from every branch');
+  assert.ok(saved.includes('>anchored<') && saved.includes('>fallback<'));
 });

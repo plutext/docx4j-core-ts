@@ -178,13 +178,15 @@ export class TableContext {
     this.rowBandSize = tblPr?.tblStyleRowBandSize !== undefined ? rowBandSize(tblPr) : rowBandSize(stylePr);
     this.colBandSize = tblPr?.tblStyleColBandSize !== undefined ? colBandSize(tblPr) : colBandSize(stylePr);
 
-    const rows = rowsOf(tbl);
+    // the rows and cells Word reads: a kept row- or cell-level mc:AlternateContent's selected branch (CR-013
+    // phase 2), so that its rows count for the first row, the last and the bands
+    const rows = rowsOf(tbl, 'read');
     let cols = 0;
     rows.forEach((located, r) => {
       const tr = located.element.value;
       this.rowIndex.set(tr, r);
       let c = gridOf(tr, 'gridBefore');
-      for (const cell of cellsOf(tr)) {
+      for (const cell of cellsOf(tr, 'read')) {
         const tc = cell.element.value;
         const val = tc.tcPr?.gridSpan?.val;
         const span = typeof val === 'number' ? Math.max(1, Math.trunc(val)) : 1;

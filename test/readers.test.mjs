@@ -272,9 +272,9 @@ test("textbox: addresses resolve to the text model's text-box paragraphs, and ad
     };
     await visit(result.blocks);
   }
-  assert.ok(agreed >= 129, `${agreed} text-box paragraphs agree`);
-  // a box in a block-level mc:AlternateContent: the content API doesn't step into the element yet (CR-013 phase 2)
-  assert.deepEqual(missed, ['mc-fun/mc-txbx-block.docx body/1/0/textbox:0/0', 'mc-fun/mc-txbx-sdt-block.docx body/1/0/0/textbox:0/0', 'mc-fun/mc-txbx-tc-block.docx body/1/0/1/0/0/textbox:0/0']);
+  // every one, a box in a block-level mc:AlternateContent's selected branch too, since CR-013 phase 2
+  assert.ok(agreed >= 132, `${agreed} text-box paragraphs agree`);
+  assert.deepEqual(missed, []);
 });
 
 test("a text box's paragraph reads as any does and refuses every write (D5); an address naming nothing is undefined, never an error", async () => {
@@ -352,6 +352,54 @@ test('outline() reads the text model: its text, text boxes after their anchor at
   const whole = await doc.outline();
   assert.deepEqual(whole.paragraphs.map((p) => p.text), accepted);
   assert.deepEqual([whole.headers.length, whole.footers.length], [0, 0]);
+});
+
+test("outline(options, context, { blocks }) gives a block's entries as the whole outline does: joins, a table of contents, every view (section 17.13)", async () => {
+  const read = async (path) => {
+    const pkg = await WordprocessingMLPackage.load(new Uint8Array(await readFile(join(here, path))));
+    return { pkg, body: await pkg.getBody() };
+  };
+  // the files where a block read alone, with no more, differs from the whole: paragraphs a mark joins, a
+  // table of contents begun in an earlier block, moves
+  for (const path of ['text-extraction/revisions/cr043/cr043-base.docx', 'text-extraction/suite/phase0/extraction-probe-structure.docx',
+    'text-extraction/suite/phase0/extraction-probe.docx', 'text-extraction/revisions/editor/revisions/revisions-word2010.docx',
+    'text-extraction/revisions/editor/review/review-for-word.docx', 'text-extraction/revisions/python/artefact8/8-tracked-changes.docx']) {
+    const { pkg, body } = await read(path);
+    for (const options of [{}, { view: 'original' }, { view: 'markup' }, { toc: true }, { field_codes: true }]) {
+      const context = await Texts.contextOf(pkg);
+      const whole = await body.outline(options, context);
+      const one = { paragraphs: [], tables: [] };
+      for (let i = body.content.length - 1; i >= 0; i--) {                 // backwards: no block's reading leans on the one before
+        const o = await body.outline(options, context, { blocks: [i] });
+        one.paragraphs.unshift(...o.paragraphs);
+        one.tables.unshift(...o.tables);
+      }
+      const label = `${path} ${JSON.stringify(options)}`;
+      assert.deepEqual(one, whole, label);
+      assert.deepEqual(await body.outline(options, context, { blocks: body.content.map((_, i) => i) }), whole, label);
+    }
+  }
+  // a deleted mark: the entry holds both texts and names the second, which has none of its own
+  const { pkg, body } = await read('text-extraction/suite/phase0/extraction-probe.docx');
+  const context = await Texts.contextOf(pkg);
+  assert.deepEqual(await body.outline({}, context, { blocks: [24] }), { paragraphs: [{ address: 'body/24', style: 'Normal', text: 'TC11_FIRST TC11_SECOND', joined: ['body/25'] }], tables: [] });
+  assert.deepEqual(await body.outline({}, context, { blocks: [25] }), { paragraphs: [], tables: [] });
+  // the caller's context numbers no note: a reading of the notes part after it still has the whole order
+  assert.equal(context.footnotes.size, 0);
+  // a table of contents' entry, inside a field begun in an earlier block, is left out unless asked for (D12)
+  const structure = await read('text-extraction/suite/phase0/extraction-probe-structure.docx');
+  assert.deepEqual((await structure.body.outline({}, undefined, { blocks: [5] })).paragraphs, []);
+  assert.deepEqual((await structure.body.outline({ toc: true }, undefined, { blocks: [5] })).paragraphs.map((p) => p.text), ['HEAD55_TWO\t1']);
+  // blocks by view, in document order whatever the order asked; a block that is not a top-level one refused
+  const paragraph = body.paragraphs.find((p) => p.container === body.content && p.text !== '');
+  const at = body.content.indexOf(paragraph.element);
+  const table = body.elementAt(`body/${body.content.findIndex((e) => e.name.localPart === 'tbl')}`);
+  const byView = await body.outline({}, context, { blocks: [table, paragraph] });
+  assert.deepEqual(byView, await body.outline({}, context, { blocks: [at, body.content.indexOf(table.element)] }));
+  assert.equal(byView.paragraphs[0].address, `body/${at}`);
+  await assert.rejects(body.outline({}, context, { blocks: [body.content.length] }), /has no block/);
+  const inCell = body.paragraphs.find((p) => p.container !== body.content);
+  await assert.rejects(body.outline({}, context, { blocks: [inCell] }), /Not one of body's top-level blocks/);
 });
 
 // ------------------------------------------------------------- defects found on the way

@@ -44,6 +44,7 @@ export class CheckboxContentControl {
     return isOn(this.checkbox.checked?.val);
   }
   set isChecked(value: boolean) {
+    this.control.assertWritable();
     (this.checkbox.checked ??= {}).val = value;
     this.control.setCheckboxGlyph(value ? this.checkedSymbol : this.uncheckedSymbol);
   }
@@ -53,6 +54,7 @@ export class CheckboxContentControl {
     return symbolOf(this.checkbox.checkedState, CHECKED_SYMBOL);
   }
   set checkedSymbol(symbol: string) {
+    this.control.assertWritable();
     (this.checkbox.checkedState ??= {}).val = codeOf(symbol);
     this.checkbox.checkedState.font ??= CHECKBOX_FONT;
   }
@@ -61,6 +63,7 @@ export class CheckboxContentControl {
     return symbolOf(this.checkbox.uncheckedState, UNCHECKED_SYMBOL);
   }
   set uncheckedSymbol(symbol: string) {
+    this.control.assertWritable();
     (this.checkbox.uncheckedState ??= {}).val = codeOf(symbol);
     this.checkbox.uncheckedState.font ??= CHECKBOX_FONT;
   }
@@ -73,13 +76,15 @@ export class CheckboxContentControl {
 
 /** Office JS `Word.DatePickerContentControl` over `w:date`. */
 export class DatePickerContentControl {
-  constructor(private readonly date: wml.CTSdtDate) {}
+  /** `guard` refuses a write to a control in a branch of a kept `mc:AlternateContent` (CR-013 D4). */
+  constructor(private readonly date: wml.CTSdtDate, private readonly guard: () => void = () => {}) {}
 
   /** `w:dateFormat`, Word's .NET date pattern ('d MMMM yyyy'). Office JS calls it dateDisplayFormat. */
   get dateFormat(): string {
     return this.date.dateFormat?.val ?? '';
   }
   set dateFormat(format: string) {
+    this.guard();
     if (format === '') { delete this.date.dateFormat; return; }
     this.date.dateFormat = { val: format };
   }
@@ -97,6 +102,7 @@ export class DatePickerContentControl {
     return this.date.lid?.val ?? '';
   }
   set dateDisplayLocale(locale: string) {
+    this.guard();
     if (locale === '') { delete this.date.lid; return; }
     this.date.lid = { val: locale };
   }
@@ -106,6 +112,7 @@ export class DatePickerContentControl {
     return this.date.calendar?.val ?? 'gregorian';
   }
   set dateCalendarType(calendar: string) {
+    this.guard();
     this.date.calendar = { val: calendar as wml.CTCalendarType['val'] };
   }
 
@@ -114,6 +121,7 @@ export class DatePickerContentControl {
     return this.date.storeMappedDataAs?.val ?? 'text';
   }
   set dateStorageFormat(format: string) {
+    this.guard();
     this.date.storeMappedDataAs = { val: format as wml.CTSdtDateMappingType['val'] };
   }
 
@@ -124,6 +132,7 @@ export class DatePickerContentControl {
     return new Date(Date.UTC(c.year, (c.month ?? 1) - 1, c.day ?? 1, c.hour ?? 0, c.minute ?? 0, Math.floor(c.second ?? 0)));
   }
   set fullDate(value: Date | undefined) {
+    this.guard();
     if (!value) { delete this.date.fullDate; return; }
     this.date.fullDate = {
       year: value.getUTCFullYear(), month: value.getUTCMonth() + 1, day: value.getUTCDate(),
@@ -134,12 +143,13 @@ export class DatePickerContentControl {
 
 /** One entry of a drop-down list or combo box (Office JS `Word.ContentControlListItem`). */
 export class ContentControlListItem {
-  constructor(private readonly items: wml.CTSdtListItem[], private readonly item: wml.CTSdtListItem) {}
+  constructor(private readonly items: wml.CTSdtListItem[], private readonly item: wml.CTSdtListItem, private readonly guard: () => void = () => {}) {}
 
   get displayText(): string {
     return this.item.displayText ?? '';
   }
   set displayText(text: string) {
+    this.guard();
     this.item.displayText = text;
   }
 
@@ -147,6 +157,7 @@ export class ContentControlListItem {
     return this.item.value ?? '';
   }
   set value(value: string) {
+    this.guard();
     this.item.value = value;
   }
 
@@ -155,6 +166,7 @@ export class ContentControlListItem {
   }
 
   delete(): void {
+    this.guard();
     const at = this.index;
     if (at >= 0) this.items.splice(at, 1);
   }
@@ -162,22 +174,25 @@ export class ContentControlListItem {
 
 /** Office JS `Word.DropDownListContentControl` / `Word.ComboBoxContentControl`: the same shape. */
 export class ListContentControl {
-  constructor(private readonly list: wml.CTSdtDropDownList | wml.CTSdtComboBox) {}
+  /** `guard` refuses a write to a control in a branch of a kept `mc:AlternateContent` (CR-013 D4). */
+  constructor(private readonly list: wml.CTSdtDropDownList | wml.CTSdtComboBox, private readonly guard: () => void = () => {}) {}
 
   get listItems(): ContentControlListItem[] {
     const items = (this.list.listItem ??= []);
-    return items.map((item) => new ContentControlListItem(items, item));
+    return items.map((item) => new ContentControlListItem(items, item, this.guard));
   }
 
   /** Adds an entry; `value` defaults to the display text, `index` appends when omitted. */
   addListItem(displayText: string, value?: string, index?: number): ContentControlListItem {
+    this.guard();
     const items = (this.list.listItem ??= []);
     const item: wml.CTSdtListItem = { TYPE_NAME: 'org_docx4j_wml.CTSdtListItem', displayText, value: value ?? displayText };
     if (index === undefined || index >= items.length) items.push(item); else items.splice(Math.max(0, index), 0, item);
-    return new ContentControlListItem(items, item);
+    return new ContentControlListItem(items, item, this.guard);
   }
 
   deleteAllListItems(): void {
+    this.guard();
     this.list.listItem = [];
   }
 
@@ -186,6 +201,7 @@ export class ListContentControl {
     return this.list.lastValue ?? '';
   }
   set lastValue(value: string) {
+    this.guard();
     this.list.lastValue = value;
   }
 }
@@ -217,6 +233,7 @@ export class RepeatingSectionContentControl {
     return this.section.sectionTitle?.val ?? '';
   }
   set sectionTitle(title: string) {
+    this.control.assertWritable();
     if (title === '') { delete this.section.sectionTitle; return; }
     this.section.sectionTitle = { val: title };
   }
@@ -227,6 +244,7 @@ export class RepeatingSectionContentControl {
     return !(flag !== undefined && flag.val !== false);
   }
   set allowInsertDeleteSection(allow: boolean) {
+    this.control.assertWritable();
     if (allow) delete this.section.doNotAllowInsertDeleteSection;
     else this.section.doNotAllowInsertDeleteSection = { val: true };
   }

@@ -14,7 +14,7 @@ import { base64Decode, base64Encode, decodeXmlText } from '../../xml/dom.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import type { Part } from '../../parts/Part.mjs';
-import { type Element, type RevisionHolder, find, runOf, linkParents, revisionKindOf, isElement, typeNameOf, isAlternateContent, selectedBranchOf } from './tree.mjs';
+import { type Element, type RevisionHolder, find, runOf, linkParents, revisionKindOf, isElement, typeNameOf, isAlternateContent, selectedBranchOf, assertOutsideBranch } from './tree.mjs';
 import { type ChangeTracker, copyRPr } from './tracking.mjs';
 import { type RelationshipRemovals, relationshipIdsIn, queueRelationshipRemovals } from './relationships.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -406,6 +406,7 @@ export class InlinePicture {
     return this.inline.docPr.descr ?? '';
   }
   set altTextDescription(text: string) {
+    this.assertWritable();
     this.inline.docPr.descr = text;
     const p = this.pic();
     if (p) p.nvPicPr.cNvPr.descr = text;
@@ -416,6 +417,7 @@ export class InlinePicture {
     return this.inline.docPr.title ?? '';
   }
   set altTextTitle(text: string) {
+    this.assertWritable();
     this.inline.docPr.title = text;
   }
 
@@ -493,6 +495,7 @@ export class InlinePicture {
    * image.
    */
   delete(): void {
+    this.assertWritable();
     const place = placeOf(this.paragraph.p, this.run);
     if (!place) return;
     const revision = place.revision;
@@ -553,7 +556,17 @@ export class InlinePicture {
     return first && typeof first === 'object' && 'value' in first ? first.value : undefined;
   }
 
+  /**
+   * Refuses a write to a picture in a paragraph in a branch of a kept block-, row- or cell-level
+   * `mc:AlternateContent` (CR-013 D4). A picture in a run-level element's branch is the run's own, and
+   * deleting it removes the element (CR-010 phase 3).
+   */
+  private assertWritable(): void {
+    assertOutsideBranch(this.paragraph.p, 'InlinePicture', 'this picture');
+  }
+
   private resize(cx: number | undefined, cy: number | undefined): void {
+    this.assertWritable();
     const extent = this.inline.extent;
     const ratio = extent.cy / extent.cx;
     const w = cx ?? Math.max(1, Math.round((cy as number) / ratio));

@@ -26,7 +26,7 @@ function differs(current: object | undefined, recorded: object | undefined): boo
 /** The rows a change takes in: a row with a `w:trPrChange` or a `w:tblPrExChange`, or a cell with a `w:tcPrChange`. */
 function inChange(tr: wml.Tr): boolean {
   return tr.trPr?.trPrChange !== undefined || tr.tblPrEx?.tblPrExChange !== undefined
-    || cellsOf(tr).some((cell) => cell.element.value.tcPr?.tcPrChange !== undefined);
+    || cellsOf(tr, 'read').some((cell) => cell.element.value.tcPr?.tcPrChange !== undefined);
 }
 
 /**
@@ -36,7 +36,7 @@ function inChange(tr: wml.Tr): boolean {
 function rowDiffers(tr: wml.Tr): boolean {
   if (differs(without(tr.trPr, [...ROW_MARKERS, 'trPrChange']), tr.trPr?.trPrChange?.trPr)) return true;
   if (tr.tblPrEx?.tblPrExChange && differs(without(tr.tblPrEx, ['tblPrExChange']), tr.tblPrEx.tblPrExChange.tblPrEx)) return true;
-  return cellsOf(tr).some(({ element }) => {
+  return cellsOf(tr, 'read').some(({ element }) => {
     const tcPr = element.value.tcPr;
     return tcPr?.tcPrChange !== undefined && differs(without(tcPr, [...CELL_MARKERS, 'tcPrChange']), tcPr.tcPrChange.tcPr);
   });
@@ -57,19 +57,19 @@ export interface TableRecords {
 }
 
 export function tableRecordsOf(tbl: wml.Tbl): TableRecords | undefined {
-  const rows = rowsOf(tbl).map((row) => row.element.value);
+  const rows = rowsOf(tbl, 'read').map((row) => row.element.value);
   const changed = rows.filter(inChange);
   if (!tbl.tblPr?.tblPrChange && !tbl.tblGrid?.tblGridChange && changed.length === 0) return undefined;
   // a set of records that holds no difference is no change (checks 24 and 26's rule)
   if (!tableDiffers(tbl) && !changed.some(rowDiffers)) return undefined;
   const value = tbl.tblPr?.tblPrChange
-    ?? changed.map((tr) => tr.trPr?.trPrChange ?? tr.tblPrEx?.tblPrExChange ?? cellsOf(tr).map((c) => c.element.value.tcPr?.tcPrChange).find(Boolean)).find(Boolean);
+    ?? changed.map((tr) => tr.trPr?.trPrChange ?? tr.tblPrEx?.tblPrExChange ?? cellsOf(tr, 'read').map((c) => c.element.value.tcPr?.tcPrChange).find(Boolean)).find(Boolean);
   return value ? { value } : undefined;
 }
 
 /** True when the table has any property record at all, changing anything or not. */
 export function hasTableRecords(tbl: wml.Tbl): boolean {
-  return tbl.tblPr?.tblPrChange !== undefined || tbl.tblGrid?.tblGridChange !== undefined || rowsOf(tbl).some((row) => inChange(row.element.value));
+  return tbl.tblPr?.tblPrChange !== undefined || tbl.tblGrid?.tblGridChange !== undefined || rowsOf(tbl, 'read').some((row) => inChange(row.element.value));
 }
 
 /** A cell's text as Office JS reports it in a table's change: its paragraphs, a `\r` between them. */
@@ -79,12 +79,12 @@ function cellText(tc: wml.Tc): string {
 
 /** A row's text as Office JS reports it: its cells with a tab between them, then `\r\n` (checks 27 and 28). */
 export function rowText(tr: wml.Tr): string {
-  return cellsOf(tr).map((cell) => cellText(cell.element.value)).join('\t') + '\r\n';
+  return cellsOf(tr, 'read').map((cell) => cellText(cell.element.value)).join('\t') + '\r\n';
 }
 
 /** The text of a table's change: the table's where its own properties or grid changed, else the changed rows'. */
 export function tableChangeText(tbl: wml.Tbl): string {
-  const rows = rowsOf(tbl).map((row) => row.element.value);
+  const rows = rowsOf(tbl, 'read').map((row) => row.element.value);
   const shown = tableDiffers(tbl) ? rows : rows.filter((tr) => inChange(tr) && rowDiffers(tr));
   return shown.map(rowText).join('');
 }
@@ -93,12 +93,12 @@ export function tableChangeText(tbl: wml.Tbl): string {
 export function acceptTable(tbl: wml.Tbl): void {
   delete tbl.tblPr?.tblPrChange;
   delete tbl.tblGrid?.tblGridChange;
-  for (const { element } of rowsOf(tbl)) {
+  for (const { element } of rowsOf(tbl, 'read')) {
     const tr = element.value;
     delete tr.trPr?.trPrChange;
     delete tr.tblPrEx?.tblPrExChange;
     pruneRow(tr);
-    for (const cell of cellsOf(tr)) delete cell.element.value.tcPr?.tcPrChange;
+    for (const cell of cellsOf(tr, 'read')) delete cell.element.value.tcPr?.tcPrChange;
   }
 }
 
@@ -113,14 +113,14 @@ export function rejectTable(tbl: wml.Tbl): void {
   if (tableChange && tbl.tblPr) replaceProperties(tbl.tblPr, tableChange.tblPr, [], tbl);
   const gridChange = tbl.tblGrid?.tblGridChange;
   if (gridChange && tbl.tblGrid) replaceProperties(tbl.tblGrid, gridChange.tblGrid, [], tbl);
-  for (const { element } of rowsOf(tbl)) {
+  for (const { element } of rowsOf(tbl, 'read')) {
     const tr = element.value;
     if (!inChange(tr)) continue;
     const exChange = tr.tblPrEx?.tblPrExChange;
     if (exChange && tr.tblPrEx) replaceProperties(tr.tblPrEx, exChange.tblPrEx, [], tr);
     if (tr.trPr) replaceProperties(tr.trPr, tr.trPr.trPrChange?.trPr, ROW_MARKERS, tr);
     pruneRow(tr);
-    for (const cell of cellsOf(tr)) {
+    for (const cell of cellsOf(tr, 'read')) {
       const tcPr = cell.element.value.tcPr;
       if (tcPr?.tcPrChange) replaceProperties(tcPr, tcPr.tcPrChange.tcPr, CELL_MARKERS, cell.element.value);
     }
@@ -163,17 +163,18 @@ function span(tc: wml.Tc): number {
 /**
  * Grid columns that no row keeps apart become one: the edges any row's cells (or its `w:gridBefore`
  * and `w:gridAfter`) fall on are kept, the others merged, and each cell's `w:gridSpan` and each row's
- * skipped columns counted again over the kept columns.
+ * skipped columns counted again over the kept columns. The grid is every branch's, so every branch of a
+ * kept row- or cell-level `mc:AlternateContent` is counted and renumbered (CR-013 phase 2).
  */
 export function collapseGrid(tbl: wml.Tbl): void {
   const cols = tbl.tblGrid?.gridCol ?? [];
   if (cols.length < 2) return;
-  const rows = rowsOf(tbl).map((row) => row.element.value);
+  const rows = rowsOf(tbl, 'every').map((row) => row.element.value);
   const edges = new Set<number>([0, cols.length]);
   for (const tr of rows) {
     let at = Number(rowMember(tr, 'gridBefore')?.value.val ?? 0);
     edges.add(at);
-    for (const cell of cellsOf(tr)) { at += span(cell.element.value); edges.add(at); }
+    for (const cell of cellsOf(tr, 'every')) { at += span(cell.element.value); edges.add(at); }
   }
   const kept = [...edges].filter((edge) => edge >= 0 && edge <= cols.length).sort((a, b) => a - b);
   if (kept.length - 1 === cols.length) return;
@@ -185,7 +186,7 @@ export function collapseGrid(tbl: wml.Tbl): void {
     const before = rowMember(tr, 'gridBefore');
     let at = Number(before?.value.val ?? 0);
     if (before) before.value.val = index(at);
-    for (const cell of cellsOf(tr)) {
+    for (const cell of cellsOf(tr, 'every')) {
       const tc = cell.element.value;
       const next = at + span(tc);
       const count = index(next) - index(at);

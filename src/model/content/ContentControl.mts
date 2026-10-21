@@ -20,7 +20,8 @@ import {
 import { runsForValue, updateFromControl, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { declareIgnorable } from './tracking.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES } from './tree.mjs';
+import { type Element, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, selectedBranchOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import { Range, SpanningRange } from './Range.mjs';
@@ -156,6 +157,7 @@ export class ContentControl {
    * write is left to `pkg.customXmlParts.updateFromContentControls()`.
    */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
+    this.assertWritable();
     const range = this.insertTextInto(text, location);
     this.syncBoundNode();
     return range;
@@ -178,6 +180,7 @@ export class ContentControl {
 
   /** A paragraph at the start or end of a block control; before or after the paragraph of a run control. */
   insertParagraph(text: string, location: 'Start' | 'End' | 'Before' | 'After'): Paragraph {
+    this.assertWritable();
     const form = this.form;
     if ((form === 'Row' || form === 'Cell') && (location === 'Start' || location === 'End')) {
       throw new Docx4JException(`A ${form.toLowerCase()}-level content control holds ${form === 'Row' ? 'rows' : 'cells'}, not paragraphs; insert into a cell's body`);
@@ -226,6 +229,7 @@ export class ContentControl {
 
   /** Removes the control; `keepContent` puts what it held in its place, as Office JS. */
   delete(keepContent = false): void {
+    this.assertWritable();
     const at = this.container.indexOf(this.element as Element);
     if (at < 0) return;
     const content = keepContent ? [...this.content] : [];
@@ -257,6 +261,7 @@ export class ContentControl {
   }
 
   private setProperty(localPart: string, value: string, make: (value: string) => Element): void {
+    this.assertWritable();
     const sdt = this.sdt as { sdtPr?: wml.SdtPr };
     sdt.sdtPr ??= {};
     const items = (sdt.sdtPr.rPrOrAliasOrLock ??= []);
@@ -340,6 +345,7 @@ export class ContentControl {
     return this.isShowingPlaceholder ? this.text : '';
   }
   set placeholderText(text: string) {
+    this.assertWritable();
     if (!this.isShowingPlaceholder && this.text !== '') {
       throw new Docx4JException('This content control holds content; clear it before setting its placeholder text');
     }
@@ -408,19 +414,19 @@ export class ContentControl {
   /** The date view, for a `w:date` control. */
   get datePickerContentControl(): DatePickerContentControl | undefined {
     const value = sdtProperty(this.sdt.sdtPr, 'date')?.value as wml.CTSdtDate | undefined;
-    return value ? new DatePickerContentControl(value) : undefined;
+    return value ? new DatePickerContentControl(value, () => this.assertWritable()) : undefined;
   }
 
   /** The list view, for a `w:dropDownList` control. */
   get dropDownListContentControl(): ListContentControl | undefined {
     const value = sdtProperty(this.sdt.sdtPr, 'dropDownList')?.value as wml.CTSdtDropDownList | undefined;
-    return value ? new ListContentControl(value) : undefined;
+    return value ? new ListContentControl(value, () => this.assertWritable()) : undefined;
   }
 
   /** The list view, for a `w:comboBox` control. */
   get comboBoxContentControl(): ListContentControl | undefined {
     const value = sdtProperty(this.sdt.sdtPr, 'comboBox')?.value as wml.CTSdtComboBox | undefined;
-    return value ? new ListContentControl(value) : undefined;
+    return value ? new ListContentControl(value, () => this.assertWritable()) : undefined;
   }
 
   /** The picture view, for a `w:picture` control. */
@@ -445,6 +451,7 @@ export class ContentControl {
    * files have it: Word 2010 opens a part holding one only then (CR-002 section 40).
    */
   putProperty(element: Element): void {
+    this.assertWritable();
     const sdt = this.sdt as { sdtPr?: wml.SdtPr };
     sdt.sdtPr ??= {};
     const items = (sdt.sdtPr.rPrOrAliasOrLock ??= []);
@@ -455,6 +462,7 @@ export class ContentControl {
 
   /** Removes a `w:sdtPr` child (extension). */
   removeProperty(localPart: string, namespaceURI?: string): void {
+    this.assertWritable();
     const items = this.sdt.sdtPr?.rPrOrAliasOrLock;
     if (!items) return;
     const at = items.findIndex((i) => i.name.localPart === localPart && (namespaceURI === undefined || i.name.namespaceURI === namespaceURI));
@@ -487,6 +495,7 @@ export class ContentControl {
    * the runs of a run-level one.
    */
   setBoundContent(runs: Element[], showingPlaceholder = false): void {
+    this.assertWritable();
     const sdt = this.sdt;
     sdt.sdtContent ??= {};
     const content = ((sdt.sdtContent as { content?: Element[] }).content ??= []);
@@ -523,6 +532,7 @@ export class ContentControl {
 
   /** A copy of this control right after it, as Word's repeating-section + button does (extension). */
   insertCopyAfter(): ContentControl {
+    this.assertWritable();
     const at = this.container.indexOf(this.element as Element);
     if (at < 0) throw new Docx4JException('This content control is not in its container any more');
     const copy: Element = { name: this.element.name, value: deepCopy(this.element.value) as never };
@@ -563,6 +573,19 @@ export class ContentControl {
     this.putProperty(el.lock({ val }) as Element);
   }
 
+  /**
+   * True for a control in the selected branch of a kept `mc:AlternateContent`, at any level, which the
+   * collectors list as Word reads it (CR-013 phase 2). Such a view is read-only (D4).
+   */
+  get inBranch(): boolean {
+    return inBranch(this.element.value as object);
+  }
+
+  /** Refuses a write to a control in a branch (CR-013 D4). Internal: the control's mutators, and its kinds', call it first. */
+  assertWritable(): void {
+    assertOutsideBranch(this.element.value as object, 'ContentControl');
+  }
+
   /** The table a row-level or cell-level control belongs to. */
   private ancestorTable(): Table | undefined {
     let current: object | undefined = (this.element.value as { PARENT?: object }).PARENT;
@@ -598,7 +621,8 @@ export function collectControls(items: Element[], body: Body, out: ContentContro
       collectInRows(childrenOf(element.value as object) ?? [], body, out);
       continue;
     }
-    const children = childrenOf(element.value as object);
+    // a kept mc:AlternateContent: its selected branch's controls (CR-013 phase 2)
+    const children = childrenOf(element.value as object, 'read');
     if (children) collectControls(children, body, out);
   }
 }
@@ -615,6 +639,7 @@ function collectInRows(items: Element[], body: Body, out: ContentControl[]): voi
       continue;
     }
     if (tn === 'org_docx4j_wml.Tr') collectInCells(childrenOf(element.value as object) ?? [], body, out);
+    else if (tn === ALTERNATE_CONTENT) collectInRows(selectedBranchOf(element.value as mce.AlternateContent) ?? [], body, out);
   }
 }
 
@@ -630,12 +655,14 @@ function collectInCells(items: Element[], body: Body, out: ContentControl[]): vo
       continue;
     }
     if (tn === 'org_docx4j_wml.Tc') collectControls(childrenOf(element.value as object) ?? [], body, out);
+    else if (tn === ALTERNATE_CONTENT) collectInCells(selectedBranchOf(element.value as mce.AlternateContent) ?? [], body, out);
   }
 }
 
 /** The run-level controls in a paragraph (or any run holder), in order, nested ones included. */
 export function collectRunControls(holder: object, body: Body, out: ContentControl[]): void {
-  const items = runItemsOf(holder);
+  // a kept mc:AlternateContent among runs: its selected branch's (CR-013 phase 2)
+  const items = (holder as { TYPE_NAME?: string }).TYPE_NAME === ALTERNATE_CONTENT ? selectedBranchOf(holder as mce.AlternateContent) : runItemsOf(holder);
   if (!items) return;
   for (const element of items) {
     const tn = typeNameOf(element);

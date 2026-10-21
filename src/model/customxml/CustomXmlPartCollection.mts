@@ -189,8 +189,12 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     return result;
   }
 
+  /**
+   * The controls the binding passes take: those in a branch of a kept `mc:AlternateContent` are stepped
+   * over, as before CR-013 phase 2, until its phase 3 has the passes reach every branch.
+   */
   private controlsOf(bodies: Body[]): ContentControl[] {
-    return bodies.flatMap((body) => body.contentControls);
+    return bodies.flatMap((body) => body.contentControls).filter((control) => !control.inBranch);
   }
 
   /** The view of a part: its itemID and schema references, read from the properties part's DOM. */

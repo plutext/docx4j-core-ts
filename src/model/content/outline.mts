@@ -4,8 +4,8 @@
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { Body, Outline } from './Body.mjs';
 
-/** What `Body.outline` asks of the text model: the outline of a body under these options and context. */
-export type OutlineReader = (body: Body, options: unknown, context: unknown) => Promise<Outline>;
+/** What `Body.outline` asks of the text model: the outline of a body, or of its top-level blocks at these indices, under these options and context. */
+export type OutlineReader = (body: Body, options: unknown, context: unknown, blocks?: readonly number[]) => Promise<Outline>;
 
 let reader: OutlineReader | undefined;
 

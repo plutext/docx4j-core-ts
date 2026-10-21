@@ -44,6 +44,7 @@ export type NoteType = 'footnote' | 'endnote';
 // The tree objects a block or run was read from: kept out of the block model's JSON (REQ-706 holds no
 // tree objects; CR-012 section 4.4), so held here rather than as properties.
 const blockSources = new WeakMap<TextBlock, object>();
+const blockJoins = new WeakMap<TextBlock, readonly string[]>();
 const runSources = new WeakMap<TextRun, TextRunSource>();
 
 /** Where a run's text was read from: its run and its paragraph (CR-012 section 4.4). */
@@ -408,6 +409,18 @@ export class TextBlock {
 
   set source(value: object | undefined) {
     if (value) blockSources.set(this, value); else blockSources.delete(this);
+  }
+
+  /**
+   * For a paragraph the view joins to the paragraphs after it (a deleted mark in `accepted`, an inserted one
+   * in `original`), their addresses, in order; empty for any other block (CR-012 section 17.13; not in the JSON).
+   */
+  get joined(): readonly string[] {
+    return blockJoins.get(this) ?? [];
+  }
+
+  set joined(value: readonly string[]) {
+    if (value.length > 0) blockJoins.set(this, value); else blockJoins.delete(this);
   }
 
   /** True when the block holds placeholder text (REQ-508). */

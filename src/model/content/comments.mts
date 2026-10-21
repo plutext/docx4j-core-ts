@@ -10,7 +10,8 @@ import type * as w16cid from '@docx4j/generated-objects-ts/modules/org_docx4j_w1
 import type { XmlCalendar } from '@docx4j/generated-objects-ts';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { typeNameOf, childrenOf, segmentsOf, type HiddenRuns, type Element } from './tree.mjs';
+import { typeNameOf, childrenOf, segmentsOf, rowsOf, cellsOf, branchesOf, selectedBranchOf, ALTERNATE_CONTENT, type BranchMode, type HiddenRuns, type Element } from './tree.mjs';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
@@ -185,11 +186,13 @@ const COMMENT_REFERENCE = 'org_docx4j_wml.R.CommentReference';
 
 /**
  * Every comment marker under a container (a body, a cell, a paragraph), in document order.
- * Deleted content (`w:del`) is not entered, as the text model does not enter it either.
+ * Deleted content (`w:del`) is not entered, as the text model does not enter it either. A kept
+ * `mc:AlternateContent` at block, row or cell level is read as `mode` says (CR-013 phase 2): a reader's
+ * walk takes its selected branch, an edit's (`removeMarkers`, the ids) every branch.
  */
-export function markersOf(container: object, hidden?: (p: wml.P) => HiddenRuns): CommentMarker[] {
+export function markersOf(container: object, hidden?: (p: wml.P) => HiddenRuns, mode: BranchMode = 'read'): CommentMarker[] {
   const out: CommentMarker[] = [];
-  collect(out, container, undefined, hidden);
+  collect(out, container, undefined, hidden, mode);
   return out;
 }
 
@@ -206,7 +209,7 @@ export function markersOfParagraph(element: Element<wml.P>, container: Element[]
  * neither), so that each offset is one in `Paragraph.text`, hidden runs left out where `hidden` says
  * which they are, and a kept `mc:AlternateContent`'s selected branch read (CR-012 phase 4).
  */
-function collect(out: CommentMarker[], container: object | undefined, paragraph?: { element: Element<wml.P>; container: Element[] }, hidden?: (p: wml.P) => HiddenRuns): void {
+function collect(out: CommentMarker[], container: object | undefined, paragraph?: { element: Element<wml.P>; container: Element[] }, hidden?: (p: wml.P) => HiddenRuns, mode: BranchMode = 'read'): void {
   const visitParagraph = (element: Element<wml.P>, blockContainer: Element[]): void => {
     segmentsOf(element.value, {
       hidden: hidden?.(element.value),
@@ -234,9 +237,10 @@ function collect(out: CommentMarker[], container: object | undefined, paragraph?
         out.push({ id: (el.value as wml.CommentRangeStart).id, kind: tn === COMMENT_RANGE_START ? 'start' : 'end', item: el, owner: items });
       } else if (typeof el.value === 'object' && el.value !== null) {
         if (tn === 'org_docx4j_wml.Tbl') {
-          for (const row of childrenOf(el.value) ?? []) {
-            for (const cell of childrenOf(row.value as object) ?? []) visitBlocks(childrenOf(cell.value as object) ?? []);
-          }
+          for (const row of rowsOf(el.value, mode)) for (const cell of cellsOf(row.element.value, mode)) visitBlocks(childrenOf(cell.element.value) ?? []);
+        } else if (tn === ALTERNATE_CONTENT) {
+          const ac = el.value as mce.AlternateContent;
+          for (const branch of mode === 'every' ? branchesOf(ac) : [selectedBranchOf(ac) ?? []]) visitBlocks(branch);
         } else {
           const children = childrenOf(el.value);
           if (children) visitBlocks(children);
@@ -258,7 +262,7 @@ export function commentIdsOf(container: object): number[] {
 
 /** Removes every marker of a comment from a body, and the reference run when nothing is left in it. */
 export function removeMarkers(container: object, id: number): void {
-  for (const marker of markersOf(container)) {
+  for (const marker of markersOf(container, undefined, 'every')) {
     if (marker.id !== id) continue;
     const i = marker.owner.indexOf(marker.item);
     if (i >= 0) marker.owner.splice(i, 1);
@@ -278,7 +282,7 @@ export function removeMarkers(container: object, id: number): void {
 export function nextCommentId(comments: wml.Comments, container: object): number {
   let max = -1;
   for (const c of comments.comment ?? []) if (typeof c.id === 'number' && c.id > max) max = c.id;
-  for (const m of markersOf(container)) if (m.id > max) max = m.id;
+  for (const m of markersOf(container, undefined, 'every')) if (m.id > max) max = m.id;
   return max + 1;
 }
 
@@ -309,7 +313,9 @@ export function paraIdTaken(parts: CommentParts, container: object, id: string):
       if (tn === 'org_docx4j_wml.P') { if ((el.value as wml.P).paraId === id) found = true; }
       else if (typeof el.value === 'object' && el.value !== null) {
         if (tn === 'org_docx4j_wml.Tbl') {
-          for (const row of childrenOf(el.value) ?? []) for (const cell of childrenOf(row.value as object) ?? []) visit(childrenOf(cell.value as object) ?? []);
+          for (const row of rowsOf(el.value, 'every')) for (const cell of cellsOf(row.element.value, 'every')) visit(childrenOf(cell.element.value) ?? []);
+        } else if (tn === ALTERNATE_CONTENT) {
+          for (const branch of branchesOf(el.value as mce.AlternateContent)) visit(branch);     // an id is every branch's (CR-013)
         } else {
           const children = childrenOf(el.value);
           if (children) visit(children);

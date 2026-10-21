@@ -68,12 +68,12 @@ function setSpan(tc: wml.Tc, count: number): void {
   else delete tcPr.gridSpan;
 }
 
-/** The grid's column widths in twips; a table without a `w:tblGrid` gets one from its first row (equal columns over the text width when the cells state none). */
+/** The grid's column widths in twips; a table without a `w:tblGrid` gets one from its first row as Word reads it (equal columns over the text width when the cells state none). */
 export function gridWidthsOf(tbl: wml.Tbl, textWidth: number): number[] {
   const grid = tbl.tblGrid?.gridCol;
   if (grid && grid.length > 0) return grid.map((col) => Number(col.w ?? 0));
-  const first = rowsOf(tbl)[0];
-  const cells = first ? cellsOf(first.element.value) : [];
+  const first = rowsOf(tbl, 'read')[0];
+  const cells = first ? cellsOf(first.element.value, 'read') : [];
   const columns = Math.max(1, cells.reduce((n, cell) => n + spanOf(cell.element.value), 0));
   const each = Math.floor(textWidth / columns);
   const widths: number[] = [];

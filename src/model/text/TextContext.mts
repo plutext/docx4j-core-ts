@@ -289,8 +289,18 @@ export class TextContext {
    */
   view: 'accepted' | 'original' | 'markup' | undefined;
   private readonly plans = new Map<boolean, ResolvedView>();
+  /** Per container, then per options, what the blocks begin inside (`Extractor.fieldsAtBlocks`), made once; shared with siblings. */
+  private starts = new WeakMap<object, Map<string, unknown>>();
 
   constructor(readonly trees: PackageTrees) {}
+
+  /** What `make` gives for a container's blocks under options keyed `key`, made once in this context (CR-012 section 17.13). */
+  blockStarts<T>(container: object, key: string, make: () => T): T {
+    let byKey = this.starts.get(container);
+    if (!byKey) this.starts.set(container, byKey = new Map());
+    if (!byKey.has(key)) byKey.set(key, make());
+    return byKey.get(key) as T;
+  }
 
   /** The package this context reads. */
   get pkg(): TextPackage | undefined {
@@ -323,6 +333,7 @@ export class TextContext {
   sibling(): TextContext {
     const c = new TextContext(this.trees);
     for (const [k, v] of this.plans) c.plans.set(k, v);
+    c.starts = this.starts;
     return c;
   }
 

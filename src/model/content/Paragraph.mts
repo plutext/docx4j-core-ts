@@ -6,7 +6,7 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
@@ -657,13 +657,23 @@ export class Paragraph {
    * Refuses a write to a paragraph in a text box (CR-012 D5): a box is in each branch of its
    * `mc:AlternateContent`, `wps:txbx` in the Choice and `v:textbox` in the Fallback, and nothing maps the
    * one's paragraphs to the other's, so an edit could not reach every branch as CR-010's D2 has mutators do.
-   * Internal: the content API's mutators call it first.
+   * And a write to a paragraph in a branch of a kept `mc:AlternateContent` at block, row or cell level
+   * (CR-013 D4), for the same reason. Internal: the content API's mutators call it first.
    */
   assertWritable(): void {
     if (this.inTextBox) {
       throw new NotSupportedError('Paragraph', 'edit', 'this paragraph is in a text box, whose paragraphs are read-only (CR-012 D5): '
         + "writes into a text box would have to reach its other branch's box too, which nothing maps yet");
     }
+    assertOutsideBranch(this.p, 'Paragraph');
+  }
+
+  /**
+   * True for a paragraph in the selected branch of a kept `mc:AlternateContent` at block, row or cell
+   * level, which readers see as Word does (CR-013 phase 2). Such a view is read-only (D4).
+   */
+  get inBranch(): boolean {
+    return inBranch(this.p);
   }
 
   /** Which of this paragraph's runs are hidden: a run's own `w:vanish`, else its styles' (CR-012 phase 4). */

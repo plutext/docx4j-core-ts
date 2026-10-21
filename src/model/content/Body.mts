@@ -4,7 +4,7 @@ import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
-import { type Element, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
+import { type Element, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, ALTERNATE_CONTENT, BRANCH_TYPES, inBranch, assertOutsideBranch } from './tree.mjs';
 import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { runOf, paragraphOf, runsOf } from './tree.mjs';
 import { textBoxesOf } from './textBoxes.mjs';
@@ -50,6 +50,12 @@ export interface OutlineParagraph {
   text: string;
   /** True for a paragraph in a text box, listed after its anchor at a `textbox:` address (CR-012 D3, D4). */
   textbox?: true;
+  /**
+   * The addresses of the paragraphs the view joins to this one, in order (a deleted mark in the `accepted`
+   * view, an inserted one in `original`): their text is in `text`, and they have no entry of their own
+   * (CR-012 section 17.13).
+   */
+  joined?: string[];
 }
 
 export interface OutlineTable {
@@ -61,6 +67,11 @@ export interface OutlineTable {
 export interface Outline {
   paragraphs: OutlineParagraph[];
   tables: OutlineTable[];
+}
+
+/** Which of a body's blocks `Body.outline` reads (CR-012 section 17.13): its top-level blocks, by index or view. */
+export interface OutlineSelection {
+  blocks: readonly (number | Paragraph | BlockElement)[];
 }
 
 /**
@@ -104,7 +115,11 @@ export class Body {
     return (this.container.content ??= []);
   }
 
-  /** Every paragraph in document order, descending into tables and content controls. */
+  /**
+   * Every paragraph in document order, descending into tables and content controls, and into the
+   * selected branch of a kept `mc:AlternateContent` at block, row and cell level, as Word reads it
+   * (CR-013 phase 2). A paragraph in a branch is read-only (D4).
+   */
   get paragraphs(): Paragraph[] {
     const out: Paragraph[] = [];
     const visit = (items: Element[]): void => {
@@ -115,9 +130,9 @@ export class Body {
           const v = el.value;
           if (typeof v !== 'object' || v === null) continue;
           if (tn === 'org_docx4j_wml.Tbl') {
-            for (const row of rowsOf(v)) for (const cell of cellsOf(row.element.value)) visit(childrenOf(cell.element.value) ?? []);
+            for (const row of rowsOf(v, 'read')) for (const cell of cellsOf(row.element.value, 'read')) visit(childrenOf(cell.element.value) ?? []);
           } else {
-            const children = childrenOf(v);
+            const children = childrenOf(v, 'read');
             if (children) visit(children);
           }
         }
@@ -125,6 +140,11 @@ export class Body {
     };
     visit(this.content);
     return out;
+  }
+
+  /** The paragraphs a mutator walks until CR-013 phase 3: `paragraphs` less those in a branch, which it steps over as before. */
+  private paragraphsOutsideBranches(): Paragraph[] {
+    return this.paragraphs.filter((p) => !inBranch(p.p));
   }
 
   /**
@@ -194,9 +214,21 @@ export class Body {
     return out;
   }
 
-  /** The tables directly in this body, as Office JS reports them (nested tables are a cell's). */
+  /**
+   * The tables directly in this body, as Office JS reports them (nested tables are a cell's), a table in
+   * the selected branch of a kept block-level `mc:AlternateContent` among them (CR-013 phase 2).
+   */
   get tables(): Table[] {
-    return this.content.filter((el) => typeNameOf(el) === 'org_docx4j_wml.Tbl').map((element) => new Table(element as Element<wml.Tbl>, this.content, this));
+    const out: Table[] = [];
+    const visit = (items: Element[]): void => {
+      for (const element of items) {
+        const tn = typeNameOf(element);
+        if (tn === 'org_docx4j_wml.Tbl') out.push(new Table(element as Element<wml.Tbl>, items, this));
+        else if (tn === ALTERNATE_CONTENT) visit(selectedBranchOf(element.value as mce.AlternateContent) ?? []);
+      }
+    };
+    visit(this.content);
+    return out;
   }
 
   /** Every content control in this body, in document order, nested ones included. */
@@ -282,8 +314,8 @@ export class Body {
         if (tn === 'org_docx4j_wml.Tbl') {
           // Word's default view: the cells a tab apart, the row ended by \r\n (checks 30, 31 and 51; check
           // 48's \t after every cell and row was All Markup's, with hidden text shown)
-          for (const row of rowsOf(v)) {
-            cellsOf(row.element.value).forEach((cell, i) => {
+          for (const row of rowsOf(v, 'read')) {
+            cellsOf(row.element.value, 'read').forEach((cell, i) => {
               if (i > 0) pieces.push('\t');
               visit(childrenOf(cell.element.value) ?? []);
               if (pieces[pieces.length - 1] === '\r') pieces.pop();
@@ -292,7 +324,7 @@ export class Body {
           }
           continue;
         }
-        const children = childrenOf(v);
+        const children = childrenOf(v, 'read');
         if (children) visit(children);
       }
     };
@@ -306,6 +338,11 @@ export class Body {
     return trackerOf(this.package_)?.forPart(this.part);
   }
 
+  /** Refuses a write to a body in a branch of a kept `mc:AlternateContent`: a cell or a control a reader found there (CR-013 D4). */
+  private assertWritable(): void {
+    assertOutsideBranch(this.container, 'Body');
+  }
+
   insertParagraph(text: string, location: 'Start' | 'End'): Paragraph {
     const el = paragraphOf(text === '' ? [] : [textRun(text)]);
     return this.insertElement(el, location) as Paragraph;
@@ -313,6 +350,7 @@ export class Body {
 
   /** Text at the start of the first paragraph, the end of the last, or replacing everything with one paragraph. */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
+    this.assertWritable();
     const paragraphs = this.paragraphs;
     if (location === 'Replace' || paragraphs.length === 0) {
       this.clear();
@@ -347,6 +385,7 @@ export class Body {
    * than the text area is scaled down, as docx4j's CxCy.scale does.
    */
   insertInlinePictureFromBase64(base64: string, location: 'Start' | 'End', options?: InlinePictureOptions): InlinePicture {
+    this.assertWritable();
     if (!this.part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
     const { run, drawing } = addImage(this.part, base64, this.container, writableWidthEmu(this.container), options);
     const paragraph = this.insertParagraph('', location);
@@ -373,6 +412,7 @@ export class Body {
    * body cannot hold, naming what was passed. Returns the view of the first inserted element.
    */
   insertElement(element: Element | Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Paragraph | BlockElement {
+    this.assertWritable();
     const elements = Array.isArray(element) ? element : [element];
     if (elements.length === 0) throw new Docx4JException('Nothing to insert');
     for (const el of elements) {
@@ -387,6 +427,7 @@ export class Body {
     else if (location === 'End') index = container.length;
     else {
       const t = this.resolveTarget(target);
+      assertOutsideBranch(t.element.value as object, 'Body', 'the block to insert beside');   // beside it is in the branch too
       container = t.container;
       index = container.indexOf(t.element) + (location === 'After' ? 1 : 0);
     }
@@ -407,6 +448,7 @@ export class Body {
 
   /** Inserts a WML fragment (one or more w:p / w:tbl / ... as inside document.xml); the standard prefixes are declared for it. */
   async insertXml(xml: string, location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
+    this.assertWritable();
     return this.insertContent(await contentOf(xml, { preprocess: this.preprocessor() }), location, target);
   }
 
@@ -418,6 +460,7 @@ export class Body {
    * what was inserted, as `insertXml` does, since a package may bring several blocks.
    */
   async insertOoxml(ooxml: string, location: 'Start' | 'End' | 'Replace' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
+    this.assertWritable();
     const elements = await contentOf(ooxml, { preprocess: this.preprocessor(), target: this.part });
     if (location === 'Replace') {
       this.clear();
@@ -451,7 +494,8 @@ export class Body {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    const matches = this.paragraphs.flatMap((p) => p.searchMatches(find, options));
+    // a branch's paragraphs are stepped over, as before CR-013 phase 2, until its phase 3 reaches every branch
+    const matches = this.paragraphsOutsideBranches().flatMap((p) => p.searchMatches(find, options));
     for (let i = matches.length - 1; i >= 0; i--) {
       const { range, match } = matches[i]!;
       range.insertText(expandReplacement(replace, match, options), 'Replace');
@@ -465,6 +509,7 @@ export class Body {
    * the relationships the content held (its pictures' images) are settled on save (CR-002 section 47).
    */
   clear(): void {
+    this.assertWritable();
     const tracker = this.changeTracker;
     if (!tracker) {
       const ids = new Set<string>();
@@ -474,7 +519,7 @@ export class Body {
       return;
     }
     for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
-    for (const p of this.paragraphs) p.delete();
+    for (const p of this.paragraphsOutsideBranches()) p.delete();
   }
 
   // --- change tracking (CR-002 phase F) ---------------------------------------------------
@@ -510,12 +555,12 @@ export class Body {
           // records are one change of their own where the table stands (CR-002 section 35), kept apart.
           const tableChange = tablePropertiesChangeOf(el as Element<wml.Tbl>, this);
           if (tableChange) into.push(BREAK, tableChange, BREAK);
-          for (const row of rowsOf(v)) {
+          for (const row of rowsOf(v, 'read')) {
             // A row that is itself a revision reports as one change, as Office JS does: the
             // markup its cells carry (Word marks every run and mark of a deleted or inserted row)
             // belongs to that change, which accepts or rejects it along with the row.
             const tokens: TrackedChangeToken[] = [];
-            for (const cell of cellsOf(row.element.value)) {
+            for (const cell of cellsOf(row.element.value, 'read')) {
               const cellChange = cellChangeOf(cell.element, cell.container, row.element.value, this);
               if (cellChange) tokens.push(cellChange, BREAK);
               visit(childrenOf(cell.element.value) ?? [], tokens);
@@ -528,6 +573,9 @@ export class Body {
           }
           continue;
         }
+        // a kept mc:AlternateContent is its selected branch, as Word reads it, and keeps nothing apart
+        // (CR-013 phase 2): Word's save has no element there
+        if (tn === ALTERNATE_CONTENT) { visit(selectedBranchOf(v as mce.AlternateContent) ?? [], into); continue; }
         // a block-level content control or custom XML element keeps what is inside it apart; a
         // marker between paragraphs (a bookmark or range end) keeps nothing apart
         const children = childrenOf(v);
@@ -660,7 +708,7 @@ export class Body {
         container = undefined;
         continue;
       }
-      container = childrenOf(current);
+      container = childrenOf(current, 'read');
       const i = Number(seg);
       if (!container || seg === '' || !Number.isInteger(i) || i < 0 || i >= container.length) return undefined;
       element = container[i]!;
@@ -690,9 +738,28 @@ export class Body {
    * their table's entry.
    * Async since phase 4, as the model's reading is; calls under one `TextContext` (`Texts.contextOf`) read
    * the package's stories once. The package is not changed (REQ-204).
+   *
+   * With `select`, only some of this body's top-level blocks are read (CR-012 section 17.13): their entries
+   * are those the whole outline gives them under the same context and options, in document order. A
+   * paragraph whose text a paragraph before it holds (`joined`) gives none; a block that starts inside a
+   * field open before it (a table of contents left out, D12) is read inside it. Under a context, the first
+   * such call over a body walks its blocks' field characters once; each block after that costs its own
+   * reading. A context is a snapshot: after an edit, make another.
    */
-  async outline(options?: object, context?: object): Promise<Outline> {
-    return outlineReader()(this, options, context);
+  async outline(options?: object, context?: object, select?: OutlineSelection): Promise<Outline> {
+    return outlineReader()(this, options, context, select?.blocks.map((b) => this.blockIndexOf(b)));
+  }
+
+  /** The index in `content` of one of this body's top-level blocks. */
+  private blockIndexOf(block: number | Paragraph | BlockElement): number {
+    const content = this.content;
+    if (typeof block === 'number') {
+      if (!Number.isInteger(block) || block < 0 || block >= content.length) throw new Docx4JException(`${this.prefix} has no block ${block}`);
+      return block;
+    }
+    const i = block.container === content ? content.indexOf(block.element) : -1;
+    if (i < 0) throw new Docx4JException(`Not one of ${this.prefix}'s top-level blocks: ${describe(block.element)}`);
+    return i;
   }
 
   // --- docx4j names ---
@@ -787,6 +854,14 @@ export class Body {
       if (i < 0) return undefined;
       path.unshift(i);
       if (parent === this.container) return path;
+      if (BRANCH_TYPES.has((parent as { TYPE_NAME?: string }).TYPE_NAME ?? '')) {
+        // a kept mc:AlternateContent's branch is no level of its own (D2): what is in the selected one is
+        // addressed from the element, body/2/0; another branch's is not addressed, readers not seeing it
+        const ac = (parent as { PARENT?: object }).PARENT as mce.AlternateContent | undefined;
+        if (!ac || selectedBranchOf(ac) !== children) return undefined;
+        child = ac;
+        continue;
+      }
       if ((parent as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.CTTxbxContent') {
         // a text box's block: addressed from the paragraph that anchors it, `textbox:n` its place among
         // that paragraph's boxes; none for a box the text model doesn't number (another branch's, a hidden run's)
@@ -836,6 +911,7 @@ export class Body {
    * body. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
+    this.assertWritable();
     const content = [...this.content];
     const sdt = sdtOf(content, { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this)), form: 'block' });
     this.content.length = 0;
@@ -893,6 +969,13 @@ export function trackedChangesOfStory(body: Body): TrackedChange[] {
 }
 
 /**
+ * The members `textBoxesIn` does not descend into: an element's name, and properties, which hold no text box.
+ * Over every fixture the walk finds the same text boxes without them and visits 38% fewer objects (CR-012
+ * section 17.13: it was most of a plan's cost).
+ */
+const NO_TEXT_BOXES = new Set(['PARENT', 'name', 'pPr', 'rPr', 'tblPr', 'tblGrid', 'trPr', 'tcPr', 'sectPr', 'sdtPr', 'sdtEndPr']);
+
+/**
  * The `w:txbxContent` of every text box in a story's content, not descending into one found, each with
  * whether it is in a branch a reader takes: false inside a branch of a kept `mc:AlternateContent` other
  * than its selected one (`selectedBranchOf`).
@@ -913,7 +996,7 @@ function textBoxesIn(container: { content?: Element[] }): { box: { content?: Ele
       for (const branch of [...(ac.choice ?? []), ...(ac.fallback ? [ac.fallback] : [])]) visit(branch.any, selected && branch.any === read);
       return;
     }
-    for (const key in o) if (key !== 'PARENT') visit((o as Record<string, unknown>)[key], selected);
+    for (const key in o) if (!NO_TEXT_BOXES.has(key)) visit((o as Record<string, unknown>)[key], selected);
   };
   visit(container.content, true);
   return out;

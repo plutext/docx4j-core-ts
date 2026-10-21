@@ -104,6 +104,16 @@ measured it on a block content control of three paragraphs. Its 'Whole' range re
    rule simple enough to follow.
 4. **D4, the editor.** Its spans are per paragraph, so this is additive for it, but its agent's verbs (`delete`,
    `replace`, `comment` over a span) could take ranges across paragraphs. Ask it, as with CR-012, before phase 1.
+   - **Its answer (2026-10-21, ED-008 section 8.8):** additive. Its agent's span stays inside one paragraph's text
+     (its `docs/agent.md` section 2.3); several whole blocks go through its own verbs. The first uses it would
+     take, both after this CR's phase 3:
+     - `comment` over an address range, a reviewer's common case, which its margin anchors already;
+     - `delete` of a span crossing a paragraph's end, the mark deleted as its tracker does for Backspace.
+
+     A span crossing paragraphs would be a second shape in its contract, not a change to the first. **Phase 1
+     needn't wait on it.**
+   - **On D2:** nothing of the editor's indexes `Comment.getRange()`'s array, and one `Range` as Office JS
+     has is fine.
 
 ## 6. Check 52 (to write)
 
@@ -117,6 +127,19 @@ and a three-paragraph block control. A Script Lab snippet:
 - searches `^p` and reads the hits.
 
 Word's saves are kept beside the JSON, as checks 30 and 31's were.
+
+The editor's additions (2026-10-21, its D4 answer):
+1. The same deletion with its ends swapped (heading first, body first) and one starting in the list item, in
+   both tracking modes: which paragraph's properties and numbering the joined paragraph keeps, and, tracked, the
+   `w:pPrChange` the deleted mark leaves. Its ED-005 section 12.44 carry rule is its reading of Word 15 for a mark
+   deleted alone; across paragraphs it is unmeasured.
+2. A range crossing a hidden run, and one crossing a footnote reference: is the note's text in `text`, and what
+   does `delete` do to the note?
+3. `insertComment` on a 'Whole' range ending at a paragraph mark: where the end marker goes.
+4. `^p` against a cell's end mark and a row's end.
+5. `expandTo` from inside a cell to the paragraph after the table, under tracking: which rows are marked deleted,
+   and whether the table survives. The editor's Accept All removes a table whose every row is deleted (its ED-005
+   section 12.109).
 
 ## 7. Risks
 

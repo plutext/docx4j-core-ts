@@ -12,7 +12,12 @@ read-only. The editor, asked about D4 the same day, also wanted (a), with its ED
 ever needed, and not resolving on edit. Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-013 phases 0
 and 1"), not released: docx4j's probes in `test/mc-fun/` with every reader's answer asserted, the walker
 audit (section 7), and the text model reading row- and cell-level branches as Word 365 does, kept or
-resolved, with `mcePreprocess: true` over the readers' set (section 8). Phases 2 and 3 not started.
+resolved, with `mcePreprocess: true` over the readers' set (section 8). Phase 2 implemented 2026-10-21 (Jason: "do CR-012
+section 17.13 then CR-013 phase 2"), not released: the content API's readers and the tracked-change listing take the
+selected branch at block, row and cell level (and the listing at paragraph level), so every probe with a Word save
+reads as the save does through every Office JS reader, kept or resolved; every view in a branch refuses its writes
+(D4); a table goes only when no branch keeps a row, which closes section 7.3's two content-losing shapes (section 9).
+Phase 3 not started.
 
 ## 1. Why
 
@@ -143,7 +148,7 @@ The two load modes don't map one to one onto docx4j's:
 |---|---|---|
 | 0 | The probes copied with provenance, to `test/mc-fun/` rather than `test/fixtures/` so that the parity, XPath and revisions harnesses don't take them up; tests asserting today's behaviour per reader and level (CLAUDE.md's rule: a gap fixed announces itself); the walker audit (section 3, item 4). **Done 2026-10-21, section 7** | 1 day |
 | 1 | The text model at row and cell level (`rows`, `cells`, `compareBranches`), held to the 13 Word saves; `mcePreprocess: true` over the readers' set (D3), with section 3 item 6's round trips as tests. **Done 2026-10-21, section 8**, with `surfaceText` (section 7.3) | ½ day |
-| 2 | The content API's readers: paragraphs, tables, rows, cells, controls, lists, outline, search, addresses; the views in a branch read-only (D4); since the audit (section 7.4) also the tracked-change listing, which the text model's views are planned from, the `TableContext`, and `textOf`'s readers | 2½ to 3½ days |
+| 2 | The content API's readers: paragraphs, tables, rows, cells, controls, lists, outline, search, addresses; the views in a branch read-only (D4); since the audit (section 7.4) also the tracked-change listing, which the text model's views are planned from, the `TableContext`, and `textOf`'s readers. **Done 2026-10-21, section 9**, with phase 3's two content-losing shapes | 2½ to 3½ days |
 | 3 | The mutators the audit lists (section 7.3), the two that lose content first (`removeRow`, `Table.deleteColumns`): the resolve-all verbs, table edits and revisions, comments, the binding passes, the ids | 1½ to 2½ days |
 
 ## 5. Decisions
@@ -428,3 +433,139 @@ level. It becomes docx4j's default at 17.4.0.
 - **Its tests are the oracle for those phases:** `McBlockLevelProbesTest.preserveModeReadsAsWordsSave`,
   `McBlockLevelReadersTest` (the element's address, both modes) and `TrackedChangesAlternateContentTest` (row and
   cell bodies), with `acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow`.
+
+## 9. Phase 2: the content API's readers and the tracked-change listing (implemented 2026-10-21)
+
+Jason: "do CR-012 section 17.13 then CR-013 phase 2". Phase 2 began from `9307bdb`, CR-012 phase 4.
+
+### 9.1 The walks' modes
+
+The audit's three fixes with the widest reach (section 7.3), in `tree.mts`:
+- **`childrenOf(value, 'read')`** answers for a kept `mc:AlternateContent` with its selected branch
+  (`selectedBranchOf`, the readers' set). Without the mode it still answers nothing for the element, as the
+  mutators' walks need until phase 3.
+- **A Choice or the Fallback answers with its items** (`any`), mode or not. So every locator that climbs
+  `PARENT` from a branch's paragraph, row or cell finds the list it is in: `paragraphFor`, `cellOf`,
+  `ResolvedView`'s `listOf`, the tracked changes' `currentOwner`.
+- **`rowsOf(tbl, mode)` and `cellsOf(tr, mode)`** descend into a row- or cell-level element: `'read'` its
+  selected branch, `'every'` every branch, the Choices first. `BranchMode` names the two; with no mode the
+  element is stepped over, as before.
+- **`inBranch(value)`** is true for a value under a Choice or the Fallback, from `PARENT` links. A
+  paragraph's ancestors never include a run- or paragraph-level element, which is inside the paragraph, so
+  ED-009's edits there are untouched. **`assertOutsideBranch(value, className)`** throws D4's
+  `NotSupportedError`.
+
+### 9.2 The readers
+
+Each takes the selected branch at block, row and cell level:
+- **`Body`:** `paragraphs` (so `search`, `inlinePictures`, `lists`, `getText` and every reader built on
+  them), `text`, `tables` (a table in a block-level branch is the body's, as Word reads it), `elementAt` and
+  `pathOf`.
+- **Addresses (D2).** `pathOf` steps over the Choice level, so a branch's paragraph comes back in the
+  element's form: `body/2/0`, a row's `body/1/1/0/0/0`, a cell's `body/1/0/1/0/0`. A paragraph in another
+  branch has no address, since no reader sees it. So the three text boxes in a block-level element agree
+  with the text model now, and all 132 do (CR-012 section 17.4).
+- **Tables:** `Table.rowCount`, `rows`, `values`, `getCell`, `headerRowCount`, `columnWidths`;
+  `TableRow.rowIndex`, `cellCount`, `cells`; `TableCell.cellIndex`; the `cellOf` locator; `gridWidthsOf`.
+- **Content controls:** `collectControls`, `collectInRows`, `collectInCells` and `collectRunControls` (a
+  paragraph-level element's controls too).
+- **Comments:** the marker walk (`markersOf`) behind `getComments` and `Comment.getRange`.
+- **The `TableContext`:** a branch's rows and cells count for a table style's first row, last row and bands.
+- **`outline()`** is the text model's, right since phase 1. `Body.select` builds its views from the readers
+  above, so a hit in the selected branch is a view, and one in another branch stays a `Bound`.
+
+### 9.3 The tracked-change listing (section 7.4)
+
+`Body.getTrackedChanges` lists a block-level element's selected branch, and a table's row- and cell-level
+branches, with nothing kept apart. Word's save has no element there. `trackedChangeTokensOfParagraph` does
+the same for a paragraph-level element: the same gap, and docx4j's CR-051 section 10.5 item 3. The rows' and
+the table property revisions' texts read the branch too.
+- **docx4j's shapes.** On `TrackedChangesAlternateContentTest`'s four (block, paragraph, row and cell level;
+  docx4j CR-051 phase 2, `9db1a3cbd`), each lists docx4j's two changes, an insertion and a deletion, from the
+  selected branch. They had listed none.
+- **The text model's views are planned from this listing** (`ResolvedView`). So its accepted view no longer
+  reads a deletion in a branch (`C INSERTED`, where it read `C INSERTEDDELETED`), and its original view no
+  longer reads an insertion there.
+- **Resolution resolves what was listed:** the selected branch. Accept All counts and resolves docx4j's
+  two. **The other branches keep their revisions**, which docx4j resolves with their twins
+  (`acceptAllResolvesEveryBranch`). That is phase 3's resolve-all, asserted as it is.
+- **The table property revisions** are listed and resolved in the selected branch. `collapseGrid` counts
+  and renumbers every branch's cells, since the grid is every branch's.
+
+### 9.4 Two of phase 3's mutators, pulled in
+
+The listing made section 7.3's content-losing shape reachable more often: a deleted row in a branch is now
+listed, so accepting it reached `removeRow`, which counted the table's rows outside the branches. So:
+- **`removeRow`** removes the table only when no branch keeps a row (`rowsOf(tbl, 'every')`, docx4j's
+  `Lister.hasRows`). docx4j's `acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow` passes: the Choice's
+  row goes, the Fallback's stays, and the table with it. Section 7.3's shape, a plain deleted row beside the
+  element, keeps its table now.
+- **`Table.deleteColumns`** deletes the table only when no branch keeps a cell. On `mc-cell-newest-first`
+  the table stays, with the branch's cell.
+- docx4j's `acceptingADeletedRowInEveryBranchRemovesTheTable` differs, until phase 3. The Choice's row is
+  accepted, and the Fallback's waits for its twin, so the table stays where docx4j removes it. Asserted as
+  it is.
+- **Comment markers**: `removeMarkers` and `nextCommentId` walk every branch (`markersOf(..., 'every')`),
+  as `paraIdTaken` does. So a comment deleted, or removed with a resolved revision (CR-002 section 54),
+  leaves no marker in any branch.
+
+### 9.5 Views in a branch: read-only (D4)
+
+Every view a reader gives in a branch refuses its writes with `NotSupportedError` ("... is in a branch of an
+mc:AlternateContent, which is read-only (CR-013 D4)"):
+- **`Paragraph`:** `assertWritable` refuses it, as it refuses a text box's paragraph, so every paragraph
+  mutator, `Range` and `Font` write does. `Paragraph.inBranch` says which.
+- **`Body`**, a cell's or a control's in a branch: every insert, `clear`, `insertText`, `insertXml`,
+  `insertOoxml`, `insertContentControl`. Inserting beside a block in a branch is refused too.
+- **`Table`, `TableRow`, `TableCell`:** each setter and verb, and `inBranch` on each. `Table.values` and
+  `headerRowCount`, and `TableRow.values`, check every row and cell first, so nothing is written before a
+  refusal. `Table.deleteRows` counts rows as the readers do, and refuses a row in a branch.
+- **`ContentControl`:** its property setters, `putProperty`, `removeProperty`, `insertText`,
+  `insertParagraph`, `delete`, `setBoundContent`, `insertCopyAfter`. Its kinds' setters too: the checkbox's,
+  the date picker's, the lists' and their items', and the repeating section's. A control holding an element
+  in its content is not in a branch: a write to its content is refused by its paragraph.
+- **`InlinePicture`** in a branch's paragraph: its size, alt text and `delete`. A picture in a run-level
+  element's branch is unchanged: deleting it removes the element (CR-010 phase 3).
+
+The bulk edits step over a branch, as before this phase, until phase 3 has them reach every branch:
+`replaceText`, a tracked `Body.clear`, a tracked table or row deletion (`markRowsDeleted`), and the binding
+passes (`applyBindings`, `updateFromContentControls`, the picture pass). Each filters out what is in a branch.
+
+### 9.6 What was checked
+
+- **Every probe with a Word 365 save** (13; `mc-run-word365` is the original-order probe's) reads as its
+  save does through `Body.paragraphs`, `Body.text` and every table's values and cells. A resolved load
+  (D3) reads the same through the content controls as well, on all 16 probes.
+- **Each branch paragraph's address** gives the paragraph back (`paragraphAt`), in the element's form.
+- **The sweep.** Over 790 `.docx` files (this repository's tests, docx4j's test resources, the editor's
+  packages), this tree and `9307bdb` were compared on `Body.paragraphs`, `Body.text`, the tables' values, the
+  content controls' text, the tracked-change listing, a search and every comment's range. The 76 differences
+  are all in the `mc-fun` probes (both copies), each now Word's reading. Nothing else moves, and nothing
+  throws.
+- No suite row, agreement comparison or golden moves: parity, XPath and the 96 revisions goldens.
+
+### 9.7 Tests
+
+- **`mc-fun.test.mjs`** (11 tests):
+  - phase 0's gap test became "the Office JS readers take the selected branch": the 13 saves, the resolved
+    loads, the addresses, the probes' readings and a search;
+  - docx4j's four listing shapes: listed once from the selected branch, the text model's two views, Accept
+    All and what it leaves for phase 3;
+  - the row-removal cases, docx4j's two and section 7.3's two;
+  - D4's refusals, view by view, with nothing written before one, and the bulk edits stepping over a branch;
+  - the `TableContext`'s last row in a branch, and a comment anchored in a block-level branch: listed, its
+    range read, and deleted from both branches.
+- **`readers.test.mjs`:** the `textbox:` test holds all 132 boxes, where it asserted three missed.
+- 1,122 tests pass.
+
+### 9.8 What phase 3 has left
+
+- **Resolve-all in every branch:** the other branches' revisions, docx4j's twins. This includes a deleted
+  row in every branch, which then removes the table.
+- **The bulk edits that step over a branch** (section 9.5's list), and `resolveUnlisted`, `movePiecesOf`
+  and `dissolveBrokenMoves` in a branch.
+- **The table edits:** `addRows` beside an element, and the column passes (`addColumns`, `deleteColumns`,
+  `tableColumns`). These still leave a branch's row with its old cells.
+- **The ids that should see every branch:** `assignParaId` and `usesParaIds` read the selected branch;
+  `commentParaId`.
+- **`toApiScript`'s** block-level `insertXml`, and `joinWithNext` before an element (section 7.3).

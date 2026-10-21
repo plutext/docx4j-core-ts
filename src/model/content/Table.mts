@@ -5,7 +5,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { tr as rowOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, typeNameOf, childrenOf, linkParents, rowsOf, cellsOf } from './tree.mjs';
+import { type Element, typeNameOf, childrenOf, linkParents, rowsOf, cellsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type { Body } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -19,7 +19,9 @@ const TWIPS_PER_POINT = 20;
 
 /**
  * A subset of Office JS `Word.Table` over a `w:tbl`. Rows are read through row-level content
- * controls (an OpenDoPE repeat wraps its `w:tr` in a `w:sdt`), so `rows` is what Word shows.
+ * controls (an OpenDoPE repeat wraps its `w:tr` in a `w:sdt`), and through the selected branch of a
+ * kept row-level `mc:AlternateContent` (CR-013 phase 2), so `rows` is what Word shows. A table, row or
+ * cell in a branch is read-only (D4), and so is a write that would reach one.
  */
 export class Table {
   constructor(
@@ -41,11 +43,11 @@ export class Table {
   }
 
   get rowCount(): number {
-    return rowsOf(this.tbl).length;
+    return rowsOf(this.tbl, 'read').length;
   }
 
   get rows(): TableRow[] {
-    return rowsOf(this.tbl).map((r) => new TableRow(r.element, r.container, this));
+    return rowsOf(this.tbl, 'read').map((r) => new TableRow(r.element, r.container, this));
   }
 
   /** The text of every cell, row by row (Office JS values). */
@@ -53,7 +55,9 @@ export class Table {
     return this.rows.map((row) => row.values);
   }
   set values(values: string[][]) {
+    this.assertWritable();
     const rows = this.rows;
+    rows.slice(0, values.length).forEach((row, i) => row.assertValuesWritable(values[i]!.length));   // nothing written before a refusal
     values.forEach((row, i) => { if (i < rows.length) rows[i]!.values = row; });
   }
 
@@ -62,6 +66,7 @@ export class Table {
     return this.tbl.tblPr?.tblStyle?.val ?? '';
   }
   set styleId(id: string) {
+    this.assertWritable();
     if (id === '') { if (this.tbl.tblPr) delete this.tbl.tblPr.tblStyle; return; }
     this.tblPr().tblStyle = { val: id };
   }
@@ -91,6 +96,8 @@ export class Table {
     return n;
   }
   set headerRowCount(count: number) {
+    this.assertWritable();
+    for (const row of this.rows) row.assertWritable();
     this.rows.forEach((row, i) => { row.isHeader = i < count; });
   }
 
@@ -105,12 +112,13 @@ export class Table {
 
   /** Adds rows at the start or the end, with the column count and widths of this table. */
   addRows(location: 'Start' | 'End', rowCount: number, values?: string[][]): TableRow[] {
+    this.assertWritable();
     const widths = this.columnWidths();
     const added: Element<wml.Tr>[] = [];
     for (let i = 0; i < rowCount; i++) added.push(rowElement(widths, values?.[i]));
     // New rows go into the table's own content, not into a row-level content control.
     const container = (this.tbl.content ??= []) as Element[];
-    const first = rowsOf(this.tbl)[0];
+    const first = rowsOf(this.tbl, 'read')[0];
     const at = location === 'Start' && first && first.container === container ? container.indexOf(first.element) : location === 'Start' ? 0 : container.length;
     container.splice(at, 0, ...added);
     for (const row of added) linkParents(row, this.tbl);
@@ -123,9 +131,13 @@ export class Table {
    * tracks changes the rows stay and take a `w:trPr/w:del` instead (CR-002 phase F).
    */
   deleteRows(rowIndex: number, rowCount = 1): void {
+    this.assertWritable();
+    // indices count the rows a reader sees; a row in a branch is not deleted from here (D4)
+    const rows = this.rows.slice(rowIndex, rowIndex + rowCount);
+    for (const row of rows) row.assertWritable();
     const tracker = this.changeTracker;
-    if (tracker) { markRowsDeleted(tracker, this.rows.slice(rowIndex, rowIndex + rowCount)); return; }
-    for (const row of rowsOf(this.tbl).slice(rowIndex, rowIndex + rowCount).reverse()) {
+    if (tracker) { markRowsDeleted(tracker, rows); return; }
+    for (const row of rows.reverse()) {
       const i = row.container.indexOf(row.element);
       if (i >= 0) row.container.splice(i, 1);
     }
@@ -142,6 +154,7 @@ export class Table {
    * table change is recorded as Office JS records one and the new cells' text is an insertion.
    */
   addColumns(location: 'Start' | 'End', columnCount: number, values?: string[][]): TableCell[][] {
+    this.assertWritable();
     const at = location === 'Start' ? 0 : this.columnWidths().length;
     const inserted = insertGridColumns(this.tbl, this.textWidth(), at, columnCount, values, this.changeTracker);
     return this.cellViewsOf(inserted.cells);
@@ -154,8 +167,11 @@ export class Table {
    * it (section 42.3; check 40c; Word's own is not tracked at all, known issues entry 2).
    */
   deleteColumns(columnIndex: number, columnCount = 1): void {
+    this.assertWritable();
     deleteGridColumns(this.tbl, this.textWidth(), columnIndex, columnCount, this.changeTracker);
-    if ((this.tbl.tblGrid?.gridCol?.length ?? 0) === 0 || rowsOf(this.tbl).every((row) => cellsOf(row.element.value).length === 0)) this.delete();
+    // a cell in any branch of a kept mc:AlternateContent keeps the table (CR-013 phase 2): counted outside
+    // the branches alone, a table whose cells were all in one went with them
+    if ((this.tbl.tblGrid?.gridCol?.length ?? 0) === 0 || rowsOf(this.tbl, 'every').every((row) => cellsOf(row.element.value, 'every').length === 0)) this.delete();
   }
 
   /** Which of Word's three layout modes the table is in: fixed, AutoFit to window, or AutoFit to contents (extension). */
@@ -180,6 +196,7 @@ export class Table {
 
   /** Removes the table from its container; tracked, every row is marked deleted instead. */
   delete(): void {
+    this.assertWritable();
     const tracker = this.changeTracker;
     if (tracker) { markRowsDeleted(tracker, this.rows); return; }
     const i = this.index;
@@ -205,8 +222,8 @@ export class Table {
   columnWidths(): number[] {
     const grid = this.tbl.tblGrid?.gridCol;
     if (grid && grid.length) return grid.map((c) => c.w ?? Math.floor(DEFAULT_WIDTH / grid.length));
-    const first = rowsOf(this.tbl)[0];
-    const cells = first ? cellsOf(first.element.value) : [];
+    const first = rowsOf(this.tbl, 'read')[0];
+    const cells = first ? cellsOf(first.element.value, 'read') : [];
     const n = Math.max(1, cells.length);
     const each = Math.floor(DEFAULT_WIDTH / n);
     return Array.from({ length: n }, (_, i) => cells[i]?.element.value.tcPr?.tcW?.w ?? each);
@@ -214,6 +231,16 @@ export class Table {
 
   private tblPr(): wml.TblPr {
     return (this.tbl.tblPr ??= {});
+  }
+
+  /** True for a table in the selected branch of a kept block-level `mc:AlternateContent` (CR-013 phase 2): read-only (D4). */
+  get inBranch(): boolean {
+    return inBranch(this.tbl);
+  }
+
+  /** Refuses a write to a table in a branch (CR-013 D4). Internal: the table's mutators call it first. */
+  assertWritable(): void {
+    assertOutsideBranch(this.tbl, 'Table');
   }
 }
 
@@ -232,15 +259,15 @@ export class TableRow {
 
   /** The row's index among the table's rows. */
   get rowIndex(): number {
-    return rowsOf(this.parentTable.tbl).findIndex((r) => r.element === this.element);
+    return rowsOf(this.parentTable.tbl, 'read').findIndex((r) => r.element === this.element);
   }
 
   get cellCount(): number {
-    return cellsOf(this.tr).length;
+    return cellsOf(this.tr, 'read').length;
   }
 
   get cells(): TableCell[] {
-    return cellsOf(this.tr).map((c) => new TableCell(c.element, c.container, this));
+    return cellsOf(this.tr, 'read').map((c) => new TableCell(c.element, c.container, this));
   }
 
   /** The text of the row's cells. */
@@ -248,6 +275,7 @@ export class TableRow {
     return this.cells.map((c) => c.text);
   }
   set values(values: string[]) {
+    this.assertValuesWritable(values.length);
     const cells = this.cells;
     values.forEach((v, i) => { if (i < cells.length) cells[i]!.value = v; });
   }
@@ -258,6 +286,7 @@ export class TableRow {
     return item !== undefined && (item.value as wml.BooleanDefaultTrue).val !== false;
   }
   set isHeader(header: boolean) {
+    this.assertWritable();
     const items = this.tr.trPr?.cnfStyleOrDivIdOrGridBefore;
     const at = items?.findIndex((i) => i.name.localPart === 'tblHeader') ?? -1;
     if (!header) { if (items && at >= 0) items.splice(at, 1); return; }
@@ -268,6 +297,7 @@ export class TableRow {
 
   /** New rows before or after this one, with this table's columns. */
   insertRows(location: 'Before' | 'After', rowCount: number, values?: string[][]): TableRow[] {
+    this.assertWritable();
     const widths = this.parentTable.columnWidths();
     const added: Element<wml.Tr>[] = [];
     for (let i = 0; i < rowCount; i++) added.push(rowElement(widths, values?.[i]));
@@ -281,10 +311,27 @@ export class TableRow {
 
   /** Removes the row; tracked, it stays and takes a `w:trPr/w:del` (CR-002 phase F). */
   delete(): void {
+    this.assertWritable();
     const tracker = this.parentTable.changeTracker;
     if (tracker) { markRowsDeleted(tracker, [this]); return; }
     const i = this.container.indexOf(this.element);
     if (i >= 0) this.container.splice(i, 1);
+  }
+
+  /** True for a row in a branch of a kept `mc:AlternateContent`, or in a table in one (CR-013 phase 2): read-only (D4). */
+  get inBranch(): boolean {
+    return inBranch(this.tr);
+  }
+
+  /** Refuses a write to a row in a branch (CR-013 D4). Internal. */
+  assertWritable(): void {
+    assertOutsideBranch(this.tr, 'TableRow');
+  }
+
+  /** Refuses `values` of `count` cells where the row, or one of those cells, is in a branch. Internal. */
+  assertValuesWritable(count: number): void {
+    this.assertWritable();
+    for (const cell of this.cells.slice(0, count)) cell.assertWritable();
   }
 
   private trPrItem(localPart: string): Element | undefined {
@@ -314,7 +361,7 @@ export class TableCell {
   }
 
   get cellIndex(): number {
-    return cellsOf(this.parentRow.tr).findIndex((c) => c.element === this.element);
+    return cellsOf(this.parentRow.tr, 'read').findIndex((c) => c.element === this.element);
   }
 
   /**
@@ -370,6 +417,7 @@ export class TableCell {
    * a stated width being what was asked for.
    */
   set width(points: number) {
+    this.assertWritable();
     const twips = Math.round(points * TWIPS_PER_POINT);
     const tcW = ((this.tc.tcPr ??= {}).tcW ??= {});
     if (widthTypeOf(this.tc, this.parentTable.tbl) === 'pct') {
@@ -387,6 +435,7 @@ export class TableCell {
    * row (extension).
    */
   insertColumns(location: 'Before' | 'After', columnCount: number, values?: string[][]): TableCell[][] {
+    this.assertWritable();
     const range = gridRangeOf(this.parentRow.tr, this.tc);
     if (!range) throw new Docx4JException('This cell is not in its row');
     const table = this.parentTable;
@@ -396,9 +445,20 @@ export class TableCell {
 
   /** Removes the grid columns this cell covers (Office JS `TableCell.deleteColumn`); tracked as `Table.deleteColumns` is. */
   deleteColumn(): void {
+    this.assertWritable();
     const range = gridRangeOf(this.parentRow.tr, this.tc);
     if (!range) throw new Docx4JException('This cell is not in its row');
     this.parentTable.deleteColumns(range.start, range.end - range.start);
+  }
+
+  /** True for a cell in a branch of a kept `mc:AlternateContent`, or in a row or table in one (CR-013 phase 2): read-only (D4). */
+  get inBranch(): boolean {
+    return inBranch(this.tc);
+  }
+
+  /** Refuses a write to a cell in a branch (CR-013 D4); its body's writes refuse too. Internal. */
+  assertWritable(): void {
+    assertOutsideBranch(this.tc, 'TableCell');
   }
 
   /** Office JS TableCell.columnWidth, the same value. */
@@ -448,10 +508,10 @@ export function cellOf(value: object, parentBody: Body): TableCell | undefined {
   const tblElement = tblContainer?.find((e) => e.value === tbl) as Element<wml.Tbl> | undefined;
   if (!tblElement || !tblContainer) return undefined;
   const table = new Table(tblElement, tblContainer, parentBody);
-  const row = rowsOf(tbl).find((r) => r.element.value === tr);
+  const row = rowsOf(tbl, 'read').find((r) => r.element.value === tr);
   if (!row) return undefined;
   const rowView = new TableRow(row.element, row.container, table);
-  const cell = cellsOf(tr).find((c) => c.element.value === tc);
+  const cell = cellsOf(tr, 'read').find((c) => c.element.value === tc);
   return cell ? new TableCell(cell.element, cell.container, rowView) : undefined;
 }
 
@@ -477,11 +537,15 @@ function ancestorOf(value: object, typeName: string, depth: number): object | un
  * The mirror of `markRowsInserted`. Rows of a nested table go the same way.
  */
 function markRowsDeleted(tracker: ChangeTracker, rows: TableRow[]): void {
+  // what is in a branch of a kept mc:AlternateContent is stepped over, as before CR-013 phase 2, until its
+  // phase 3 reaches every branch
   for (const row of rows.slice().reverse()) {
+    if (row.inBranch) continue;
     tracker.markRowDeleted(row.tr);
     for (const cell of row.cells) {
-      for (const paragraph of cell.paragraphs) paragraph.markDeletedInPlace(tracker);
-      for (const nested of cell.tables) markRowsDeleted(tracker, nested.rows);
+      if (cell.inBranch) continue;
+      for (const paragraph of cell.paragraphs) if (!paragraph.inBranch) paragraph.markDeletedInPlace(tracker);
+      for (const nested of cell.tables) if (!nested.inBranch) markRowsDeleted(tracker, nested.rows);
     }
   }
 }

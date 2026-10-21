@@ -4,9 +4,10 @@
 // paragraph mark joins its paragraph with the next. CR-002 phase F.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as math from '@docx4j/generated-objects-ts/modules/org_docx4j_math';
+import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
-import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf } from './tree.mjs';
+import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf, selectedBranchOf, ALTERNATE_CONTENT } from './tree.mjs';
 import { removeMarkers } from './comments.mjs';
 import { Range } from './Range.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -517,18 +518,19 @@ function rowText(tr: wml.Tr, view: 'accepted' | 'original'): string {
         out += (afterParagraph ? '\r' : '') + textOfView(el.value as object, { view, characters: 'textOf' });
         afterParagraph = true;
       } else if (tn === 'org_docx4j_wml.Tbl') {
-        for (const row of rowsOf(el.value as wml.Tbl)) out += rowText(row.element.value, view);
+        for (const row of rowsOf(el.value as wml.Tbl, 'read')) out += rowText(row.element.value, view);
         afterParagraph = false;
       } else if (typeof el.value === 'object' && el.value !== null) {
-        // a block control or custom XML element: what it holds, as if it were not there
-        for (const inner of childrenOf(el.value) ?? []) {
+        // a block control or custom XML element, or a kept mc:AlternateContent's selected branch (CR-013
+        // phase 2): what it holds, as if it were not there
+        for (const inner of childrenOf(el.value, 'read') ?? []) {
           if (typeNameOf(inner) === 'org_docx4j_wml.P') { out += (afterParagraph ? '\r' : '') + textOfView(inner.value as object, { view, characters: 'textOf' }); afterParagraph = true; }
         }
       }
     }
     return out;
   };
-  return cellsOf(tr).map((cell) => cellText(cell.element.value)).join('\t') + '\r\n';
+  return cellsOf(tr, 'read').map((cell) => cellText(cell.element.value)).join('\t') + '\r\n';
 }
 
 /** The changes inside a row, last first, so that a paragraph join never disturbs one still to do. */
@@ -1010,7 +1012,9 @@ export function insertedFieldAt(items: Element[], i: number, paragraph: Paragrap
  */
 function removeRow(t: Extract<TrackedChangeTarget, { kind: 'row' }>): void {
   remove(t.owner, t.tr as Element);
-  if (t.table && rowsOf(t.table.element.value).length === 0) remove(t.table.container, t.table.element as Element);
+  // a row in any branch of a kept row-level mc:AlternateContent keeps the table (CR-013 phase 2, docx4j's
+  // Lister.hasRows): counted over the selected branch alone, the table went with every branch's rows
+  if (t.table && rowsOf(t.table.element.value, 'every').length === 0) remove(t.table.container, t.table.element as Element);
 }
 
 /**
@@ -1696,6 +1700,12 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
       const run = el.value as wml.R;
       if (run.rPr?.rPrChange) out.push(new TrackedChange({ kind: 'runProperties', run, value: run.rPr.rPrChange }, paragraph));
       else if ((run.content ?? []).some((item) => itemTextOf(item as Element) !== undefined)) out.push(BREAK);
+      continue;
+    }
+    // a kept mc:AlternateContent among runs: its selected branch, as Word reads it, keeping nothing apart
+    // (CR-013 phase 2; docx4j CR-051 section 10.5 item 3). The other branches' revisions are not listed
+    if (typeNameOf(el) === ALTERNATE_CONTENT) {
+      tokensOfRunLevel(paragraph, selectedBranchOf(el.value as mce.AlternateContent) ?? [], out);
       continue;
     }
     // a run holder that is not itself an insertion - a hyperlink, a field, a control or custom XML

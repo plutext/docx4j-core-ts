@@ -44,6 +44,9 @@ const DECORATIVE_EXT = '{C183D7F6-B498-43B3-948B-1728B52AA6E4}';
 /** The extension Office 2016 writes an SVG picture's SVG in, beside the PNG copy `a:blip/@r:embed` names. */
 const SVG_BLIP_EXTENSION = '{96DAC541-7B7A-43D3-8B79-37D633B846F1}';
 
+/** The run items that open, divide, close or instruct a complex field: all `fieldsAtBlocks` reads of a run. */
+const FIELD_ITEMS = new Set(['fldChar', 'instrText', 'delInstrText']);
+
 /** How the view is read (docx4j `Extractor.Mode`). */
 export type ExtractorMode =
   /** The view's rules: a plan for accepted and original, revisions marked for markup. */
@@ -226,7 +229,23 @@ class FieldState {
   /** The paragraph whose merge floor its code raised, and the floor before. */
   floorParagraph: ParagraphState | undefined;
   previousFloor = 0;
+
+  /** The field as a block after the one it began in starts inside it: its code's block and paragraph left behind. */
+  copy(): FieldState {
+    const f = new FieldState();
+    f.instr = this.instr;
+    f.result = this.result;
+    f.separated = this.separated;
+    f.locked = this.locked;
+    f.computed = this.computed;
+    f.link = this.link;
+    f.toc = this.toc;
+    return f;
+  }
 }
+
+/** The complex fields open where a container's blocks begin, by the block's index (`Extractor.fieldsAtBlocks`). */
+export type BlockStarts = ReadonlyMap<number, readonly FieldState[]>;
 
 /** The state of a run-level walk: the revision and the control the runs are in. */
 class RunState {
@@ -333,6 +352,8 @@ export class Extractor {
   private readonly styleRPrCache = new Map<string, wml.RPr | undefined>();
   /** Bookmarks open in the walk, by id (REQ-506's REF, phase 5a). */
   private readonly openBookmarks = new Map<string, Bookmark>();
+  /** `fieldsAtBlocks`' walk: paragraphs read for their field characters and instructions alone, nothing emitted. */
+  private fieldsOnly = false;
 
   constructor(
     readonly trees: PackageTrees,
@@ -445,60 +466,117 @@ export class Extractor {
   /** Block-level content into `sink`: paragraphs (joined in a view), tables, and what is transparent. */
   blocks(items: Element[] | undefined, prefix: string, story: Story, sink: TextBlock[], state: RunState = PLAIN): void {
     if (!items) return;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (this.removes(item)) continue;
-      const v = unwrap(item);
-      const address = `${prefix}/${i}`;
-      const tn = typeOf(v);
-      if (tn === P) {
-        const chain: wml.P[] = [v as wml.P];
-        const addresses = [address];
-        let j = i;
-        while (this.joinsNext(chain[chain.length - 1]!)) {
-          const k = this.nextParagraph(items, j);
-          if (k < 0) break;                                          // no paragraph next: only the mark goes
-          chain.push(unwrap(items[k]) as wml.P);
-          addresses.push(`${prefix}/${k}`);
-          j = k;
-        }
-        this.paragraph(chain, addresses, story, sink, state);
-        i = j;
-      } else if (tn === TBL) {
-        this.table(v as wml.Tbl, address, story, sink, state);
-      } else if (isSdt(v) && this.unwraps(item)) {
-        // an inserted control rejected: its content in its place, its properties gone
-        this.blocks(sdtContentOf(v), address, story, sink, state);
-      } else if (isSdt(v)) {
-        const sdt = v as wml.SdtBlock;
-        const bound = this.bound(sdt, address);
-        if (bound !== undefined) {
-          // a plain-text control bound at block level: its bound value as one paragraph (REQ-509)
-          const block = paragraphBlock(story.kind, address, bound);
-          block.section = story.sections?.length ?? 0;
-          block.source = sdt;
-          sink.push(block);
-          this.flushIfOutsideTable(story, sink);
-          continue;
-        }
-        const placeholder = showingPlaceholder(sdt.sdtPr);
-        if (placeholder && !this.options.placeholders) continue;
-        this.blocks(sdtContentOf(v), address, story, sink, placeholder ? state.withPlaceholder() : state);
-      } else if (tn === 'org_docx4j_wml.CTAltChunk') {
-        this.altChunk(v as wml.CTAltChunk, address, story);
-      } else if (isBookmarkMarker(item)) {
-        this.bookmark(item);
-      } else if (tn === AC) {
-        const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, address);
-        this.blocks(selectedBranchOf(ac), address, story, sink, state);
-      } else if (revisionHolder(item) !== undefined) {
-        this.blocks(runItemsOfValue(v), address, story, sink, this.holderState(item, state));
-      } else {
-        const inner = blockItems(v);
-        if (inner) this.blocks(inner, address, story, sink, state);
+    for (let i = 0; i < items.length; i++) i = this.block(items, i, prefix, story, sink, state);
+  }
+
+  /** The block at `items[i]` into `sink`, with the paragraphs a view joins to it; the index of the last item it took. */
+  private block(items: Element[], i: number, prefix: string, story: Story, sink: TextBlock[], state: RunState): number {
+    const item = items[i]!;
+    if (this.removes(item)) return i;
+    const v = unwrap(item);
+    const address = `${prefix}/${i}`;
+    const tn = typeOf(v);
+    if (tn === P) {
+      const chain: wml.P[] = [v as wml.P];
+      const addresses = [address];
+      let j = i;
+      while (this.joinsNext(chain[chain.length - 1]!)) {
+        const k = this.nextParagraph(items, j);
+        if (k < 0) break;                                            // no paragraph next: only the mark goes
+        chain.push(unwrap(items[k]) as wml.P);
+        addresses.push(`${prefix}/${k}`);
+        j = k;
       }
+      this.paragraph(chain, addresses, story, sink, state);
+      return j;
     }
+    if (tn === TBL) {
+      this.table(v as wml.Tbl, address, story, sink, state);
+    } else if (isSdt(v) && this.unwraps(item)) {
+      // an inserted control rejected: its content in its place, its properties gone
+      this.blocks(sdtContentOf(v), address, story, sink, state);
+    } else if (isSdt(v)) {
+      const sdt = v as wml.SdtBlock;
+      const bound = this.bound(sdt, address);
+      if (bound !== undefined) {
+        // a plain-text control bound at block level: its bound value as one paragraph (REQ-509)
+        const block = paragraphBlock(story.kind, address, bound);
+        block.section = story.sections?.length ?? 0;
+        block.source = sdt;
+        sink.push(block);
+        this.flushIfOutsideTable(story, sink);
+        return i;
+      }
+      const placeholder = showingPlaceholder(sdt.sdtPr);
+      if (placeholder && !this.options.placeholders) return i;
+      this.blocks(sdtContentOf(v), address, story, sink, placeholder ? state.withPlaceholder() : state);
+    } else if (tn === 'org_docx4j_wml.CTAltChunk') {
+      this.altChunk(v as wml.CTAltChunk, address, story);
+    } else if (isBookmarkMarker(item)) {
+      this.bookmark(item);
+    } else if (tn === AC) {
+      const ac = v as mce.AlternateContent;
+      this.compareBranches(ac, address);
+      this.blocks(selectedBranchOf(ac), address, story, sink, state);
+    } else if (revisionHolder(item) !== undefined) {
+      this.blocks(runItemsOfValue(v), address, story, sink, this.holderState(item, state));
+    } else {
+      const inner = blockItems(v);
+      if (inner) this.blocks(inner, address, story, sink, state);
+    }
+    return i;
+  }
+
+  // --- some of a container's blocks (CR-012 section 17.13) -----------------------------------------
+
+  /**
+   * Some of a container's blocks, by their indices, each as `extractContent` reads it in the whole: a
+   * paragraph the view joins to one before it gives nothing (its text is in that one's block), and each
+   * block starts inside the complex fields open where it begins (`starts`, from `fieldsAtBlocks`), so that
+   * a table of contents left out (D12) is left out here too. Each block is read as a story of its own.
+   */
+  extractBlocks(content: unknown, kind: TextStory, prefix: string, part: Part | undefined, indices: readonly number[], starts: BlockStarts): TextResult {
+    const out: TextBlock[] = [];
+    const items = blockItems(unwrap(content)) ?? [];
+    for (const i of [...new Set(indices)].sort((a, b) => a - b)) {
+      if (!(i >= 0 && i < items.length) || this.joinedFromBefore(items, i)) continue;
+      const story = new Story(this, kind, prefix, part);
+      for (const f of starts.get(i) ?? []) story.fields.push(f.copy());
+      this.block(items, i, prefix, story, out, PLAIN);
+    }
+    return new TextResult(out, new Map(), this.warnings, { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() }, this.options);
+  }
+
+  /**
+   * The complex fields open where each of a container's blocks begins, for `extractBlocks`: a walk of the
+   * blocks reading field characters and instructions alone (`fieldsOnly`), as the whole walk reads them.
+   * Blocks with none open are not in the map. Its own context and warnings, so the reading leaves no trace.
+   */
+  static fieldsAtBlocks(trees: PackageTrees, options: TextOptions, mode: ExtractorMode, context: TextContext, content: unknown, kind: TextStory, prefix: string, part: Part | undefined): BlockStarts {
+    const x = new Extractor(trees, options, mode, context.sibling());
+    x.fieldsOnly = true;
+    const starts = new Map<number, FieldState[]>();
+    const items = blockItems(unwrap(content)) ?? [];
+    const story = new Story(x, kind, prefix, part);
+    const sink: TextBlock[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (story.fields.length > 0) starts.set(i, story.fields.map((f) => f.copy()));
+      i = x.block(items, i, prefix, story, sink, PLAIN);
+      sink.length = 0;
+    }
+    return starts;
+  }
+
+  /** Whether the view joins the paragraph at `items[i]` to one before it: the item before it, past markers and what the view removes, is a paragraph whose mark goes. */
+  private joinedFromBefore(items: Element[], i: number): boolean {
+    if (typeOf(unwrap(items[i])) !== P) return false;
+    for (let k = i - 1; k >= 0; k--) {
+      const item = items[k];
+      if (isMarker(item) || this.removes(item)) continue;
+      const v = unwrap(item);
+      return typeOf(v) === P && this.joinsNext(v as wml.P);
+    }
+    return false;
   }
 
   /** The index of the paragraph a paragraph joins: the next in the list past markers and what the view removes, or -1. */
@@ -515,6 +593,11 @@ export class Extractor {
     const first = chain[0]!;
     const last = chain[chain.length - 1]!;
     const block = new TextBlock('PARAGRAPH', story.kind, addresses[0]!);
+    if (this.fieldsOnly) {
+      for (let c = 0; c < chain.length; c++) this.runs(chain[c]!.content as Element[] | undefined, new ParagraphState(block, chain[c]!, addresses[c]!, story), state);
+      return;
+    }
+    if (chain.length > 1) block.joined = addresses.slice(1);
     block.paraId = first.paraId;
     block.source = first;
     // a joined paragraph keeps the last one's properties (CR-043's join)
@@ -903,6 +986,10 @@ export class Extractor {
   }
 
   private run(r: wml.R, para: ParagraphState, state: RunState): void {
+    if (this.fieldsOnly) {
+      for (const item of (r.content ?? []) as Element[]) if (FIELD_ITEMS.has(nameOf(item))) this.runItem(item, r, false, para, state);
+      return;
+    }
     const hidden = this.isHiddenRun(r, para.p);
     const before = textLength(para.block);
     const saved = para.format;
@@ -1356,7 +1443,7 @@ export class Extractor {
    * 0.29; CR-012 section 15.6).
    */
   private compareBranches(ac: mce.AlternateContent, address: string): void {
-    if (!this.options.warnings) return;
+    if (!this.options.warnings || this.fieldsOnly) return;
     const selected = selectedBranchOf(ac);
     if (selected === undefined) return;
     const mine = branchText(selected);

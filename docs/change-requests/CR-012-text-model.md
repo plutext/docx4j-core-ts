@@ -17,7 +17,10 @@ docx4j's, the rest differing only where phase 5 or REQ-303 does (section 16). Ph
 Office JS's characters and rules in Word's default view, equal to Word 365's answers on checks 48, 48b and 51;
 ED-009's branch content read and edited; text boxes at `textbox:` addresses, read-only; `pkg.paragraphAt`
 over notes and comments; `outline()` on the model and async (the editor asked, Jason chose); three defects
-in 0.5.0 found and fixed (section 17). Word
+in 0.5.0 found and fixed (section 17). Section 17.13 implemented 2026-10-21 (Jason: "do CR-012 section 17.13"),
+not released: the editor's outline per block, `Body.outline(options, context, { blocks })`, each block's
+entries as the whole outline gives them (`joined` on an entry, the fields open where a block begins), 0.1 ms
+a block under a context; the plan's text-box walk pruned, 97 to 39 ms on `ms-docx-250`. Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
 all of it, in Word's default view, Simple Markup with hidden text not shown (Jason, the same day, after
 check 48b). D2 starts from his decision of 2026-10-19, that the
@@ -1837,3 +1840,119 @@ here ("yes please").
   paragraphs (its first paragraph's part).
 - `readers.test.mjs`'s check 51 test holds the range to Word's text and each write to its refusal. 1,117 tests
   pass.
+
+### 17.13 The editor's answer on `outline()`'s cost: an outline per block (2026-10-21, implemented)
+
+The editor recorded phase 4 for its install (ED-008 section 8.8). On `outline()`'s cost, section 17.8's 198 ms
+under a context, it chose an outline per block over its `touches()` gate.
+- **Why.** Its panel's rows are per block, and every keystroke touches its paragraph, so the gate would fire on
+  every keystroke. Memoised per top-level block, as its decorations and comment margin are, the panel would read
+  one block's entry per keystroke.
+- **Its ask:** an entry reader per block under a context, at section 15.7's sub-millisecond cost per paragraph,
+  in either of two forms:
+  - `Paragraph.outlineEntry(context)` and `Table.outlineEntry(context)`, returning `Body.outline()`'s entry
+    shape;
+  - or `Body.outline(options, context, { blocks })`, taking the blocks to read.
+
+  The whole-document `outline()` stays for its companion and `pkg.outline()`.
+- **Jason's go** the same day ("do CR-012 section 17.13 then CR-013 phase 2").
+
+#### 17.13.1 What it is
+
+**`Body.outline(options?, context?, { blocks })`**, the second form. A top-level block may be a paragraph, a
+table, a block control or a block-level `mc:AlternateContent` (CR-013), so one method on `Body` covers them
+all, where the first form would need a reader on every view. A block may give several entries anyway: a
+table gives its cells' paragraphs, and a paragraph its text boxes' (and see the join below).
+- `blocks` holds this body's top-level blocks, as indices into `content` or as views (a `Paragraph`, or
+  `elementAt`'s `BlockElement`). Anything else is refused with a `Docx4JException`: an index out of range, a
+  cell's paragraph.
+- The result is `Outline`, the entries the whole outline gives those blocks under the same context and
+  options, in document order whatever the order asked.
+
+**The whole outline's answers, not a block read on its own.** A block read as content on its own
+(`Texts.of(pkg, content, options, context)`) differs from the whole outline in 172 of 939 file-and-view
+readings over the 313 `.docx` files of `test/` (the three views), in three ways:
+- **A deleted mark** (an inserted one in `original`): the whole outline gives one entry for the two paragraphs,
+  at the first's address, and none for the second. Read alone, the first has its own text only, and the
+  second an entry of its own.
+- **A table of contents** under `toc: false` (D12): its entries are inside a field begun in an earlier
+  block, so the whole outline leaves them out. Read alone, they are there.
+- **Moves**, which need the plan's pairing of their halves; under the context's plan they agree.
+
+Two additions make them agree:
+- **Joins.** A paragraph the view joins to the paragraph before it gives no entry. Its text is in that one's,
+  whose entry lists it in a new `joined` member: the addresses of the paragraphs joined to it, in order. The
+  whole outline carries `joined` too. It is the dependency a memo needs: an edit to `body/25` changes
+  `body/24`'s entry when `body/24` lists it. `TextBlock.joined` holds the same, out of the JSON (REQ-706's
+  stays docx4j's), as `source` is.
+- **The fields open where a block begins.** `Extractor.fieldsAtBlocks` walks the body's blocks once, reading
+  only field characters and instructions (`fieldsOnly`: paragraphs emit nothing, a run reads nothing else).
+  It gives each block the complex fields open where it begins, which seed the block's reading.
+  - The context keeps the result per container and options (`TextContext.blockStarts`, shared with its
+    siblings), so it is made once per context.
+  - One reading still differs, and no file has it: a table of contents' code across paragraphs under
+    `field_codes: true`. The whole walk takes the code out of the paragraph it began in; a block reading
+    can't reach back.
+
+**The caller's context is left as it was.** The blocks are read under a sibling of the context (its trees and
+plan, its own note numbers and list counts), so a reading in any order numbers no note. A notes part read
+afterwards under the context still has the references' order. The plan is made in the context itself first,
+so the siblings share it.
+
+#### 17.13.2 The plan's cost
+
+The per-keystroke cost is what a context costs, since a context is a snapshot (section 15.7: "after the package
+changes, make another"). On `ms-docx-250` its plan cost 97 ms, of 125 ms for a fresh context and one block.
+- **Where the time went.** Most of the plan's cost was `textBoxesIn`, the walk `trackedChangesOfStory` makes
+  for each story's text boxes. It visited every object in the tree, element names (QNames) and properties
+  included.
+- **The fix.** It no longer descends into an element's `name` or into `pPr`, `rPr`, `tblPr`, `tblGrid`,
+  `trPr`, `tcPr`, `sectPr`, `sdtPr` and `sdtEndPr`, which hold no text box.
+- **Checked.** Over the 2,957 stories (bodies, headers, footers, notes, comments) of every `.docx` in
+  `test/` and docx4j's test resources, it finds the same 1,245 text boxes, each in the same branch, and
+  visits 38% fewer objects. The plan falls from 97 to 39 ms.
+
+#### 17.13.3 Cost, on the editor's `ms-docx-250.docx` (Node 22, the median of seven)
+
+| Reading | Time |
+|---|---|
+| `Texts.contextOf(pkg)`, the main part unmarshalled | 7.6 ms |
+| its plan (`accepted`) | 39 ms (97 ms before section 17.13.2) |
+| the first `{ blocks }` call under the context: the fields scan | 18 ms |
+| each `{ blocks: [i] }` after it | 0.1 ms |
+| a fresh context and one block | 63 ms (125 ms before section 17.13.2) |
+| `Body.outline()` under the context | 187 ms |
+
+So per keystroke, a fresh context and the edited block cost a third of the whole outline under a context made
+once, and a quarter of the whole outline under a fresh one (233 ms now, 355 ms in section 17.8). The editor
+can also keep a context for as long as nothing changes: the panel's first paint reads every block under one
+context at the whole outline's cost.
+
+#### 17.13.4 What an entry depends on, for a memo
+
+A block's entries depend on:
+- its own content;
+- the paragraphs it lists in `joined`;
+- the view's plan, which a tracked change anywhere can move (a move's other half);
+- the fields open where it begins.
+
+Only the second is local, which is why `joined` is there. An edit that adds or removes a field character, or
+a tracked change with a counterpart elsewhere, can move the entries of other blocks. After either, re-read the
+whole outline. The editor's tree knows when an edit is one of those, and this package doesn't.
+
+#### 17.13.5 Tests
+
+- **`readers.test.mjs`** (13 tests), a test for section 17.13:
+  - the six files where a block read alone differs: every block read alone, last to first, under one context,
+    and all of them in one call, each equal to the whole outline, in five option sets;
+  - the joined entry and its `joined` member, and the joined paragraph giving none;
+  - the caller's context numbering no note;
+  - a table of contents' entry left out unless `toc: true`;
+  - blocks given as views, in document order, and the two refusals.
+- **Over every `.docx` of `test/` and docx4j's test resources** (605 files, six option sets: the three views,
+  `toc: true`, `field_codes: true`, and markup with hidden text and field codes): every block read alone, and
+  all in one call, equal the whole outline in all 3,630 readings, 80,886 block reads. A scratch script, not
+  a test, since it takes minutes; the six files above are the ones where it found differences before.
+- The pruned walk is held by the revisions goldens (`revisions-parity.test.mjs`, every change of every
+  story's text boxes) and the `textbox:` agreement test.
+- No suite row, agreement comparison or golden moves. 1,118 tests pass.
