@@ -9,6 +9,8 @@ export * from './listnumbering/index.mjs';
 export * from './fonts/index.mjs';
 // CR-002 phase E: custom XML parts, XML mapping, the XPath engine, the typed content controls.
 export * from './customxml/index.mjs';
+// CR-012: the text model (Texts, the block model, plain text).
+export * from './text/index.mjs';
 // The source generator of CR-002 phase I: the content-API calls that reproduce a paragraph, a
 // range or a table. The `Word` shim it lives next to stays on the ./office-js subpath.
 export { toApiScript, type ApiScriptOptions, type ApiScriptTarget } from '../office-js/toApiScript.mjs';

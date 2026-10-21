@@ -35,9 +35,10 @@ CR-011 (every story's tracked changes in one listing, and filters on it and the 
 docx4j CR-043's, held to its answers by 96 revisions goldens) is implemented, not yet released. So
 are CR-002 section 54 (docx4j CR-043 section 15: a comment whose range a resolution empties goes
 whole wherever its markers were, and the comment parts with the last, as Word 365 does; the
-revisions goldens record each resolution's comments since) and CR-012's phases 0 and 1 (the text model's conformance suite and agreement test, copied from
-docx4j into `test/text-extraction/` with their runners, every row pending until phase 2; REQ-510's
-level owner in the `Emulator`). The editor's release requests are
+revisions goldens record each resolution's comments since) and CR-012's phases 0 to 2 (the text model's conformance suite and agreement test, copied from
+docx4j into `test/text-extraction/` with their runners; REQ-510's level owner in the `Emulator`; the
+plain-text model, `Texts.of` and the block model in `src/model/text/`, 735 suite rows passing and the
+agreement test's 588 comparisons agreeing). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -104,6 +105,11 @@ src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTr
                   pkg.getAllTrackedChanges(filter?) lists every story in docx4j's order, TrackedChange.kind/part/pieces are docx4j's, and trackedChangeFilter.mts
                   is the filter (docx4j's TrackedChangeFilter, or a function) the listing, acceptAllRevisions/rejectAllRevisions and Body.acceptAll/rejectAll take (CR-011);
                   tableRevisions.mts: a table's property revisions, listed as one change and resolved as Word does (CR-002 section 35)
+src/model/text/   the text model (CR-012, docx4j's org.docx4j.model.text): Texts.of (a package, a story part, content in a package; ofResolved, the copy route),
+                  TextContext (note numbers, numbering states, plans, made once by Texts.contextOf over PackageTrees, every story read with readContents),
+                  TextOptions keyed by the specification's option names, the block model (TextResult, TextBlock, TextRun, ...: docx4j's enum names as strings),
+                  Extractor (the walk: selectedBranchOf's branch, the view through content/ResolvedView.mts, scope, characters), PlainText; each TextRun's
+                  officeOffset is where its text lies in Paragraph.text (REQ-202's emulated-API exemption). The Office JS readers keep Office JS's text (D2)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
                   supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change
 src/index.mts     re-exports all of the above plus the objects facade
@@ -184,7 +190,10 @@ Key mechanics:
 `sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004),
 `kept-branches.test.mjs` the content API over kept `mc:AlternateContent`, resolved and kept loads compared (CR-010 phase 3),
 `text-extraction.test.mjs` the text extraction suite and agreement test (CR-012 phase 0: `test/text-extraction/`, docx4j's
-suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here),
+suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here;
+the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails, or a count that moves, fails the test),
+`text-model.test.mjs` the text model itself (docx4j's `TextsTest`, `TextsTocTest` and `TextsPhase2Test` where phase 2 reaches, and
+this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

@@ -14,7 +14,7 @@ import {
   WordprocessingMLPackage, NumberingDefinitionsPart, ZipPartStore,
   Emulator, NumberingState, NumberingStates, LevelDefinition,
   formatValue, formatterFor, register, resetWarnings,
-  parseXml, unmarshalNode, setLogger,
+  parseXml, unmarshalNode, setLogger, Texts,
 } from '../dist/index.mjs';
 import { fixture, fixturesDir, bytesEqual } from './helpers.mjs';
 
@@ -819,7 +819,7 @@ test('LevelWithoutIlvlTest: the empty level 0 has no indent, and the document is
  * The three documents are docx4j's layout-fidelity probes as Word 365 converted them
  * (fixtures/listnumbering/); the expected labels are read off Word's PDFs, one per body
  * paragraph, "-" for none. Every label names its list, level and counter (A0-3 is list A, level
- * 0, the third). The text model's half of docx4j's test (`TextNumbering`) is phase 2's.
+ * 0, the third). The text model's half of docx4j's test (`TextNumbering`) came with CR-012 phase 2.
  */
 
 /**
@@ -884,6 +884,37 @@ test('LevelOwnerTest: the content API\'s labels (Body.listLabels, which ListItem
     const body = await (await levelOwnerPackage(name)).getBody();
     const labels = body.listLabels();
     assert.equal(body.paragraphs.map((p) => labels.get(p.p)?.listString ?? '-').join(' '), expected, name);
+  }
+});
+
+/** The text model's list label for each block, which it has exactly where it has a TextNumbering (CR-012 phase 2). */
+async function textModelLabels(pkg) {
+  const labels = [];
+  for (const b of (await Texts.of(pkg, { list_labels: true })).blocks) {
+    if (b.kind !== 'PARAGRAPH') continue;
+    const label = b.listLabel === undefined ? '-' : b.listLabel.trim();
+    assert.equal(label === '-', b.numbering === undefined, `a TextNumbering where there is a label, none where there is not: ${b.address}`);
+    labels.push(label);
+  }
+  return labels.join(' ');
+}
+
+test('LevelOwnerTest: the text model numbers as Word does', async () => {
+  assert.equal(await textModelLabels(await levelOwnerPackage('numbering-linked-level-other-style')), LINKED);
+  assert.equal(await textModelLabels(await levelOwnerPackage('numbering-unlinked-level-claim')), UNLINKED);
+  assert.equal(await textModelLabels(await levelOwnerPackage('numbering-shared-abstract-styles')), SHARED);
+});
+
+test('LevelOwnerTest: a TextNumbering\'s value is the count its label shows, and its list the w:abstractNum', async () => {
+  for (const name of ['numbering-linked-level-other-style', 'numbering-unlinked-level-claim', 'numbering-shared-abstract-styles']) {
+    const pkg = await levelOwnerPackage(name);
+    const definitions = await pkg.numberingDefinitionsPart.getDefinitions();
+    for (const b of (await Texts.of(pkg, { list_labels: true })).blocks) {
+      if (b.numbering === undefined) continue;
+      const label = b.listLabel.trim();
+      assert.equal(b.numbering.value, Number(label.slice(label.indexOf('-') + 1)), `${name} ${label}`);
+      assert.equal(b.numbering.abstractNumId, definitions.list(b.numbering.numId).abstractDefinition.id, `${name} ${label}`);
+    }
   }
 });
 

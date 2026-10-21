@@ -1376,7 +1376,7 @@ function mathTokens(paragraph: Paragraph | undefined, value: object, item: unkno
  * One piece of a move's markup, in document order: a range marker, a run-level half (`w:moveFrom`
  * or `w:moveTo` around runs), or a moved paragraph's mark (`w:pPr/w:rPr/w:moveFrom` or `w:moveTo`).
  */
-type MovePiece =
+export type MovePiece =
   | { kind: 'start'; side: 'from' | 'to'; id: number; name: string; element: Element; owner: Element[] }
   | { kind: 'end'; side: 'from' | 'to'; id: number; element: Element; owner: Element[] }
   | { kind: 'half'; side: 'from' | 'to'; element: Element; owner: Element[]; names: string[] }
@@ -1454,7 +1454,7 @@ function resolveMove(change: TrackedChange, action: 'accept' | 'reject'): boolea
 }
 
 /** The story a paragraph is in: the outermost array of block content above it (a body, a header, a note). */
-function storyOf(p: wml.P): Element[] {
+export function storyOf(p: wml.P): Element[] {
   let story: Element[] | undefined;
   for (let o: object | undefined = p; o !== undefined; o = (o as { PARENT?: object }).PARENT) {
     const content = (o as { content?: unknown }).content;
@@ -1464,7 +1464,7 @@ function storyOf(p: wml.P): Element[] {
 }
 
 /** Every piece of move markup in a story, in document order, each half and mark with the names of the ranges open over it. */
-function movePiecesOf(story: Element[]): MovePiece[] {
+export function movePiecesOf(story: Element[]): MovePiece[] {
   const out: MovePiece[] = [];
   const open = { from: new Map<number, string>(), to: new Map<number, string>() };
   const visit = (items: Element[], runLevel = false): void => {

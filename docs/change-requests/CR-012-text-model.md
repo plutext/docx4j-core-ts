@@ -5,7 +5,10 @@ CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18).
 (section 6) were taken by Jason on 2026-10-21, all as recommended ("CR-012 all decisions as
 recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-012 phases 0 and
 1"), not released: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
-test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Word
+test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Phase 2
+implemented 2026-10-21 (Jason: "start CR-012 phase 2"), not released: the plain-text model, `Texts.of` and the
+block model in `src/model/text/`, its views a plan over the unresolved tree (`ResolvedView`), held to the
+suite's 735 rows it claims and the agreement test's 588 comparisons with no difference (section 15). Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
 all of it, in Word's default view, Simple Markup with hidden text not shown (Jason, the same day, after
 check 48b). D2 starts from his decision of 2026-10-19, that the
@@ -624,7 +627,7 @@ unless a check says otherwise.
 |---|---|---|
 | 0 | The suite and the oracle (D8 a and b). Copy the fixtures, TSVs and goldens with provenance; the Node conformance runner with an engine that implements nothing (everything pending); the agreement test's runner; the understood-set assertion and the measurement of the 11 (7 since CR-010 section 15). **Done 2026-10-21, section 13** | 1 day |
 | 1 | REQ-510's level ownership in the Emulator (D9), with `LevelOwnerTest`'s documents and Word's labels. **Done 2026-10-21, section 14** | ½ to 1 day |
-| 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx` | 7 to 9 days |
+| 2 | The plain-text model (sections 4.1 and 4.4): `Texts.of`, its part and content overloads with `TextContext`, and `ofResolved`; the source references; the three views and the agreement test passing; the stories, notes, comments, text boxes and addresses (D4); fields cached, codes and the TOC; hidden text; placeholders and bindings; images; properties; tables; the characters; CriticMarkup; the block model; the warnings, the read-time `mce.branches_differ` among them; `Texts.of` measured on `ms-docx-250.docx`. **Done 2026-10-21, section 15** (`paragraphAt`'s `footnote:`, `endnote:` and `comment:` with phase 4's views) | 7 to 9 days |
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks` | 2 to 3 days |
 | 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12) | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
@@ -1143,3 +1146,214 @@ style that loses a level. The text model's half of `LevelOwnerTest` (`theTextMod
 **Who sees it.** `Body.listLabels`, `ListItem.listString` and every other caller of
 `Emulator.getNumber`, in a document where two paragraph styles carry one level that names no style.
 The second style's paragraphs lose their label and their count, as in Word.
+
+## 15. Phase 2: the plain-text model (implemented 2026-10-21)
+
+Jason, 2026-10-21: "start CR-012 phase 2". The same day, on the result: "decisions accepted". So REQ-303 and
+REQ-1203 stay unclaimed as section 15.3 says, and the departures of sections 15.5 and 15.6 stand. REQ-303 by
+namespace URI is not asked of the objects package. REQ-307's wording goes to the specification through the
+portfolio session, and phase 6 follows separately.
+
+### 15.1 What was built
+
+- **`src/model/text/`**, exported from `./model` and `.`, docx4j's `org.docx4j.model.text` at `198d015a3` (it hasn't
+  changed since; `VERSION_17_3_4` is at `4b9c71288`):
+  - `Texts`: `of` for a package, for one story part, for content in a package and for content with no package;
+    `ofResolved`, the copy route; `plainText`; `contextOf`; `normalize`.
+  - `TextContext` and `PackageTrees` (section 15.4).
+  - `TextOptions`, keyed by the specification's names (D1), with `TextOptionError` naming the statement of a
+    refusal, and `TEXT_OPTION_NAMES`.
+  - `TextResult` (with `concat`), `TextBlock`, `TextRun`, `TextRow`, `TextCell`, `TextField`, `TextNumbering`,
+    `TextRevision`, `TextWarning`, `TextComment`, `TextImage`, `ImageDescription`, `ImageDescriber` and
+    `AltTextDescriber`. docx4j's enum values are kept as strings (`'PARAGRAPH'`, `'TEXT_BOX'`,
+    `'NOTE_REFERENCE'`), as CR-011 kept its change kinds, so a block model passed as JSON reads the same from
+    either implementation.
+  - The walk, `Extractor`, and the serialiser, `PlainText`: the listed, TSV and grid table forms,
+    CriticMarkup with `markup_detail`, the brackets of REQ-707, the metadata block and `layout: indent`.
+- **`src/model/content/ResolvedView.mts`**: docx4j's `org.docx4j.model.revisions.ResolvedView` (at `a8bc6cda9`, with
+  U23's comment ranges across paragraphs), over this package's own listing (`trackedChangesOfStory`) and
+  resolution. The moves are replayed on `TrackedChange.mts`'s `movePiecesOf`, which it now exports with
+  `storyOf` and `MovePiece`. This is the half of docx4j `a8bc6cda9` that CR-002 section 54 left to the views: a
+  comment a resolution would take whole goes from the `accepted` and `original` views too.
+
+### 15.2 The package is never changed (REQ-204)
+
+- Every tree a reading walks is read before the walk starts (`PackageTrees.read`): the main document, every
+  note, comment, header and footer, the settings, the document properties, and the glossary when it is
+  included. Each comes from `readContents()`: the live tree where its part is unmarshalled, a private parse
+  where it isn't. The resolver and the numbering definitions were already read privately.
+- The plan is made over those same trees, by identity, so content given to `Texts.of(pkg, content)` must be
+  the package's own tree: its part unmarshalled. A private parse is a new tree each time.
+- A binding's store is the custom XML part's DOM (`parseDocument`, which doesn't adopt it), or the core or
+  application properties' XML parsed apart from the part.
+- Tested: after a reading in every view with every option phase 2 takes, the three probes save byte for
+  byte as before, and no part is unmarshalled. A package with no styles part isn't given one.
+
+### 15.3 What the suite and the agreement test say
+
+**The agreement test (REQ-406, REQ-1202): 588 comparisons, no difference.** Over its 147 fixtures, the views'
+walk equals the copy that `acceptAllRevisions` or `rejectAllRevisions` leaves, read with no view logic, in
+both views, in the default scope and with everything included. 94 of the 147 read differently in the two
+views and 85 have a different number of lines, so the comparison is not empty.
+
+**The suite: 735 rows pass and 849 pend.** The engine is `test/text-extraction/adapter.mjs` (docx4j's
+`TextsAdapter`). It claims REQ-201 to 202, 204, 301 to 302, 304 to 307, 401 to 406, 501 to 505, 507 to 510, 514
+to 518, 520, 601 to 603, 605 to 606, 701 to 702, 706 to 709, 801 to 802, 1001 and 1202, with "html reader
+absent". What pends, by what it waits for:
+
+| Waits for | Rows |
+|---|---|
+| The inspector: REQ-901 to 907 (186), with REQ-1204 (5), REQ-903 alone (24) | 215 |
+| REQ-512, embedded (phase 5d) | 165 |
+| REQ-506, `fields: update` (5a) | 153 |
+| REQ-513, altChunk (5e) | 81 |
+| REQ-512 and REQ-513 | 61 |
+| REQ-511, charts and SmartArt (5c) | 54 |
+| REQ-703, Markdown (phase 3) | 51 |
+| REQ-513 with an HTML reader present | 15 |
+| REQ-604, LaTeX (5b) | 12 |
+| REQ-506 and REQ-512 | 12 |
+| REQ-303, `Requires` by namespace URI (case 6) | 9 |
+| REQ-1203, the whole-document goldens | 9 |
+| REQ-511 and CR-047 (a chart's description) | 6 |
+| REQ-512, REQ-513 and an HTML reader | 3 |
+| REQ-703 and REQ-1203 | 3 |
+
+- **REQ-1203.** The goldens hold the whole document, phase 5's content with it, so the statement is claimed
+  when phase 5 is done. Until then a test of this package's own holds them as they can be held. The
+  external and structure probes' six goldens are exact in every view, with the trailing line ends trimmed to
+  one, as docx4j's `ExtractionGoldens` writes them. The main probe's three differ only on case 6's line and
+  phase 5's lines: the equation not as LaTeX (case 32), the chart (34), the SmartArt (35) and the chunks (43
+  to 47).
+- **REQ-303.** Case 6 binds the `wps` namespace to the prefix `shape2010` and expects the URI to decide. This
+  package matches `Requires` by prefix (`selectedBranchOf`, CR-010), which REQ-303 allows where the object
+  model keeps no declarations, if documented. So case 6 reads the Fallback, and its rows pend. The objects
+  package now keeps each `mc:Choice`'s source-only bindings (its CR-011, objects 0.4.3, for the marshal), but
+  privately. Matching by URI would need a reader for them there, and `selectedBranchOf` taking it, so that the
+  content API reads the same branch. That would be an objects CR, and is Jason's call; nothing else in the
+  corpus rebinds a prefix (section 13.4).
+
+### 15.4 The context and the overloads (section 4.4)
+
+- **`TextContext`** is what a story needs from the rest of the document: the note references' order (`[n]`),
+  the numbering states per story, the bookmarks (for phase 5a), the page markers so far, and each view's plan,
+  made once. It is made by `Texts.contextOf(pkg)`, which reads every story once (`PackageTrees`). A call
+  given one uses it and adds to it, and a call without one makes its own.
+  - A context is one reading in one view. Its note numbers and list counts are that view's, so a call in
+    another view is refused (`TextOptionError`), and so is a call over another package.
+  - It is a snapshot: after the package changes, make another.
+- **The part overload** reads the main document part (its story and text boxes; the notes it references are
+  numbered in the context, not read), a header or a footer (addressed `header:rId3/...`), the footnotes or
+  endnotes part, or the comments part. docx4j's takes the first three; the notes and comments parts are this
+  package's, as the editor asked.
+  - A notes part read under a context that hasn't read the main story reads it first, for the references'
+    order alone, so a notes part read on its own numbers its notes as the package does.
+  - Read in REQ-501's order under one context, the parts give the package's text: a test holds the
+    concatenation equal to `Texts.of(pkg)` in all three views.
+- **The content overload** reads in the package's view, addressed from `content`. It finds the part whose
+  tree holds the content, for a hyperlink's relationship and a picture's image part, where docx4j passes
+  none. With a context whose plan is made, one paragraph of the 255-page benchmark reads in under a
+  millisecond.
+- **`TextResult.concat`** joins results in the order given: the blocks one after another, the comments
+  together, each warning once, the first's metadata and options.
+
+### 15.5 Source references and `officeOffset` (section 4.4, REQ-202)
+
+- A block's `source` is its paragraph's `w:p` (a joined block's first), a table's `w:tbl`, or a bound control's
+  `w:sdt`. A run's `source` is its `w:r` and `w:p`.
+- A run's `officeOffset` is where its text starts in its paragraph's `Paragraph.text`. That is the objects
+  package's `textOf` today (D2), so the offset is computed by `textOf`'s own walk: its containers, its branch
+  choice (the conventional prefixes) and its characters. Phase 4 moves `Paragraph.text` to check 48's
+  characters, and this computation moves with it.
+- **Within a run the two texts agree character for character.** A run that would join another across text
+  `Paragraph.text` holds and the model leaves out stays apart. Examples are hidden text, a table of contents'
+  result under `toc: false`, or a `w:ptab` (a tab here, nothing in `textOf`). docx4j joins such runs. The
+  text is the same either way: only the block model's run boundaries differ, and only there.
+- What only the model writes has no offset: a note reference or mark, a list label, a page marker, a field
+  code, an image, a bound value. Text `Paragraph.text` holds and the model leaves out, such as hidden text,
+  is the gap between two runs' offsets.
+- These are not in the block model's JSON (`toJSON`), which holds no tree object (REQ-706).
+
+### 15.6 Departures from docx4j, and what phase 2 leaves out
+
+1. **`TextModelView`**, not `TextView` (D1's exception). The content API has exported a `TextView` since CR-002
+   phase F: `getText`'s two views, `accepted` and `original`.
+2. **`mce.branches_differ` reads each branch by the walk's rules**, as section 4.1 says and the paper's section
+   4.1 item 6 has it ("walked once, with the same rules"). Revisions are taken by the view, and hidden runs
+   are left out unless `hidden: true`. docx4j compares every `w:t` whatever the view.
+   - Over the 284 `.docx` files of `test/` (this repository's fixtures and the suite), in all three views,
+     the two rules give the same warnings. No suite row moved.
+   - REQ-307 doesn't say which. It goes to the portfolio session for the specification.
+3. **Run boundaries** follow `officeOffset` (section 15.5).
+4. **A move half its story has no piece for** (one in a text box, whose paragraphs' story is the body
+   around it) is resolved as the plain insertion or deletion it stands for, as `acceptAllRevisions` resolves
+   it. docx4j's plan leaves such a half where it is.
+5. **Not yet** (section 5's statements, pending in the suite):
+   - `fields: update` (REQ-506) and `embedded: true` (REQ-512) are refused with a `TextOptionError`, reason
+     `not_implemented`. docx4j's `math: unicodemath` and `symbols: unicode` are refused as docx4j refuses
+     them.
+   - An equation is its `m:t` text in document order inside `$...$` or `$$...$$`, REQ-604's form for one
+     that can't be converted, until phase 5b ports a converter.
+   - A chart or SmartArt contributes nothing, and raises nothing, until phase 5c. Legacy WordArt is read: a
+     one-paragraph text box.
+   - An `altChunk` is never expanded until phase 5e. It raises `altchunk.not_expanded` with its content type,
+     under `altchunks: true` as under `false`.
+6. **Strict documents** aren't read (REQ-203, CR-001 section 17.6). The four in docx4j's test resources fail to
+   unmarshal, as they do for every reader here.
+7. **Dates** are written as the package wrote them, from the calendar's fields (docx4j's `toXMLFormat`).
+
+### 15.7 Cost (section 4.4's measurement)
+
+Measured on the editor's `ms-docx-250.docx`, read from its checkout and not copied here (section 4.4); Node 22,
+the median of five:
+
+| Reading | Time |
+|---|---|
+| `Texts.of(pkg)`, a fresh context, parts not unmarshalled | 1.44 s (accepted), 1.54 s (original), 1.34 s (markup) |
+| of which `Texts.contextOf`, the private parse of the main part above all | 1.23 s |
+| `Texts.of(pkg)` with the main part unmarshalled, as the editor holds it | 314 ms (accepted), 306 ms (original), 203 ms (markup) |
+| `Texts.of(pkg)` under a context made once | 198 ms |
+| `Texts.of(pkg, paragraph)` under a context with its plan made | under 1 ms |
+| `Texts.of(pkg, paragraph)` with no context, the main part unmarshalled | 112 ms (the plan) |
+| `PlainText.of` | 3 ms |
+
+The document reads as 6,684 blocks and 498,215 characters, and gives 304 warnings, all `field.no_result`
+(index entries, which have none). Unmarshalling the main part (`getBody()`) takes 1.40 s, so a reading costs
+the editor about a fifth of what the document's own load does. Section 8's per-package cache isn't needed.
+
+### 15.8 Tests
+
+- **`text-model.test.mjs`** (41 tests):
+  - docx4j's `TextsTest`, less `strictAsTransitional`;
+  - its `TextsTocTest`;
+  - its `TextsPhase2Test` where the statement is phase 2's: the table forms, the listed format's headers,
+    metadata, the glossary, images and describers, WordArt, bound values, page markers, `layout: indent`, the
+    package unchanged, and an equation as its text;
+  - this package's own: the byte-for-byte save; `officeOffset` against `Paragraph.text` over the probe
+    (every run with an offset, in two views); hidden text as the gap between offsets; the part overloads
+    under one context concatenated equal to the package's text, the view a context is bound to; the
+    content overload; the JSON.
+- **`text-extraction.test.mjs`**: the suite with the engine (the counts above, and every pending row naming a
+  statement the engine doesn't claim); the whole-document goldens as section 15.3 holds them; the agreement
+  test over 147 fixtures. The phase 0 test with no engine stays, and checks the runner's pending report.
+- **`numbering.test.mjs`**: `LevelOwnerTest`'s text-model half, `theTextModelNumbersAsWordDoes` and
+  `theTextModelsCountIsTheLabels`. The three documents' labels from the text model are Word's, and each
+  `TextNumbering`'s value is its label's count.
+- **A sweep**, not committed: the 579 `.docx`, `.docm` and `.dotx` files of this repository's `test/` and
+  docx4j's test resources, in all three views with every option phase 2 takes, through `PlainText.of` and
+  `JSON.stringify`. In 15.6 s, 42,664 blocks, no exception but the Strict four.
+
+### 15.9 What phase 2 leaves
+
+- **Phase 3**, Markdown (`MarkdownExporter`, `blocks`): the 54 rows waiting on REQ-703.
+- **Phase 4**, the readers:
+  - `outline()` on the model;
+  - text-box `Paragraph` views at `textbox:` addresses, and `pkg.paragraphAt` resolving `footnote:`,
+    `endnote:` and `comment:` (D4);
+  - `Paragraph.text` in check 48's characters, `officeOffset` with it;
+  - ED-009.
+- **Phase 5**, a to e, each on Jason's go.
+- **Phase 6** (D8 c): the block-model parity goldens. They will meet sections 15.5 and 15.6's departures: run
+  boundaries where `Paragraph.text` holds more, and the content overload's part.
+- **REQ-303 by URI**, if Jason wants it (section 15.3): a reader in the objects package for each `mc:Choice`'s
+  source bindings, then `selectedBranchOf` over it.

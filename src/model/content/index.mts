@@ -19,6 +19,7 @@ export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from 
 export { type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement } from './search.mjs';
 export { segmentsOf, runsOf, runItemsOf, selectedBranchOf, isAlternateContent, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, type TextSegment, type Located, type TextView, type TextViewOptions, type RevisionKind, type RevisionHolder } from './tree.mjs';
 // change tracking (CR-002 phase F)
+export { ResolvedView } from './ResolvedView.mjs';
 export { TrackedChange, trackedChangesOfParagraph, trackedChangesOfRow, joinWithNext, type TrackedChangeType, type TrackedChangeKind, type TrackedChangeTarget, type NoteRemovals } from './TrackedChange.mjs';
 export type { TrackedChangeFilter, TrackedChangeSelection } from './trackedChangeFilter.mjs';
 export {
