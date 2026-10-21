@@ -664,3 +664,21 @@ test('REQ-204: with every option phase 2 takes on, in every view, each probe sav
     for (const entryName of Object.keys(before)) assert.deepEqual(after[entryName], before[entryName], `${name} ${entryName}`);
   }
 });
+
+test('REQ-307: a branch\'s text is every w:t in it, whatever the view and hidden or not (Jason, 2026-10-21, docx4j\'s rule)', async () => {
+  const branches = (choice, fallback) => `<w:p><mc:AlternateContent><mc:Choice Requires="w14">${choice}</mc:Choice>`
+    + `<mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent></w:p>`;
+  const pkg = await miniDocx(
+    branches('<w:r><w:t>SAME</w:t></w:r><w:r><w:rPr><w:vanish/></w:rPr><w:t>HIDDEN</w:t></w:r>', '<w:r><w:t>SAME</w:t></w:r>')
+    + branches(`<w:r><w:t>SAME</w:t></w:r><w:ins${DEL}><w:r><w:t>ADDED</w:t></w:r></w:ins>`, '<w:r><w:t>SAME</w:t></w:r>')
+    + branches('<w:r><w:t>SAME</w:t></w:r>', '<w:r><w:t xml:space="preserve">S A M E</w:t></w:r>')).load();
+  for (const view of ['accepted', 'original', 'markup']) {
+    for (const hidden of [false, true]) {
+      const r = await Texts.of(pkg, { view, hidden });
+      assert.deepEqual(r.warnings.map(String), ['mce.branches_differ at body/0 (mc:Choice Requires="w14")',
+        'mce.branches_differ at body/1 (mc:Choice Requires="w14")'], `${view}, hidden: ${hidden}`);
+    }
+  }
+  assert.equal(await text(pkg), 'SAME\nSAMEADDED\nSAME\n');
+  assert.deepEqual((await Texts.of(pkg, { warnings: false })).warnings, []);
+});

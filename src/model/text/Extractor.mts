@@ -872,7 +872,7 @@ export class Extractor {
         this.run(v as wml.R, para, state);
       } else if (tn === AC) {
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, para.block.address, para.p);
+        this.compareBranches(ac, para.block.address);
         this.runs(selectedBranchOf(ac), para, state);
       } else if (isSdt(v) && this.unwraps(item)) {
         this.runs(sdtContentOf(v), para, state);
@@ -1077,7 +1077,7 @@ export class Extractor {
       }
       case 'AlternateContent': {
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, para.block.address, para.p, hidden);
+        this.compareBranches(ac, para.block.address);
         for (const o of selectedBranchOf(ac) ?? []) this.runItem(o, r, hidden, para, state);
         return;
       }
@@ -1250,7 +1250,7 @@ export class Extractor {
             return false;
           case AC: {
             const ac = value as unknown as mce.AlternateContent;
-            this.compareBranches(ac, para.block.address, para.p);
+            this.compareBranches(ac, para.block.address);
             for (const o of selectedBranchOf(ac) ?? []) walk(unwrap(o), 1, visitor);
             return false;
           }
@@ -1364,23 +1364,22 @@ export class Extractor {
 
   /**
    * `mce.branches_differ` (REQ-307): where the selected branch and another both hold text, and the texts
-   * differ after REQ-1201's normalisation. Each branch is read by the walk's own rules (the paper's section
-   * 4.1, item 6, CR-012 section 4.1): its revisions by the view, its hidden runs left out unless `hidden:
-   * true`, so that branches differing only in deleted or hidden text do not warn. docx4j compares every
-   * `w:t` whatever the view and the hidden rule. `host` is the paragraph the element stands in, and
-   * `hostHidden` whether the run a run-level element stands in is hidden.
+   * differ after REQ-1201's normalisation. A branch's text is every `w:t`, `m:t` and `a:t` in it, whatever
+   * the view and hidden or not, as docx4j reads it: a comparison made at load knows no view, and a branch
+   * that differs only in hidden or deleted text is one an agent should hear of (Jason, 2026-10-21, for WD
+   * 0.29; CR-012 section 15.6).
    */
-  private compareBranches(ac: mce.AlternateContent, address: string, host?: wml.P, hostHidden = false): void {
+  private compareBranches(ac: mce.AlternateContent, address: string): void {
     if (!this.options.warnings) return;
     const selected = selectedBranchOf(ac);
     if (selected === undefined) return;
-    const mine = this.branchText(selected, host, hostHidden);
+    const mine = branchText(selected);
     if (mine === '') return;
     const branches: { any?: unknown[]; requires?: string }[] = [...(ac.choice ?? [])];
     if (ac.fallback) branches.push(ac.fallback);
     for (const other of branches) {
       if ((other.any ?? []) === selected) continue;
-      const theirs = this.branchText(other.any ?? [], host, hostHidden);
+      const theirs = branchText(other.any ?? []);
       if (theirs !== '' && theirs !== mine) {
         const chosen = (ac.choice ?? []).find((c) => (c.any ?? []) === selected);
         const branch = chosen ? `mc:Choice Requires="${chosen.requires}"` : 'mc:Fallback';
@@ -1388,40 +1387,6 @@ export class Extractor {
         return;
       }
     }
-  }
-
-  /**
-   * A branch's text, normalised as REQ-1201 normalises: `w:t` (and `w:delText` where the view reads it),
-   * `m:t` and `a:t`, its revisions by the view (an unselected branch's are in no plan, so by their kind),
-   * its hidden runs left out unless `hidden: true`.
-   */
-  private branchText(branch: unknown[], host: wml.P | undefined, hostHidden: boolean): string {
-    let out = '';
-    const readsDeleted = this.view !== 'accepted';
-    const showHidden = this.options.hidden;
-    if (hostHidden && !showHidden) return '';                         // a run-level element in a hidden run
-    const visitor: Visitor = {
-      enter: (value) => {
-        if (value.TYPE_NAME !== R || showHidden) return true;
-        const run = value as unknown as wml.R;
-        if (!this.isHiddenRun(run, paragraphAbove(run) ?? host ?? EMPTY_P)) return true;
-        return false;                                                // a hidden run's text is not read
-      },
-      item: (item) => {
-        const kind = revisionHolder(item) === undefined ? undefined : nameOf(item);
-        if (kind !== undefined && this.view !== 'markup' && isInsertionName(kind) !== (this.view === 'accepted')) return false;
-        const v = unwrap(item);
-        const tn = typeOf(v);
-        const name = nameOf(item);
-        if (tn === 'org_docx4j_wml.Text' && (name === 't' || (name === 'delText' && readsDeleted))) out += String((v as wml.Text).value ?? '');
-        else if (tn === 'org_docx4j_wml.DelText' && readsDeleted) out += String((v as wml.DelText).value ?? '');
-        else if (tn === 'org_docx4j_math.CTText') out += String((v as { value?: string }).value ?? '');
-        else if (tn === 'org_docx4j_dml.CTRegularTextRun') out += String((v as { t?: string }).t ?? '');
-        return true;
-      },
-    };
-    for (const o of branch) if (visitor.item!(o) !== false) walk(unwrap(o), 0, visitor);
-    return normalize(out);
   }
 
   warn(w: TextWarning): void {
@@ -1899,13 +1864,23 @@ function svgBlipEmbed(blip: { extLst?: { ext?: { uri?: string; any?: unknown }[]
   return undefined;
 }
 
-/** The paragraph a run is in, by its `PARENT`s. */
-function paragraphAbove(value: object): wml.P | undefined {
-  for (let o = (value as Obj).PARENT as Obj | undefined; o; o = o.PARENT as Obj | undefined) if (o.TYPE_NAME === P) return o as unknown as wml.P;
-  return undefined;
+/** A branch's text (`w:t`, `m:t`, `a:t`), normalised as REQ-1201 normalises. docx4j `normalized`. */
+function branchText(branch: unknown[]): string {
+  let out = '';
+  const visitor: Visitor = {
+    item: (item) => {
+      const v = unwrap(item);
+      const tn = typeOf(v);
+      if (tn === 'org_docx4j_wml.Text' && nameOf(item) === 't') out += String((v as wml.Text).value ?? '');
+      else if (tn === 'org_docx4j_math.CTText') out += String((v as { value?: string }).value ?? '');
+      else if (tn === 'org_docx4j_dml.CTRegularTextRun') out += String((v as { t?: string }).t ?? '');
+      return true;
+    },
+  };
+  // each member as an item first: a run-level element's branch holds bare w:t
+  for (const o of branch) if (visitor.item!(o) !== false) walk(unwrap(o), 0, visitor);
+  return normalize(out);
 }
-
-const EMPTY_P: wml.P = { TYPE_NAME: 'org_docx4j_wml.P' } as wml.P;
 
 /** The last paragraph's `w14:paraId` in a comment's content (a branch's too). */
 function lastParaId(content: Element[] | undefined): string | undefined {

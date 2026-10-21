@@ -247,6 +247,9 @@ or comments part, and `Texts.of(pkg, content, options?, context?)`, for a conten
   - Math compares by its own rule, so the equation CR-010 section 9.2 recorded (an OMML Choice
     against its linear Fallback) is no longer a false positive.
   - Load's warning stays as it is.
+  - *Superseded 2026-10-21 (section 15.6, item 2): Jason ruled docx4j's rule for WD 0.29, every `w:t`,
+    `m:t` and `a:t` whatever the view, hidden text included. The equation is a workbook's, which the
+    text model doesn't read.*
 - **The understood set** is published as `UNDERSTOOD_NAMESPACES` (REQ-306). Since CR-010 section 15
   the readers also count `READ_ONLY_UNDERSTOOD_NAMESPACES`, and the walk takes `selectedBranchOf`'s
   branch, so the extractor's set is the two together. A test asserts it against docx4j's list.
@@ -1151,8 +1154,9 @@ The second style's paragraphs lose their label and their count, as in Word.
 
 Jason, 2026-10-21: "start CR-012 phase 2". The same day, on the result: "decisions accepted". So REQ-303 and
 REQ-1203 stay unclaimed as section 15.3 says, and the departures of sections 15.5 and 15.6 stand. REQ-303 by
-namespace URI is not asked of the objects package. REQ-307's wording goes to the specification through the
-portfolio session, and phase 6 follows separately.
+namespace URI is not asked of the objects package. REQ-307's wording went to the specification through the
+portfolio session, and phase 6 follows separately. On REQ-307 Jason then chose docx4j's rule (section 15.6,
+item 2).
 
 ### 15.1 What was built
 
@@ -1278,12 +1282,22 @@ absent". What pends, by what it waits for:
 
 1. **`TextModelView`**, not `TextView` (D1's exception). The content API has exported a `TextView` since CR-002
    phase F: `getText`'s two views, `accepted` and `original`.
-2. **`mce.branches_differ` reads each branch by the walk's rules**, as section 4.1 says and the paper's section
-   4.1 item 6 has it ("walked once, with the same rules"). Revisions are taken by the view, and hidden runs
-   are left out unless `hidden: true`. docx4j compares every `w:t` whatever the view.
+2. **`mce.branches_differ` reads each branch as docx4j does**: every `w:t`, `m:t` and `a:t` in it, whatever the
+   view, hidden text included. The first implementation read each branch by the walk's rules, as section 4.1
+   said and the paper's section 4.1 item 6 has it: revisions by the view, hidden runs left out unless
+   `hidden: true`.
    - Over the 284 `.docx` files of `test/` (this repository's fixtures and the suite), in all three views,
-     the two rules give the same warnings. No suite row moved.
-   - REQ-307 doesn't say which. It goes to the portfolio session for the specification.
+     the two rules gave the same warnings, and no suite row moved either way.
+   - REQ-307 didn't say which. The portfolio session put it to Jason for WD 0.29 and recommended docx4j's
+     rule. A comparison REQ-307 lets an implementation make at load can't depend on a view. And a branch
+     that differs only in hidden text is one an agent should hear of.
+   - **Jason, 2026-10-21: "choose docx4j's rule."** `branchText` is docx4j's `normalized` again. A test holds
+     that branches differing only in hidden text, or only in inserted text, warn in every view, with
+     `hidden` on or off. Deleted text is `w:delText` and is never compared.
+   - **WD 0.29** (portfolio `b76886a`, 2026-10-21) writes the ruling into REQ-307: a branch's text is "every
+     `w:t`, `m:t` and `a:t` it holds, in document order, in every view and whether or not it is hidden", so
+     the warning depends on neither the view nor `hidden`. Its `[PROBE]` cites docx4j `198d015a3`, the suite
+     copied here, so no copy is needed.
 3. **Run boundaries** follow `officeOffset` (section 15.5).
 4. **A move half its story has no piece for** (one in a text box, whose paragraphs' story is the body
    around it) is resolved as the plain insertion or deletion it stands for, as `acceptAllRevisions` resolves
@@ -1323,7 +1337,7 @@ the editor about a fifth of what the document's own load does. Section 8's per-p
 
 ### 15.8 Tests
 
-- **`text-model.test.mjs`** (41 tests):
+- **`text-model.test.mjs`** (42 tests):
   - docx4j's `TextsTest`, less `strictAsTransitional`;
   - its `TextsTocTest`;
   - its `TextsPhase2Test` where the statement is phase 2's: the table forms, the listed format's headers,
@@ -1332,7 +1346,7 @@ the editor about a fifth of what the document's own load does. Section 8's per-p
   - this package's own: the byte-for-byte save; `officeOffset` against `Paragraph.text` over the probe
     (every run with an offset, in two views); hidden text as the gap between offsets; the part overloads
     under one context concatenated equal to the package's text, the view a context is bound to; the
-    content overload; the JSON.
+    content overload; the JSON; REQ-307's rule as Jason ruled it (section 15.6, item 2).
 - **`text-extraction.test.mjs`**: the suite with the engine (the counts above, and every pending row naming a
   statement the engine doesn't claim); the whole-document goldens as section 15.3 holds them; the agreement
   test over 147 fixtures. The phase 0 test with no engine stays, and checks the runner's pending report.
