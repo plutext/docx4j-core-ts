@@ -4,7 +4,7 @@
 Word's is not, and whether we should align. To the answer, open a CR with the editor's review and a Word check
 first, and stop the silent partial results meanwhile, he said "yes please". The stopgap went in with CR-012
 phase 4: a multi-paragraph block control's range reads as Office JS's and refuses every write (CR-012 section
-17.12). Nothing of this CR is implemented. Decisions D1 to D4 (section 5) were decided 2026-10-22 as recommended
+17.12). Decisions D1 to D4 (section 5) were decided 2026-10-22 as recommended
 (Jason: "CR-014 decisions D1 to D4: recommendations accepted."): one `Range` with an end paragraph;
 `Comment.getRange()` returns one `Range`, the per-paragraph array kept as `getRanges()`; whole tables read and
 deleted, a range starting or ending inside a table read and its writes refused unless check 52 shows a simple rule;
@@ -21,6 +21,15 @@ implemented 2026-10-22** (Jason: "implement CR-014 phase 2"; section 10): `delet
 ends), `font`, `insertParagraph` and `replaceText` across paragraphs, untracked and tracked, as Word writes them;
 held to check 52 by running its snippet's `run` mode through the Word shim against Word's run, its save after the
 run and its save after Accept All; a range starting or ending inside a table refused as Word refuses it (D3).
+Committed `53db5bc`. **Phase 3 begun 2026-10-22** (Jason: "do it"; section 11): check 54 written first, for phase 2's
+unmeasured choices (section 10.6) and content controls across paragraphs, one Word run; comments across paragraphs
+and `^p` in `search` implemented meanwhile, held to check 52. Check 54 run the same day (section 12): phase 2's
+choices changed to Word's answers where it differed, content controls across paragraphs done on its answers (whole
+paragraphs only, any other range Word's `GeneralException`), and a tracked deletion over a whole control written in
+Word's markup and resolved as Word does. A tracked `Replace` within one paragraph puts its insertion first, as
+Word's (Jason, 2026-10-23; section 12.1, item 7), and a deletion takes a comment's reference with it, its comment
+going untracked and on Accept All (section 12.6). Left: three rules of Word's Accept All, docx4j's to take first
+(section 12.3). Not committed.
 
 ## 1. Why
 
@@ -598,7 +607,8 @@ paragraph's mark.
 
 ### 10.3 Refused under change tracking
 
-A tracked `delete` or `Replace` whose range holds a whole block that isn't a paragraph or a table is refused with
+*Since check 54 (section 12.4) a content control or custom XML element held whole is deleted in Word's markup; an
+`w:altChunk` and a kept `mc:AlternateContent` are still refused.* As phase 2 had it: a tracked `delete` or `Replace` whose range holds a whole block that isn't a paragraph or a table is refused with
 `NotSupportedError`, before anything changes (`assertTrackable`). Such blocks are a content control, a custom XML
 element, an `w:altChunk` and a kept `mc:AlternateContent`.
 - A control's content can be marked deleted, but what Word writes for the control itself isn't measured: check 30
@@ -690,3 +700,266 @@ Each could go to a check 54, as check 53 measured phase 1's:
 - `Range.footnotes` and `getTextRanges`; CR-002 section 55 (cases 86 to 95).
 - Deleting a range within one paragraph, `Paragraph.delete` and `Body.clear` leave a note whose reference they take
   in the notes part (CR-002's).
+
+## 11. Phase 3: comments, `^p`, and check 54 (2026-10-22)
+
+*Jason, 2026-10-22: "do it", to the order proposed: check 54 first, then comments and `^p`, which check 52 measured,
+while it waits for his run, then content controls on its answers. Comments and `^p` implemented the same day; not
+committed.*
+
+### 11.1 Check 54
+
+`test/README.md` check 54, `test/fixtures/check54/` (`check54Bytes`, the snippet `check54-script-lab.js`), and the
+share's `__tmp/54/`. Its 43 cases measure the ten choices of section 10.6 and `insertContentControl` across paragraphs
+(cases 36 to 43), a region each as in check 52, in one run with Word's saves after it and after Accept All. Each
+case names the section 10.6 item it answers. `ranges.test.mjs` holds its file and snippet together: each case parses
+to the case it was built as, each word its range names is in the file once, and the snippet runs through the shim
+with no error of its own. The README entry records what this package gives before the run.
+
+### 11.2 Comments across paragraphs
+
+`Range.insertComment` on a range across paragraphs puts the markers as Word did (check 52, cases 79 to 85):
+- the start before the range's first character, in its first paragraph;
+- the end and the reference run after its last character, in its last paragraph, before a mark the range holds;
+- a table between, or a cell at either end, stays as it is (cases 80 and 81).
+
+An insertion at either end is handled as within one paragraph: the start goes inside it, and the end splits it.
+The comment's `getRange()` is the range commented.
+
+Two differences from Word's markup, not followed:
+- **Word gives the reference run the text's size** (`w:sz 22`, over the CommentReference style's 8 points) and,
+  where text follows it, that text's italic. The reference run here has the style alone, as CR-002's has within one
+  paragraph.
+- **On a control's content range Word put the start marker before the control's first paragraph**, in
+  `w:sdtContent` (case 82). Here it is inside that paragraph, which reads the same (section 9.2).
+
+**Found by the sweep (section 11.5), fixed within one paragraph too.** A marker went beside a whole run where the
+range began after a tab or break in that run: `splitAt` cut only inside a `w:t`. The comment's range then started a
+character early. The runs are now split as `font` splits them (`splitRunsAround`), which `placeAround`'s own doc
+had claimed since CR-002 phase G. `ranges.test.mjs` holds both shapes, and the test fails with the old split.
+
+### 11.3 `^p` in `search`
+
+A plain query holding `^p`, Word's paragraph mark, matches across paragraphs, as Word found (check 52, case 2, and
+each kind's `marks`):
+- the query is split at its marks (`paragraphMarkPieces`; `^^` stays a caret). A hit runs from the first piece's match
+  ending at a paragraph's end, through each middle piece matching a whole paragraph's text, to the last piece's match
+  from the next paragraph's start;
+- a query ending with `^p` ends with that paragraph's mark, which the hit holds: `^p` alone is a range of `\r`, its
+  paragraph the one whose mark it is;
+- a mark matches only a paragraph's own mark that the range holds: never a cell's end or a row's end (the last
+  paragraph of a cell reads `\t`), and never across a table's edge, so every paragraph of a hit is in the same cell or
+  in none (`LIST2B^pT2R1C1A` found nothing). A mark between two paragraphs of one cell is a paragraph's, and matches;
+- `^p^p` is an empty paragraph's mark after another mark.
+
+`Paragraph.search` and `Body.search` with `^p` search their 'Whole' range, which holds their marks. Wildcards and
+regular expressions don't read `^p` as a mark: wildcards read it as the two characters, as they did.
+
+**`replaceText` with `^p` in its query is refused** (`NotSupportedError`). The hits are found, but what Office JS's
+replacement of a lone mark leaves isn't measured, and phase 2's `Replace` keeps a last mark. Until now such a query
+matched the two characters `^p`.
+
+### 11.4 Held to Word 365
+
+`test/ranges.test.mjs`, twenty-one tests in all now:
+- **Phase 1's reads test** compares `marks`, each kind's `^p` hits, which it had left out: all 16 kinds agree with
+  Word's.
+- **Phase 2's run test** compares case 2's eleven queries, each hit's text and paragraphs: Word's. Cases 79 to 85 now
+  differ from Word's run only in the snippet's own error: it calls `getRange()` at once on what `insertComment`
+  returns, which is asynchronous here. The comments and their ranges are Word's.
+- **The Accept All test** finds the comments' regions Word's too.
+- **The markup test** holds each comment's markers to Word's save, the two differences of section 11.2 aside.
+- **A phase 3 test**: comments across a table, from a paragraph's end, to a paragraph's start, read back after a
+  save; `^p` against marks, a hit across a mark, a table's edge, a cell's paragraphs and an empty paragraph, the body
+  and a paragraph, wildcards, and the `replaceText` refusal. Another test holds the split runs of section 11.2.
+
+### 11.5 The sweep
+
+The 808 files of section 9.5. In each, one comment over a range from a paragraph's middle to one up to four
+paragraphs later, saved and reloaded, and `body.search('^p')`:
+- 680 comments read back as the range they were made over;
+- 5 were refused, the range starting inside an equation (CR-012 phase 4's rule);
+- 119 files have no such range, and 4 (strict namespace) don't load;
+- every `^p` hit is a lone `\r`. Each file's count is its paragraphs outside tables plus those not last in their cell,
+  the `mc-fun` probes' selected branches among them.
+
+Before section 11.2's fix, two files' comments started a character early.
+
+### 11.6 Left for phase 3
+
+- Content controls on a range across paragraphs, on check 54's answers (cases 36 to 43): done, section 12.2.
+- Section 10.6's choices, changed to Word's where check 54 differs: done, section 12.1.
+- `replaceText` with `^p`, should a use ask: replacing a mark is check 54's untested neighbour.
+
+
+## 12. Check 54's run (2026-10-22)
+
+Jason ran check 54 on Word 365 (16.0.20326.20232, PC) the same day, in All Markup as check 52's (deleted text shows in
+the run's text reads), and accepted all. `fixtures/check54/54-writes-word365-run.json` is the run and
+`54-writes-word365-accepted.json` the report after Accept All. Word's save after Accept All is `test/check54/` (a
+SHA-1 manifest, outside `fixtures/` as check 52's are). **Word's save after the run came from a second run.** The
+first run's save, and a re-run's, held the document from before the run: Ctrl+S had gone to Script Lab's pane,
+which has the focus after the run. The re-run's JSON was the first run's, case for case. Saved with File > Save,
+`test/check54/54-writes-word365.docx` holds the run, Word's tracked markup among it (section 12.4).
+
+### 12.1 What Word did, and what changed here
+
+Section 10.6's items, by number:
+1. **`insertParagraph` on a range within one paragraph splits the paragraph** where the range starts ('Before') or
+   ends ('After'), tracked too (cases 1 to 3), as across paragraphs. `Range.insertParagraph` now does so for every
+   range (`insertParagraphAt`). Until now a range within one paragraph put the paragraph before or after it.
+2. **A range from a paragraph's tail to the end of a whole table**: deleted, the paragraph's head joins the paragraph
+   after the table, in its properties (case 5), and tracked its mark is deleted (case 6). Replacing it is refused
+   with `GeneralException` (case 7). Both followed: a mark the range holds goes with it, whatever ends the range.
+3. **A 'Whole' range with no paragraph after it in its list**:
+   - before a table (case 8) and at a control's end (case 12), the paragraph goes;
+   - a cell's last paragraph is emptied and kept (case 10), and tracked its text is deleted and not its mark
+     (case 11, CR-002 section 55's rule);
+   - a story's last paragraph keeps its mark too (unmeasured, Word can't delete the last mark).
+
+   Followed (`dropMark`, `deleteMark`).
+4. **A whole content control in the range**:
+   - untracked, it goes and the paragraphs join (cases 14 and 16), as before;
+   - tracked, Word deletes it too (cases 15 and 17), with check 30's markers for an inserted control turned to
+     deletions: a `w:customXmlDelRangeStart` before the control, its end first inside its content, a second start
+     last inside, its end after the control, and the content deleted between them. Accept All took the control and
+     joined the paragraphs. **Followed** (section 12.4): section 10.3's refusal is lifted for controls.
+   - **A range into a control or out of one** (cases 18 to 20): the texts go, nothing joins across the control's
+     edge, and the start's paragraph takes the end paragraph's properties, its mark in its last run's formatting.
+     Followed for `delete()`, one control level down (`extentOf`'s `crossControls`, `takeProperties`). Tracked, the
+     start's mark and the texts are deleted (case 19's listing). `Replace` across a control's edge stays refused,
+     unmeasured.
+5. **Every property, not toggles alone**: Word wrote no `w:sz` on a heading's runs already at 14 points (cases 23
+   and 24), and no `w:i` on runs italic through their style (cases 21 and 22). It underlined the list item's mark,
+   whose runs were underlined directly and the mark not (case 25). `formatSpan` now writes a property only where a
+   run or mark doesn't read it already, whatever the property.
+6. **`lookOf`'s neutral values**: `w:caps w:val="0"`, automatic colour, the old size, `w:u w:val="none"` (case
+   26), as this package wrote them.
+7. **A tracked `Replace` within one paragraph**: Word put the `w:ins` first (case 4), as across paragraphs.
+   **Followed** (Jason, 2026-10-23: "Tracked Replace order within one paragraph: follow Word (insertion first)"):
+   every tracked `Range.insertText(…, 'Replace')` now goes through `replaceAcross`, the insertion first. CR-002
+   wrote the `w:del` first, and the editor's agreement tests pin that order (its message of 2026-10-22), so they
+   move. Inside another author's insertion the new text still splits it and isn't nested in it (CR-002 section 37);
+   the deletion now stands in the half after the new text.
+8. **Comments and bookmarks a deletion reaches**:
+   - a comment whose reference goes with the range goes, untracked (case 27) and, tracked, on Accept All (case 28);
+   - one whose reference stays keeps its markers at the join (case 29), as a bookmark does (case 30).
+
+   Followed: `cut` takes a comment reference in the span and queues the comment, as a resolution queues one.
+9. **A tracked deletion into a paragraph this author inserted** (case 31): Word took its own inserted mark back and
+   joined the two paragraphs, its model having marked the first paragraph's mark inserted (CR-002 section 13 marks
+   the new paragraph's). Accept All and Reject All give the same document here as Word's; not changed.
+10. **Across paragraphs:**
+    - **`style`** (cases 32 and 33): Word gave each paragraph Heading 2, and took away the body paragraph's centring
+      and italic and the list item's numbering, keeping its underline. Followed in part: `style`, `styleId` and a
+      new `styleBuiltIn` setter set each paragraph's style. Word's resets aren't followed: they are its paragraph
+      style's rules, which `Paragraph.style` doesn't have either, and were not measured within one paragraph
+      (CR-002's).
+    - **`hyperlink`** (case 34): Word wrote a HYPERLINK field from the first paragraph into the last. **Still
+      refused**: this package's links are `w:hyperlink` elements, one paragraph's each, which its getter reads.
+    - **`insertOoxml(…, 'Replace')`** (case 35): one paragraph's runs in place of the range, where the paragraphs
+      join, as `Replace` (`HEAD35A NEWOOXML BODY35B`). Followed; 'Before' and 'After' put one paragraph's runs at the
+      range's start and end, and several blocks before its first paragraph or after its last. Several blocks in
+      place of a range across paragraphs stay refused, unmeasured.
+
+`insertOoxml`'s `Replace` within one paragraph now keeps a last mark, as a replacement does, where it called
+`delete()`, which since phase 2 takes the mark of a 'Whole' range.
+
+### 12.2 Content controls across paragraphs (phase 3)
+
+**Word puts a control around paragraphs held whole and refuses any other range** with `GeneralException` (cases
+36, 37 and 39 to 42: a range starting or ending inside a paragraph, across a table, into one, out of one, tracked
+or not). On a range from the first paragraph's start to the last's mark it wrapped both in one block control
+(cases 38 and 43). `Range.insertContentControl` across paragraphs now does the same (`wrapParagraphs`). Tracked,
+the control is an insertion with check 30's markers, as a paragraph's control is, and Word's save after the run has
+the same markers (case 43). Word's run listed them as two insertions of no text, where this package's listing lists
+none.
+
+### 12.3 Held to Word 365
+
+`test/ranges.test.mjs`, five tests:
+- **The file and the snippet agree**, the snippet running through the shim with no error of its own.
+- **The JSONs are of this file**, and the saves are Word's, their SHA-1s in the manifest.
+- **The run**: the snippet's `run` mode through the shim against Word's run, case for case, as check 52's run test
+  compares. The differences left are each listed with their reason:
+  - case 4's order (12.1, item 7);
+  - Word's `Other` for an emptied list item in a cell (cases 10 and 11, CR-002 section 57's family);
+  - the listing's grouping (cases 13 and 43), and a tracked `Replace` listing its deletion too (17);
+  - All Markup's comment range (28);
+  - Word's model of an inserted mark (31);
+  - a style's resets (32, 33);
+  - the hyperlink (34);
+  - `insertOoxml`'s asynchronous result (35).
+- **The markup**: each region's markup after the shim's run against Word's save after the run, as check 52's markup
+  test compares. Every case is Word's markup, case 4 among them since item 7, but a style's resets (32, 33), the
+  hyperlink (34), the reference run's size (29, and 28, where Word's save wrote it on the file's own run), and Word's
+  model of an inserted mark (31). Case 28 also found that a tracked deletion left a comment's reference run beside
+  the `w:del`, where Word puts it inside, fixed by section 12.6. The test pins Word's lines for the deleted control
+  (15) and the inserted one (43).
+- **Accept All**: Accept All after the shim's run, saved and reloaded, against Word's report after Accept All and
+  its save, each region's markup line by line. **Every case is Word's**, the tracked control deletions among them,
+  but a style's resets (32, 33), the hyperlink (34), the reference run's size (29), the `Other` style (10, 11, the
+  report alone), and three rules of Word's Accept All (cases 9, 13 and 19):
+  - **an emptied paragraph whose deleted mark has a table after it goes** (case 9);
+  - **a control's emptied last paragraph keeps a bare mark** (case 13);
+  - **a paragraph whose deleted mark has a control after it takes the control's first paragraph's properties**, its
+    content not joined (case 19).
+
+  This package's Accept All is docx4j's resolution (CR-011), held to docx4j's answers by the revisions goldens, and
+  docx4j has none of the three. They go to docx4j (its CR-043) as findings. The goldens are docx4j's, so this
+  package's resolution changes when docx4j's does.
+
+### 12.4 What the save after the run settled
+
+- **A tracked deletion over a whole content control** (cases 15 and 17): Word's `w:customXmlDelRange*` markers
+  (12.1, item 4). The tracked deletion writes them (`markHolderDeleted`, check 30's `markHolderInserted` with the
+  Del elements). The `holder` tracked change, which listed and resolved an inserted control, now takes a deleted
+  one too (`holderChangeAt`): it is listed as `Deleted` with the deletions around it (`CONTENT_CONTROL_DELETION`, an
+  extension of docx4j's kinds, as the insertion's handling already was); Accept takes the control away; Reject, the
+  markers. A Word document holding them now resolves as Word does too. section 10.3 refuses only an `w:altChunk`
+  and a kept `mc:AlternateContent` now.
+- **A tracked control around paragraphs** (case 43): Word's markers are check 30's, which this package writes.
+- **A tracked style** (case 33): a `w:pPrChange` on each paragraph, as this package writes; the resets aside.
+
+### 12.5 The sweep, again
+
+Section 10.5's sweep with check 54's rules, 808 files, the tracked control deletions included: 24 deletions and
+replacements over whole controls that section 10.3 refused now pass both ways. Every write that wasn't refused agreed
+with the untracked write after Accept All and with the original after Reject All, but for two kinds of difference:
+- **74 'Whole' deletions** of a paragraph followed by a table or a control: untracked the paragraph goes, as Word's
+  case 8; tracked and accepted it stays empty, Word's Accept All rule of case 9 that docx4j's resolution lacks;
+- **two** across a control's edge (out of a table of contents into the heading after it, `loadAndSave.docx`; from a
+  title into the second of several bound controls, `hyperlink-binding-test.docx`): case 19's Accept All rule.
+
+Reject All gave the original everywhere.
+
+### 12.6 A comment's reference in a deletion
+
+Section 12.3's case 28 found that a tracked deletion left a comment's reference run beside the `w:del`, where Word
+puts it inside. In case 28 the two gave the same document once accepted or rejected, but only because the deletion
+took all of the comment's text: Accept All removes a comment whose text a resolution empties (CR-002 section 54).
+Tried here (Jason asked, 2026-10-23), a comment over "B C" with its reference after "C", and "C D" deleted:
+- **tracked**, the reference stayed outside the `w:del`, so Accept All kept the comment over "B", where Word's markup
+  takes the reference with the deletion;
+- **untracked, within one paragraph**, the deletion kept the comment whose reference it removed: a reference has no
+  text, so the splice's segments never held it. Across paragraphs `cut` took it (case 27).
+
+**Fixed the same day** (Jason: "yes make it"), in the paragraph's own primitives, so every deletion has it, within
+one paragraph and across:
+- `Paragraph.splice`, untracked, takes a comment reference run in the span (strictly inside it, or at an edge the
+  span holds) with the text, and queues its comment to go on save, its markers and replies with it, as a resolution
+  queues one (`commentReferencesIn`, `queueCommentRemoval`);
+- `deleteText`, tracked, puts the reference run into the `w:del` with the text, where it stands among the runs,
+  as Word's case 28 has it; taking back this author's own insertion takes such a comment too;
+- **the resolution**, docx4j's `Removals` rule that the port lacked: a comment whose reference or range marker the
+  resolved content held is judged when the resolution ends, and goes whole where no reference to it is left
+  (Word keeps no comment without one, core-ts check 32), or loses the half of its range left where only half is
+  (`settleCommentAnchors`). docx4j has had it since its CR-043 phase 1, before the commit its revisions goldens were
+  recorded at, and the 96 goldens still agree: none of their fixtures had a comment's reference resolved away apart
+  from its text.
+
+`cut` no longer handles references itself. Check 54's case 28 is Word's markup now but for the reference run's
+`w:sz`, which Word's save wrote on the file's own run (as check 52's case 1). A sweep of the 265 files with comments
+that load: the paragraph holding a comment's reference had its content deleted, untracked and tracked. The comment went
+in every one, Accept All gave the untracked result and Reject All the original in every one. Before the fix of an
+empty span's edges (a paragraph holding nothing but the reference, `invoice.docx`), five of them differed.

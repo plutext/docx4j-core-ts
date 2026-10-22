@@ -14,7 +14,7 @@ import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { markHolderInserted } from './tracking.mjs';
-import { officeMatches, expandReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
@@ -24,7 +24,7 @@ import { readRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
 import { storyLayout, storyOf, type StoryLayout } from './story.mjs';
 import { styleNameOf, builtInOf } from './styles.mjs';
 import { GeneralException } from './generalException.mjs';
-import { extentOf, assertTrackable, deleteSpan, firstCharacterOf, placeReplacement, insertParagraphAt, formatSpan } from './spanEdits.mjs';
+import { extentOf, assertTrackable, deleteSpan, firstCharacterOf, placeReplacement, insertParagraphAt, formatSpan, type Extent } from './spanEdits.mjs';
 
 /**
  * A subset of Office JS `Word.Range`: a span of text from an offset in one paragraph to an offset in the same
@@ -160,13 +160,14 @@ export class Range {
   }
 
   /**
-   * Refuses a write to a range across paragraphs that CR-014 doesn't bring: phase 3 brings comments and content
-   * controls on one; a style, a hyperlink and `insertOoxml` across paragraphs aren't proposed.
+   * Refuses a hyperlink set on a range across paragraphs. Word wrote a HYPERLINK field from the first paragraph into
+   * the last (check 54 case 34), where this package's links are `w:hyperlink` elements, one paragraph's each, which
+   * its getter reads (CR-014 section 12).
    */
   private assertOneParagraph(member: string): void {
     if (this.spansParagraphs) {
-      throw new NotSupportedError('Range', member, 'this range spans paragraphs, where this write is not implemented (CR-014: comments and '
-        + "content controls are phase 3's); write each paragraph's range, or the content control or comment the range came from");
+      throw new NotSupportedError('Range', member, "this range spans paragraphs, where Word writes a HYPERLINK field across them, which isn't "
+        + "written here (CR-014); link each paragraph's range");
     }
   }
 
@@ -207,13 +208,15 @@ export class Range {
     return this.text === '';
   }
 
-  /** The paragraph's style id (extension, as on Paragraph); a range across paragraphs gives the first one's. */
+  /**
+   * The paragraph's style id (extension, as on Paragraph); a range across paragraphs gives the first one's. Set
+   * across paragraphs, each paragraph's (check 54 cases 32 and 33: Word gave both Heading 2).
+   */
   get styleId(): string {
     return this.paragraph.styleId;
   }
   set styleId(id: string) {
-    this.assertOneParagraph('styleId');
-    this.paragraph.styleId = id;
+    for (const p of this.styledParagraphs()) p.styleId = id;
   }
 
   /**
@@ -228,14 +231,28 @@ export class Range {
     return read.charStyle === undefined ? read.paragraphs((p) => p.style) : read.charStyle === '' ? '' : styleNameOf(this.paragraph.parentBody.package_, read.charStyle);
   }
   set style(id: string) {
-    this.assertOneParagraph('style');
-    this.paragraph.style = id;
+    for (const p of this.styledParagraphs()) p.style = id;
   }
 
   /** The built-in name of `style` (Office JS `styleBuiltIn`): `Other` where it is `''`, `Normal` where paragraphs across it differ. */
   get styleBuiltIn(): string {
     const read = this.styleRead();
     return read.charStyle === undefined ? read.paragraphs((p) => p.styleBuiltIn) : read.charStyle === '' ? 'Other' : builtInOf(read.charStyle);
+  }
+  /** Sets each paragraph's style by its built-in name, as `style` does. */
+  set styleBuiltIn(value: string) {
+    for (const p of this.styledParagraphs()) p.styleBuiltIn = value;
+  }
+
+  /**
+   * The paragraphs a style set on the range goes to: its own, or each across paragraphs (check 54 cases 32 and 33:
+   * Word gave a body paragraph and a list item Heading 2). Word also took away the body paragraph's centring and
+   * italic and the list item's numbering, which `Paragraph.style` doesn't (CR-014 section 12).
+   */
+  private styledParagraphs(): Paragraph[] {
+    if (!this.spansParagraphs) return [this.paragraph];
+    this.assertWritableSpan();
+    return this.paragraphs;
   }
 
   /**
@@ -401,7 +418,9 @@ export class Range {
    * deletion, as Word writes it. A range holding its paragraph's mark is replaced so too under tracking.
    */
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
-    if (location === 'Replace' && (this.spansParagraphs || (this.holdsEndMark && this.paragraph.changeTracker))) return this.replaceAcross(text);
+    // tracked, the w:ins goes before the w:del within one paragraph too, as Word's (check 54 case 4; Jason,
+    // 2026-10-23: "follow Word (insertion first)"), where CR-002 wrote the w:del first
+    if (location === 'Replace' && (this.spansParagraphs || this.paragraph.changeTracker)) return this.replaceAcross(text);
     if (this.spansParagraphs) {
       this.assertWritableSpan();
       if (location === 'End' || location === 'After') return this.endParagraph.splice(this.end, this.end, text);
@@ -422,21 +441,28 @@ export class Range {
   }
 
   /**
-   * A new paragraph of the text. Within one paragraph it goes before or after the paragraph, in its properties
-   * (CR-002). Across paragraphs (CR-014 phase 2, check 52) it goes where the range starts ('Before') or ends
-   * ('After'), splitting the paragraph there, as Word does (`insertParagraphAt`); this range keeps covering its text.
+   * A new paragraph of the text where the range starts ('Before') or ends ('After'), splitting the paragraph there,
+   * as Word does (`insertParagraphAt`): across paragraphs (check 52) and within one (check 54 cases 1 to 3; until
+   * then a range within one paragraph put it before or after the whole paragraph). At a paragraph's start or end,
+   * or after a range holding its mark, it goes before or after the paragraph. This range keeps covering its text.
    */
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
-    if (!this.spansParagraphs) return this.paragraph.insertParagraph(text, location);
     this.assertWritableSpan();
+    const spans = this.spansParagraphs;
     if (location === 'Before') {
       const { inserted, firstHalf } = insertParagraphAt(this.paragraph, this.start, text);
-      if (firstHalf) this.start = 0;                       // the paragraph keeps the text from the split on
+      if (firstHalf) {                                     // the paragraph keeps the text from the split on
+        if (!spans) this.end -= this.start;
+        this.start = 0;
+      }
       return inserted;
     }
     const at = this.holdsEndMark ? this.endParagraph.text.length : this.end;
     const { inserted, firstHalf } = insertParagraphAt(this.endParagraph, at, text);
-    if (firstHalf) this.lastParagraph = firstHalf;         // the text before the split moved into the first half
+    if (firstHalf) {                                       // the text before the split moved into the first half
+      if (!spans) this.startParagraph = firstHalf;
+      this.lastParagraph = firstHalf;
+    }
     return inserted;
   }
 
@@ -444,26 +470,70 @@ export class Range {
    * Word's `insertOoxml` at range level: a flat OPC `pkg:package` (or a bare fragment). One
    * incoming paragraph's runs go at the start or the end of the span, or in its place; anything
    * else is inserted as blocks before or after the paragraph. Returns what was inserted, as
-   * `insertXml` does.
+   * `insertXml` does. Across paragraphs (check 54 case 35) one paragraph's runs replace the range as
+   * `insertText('Replace')` replaces it, where the paragraphs joined; the start is the first paragraph's,
+   * the end the last's; several blocks go before the first paragraph or after the last, and replacing a
+   * range across paragraphs with several blocks is refused, as unmeasured.
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
-    this.assertOneParagraph('insertOoxml');
-    this.paragraph.assertWritable();
+    this.assertWritableSpan();
     const body = this.paragraph.parentBody;
     const preprocess = body.package_?.loadOptions.preprocessor;
     const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part });
     if (elements.length === 0) return [];
     const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? elements[0]!.value as { content?: Element[] } : undefined;
     if (only) {
-      if (location === 'Replace') { this.delete(); this.paragraph.insertItemsAt(this.start, (only.content ?? [])); }
-      else this.paragraph.insertItemsAt(location === 'Before' ? this.start : this.end, (only.content ?? []));
-      return [this.paragraph];
+      if (location === 'Replace') {
+        const landing = this.removeKeepingMark('insertOoxml');
+        landing.paragraph.insertItemsAt(landing.offset, (only.content ?? []));
+        return [landing.paragraph];
+      }
+      const [paragraph, at] = location === 'Before' ? [this.paragraph, this.start] : [this.endParagraph, this.end];
+      paragraph.insertItemsAt(at, (only.content ?? []));
+      return [paragraph];
     }
-    body.insertElement(elements, location === 'Before' ? 'Before' : 'After', this.paragraph);
-    if (location === 'Replace') this.delete();
+    if (location === 'Replace' && this.spansParagraphs) {
+      throw new NotSupportedError('Range', 'insertOoxml', "several blocks in place of a range across paragraphs, which Word wasn't measured doing (CR-014)");
+    }
+    const target = location === 'Before' ? this.paragraph : this.endParagraph;
+    body.insertElement(elements, location === 'Before' ? 'Before' : 'After', target);
+    if (location === 'Replace') this.removeKeepingMark('insertOoxml');
     return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
-      ? body.paragraphFor(el.value as never) ?? { element: el, container: this.paragraph.container }
-      : { element: el, container: this.paragraph.container });
+      ? body.paragraphFor(el.value as never) ?? { element: el, container: target.container }
+      : { element: el, container: target.container });
+  }
+
+  /**
+   * The range's content removed as a replacement removes it, keeping a last mark the range holds (check 52):
+   * `delete()`'s join across paragraphs, else the paragraph's splice. Where the paragraphs closed up.
+   */
+  private removeKeepingMark(member: string): { paragraph: Paragraph; offset: number } {
+    if (!this.spansParagraphs && !this.holdsEndMark) {
+      this.paragraph.splice(this.start, this.end, '', 'before', this.edges);
+      this.end = this.start;
+      return { paragraph: this.paragraph, offset: this.start };
+    }
+    const extent = this.replaceableExtent(member);
+    if (this.paragraph.changeTracker) assertTrackable(extent, member);
+    const landing = deleteSpan(this, extent, true)!;
+    this.landAt(landing.paragraph, landing.offset);
+    return landing;
+  }
+
+  /**
+   * The extent of a range a replacement may take: refused where it ends with a whole table, as Word refused it
+   * (`GeneralException`, check 54 case 7), and where it starts with a whole table or control (unmeasured).
+   */
+  private replaceableExtent(member: string): Extent {
+    const extent = extentOf(this, member);
+    if (!extent.tail) {
+      throw new GeneralException(`Range.${member}: this range ends with a whole table or control, which Office JS refuses to replace (check 54)`);
+    }
+    if (!extent.head) {
+      throw new NotSupportedError('Range', member, "this range starts with a whole table or content control, so there is no paragraph for the text to go in, and what Word does isn't measured");
+    }
+    this.assertWritableSpan();
+    return extent;
   }
 
   /**
@@ -475,7 +545,7 @@ export class Range {
    */
   delete(): void {
     if (this.spansParagraphs || this.holdsEndMark) {
-      const extent = extentOf(this, 'delete');
+      const extent = extentOf(this, 'delete', true);
       this.assertWritableSpan();
       if (this.paragraph.changeTracker) assertTrackable(extent, 'delete');
       const landing = deleteSpan(this, extent, false);
@@ -486,13 +556,9 @@ export class Range {
     this.end = this.start;
   }
 
-  /** `insertText(text, 'Replace')` across paragraphs, or holding its mark under tracking (CR-014 phase 2). */
+  /** `insertText(text, 'Replace')` across paragraphs, and any under tracking (CR-014 phases 2 and 3). */
   private replaceAcross(text: string): Range {
-    const extent = extentOf(this, 'insertText');
-    if (!extent.head) {
-      throw new NotSupportedError('Range', 'insertText', "this range starts with a whole table or content control, so there is no paragraph for the text to go in, and what Word does isn't measured");
-    }
-    this.assertWritableSpan();
+    const extent = this.replaceableExtent('insertText');
     if (this.paragraph.changeTracker) {
       assertTrackable(extent, 'insertText');
       // tracked: the insertion before the deletion (check 52 cases 39 to 48), in the first replaced run's formatting
@@ -512,10 +578,68 @@ export class Range {
     return new Range(landing.paragraph, landing.offset, landing.offset + text.length);
   }
 
+  /**
+   * The hits of a query in the range, as Office JS's `search` gives them. A plain query holding `^p`, Word's
+   * paragraph mark, matches across paragraphs (`searchMarks`); any other matches a paragraph at a time.
+   */
   search(text: string, options?: SearchOptions): Range[] {
+    const marks = options?.matchWildcards || options?.matchRegExp ? undefined : paragraphMarkPieces(text);
+    if (marks) return this.searchMarks(marks, options);
     if (this.spansParagraphs) return this.pieces().flatMap((piece) => piece.search(text, options));
     return officeMatches(this.paragraph.segments({ objects: true }), text, options, this.start, this.end)
       .map(({ start, end }) => new Range(this.paragraph, start, end));
+  }
+
+  /**
+   * A query's hits where it holds `^p`, Word's paragraph mark, as Word finds them (check 52 case 2; CR-014 phase
+   * 3): `pieces` is the query split at its marks. A hit starts in one paragraph with the first piece matching to
+   * its end, takes each middle piece as a whole paragraph's text, and ends with the last piece matching from the
+   * next paragraph's start; a query ending with `^p` ends with that paragraph's mark, which the hit holds. A mark
+   * matches only a paragraph's own mark the range holds: never a cell's or a row's end, and never across the edge
+   * of a table, so every paragraph of a hit is in the same cell or in none (`^p` between a list item and the first
+   * cell after it found nothing). `^p^p` matches an empty paragraph's mark after another mark. Plain queries only:
+   * Word's wildcards write the mark another way.
+   */
+  private searchMarks(pieces: string[], options?: SearchOptions): Range[] {
+    const paragraphs = this.paragraphs;
+    const last = paragraphs.length - 1;
+    const marks = pieces.length - 1;
+    const endsWithMark = pieces[marks] === '';
+    const cell = (p: Paragraph): object | undefined => p.parentTableCell?.element.value as object | undefined;
+    // a paragraph's mark the search may match: the range holds it, and it is a paragraph's, not a cell's end
+    const markIn = (j: number): boolean => (j < last || this.holdsEndMark) && paragraphs[j]!.markText === '\r';
+    const matches = (p: Paragraph, query: string, from: number, to: number) => officeMatches(p.segments({ objects: true }), query, options, from, to);
+    const out: Range[] = [];
+    for (let i = 0; i <= last; i++) {
+      const end = i + marks - (endsWithMark ? 1 : 0);                  // the paragraph the hit ends in
+      if (end > last) break;
+      const scope = cell(paragraphs[i]!);
+      let ok = true;
+      for (let j = i; j < i + marks && ok; j++) ok = markIn(j);
+      for (let j = i + 1; j <= end && ok; j++) ok = cell(paragraphs[j]!) === scope;
+      // the middle pieces: each a whole paragraph's text (an empty one for an empty piece)
+      for (let j = 1; j < marks && ok; j++) {
+        const p = paragraphs[i + j]!;
+        ok = pieces[j] === '' ? p.text === '' : matches(p, pieces[j]!, 0, p.text.length).some((m) => m.start === 0 && m.end === p.text.length);
+      }
+      if (!ok) continue;
+      const first = paragraphs[i]!;
+      const from = i === 0 ? this.start : 0;
+      const starts = pieces[0] === '' ? [first.text.length]
+        : matches(first, pieces[0]!, from, first.text.length).filter((m) => m.end === first.text.length).map((m) => m.start);
+      if (starts.length === 0 || starts[0]! < from) continue;
+      const endParagraph = paragraphs[end]!;
+      let to: number;
+      if (endsWithMark) to = endParagraph.text.length;
+      else {
+        const limit = end === last ? this.end : endParagraph.text.length;
+        const hit = matches(endParagraph, pieces[marks]!, 0, limit).find((m) => m.start === 0);
+        if (!hit) continue;
+        to = hit.end;
+      }
+      out.push(new Range(first, starts[0]!, to, false, endsWithMark, endParagraph.element === first.element ? undefined : endParagraph));
+    }
+    return out;
   }
 
   /**
@@ -524,6 +648,7 @@ export class Range {
    * (section 26; this one was missed there, section 31).
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
+    refuseMarkReplacement('Range', find, options);
     // across paragraphs a paragraph at a time, as `search` (CR-014 section 3), the last first
     if (this.spansParagraphs) {
       this.assertWritableSpan();
@@ -633,8 +758,8 @@ export class Range {
    * the comment parts the document lacks. Asynchronous because it unmarshals those parts.
    */
   async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
-    this.assertOneParagraph('insertComment');
-    this.paragraph.assertWritable();
+    // across paragraphs (CR-014 phase 3) the markers go in the first and the last paragraph, as Word's (check 52)
+    this.assertWritableSpan();
     return commentApi().insertComment(this, content, options);
   }
 
@@ -646,7 +771,7 @@ export class Range {
    * span gets an empty control at its position. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
-    this.assertOneParagraph('insertContentControl');
+    if (this.spansParagraphs) return this.wrapParagraphs(kind);
     this.paragraph.assertWritable();
     const paragraph = this.paragraph;
     const body = paragraph.parentBody;
@@ -699,6 +824,31 @@ export class Range {
     // under tracking the control itself is the insertion, the runs in it what they were (check 30)
     if (tracker) markHolderInserted(tracker, sdt as Element, owner, () => {});
     return new ContentControl(sdt, owner, body);
+  }
+
+  /**
+   * A block content control around the paragraphs of a range across paragraphs, as Word puts one (check 54 cases
+   * 38 and 43, untracked and tracked): only a range holding its paragraphs whole, from the first's start to the
+   * last's end, its mark or not. Any other, starting or ending inside a paragraph or a table, is refused with
+   * `GeneralException`, as Word refused it (cases 36, 37 and 39 to 42). Tracked, the control is an insertion, as a
+   * paragraph's control is (check 30's markers).
+   */
+  private wrapParagraphs(kind?: ContentControlType): ContentControl {
+    if (this.start !== 0 || this.end < this.endParagraph.text.length) {
+      throw new GeneralException('Range.insertContentControl: a range across paragraphs takes a control only where it holds its paragraphs whole, as Office JS (check 54)');
+    }
+    const extent = extentOf(this, 'insertContentControl');
+    this.assertWritableSpan();
+    const body = this.paragraph.parentBody;
+    const { list, first, last } = extent;
+    const parent = (list[first]!.value as { PARENT?: object }).PARENT ?? body.container;
+    const sdt = sdtOf(list.slice(first, last + 1), { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(body)), form: 'block' }) as Element<wml.SdtBlock>;
+    list.splice(first, last - first + 1, sdt as Element);
+    linkParents(sdt, parent);
+    declareSdtExtensions(body, sdt);
+    const tracker = this.paragraph.changeTracker;
+    if (tracker) markHolderInserted(tracker, sdt as Element, list, () => {});
+    return new ContentControl(sdt, list, body);
   }
 
   /**

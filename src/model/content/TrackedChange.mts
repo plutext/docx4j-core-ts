@@ -34,7 +34,7 @@ export type TrackedChangeKind =
   | 'PARAGRAPH_MARK_INSERTION' | 'PARAGRAPH_MARK_DELETION'
   | 'RUN_PROPERTIES' | 'PARAGRAPH_MARK_PROPERTIES' | 'PARAGRAPH_PROPERTIES'
   | 'ROW_INSERTION' | 'ROW_DELETION'
-  | 'FIELD_INSERTION' | 'CONTENT_CONTROL_INSERTION'
+  | 'FIELD_INSERTION' | 'CONTENT_CONTROL_INSERTION' | 'CONTENT_CONTROL_DELETION'
   | 'MATH_STRUCTURE_INSERTION' | 'MATH_STRUCTURE_DELETION'
   | 'INSERTION' | 'DELETION' | 'FORMATTING'
   | 'TABLE_PROPERTIES' | 'SECTION_PROPERTIES'
@@ -90,9 +90,11 @@ export type TrackedChangeTarget =
    * `w:sdt` or `w:customXml`, `owner` the list holding it, `outer` the pair in that list and `inner`
    * the pair in its content. Rejecting takes the element away and leaves its content where it
    * stood; accepting takes the markers away. Its text is its content's, which the pieces inside
-   * report.
+   * report. Or a deletion, `revision` `del`: the same form with `w:customXmlDelRangeStart` and `End`,
+   * Word's for a control a tracked deletion took (check 54 cases 15 and 17; CR-014 section 12), which
+   * groups with the deletions around and inside it; accepting takes the element away, rejecting the markers.
    */
-  | { kind: 'holder'; holder: Element; owner: Element[]; outer: [Element, Element]; inner: [Element, Element]; value: wml.CTTrackChange }
+  | { kind: 'holder'; revision: 'ins' | 'del'; holder: Element; owner: Element[]; outer: [Element, Element]; inner: [Element, Element]; value: wml.CTTrackChange }
   /**
    * A field Word inserted under tracking, in its own form: a `w:ins` around the field's begin and
    * instruction runs and another around its end, the separator and the result between them plain
@@ -142,7 +144,7 @@ export class TrackedChange {
       case 'row': return t.row === 'ins' ? 'Added' : 'Deleted';
       case 'group': return t.revision === 'ins' ? 'Added' : t.revision === 'del' ? 'Deleted' : 'Formatted';
       case 'cell': return t.cell === 'ins' ? 'Added' : 'Deleted';
-      case 'holder': return 'Added';
+      case 'holder': return t.revision === 'ins' ? 'Added' : 'Deleted';
       case 'field': return 'Added';
       case 'mathRun': case 'mathStructure': return t.revision === 'ins' ? 'Added' : 'Deleted';
       default: return 'Formatted';
@@ -182,7 +184,7 @@ export class TrackedChange {
       case 'paragraphProperties': return 'PARAGRAPH_PROPERTIES';
       case 'row': return t.row === 'ins' ? 'ROW_INSERTION' : 'ROW_DELETION';
       case 'field': return 'FIELD_INSERTION';
-      case 'holder': return 'CONTENT_CONTROL_INSERTION';
+      case 'holder': return t.revision === 'ins' ? 'CONTENT_CONTROL_INSERTION' : 'CONTENT_CONTROL_DELETION';
       case 'mathRun': return t.revision === 'ins' ? 'RUN_INSERTION' : 'RUN_DELETION';
       case 'mathStructure': return t.revision === 'ins' ? 'MATH_STRUCTURE_INSERTION' : 'MATH_STRUCTURE_DELETION';
       case 'tableProperties': return 'TABLE_PROPERTIES';
@@ -398,8 +400,10 @@ export class TrackedChange {
         delete t.sectPr.sectPrChange;
         return;
       case 'holder':
-        // the element stays, the markers go (check 30: accept all leaves the control, no marker)
-        removeHolderMarkers(t);
+        // an insertion: the element stays, the markers go (check 30: accept all leaves the control, no marker);
+        // a deletion: the element goes, its content with it (check 54 case 15: Word's Accept All took the control)
+        if (t.revision === 'ins') removeHolderMarkers(t);
+        else removeHolder(t);
         return;
       case 'field':
         for (const el of t.span) {
@@ -514,10 +518,11 @@ export class TrackedChange {
         restoreSection(t.sectPr, t.value);
         return;
       case 'holder':
-        // the element goes, its content stays where it stood: what is left of it after the pieces
-        // inside were rejected (nothing, for content inserted with it; check 30: reject all removes the
-        // control, and an existing control, which has no markers, stays)
-        unwrapHolder(t);
+        // an insertion: the element goes, its content stays where it stood: what is left of it after the
+        // pieces inside were rejected (nothing, for content inserted with it; check 30: reject all removes
+        // the control, and an existing control, which has no markers, stays); a deletion: the markers go
+        if (t.revision === 'ins') unwrapHolder(t);
+        else removeHolderMarkers(t);
         return;
       case 'field':
         removeField(t, this.paragraph);
@@ -685,6 +690,9 @@ interface Resolution {
   part: Part | undefined;
   relationships?: Set<string>;
   comments?: Map<number, Body>;
+  /** The body resolved, and the comments whose reference or range marker the removed content held (docx4j's `Removals` candidates). */
+  body?: Body;
+  commentCandidates?: Set<number>;
 }
 
 let resolution: Resolution | undefined;
@@ -722,6 +730,7 @@ export function resolving(pkg: unknown, body: Body | undefined, resolve: () => v
   if (outer) {
     outer.root ??= root;
     outer.part ??= body?.part;
+    outer.body ??= body;
     const previous = outer.notes;
     outer.notes = notes ?? previous;
     try {
@@ -732,10 +741,12 @@ export function resolving(pkg: unknown, body: Body | undefined, resolve: () => v
     return;
   }
   resolution = { notes, root, part: body?.part };
+  if (body) resolution.body = body;
   try {
     resolve();
     const done = resolution;
     if (done.comments?.size) settleSpanningComments(done.comments);
+    if (done.commentCandidates?.size && done.root && done.body) settleCommentAnchors(done.root, done.body, done.commentCandidates);
     if (done.root && done.before) dropBookmarksBroken(done.root, done.before);
     if (done.part && done.relationships?.size) dropRelationshipsUnused(done.part, done.relationships);
   } finally {
@@ -758,6 +769,7 @@ function discarding(element?: Element, properties?: unknown): void {
   if (!resolution) return;
   if (resolution.root) resolution.before ??= bookmarksIn(resolution.root);
   if (element && resolution.notes) noteReferencesIn(element, resolution.notes);
+  if (element) commentAnchorsIn(element, (resolution.commentCandidates ??= new Set()));
   if (resolution.part && (element || properties)) {
     const into = (resolution.relationships ??= new Set());
     if (element) relationshipIdsIn(element, into);
@@ -957,7 +969,13 @@ function commentReferencesIn(tree: unknown, into: Set<number>): void {
   visit(tree);
 }
 
-/** A holder's four insertion markers taken away; the element stays. */
+/** A holder's deletion accepted: the markers go, and the element with what it holds. */
+function removeHolder(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void {
+  removeHolderMarkers(t);
+  remove(t.owner, t.holder);
+}
+
+/** A holder's four insertion (or deletion) markers taken away; the element stays. */
 function removeHolderMarkers(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void {
   remove(t.owner, t.outer[0]);
   remove(t.owner, t.outer[1]);
@@ -982,21 +1000,24 @@ function unwrapHolder(t: Extract<TrackedChangeTarget, { kind: 'holder' }>): void
  * The insertion of a content control or custom XML element, when `items[i]` is a
  * `w:customXmlInsRangeStart` and what follows is Word's form for one (check 30): the element, whose
  * content starts with that marker's `w:customXmlInsRangeEnd` and ends with a second start, and that
- * one's end right after the element. Anything else is not one (a marker on its own is left alone).
+ * one's end right after the element; or its deletion, the same form of `w:customXmlDelRangeStart` and
+ * `End` (check 54). Anything else is not one (a marker on its own is left alone).
  */
-export function holderInsertionAt(items: Element[], i: number, paragraph: Paragraph | undefined, body?: Body): TrackedChange | undefined {
+export function holderChangeAt(items: Element[], i: number, paragraph: Paragraph | undefined, body?: Body): TrackedChange | undefined {
   const start = items[i]!;
-  if (start.name?.localPart !== 'customXmlInsRangeStart') return undefined;
+  const revision = start.name?.localPart === 'customXmlInsRangeStart' ? 'ins' : start.name?.localPart === 'customXmlDelRangeStart' ? 'del' : undefined;
+  if (!revision) return undefined;
+  const [startName, endName] = revision === 'ins' ? ['customXmlInsRangeStart', 'customXmlInsRangeEnd'] : ['customXmlDelRangeStart', 'customXmlDelRangeEnd'];
   const holder = items[i + 1];
   const outerEnd = items[i + 2];
-  if (!holder || !outerEnd || !HOLDER_TYPES.has(typeNameOf(holder) ?? '') || outerEnd.name?.localPart !== 'customXmlInsRangeEnd') return undefined;
+  if (!holder || !outerEnd || !HOLDER_TYPES.has(typeNameOf(holder) ?? '') || outerEnd.name?.localPart !== endName) return undefined;
   const inner = childrenOf(holder.value as object) ?? [];
   const innerEnd = inner[0];
   const innerStart = inner[inner.length - 1];
-  if (inner.length < 2 || !innerEnd || !innerStart || innerEnd.name?.localPart !== 'customXmlInsRangeEnd' || innerStart.name?.localPart !== 'customXmlInsRangeStart') return undefined;
+  if (inner.length < 2 || !innerEnd || !innerStart || innerEnd.name?.localPart !== endName || innerStart.name?.localPart !== startName) return undefined;
   const idOf = (marker: Element): unknown => (marker.value as { id?: unknown }).id;
   if (idOf(innerEnd) !== idOf(start) || idOf(outerEnd) !== idOf(innerStart)) return undefined;
-  return new TrackedChange({ kind: 'holder', holder, owner: items, outer: [start, outerEnd], inner: [innerEnd, innerStart], value: start.value as wml.CTTrackChange }, paragraph, body);
+  return new TrackedChange({ kind: 'holder', revision, holder, owner: items, outer: [start, outerEnd], inner: [innerEnd, innerStart], value: start.value as wml.CTTrackChange }, paragraph, body);
 }
 
 /**
@@ -1159,6 +1180,65 @@ function settleSpanningComments(comments: Map<number, Body>): void {
     const start = markerAt(list, 0, list.length, 'commentRangeStart', id);
     if (rangeIsEmpty(list, list[start]!, id)) removeCommentWhole(body, id);
   }
+}
+
+/**
+ * The comments whose reference or range marker the resolution removed, judged once it ends, as docx4j's
+ * `Removals.flush` judges its candidates (its CR-043; core-ts check 32): one whose reference no longer stands
+ * anywhere in the story goes whole, since Word keeps no comment without one; one with its reference and half its
+ * range left loses that half. A tracked deletion holds a comment's reference where it took one (CR-014 section
+ * 12.6, Word's case 28), so accepting it takes the comment, as the untracked deletion does.
+ */
+function settleCommentAnchors(root: object, body: Body, candidates: Set<number>): void {
+  const pending = (body.package_ as { pendingCommentRemovals?: Set<number> } | undefined)?.pendingCommentRemovals;
+  const references = new Set<number>();
+  const starts = new Set<number>();
+  const ends = new Set<number>();
+  forEachCommentAnchor(root, (name, id) => (name === 'commentReference' ? references : name === 'commentRangeStart' ? starts : ends).add(id));
+  for (const id of candidates) {
+    if (pending?.has(id)) continue;
+    if (!references.has(id)) removeCommentWhole(body, id);
+    else if (starts.has(id) !== ends.has(id)) removeRangeMarkers(root, id);
+  }
+}
+
+/** Adds the ids of the comment references and range markers anywhere in a tree to `into`. */
+function commentAnchorsIn(tree: unknown, into: Set<number>): void {
+  forEachCommentAnchor(tree, (_name, id) => into.add(id));
+}
+
+/** Calls `found` for each comment reference, range start and range end anywhere in a tree. */
+function forEachCommentAnchor(tree: unknown, found: (name: string, id: number) => void): void {
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) { for (const item of o) visit(item); return; }
+    const name = (o as { name?: { localPart?: string } }).name?.localPart;
+    if (name === 'commentReference' || name === 'commentRangeStart' || name === 'commentRangeEnd') {
+      const id = Number(((o as { value?: { id?: unknown } }).value)?.id);
+      if (Number.isInteger(id)) found(name, id);
+      return;
+    }
+    for (const [key, value] of Object.entries(o)) if (key !== 'PARENT') visit(value);
+  };
+  visit(tree);
+}
+
+/** A comment's range markers taken out of a tree, its reference kept: what is left of half a range. */
+function removeRangeMarkers(tree: unknown, id: number): void {
+  const visit = (o: unknown): void => {
+    if (typeof o !== 'object' || o === null) return;
+    if (Array.isArray(o)) {
+      for (let i = o.length - 1; i >= 0; i--) {
+        const el = o[i] as Element | undefined;
+        const name = el?.name?.localPart;
+        if ((name === 'commentRangeStart' || name === 'commentRangeEnd') && commentIdOf(el!) === id) o.splice(i, 1);
+        else visit(el);
+      }
+      return;
+    }
+    for (const [key, value] of Object.entries(o)) if (key !== 'PARENT') visit(value);
+  };
+  visit(tree);
 }
 
 /** The list under `root` (block, run and run-content lists, math's) holding an item `match` matches, or undefined. */
@@ -1801,7 +1881,7 @@ function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedCh
   for (let i = 0; i < items.length; i++) {
     const el = items[i]!;
     // an inline control or custom XML element that is itself an insertion: a piece, then what is in it
-    const inserted = holderInsertionAt(items, i, paragraph);
+    const inserted = holderChangeAt(items, i, paragraph);
     if (inserted) {
       out.push(inserted);
       tokensOfRunLevel(paragraph, childrenOf(items[i + 1]!.value as object) ?? [], out, listing);
@@ -1872,7 +1952,8 @@ function groupable(change: TrackedChange): 'ins' | 'del' | 'format' | undefined 
   if (t.kind === 'mark') return t.mark;
   if (t.kind === 'run' && (t.revision === 'ins' || t.revision === 'del')) return t.revision;
   if (t.kind === 'runProperties' || t.kind === 'markProperties') return 'format';
-  if (t.kind === 'holder' || t.kind === 'field') return 'ins';
+  if (t.kind === 'holder') return t.revision;
+  if (t.kind === 'field') return 'ins';
   if (t.kind === 'mathRun' || t.kind === 'mathStructure') return t.revision;
   // an inserted or deleted row groups with rows and text touching it: Office JS lists an inserted
   // table of three rows, with the inserted paragraphs before and after it, as one change, and rows
@@ -2011,7 +2092,7 @@ function restoreSection(sectPr: wml.SectPr, change: wml.CTSectPrChange): void {
  * writes and drops when one is put in, and whose record is the old number's text, so that a reject
  * too can only drop it; and a table's records that change nothing. A merge rejected gets the merge it
  * recorded back (docx4j's reading; unmeasured). A `w:customXmlInsRangeStart` or `End` left without
- * the form `holderInsertionAt` lists marks nothing that can be found, and goes either way. Every branch
+ * the form `holderChangeAt` lists marks nothing that can be found, and goes either way. Every branch
  * of a kept `mc:AlternateContent` at block, row and cell level is swept (CR-013 phase 3).
  */
 export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): void {
@@ -2019,7 +2100,7 @@ export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): vo
     if (!list) return;
     for (let i = list.length - 1; i >= 0; i--) {
       const name = list[i]!.name?.localPart;
-      if (name === 'customXmlInsRangeStart' || name === 'customXmlInsRangeEnd') list.splice(i, 1);
+      if (HOLDER_MARKERS.has(name ?? '')) list.splice(i, 1);
     }
     for (const el of list) {
       const tn = typeNameOf(el);
@@ -2051,12 +2132,15 @@ export function resolveUnlisted(items: Element[], what: 'accept' | 'reject'): vo
   visit(items);
 }
 
-/** Stray `w:customXmlInsRangeStart` / `End` markers taken out of run-level content, through its holders and revisions. */
+/** A holder's insertion and deletion markers: one left without the form `holderChangeAt` lists goes either way. */
+const HOLDER_MARKERS = new Set(['customXmlInsRangeStart', 'customXmlInsRangeEnd', 'customXmlDelRangeStart', 'customXmlDelRangeEnd']);
+
+/** Stray `w:customXmlInsRangeStart` / `End` markers (or `Del`) taken out of run-level content, through its holders and revisions. */
 function sweepMarkers(items: Element[] | undefined): void {
   if (!items) return;
   for (let i = items.length - 1; i >= 0; i--) {
     const name = items[i]!.name?.localPart;
-    if (name === 'customXmlInsRangeStart' || name === 'customXmlInsRangeEnd') { items.splice(i, 1); continue; }
+    if (HOLDER_MARKERS.has(name ?? '')) { items.splice(i, 1); continue; }
     const v = items[i]!.value;
     if (typeof v !== 'object' || v === null) continue;
     if (typeNameOf(items[i]!) === ALTERNATE_CONTENT) for (const branch of branchesOf(v as mce.AlternateContent)) sweepMarkers(branch);

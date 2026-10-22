@@ -47,7 +47,7 @@ text model's rows and cells in the selected branch, `mcePreprocess: true` over t
 the tracked-change listing in the selected branch, a view in a branch read-only; the mutators in every branch, a listed
 change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (ranges across paragraphs, as Office JS's: checks
 52 and 53 run in Word 365; one `Range` with two ends, its reads and its writes held to Word's runs and saves through the
-Word shim; phase 3, comments, controls and `^p` on one, is next). The editor's release requests are
+Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -201,8 +201,18 @@ Key mechanics:
   takes it and joins the next paragraph, tracked every mark in it but a last one is deleted with no `w:pPrChange`;
   `font` writes runs and the marks it holds, a toggle only where it doesn't read so already; `insertParagraph` splits
   the paragraph at the range's start or end; a range starting or ending inside a table is refused with Word's
-  `GeneralException`, one holding a whole control or `w:altChunk` refused under tracking. `style`, `hyperlink`,
-  `insertOoxml`, comments and controls on one still refuse. `expandTo`, `Body.getRange`, `Table.getRange`, a block
+  `GeneralException`, one holding a whole control or `w:altChunk` refused under tracking. Phase 3: `insertComment`
+  puts its markers in the first and last paragraphs, and a plain `search` query holding `^p` matches paragraph marks
+  across paragraphs, never a cell's or row's end or across a table's edge (`searchMarks`; `replaceText` with `^p`
+  refuses). Check 54's answers (section 12): `insertParagraph` splits within one paragraph too; a mark the range
+  holds goes (`dropMark`: joins the next paragraph, else its emptied paragraph goes, a cell's last kept); delete
+  crosses a control's edge one level down without joining; a font property goes only where it doesn't read so already;
+  a comment goes with its reference (every deletion: `Paragraph.splice` and `deleteText` take a reference run in the
+  span, and the resolution removes a comment left without one, docx4j's `Removals` rule; section 12.6); `style` and
+  `insertOoxml` work across paragraphs; `insertContentControl` wraps
+  paragraphs held whole, else `GeneralException`; a tracked delete holding a whole control writes Word's
+  `w:customXmlDelRange*` markers (`markHolderDeleted`), which the `holder` tracked change lists and resolves beside the
+  Ins form (`holderChangeAt`). `hyperlink` across paragraphs still refuses. `expandTo`, `Body.getRange`, `Table.getRange`, a block
   control's and a group change's range and `Comment.getRange()` (one `Range`; `getRanges()` the per-paragraph array)
   make one. Code that takes a `Range` checks `spansParagraphs`. `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
@@ -251,7 +261,8 @@ to 95 are CR-002 section 55's); and phase 1's reads, held to Word's by running t
 through the Word shim on the same file and on Word's saves, and check 53's (`test/fixtures/check53/`, phase 1's unmeasured
 choices, read only, Word's runs in Simple and All Markup) the same way, every difference left listed; and phase 2's writes,
 the snippet's `run` mode through the shim held to Word's run, to each region's markup in Word's save after the run, and,
-accepted, to Word's Accept All,
+accepted, to Word's Accept All; and check 54's (`test/fixtures/check54/`, phase 2's unmeasured choices and phase 3's
+controls; Word's Accept All save in `test/check54/`) the same way, its run and, accepted, its Accept All,
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

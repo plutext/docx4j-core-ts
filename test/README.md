@@ -3980,8 +3980,10 @@ async function check() {
      cases 1 to 85 are held to Word's run, to Word's save after the run (each region's markup), and, with Accept
      All, to Word's report after Accept All (CR-014 section 10.4). The differences left are `getTextRanges` (the bold
      cases' words), Word's extra empty paragraph on a control's content range, the mark formatting Word gives a
-     paragraph `insertParagraph('After')` goes after (cases 67 and 68, a departure), `insertComment` (phase 3), and
-     the listing's grouping. Cases 86 to 95 wait on CR-002 section 55. When this was
+     paragraph `insertParagraph('After')` goes after (cases 67 and 68, a departure), and the listing's grouping.
+     Since phase 3 (2026-10-22), `^p` (case 2 and each kind's `marks`) and `insertComment` (cases 79 to 85) are
+     Word's too: the hits, and the comments' markers and ranges, but for the reference run's formatting and case 82's
+     start marker (CR-014 section 11.2). Cases 86 to 95 wait on CR-002 section 55. When this was
      written, before phase 1, there was nothing to compare: a `Range` here was one paragraph's and had no
      `expandTo`. Until then `ranges.test.mjs` holds the file and the
      snippet to each other: each `BEGIN` paragraph parses with the snippet's own parser to the case it was built as,
@@ -4188,3 +4190,128 @@ async function check() {
        Markup JSON. The differences left are each listed and explained in the test (a single paragraph's font,
        Word's `Other` after a nested table, the tracked-change listing and the Simple Markup readers, the placeholder,
        `Range.footnotes` and `showingPlaceholderText` not implemented).
+54. Writes of a range, for CR-014 phase 3 and phase 2's choices check 52 didn't measure (CR-014 section 10.6, 2026-10-22;
+   Jason: "do it", after check 54 first and phase 3's comments and `^p` meanwhile were proposed). What Office JS does
+   with each write CR-014 section 10.6 lists as unmeasured, and with `insertContentControl` on a range across
+   paragraphs, which phase 3 brings. The file is `__tmp/54/54-writes.docx` on the share, as `fixtures/check54/build.mjs`
+   writes it (its parts as text; git ignores the `.docx`, and `check54Bytes` gives a test the same bytes). The
+   snippet is beside it, `check54-script-lab.html` and `check54-script-lab.js` (WordApi 1.6), copies of
+   `fixtures/check54/`'s.
+   - **A region per case**, as in check 52: a paragraph `BEGIN<n> <kind> <operation> <tracking> <range>`, the
+     kind's content, and a paragraph `END<n>`, the range's words in lower case there and in upper case in the
+     content. The paragraphs:
+     - a heading (Heading 1, three words, `HEAD<n>A HEAD<n>B HEAD<n>C`);
+     - a body paragraph (centred, its runs italic, `BODY<n>A BODY<n>B`);
+     - a list item (List Paragraph, numbered `1.`, its runs underlined, `LIST<n>A LIST<n>B`);
+     - a plain paragraph (`PLAIN<n>A PLAIN<n>B`), and a table of two rows of two cells (`T<n>R1C1A T<n>R1C1B` ...);
+     - a paragraph in the style Check 54 Italic, which makes its runs italic (`QUOTE<n>A QUOTE<n>B`);
+     - a paragraph in the style Check 54 Styled, which underlines its runs, capitalises them, sets them at 16
+       points and colours them red (`STYL<n>A STYL<n>B`);
+     - block content controls tagged `c54-<n>`, a comment (`INSIDE<n>`, `ACROSS<n>`) and a bookmark
+       (`Check54Mark<n>`).
+   - **The ranges.** "From x to y" is x's search hit `expandTo` y's; "to-mark y" ends with y's paragraph, its mark
+     included; "to-table y" ends with the whole of the table holding y (`table.getRange('Whole')`); "start x" starts
+     at x's paragraph's start; "whole x" is x's paragraph's 'Whole' range; "word x" is x's search hit alone.
+   - **The cases** (the number is CR-014 section 10.6's item each answers):
+     - 1 to 3 (item 1): `insertParagraph('NEWPARA', 'Before')` and `('NEWPARA', 'After')` on the heading's middle
+       word alone, and 'Before' tracked: is the heading split, or the paragraph put before or after it?
+     - 4 (item 7): `insertText('NEWTEXT', 'Replace')` on the heading's middle word, tracked: is the `w:ins` before
+       the `w:del` or after it?
+     - 5 to 7 (item 2): from the heading's middle word to the whole table after it, deleted (untracked, tracked)
+       and replaced: does the heading's head join the plain paragraph after the table?
+     - 8 to 13 (item 3): the 'Whole' range of a body paragraph followed by a table, of a cell's last paragraph (a
+       body paragraph before it in the cell), and of a content control's last paragraph, deleted untracked and
+       tracked: is the paragraph removed, or emptied?
+     - 14 to 20 (item 4): a range holding a whole content control (one plain paragraph) between the heading and the
+       body paragraph, deleted and replaced, untracked and tracked; a range from the heading into a control, deleted
+       untracked and tracked; a range from a control's paragraph out to the paragraph after it, deleted.
+     - 21 to 25 (item 5): `font.italic = true` across a Check 54 Italic paragraph and a plain one (untracked,
+       tracked); `font.size = 14` across a heading (14 points through its style) and a plain paragraph (untracked,
+       tracked); `font.underline = 'Single'` across an underlined list item and a plain paragraph. Does Word write
+       the property on runs that read it already?
+     - 26 (item 6): `insertText('NEWTEXT', 'Replace')` from a plain paragraph into a Check 54 Styled one: what
+       NEWTEXT's run properties undo of the style.
+     - 27 to 30 (item 8): from the heading's first word to the body paragraph's first, deleted: a comment over the
+       heading's middle word, wholly inside (untracked, tracked); a comment and a bookmark each starting inside the
+       range and ending after it (untracked).
+     - 31 (item 9): under tracking, a paragraph inserted after the heading (`OWN<n>A OWN<n>B`, by whoever runs the
+       check), then a range from the heading's middle word into it deleted: is the inserted paragraph taken back?
+     - 32 to 35 (item 10): `styleBuiltIn = 'Heading2'` across a body paragraph and a list item (untracked,
+       tracked); `hyperlink = 'https://example.com/check54'` and `insertOoxml(paragraph, 'Replace')` across a heading
+       and a body paragraph.
+     - 36 to 43 (phase 3): `insertContentControl()` on a range from the heading's middle word to the body
+       paragraph's first (untracked, tracked); from the middle word to the body paragraph's end, its mark included;
+       over both paragraphs whole, with the mark (untracked, tracked); across a table; into a table; out of one.
+
+     Tracked is `document.changeTrackingMode` set to `TrackAll` by the snippet for the case; it sets it back to
+     `Off` at the end.
+   - **Steps, in Word 365 only.**
+     1. Open `__tmp/54/54-writes.docx`. Say whether Word reports a problem or offers a repair. Leave Word's view as
+        it opens.
+     2. File > Save As `54-writes-word365.docx`, in the same folder `__tmp/54`, before anything else, so that the
+        run's changes don't go into `54-writes.docx`.
+     3. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/54/check54-script-lab.html` over the HTML tab and `__tmp/54/check54-script-lab.js` over the Script
+        tab.
+     4. Click **Run the check**, once. It changes the document case by case, showing which case it is on. When it
+        says Done, copy the box into a new file `__tmp/54/result-run.txt`.
+     5. Click into the document's text, then File > Save, which saves `54-writes-word365.docx` as the run left it.
+        (Ctrl+S right after the run goes to Script Lab's pane, which has the focus, and the document isn't saved: both
+        of the run's saves in the first runs held the document from before the run.)
+     6. File > Save As `54-writes-word365-accepted.docx`, in `__tmp/54`, then Review > Accept > Accept All Changes.
+        Click **Report only** (it changes nothing), copy the box into a new file `__tmp/54/result-accepted.txt`,
+        then Ctrl+S and close.
+   - **What the JSON holds.** For each case: the range's text just before the operation; what the operation
+     returned (the new range's, paragraph's or control's text, and a new control's type); and the region after it:
+     its text, each paragraph's text, style, alignment, list string and level and table nesting level, its tables'
+     values, its tracked changes (type, text, range), comments (content, range), content controls (tag, type, text),
+     bookmarks (`getBookmarks`, hidden and adjacent included) and `hyperlink`. A step Office JS refuses reads
+     `error: <code>` in place of its value.
+   - **What this package gives**, before the run (CR-014 section 10). `ranges.test.mjs` runs the snippet through
+     the Word shim, and every case runs with no error of the script's own.
+     - Cases 1 to 3 put the new paragraph before or after the heading, unsplit; case 4 writes its `w:del` first.
+     - Cases 5 to 7 keep the heading's mark, so its head doesn't join the paragraph after the table.
+     - Cases 8 to 13 empty the paragraph and keep it.
+     - Case 14 takes the control and case 16 replaces it, untracked; cases 15 and 17 to 20 refuse with
+       `NotImplemented`.
+     - Cases 21 and 22 write `w:i` on the plain runs only, the Check 54 Italic ones reading it already. Cases 23 to
+       25 write the size and the underline on every run and on the marks the range holds, the heading's and the
+       list item's among them.
+     - Case 26 gives NEWTEXT `w:u w:val="none"`, `w:caps w:val="false"`, 11 points and automatic colour.
+     - Cases 27 to 30 leave the comments' and the bookmark's markers where they fall: case 27's comment, its range
+       emptied, and its reference end up in the joined paragraph.
+     - Case 31 marks the heading's mark deleted and takes back the inserted words in the range, the inserted
+       paragraph's own mark kept.
+     - Cases 32 to 43 refuse with `NotImplemented`, and so does `getBookmarks`, which the shim doesn't have.
+   - **Run 2026-10-22 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), in All Markup** (the text reads under
+     tracking show deleted text). The JSONs are `fixtures/check54/54-writes-word365-run.json` and
+     `54-writes-word365-accepted.json`, Word's save after Accept All is `check54/54-writes-word365-accepted.docx`
+     (a SHA-1 manifest), and CR-014 section 12 has every case. The save after the run, `check54/54-writes-word365.docx`,
+     is a re-run's the same day, whose JSON was the first run's case for case: the first two saves held the document
+     from before the run, Ctrl+S having gone to Script Lab's pane, and the third was made with File > Save (step 5 now
+     says so). In short:
+     - `insertParagraph` splits a paragraph within one paragraph's range too (cases 1 to 3).
+     - A range from a paragraph's tail to a whole table's end: deleted, the head joins the paragraph after the
+       table (5, 6); replaced, `GeneralException` (7).
+     - A 'Whole' range with no paragraph after it: before a table or at a control's end the paragraph goes (8, 12);
+       a cell's last stays, tracked its text alone deleted (10, 11).
+     - A whole control in a range goes with it, tracked too (14 to 17), tracked between `w:customXmlDelRangeStart`
+       and `End` markers, check 30's form for an inserted control. Into a control or out of one: the texts go,
+       nothing joins across its edge, the start's paragraph takes the end's properties (18 to 20).
+     - A font property goes only where a run doesn't read it already, size too (21 to 25). `Replace`'s look is
+       this package's (26). A tracked `Replace` within one paragraph puts the `w:ins` first (4), which this package
+       follows since 2026-10-23 (Jason).
+     - A comment whose reference goes with a deletion goes (27, 28); one whose reference stays keeps its markers
+       at the join, as a bookmark does (29, 30).
+     - Across paragraphs: `styleBuiltIn` sets each paragraph's style and drops direct paragraph formatting (32,
+       33); `hyperlink` writes a HYPERLINK field across them (34); `insertOoxml` replaces as `Replace` does (35).
+     - `insertContentControl` across paragraphs wraps paragraphs held whole (38, 43) and throws `GeneralException`
+       for any other range (36, 37, 39 to 42).
+     - Accept All, against what this package's (docx4j's) resolution does: an emptied paragraph whose deleted mark
+       has a table after it goes (9); a control's emptied last paragraph keeps a bare mark (13); a paragraph whose
+       deleted mark has a control after it takes that control's first paragraph's properties (19).
+     - **This package since** (CR-014 section 12): `ranges.test.mjs` holds the shim's run to Word's run, and its
+       Accept All to Word's report and save, and its markup to Word's save after the run, each difference listed
+       with its reason. Those are a style's resets, the hyperlink field, and the three Accept All rules, which go to
+       docx4j. A deleted comment's reference run, which this package left beside the `w:del` (case 28), goes inside it
+       since CR-014 section 12.6.

@@ -10,7 +10,7 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import { type Element, typeNameOf, childrenOf, linkParents, runItemsOf, runOf, paragraphOf, revisionKindOf, objectInSpan, BLOCK_LEVEL_TYPES, ALTERNATE_CONTENT, type SpanEdges } from './tree.mjs';
 import { joinWithNext, queueNoteRemovals } from './TrackedChange.mjs';
-import { markDeleted, copyRPr, type ChangeTracker } from './tracking.mjs';
+import { markDeleted, copyRPr, markHolderDeleted, type ChangeTracker } from './tracking.mjs';
 import { storyLayout, storyOf } from './story.mjs';
 import { Font } from './Font.mjs';
 import { GeneralException } from './generalException.mjs';
@@ -37,10 +37,14 @@ export interface Extent {
   list: Element[];
   first: number;
   last: number;
-  /** The start's paragraph, where it is the first block itself; else that block goes whole. */
+  /** The start's paragraph, where it is the first block itself (or in `headInside`); else that block goes whole. */
   head?: Paragraph;
-  /** The end's paragraph, where it is the last block itself; else that block goes whole. */
+  /** The end's paragraph, where it is the last block itself (or in `tailInside`); else that block goes whole. */
   tail?: Paragraph;
+  /** Where the range starts inside a block content control at `first`: the control's list holding `head` (check 54 case 20). */
+  headInside?: Element[];
+  /** Where the range ends inside a block content control at `last`: the control's list holding `tail` (check 54 case 18). */
+  tailInside?: Element[];
 }
 
 /** Where a deletion closed up: the paragraph, and the offset in it a replacement's text goes at. */
@@ -53,9 +57,10 @@ export interface Landing {
  * The extent of a range, refusing one that starts or ends inside a block it doesn't hold whole. Inside a table
  * that is Word's own refusal (check 52: `delete()` and `Replace` on a range from a cell to a paragraph after the
  * table, or from a paragraph into a cell, threw `GeneralException` and changed nothing, tracked or not; D3).
- * Inside a content control, unmeasured, it is `NotSupportedError`.
+ * Inside a block content control, `crossControls` lets a range end in the control's own paragraphs, one level
+ * down, as `delete()` takes one (check 54 cases 18 to 20); anything else there is `NotSupportedError`.
  */
-export function extentOf(span: Span, member: string): Extent {
+export function extentOf(span: Span, member: string, crossControls = false): Extent {
   const story = storyOf(span.paragraph.p).items;
   const up = blocksHolding(span.paragraph.p, story);
   const down = blocksHolding(span.endParagraph.p, story);
@@ -67,11 +72,19 @@ export function extentOf(span: Span, member: string): Extent {
     if (j < 0) continue;
     const a = link.element;
     const b = down[j]!.element;
-    if (i > 0 && !startsWhole(span, a)) refusePartial(a, member, 'starts');
-    if (j > 0 && !endsWhole(span, b)) refusePartial(b, member, 'ends');
     const extent: Extent = { list: link.list, first: link.list.indexOf(a), last: link.list.indexOf(b) };
-    if (i === 0) extent.head = span.paragraph;
-    if (j === 0) extent.tail = span.endParagraph;
+    // a range starting or ending in a block control's own paragraph, the other end outside the control
+    const inside = (k: number, block: Element): boolean => crossControls && k === 1 && a !== b && CONTROLS.has(typeNameOf(block) ?? '');
+    if (i > 0 && !startsWhole(span, a)) {
+      if (!inside(i, a)) refusePartial(a, member, 'starts');
+      extent.headInside = up[0]!.list;
+    }
+    if (j > 0 && !endsWhole(span, b)) {
+      if (!inside(j, b) || span.holdsEndMark) refusePartial(b, member, 'ends');
+      extent.tailInside = down[0]!.list;
+    }
+    if (i === 0 || extent.headInside) extent.head = span.paragraph;
+    if (j === 0 || extent.tailInside) extent.tail = span.endParagraph;
     return extent;
   }
   throw new Docx4JException("This range's two ends are not in one story");
@@ -107,6 +120,9 @@ function endsWhole(span: Span, block: Element): boolean {
   return span.holdsEndMark && paragraphs[paragraphs.length - 1]?.element.value === span.endParagraph.p;
 }
 
+/** The block-level elements a range may end inside, one level down (`extentOf`'s `crossControls`). */
+const CONTROLS = new Set(['org_docx4j_wml.SdtBlock', 'org_docx4j_wml.CTCustomXmlBlock']);
+
 function refusePartial(block: Element, member: string, side: 'starts' | 'ends'): never {
   if (typeNameOf(block) === 'org_docx4j_wml.Tbl') {
     throw new GeneralException(`Range.${member}: this range ${side} inside a table, which Office JS refuses too (check 52); `
@@ -120,91 +136,111 @@ function refusePartial(block: Element, member: string, side: 'starts' | 'ends'):
 
 /**
  * Deletes a range across paragraphs, or one holding its last paragraph's mark, as Word does (check 52, cases 3 to
- * 28): the start's paragraph loses its text from the start, every block between goes whole (a table too), the end's
- * paragraph loses its text to the end, and the two join in the end paragraph's properties, each run keeping its own
- * formatting. Where the range holds the end paragraph's mark, that goes too and the paragraph after it is joined,
- * in its properties (W1, W2); with none after it in the same list, a cell's last paragraph or the body's, the mark
- * stays (CR-002 section 55: Word keeps a cell's last paragraph). `keepLastMark` is `Replace`'s, which keeps it.
+ * 28; check 54, cases 5 to 20): the start's paragraph loses its text from the start, every block between goes whole
+ * (a table too), the end's paragraph loses its text to the end, and the two join in the end paragraph's properties,
+ * each run keeping its own formatting. A mark the range holds goes (`dropMark`): its paragraph joins the paragraph
+ * after it, in that one's properties (W1, W2; after a whole table the range took, case 5), or, with no paragraph
+ * after it, goes itself where its text went with the range (before a table, at a control's end: cases 8 and 12),
+ * a cell's last paragraph and a story's last kept (case 10). `keepLastMark` is `Replace`'s, which keeps it.
+ *
+ * A range ending (or starting) in a block content control's own paragraph, the other end outside it, joins
+ * nothing across the control's edge: the texts go, and the start's paragraph takes the end's paragraph properties
+ * (cases 18 to 20). A comment whose reference goes with the range goes too (case 27).
  *
  * Tracked, nothing is joined: the text is a `w:del`, every mark in the range is marked deleted but a last one the
- * range doesn't hold, and a table's rows and its cells' marks are deleted, with no `w:pPrChange` (Word's markup in
- * its save after the run). Accepting gives the untracked answer.
+ * range doesn't hold, or that can't go (a cell's last), and a table's rows and its cells' marks are deleted, with no
+ * `w:pPrChange` (Word's markup in its save after check 52's run). Accepting gives the untracked answer.
  */
 export function deleteSpan(span: Span, extent: Extent, keepLastMark: boolean): Landing | undefined {
   const tracker = span.paragraph.changeTracker;
   return tracker ? deleteTracked(span, extent, tracker, keepLastMark) : deleteUntracked(span, extent, keepLastMark);
 }
 
-function deleteUntracked(span: Span, { list, first, last, head, tail }: Extent, keepLastMark: boolean): Landing | undefined {
+function deleteUntracked(span: Span, extent: Extent, keepLastMark: boolean): Landing | undefined {
+  const { list, first, last, head, tail } = extent;
   const takesMark = span.holdsEndMark && !keepLastMark;
   if (head && tail && head.element === tail.element) {
-    cut(head, span.start, span.end, { start: span.whole, end: true });
-    if (takesMark) joinForward(head);
+    cut(head, span.start, span.end, { start: span.whole, end: span.whole || span.holdsEndMark });
+    if (takesMark) dropMark(head);
     return { paragraph: head, offset: span.start };
   }
   // the end first, so that the indexes before it hold
   if (tail) {
     cut(tail, 0, span.end, { start: true, end: span.whole || span.holdsEndMark });
-    if (takesMark) joinForward(tail);
+    if (extent.tailInside) removeBetween(span.paragraph, extent.tailInside, -1, extent.tailInside.indexOf(tail.element));
+    else if (takesMark) dropMark(tail);
   } else {
     removeBlock(span.paragraph, list, last);
   }
   // the blocks between; a range marker between blocks stays, for the join to bring into the joined paragraph
-  for (let i = last - 1; i > first; i--) if (!isRangeMarker(list[i]!)) removeBlock(span.paragraph, list, i);
+  removeBetween(span.paragraph, list, first, last);
   if (head) {
+    if (extent.headInside) removeBetween(span.paragraph, extent.headInside, extent.headInside.indexOf(head.element), extent.headInside.length);
     cut(head, span.start, head.text.length, { start: span.whole, end: true });
-    // a whole table or control at the end goes, and the start's paragraph keeps its mark (unmeasured)
-    if (tail) join(head);
+    // across a control's edge nothing joins: the start's paragraph takes the end's properties (check 54)
+    if (extent.headInside || extent.tailInside) takeProperties(head, tail!);
+    // the head's mark is in the range: it joins what follows, the tail or the paragraph after a block taken whole
+    else joinForward(head);
     return { paragraph: head, offset: span.start };
   }
   removeBlock(span.paragraph, list, first);
   return tail ? { paragraph: tail, offset: 0 } : undefined;
 }
 
+/** Removes the blocks of a list strictly between two indexes, last first; a range marker stays. */
+function removeBetween(p: Paragraph, list: Element[], from: number, to: number): void {
+  for (let i = to - 1; i > from; i--) if (!isRangeMarker(list[i]!)) removeBlock(p, list, i);
+}
+
 /**
- * Refuses, before anything changes, a tracked deletion of a range holding a whole block that isn't a paragraph or a
- * table: a content control or custom XML element, an `w:altChunk`, a kept `mc:AlternateContent`. A control's content
- * can be marked deleted, but what Word writes for the element itself isn't measured (check 30 measured an inserted
- * control's markers only), and an `w:altChunk` has no deleted form; Accept All would then leave the element where
- * the untracked deletion takes it, the paragraphs either side unjoined. Untracked, such a block goes whole, as a
- * table does.
+ * A paragraph's mark the range took (`deleteUntracked`): the paragraph joins the one after it where there is one
+ * (W1, W2); else, its text gone with the range, it goes (check 54: before a table, case 8; a control's last
+ * paragraph, case 12), unless it is a cell's last paragraph (case 10, CR-002 section 55), the last in its story or
+ * its list's only block, where the mark stays.
  */
-export function assertTrackable(extent: Extent, member: string): void {
-  for (let i = extent.first; i <= extent.last; i++) {
-    if ((i === extent.first && extent.head) || (i === extent.last && extent.tail)) continue;
-    const block = extent.list[i]!;
-    const tn = typeNameOf(block) ?? '';
-    if (tn === 'org_docx4j_wml.P' || tn === 'org_docx4j_wml.Tbl' || isRangeMarker(block)) continue;
-    throw new NotSupportedError('Range', member, `this range holds a whole ${block.name?.localPart ?? tn}, and there is no measured way to delete one `
-      + 'under change tracking (CR-014 phase 2); delete it untracked, or the paragraphs either side of it');
-  }
+function dropMark(p: Paragraph): void {
+  if (nextParagraph(p)) { join(p); return; }
+  if (p.text !== '' || p.segments({ objects: true }).length > 0 || !removable(p)) return;
+  const list = listOf(p);
+  removeBlock(p, list, list.indexOf(p.element));
 }
 
-function deleteTracked(span: Span, { list, first, last, head, tail }: Extent, tracker: ChangeTracker, keepLastMark: boolean): Landing | undefined {
-  const takesMark = span.holdsEndMark && !keepLastMark;
-  const body = span.paragraph.parentBody;
-  if (head && tail && head.element === tail.element) {
-    head.splice(span.start, span.end, '', 'before', { start: span.whole, end: true });
-    if (takesMark) deleteMark(head, tracker);
-    return { paragraph: head, offset: span.start };
-  }
-  if (head) {
-    head.splice(span.start, head.text.length, '', 'before', { start: span.whole, end: true });
-    if (tail) deleteMark(head, tracker);
-  } else {
-    markBlockDeleted(body, list[first]!, tracker);
-  }
-  for (let i = first + 1; i < last; i++) if (!isRangeMarker(list[i]!)) markBlockDeleted(body, list[i]!, tracker);
-  if (tail) {
-    tail.splice(0, span.end, '', 'before', { start: true, end: span.whole || span.holdsEndMark });
-    if (takesMark) deleteMark(tail, tracker);
-  } else {
-    markBlockDeleted(body, list[last]!, tracker);
-  }
-  return head ? { paragraph: head, offset: span.start } : tail ? { paragraph: tail, offset: 0 } : undefined;
+/** A paragraph whose mark can go: not a cell's last, not its story's last, not its list's only block. */
+function removable(p: Paragraph): boolean {
+  if (p.markText === '\t') return false;
+  const list = listOf(p);
+  const blocks = list.filter((el) => !isRangeMarker(el));
+  if (blocks.length <= 1) return false;
+  return !(list === storyOf(p.p).items && blocks[blocks.length - 1] === p.element);
 }
 
-/** Removes [from, to) of a paragraph's text, untracked, the notes its references go with queued to go too (check 52 case 12). */
+/**
+ * The start's paragraph across a control's edge from the end's: it takes the end paragraph's properties, its own
+ * mark kept in its last run's formatting and its section break kept (check 54 cases 18 and 20: `HEAD18A ` centred
+ * as BODY18 was; `BODY20A ` in PLAIN20's properties, its mark italic as its run).
+ */
+function takeProperties(head: Paragraph, tail: Paragraph): void {
+  const sectPr = (head.p.pPr as { sectPr?: unknown } | undefined)?.sectPr;
+  const pPr = tail.p.pPr ? deepCopy(tail.p.pPr) : createPPr();
+  delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; delete pPr.pPrChange;
+  if (sectPr) (pPr as { sectPr?: unknown }).sectPr = sectPr;
+  const runs = head.segments().filter((s) => s.text.length > 0);
+  const rPr = copyRPr(runs[runs.length - 1]?.run.rPr);
+  if (rPr) pPr.rPr = { ...rPr, TYPE_NAME: 'org_docx4j_wml.ParaRPr' } as wml.ParaRPr;
+  head.p.pPr = pPr;
+  linkParents(pPr, head.p);
+}
+
+/** Marks the blocks of a list strictly between two indexes deleted; a range marker stays as it is. */
+function markBetween(body: Body, list: Element[], from: number, to: number, tracker: ChangeTracker): void {
+  for (const block of list.slice(from + 1, to)) if (!isRangeMarker(block)) deleteBlock(body, list, block, tracker);
+}
+
+/**
+ * Removes [from, to) of a paragraph's text, untracked. The notes its references go with are queued to go too
+ * (check 52 case 12); a comment whose reference goes goes with it (check 54 case 27), which the paragraph's splice
+ * does for every deletion (CR-014 section 12.6).
+ */
 function cut(p: Paragraph, from: number, to: number, edges: SpanEdges): void {
   const removed = p.segments({ objects: true })
     .filter((s) => (s.object ? objectInSpan(s.start, from, to, edges) : s.start < to && s.end > from))
@@ -212,6 +248,60 @@ function cut(p: Paragraph, from: number, to: number, edges: SpanEdges): void {
   if (to <= from && removed.length === 0) return;
   queueNoteRemovals(p.parentBody.package_, removed);
   p.splice(from, to, '', 'before', edges);
+}
+
+/**
+ * Refuses, before anything changes, a tracked deletion of a range holding a whole `w:altChunk` or kept
+ * `mc:AlternateContent`: neither has a deleted form, and Accept All would leave it where the untracked deletion
+ * takes it, the paragraphs either side unjoined. A content control or custom XML element held whole is deleted as
+ * Word deletes one (check 54 cases 15 and 17: `markHolderDeleted`).
+ */
+export function assertTrackable(extent: Extent, member: string): void {
+  for (let i = extent.first; i <= extent.last; i++) {
+    if ((i === extent.first && extent.head) || (i === extent.last && extent.tail)) continue;
+    const block = extent.list[i]!;
+    const tn = typeNameOf(block) ?? '';
+    if (tn === 'org_docx4j_wml.P' || tn === 'org_docx4j_wml.Tbl' || CONTROLS.has(tn) || isRangeMarker(block)) continue;
+    throw new NotSupportedError('Range', member, `this range holds a whole ${block.name?.localPart ?? tn}, and there is no way to delete one `
+      + 'under change tracking (CR-014 phase 2); delete it untracked, or the paragraphs either side of it');
+  }
+}
+
+function deleteTracked(span: Span, extent: Extent, tracker: ChangeTracker, keepLastMark: boolean): Landing | undefined {
+  const { list, first, last, head, tail } = extent;
+  const takesMark = span.holdsEndMark && !keepLastMark;
+  const body = span.paragraph.parentBody;
+  if (head && tail && head.element === tail.element) {
+    head.splice(span.start, span.end, '', 'before', { start: span.whole, end: span.whole || span.holdsEndMark });
+    if (takesMark) deleteMark(head, tracker);
+    return { paragraph: head, offset: span.start };
+  }
+  // the blocks as they stand now: a control's deletion puts markers into the list, which moves the indexes
+  const firstBlock = list[first]!;
+  const lastBlock = list[last]!;
+  const between = list.slice(first + 1, last);
+  if (head) {
+    head.splice(span.start, head.text.length, '', 'before', { start: span.whole, end: true });
+    deleteMark(head, tracker);
+    if (extent.headInside) markBetween(body, extent.headInside, extent.headInside.indexOf(head.element), extent.headInside.length, tracker);
+  } else {
+    deleteBlock(body, list, firstBlock, tracker);
+  }
+  for (const block of between) if (!isRangeMarker(block)) deleteBlock(body, list, block, tracker);
+  if (tail) {
+    if (extent.tailInside) markBetween(body, extent.tailInside, -1, extent.tailInside.indexOf(tail.element), tracker);
+    tail.splice(0, span.end, '', 'before', { start: true, end: span.whole || span.holdsEndMark });
+    if (takesMark) deleteMark(tail, tracker);
+  } else {
+    deleteBlock(body, list, lastBlock, tracker);
+  }
+  return head ? { paragraph: head, offset: span.start } : tail ? { paragraph: tail, offset: 0 } : undefined;
+}
+
+/** A block the range holds whole, deleted under tracking: a control with Word's markers around it, its content within. */
+function deleteBlock(body: Body, list: Element[], block: Element, tracker: ChangeTracker): void {
+  if (CONTROLS.has(typeNameOf(block) ?? '')) markHolderDeleted(tracker, block, list, () => markBlockDeleted(body, block, tracker));
+  else markBlockDeleted(body, block, tracker);
 }
 
 /** Removes a block, untracked: its notes and the relationships it held go on save where nothing else holds them. */
@@ -224,10 +314,7 @@ function removeBlock(p: Paragraph, list: Element[], index: number): void {
 
 /** The paragraph after `p` in its list, past range markers, joined into it where there is one: its content and properties. */
 function joinForward(p: Paragraph): void {
-  const list = listOf(p);
-  let j = list.indexOf(p.element) + 1;
-  while (j < list.length && isRangeMarker(list[j]!)) j++;
-  if (j < list.length && typeNameOf(list[j]!) === 'org_docx4j_wml.P') join(p);
+  if (nextParagraph(p)) join(p);
 }
 
 /**
@@ -245,9 +332,28 @@ function listOf(p: Paragraph): Element[] {
   return list?.includes(p.element) ? list : p.container;
 }
 
-/** A paragraph's mark marked deleted, unless it is already. */
+/**
+ * A paragraph's mark marked deleted, unless it is already, or can't go: a cell's last paragraph keeps its mark, and
+ * Word deleted its text alone (check 54 case 11, as CR-002 section 55's cells), and so does a story's last.
+ */
 function deleteMark(p: Paragraph, tracker: ChangeTracker): void {
-  if (!markDeleted(p.p)) tracker.markParagraphDeleted(p.p);
+  if (markDeleted(p.p) || p.markText === '\t' || isStoryLast(p)) return;
+  tracker.markParagraphDeleted(p.p);
+}
+
+function isStoryLast(p: Paragraph): boolean {
+  const list = listOf(p);
+  if (list !== storyOf(p.p).items) return false;
+  const blocks = list.filter((el) => !isRangeMarker(el));
+  return blocks[blocks.length - 1] === p.element;
+}
+
+/** The paragraph right after `p` in its list, past range markers, if there is one. */
+function nextParagraph(p: Paragraph): boolean {
+  const list = listOf(p);
+  let j = list.indexOf(p.element) + 1;
+  while (j < list.length && isRangeMarker(list[j]!)) j++;
+  return j < list.length && typeNameOf(list[j]!) === 'org_docx4j_wml.P';
 }
 
 /** Everything in a block marked deleted in place: each paragraph's text and mark, each row of its tables (check 52 case 21). */
@@ -434,13 +540,15 @@ const SPLITTABLE = new Set(['org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.RunIns
 
 // --- font ---------------------------------------------------------------------------------------------
 
-/** The run options Word writes only where a run doesn't read the value already (check 52: `w:b` on no heading run). */
-const TOGGLES = ['bold', 'italic', 'strikeThrough', 'doubleStrikeThrough', 'subscript', 'superscript'] as const;
-
-/** True where every option is a toggle the effective properties already read as given: nothing to write. */
+/**
+ * True where the effective properties already read every option as given, so that nothing is written: Word wrote
+ * `w:b` on no heading run (check 52), `w:sz` on none of a 14-point heading's (check 54 case 23), `w:i` on no run
+ * italic through its style (case 21). A colour or a name compares case-insensitively.
+ */
 function reads(rPr: wml.RPr | undefined, opts: RunOptions): boolean {
   const read = readRunOptions(rPr) as unknown as Record<string, unknown>;
-  return Object.entries(opts).every(([key, value]) => (TOGGLES as readonly string[]).includes(key) && read[key] === value);
+  const same = (a: unknown, b: unknown): boolean => (typeof a === 'string' && typeof b === 'string' ? a.toLowerCase() === b.toLowerCase() : a === b);
+  return Object.entries(opts).every(([key, value]) => same(read[key], value));
 }
 
 /** A piece of a range in one paragraph: its runs, and whether the range holds the paragraph's mark. */
@@ -454,10 +562,10 @@ export interface FontPiece {
 
 /**
  * A `font` write over a range across paragraphs (check 52, cases 49 to 56): every run in the range, a table's
- * cells' too, split at the range's ends, and each mark the range holds, as Word formats them. A toggle (`bold`,
- * `italic`, ...) goes only where a run or mark doesn't read the value already: Word wrote `w:b` on none of a
- * heading's runs, bold through its style, and tracked no change there. Tracked, each run and mark changed has its
- * `w:rPrChange` (case 56: the body paragraph's mark's).
+ * cells' too, split at the range's ends, and each mark the range holds, as Word formats them. A property goes only
+ * where a run or mark doesn't read the value already (`reads`): Word wrote `w:b` on none of a heading's runs, bold
+ * through its style, and tracked no change there; nor `w:sz` on a heading's 14-point runs (check 54). Tracked, each
+ * run and mark changed has its `w:rPrChange` (case 56: the body paragraph's mark's).
  */
 export function formatSpan(pieces: FontPiece[], opts: RunOptions): void {
   for (const piece of pieces) {

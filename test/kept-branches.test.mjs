@@ -336,7 +336,7 @@ test('ED-009: an edit over a kept element\'s text lands in its selected branch, 
   const t = (await tracked.getBody()).paragraphs[0];
   t.search('plain')[0].insertText('PLAIN', 'Replace');
   assert.equal(t.text, 'Before bold ying PLAIN ying after');
-  assert.match(await documentXml(tracked), /<mc:Choice Requires="wps">.*<w:del [^>]*><w:r><w:delText>plain<\/w:delText><\/w:r><\/w:del><w:ins [^>]*><w:r><w:t>PLAIN<\/w:t><\/w:r><\/w:ins>.*<\/mc:Choice><mc:Fallback><w:r><w:t>yang/s);
+  assert.match(await documentXml(tracked), /<mc:Choice Requires="wps">.*<w:ins [^>]*><w:r><w:t>PLAIN<\/w:t><\/w:r><\/w:ins><w:del [^>]*><w:r><w:delText>plain<\/w:delText><\/w:r><\/w:del>.*<\/mc:Choice><mc:Fallback><w:r><w:t>yang/s);
   // the branch's text deleted whole: the element goes, every branch with it (section 12.2 item 4)
   const emptied = await WordprocessingMLPackage.load(source, KEPT);
   const e = (await emptied.getBody()).paragraphs[0];

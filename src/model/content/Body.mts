@@ -18,7 +18,7 @@ import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/i
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
-import { expandReplacement, type SearchOptions } from './search.mjs';
+import { expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
 
 /**
@@ -30,7 +30,7 @@ import { commentApi } from './comments.mjs';
 import { storyLayout } from './story.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
-import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
+import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderChangeAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
 import { pieceMatcher, type TrackedChangeSelection } from './trackedChangeFilter.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
 
@@ -490,6 +490,8 @@ export class Body {
 
   /** Matches over every paragraph, in document order. */
   search(text: string, options?: SearchOptions): Range[] {
+    // Word's paragraph mark, ^p, is searched across the body's whole range (CR-014 phase 3)
+    if (!options?.matchWildcards && !options?.matchRegExp && paragraphMarkPieces(text) && this.paragraphs.length > 0) return this.getRange('Whole').search(text, options);
     return this.paragraphs.flatMap((p) => p.search(text, options));
   }
 
@@ -499,6 +501,7 @@ export class Body {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
+    refuseMarkReplacement('Body', find, options);
     this.assertWritable();
     // every branch of a kept mc:AlternateContent, each paragraph searched on its own; counted where a
     // reader sees the match, as resolve-all counts the listed changes (CR-013 phase 3)
@@ -573,7 +576,7 @@ export class Body {
         if (tn === 'org_docx4j_wml.P') { into.push(...trackedChangeTokensOfParagraph(new Paragraph(el as Element<wml.P>, items, this), listing)); continue; }
         // a block control or custom XML element that is itself an insertion (check 30): one piece,
         // grouping with the insertions around and inside it, as Word lists them
-        const inserted = holderInsertionAt(items, i, undefined, this);
+        const inserted = holderChangeAt(items, i, undefined, this);
         if (inserted) {
           into.push(inserted);
           visit(childrenOf(items[i + 1]!.value as object) ?? [], into);

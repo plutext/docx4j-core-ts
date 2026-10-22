@@ -522,19 +522,34 @@ export function holderItemsOf(value: object): Element[] | undefined {
  * pairs, so that the ids run in document order as Word's do.
  */
 export function markHolderInserted(tracker: ChangeTracker, holder: Element, owner: Element[], inside: () => void): void {
+  markHolder(tracker, holder, owner, inside, 'ins');
+}
+
+/**
+ * A content control or custom XML element deleted under tracking, as Word writes it (check 54 cases 15 and 17, a
+ * range across paragraphs holding a whole control): `markHolderInserted`'s form with `w:customXmlDelRangeStart` and
+ * `w:customXmlDelRangeEnd`, its content marked deleted between the two pairs (`inside`). Accepting takes the element
+ * away; rejecting, the markers (`TrackedChange`'s `holder` target).
+ */
+export function markHolderDeleted(tracker: ChangeTracker, holder: Element, owner: Element[], inside: () => void): void {
+  markHolder(tracker, holder, owner, inside, 'del');
+}
+
+function markHolder(tracker: ChangeTracker, holder: Element, owner: Element[], inside: () => void, revision: 'ins' | 'del'): void {
   const at = owner.indexOf(holder);
   const items = holderItemsOf(holder.value as object);
   if (at < 0 || !items) { inside(); return; }
+  const [start, end] = revision === 'ins' ? [el.customXmlInsRangeStart, el.customXmlInsRangeEnd] : [el.customXmlDelRangeStart, el.customXmlDelRangeEnd];
   const value = holder.value as { PARENT?: object; sdtContent?: object };
   const first = tracker.markup();
-  const outerStart = el.customXmlInsRangeStart(createCTTrackChange(first)) as Element;
-  const innerEnd = el.customXmlInsRangeEnd(createCTMarkup({ id: first.id })) as Element;
+  const outerStart = start(createCTTrackChange(first)) as Element;
+  const innerEnd = end(createCTMarkup({ id: first.id })) as Element;
   owner.splice(at, 0, outerStart);
   items.unshift(innerEnd);
   inside();
   const second = tracker.markup();
-  const innerStart = el.customXmlInsRangeStart(createCTTrackChange(second)) as Element;
-  const outerEnd = el.customXmlInsRangeEnd(createCTMarkup({ id: second.id })) as Element;
+  const innerStart = start(createCTTrackChange(second)) as Element;
+  const outerEnd = end(createCTMarkup({ id: second.id })) as Element;
   items.push(innerStart);
   owner.splice(owner.indexOf(holder) + 1, 0, outerEnd);
   linkParents([outerStart, outerEnd], value.PARENT);

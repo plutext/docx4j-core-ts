@@ -107,14 +107,16 @@ test('a deletion moves the runs into w:del with w:delText; the original view kee
   assert.equal(p.text, plainPkg.body.paragraphs[0].text);
 });
 
-test('a replacement is the w:del first and the w:ins after it', async () => {
+// a range's replacement is the w:ins first and the w:del after it, as Office JS writes one (check 54 case 4; CR-014
+// section 12: Jason, 2026-10-23, "follow Word (insertion first)"); until then CR-002 wrote the w:del first
+test('a range\'s replacement is the w:ins first and the w:del after it, as Word\'s', async () => {
   const pkg = await tracked(['The quick brown fox']);
   const p = pkg.body.paragraphs[0];
   p.search('brown')[0].insertText('red', 'Replace');
   assert.equal(p.text, 'The quick red fox');
   assert.equal(p.getText({ view: 'original' }), 'The quick brown fox');
   const xml = await xmlOf(pkg);
-  assert.match(xml, /<w:del w:id="1"[^>]*><w:r><w:delText>brown<\/w:delText><\/w:r><\/w:del><w:ins w:id="2"[^>]*><w:r><w:t>red<\/w:t><\/w:r><\/w:ins>/);
+  assert.match(xml, /<w:ins w:id="1"[^>]*><w:r><w:t>red<\/w:t><\/w:r><\/w:ins><w:del w:id="2"[^>]*><w:r><w:delText>brown<\/w:delText><\/w:r><\/w:del>/);
 });
 
 test('deleting text this author inserted takes it back; editing another author\'s w:del is refused', async () => {
@@ -497,7 +499,7 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   q.search('before')[0].insertText('NEW', 'Replace');
   await q.search('NEW')[0].insertComment('on the insertion');
   const insXml = await xmlOf(inserted);
-  assert.match(insXml, /<w:ins w:id="2"[^>]*><w:commentRangeStart w:id="0"\/><w:r><w:t>NEW<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r>/, 'the start inside, the end and the reference outside');
+  assert.match(insXml, /<w:ins w:id="1"[^>]*><w:commentRangeStart w:id="0"\/><w:r><w:t>NEW<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r>/, 'the start inside, the end and the reference outside');
   assert.equal(inserted.body.getTrackedChanges().length, 2, 'the deletion and the insertion; the comment is no change');
   // on part of an insertion: the w:ins is closed at the range's end and the rest is a new one, so
   // the anchor stays narrow (Word 2010 and Word 15 alike)
@@ -601,7 +603,7 @@ test('the Word shim: document.changeTrackingMode delegates and getTrackedChanges
     const collection = doc.getTrackedChanges();
     assert.ok(Array.isArray(collection.items), 'the shim hands back a collection with items, as Office JS does');
     const changes = collection.items;
-    assert.deepEqual(changes.map((c) => [c.type, c.author, c.text]), [['Deleted', 'Ada', 'brown'], ['Added', 'Ada', 'red']]);
+    assert.deepEqual(changes.map((c) => [c.type, c.author, c.text]), [['Added', 'Ada', 'red'], ['Deleted', 'Ada', 'brown']]);
   });
   assert.equal(pkg.body.text, 'The quick red fox');
 });
@@ -1499,7 +1501,8 @@ test('table, cell, mark and section changes one at a time, as Office JS listed a
 
 // CR-002 section 37, the editor's finding on 0.3.0: a tracked replacement inside another author's
 // insertion left the new w:ins nested in it; Word splits the insertion around it, as for anything
-// typed in it (check 21), the replacement's w:del staying in the first half.
+// typed in it (check 21). Since CR-014 section 12 the new text goes first, as Office JS's replacement
+// puts it (check 54 case 4), so the replacement's w:del is in the half after it.
 test('a tracked replacement inside another\'s insertion splits it around the new text, as Word does', async () => {
   const shape = (p) => p.p.content.map((el) => {
     const name = el.name.localPart;
@@ -1519,17 +1522,17 @@ test('a tracked replacement inside another\'s insertion splits it around the new
     assert.equal(new Set(ids).size, ids.length, `${find}: every revision id unique`);
     return shape(p).slice(1, 4);
   };
-  // at its start: the editor's case
-  assert.deepEqual(await replaced('An'), [
-    'ins(Jason Harrop) [del(Author C) "An"]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) [" insertion"]',
+  // at its start: the editor's case; the new text beside the insertion, before it (check 20 case 03)
+  assert.deepEqual((await replaced('An')).slice(0, 2), [
+    'ins(Author C) ["W"]', 'ins(Jason Harrop) [del(Author C) "An", " insertion"]',
   ]);
   // in its middle
   assert.deepEqual(await replaced('ser'), [
-    'ins(Jason Harrop) ["An in", del(Author C) "ser"]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) ["tion"]',
+    'ins(Jason Harrop) ["An in"]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) [del(Author C) "ser", "tion"]',
   ]);
-  // at its end the new text goes after it (check 21b)
-  assert.deepEqual((await replaced('insertion')).slice(0, 2), [
-    'ins(Jason Harrop) ["An ", del(Author C) "insertion"]', 'ins(Author C) ["W"]',
+  // at its end
+  assert.deepEqual(await replaced('insertion'), [
+    'ins(Jason Harrop) ["An "]', 'ins(Author C) ["W"]', 'ins(Jason Harrop) [del(Author C) "insertion"]',
   ]);
 });
 

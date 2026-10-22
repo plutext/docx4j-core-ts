@@ -16,7 +16,7 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
 import { Font, type FontTracking } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
-import { officeMatches, expandReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
@@ -443,6 +443,8 @@ export class Paragraph {
 
   /** Matches within this paragraph. */
   search(text: string, options?: SearchOptions): Range[] {
+    // Word's paragraph mark, ^p, is searched in the paragraph's whole range, which holds its mark (CR-014 phase 3)
+    if (!options?.matchWildcards && !options?.matchRegExp && paragraphMarkPieces(text)) return this.getRange('Whole').search(text, options);
     return this.searchMatches(text, options).map((m) => m.range);
   }
 
@@ -462,6 +464,7 @@ export class Paragraph {
    * the package's `changeTrackingMode` is on.
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
+    refuseMarkReplacement('Paragraph', find, options);
     const matches = this.searchMatches(find, options);
     for (let i = matches.length - 1; i >= 0; i--) {
       const { range, match } = matches[i]!;
@@ -727,6 +730,8 @@ export class Paragraph {
     let segs = this.segments();
     let inserted = false;
     const objects = this.segments({ objects: true }).filter((s) => s.object && objectInSpan(s.start, start, end, edges));
+    // a comment's reference in the span goes with the text, and its comment with it (CR-014 section 12.6)
+    const references = end > start || edges ? this.commentReferencesIn(start, end, edges) : [];
     // A replacement that begins inside a revision is a deletion and then the new text typed there, so
     // the new text is plain and splits the revision, as typed text is (test/README.md check 21), rather
     // than joining the revision it replaced part of.
@@ -734,7 +739,7 @@ export class Paragraph {
       this.splice(start, end, '', prefer, edges);
       return this.splice(start, start, text);
     }
-    if (end > start || objects.length > 0) {
+    if (end > start || objects.length > 0 || references.length > 0) {
       // Replace: the new text takes the place (and formatting) of the first replaced character, as Word does.
       const first = segs.find((s) => s.start <= start && start < s.end);
       const toRemove: TextSegment[] = [];
@@ -755,6 +760,11 @@ export class Paragraph {
         if (i >= 0) seg.owner.splice(i, 1);
       }
       removeEmptiedAlternates([...toRemove, ...objects]);
+      for (const { run, owner, id } of references) {
+        const i = owner.indexOf(run);
+        if (i >= 0) owner.splice(i, 1);
+        this.queueCommentRemoval(id);
+      }
       this.releaseRelationships(objects.map((seg) => seg.item));
       if (inserted && text.length > 0) {
         this.removeEmptyRuns();
@@ -1042,6 +1052,21 @@ export class Paragraph {
       if (seg.revision) target.revision = seg.revision;
       list.push(target);
     }
+    // a comment's reference in the span goes into the w:del with the text, where it stands among the runs, as Word
+    // puts it (check 54 case 28; CR-014 section 12.6); accepting the deletion then takes the comment
+    const references = this.commentReferencesIn(start, end, edges);
+    if (references.length > 0) {
+      const order = runOrderOf(this.p);
+      const revisions = new Map(targets.filter((seg) => seg.revision).map((seg) => [seg.runOwner, seg.revision!]));
+      for (const { run, owner } of references) {
+        const revision = revisions.get(owner) ?? revisionHolding(run);
+        const target: Target = { run, owner, own: tracker.ownInsertion(revision) };
+        if (revision) target.revision = revision;
+        const key = order.get(run) ?? Number.NaN;
+        const at = list.findIndex((t) => (order.get(t.run) ?? Number.NaN) > key);
+        list.splice(at < 0 ? list.length : at, 0, target);
+      }
+    }
     // groups of consecutive runs in the same array, so that one w:del holds them all
     const groups: Target[][] = [];
     for (const t of list) {
@@ -1059,8 +1084,10 @@ export class Paragraph {
       const runs = owner.splice(at, group.length);
       if (group[0]!.own) {
         // taking back our own insertion: the runs go, and an emptied w:ins with them; a picture's
-        // image waits for the save, as `InlinePicture.delete` leaves it (section 47)
+        // image waits for the save, as `InlinePicture.delete` leaves it (section 47); a comment whose
+        // reference goes with them goes too
         this.releaseRelationships(runs);
+        for (const id of commentReferenceIds(runs)) this.queueCommentRemoval(id);
         const revision = group[0]!.revision;
         if (revision && revision.items.length === 0) {
           const i = revision.owner.indexOf(revision.element);
@@ -1078,6 +1105,29 @@ export class Paragraph {
       made.unshift(anchor);
     }
     return made;
+  }
+
+  /**
+   * The runs of comments' references in [start, end): each a run holding nothing but a reference, where the walk
+   * passes it, strictly inside the span or at an edge `edges` says it holds. A reference has no text, so a
+   * deletion's segments never held it, and a comment whose reference a deletion took stayed. Word's deletion takes
+   * it with the text (check 54 cases 27 and 28; CR-014 section 12.6).
+   */
+  private commentReferencesIn(start: number, end: number, edges?: SpanEdges): { run: Element; owner: Element[]; id: number }[] {
+    const out: { run: Element; owner: Element[]; id: number }[] = [];
+    this.segments({ visit: (item, at, _owner, run) => {
+      if (item.name?.localPart !== 'commentReference' || !run || !objectInSpan(at, start, end, edges)) return;
+      if (out.some((r) => r.run === run.element)) return;
+      if (!((run.element.value as wml.R).content ?? []).every((c) => (c as Element).name?.localPart === 'commentReference')) return;
+      out.push({ run: run.element as Element, owner: run.owner, id: Number((item.value as { id?: unknown }).id) });
+    } });
+    return out;
+  }
+
+  /** A comment queued to go when the package is saved, its markers, replies and entries with it, as a resolution queues one. */
+  private queueCommentRemoval(id: number): void {
+    if (!Number.isInteger(id)) return;
+    (this.parentBody.package_ as { pendingCommentRemovals?: Set<number> } | undefined)?.pendingCommentRemovals?.add(id);
   }
 
   /**
@@ -1436,3 +1486,35 @@ function lastInCell(p: wml.P): boolean {
   visit((holder as wml.Tc).content as Element[] | undefined);
   return last === p;
 }
+
+/** Every element among a paragraph's runs, in document order: where a deletion places a comment's reference among its runs. */
+function runOrderOf(p: wml.P): Map<object, number> {
+  const order = new Map<object, number>();
+  const visit = (items: Element[] | undefined): void => {
+    for (const el of items ?? []) {
+      order.set(el, order.size);
+      const v = el.value;
+      if (typeof v === 'object' && v !== null && typeNameOf(el) !== 'org_docx4j_wml.R') visit(runItemsOf(v) as Element[] | undefined);
+    }
+  };
+  visit(runItemsOf(p) as Element[] | undefined);
+  return order;
+}
+
+/** The `w:ins` (or other revision) a run stands directly in, read from its `PARENT`, if any. */
+function revisionHolding(run: Element): RevisionHolder | undefined {
+  const holder = (run.value as { PARENT?: object }).PARENT as (wml.CTTrackChange & { PARENT?: object; customXmlOrSmartTagOrSdt?: Element[] }) | undefined;
+  const items = holder?.customXmlOrSmartTagOrSdt;
+  const outer = holder?.PARENT ? runItemsOf(holder.PARENT) as Element[] | undefined : undefined;
+  const element = outer?.find((e) => e.value === holder);
+  const kind = element ? revisionKindOf(element) : undefined;
+  if (!holder || !items || !outer || !element || !kind) return undefined;
+  return { kind, element, value: holder, items, owner: outer };
+}
+
+/** The ids of the comment references among runs. */
+function commentReferenceIds(runs: Element[]): number[] {
+  return runs.flatMap((run) => (((run.value as wml.R).content ?? []) as Element[])
+    .filter((c) => c.name?.localPart === 'commentReference').map((c) => Number((c.value as { id?: unknown }).id)));
+}
+

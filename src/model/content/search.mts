@@ -1,4 +1,5 @@
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 
 /** Office JS Word.SearchOptions, the subset honoured here, plus `matchRegExp` (CR-002 section 26). */
 export interface SearchOptions {
@@ -226,6 +227,36 @@ export function officeMatches(segments: readonly SearchSegment[], query: string,
     out.push({ start: starts[a]!, end: ends[b - 1]!, match });
   }
   return out;
+}
+
+/**
+ * A plain query split at Word's paragraph mark code, `^p`: its pieces, one more than the marks, each a plain
+ * query of its own (`^^` stays an escaped caret); undefined where the query holds no `^p`. What a `Range`'s search
+ * across paragraphs matches piece by piece (CR-014 phase 3).
+ */
+export function paragraphMarkPieces(query: string): string[] | undefined {
+  const pieces: string[] = [];
+  let piece = '';
+  for (let i = 0; i < query.length; i++) {
+    const c = query[i]!;
+    if (c === '^' && query[i + 1] === 'p') { pieces.push(piece); piece = ''; i++; continue; }
+    if (c === '^' && i + 1 < query.length) { piece += c + query[i + 1]!; i++; continue; }
+    piece += c;
+  }
+  if (pieces.length === 0) return undefined;
+  pieces.push(piece);
+  return pieces;
+}
+
+/**
+ * Refuses a replacement whose query holds `^p` (CR-014 phase 3): `search` finds such a hit, but what Office JS's
+ * replacement of a paragraph mark leaves isn't measured, and `insertText('Replace')` keeps a last mark (check 52).
+ * Until phase 3 such a query matched the two characters `^p`, where Word matches a mark.
+ */
+export function refuseMarkReplacement(className: string, find: string, options?: SearchOptions): void {
+  if (options?.matchWildcards || options?.matchRegExp || !paragraphMarkPieces(find)) return;
+  throw new NotSupportedError(className, 'replaceText', "the query holds ^p, Word's paragraph mark, and what replacing one does isn't "
+    + "measured (CR-014 phase 3); search for the hits and edit their ranges");
 }
 
 /** A plain query as an expression over `officeMatches`' text, and which of its characters are `^f` or `^e`. */

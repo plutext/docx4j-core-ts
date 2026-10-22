@@ -390,9 +390,12 @@ function markerSite(seg: TextSegment, fallback: object, after: boolean): { owner
 
 /** Writes the markers of a new comment around a range, splitting runs at its boundaries as `Range.font` does. */
 function placeAround(range: Range, id: number): void {
+  if (range.spansParagraphs) { placeAcross(range, id); return; }
   const paragraph = range.paragraph;
-  paragraph.splitAt(range.start);
-  if (range.end > range.start) paragraph.splitAt(range.end);
+  // a run holding the span holds nothing else, a tab or a break beside it moved out too, as `font` splits (until
+  // CR-014 phase 3 only the w:t were split, and a marker went beside the whole run, widening the anchor)
+  if (range.end > range.start) paragraph.splitRunsAround(range.start, range.end);
+  else paragraph.splitAt(range.start);
   const covered = range.end > range.start ? paragraph.segments().filter((s) => s.end > range.start && s.start < range.end) : [];
   const start = el.commentRangeStart(wmlFactory.createCommentRangeStart({ id }));
   const end = el.commentRangeEnd(wmlFactory.createCommentRangeEnd({ id }));
@@ -431,6 +434,53 @@ function placeAround(range: Range, id: number): void {
   else {
     const before = markerSite(first, paragraph.p, false);
     insertAt(before.owner, before.index, [start], before.parent);
+  }
+}
+
+/**
+ * The markers of a comment over a range across paragraphs, as Word writes them (check 52, cases 79 to 85; CR-014
+ * phase 3): the start before the range's first character, in its first paragraph, and the end and the reference
+ * run after its last character, in its last paragraph, before a mark the range holds. A table between, or a cell
+ * either end is in, stays as it is: the markers stand in the paragraphs. On a block control's content range Word
+ * put the start before the control's first paragraph, in `w:sdtContent` (case 82); here it is inside that
+ * paragraph, which reads the same (CR-014 section 9.2). An insertion at either end is treated as `placeAround`
+ * treats one: the start inside it, before the first commented run; the end after the last, the rest of the
+ * insertion split off.
+ */
+function placeAcross(range: Range, id: number): void {
+  const first = range.paragraph;
+  const last = range.endParagraph;
+  const start = el.commentRangeStart(wmlFactory.createCommentRangeStart({ id }));
+  const end = el.commentRangeEnd(wmlFactory.createCommentRangeEnd({ id }));
+  const reference = referenceRun(id);
+  // the end first; the two are in different paragraphs, so neither's offsets move with the other's markers. The
+  // runs are split as `font` splits them, so a marker never goes beside a run holding text outside the range
+  if (range.end > 0) last.splitRunsAround(0, range.end);
+  const before = last.segments().filter((s) => s.start < range.end);
+  const lastSeg = before[before.length - 1];
+  if (lastSeg?.revision?.kind === 'ins') {
+    last.splitHolderAround(lastSeg.revision, lastSeg.runIndex + 1, [end, reference], () => last.nextAnnotationId());
+  } else if (lastSeg) {
+    const site = markerSite(lastSeg, last.p, true);
+    insertAt(site.owner, site.index, [end, reference], site.parent);
+  } else {
+    // nothing of the last paragraph in the range: the end at its start
+    const next = last.segments()[0];
+    const site = next ? markerSite(next, last.p, false) : { owner: (last.p.content ??= []) as Element[], index: 0, parent: last.p };
+    insertAt(site.owner, site.index, [end, reference], site.parent);
+  }
+  if (range.start < first.text.length) first.splitRunsAround(range.start, first.text.length);
+  const segments = first.segments();
+  const firstSeg = segments.find((s) => s.end > range.start);
+  if (firstSeg?.revision?.kind === 'ins') insertAt(firstSeg.runOwner, firstSeg.runIndex, [start], firstSeg.revision.value);
+  else if (firstSeg) {
+    const site = markerSite(firstSeg, first.p, false);
+    insertAt(site.owner, site.index, [start], site.parent);
+  } else {
+    // nothing of the first paragraph in the range: the start at its end
+    const previous = segments[segments.length - 1];
+    const site = previous ? markerSite(previous, first.p, true) : { owner: (first.p.content ??= []) as Element[], index: (first.p.content ?? []).length, parent: first.p };
+    insertAt(site.owner, site.index, [start], site.parent);
   }
 }
 

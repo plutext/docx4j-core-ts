@@ -121,7 +121,7 @@ test("check 51's file: cells, controls, comments and notes of several paragraphs
   assert.deepEqual(inline.text, unescape(word.contentControls[1].text));
   assert.deepEqual([inline.getRange('Whole').text, inline.getRange('Content').text], [word.contentControls[1].whole, word.contentControls[1].content]);
   // a block control of several paragraphs: its range reads as Office JS's, all of them, one Range across them
-  // (CR-014 phase 1; CR-012 section 17.12's SpanningRange until then); the writes phase 2 doesn't bring refuse
+  // (CR-014 phase 1; CR-012 section 17.12's SpanningRange until then); a hyperlink across its paragraphs refuses
   const range = block.getRange();
   assert.deepEqual([range.text, block.getRange('Content').text], [unescape(word.contentControls[0].whole), unescape(word.contentControls[0].content)]);
   assert.deepEqual(range.paragraphs.map((p) => p.text), word.contentControls[0].paragraphs);
@@ -129,13 +129,7 @@ test("check 51's file: cells, controls, comments and notes of several paragraphs
   assert.equal(range.font.bold, false, 'a read');
   assert.deepEqual([block.getRange('End').paragraph.text, block.getRange('End').start], ['CCP3', 4], "its end is the last paragraph's");
   const before = await pkg.getMainDocumentPart().getXml();
-  for (const [name, write] of Object.entries({
-    style: () => { range.styleId = 'Heading1'; }, insertContentControl: () => range.insertContentControl(), hyperlink: () => { range.hyperlink = 'https://example.com'; },
-  })) {
-    assert.throws(write, (e) => e.name === 'NotSupportedError' && /CR-014/.test(e.message), name);
-  }
-  await assert.rejects(range.insertComment('x'), (e) => e.name === 'NotSupportedError');
-  await assert.rejects(range.insertOoxml('<w:p/>', 'After'), (e) => e.name === 'NotSupportedError');
+  assert.throws(() => { range.hyperlink = 'https://example.com'; }, (e) => e.name === 'NotSupportedError' && /CR-014/.test(e.message));
   assert.equal(await pkg.getMainDocumentPart().getXml(), before, 'nothing changed');
   // the control's own verbs act on all of it
   block.insertText('one', 'Replace');
