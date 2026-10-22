@@ -61,6 +61,22 @@ export class ClientResult<T = unknown> {
     return this.loaded;
   }
 
+  /**
+   * Office JS's `load` on what an asynchronous member returned: nothing to load here, so the result itself.
+   * With `items`, a collection a member returns asynchronously (`range.getComments()`, the comment parts
+   * being read first) reads as Office JS code expects: `load`, `context.sync()`, then `items` (CR-014 phase 1).
+   */
+  load(): this {
+    return this;
+  }
+
+  /** The collection's items, once `context.sync()` has filled the result: an asynchronous collection's. */
+  get items(): T extends readonly (infer I)[] ? I[] : never {
+    const value = this.value;
+    if (!Array.isArray(value)) throw new NotSupportedError('ClientResult', 'items', `the result of ${this.member}() is not a collection`);
+    return value as never;
+  }
+
   toJSON(): { value: T | undefined } {
     return { value: this.loaded ? (this.result as T) : undefined };
   }
@@ -271,6 +287,12 @@ export class Wrapper {
       result.resolveWith(wrapped.length);
       return result;
     });
+    if (itemClass === 'ContentControl') {
+      // Office JS's ContentControlCollection lookups: the controls with the tag or title, as a collection
+      const matching = (key: 'tag' | 'title', value: string): T[] => this.collection(items.filter((i) => (unwrap(i) as Record<string, unknown>)[key] === value), 'contentControls');
+      define('getByTag', (tag: string) => matching('tag', tag));
+      define('getByTitle', (title: string) => matching('title', title));
+    }
     define('load', () => collectionProxy);
     define('track', () => collectionProxy);
     define('untrack', () => collectionProxy);
@@ -282,6 +304,11 @@ export class Wrapper {
         if (prop === 'isNullObject') return false;
         if (!(prop in obj)) throw new NotSupportedError(className, prop);
         const member2: unknown = Reflect.get(obj, prop, obj);
+        // the array's own methods (map, filter, forEach) give what they give: an Office JS collection has
+        // none, and a map's empty result made into a collection wouldn't serialize (CR-014 phase 1)
+        if (typeof member2 === 'function' && Object.prototype.hasOwnProperty.call(Array.prototype, prop)) {
+          return (member2 as (...a: unknown[]) => unknown).bind(obj);
+        }
         if (typeof member2 === 'function' && !/^\d+$/.test(prop)) {
           return (...args: unknown[]): unknown => wrapperSelf.result((member2 as (...a: unknown[]) => unknown).apply(obj, args.map(unwrap)), prop);
         }

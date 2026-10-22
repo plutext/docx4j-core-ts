@@ -1,8 +1,8 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { Font } from './Font.mjs';
+import { Font, MixedFont } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
-import type { BlockElement } from './Body.mjs';
+import type { Body, BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, WHOLE, type SpanEdges, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
@@ -18,11 +18,23 @@ import { officeMatches, expandReplacement, type SearchOptions } from './search.m
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
+import type { Table } from './Table.mjs';
+import type { TableCell } from './Table.mjs';
+import { readRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
+import { storyLayout, storyOf, type StoryLayout } from './story.mjs';
+import { styleNameOf, builtInOf } from './styles.mjs';
 
 /**
- * A subset of Office JS `Word.Range`: a span of text within one paragraph, [start, end) in the
- * paragraph's text. Positions are recomputed from the tree on every use, so a range stays
- * valid across edits made through it; edits made elsewhere may shift it.
+ * A subset of Office JS `Word.Range`: a span of text from an offset in one paragraph to an offset in the same
+ * paragraph or a later one of the same story, [start, end), `start` in `paragraph`'s text and `end` in
+ * `endParagraph`'s. Positions are recomputed from the tree on every use, so a range stays valid across edits
+ * made through it; edits made elsewhere may shift it.
+ *
+ * A range within one paragraph is what it has been since CR-002: `endParagraph` is `paragraph`. A range across
+ * paragraphs (CR-014 phase 1) reads as Office JS's does (check 52): its `text` in `body.text`'s form between
+ * its ends, `paragraphs` every paragraph it touches (a table's cells' among them), `font` `null` where the runs
+ * differ, `search`, the tracked changes and the comments over all of it. Its writes throw `NotSupportedError`
+ * until CR-014 phase 2.
  *
  * A picture has a place in the text and no text of its own, so a picture at the range's start or
  * end offset may be inside it or outside it. `whole` says: a range from `Paragraph.getRange('Whole')`
@@ -31,47 +43,220 @@ import type { TrackedChange } from './TrackedChange.mjs';
  * hit replaced does not take the picture beside it (CR-002 section 48).
  */
 export class Range {
+  /** The paragraph holding `end`: `paragraph` for a range within one paragraph (CR-014 phase 1). */
+  readonly endParagraph: Paragraph;
+
   constructor(readonly paragraph: Paragraph, public start: number, public end: number, readonly whole = false,
     /**
      * A paragraph's 'Whole' range: its text ends with the paragraph's mark, as Office JS's does (check 48:
      * `\r`, and `\t` for a cell's last paragraph, the cell's end), where 'Content' ends with its text.
      * The mark is no offset: every edit and search works on the text before it.
      */
-    readonly mark = false) {}
+    readonly mark = false,
+    /** The paragraph holding `end`, where it isn't `paragraph` (CR-014 phase 1). */
+    endParagraph?: Paragraph,
+    /**
+     * What the range's text ends with in place of `endParagraph`'s mark, where `mark` is set: a table's
+     * 'Whole' range ends with its last row's end, `\r\n` (check 52).
+     */
+    readonly endMark?: string) {
+    this.endParagraph = endParagraph ?? paragraph;
+  }
+
+  /** True for a range across paragraphs: its ends are in two (extension; CR-014). */
+  get spansParagraphs(): boolean {
+    return this.endParagraph.element !== this.paragraph.element;
+  }
 
   /** The edges `Paragraph.splice` is given: both for a whole range. */
   private get edges(): SpanEdges | undefined {
     return this.whole ? WHOLE : undefined;
   }
 
-  get paragraphs(): Paragraph[] {
-    return [this.paragraph];
+  /** The story's layout, and where this range's two paragraphs are in it. */
+  private located(): { layout: StoryLayout; first: number; last: number } {
+    const layout = storyLayout(storyOf(this.paragraph.p).items, (element, container) => this.viewOf(element, container).text);
+    const first = layout.indexOf(this.paragraph.p);
+    const last = layout.indexOf(this.endParagraph.p);
+    if (first < 0 || last < 0) throw new Docx4JException('This range\'s paragraphs are not in one story as a reader reads it');
+    return { layout, first, last };
   }
 
+  /** The view of a paragraph of this range's story: this range's own where it is one of its two. */
+  private viewOf(element: Element<wml.P>, container: Element[]): Paragraph {
+    if (element === this.paragraph.element) return this.paragraph;
+    if (element === this.endParagraph.element) return this.endParagraph;
+    return this.paragraph.viewOf(element, container);
+  }
+
+  /**
+   * The range as one range per paragraph it touches: its part of the first, the whole of each between, its
+   * part of the last. A range within one paragraph is itself.
+   */
+  private pieces(): Range[] {
+    if (!this.spansParagraphs) return [this];
+    const { layout, first, last } = this.located();
+    return layout.paragraphs.slice(first, last + 1).map((sp, i, all) => {
+      const p = this.viewOf(sp.element, sp.container);
+      if (i === 0) return new Range(p, this.start, p.text.length, this.whole);
+      if (i === all.length - 1) return new Range(p, 0, this.end, this.whole);
+      return new Range(p, 0, p.text.length, true);
+    });
+  }
+
+  /** Refuses a write to a range across paragraphs, which CR-014 phase 2 brings. */
+  private assertOneParagraph(member: string): void {
+    if (this.spansParagraphs) {
+      throw new NotSupportedError('Range', member, 'this range spans paragraphs, and a write across paragraphs is CR-014 phase 2\'s; '
+        + "edit each paragraph's range, or the content control or comment the range came from");
+    }
+  }
+
+  /** Every paragraph the range touches, in document order, a table's cells' among them (check 52). */
+  get paragraphs(): Paragraph[] {
+    if (!this.spansParagraphs) return [this.paragraph];
+    const { layout, first, last } = this.located();
+    return layout.paragraphs.slice(first, last + 1).map((sp) => this.viewOf(sp.element, sp.container));
+  }
+
+  /**
+   * The range's text, in `body.text`'s form across paragraphs (check 52): a mark `\r` between paragraphs, a
+   * table's cells a `\t` apart and each row ended `\r\n`; with the last paragraph's mark where the range
+   * holds it (a 'Whole' range).
+   */
   get text(): string {
-    const text = this.paragraph.text;
-    const span = text.substring(this.start, this.end);
-    return this.mark && this.end >= text.length ? span + this.paragraph.markText : span;
+    if (!this.spansParagraphs) {
+      const text = this.paragraph.text;
+      const span = text.substring(this.start, this.end);
+      return this.mark && this.end >= text.length ? span + (this.endMark ?? this.paragraph.markText) : span;
+    }
+    const tail = this.mark && this.end >= this.endParagraph.text.length ? this.endMark ?? this.endParagraph.markText : '';
+    const { layout, first, last } = this.located();
+    return layout.text.slice(layout.paragraphs[first]!.start + this.start, layout.paragraphs[last]!.start + this.end) + tail;
   }
 
   set text(value: string) {
     this.insertText(value, 'Replace');
   }
 
-  /** The paragraph's style id (extension, as on Paragraph). */
+  /** True when the range holds no text (Office JS `isEmpty`). */
+  get isEmpty(): boolean {
+    return this.text === '';
+  }
+
+  /** The paragraph's style id (extension, as on Paragraph); a range across paragraphs gives the first one's. */
   get styleId(): string {
     return this.paragraph.styleId;
   }
   set styleId(id: string) {
+    this.assertOneParagraph('styleId');
     this.paragraph.styleId = id;
   }
 
-  /** The paragraph's style name (Office JS reports the range's paragraph style). */
+  /**
+   * The range's style name, as Office JS reads it (checks 52 and 53). A range holding its paragraphs whole reads
+   * their paragraph style, where they share one, else `Normal`. Any other range reads its runs' character style
+   * where they share one (`Emphasis`), `''` where their character styles differ (some runs styled, some not: a
+   * footnote reference among plain text), and the paragraph style where none has one. Setting it sets the
+   * paragraph's style.
+   */
   get style(): string {
-    return this.paragraph.style;
+    const read = this.styleRead();
+    return read.charStyle === undefined ? read.paragraphs((p) => p.style) : read.charStyle === '' ? '' : styleNameOf(this.paragraph.parentBody.package_, read.charStyle);
   }
   set style(id: string) {
+    this.assertOneParagraph('style');
     this.paragraph.style = id;
+  }
+
+  /** The built-in name of `style` (Office JS `styleBuiltIn`): `Other` where it is `''`, `Normal` where paragraphs across it differ. */
+  get styleBuiltIn(): string {
+    const read = this.styleRead();
+    return read.charStyle === undefined ? read.paragraphs((p) => p.styleBuiltIn) : read.charStyle === '' ? 'Other' : builtInOf(read.charStyle);
+  }
+
+  /**
+   * What `style` reads: the runs' shared character style id, `''` where their character styles differ, or
+   * undefined where the paragraph style applies, with how to read that.
+   */
+  private styleRead(): { charStyle: string | undefined; paragraphs: (read: (p: Paragraph) => string) => string } {
+    const paragraphs = (read: (p: Paragraph) => string): string => {
+      if (!this.spansParagraphs) return read(this.paragraph);
+      const values = new Set(this.paragraphs.map(read));
+      return values.size === 1 ? [...values][0]! : 'Normal';
+    };
+    const holdsWhole = this.start === 0 && this.end >= this.endParagraph.text.length;
+    if (holdsWhole) return { charStyle: undefined, paragraphs };
+    const ids = new Set(this.runs.map((run) => run.value.rPr?.rStyle?.val ?? ''));
+    if (ids.size === 0) return { charStyle: undefined, paragraphs };
+    if (ids.size > 1) return { charStyle: '', paragraphs };
+    const only = [...ids][0]!;
+    return { charStyle: only === '' ? undefined : only, paragraphs };
+  }
+
+  /** The table cell holding the range's start, if it is in one (Office JS `parentTableCell`, which throws instead). */
+  get parentTableCell(): TableCell | undefined {
+    return this.paragraph.parentTableCell;
+  }
+
+  /** The table holding the range's start, if it is in one (Office JS `parentTable`, which throws instead). */
+  get parentTable(): Table | undefined {
+    return this.paragraph.parentTableCell?.parentTable;
+  }
+
+  /**
+   * The tables in the range (Office JS `Range.tables`): a table the range covers some of, unless the range is
+   * inside one of its cells, where that cell's tables are looked at instead (check 52: a range across a table,
+   * or into or out of one, lists it; a cell's whole range lists none).
+   */
+  get tables(): Table[] {
+    const inRange = new Set(this.paragraphs.map((p) => p.element.value));
+    const pick = (tables: Table[]): Table[] => tables.flatMap((table) => {
+      const cells = table.rows.flatMap((row) => row.cells);
+      if (!cells.some((cell) => cell.paragraphs.some((p) => inRange.has(p.p)))) return [];
+      const home = cells.find((cell) => [...inRange].every((p) => cell.paragraphs.some((cp) => cp.p === p)));
+      return home ? pick(home.body.tables) : [table];
+    });
+    return pick(this.storyBody().tables);
+  }
+
+  /**
+   * The content controls in the range (Office JS `Range.contentControls`): each control the range overlaps,
+   * except one holding the whole range, in document order (check 53: a range from a paragraph into a control
+   * lists it, one inside a control, its content whole, doesn't, one over an inline control lists it).
+   */
+  get contentControls(): ContentControl[] {
+    const layout = storyLayout(storyOf(this.paragraph.p).items, (element, container) => this.viewOf(element, container).text);
+    const at = (p: Paragraph, offset: number): number => {
+      const i = layout.indexOf(p.p);
+      return i < 0 ? Number.NaN : layout.paragraphs[i]!.start + offset;
+    };
+    const from = at(this.paragraph, this.start);
+    const to = at(this.endParagraph, this.end);
+    return this.storyBody().contentControls.filter((control) => {
+      let start: number;
+      let end: number;
+      if (control.form === 'Run') {
+        let range: Range;
+        try { range = control.getRange(); } catch { return false; }
+        [start, end] = [at(range.paragraph, range.start), at(range.paragraph, range.end)];
+      } else {
+        const paragraphs = control.paragraphs;
+        if (paragraphs.length === 0) return false;
+        const last = paragraphs[paragraphs.length - 1]!;
+        [start, end] = [at(paragraphs[0]!, 0), at(last, last.text.length)];
+      }
+      if (Number.isNaN(start) || Number.isNaN(end)) return false;
+      const overlaps = start < to && end > from || (start === end && from <= start && start <= to);
+      const holdsRange = start <= from && to <= end;
+      return overlaps && !holdsRange;
+    });
+  }
+
+  /** A body over this range's story, for its tables and controls. */
+  private storyBody(): Body {
+    const { owner } = storyOf(this.paragraph.p);
+    return this.paragraph.parentBody.sub(owner as { content?: Element[] });
   }
 
   /**
@@ -95,6 +280,19 @@ export class Range {
 
   /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
   getFont(options?: FormattingOptions): Font {
+    // across paragraphs: each run read in its own paragraph, null where they differ, as Office JS's (check 52)
+    if (this.spansParagraphs) {
+      return new MixedFont(() => {
+        const resolver = this.paragraph.parentBody.propertyResolver;
+        const selector = runFontSelectorOf(this.paragraph.parentBody.package_);
+        return this.pieces().flatMap((piece) => piece.runs.map((run) => {
+        const rPr = options?.direct === true ? run.value.rPr
+          : resolver.getEffectiveRPr(run.value.rPr, piece.paragraph.p.pPr, piece.paragraph.cellContext);
+        const formatting = readRunOptions(rPr);
+          return { formatting, name: (options?.direct === true ? undefined : selector?.asciiFontName(rPr)) ?? formatting.name };
+        }));
+      }, () => this.assertOneParagraph('font'));
+    }
     const holders = (write: boolean): wml.R[] => {
       if (this.start === this.end) return [];
       // a write formats runs holding the span and nothing else: a tab, a break or text after the span in
@@ -111,6 +309,7 @@ export class Range {
 
   /** The runs the span covers (a run partly inside counts). */
   get runs(): Element<wml.R>[] {
+    if (this.spansParagraphs) return this.pieces().flatMap((piece) => piece.runs);
     const out: Element<wml.R>[] = [];
     const seen = new Set<wml.R>();
     for (const seg of this.paragraph.segments()) {
@@ -124,6 +323,7 @@ export class Range {
   }
 
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
+    this.assertOneParagraph('insertText');
     let r: Range;
     if (location === 'Replace') r = this.paragraph.splice(this.start, this.end, text, 'before', this.edges);
     // text put before the range joins the run the range starts in - inside the link the range is on,
@@ -137,6 +337,7 @@ export class Range {
   }
 
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
+    this.assertOneParagraph('insertParagraph');
     return this.paragraph.insertParagraph(text, location);
   }
 
@@ -147,6 +348,7 @@ export class Range {
    * `insertXml` does.
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
+    this.assertOneParagraph('insertOoxml');
     this.paragraph.assertWritable();
     const body = this.paragraph.parentBody;
     const preprocess = body.package_?.loadOptions.preprocessor;
@@ -167,11 +369,13 @@ export class Range {
 
   /** Removes the span's text, and the pictures in it (CR-002 section 48). */
   delete(): void {
+    this.assertOneParagraph('delete');
     this.paragraph.splice(this.start, this.end, '', 'before', this.edges);
     this.end = this.start;
   }
 
   search(text: string, options?: SearchOptions): Range[] {
+    if (this.spansParagraphs) return this.pieces().flatMap((piece) => piece.search(text, options));
     return officeMatches(this.paragraph.segments({ objects: true }), text, options, this.start, this.end)
       .map(({ start, end }) => new Range(this.paragraph, start, end));
   }
@@ -182,6 +386,7 @@ export class Range {
    * (section 26; this one was missed there, section 31).
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
+    this.assertOneParagraph('replaceText');
     const matches = officeMatches(this.paragraph.segments({ objects: true }), find, options, this.start, this.end);
     for (let i = matches.length - 1; i >= 0; i--) {
       const { start, end, match } = matches[i]!;
@@ -192,17 +397,74 @@ export class Range {
 
   /** The tracked changes this span covers, in document order (CR-002 phase F). */
   getTrackedChanges(): TrackedChange[] {
+    if (this.spansParagraphs) {
+      // the story's listing, whose changes run across paragraphs as Word's do (check 52: a deletion through a
+      // mark is one change), each that overlaps the range; a paragraph's own listing cuts a change at its edges
+      const { layout, first, last } = this.located();
+      const at = (p: Paragraph, offset: number): number => {
+        const i = layout.indexOf(p.p);
+        return i < 0 ? Number.NaN : layout.paragraphs[i]!.start + offset;
+      };
+      const from = layout.paragraphs[first]!.start + this.start;
+      const to = layout.paragraphs[last]!.start + this.end;
+      return this.storyBody().getTrackedChanges().filter((change) => {
+        const range = change.getRange();
+        if (!range) return false;
+        const start = at(range.paragraph, range.start);
+        const end = at(range.endParagraph, range.end);
+        return !Number.isNaN(start) && !Number.isNaN(end) && start <= to && end >= from;
+      });
+    }
     return this.paragraph.getTrackedChanges().filter((change) => {
       const range = change.getRange();
       if (!range) return false;
-      return range.start <= this.end && range.end >= this.start;
+      // a change across paragraphs (CR-014) covers this paragraph from where it starts in it to where it ends in it
+      const start = range.paragraph.element === this.paragraph.element ? range.start : 0;
+      const end = range.endParagraph.element === this.paragraph.element ? range.end : Number.POSITIVE_INFINITY;
+      return start <= this.end && end >= this.start;
     });
   }
 
-  getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
+  /**
+   * A range of this one, as Office JS's `getRange` (check 52): 'Whole' is the range itself, 'Content' the same
+   * without a last mark, 'Start' and 'End' collapsed at its ends, and 'After' collapsed just after it - at the
+   * start of the next paragraph where the range holds its last paragraph's mark.
+   */
+  getRange(location: 'Whole' | 'Start' | 'End' | 'Content' | 'After' = 'Whole'): Range {
     if (location === 'Start') return new Range(this.paragraph, this.start, this.start);
-    if (location === 'End') return new Range(this.paragraph, this.end, this.end);
-    return new Range(this.paragraph, this.start, this.end, this.whole, this.mark && location === 'Whole');
+    if (location === 'End') return new Range(this.endParagraph, this.end, this.end);
+    if (location === 'After') {
+      if (this.mark && this.end >= this.endParagraph.text.length) {
+        const layout = storyLayout(storyOf(this.endParagraph.p).items, (element, container) => this.viewOf(element, container).text);
+        const next = layout.paragraphs[layout.indexOf(this.endParagraph.p) + 1];
+        if (next) return new Range(this.viewOf(next.element, next.container), 0, 0);
+      }
+      return new Range(this.endParagraph, this.end, this.end);
+    }
+    return new Range(this.paragraph, this.start, this.end, this.whole, this.mark && location === 'Whole',
+      this.spansParagraphs ? this.endParagraph : undefined, this.endMark);
+  }
+
+  /**
+   * A range from this range's start or `range`'s, whichever comes first, to the end that comes last (Office JS
+   * `expandTo`; which is first doesn't matter, check 52). Both must be in one story.
+   */
+  expandTo(range: Range): Range {
+    const story = storyOf(this.paragraph.p).items;
+    // Office JS's ItemNotFound (check 53: a body range expandTo a footnote's)
+    if (storyOf(range.paragraph.p).items !== story) throw new ItemNotFound('expandTo: the two ranges are in different stories');
+    const layout = storyLayout(story, (element, container) => this.viewOf(element, container).text);
+    const at = (p: Paragraph, offset: number): number => {
+      const i = layout.indexOf(p.p);
+      if (i < 0) throw new Docx4JException('expandTo: a range is outside the story as a reader reads it');
+      return layout.paragraphs[i]!.start + offset;
+    };
+    const first = at(range.paragraph, range.start) < at(this.paragraph, this.start) ? range : this;
+    const thisEnd = at(this.endParagraph, this.end) + (this.mark ? 1 : 0);
+    const rangeEnd = at(range.endParagraph, range.end) + (range.mark ? 1 : 0);
+    const last = rangeEnd > thisEnd ? range : this;
+    return new Range(first.paragraph, first.start, last.end, first.whole && last.whole, last.mark,
+      last.endParagraph.element === first.paragraph.element ? undefined : last.endParagraph, last.endMark);
   }
 
   /** The span's text as it stands (extension; Office JS getOoxml wraps it in a package). */
@@ -214,7 +476,13 @@ export class Range {
 
   /** The comments this span touches, replies nested under their parent. */
   async getComments(): Promise<Comment[]> {
-    return commentApi().commentsOf(this);
+    if (!this.spansParagraphs) return commentApi().commentsOf(this);
+    const seen = new Set<number>();
+    const out: Comment[] = [];
+    for (const piece of this.pieces()) {
+      for (const comment of await commentApi().commentsOf(piece)) if (!seen.has(comment.id)) { seen.add(comment.id); out.push(comment); }
+    }
+    return out;
   }
 
   /**
@@ -223,6 +491,7 @@ export class Range {
    * the comment parts the document lacks. Asynchronous because it unmarshals those parts.
    */
   async insertComment(content: CommentContent, options?: CommentOptions): Promise<Comment> {
+    this.assertOneParagraph('insertComment');
     this.paragraph.assertWritable();
     return commentApi().insertComment(this, content, options);
   }
@@ -235,6 +504,7 @@ export class Range {
    * span gets an empty control at its position. Returns the control.
    */
   insertContentControl(kind?: ContentControlType): ContentControl {
+    this.assertOneParagraph('insertContentControl');
     this.paragraph.assertWritable();
     const paragraph = this.paragraph;
     const body = paragraph.parentBody;
@@ -314,6 +584,7 @@ export class Range {
    * `font` write is.
    */
   get hyperlink(): string {
+    if (this.spansParagraphs) return this.pieces().map((piece) => piece.hyperlink).find((link) => link !== '') ?? '';
     const holder = this.hyperlinkHolder();
     if (holder === undefined) return '';
     const anchor = holder.value.anchor ?? '';
@@ -322,6 +593,7 @@ export class Range {
   }
 
   set hyperlink(value: string) {
+    this.assertOneParagraph('hyperlink');
     this.paragraph.assertWritable();
     // Office JS refuses a hyperlink set on an empty range - inside a link, in plain text, just after a
     // link, and "" alike - with GeneralException, and changes nothing (test/README.md check 19, Word
@@ -533,6 +805,15 @@ class GeneralException extends Docx4JException {
   }
 }
 
+/** What Office JS throws where nothing matches (`ItemNotFound`): its `code`, as `GeneralException` carries its own. */
+class ItemNotFound extends Docx4JException {
+  readonly code = 'ItemNotFound';
+  constructor(message: string) {
+    super(message);
+    this.name = 'ItemNotFound';
+  }
+}
+
 /** The character style Word gives the runs of a hyperlink it makes. */
 const HYPERLINK_STYLE = 'Hyperlink';
 
@@ -687,135 +968,4 @@ function containerOf(element: Element, paragraph: Paragraph): Element[] {
     return undefined;
   };
   return seek(runItemsOf(paragraph.p)) ?? ((paragraph.p.content ??= []) as Element[]);
-}
-
-/**
- * A range over several paragraphs: what Office JS's `contentControl.getRange()` gives for a block content
- * control of more than one paragraph (check 51). A `Range` here is one paragraph's (CR-002 section 7; CR-014
- * proposes ranges across paragraphs), so this one reads as Office JS's does - its `text` all of the
- * control's, `paragraphs` all of them, `search`, the tracked changes and the comments over all of them - and
- * refuses every write with `NotSupportedError`, where a write to its first paragraph alone would have left
- * the rest as they were without a word (CR-012 section 17.12). `start` and `end` are its first paragraph's;
- * `getRange('Start')` and `getRange('End')` are the first paragraph's start and the last one's end.
- */
-export class SpanningRange extends Range {
-  constructor(
-    paragraph: Paragraph,
-    private readonly all: readonly Paragraph[],
-    /** The text the paragraphs read as together (the control's body's). */
-    private readonly content: () => string,
-    /** True for a 'Whole' range: its text ends with the last paragraph's mark. */
-    private readonly withMark: boolean,
-  ) {
-    super(paragraph, 0, paragraph.text.length, true, false);
-  }
-
-  private refuse(member: string): never {
-    throw new NotSupportedError('Range', member, `this range spans ${this.all.length} paragraphs, which a Range here cannot edit yet (CR-014); `
-      + "edit through the content control (insertText, insertParagraph, clear, delete) or through each paragraph's range");
-  }
-
-  override get paragraphs(): Paragraph[] {
-    return [...this.all];
-  }
-
-  override get text(): string {
-    const text = this.content();
-    return this.withMark ? text + this.all[this.all.length - 1]!.markText : text;
-  }
-  override set text(_value: string) {
-    this.refuse('text');
-  }
-
-  override get styleId(): string {
-    return this.paragraph.styleId;
-  }
-  override set styleId(_id: string) {
-    this.refuse('styleId');
-  }
-
-  override get style(): string {
-    return this.paragraph.style;
-  }
-  override set style(_name: string) {
-    this.refuse('style');
-  }
-
-  override getFont(options?: FormattingOptions): Font {
-    const holders = (write: boolean): wml.R[] => {
-      if (write) this.refuse('font');
-      return this.all.flatMap((p) => p.runs.map((r) => r.value));
-    };
-    if (options?.direct === true) return new Font(holders);
-    return new Font(holders, undefined,
-      (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr, this.paragraph.cellContext),
-      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr));
-  }
-
-  override get runs(): Element<wml.R>[] {
-    return this.all.flatMap((p) => p.runs);
-  }
-
-  override insertText(_text: string, _location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
-    this.refuse('insertText');
-  }
-
-  override insertParagraph(_text: string, _location: 'Before' | 'After'): Paragraph {
-    this.refuse('insertParagraph');
-  }
-
-  override async insertOoxml(_ooxml: string, _location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
-    this.refuse('insertOoxml');
-  }
-
-  override delete(): void {
-    this.refuse('delete');
-  }
-
-  override search(text: string, options?: SearchOptions): Range[] {
-    return this.all.flatMap((p) => p.search(text, options));
-  }
-
-  override replaceText(_find: string, _replace: string, _options?: SearchOptions): number {
-    this.refuse('replaceText');
-  }
-
-  override getTrackedChanges(): TrackedChange[] {
-    const seen = new Set<unknown>();
-    return this.all.flatMap((p) => p.getTrackedChanges()).filter((change) => {
-      const key = (change as { element?: unknown }).element ?? change;
-      return seen.has(key) ? false : (seen.add(key), true);
-    });
-  }
-
-  override getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
-    if (location === 'Start') return new Range(this.paragraph, 0, 0);
-    const last = this.all[this.all.length - 1]!;
-    if (location === 'End') return new Range(last, last.text.length, last.text.length);
-    return new SpanningRange(this.paragraph, this.all, this.content, location === 'Whole');
-  }
-
-  override async getComments(): Promise<Comment[]> {
-    const seen = new Set<number>();
-    const out: Comment[] = [];
-    for (const p of this.all) {
-      for (const comment of await p.getComments()) if (!seen.has(comment.id)) { seen.add(comment.id); out.push(comment); }
-    }
-    return out;
-  }
-
-  override async insertComment(_content: CommentContent, _options?: CommentOptions): Promise<Comment> {
-    this.refuse('insertComment');
-  }
-
-  override insertContentControl(_kind?: ContentControlType): ContentControl {
-    this.refuse('insertContentControl');
-  }
-
-  override get hyperlink(): string {
-    return super.hyperlink;
-  }
-  override set hyperlink(_value: string) {
-    this.refuse('hyperlink');
-  }
 }

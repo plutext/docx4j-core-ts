@@ -507,7 +507,7 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   const onWord = await r.search('monthly')[0].insertComment('M1');
   const partXml = await xmlOf(part);
   assert.match(partXml, /<w:ins w:id="1"[^>]*><w:r><w:t xml:space="preserve">The tenant pays rent <\/w:t><\/w:r><w:commentRangeStart w:id="0"\/><w:r><w:t>monthly<\/w:t><\/w:r><\/w:ins><w:commentRangeEnd w:id="0"\/><w:r><w:rPr><w:rStyle w:val="CommentReference"\/><\/w:rPr><w:commentReference w:id="0"\/><\/w:r><w:ins w:id="2"[^>]*><w:r><w:t xml:space="preserve"> in advance\.<\/w:t><\/w:r><\/w:ins><\/w:p>/);
-  assert.equal(onWord.getRange()[0].text, 'monthly');
+  assert.equal(onWord.getRanges()[0].text, 'monthly');
   // the reference run between the halves has no text and keeps nothing apart: one change, as Office JS
   // listed Word's own form (check 32, A1)
   assert.deepEqual(part.body.getTrackedChanges().map((c) => c.text), ['The tenant pays rent monthly in advance.']);
@@ -532,7 +532,7 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   const reloaded = await WordprocessingMLPackage.load(await unread.save());
   assert.equal((await (await reloaded.getBody()).getComments()).length, 0);
   part.body.acceptAll();
-  assert.equal((await part.body.getComments())[0].getRange()[0].text, 'monthly');
+  assert.equal((await part.body.getComments())[0].getRanges()[0].text, 'monthly');
   assert.equal((await xmlOf(part)).includes('<w:ins'), false);
   // a comment on deleted text goes when the deletion is accepted, when its start marker was inside
   // the w:del (Word's form, check 32 A3), and stays when the deletion is rejected
@@ -563,13 +563,13 @@ test('a comment made while tracking is on is a comment, not an insertion', async
   kept.changeTrackingMode = 'TrackAll';
   kept.body.paragraphs[0].search('rent monthly in')[0].delete();
   kept.body.rejectAll();
-  assert.equal((await kept.body.getComments())[0].getRange()[0].text, 'monthly');
+  assert.equal((await kept.body.getComments())[0].getRanges()[0].text, 'monthly');
   // a comment reaching beyond the rejected insertion keeps its markers where the text was (not measured)
   const beyond = await tracked(['Kept. Stays.']);
   beyond.body.paragraphs[0].search('Kept.')[0].insertText(' NEW', 'After');
   await beyond.body.paragraphs[0].search('NEW Stays')[0].insertComment('M1');
   beyond.body.rejectAll();
-  assert.equal((await beyond.body.getComments())[0].getRange()[0].text, ' Stays');
+  assert.equal((await beyond.body.getComments())[0].getRanges()[0].text, ' Stays');
   assert.equal(inserted.body.getTrackedChanges().filter((c) => c.target.kind === 'run').length, 2, 'still just the del and the ins');
   assert.equal((await inserted.body.getComments()).length, 1);
 });
@@ -2698,7 +2698,7 @@ const commentedOf = async (pkg) => {
   const body = await (await WordprocessingMLPackage.load(await pkg.save())).getBody();
   return {
     paragraphs: body.paragraphs.map((p) => p.text),
-    comments: (await body.getComments()).map((c) => [c.content.trim(), c.getRange().map((r) => r.text).join('|')]),
+    comments: (await body.getComments()).map((c) => [c.content.trim(), c.getRanges().map((r) => r.text).join('|')]),
   };
 };
 const commentPartsOf = async (pkg) => {

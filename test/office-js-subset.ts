@@ -37,6 +37,8 @@ namespace OfficeSubset {
     readonly replies: ArrayLike<Comment>;
     reply(replyText: string): Promise<Comment>;
     delete(): Promise<void>;
+    /** One range, across paragraphs where the comment spans them (CR-014 phase 1, D2); undefined with no markers here. */
+    getRange(): Range | undefined;
   }
   export interface Range {
     text: string; readonly font: Font; style: string; hyperlink: string;
@@ -44,10 +46,17 @@ namespace OfficeSubset {
     insertParagraph(text: string, location: ParagraphLocation): Paragraph;
     search(text: string, options?: SearchOptions): ArrayLike<Range>;
     delete(): void;
-    getRange(location?: 'Whole' | 'Start' | 'End' | 'Content'): Range;
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
     getTrackedChanges(): ArrayLike<TrackedChange>;
+    // CR-014 phase 1: a range across paragraphs, read
+    readonly paragraphs: ArrayLike<Paragraph>;
+    readonly isEmpty: boolean;
+    readonly styleBuiltIn: string;
+    readonly tables: ArrayLike<Table>;
+    readonly contentControls: ArrayLike<ContentControl>;
+    getRange(location?: 'Whole' | 'Start' | 'End' | 'Content' | 'After'): Range;
+    expandTo(range: Range): Range;
   }
   export interface Paragraph {
     text: string; style: string; styleBuiltIn: string; alignment: string;
@@ -62,6 +71,7 @@ namespace OfficeSubset {
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
     getTrackedChanges(): ArrayLike<TrackedChange>;
+    readonly tableNestingLevel: number;
     // CR-002 phase H
     readonly isListItem: boolean;
     readonly list: List;
@@ -91,6 +101,8 @@ namespace OfficeSubset {
     insertInlinePictureFromBase64(base64EncodedImage: string, location: InsertLocation): InlinePicture;
     // CR-002 phase H
     readonly lists: ArrayLike<List>;
+    // CR-014 phase 1
+    getRange(location?: 'Whole' | 'Start' | 'End' | 'Content'): Range;
   }
 
   // CR-002 phase H: Word.List and Word.ListItem.
@@ -133,6 +145,8 @@ namespace OfficeSubset {
     addRows(insertLocation: InsertLocation, rowCount: number, values?: string[][]): ArrayLike<TableRow>;
     deleteRows(rowIndex: number, rowCount?: number): void;
     delete(): void;
+    // CR-014 phase 1
+    getRange(location?: 'Whole' | 'Start' | 'End' | 'After'): Range;
   }
   export interface TableRow {
     readonly cellCount: number;

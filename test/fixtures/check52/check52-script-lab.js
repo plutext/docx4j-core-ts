@@ -247,8 +247,9 @@ const CHECK52 = (() => {
   }
 
   /**
-   * The check: `mode` 'run' or 'report'. `run(fn)` is Word.run; `progress(text)` is told each case. Each step is
-   * a Word.run of its own, so that a case Office JS refuses fails alone.
+   * The check: `mode` 'run', 'report', or 'reads' (each kind's reads alone, nothing written and no region
+   * reported: what CR-014 phase 1's test compares with the run's `reads`). `run(fn)` is Word.run; `progress(text)`
+   * is told each case. Each step is a Word.run of its own, so that a case Office JS refuses fails alone.
    */
   async function runCheck(run, mode, progress = () => {}, host = null) {
     const result = { check: 52, mode, host, reads: {}, cases: [] };
@@ -263,6 +264,10 @@ const CHECK52 = (() => {
       progress('case ' + region.n + ' of ' + regions.length + ': ' + region.kind + ' ' + region.op + (region.tracked ? ' tracked' : ''));
       const entry = { n: region.n, kind: region.kind, op: region.op, tracked: region.tracked, spec: region.spec };
       try {
+        if (mode === 'reads') {
+          if (region.range && !result.reads[region.kind]) result.reads[region.kind] = await run((context) => reads(context, region)).catch(failed);
+          continue;
+        }
         if (mode === 'run' && region.op !== 'read') {
           await run(async (context) => {
             context.document.changeTrackingMode = region.tracked ? 'TrackAll' : 'Off';

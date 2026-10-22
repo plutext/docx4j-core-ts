@@ -240,6 +240,8 @@ function nullObject<T>(className: string): T {
       if (prop === 'isNullObject') return true;
       if (prop === 'toJSON') return () => ({ isNullObject: true });
       if (prop === 'then') return undefined;
+      // Office JS code loads a null object and syncs before reading isNullObject, as the shim's allows (CR-014 phase 1)
+      if (prop === 'load' || prop === 'track' || prop === 'untrack') return () => proxy;
       return fail(prop);
     },
     set(_target, prop): boolean {

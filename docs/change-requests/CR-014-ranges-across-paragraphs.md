@@ -12,7 +12,11 @@ and the editor's answer stands, so phase 1 needn't wait on it. Check 52 (phase 0
 "implement CR-014 phase 0"): 85 cases, a region each, in one file and one Script Lab run (section 6.1), and ten
 more for CR-002 section 55's D2 (Word's table rule). Jason ran
 it the same day, in All Markup, and saved Word's file after the run and after Accept All (section 6.2): every question of
-section 2 and every addition of the editor's has its answer. **Phase 0 is done**; phase 1 (the reads) is next.
+section 2 and every addition of the editor's has its answer. **Phase 0 is done.** **Phase 1, the reads, implemented
+2026-10-22** (Jason: "implement CR-014 phase 1"; section 9): one `Range` with two ends, read as Word's, the views
+returning one, `SpanningRange` gone; held to check 52 by running its own snippet through the Word shim. Its writes
+refuse until phase 2. Its choices where Word was unmeasured were then measured by check 53 (Jason ran it the same day,
+in both views) and changed to Word's answers where they differed (section 9.7). Not committed.
 
 ## 1. Why
 
@@ -258,7 +262,7 @@ Accept All. The text reads under tracking include deleted text, as All Markup sh
   CR, after D4.
 - **Offsets.** A range's `start` is an offset in its first paragraph and `end` in its last. Code that compares
   `end` with `paragraph.text.length` assuming one paragraph has to look at `endParagraph`. All of it is in
-  `src/model/content/`, and phase 1 audits it.
+  `src/model/content/`, and phase 1 audits it. *Audited in phase 1 (section 9.6).*
 
 ## 8. References
 
@@ -268,3 +272,241 @@ Accept All. The text reads under tracking include deleted text, as All Markup sh
 - `test/README.md` checks 30, 31, 48 and 51.
 - Office JS: `Word.Range` (`expandTo`, `getRange`, `paragraphs`, `search` with `^p`), `Word.ContentControl.getRange`,
   `Word.Comment.getRange`.
+
+## 9. Phase 1: the reads (2026-10-22)
+
+*Jason, 2026-10-22: "implement CR-014 phase 1". Implemented the same day; not committed.*
+
+### 9.1 One `Range`, two ends
+
+D1 as decided. `Range` keeps `paragraph` and `start` and gains `endParagraph`, the paragraph holding `end`, which is
+`paragraph` itself for a range within one paragraph. Nothing changes for such a range: every one this package made
+before is one. A range across paragraphs is made by `expandTo` or by a view (section 9.2), never by a caller's
+constructor call (an internal one: its two paragraphs are in one story, the second after the first).
+
+- **The story** (`story.mts`): `storyOf(p)` is the outermost array of block content above a paragraph. A text box's
+  `w:txbxContent` and a kept `mc:AlternateContent`'s unread branch are stories of their own (out of scope, section
+  3). `storyLayout` is that story's text in `body.text`'s form, with where each paragraph's text stands in it.
+  `Body.text` is now that layout's text, its last mark dropped: one walk for both, and the sweep (section 9.5) found
+  the text the same in every file.
+- **`text`** is the layout's slice between the two ends: a mark `\r` between paragraphs, a table's cells a `\t`
+  apart and its rows ended `\r\n`, a note reference `\u0002`, hidden text left out.
+  - With `mark` (a 'Whole' range), the last paragraph's mark follows, `markText` (`\r`, or `\t` for a cell's last),
+    as check 51 measured a cell's body's whole range (`CELLP1\rCELLP2\rCELLP3\t`, `OTHER\t`).
+  - Or `endMark` in its place: a table's 'Whole' range ends `\r\n`, as Word gave it (check 52 case 1).
+- **`paragraphs`** are every paragraph between the ends in the layout, a table's cells' among them. **`isEmpty`** is
+  `text === ''`.
+- **`style` and `styleBuiltIn`** (the latter new on `Range`), as checks 52 and 53 measured them.
+  - A range holding its paragraphs whole reads their paragraph style where they share one, else `Normal`.
+  - Any other range reads its runs' character style where they share one (`Emphasis`), and `''` (`Other`) where
+    their character styles differ (a footnote reference among plain text, an Emphasis run among plain ones); with
+    no character style, the paragraph style as above.
+  - This holds within one paragraph too, which until check 53 read its paragraph's style.
+  - Word's other `Other`, a paragraph after a nested table in a cell whose style isn't Normal, is not followed
+    (section 9.7).
+- **`font`** across paragraphs is a `MixedFont`: each run read in its own paragraph, through its own `w:pPr` and
+  cell context. A property where the runs differ reads `null`; `''` for the name, the colour and the highlight;
+  and `Mixed` for the underline, as Office JS's do (checks 52 and 53; their types say `boolean` too).
+  - A range within one paragraph reads its first run, as CR-002 decided. Office JS reads `null` there too, but
+    changing that is CR-002's and not proposed here (section 9.4 counts the difference).
+- **`search`** goes a paragraph at a time, the first from `start` and the last to `end`. `^p` is phase 3's.
+- **`getTrackedChanges()`** across paragraphs filters the story's listing by overlap, rather than taking each
+  paragraph's listing. A paragraph's listing cuts a change at its edges (`HEAD1B\r` where Word has
+  `HEAD1B\rBODY1A `); the story's groups it as Word does.
+  - A range within one paragraph keeps the paragraph's listing. Its overlap test now handles a change whose range
+    starts or ends in another paragraph.
+- **`getComments()`** is each paragraph's, deduplicated.
+- **`getRange`** gains `'After'`, as check 52 measured:
+  - 'Whole' is the range itself, not widened;
+  - 'Content' is the same without a last mark;
+  - 'Start' and 'End' are collapsed at the two ends;
+  - 'After' is collapsed after the end, at the next paragraph's start where the range holds its last mark.
+- **`expandTo(range)`** (new): from whichever start comes first to whichever end comes last, a mark-holding end
+  counting as later. It refuses two ranges in different stories with Office JS's `ItemNotFound` (check 53).
+- **`tables`** (new) are the tables the range covers some of; a range inside one cell looks at that cell's tables
+  instead (check 52: a range across a table, or into or out of one, lists it; a cell's whole range lists none).
+- **`contentControls`** (new) are the controls the range overlaps, except one holding the whole range (check 53).
+  So a range from a paragraph into a control lists it, one inside a control doesn't, and one over an inline control
+  lists it. **`parentTableCell`** and **`parentTable`** (new) are its start's.
+- **`hyperlink`** reads the first link among its paragraphs.
+- **Every write refuses** with `NotSupportedError` naming phase 2, before anything changes: `text`, `insertText`,
+  `insertParagraph`, `insertOoxml`, `delete`, `replaceText`, `insertComment`, `insertContentControl`, `hyperlink`,
+  `style`, `styleId` and `font`. So does `getOoxml` through the shim, and `toApiScript`, whose one `w:p` can't hold
+  several blocks.
+- `Paragraph.tableNestingLevel` is new (Office JS's), counted through `parentTableCell`.
+
+### 9.2 The views
+
+- **`ContentControl.getRange()`** of a block, row or cell control is one `Range` from its first paragraph's start to
+  its last's end, 'Whole' with the last mark. `SpanningRange` (CR-012 section 17.12, never released) is gone; its
+  reads are `Range`'s, and its writes refuse as before.
+  - A row-level control, or one whose content ends with a table: 'Content' ends with the last cell's text, and
+    'Whole' with `\t\t`, as Word 365 gives them (check 53). Its `text` leaves out that last row's end, and a row
+    control's text has its cells a `\t` apart.
+- **`Comment.getRange()`** is one `Range` (D2), `undefined` when the comment has no markers in the body. Check 52
+  case 1's comment reads `BODY1B\rLIST1A`, as Word's does.
+  - A start marker between blocks (Word writes one at a control's content's start, case 82) starts at the next
+    paragraph; an end marker between blocks ends at the previous paragraph's end.
+  - **`getRanges()`** is the per-paragraph array `getRange()` was. Its answers are the same in all 806 files of the
+    sweep; the tests that indexed `getRange()` now call it.
+- **`TrackedChange.getRange()`** of a group runs from its first piece to its last, across paragraphs.
+  - A paragraph mark ends its own paragraph's range, holding the mark. So an inserted paragraph's range reads
+    `…first.\r` in that paragraph alone, as the change's own text does (check 53, case 29). Until now it was the
+    group's part in its first paragraph.
+  - A deletion is collapsed where it starts, as Word's default view reads it (check 53: `''` in Simple Markup).
+  - A lone mark change is the mark: an inserted mark `\r`, a deleted one collapsed at its paragraph's end
+    (check 53). Until now it was its paragraph's whole range.
+- **`Body.getRange()`** (new): 'Whole' from the first paragraph to the last, with its mark (check 51: a cell's
+  `…CELLP3\t`, a footnote's `… NOTEP2\r`); 'Content' without it; 'Start' and 'End' collapsed.
+- **`Table.getRange()`** (new): 'Whole' ending `\r\n` (check 52 case 1); 'Start' and 'End' collapsed; 'After' at
+  the next paragraph.
+- `test/office-js-subset.ts` lists the new members, so `Word.supported` names them.
+
+### 9.3 The shim
+
+Phase 1's test runs check 52's own snippet through the shim (section 9.4), which needed four things of it:
+- a `ClientResult` holding a collection (`range.getComments()`, asynchronous here) has `load()` and `items`, so that
+  Office JS code's `load`, `context.sync()`, `items` reads it;
+- a collection of content controls has `getByTag` and `getByTitle`, as Office JS's has;
+- an Array method on a collection (`map`, `filter`) gives what it gives. Before, an empty result became a collection
+  that `JSON.stringify` threw on;
+- the package's null `ListItem` takes `load()`, which Office JS code calls before reading `isNullObject`.
+
+The snippet gained a `reads` mode: each kind's reads alone, nothing written.
+
+### 9.4 Held to Word 365
+
+`test/ranges.test.mjs`, five tests (ten in all with phase 0's):
+- **The reads.** `CHECK52.runCheck(…, 'reads')` through the shim, on `check52Bytes`, against Word's run JSON. All 16
+  kinds agree in every field (`text`, `isEmpty`, `style`, `font`, each `getRange`, `paragraphs`, `tables`, `swapped`)
+  with two exceptions. `marks`, the `^p` hits, are phase 3's: none here yet. And TC2's style is Word's `Other`,
+  asserted as it stands; FN's `Other` follows since check 53 (section 9.7).
+- **The report on Word's save after Accept All.** Through the shim, against Word's report after Accept All: each
+  region's `text`, paragraphs (text, style, alignment, table nesting, list), tables (values, whole range), tracked
+  changes, comments (content and range) and content controls agree, region for region, with these exceptions:
+  - `footnotes`: `Range.footnotes` is not implemented;
+  - the bold cases' paragraphs: `getTextRanges` is not implemented;
+  - a list paragraph after a nested table in a cell (cases 89, 91, 94): Word's `Other` again;
+  - **cases 13 and 26**: Word, emptying a control, marks it `w:showingPlcHdr` over a run of five spaces. Office JS
+    reads that as no text, in the paragraph and the control alike, where this package reads the spaces. That is the
+    text reader's (CR-012), recorded here, not changed;
+  - paragraph `font`, not compared: a paragraph reads its first run (CR-002). Of 1,269 reads, 40 differ from Word's:
+    39 where Word reads `null` or `Mixed`, and one empty heading (case 60) where Word reads the mark's run properties
+    (`w:b w:val="0"`) and this package the style's bold.
+- **The spanning views on Word's save after the run.** The tracked changes each region's range lists agree with
+  Word's in 19 regions, case 1's deletion and insertion through a mark among them (a deletion compared by its type,
+  since Word's text was All Markup's). The other 11 differ by the listing's own grouping, CR-002's, asserted as they
+  stand:
+  - after a tracked `Replace` (8 cases), Office JS lists the insertion alone, where this package lists the deletion
+    the markup holds too;
+  - Word lists formatting across a table's cells as one change (cases 54, 55), this package a run at a time;
+  - Word lists a tracked table insertion at a cell's end as one change (case 87), where this package lists the mark.
+- **The API itself:** a range across paragraphs from `expandTo` (text, paragraphs, each `getRange`, the mixed font,
+  `search`, every write refused with the text unchanged, a range ending at a mark, two stories refused), and the
+  views (a block control, a comment and `getRanges()`, a tracked insertion through a mark, a table's and a cell's
+  and the body's range, `tables`, `tableNestingLevel`).
+
+### 9.5 Before and after
+
+A sweep of the 806 `.docx` here, in docx4j's test resources and in the editor's, before (`96f735b`) and after.
+**Unchanged** in every file:
+- `Body.text`;
+- each paragraph's text and whole range;
+- each cell's text;
+- `Comment.getRanges()` (the old `getRange()`);
+- each paragraph's range's tracked-change count.
+
+The same four files throw before and after. **Changed, as intended:**
+- **24 control ranges in 22 files.** 18 row-level controls now range over their row. 6 block controls ending with
+  a table now end as section 9.7 says, where `SpanningRange`'s 'Whole' had `\r\n\t`.
+- **59 comment ranges in 47 files.** A comment across paragraphs reads `\r` where `getRanges()` has pieces.
+  `invoice.docx`'s comment, whose markers stand between blocks, has a range at all.
+- **132 tracked-change ranges in 78 files**: groups across paragraphs and groups with a mark, as section 9.2 says.
+  These counts are from before check 53. Section 9.7 has the counts after it, which moved lone marks and deletions
+  too.
+
+### 9.6 The audit, and what phase 1 leaves
+
+Section 7's offsets audit found each place that took a `Range` as one paragraph's:
+- `Range.getTrackedChanges`'s overlap test, which now handles a change across paragraphs;
+- `commentsOf` and `insertComment`, which are given a paragraph's piece, or refuse;
+- `paragraphElementOfRange` (`toApiScript`, the shim's `getOoxml`), which refuses.
+
+`TrackedChange.getRange` (section 9.2) is a view, not a consumer.
+
+Left for later:
+- the writes (phase 2);
+- `^p` and comments and controls inserted on such a range (phase 3);
+- `Range.footnotes` and `Paragraph.getTextRanges`;
+- a single-paragraph `font` reading `null` where runs differ (CR-002's);
+- a lone mark change's range;
+- the listing's grouping where Word's differs (section 9.4);
+- Word's empty reading of a control showing its placeholder (CR-012's).
+
+### 9.7 Check 53: the choices measured (2026-10-22)
+
+Jason asked to measure in Word every choice section 9 made where Word was not measured ("let's measure in Word the
+Choices you made where Word wasn't measured"). Check 53 (`test/README.md`) is read only: 35 cases, run on Word 365
+(16.0.20326.20232) once in Simple Markup and once in All Markup. The JSONs are
+`test/fixtures/check53/53-reads-word365-simple.json` and `-all.json`; the second run's label was left at Simple
+Markup, but the file is the All Markup run, and it differs from the first exactly where the view matters.
+
+**Confirmed:**
+- A range across paragraphs of differing paragraph styles reads `Normal`, and of one style, that style (cases 1–3).
+- A table's 'Start', 'End' and 'After' ranges (case 22).
+- A cell control's ranges (case 18), a cell body's ranges and the tables they list, a nested table among them
+  (case 23), and none from inside a nested table's cell (case 24).
+- A range over an inline control lists it (case 21).
+- An insertion through a mark (case 26) and a whole inserted paragraph's text (case 29).
+
+**Changed to Word's answer:**
+- **The style rule** (section 9.1). Word reads a partial range's runs' character style (`Emphasis`, case 7), and
+  `Other` where they differ (case 8, and case 5's footnote reference, which explains check 52's FN). A range
+  holding its paragraphs whole reads the paragraph style, even across a footnote reference (case 6).
+- **`MixedFont`**: a colour or highlight where runs differ reads `''`, not `null` (cases 1 and 31).
+- **Controls**:
+  - a row control's text is its cells a `\t` apart (case 15);
+  - a row control's, or a table-ending control's, 'Content' has no row end and 'Whole' ends `\t\t` (cases 15 to
+    17), where section 9.2 had guessed `\r\n`;
+  - their text leaves out the last row's end.
+- **`contentControls`**: a range into a control lists it, and one inside a control doesn't (cases 19 and 20). The
+  rule had been the controls the range holds whole.
+- **Tracked changes** (section 9.2): a deletion's range is empty in Simple Markup (cases 25, 28 and 30), where it
+  had become `\r`. An inserted mark is `\r` in its own paragraph (cases 26, 27 and 29). A lone mark's range is no
+  longer the paragraph.
+- **`expandTo`** across stories throws with Office JS's code, `ItemNotFound` (case 32).
+- **`Range.parentTable`** is new, which the snippet's case 22 reads.
+
+**Differences left, each outside phase 1.** `ranges.test.mjs` asserts each:
+- **A single paragraph's `font`** reads its first run (CR-002; cases 8 and 31), where Office JS reads `null` or `''`
+  where the runs differ.
+- **Word's `Other` for a paragraph after a nested table in a cell** whose style isn't Normal (cases 10 and 12, as
+  check 52's TC2). A paragraph before one, or a Normal one after, reads its style (cases 11 and 14). Not followed:
+  it hides the style the paragraph has. Recorded as an intentional departure in CR-002 section 57 (Jason,
+  2026-10-22).
+- **The tracked changes in Simple Markup:**
+  - a change's text here is docx4j's, which is All Markup's (`HEAD25B\rBODY25A `), where Simple Markup reads a
+    deletion's text as `''`;
+  - Word joins the paragraphs a deleted mark ends, so its collapsed deletion touches two paragraphs (case 25);
+  - Word's paragraph listing gives each paragraph its part of a change (case 25's second paragraph lists
+    `BODY25A `), and a wholly deleted paragraph none (case 30).
+
+  The listing is CR-002's; the joined paragraphs are the readers' (CR-012).
+- **`Body.text` in Simple Markup** (case 33) joins the paragraphs at a deleted mark, leaves a deleted paragraph out,
+  and reads a control showing its placeholder as empty: 40 characters fewer than this package's here. This is
+  CR-012's readers.
+- **A control showing its placeholder** (cases 34 and 35): Word's text, its paragraph's and the control's, is `''`
+  for Word's own placeholder text as for check 52's five spaces, and `placeholderText` reads `null`. This package
+  reads the placeholder's text (CR-012's readers); `showingPlaceholderText` is not implemented.
+- **`font.color`**: an automatic colour reads `#000000` in Word and `''` here. A theme colour resolves differently:
+  Heading 1's reads `#0F4761` in Word and `#365F91` here. Both are `Font`'s (CR-002 and CR-008), outside the
+  comparison except where colours differ across paragraphs, which agrees.
+
+**Before and after, again** (section 9.5's 806 files plus check 53's): control and comment ranges as there, and 472
+tracked-change ranges in 223 files:
+- 213 lone inserted marks read `\r` where they read their paragraph;
+- 198 deletions read `''` where they read their paragraph (a lone deleted mark's) or `\r`;
+- 60 insertions read exactly the change's text;
+- one formatting change.
+
+Nothing new throws.

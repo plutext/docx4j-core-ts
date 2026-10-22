@@ -10,6 +10,7 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { type Element, type Located, type RevisionKind, typeNameOf, runItemsOf, revisionKindOf, linkParents, segmentsOf, textOfView, cellsOf, rowsOf, childrenOf, W_NS, itemTextOf, selectedBranchOf, branchesOf, BRANCH_TYPES, ALTERNATE_CONTENT } from './tree.mjs';
 import { removeMarkers } from './comments.mjs';
 import { Range } from './Range.mjs';
+import { storyLayout, storyOf as storyOfParagraph } from './story.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { Body } from './Body.mjs';
 import { rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
@@ -265,10 +266,48 @@ export class TrackedChange {
       return new Range(p, start, end);
     }
     if (t.kind === 'group') {
-      // a range is one paragraph's: the group's text in the paragraph it starts in
-      const here = t.pieces.filter((piece) => (piece.target.kind === 'run' || piece.target.kind === 'runProperties' || piece.target.kind === 'field') && piece.paragraph?.element === p.element).map((piece) => piece.getRange()!);
-      if (here.length === 0) return t.pieces[0]!.getRange();
-      return new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
+      // the group from where its first piece starts to where its last ends, across paragraphs where its pieces are
+      // in several (CR-014 phase 1; check 52: an insertion through a paragraph's mark is one change whose range
+      // spans both paragraphs). A mark ends its own paragraph's range (check 53: an inserted paragraph's range is
+      // that paragraph, its mark included). A deletion is collapsed where it starts, its text no longer in the
+      // accepted view, as Word's default view reads it (check 53). Until then a group's range was its part in the
+      // paragraph it starts in.
+      const ranges = t.pieces.filter((piece) => piece.target.kind === 'run' || piece.target.kind === 'runProperties' || piece.target.kind === 'field')
+        .map((piece) => piece.getRange()).filter((r): r is Range => r !== undefined);
+      const marks = t.pieces.filter((piece) => piece.target.kind === 'mark' && piece.paragraph !== undefined).map((piece) => piece.paragraph!);
+      if (ranges.length === 0 && marks.length === 0) return t.pieces[0]!.getRange();
+      // within one paragraph, as most groups are: no story to lay out
+      if (marks.length === 0 && ranges.every((r) => r.paragraph.element === ranges[0]!.paragraph.element && !r.spansParagraphs)) {
+        return new Range(ranges[0]!.paragraph, Math.min(...ranges.map((r) => r.start)), Math.max(...ranges.map((r) => r.end)));
+      }
+      const layout = storyLayout(storyOfParagraph(p.p).items, (element, container) => p.viewOf(element, container).text);
+      const at = (paragraph: Paragraph, offset: number): number => {
+        const i = layout.indexOf(paragraph.p);
+        return i < 0 ? Number.NaN : layout.paragraphs[i]!.start + offset;
+      };
+      // each piece's span in the story's text; a mark's is its paragraph's end, holding the mark
+      const spans: { start: number; end: number; mark?: Paragraph }[] = ranges.map((r) => ({ start: at(r.paragraph, r.start), end: at(r.endParagraph, r.end) }));
+      for (const paragraph of marks) spans.push({ start: at(paragraph, paragraph.text.length), end: at(paragraph, paragraph.text.length), mark: paragraph });
+      if (spans.some((span) => Number.isNaN(span.start) || Number.isNaN(span.end))) {
+        const here = ranges.filter((r) => r.paragraph.element === p.element);
+        return here.length === 0 ? ranges[0] ?? t.pieces[0]!.getRange()
+          : new Range(p, Math.min(...here.map((r) => r.start)), Math.max(...here.map((r) => r.end)));
+      }
+      const from = Math.min(...spans.map((span) => span.start));
+      const first = layout.paragraphs.find((sp) => sp.start <= from && from <= sp.end)!;
+      const view = (sp: typeof first): Paragraph => (sp.element === p.element ? p : p.viewOf(sp.element, sp.container));
+      if (this.type === 'Deleted') return new Range(view(first), from - first.start, from - first.start);
+      // the last end, a mark's after text ending at the same place
+      const last = spans.reduce((a, b) => (b.end > a.end || (b.end === a.end && b.mark !== undefined) ? b : a));
+      const lastParagraph = layout.paragraphs.find((sp) => sp.start <= last.end && last.end <= sp.end && (last.mark === undefined || sp.element === last.mark.element))!;
+      return new Range(view(first), from - first.start, last.end - lastParagraph.start, false, last.mark !== undefined,
+        lastParagraph === first ? undefined : view(lastParagraph));
+    }
+    if (t.kind === 'mark') {
+      // a paragraph's mark alone: inserted, the mark (check 53: \r); deleted, collapsed at the paragraph's end,
+      // as Word's default view reads it. Until CR-014 phase 1 it was the paragraph's whole range
+      const length = p.text.length;
+      return new Range(p, length, length, false, t.mark === 'ins');
     }
     if (t.kind === 'field') {
       const [start] = spanOf(p, t.span[0]!);

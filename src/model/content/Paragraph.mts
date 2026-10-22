@@ -108,6 +108,26 @@ export class Paragraph {
     return this.element.value;
   }
 
+  /** @internal A view of another paragraph of this one's body, for a `Range` across paragraphs (CR-014). */
+  viewOf(element: Element<wml.P>, container: Element[]): Paragraph {
+    return new Paragraph(element, container, this.parentBody);
+  }
+
+  /**
+   * @internal A range from this paragraph's start to the end of `last`, a later paragraph of the same story, with
+   * `last`'s mark where `mark` is set, or `endMark` in its place (CR-014 phase 1).
+   */
+  rangeTo(last: Paragraph, mark: boolean, endMark?: string): Range {
+    return new Range(this, 0, last.text.length, true, mark, last.element === this.element ? undefined : last, endMark);
+  }
+
+  /** How many tables deep the paragraph is: 0 outside a table, 1 in a cell, 2 in a nested table's (Office JS `tableNestingLevel`). */
+  get tableNestingLevel(): number {
+    let level = 0;
+    for (let cell = this.parentTableCell; cell; cell = cell.parentTable.parentTableCell) level++;
+    return level;
+  }
+
   get index(): number {
     return this.container.indexOf(this.element);
   }

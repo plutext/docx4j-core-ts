@@ -139,7 +139,8 @@ test("the Office JS readers take the selected branch at block, row and cell leve
   assert.deepEqual((await office('mc-row-newest-first.docx')).tables, [{ values: [['I prefer', 'below'], ['row', 'w16sdtfl']], rows: 2, cells: [[['I prefer'], ['below']], [['row'], ['w16sdtfl']]] }]);
   assert.deepEqual((await office('mc-cell-newest-first.docx')).tables, [{ values: [['I prefer', 'w16sdtfl']], rows: 1, cells: [[['I prefer'], ['w16sdtfl']]] }]);
   assert.deepEqual((await office('mc-tc-block-newest-first.docx')).tables[0].values, [['I prefer', 'w16sdtfl']]);
-  assert.deepEqual((await office('mc-sdt-row-newest-first.docx')).controls, [['Row', 'row\rw16sdtfl']]);
+  // a row control's text is its cells a \t apart, as Word 365 reads one (check 53, case 15; CR-014 section 9.7)
+  assert.deepEqual((await office('mc-sdt-row-newest-first.docx')).controls, [['Row', 'row\tw16sdtfl']]);
   assert.deepEqual((await office('mc-mixed.docx')).paragraphs, ['Mixed test', 'sdt run: SDTRUN_W14', 'hyperlink: HLINK_W14', 'in p: INP_W14', 'BODY_W14']);
   assert.deepEqual((await office('mc-block-newest-first.docx')).search, ['body/2/0']);
   assert.deepEqual((await office('mc-cell-newest-first.docx')).search, ['body/1/0/1/0/0']);
@@ -351,7 +352,7 @@ test("the table context counts a branch's rows, and a comment in a branch is lis
   body = await pkg.getBody();
   const [comment] = await body.getComments();
   assert.equal(comment.content, 'on the branch');
-  assert.deepEqual(comment.getRange().map((r) => [body.addressOf(r.paragraphs[0]), r.text]), [['body/1/0', 'anchored']]);
+  assert.deepEqual(comment.getRanges().map((r) => [body.addressOf(r.paragraphs[0]), r.text]), [['body/1/0', 'anchored']]);
   await comment.delete();
   const saved = await documentXml(pkg);
   assert.ok(!/comment(RangeStart|RangeEnd|Reference)/.test(saved), 'the markers gone from every branch');

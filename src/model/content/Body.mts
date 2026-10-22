@@ -27,6 +27,7 @@ import type { Bound } from './binder.mjs';
  */
 export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentControl | Range | Bound;
 import { commentApi } from './comments.mjs';
+import { storyLayout } from './story.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
 import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderInsertionAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
@@ -312,40 +313,29 @@ export class Body {
     return this.textIn(options?.view ?? 'accepted');
   }
 
+  /**
+   * The body's range (Office JS `Body.getRange`; CR-014 phase 1): 'Whole' from its first paragraph's start to
+   * its last one's end, with that paragraph's mark (check 51: a cell's `CELLP1\rCELLP2\rCELLP3\t`, a note's
+   * `… NOTEP2\r`), 'Content' the same without the mark, 'Start' and 'End' collapsed at its ends.
+   */
+  getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
+    const paragraphs = this.paragraphs;
+    const first = paragraphs[0];
+    if (!first) throw new Docx4JException('This body holds no paragraph');
+    const last = paragraphs[paragraphs.length - 1]!;
+    if (location === 'Start') return first.getRange('Start');
+    if (location === 'End') return last.getRange('End');
+    if (paragraphs.length === 1) return first.getRange(location);
+    return new Range(first, 0, last.text.length, true, location === 'Whole', last);
+  }
+
   private textIn(view: TextView): string {
-    // pieces, each paragraph's text then its mark, so that a cell's last mark becomes its end without
-    // copying the text before it
-    const pieces: string[] = [];
-    const visit = (items: Element[]): void => {
-      for (const el of items) {
-        const tn = typeNameOf(el);
-        if (tn === 'org_docx4j_wml.P') {
-          const p = new Paragraph(el as Element<wml.P>, items, this);
-          pieces.push(view === 'original' ? p.getText({ view }) : p.text, '\r');
-          continue;
-        }
-        const v = el.value;
-        if (typeof v !== 'object' || v === null) continue;
-        if (tn === 'org_docx4j_wml.Tbl') {
-          // Word's default view: the cells a tab apart, the row ended by \r\n (checks 30, 31 and 51; check
-          // 48's \t after every cell and row was All Markup's, with hidden text shown)
-          for (const row of rowsOf(v, 'read')) {
-            cellsOf(row.element.value, 'read').forEach((cell, i) => {
-              if (i > 0) pieces.push('\t');
-              visit(childrenOf(cell.element.value) ?? []);
-              if (pieces[pieces.length - 1] === '\r') pieces.pop();
-            });
-            pieces.push('\r\n');
-          }
-          continue;
-        }
-        const children = childrenOf(v, 'read');
-        if (children) visit(children);
-      }
-    };
-    visit(this.content);
-    if (pieces[pieces.length - 1] === '\r') pieces.pop();
-    return pieces.join('');
+    const { text } = storyLayout(this.content, (el, items) => {
+      const p = new Paragraph(el, items, this);
+      return view === 'original' ? p.getText({ view }) : p.text;
+    });
+    // the last paragraph's mark is not written
+    return text.endsWith('\r') ? text.slice(0, -1) : text;
   }
 
   /** The package's change tracker while `changeTrackingMode` is on; undefined when it is off (CR-002 phase F). */

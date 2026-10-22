@@ -120,8 +120,8 @@ test("check 51's file: cells, controls, comments and notes of several paragraphs
   assert.equal(block.text, unescape(word.contentControls[0].text));
   assert.deepEqual(inline.text, unescape(word.contentControls[1].text));
   assert.deepEqual([inline.getRange('Whole').text, inline.getRange('Content').text], [word.contentControls[1].whole, word.contentControls[1].content]);
-  // a block control of several paragraphs: its range reads as Office JS's, all of them (a SpanningRange), and
-  // refuses every write, since a Range here is one paragraph's until CR-014 (CR-012 section 17.12)
+  // a block control of several paragraphs: its range reads as Office JS's, all of them, one Range across them
+  // (CR-014 phase 1; CR-012 section 17.12's SpanningRange until then), which refuses every write until phase 2
   const range = block.getRange();
   assert.deepEqual([range.text, block.getRange('Content').text], [unescape(word.contentControls[0].whole), unescape(word.contentControls[0].content)]);
   assert.deepEqual(range.paragraphs.map((p) => p.text), word.contentControls[0].paragraphs);

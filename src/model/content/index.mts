@@ -1,7 +1,7 @@
 // The content API (CR-002 phases B, C, D, F and G): Office JS shapes over the docx4j tree.
 export { Body, type Address, type BlockElement, type Outline, type OutlineParagraph, type OutlineTable } from './Body.mjs';
 export { Paragraph, type Alignment } from './Paragraph.mjs';
-export { Range, SpanningRange } from './Range.mjs';
+export { Range } from './Range.mjs';
 export { BUILT_IN_STYLES, builtInOf, idOfBuiltIn, displayNameOf, styleNameOf, styleIdOf, type BuiltInStyle } from './styles.mjs';
 export { Comment, addCommentEntry } from './Comment.mjs';
 // lists (CR-002 phase H)

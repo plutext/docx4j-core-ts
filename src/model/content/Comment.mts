@@ -12,6 +12,7 @@ import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, selectedBranchOf, BRANCH_TYPES, type Element, type TextSegment } from './tree.mjs';
+import { storyLayout } from './story.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { revisionDateOf, wordCalendarOf, copyRPr } from './tracking.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
@@ -172,10 +173,52 @@ export class Comment {
   }
 
   /**
-   * The commented range: a `Range` per paragraph the comment touches (extension; Office JS
-   * returns one `Range`). Empty when the comment has no markers in this body.
+   * The commented range: one `Range` from the comment's start to its end, across paragraphs where the comment
+   * spans them, as Office JS's `Comment.getRange()` (CR-014 phase 1, D2; check 52: a comment from one paragraph
+   * into the next reads `BODY1B\rLIST1A`). A start marker between blocks (Word writes one before a control's
+   * first paragraph) starts the range at the next paragraph, and an end marker between blocks ends it at the
+   * previous one's end. Undefined when the comment has no markers in this body. `getRanges()` gives the range a
+   * paragraph at a time, as this method did before.
    */
-  getRange(): Range[] {
+  getRange(): Range | undefined {
+    const markers = markersOf(this.body.container, (p) => this.body.hiddenRuns(p)).filter((m) => m.id === this.id);
+    const start = markers.find((m) => m.kind === 'start');
+    const end = [...markers].reverse().find((m) => m.kind === 'end');
+    const from = start && this.anchor(start, 'start');
+    const to = end && this.anchor(end, 'end');
+    if (!from || !to) return this.getRanges()[0];
+    const paragraphs = this.body.paragraphs;
+    const a = paragraphs.findIndex((p) => p.element === from.paragraph.element);
+    const b = paragraphs.findIndex((p) => p.element === to.paragraph.element);
+    if (a < 0 || b < 0 || b < a || (a === b && to.offset < from.offset)) return this.getRanges()[0];
+    return a === b ? new Range(from.paragraph, from.offset, to.offset)
+      : new Range(from.paragraph, from.offset, to.offset, false, false, to.paragraph);
+  }
+
+  /** Where a range marker stands: its paragraph and offset, a block-level one's the next or the previous paragraph's edge. */
+  private anchor(marker: CommentMarker, side: 'start' | 'end'): { paragraph: Paragraph; offset: number } | undefined {
+    if (marker.paragraph && marker.paragraphContainer) {
+      const paragraph = new Paragraph(marker.paragraph, marker.paragraphContainer, this.body);
+      return { paragraph, offset: marker.offset ?? (side === 'start' ? 0 : paragraph.text.length) };
+    }
+    const at = marker.owner.indexOf(marker.item);
+    if (at < 0) return undefined;
+    const blocks = side === 'start' ? marker.owner.slice(at + 1) : marker.owner.slice(0, at).reverse();
+    for (const block of blocks) {
+      const found = storyLayout([block], () => '').paragraphs;
+      const sp = side === 'start' ? found[0] : found[found.length - 1];
+      if (!sp) continue;
+      const paragraph = new Paragraph(sp.element, sp.container, this.body);
+      return { paragraph, offset: side === 'start' ? 0 : paragraph.text.length };
+    }
+    return undefined;
+  }
+
+  /**
+   * The commented range a paragraph at a time: a `Range` per paragraph the comment touches (extension; what
+   * `getRange()` returned until CR-014 phase 1). Empty when the comment has no markers in this body.
+   */
+  getRanges(): Range[] {
     const markers = markersOf(this.body.container, (p) => this.body.hiddenRuns(p)).filter((m) => m.id === this.id && m.paragraph !== undefined);
     if (markers.length === 0) return [];
     const paragraphs = this.body.paragraphs;

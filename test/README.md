@@ -3777,7 +3777,8 @@ async function check() {
      - **This package since** (CR-012 sections 17.11 and 17.12): every paragraph and whole range, `body.text`,
        the cell, the controls' text and ranges, the comment and the notes read as Word's. The block control's
        range is a `SpanningRange`: all of its text, its writes refused until CR-014 makes a `Range` span
-       paragraphs. `readers.test.mjs` holds them all to the JSON.
+       paragraphs. `readers.test.mjs` holds them all to the JSON. *Since CR-014 phase 1 it is one `Range` across the
+       paragraphs, reading the same, its writes refused until phase 2.*
 
    The Script Lab snippet for 51 (Word, Office JS, WordApi 1.5), on `__tmp/51/51-text.docx`. The HTML tab:
 
@@ -3970,9 +3971,13 @@ async function check() {
      (content, range), content controls and footnotes. `result-accepted.txt` holds the regions only. A step Office JS
      refuses reads `error: <code>` in place of its value. Every character outside printable ASCII is written
      `\uXXXX`.
-   - **What this package gives:** nothing to compare yet, since a `Range` here is one paragraph's and there is no
-     `expandTo`. Phase 1's test is to run the same snippet (`CHECK52.runCheck`) through the Word shim on
-     `check52Bytes` and compare it with Word's JSON, case for case. Until then `ranges.test.mjs` holds the file and the
+   - **What this package gives:** since CR-014 phase 1 (2026-10-22), the reads. `ranges.test.mjs` runs the same
+     snippet (`CHECK52.runCheck`, its `reads` and `report` modes) through the Word shim, on `check52Bytes` and on
+     Word's saves, and holds it to Word's JSON case for case. The differences that remain are asserted as they stand
+     (CR-014 section 9.4): `^p` (phase 3), Word's style `Other` in three places, `Range.footnotes` and `getTextRanges`
+     not implemented, a control showing its placeholder, and the tracked-change listing's grouping. When this was
+     written, before phase 1, there was nothing to compare: a `Range` here was one paragraph's and had no
+     `expandTo`. Until then `ranges.test.mjs` holds the file and the
      snippet to each other: each `BEGIN` paragraph parses with the snippet's own parser to the case it was built as,
      and each word the snippet searches for is in the file once. A stand-in for Office JS, where every member exists,
      ran all 95 cases through the snippet with no error in the script (not committed). For CR-002 section 55,
@@ -4089,3 +4094,91 @@ async function check() {
        `fixtures/` the weekly `RevisionsHarness` would cut CR-011 goldens for them. Its `manifest.json` gives each one's
        SHA-1. `ranges.test.mjs` holds this package's `acceptAllRevisions()` on the first to the second, region for
        region.
+
+53. CR-014 phase 1's choices where Word was not measured (CR-014 section 9, 2026-10-22; Jason: "let's measure in Word
+   the Choices you made where Word wasn't measured"). Read only: nothing is changed. The file is `__tmp/53/53-reads.docx`
+   on the share, as `fixtures/check53/build.mjs` writes it (git ignores the `.docx`; `check53Bytes` gives a test the same
+   bytes). The snippet is beside it, `check53-script-lab.html` and `check53-script-lab.js` (WordApi 1.6), copies of
+   `fixtures/check53/`'s. Each of the 35 cases is a region, `BEGIN<n> <op> <words>` then its content then `END<n>`, and
+   the snippet reads what the op names:
+   - **A range's style across paragraphs** (CR-014 section 9.1 reports their shared style, else `Normal`), and where
+     Word's `Other` comes from:
+     - cases 1 to 3: Heading 1 into Heading 2; a centred paragraph into a plain one (both Normal); Heading 1 into
+       Heading 1;
+     - cases 4 to 6: a heading holding a footnote reference, a range before the reference, a range across it, and the
+       paragraph itself;
+     - cases 7 to 9: a run in the Emphasis character style, alone, with plain text, and the plain text alone;
+     - cases 10 to 14: a paragraph after a nested table in a cell (a list item, a plain paragraph, a heading), a list
+       item in a cell with no nested table, and a paragraph before a nested table.
+   - **Content controls' ranges** (section 9.2 ends a row-level control's range, and a control's whose content ends with
+     a table, with `\r\n`): case 15 a row-level control around a table's first row; case 16 a block control of a
+     paragraph and then a table; case 17 a block control holding only a table; case 18 a cell-level control holding
+     two paragraphs. Each control's text, paragraphs, and `Whole`, `Content`, `Start` and `End` ranges.
+   - **The controls a range lists** (section 9.1 lists those whose content the range holds whole): case 19 a range from
+     a paragraph into a block control's first paragraph; case 20 a range inside a control; case 21 a range over a
+     paragraph holding an inline control.
+   - **A table's ranges and the tables a range lists**: case 22 a table's `Whole`, `Start`, `End` and `After` ranges
+     (only `Whole` was measured, in check 52); case 23 a cell's body's ranges, the cell holding a nested table; case 24
+     a range inside a nested table's cell.
+   - **Tracked changes' ranges, in each view** (section 9.2: a deletion through a mark covers the mark, `\r`; a
+     group's range runs from its first piece to its last; a lone mark change's range is its paragraph's): case 25 a
+     deletion through a heading's mark into the next paragraph; case 26 an insertion through a list item's mark; case
+     27 an inserted mark alone; case 28 a deleted mark alone; case 29 a whole inserted paragraph; case 30 a whole
+     deleted paragraph. For each: the region's changes (type, text, range text, how many paragraphs the range
+     touches), and each paragraph's `getTrackedChanges()` and its whole range's.
+   - **Font across runs that differ in colour and highlight** (case 31), **a range across two stories** (case 32: a
+     heading's word `expandTo` a footnote's whole range), and **the body's ranges** (case 33).
+   - **A control showing its placeholder** (cases 34 and 35, CR-012's: check 52 found Word reading an emptied control
+     marked `w:showingPlcHdr` over five spaces as no text): one with Word's own placeholder text in the Placeholder
+     Text style, one with five spaces. Its text, `placeholderText`, its paragraph's text and its whole range.
+   - **Steps, in Word 365 only.** Two runs of the same snippet, one in each view.
+     1. Open `__tmp/53/53-reads.docx`. Say whether Word reports a problem or offers a repair.
+     2. Review > Tracking > Display for Review: choose **Simple Markup**.
+     3. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet), and paste the HTML
+        and Script tabs from the share's `check53-script-lab.html` and `check53-script-lab.js` over the defaults.
+     4. In the snippet's box, leave the label as `Simple Markup`, click **Run the check**, and when it says Done copy
+        the box into a new file `__tmp/53/result-simple.txt`.
+     5. Review > Tracking > Display for Review: choose **All Markup**.
+     6. Change the label to `All Markup`, click **Run the check** again, and copy the box into a new file
+        `__tmp/53/result-all.txt`.
+     7. Close without saving.
+   - **What this package gives:** the same snippet runs through the Word shim on `check53Bytes` (no Word needed), so its
+     answers are compared with Word's case for case when the run is back. Since phase 1, it gives:
+     - Heading 1 into Heading 2 `Normal`, Heading 1 into Heading 1 `Heading 1`; every paragraph after a nested table its
+       own style;
+     - the row control's ranges `ROW15A\tROW15B\r\n`, the cell control's `Whole` `CELL18A\rCELL18B\t`;
+     - the deletion through a mark `\r`, a lone mark's change its paragraph's range (`ONE27A\r`), the inserted
+       paragraph `NEW29A NEW29B\r`;
+     - case 31's colour the first run's (`#FF0000`; a single paragraph's font reads its first run, CR-002);
+     - case 35's text the five spaces.
+
+     `Range.parentTable` (case 22), `Range.footnotes` (case 32) and `ContentControl.showingPlaceholderText` are not
+     implemented here.
+   - **Run 2026-10-22 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), in both views.** The JSONs are
+     `fixtures/check53/53-reads-word365-simple.json` and `53-reads-word365-all.json`. The second run's label was left
+     at `Simple Markup`, but it is the All Markup run: it differs from the first exactly in the tracked changes' text
+     and ranges and in `body.text`'s length. CR-014 section 9.7 has what each case answered. In short:
+     - **A range's style:** a range holding its paragraphs whole reads their style (shared, else `Normal`); a partial
+       range reads its runs' character style (`Emphasis`), `Other` (named `''`) where they differ (a footnote
+       reference among plain runs), and else the paragraph style. A paragraph after a nested table in a cell reads
+       `Other` unless it is Normal (cases 10 and 12).
+     - **Controls:**
+       - a row control's text is its cells a `\t` apart (`ROW15A\tROW15B`);
+       - a row control's, and a control's ending with a table, 'Content' has no row end and 'Whole' ends `\t\t`;
+       - a cell control's 'Whole' ends `\t`;
+       - a range lists the controls it overlaps, not one holding the range.
+     - **Tables:** 'Start', 'End' and 'After' are collapsed at the first cell's start, the last cell's end and the
+       next paragraph.
+     - **Tracked changes** in Simple Markup:
+       - a deletion's text and range read `''`;
+       - an inserted mark's range is `\r` in its own paragraph;
+       - each paragraph lists its part of a change across paragraphs, and a wholly deleted paragraph lists none.
+
+       In All Markup the deleted text is read.
+     - **Other cases:** a colour or highlight differing across runs reads `''`. A range `expandTo` another story throws
+       `ItemNotFound`. A control showing its placeholder reads as empty, Word's own placeholder text or five spaces
+       alike.
+     - **This package since:** `ranges.test.mjs` runs the snippet through the Word shim and holds it to the Simple
+       Markup JSON. The differences left are each listed and explained in the test (a single paragraph's font,
+       Word's `Other` after a nested table, the tracked-change listing and the Simple Markup readers, the placeholder,
+       `Range.footnotes` and `showingPlaceholderText` not implemented).

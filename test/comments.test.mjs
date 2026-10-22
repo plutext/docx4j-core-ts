@@ -31,7 +31,7 @@ test('reads a comment, its author, date and range from a document Word wrote', a
   assert.equal(comment.creationDate.toISOString(), '2026-05-18T23:21:00.000Z');
   assert.equal(comment.resolved, false);
   assert.deepEqual(comment.replies, []);
-  const ranges = comment.getRange();
+  const ranges = comment.getRanges();
   assert.equal(ranges.length, 1);
   assert.ok(ranges[0] instanceof Range);
   assert.equal(ranges[0].text, 'Lorem ipsum…');
@@ -86,7 +86,7 @@ test('insertComment into a new package: markers, the comment, the side parts and
   assert.equal(comment.content, 'Is this right?');
   assert.equal(comment.resolved, false);
   assert.ok(comment.paraId, 'a w14:paraId keys the side entries');
-  assert.deepEqual(comment.getRange().map((r) => r.text), ['comment']);
+  assert.deepEqual(comment.getRanges().map((r) => r.text), ['comment']);
 
   const main = pkg.getMainDocumentPart();
   // the four parts, with their relationships and content types
@@ -121,7 +121,7 @@ test('insertComment into a new package: markers, the comment, the side parts and
   const [reloaded] = await (await back.getBody()).getComments();
   assert.equal(reloaded.content, 'Is this right?');
   assert.equal(reloaded.authorName, 'Ada Lovelace');
-  assert.deepEqual(reloaded.getRange().map((r) => r.text), ['comment']);
+  assert.deepEqual(reloaded.getRanges().map((r) => r.text), ['comment']);
 });
 
 test('reply, resolve and delete: the thread, w15:done and everything removed', async () => {
@@ -243,20 +243,20 @@ test('anchors: an empty range gets its markers and a reference run, as Word writ
   // both markers with nothing between them, then the reference run (CR-002 section 36)
   assert.deepEqual(paragraph.p.content.map((e) => e.name.localPart), ['r', 'commentRangeStart', 'commentRangeEnd', 'r', 'r'], 'the run split at the offset');
   assert.equal(paragraph.p.content[3].value.content[0].name.localPart, 'commentReference');
-  assert.deepEqual(atCaret.getRange().map((r) => [r.start, r.end]), [[5, 5]]);
+  assert.deepEqual(atCaret.getRanges().map((r) => [r.start, r.end]), [[5, 5]]);
   assert.equal(paragraph.text, 'alpha beta');
 
   // in a table cell
   await body.insertXml('<w:tbl><w:tblPr/><w:tblGrid><w:gridCol w:w="4513"/></w:tblGrid><w:tr><w:tc><w:tcPr/><w:p><w:r><w:t>cell text</w:t></w:r></w:p></w:tc></w:tr></w:tbl>', 'End');
   const cell = body.paragraphs.find((p) => p.text === 'cell text');
   const inCell = await cell.insertComment('on a cell');
-  assert.deepEqual(inCell.getRange().map((r) => r.text), ['cell text']);
+  assert.deepEqual(inCell.getRanges().map((r) => r.text), ['cell text']);
 
   // inside a hyperlink: the markers go in the hyperlink's own run list
   const [link] = await body.insertXml('<w:p><w:hyperlink r:id="rIdX"><w:r><w:t>linked text</w:t></w:r></w:hyperlink></w:p>', 'End');
   const inLink = await link.search('linked')[0].insertComment('on a hyperlink');
   assert.deepEqual(link.p.content[0].value.content.map((e) => e.name.localPart), ['commentRangeStart', 'r', 'commentRangeEnd', 'r', 'r']);
-  assert.deepEqual(inLink.getRange().map((r) => r.text), ['linked']);
+  assert.deepEqual(inLink.getRanges().map((r) => r.text), ['linked']);
   assert.deepEqual((await body.getComments()).map((c) => c.content), ['at the caret', 'on a cell', 'on a hyperlink']);
   await inLink.delete();
   assert.deepEqual(link.p.content[0].value.content.map((e) => e.name.localPart), ['r', 'r']);
@@ -380,7 +380,7 @@ test('comments at the same caret nest as Word writes them, the reference runs in
   ]);
   assert.equal(paragraph.text, 'alpha beta');
   assert.deepEqual((await pkg.body.getComments()).map((c) => c.content), ['first', 'second']);
-  assert.deepEqual(second.getRange().map((r) => [r.start, r.end]), [[0, 0]]);
+  assert.deepEqual(second.getRanges().map((r) => [r.start, r.end]), [[0, 0]]);
 });
 
 // CR-002 section 36: the entry for markers the caller placed, as the editor's export does for a
@@ -395,7 +395,7 @@ test('addCommentEntry writes a comment for markers the caller placed', async () 
   assert.equal(comment.id, 7);
   assert.equal(comment.authorName, 'Grace Hopper');
   assert.equal(comment.creationDate.toISOString(), made.toISOString());
-  assert.deepEqual(comment.getRange().map((r) => r.text), ['first', 'second']);
+  assert.deepEqual(comment.getRanges().map((r) => r.text), ['first', 'second']);
   assert.deepEqual((await pkg.body.getComments()).map((c) => c.content), ['across two paragraphs']);
 
   // the id is the caller's, and must be free in the comments part

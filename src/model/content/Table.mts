@@ -50,6 +50,23 @@ export class Table {
     return rowsOf(this.tbl, 'read').map((r) => new TableRow(r.element, r.container, this));
   }
 
+  /**
+   * The table's range (Office JS `Table.getRange`; CR-014 phase 1): 'Whole' from its first cell's start to its
+   * last cell's end, its text the table's in `body.text`'s form, every row ended `\r\n` as Word 365 gives it
+   * (check 52); 'Start' and 'End' collapsed at those two ends, and 'After' at the start of the paragraph after
+   * the table.
+   */
+  getRange(location: 'Whole' | 'Start' | 'End' | 'After' = 'Whole'): Range {
+    const paragraphs = this.rows.flatMap((row) => row.cells.flatMap((cell) => cell.paragraphs));
+    const first = paragraphs[0];
+    if (!first) throw new Docx4JException('This table holds no paragraph');
+    const last = paragraphs[paragraphs.length - 1]!;
+    if (location === 'Start') return first.getRange('Start');
+    if (location === 'End') return last.getRange('End');
+    const whole = first.rangeTo(last, true, '\r\n');
+    return location === 'After' ? whole.getRange('After') : whole;
+  }
+
   /** The text of every cell, row by row (Office JS values). */
   get values(): string[][] {
     return this.rows.map((row) => row.values);

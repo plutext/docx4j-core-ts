@@ -24,7 +24,7 @@ import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, link
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
-import { Range, SpanningRange } from './Range.mjs';
+import { Range } from './Range.mjs';
 import { Table } from './Table.mjs';
 import type { SearchOptions } from './search.mjs';
 
@@ -43,6 +43,9 @@ export type ContentControlAppearance = 'BoundingBox' | 'Tags' | 'Hidden';
 /** The namespaces of the Word 2010 and 2012 content-control properties. */
 export const W14_NS = 'http://schemas.microsoft.com/office/word/2010/wordml';
 export const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
+
+/** What a block, row or cell control's content ends with, for its range's end: a paragraph, a table or a row. */
+const BLOCK_ITEMS = new Set(['org_docx4j_wml.P', 'org_docx4j_wml.Tbl', 'org_docx4j_wml.Tr', 'org_docx4j_wml.Tc']);
 
 /** A subset of Office JS `Word.ContentControl` over a `w:sdt`. A view, as Paragraph is. */
 export class ContentControl {
@@ -112,15 +115,17 @@ export class ContentControl {
   /**
    * The control's text as Office JS gives it (CR-012 phase 4): a run-level control's span of
    * `Paragraph.text`; a block-level one's content as `Body.text` reads it, its paragraphs a mark `\r` apart
-   * (check 51); a row or cell control's paragraphs, `\r` apart too (not measured).
+   * (check 51); a row control's cells a `\t` apart and a cell control's paragraphs `\r` apart (check 53).
    */
   get text(): string {
     if (this.form === 'Run') {
       const span = this.runSpan();
       return span ? span.paragraph.text.substring(span.start, span.end) : '';
     }
-    if (this.form === 'Block') return this.body().text;
-    return this.paragraphs.map((p) => p.text).join('\r');
+    // a row control's cells a \t apart (check 53: ROW15A\tROW15B), a cell control's paragraphs a \r apart; a
+    // control's content ending with a row (a row control, or a table last) leaves the row's end out (check 53)
+    const text = this.body().text;
+    return text.endsWith('\r\n') ? text.slice(0, -2) : text;
   }
 
   /** Every paragraph in the control; for a run-level control, the paragraph it is in. */
@@ -201,8 +206,10 @@ export class ContentControl {
   }
 
   /**
-   * The control's range. For a run-level control, exactly the text it holds; for the other forms,
-   * the first paragraph (departure: a Range here is within one paragraph, CR-002 section 7).
+   * The control's range. For a run-level control, exactly the text it holds; for the other forms, its
+   * paragraphs: one `Range` from the first one's start to the last one's end (CR-014 phase 1), its 'Whole'
+   * ending with the last one's mark, as Office JS's does (check 51: `CCP1\rCCP2\rCCP3\r`, its 'Content'
+   * without the last `\r`).
    */
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     if (this.form === 'Run') {
@@ -218,13 +225,15 @@ export class ContentControl {
     if (!first) throw new Docx4JException('This content control holds no paragraph');
     const last = paragraphs[paragraphs.length - 1]!;
     if (location === 'End') return last.getRange('End');
-    // a block control of several paragraphs: Office JS's range holds them all (check 51), which a Range
-    // here can't, so it is a SpanningRange: all of their text, and every write refused (CR-012 section
-    // 17.12; CR-014). Its 'Whole' ends with the last paragraph's mark, as Office JS's does
-    if (this.form === 'Block' && paragraphs.length > 1 && location !== 'Start') {
-      return new SpanningRange(first, paragraphs, () => this.body().text, location === 'Whole');
+    if (location === 'Start') return first.getRange('Start');
+    // a row-level control, or one whose content ends with a table: 'Content' ends with the last cell's text, as
+    // the control's text does, and 'Whole' with \t\t, as Word 365 gives them (check 53)
+    const lastItem = [...this.content].reverse().find((item) => BLOCK_ITEMS.has(typeNameOf(item) ?? ''));
+    if (this.form === 'Row' || (lastItem !== undefined && typeNameOf(lastItem) === 'org_docx4j_wml.Tbl')) {
+      return location === 'Whole' ? first.rangeTo(last, true, '\t\t') : first.rangeTo(last, false);
     }
-    return first.getRange(location);
+    if (paragraphs.length === 1) return first.getRange(location);
+    return new Range(first, 0, last.text.length, true, location === 'Whole', last);
   }
 
   /** Removes the control; `keepContent` puts what it held in its place, as Office JS. */

@@ -7,12 +7,17 @@ import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Paragraph } from '../model/content/Paragraph.mjs';
 import type { Range } from '../model/content/Range.mjs';
 import type { Element } from '../model/content/tree.mjs';
+import { NotSupportedError } from './errors.mjs';
 
 /**
  * A detached `w:p` holding exactly the range's text, with the runs and their formatting. The
  * paragraph is copied first, so the document is untouched.
  */
 export function paragraphElementOfRange(range: Range): Element<wml.P> {
+  // a range across paragraphs is several blocks, which this one w:p can't hold (CR-014 phase 1 refuses it)
+  if (range.spansParagraphs) {
+    throw new NotSupportedError('Range', 'getOoxml', 'this range spans paragraphs; take its paragraphs one at a time (range.paragraphs) until CR-014 phase 2');
+  }
   const copy = deepCopy(range.paragraph.element) as Element<wml.P>;
   const view = new Paragraph(copy, [copy], range.paragraph.parentBody);
   const length = view.text.length;
