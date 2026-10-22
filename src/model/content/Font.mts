@@ -114,13 +114,13 @@ export interface RunReading {
 }
 
 /**
- * The `Font` of a range across paragraphs (CR-014 phase 1): each run read in its own paragraph, and a property
- * where the runs differ read as Office JS reads it (checks 52 and 53): `null`, `''` for the name, the colour and
- * the highlight, and `Mixed` for the underline. Office JS's own types say `boolean` and `number` there too. Its writes are CR-014 phase 2's; until
- * then `refuse` throws.
+ * The `Font` of a range across paragraphs (CR-014): each run read in its own paragraph, and a property where the
+ * runs differ read as Office JS reads it (checks 52 and 53): `null`, `''` for the name, the colour and the
+ * highlight, and `Mixed` for the underline. Office JS's own types say `boolean` and `number` there too. A write
+ * goes to `write` (phase 2: every run and mark in the range, as Word formats them).
  */
 export class MixedFont extends Font {
-  constructor(private readonly readings: () => RunReading[], private readonly refuse: () => void) {
+  constructor(private readonly readings: () => RunReading[], private readonly write: (opts: RunOptions) => void) {
     super(() => []);
   }
 
@@ -130,38 +130,33 @@ export class MixedFont extends Font {
     return all.every((v) => v === all[0]) ? all[0]! : null;
   }
 
-  private write(): never {
-    this.refuse();
-    throw new Error('unreachable');
-  }
-
   override get bold(): boolean { return this.value('bold') as boolean; }
-  override set bold(_v: boolean) { this.write(); }
+  override set bold(v: boolean) { this.write({ bold: v }); }
   override get italic(): boolean { return this.value('italic') as boolean; }
-  override set italic(_v: boolean) { this.write(); }
+  override set italic(v: boolean) { this.write({ italic: v }); }
   override get underline(): UnderlineType { return (this.value('underline') ?? 'Mixed') as UnderlineType; }
-  override set underline(_v: UnderlineType) { this.write(); }
+  override set underline(v: UnderlineType) { this.write({ underline: v }); }
   override get strikeThrough(): boolean { return this.value('strikeThrough') as boolean; }
-  override set strikeThrough(_v: boolean) { this.write(); }
+  override set strikeThrough(v: boolean) { this.write({ strikeThrough: v }); }
   override get doubleStrikeThrough(): boolean { return this.value('doubleStrikeThrough') as boolean; }
-  override set doubleStrikeThrough(_v: boolean) { this.write(); }
+  override set doubleStrikeThrough(v: boolean) { this.write({ doubleStrikeThrough: v }); }
   override get subscript(): boolean { return this.value('subscript') as boolean; }
-  override set subscript(_v: boolean) { this.write(); }
+  override set subscript(v: boolean) { this.write({ subscript: v }); }
   override get superscript(): boolean { return this.value('superscript') as boolean; }
-  override set superscript(_v: boolean) { this.write(); }
+  override set superscript(v: boolean) { this.write({ superscript: v }); }
   override get name(): string {
     const all = this.readings().map((r) => r.name);
     return all.length > 0 && all.every((n) => n === all[0]) ? all[0]! : '';
   }
-  override set name(_v: string) { this.write(); }
+  override set name(v: string) { this.write({ name: v }); }
   override get size(): number { return this.value('size') as number; }
-  override set size(_v: number) { this.write(); }
+  override set size(v: number) { this.write({ size: v }); }
   override get color(): string { return (this.value('color') ?? '') as string; }
-  override set color(_v: string) { this.write(); }
+  override set color(v: string) { this.write({ color: v }); }
   override get highlightColor(): string | null {
     const all = this.readings().map((r) => r.formatting.highlightColor);
     if (all.length === 0) return null;
     return all.every((v) => v === all[0]) ? all[0]! : '';
   }
-  override set highlightColor(_v: string | null) { this.write(); }
+  override set highlightColor(v: string | null) { this.write({ highlightColor: v }); }
 }

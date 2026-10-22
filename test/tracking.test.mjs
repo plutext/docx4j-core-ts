@@ -2166,9 +2166,14 @@ test('a paragraph deleted under tracking takes its pictures with its text, and a
 test('a range over a paragraph\'s whole content takes its pictures; a span of text takes those strictly inside it', async () => {
   for (const parts of [['a', PIC, 'b'], [PIC, 'ab'], ['ab', PIC], [PIC]]) {
     const pkg = await withPicture(...parts);
-    pkg.body.paragraphs[0].getRange('Whole').delete();
+    pkg.body.paragraphs[0].getRange('Content').delete();
     assert.equal(pkg.body.inlinePictures.length, 0, `untracked, ${parts.length} parts`);
     assert.equal(pkg.body.paragraphs[0].text, '');
+    // the 'Whole' range holds the mark too, so the paragraph goes, its content and pictures with it (CR-014 phase 2, check 52 case 14)
+    const whole = await withPicture(...parts);
+    const count = whole.body.paragraphs.length;
+    whole.body.paragraphs[0].getRange('Whole').delete();
+    assert.deepEqual([whole.body.inlinePictures.length, whole.body.paragraphs.length], [0, count - 1], `untracked, the whole paragraph, ${parts.length} parts`);
     assert.equal(imageParts(await WordprocessingMLPackage.load(await pkg.save())), 0, 'its image goes on save');
     const tracked = tracking(await withPicture(...parts));
     tracked.body.paragraphs[0].getRange('Content').delete();

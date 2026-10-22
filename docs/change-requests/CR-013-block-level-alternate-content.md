@@ -33,7 +33,9 @@ a block container (the body, a cell, a block content control, a header, a note, 
   every kind of content control. Word never writes one: its save resolves the element to the branch it
   read.
 - **docx4j resolves at load by default**, as Word does on open: its `word` mode, the property
-  `docx4j.jaxb.mc.blockLevel`. Its `preserve` mode keeps the element whole. Run and paragraph level are
+  `docx4j.jaxb.mc.onLoad` (enum `McLoadMode`; named `docx4j.jaxb.mc.blockLevel` and `McBlockLevel` until docx4j
+  renamed them on 2026-10-22, before 17.3.4 shipped, the setting covering row and cell level too since its phase 2).
+  Its `preserve` mode keeps the element whole. Run and paragraph level are
   kept whole in both modes, as since docx4j 3.3.8 and 17.2.0.
 - **The hand-off** asked how this package's readers do on the 16 `mc-fun` probes, whether its load
   takes both modes, and whether its understood set has the three Word 365 namespaces. Section 2 is the
@@ -434,8 +436,8 @@ level. It becomes docx4j's default at 17.4.0.
     `Table.deleteColumns`);
   - `Lister.alternateRows` and `alternateCells` list a row's or a cell's revisions in a branch: phase 2's
     listing.
-- **Its tests are the oracle for those phases:** `McBlockLevelProbesTest.preserveModeReadsAsWordsSave`,
-  `McBlockLevelReadersTest` (the element's address, both modes) and `TrackedChangesAlternateContentTest` (row and
+- **Its tests are the oracle for those phases:** `McLoadModeProbesTest.preserveModeReadsAsWordsSave`,
+  `McLoadModeReadersTest` (the element's address, both modes) and `TrackedChangesAlternateContentTest` (row and
   cell bodies), with `acceptingADeletedRowKeepsATableWhoseOtherBranchHasARow`.
 
 ## 9. Phase 2: the content API's readers and the tracked-change listing (implemented 2026-10-21)

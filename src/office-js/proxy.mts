@@ -256,6 +256,9 @@ export class Wrapper {
       return wrapped;
     });
     result.attach(settled);
+    // the next sync() reports a failure; code that throws before it (a member of the result called at once, as
+    // Office JS code chains `insertComment(...).getRange()`) leaves it unawaited, which must not end the process
+    settled.catch(() => {});
     this.context.enqueue(settled);
     return result;
   }

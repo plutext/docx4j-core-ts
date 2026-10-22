@@ -45,7 +45,9 @@ model and async, and per block under a context, section 17.13's `{ blocks }`), a
 (`mc:AlternateContent` at block, row and cell level: docx4j's `mc-fun` probes in `test/mc-fun/`, the walker audit, the
 text model's rows and cells in the selected branch, `mcePreprocess: true` over the readers' set; the content API's readers and
 the tracked-change listing in the selected branch, a view in a branch read-only; the mutators in every branch, a listed
-change's twins resolved with it, as docx4j's). The editor's release requests are
+change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (ranges across paragraphs, as Office JS's: checks
+52 and 53 run in Word 365; one `Range` with two ends, its reads and its writes held to Word's runs and saves through the
+Word shim; phase 3, comments, controls and `^p` on one, is next). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -100,7 +102,7 @@ src/model/properties/ PropertyResolver, the property catalogue (one entry per sc
                   tableStyleConditions.mts (namespace TableStyleConditions) and table.mts (TableContext, CellContext, TableContextTracker): a table style reaches a paragraph only through its CellContext (CR-007)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
-src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
+src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout, spanEdits.mts its writes across paragraphs), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
                   textBoxes.mts numbers a paragraph's text boxes as the text model does (`textbox:N`); outline.mts is the registry the text model's outline reader joins (model/text/outline.mts; Body can't import the text model);
@@ -193,10 +195,16 @@ Key mechanics:
   a text box (`textbox:` addresses, `textBoxes.mts`) is read-only: mutators call `assertWritable()`. A `Range` runs
   from `start` in `paragraph` to `end` in `endParagraph`, the same paragraph unless it spans several (CR-014 phase 1):
   across paragraphs it reads a slice of `story.mts`'s layout (`body.text`'s form, which `Body.text` is too), lists
-  the story's tracked changes that overlap it, reads `font` `null` where runs differ (`MixedFont`), and refuses
-  every write until phase 2. `expandTo`, `Body.getRange`, `Table.getRange`, a block control's and a group change's
-  range and `Comment.getRange()` (one `Range`; `getRanges()` the per-paragraph array) make one. Code that takes a
-  `Range` checks `spansParagraphs`. `Font` and `Paragraph` reads report **effective**
+  the story's tracked changes that overlap it, and reads `font` `null` where runs differ (`MixedFont`). Its writes
+  (phase 2, `spanEdits.mts`) are Word's from check 52: `delete` and `Replace` join the paragraphs in the last one's
+  properties (`joinWithNext`, Accept All's), a range holding its last mark (a 'Whole' range, even within one paragraph)
+  takes it and joins the next paragraph, tracked every mark in it but a last one is deleted with no `w:pPrChange`;
+  `font` writes runs and the marks it holds, a toggle only where it doesn't read so already; `insertParagraph` splits
+  the paragraph at the range's start or end; a range starting or ending inside a table is refused with Word's
+  `GeneralException`, one holding a whole control or `w:altChunk` refused under tracking. `style`, `hyperlink`,
+  `insertOoxml`, comments and controls on one still refuse. `expandTo`, `Body.getRange`, `Table.getRange`, a block
+  control's and a group change's range and `Comment.getRange()` (one `Range`; `getRanges()` the per-paragraph array)
+  make one. Code that takes a `Range` checks `spansParagraphs`. `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
   direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
@@ -241,7 +249,9 @@ report after Accept All of the same cases, and `acceptAllRevisions()` on Word's 
 region for region (`test/check52/`, Word's saves, outside `fixtures/` like `mc-fun/`, with a SHA-1 manifest; phase 0; cases 86
 to 95 are CR-002 section 55's); and phase 1's reads, held to Word's by running the check's own snippet (`CHECK52.runCheck`)
 through the Word shim on the same file and on Word's saves, and check 53's (`test/fixtures/check53/`, phase 1's unmeasured
-choices, read only, Word's runs in Simple and All Markup) the same way, every difference left listed,
+choices, read only, Word's runs in Simple and All Markup) the same way, every difference left listed; and phase 2's writes,
+the snippet's `run` mode through the shim held to Word's run, to each region's markup in Word's save after the run, and,
+accepted, to Word's Accept All,
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

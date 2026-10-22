@@ -8,7 +8,7 @@ import { deepCopy, deepCopyAsSync } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import {
   createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange, createCTMarkup,
-  createDelText, createPPr, createParaRPr, createTrPr,
+  createDelText, createPPr, createParaRPr, createTrPr, createParaRPrChange, createCTParaRPrOriginal,
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
@@ -323,6 +323,29 @@ export class ChangeTracker {
     if (canonical(current) !== canonical(rPrFromElements(change.rPr?.egrPrBase ?? []))) return;
     delete rPr.rPrChange;
     if (Object.keys(rPr).every((key) => key === 'TYPE_NAME')) delete run.rPr;
+  }
+
+  /**
+   * Records a paragraph mark's formatting as it is now in its `w:rPrChange`, once: what a tracked `font`
+   * write over a range holding the mark writes (check 52 case 56: `<w:rPrChange><w:rPr/></w:rPrChange>`
+   * for a mark that had no formatting). The mark's own revisions (inserted, deleted) are not its formatting.
+   */
+  recordMarkRPrChange(rPr: wml.ParaRPr): void {
+    if (rPr.rPrChange) return;
+    const original = createCTParaRPrOriginal({ egrPrBase: rPrToElements(rPr as wml.RPr) });
+    rPr.rPrChange = createParaRPrChange({ ...this.markup(), rPr: original });
+    linkParents(rPr.rPrChange, rPr);
+  }
+
+  /** `settleRPrChange` for a paragraph mark: its `w:rPrChange` goes where its formatting is back to what it recorded. */
+  settleMarkRPrChange(p: wml.P): void {
+    const rPr = p.pPr?.rPr;
+    const change = rPr?.rPrChange;
+    if (!rPr || !change) return;
+    const { rPrChange: _recorded, ins: _ins, del: _del, moveFrom: _from, moveTo: _to, ...current } = rPr;
+    if (canonical(current) !== canonical(rPrFromElements(change.rPr?.egrPrBase ?? []))) return;
+    delete rPr.rPrChange;
+    pruneParagraphProperties(p);
   }
 
   /** Records the paragraph's properties as they are now in `w:pPrChange`, once. */

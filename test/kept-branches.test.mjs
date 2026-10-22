@@ -259,7 +259,8 @@ test('a mutator removes a kept element whole: a tracked Paragraph.delete then Ac
       r.trackedSaved = documentXml(await pkg.save()).includes('mc:AlternateContent');
 
       ({ pkg, body } = await load(name, kept));
-      for (const p of body.paragraphs.filter(holdsObject)) p.getRange('Whole').delete();
+      // last first: a whole range's delete takes its mark, joining the paragraph after it (CR-014 phase 2)
+      for (const p of body.paragraphs.filter(holdsObject).reverse()) p.getRange('Whole').delete();
       r.range = left(pkg);
 
       ({ pkg, body } = await load(name, kept));

@@ -853,6 +853,17 @@ function dropBookmarksBroken(root: object, before: Map<string, BookmarkState>): 
   visit(root);
 }
 
+/**
+ * Queues the notes whose references `removed` holds to go when the package is saved, as a resolution's
+ * removals go: what a range deleted untracked takes with it (CR-014 phase 2; check 52 case 12, where Word took
+ * the footnote out of `footnotes.xml` with its reference). A note goes only where no reference to it stands
+ * by then (`flushPendingNoteRemovals`), so content queued and then kept costs nothing.
+ */
+export function queueNoteRemovals(pkg: unknown, removed: unknown): void {
+  const notes = (pkg as { pendingNoteRemovals?: NoteRemovals } | undefined)?.pendingNoteRemovals;
+  if (notes) noteReferencesIn(removed, notes);
+}
+
 /** Adds the ids of the `w:footnoteReference` and `w:endnoteReference` elements anywhere in a tree to `into`. */
 function noteReferencesIn(tree: unknown, into: NoteRemovals): void {
   const visit = (o: unknown): void => {

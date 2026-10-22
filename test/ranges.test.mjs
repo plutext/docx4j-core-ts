@@ -250,7 +250,7 @@ test("CR-014 phase 1: the tracked changes a range across paragraphs lists, on Wo
 /** check52Bytes' paragraph holding a word, and a range over that word. */
 const wordIn = (pkg, word) => pkg.body.search(word, { matchCase: true, matchWholeWord: true })[0];
 
-test('CR-014 phase 1: a range across paragraphs, from expandTo, reads every paragraph and refuses every write until phase 2', async () => {
+test('CR-014 phase 1: a range across paragraphs, from expandTo, reads every paragraph; the writes phase 2 does not bring refuse', async () => {
   const pkg = await loaded(await check52Bytes());
   const range = wordIn(pkg, 'HEAD3B').expandTo(wordIn(pkg, 'BODY3A'));
   assert.equal(range.spansParagraphs, true);
@@ -264,13 +264,14 @@ test('CR-014 phase 1: a range across paragraphs, from expandTo, reads every para
   // search within the span, a paragraph at a time
   assert.deepEqual(range.search('3').map((r) => r.text), ['3', '3']);
   assert.deepEqual(range.search('HEAD3A'), []);
-  // every write refused before anything changes
+  // a write phase 2 doesn't bring is refused before anything changes: a control or a style (phase 3 brings
+  // comments and controls on such a range)
   const before = pkg.body.text;
-  for (const write of [() => range.delete(), () => range.insertText('X', 'End'), () => { range.text = 'X'; }, () => { range.font.bold = true; },
-    () => range.insertParagraph('X', 'After'), () => range.replaceText('3', '4'), () => range.insertContentControl(), () => { range.style = 'Normal'; }]) {
+  for (const write of [() => range.insertContentControl(), () => { range.style = 'Normal'; }, () => { range.hyperlink = 'https://example.com'; }]) {
     assert.throws(write, NotSupportedError);
   }
   await assert.rejects(range.insertComment('X'), NotSupportedError);
+  await assert.rejects(range.insertOoxml('<w:p/>', 'After'), NotSupportedError);
   assert.equal(pkg.body.text, before);
   // and the one w:p a fragment of it would be (toApiScript, the shim's getOoxml)
   await assert.rejects(Word.run(pkg, async (context) => {
@@ -384,4 +385,284 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
   assert.equal(flat(ours.cases[0].reads)['font.color'], flat(word.cases[0].reads)['font.color']);
   // the changes' text is All Markup's
   for (const n of [25, 28, 30]) assert.equal(ours.cases[n - 1].reads.region[0].text, all.cases[n - 1].reads.region[0].text, `case ${n}`);
+});
+
+// ------------------------------------------------------------------------------------------- phase 2, the writes
+
+/** Check 52's snippet in its 'run' mode, through the Word shim on its own file, once for the tests below. */
+let phase2;
+const phase2Run = () => (phase2 ??= (async () => {
+  const { runCheck } = await snippet();
+  const pkg = await loaded(await check52Bytes());
+  const result = await runCheck((f) => Word.run(pkg, f), 'run');
+  return { result, saved: await pkg.save() };
+})());
+
+/** Cases 86 to 95 are CR-002 section 55's (Word's table rule), which is not implemented: phase 2's tests stop at 85. */
+const RANGE_CASES = 85;
+
+test("CR-014 phase 2: check 52's writes, run through the Word shim on the same file, leave each region as Word 365's run did", async () => {
+  const { result: ours } = await phase2Run();
+  const word = JSON.parse(await readFile(join(here, 'fixtures', 'check52', '52-ranges-word365-run.json'), 'utf8'));
+  // a paragraph's font reads its first run here (CR-002); under tracking Word's text is All Markup's, deleted text
+  // shown, so a tracked case's paragraphs are compared without their text, and its text, tables and controls not
+  const paragraph = ({ bold, italic, underline, words, ...rest }) => rest;
+  const view = (c) => {
+    const r = c.region;
+    const out = { error: c.error, result: c.result, range: c.range, comments: r.comments };
+    // case 1 is read only, but its content holds tracked changes from the start
+    const markup = c.tracked || c.n === 1;
+    out.paragraphs = Array.isArray(r.paragraphs) ? r.paragraphs.map((p) => (markup ? { ...paragraph(p), text: undefined } : paragraph(p))) : r.paragraphs;
+    out.changes = Array.isArray(r.trackedChanges) ? r.trackedChanges.map((x) => x.type) : r.trackedChanges;
+    if (!markup) Object.assign(out, { text: r.text, tables: r.tables, controls: r.contentControls });
+    return JSON.parse(JSON.stringify(out));
+  };
+  const differing = {};
+  for (const [i, theirs] of word.cases.entries()) {
+    if (theirs.n > RANGE_CASES) break;
+    const [a, b] = [view(ours.cases[i]), view(theirs)];
+    const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
+    if (keys.length > 0) differing[theirs.n] = keys;
+  }
+  const each = (ns, keys) => Object.fromEntries(ns.map((n) => [n, keys]));
+  assert.deepEqual(differing, {
+    // a tracked Replace: Office JS lists the insertion alone, where the markup holds the deletion too, which this
+    // package's listing (CR-002) lists; Word's save has it (the markup test below)
+    ...each([39, 40, 41, 42, 43, 46, 47, 48], ['changes']),
+    // the bold cases' report reads each word through getTextRanges, which is not implemented (the markup test holds
+    // their w:b to Word's); Word lists formatting across a table's cells as one change, this package a run at a time
+    ...each([49, 50, 51, 52, 53, 56], ['paragraphs']),
+    ...each([54, 55], ['paragraphs', 'changes']),
+    // on a control's content range Word's insertParagraph adds an empty paragraph as well, which is not copied (CR-014 section 6.2)
+    ...each([60, 66], ['paragraphs', 'text', 'controls']),
+    // insertComment on a range across paragraphs is phase 3's; and the snippet calls getRange() at once on what it
+    // returns, which is asynchronous here, so the one-paragraph case (83) fails in the script after the comment is in
+    ...each([79, 80, 81, 82, 84, 85], ['error', 'comments', 'result']),
+    83: ['error', 'result'],
+  });
+  // Word's refusals are this package's: a range starting or ending inside a table, deleted or replaced, tracked or not
+  const refused = ours.cases.filter((c) => c.error === 'error: GeneralException').map((c) => c.n);
+  assert.deepEqual(refused, [9, 10, 22, 23, 34, 35, 44, 45]);
+});
+
+test("CR-014 phase 2: Accept All after check 52's writes through the shim gives Word 365's Accept All after its run, region for region", async () => {
+  const { runCheck } = await snippet();
+  const pkg = await loaded((await phase2Run()).saved);
+  await pkg.acceptAllRevisions();
+  const back = await loaded(await pkg.save());
+  const ours = await runCheck((f) => Word.run(back, f), 'report');
+  const word = JSON.parse(await readFile(join(here, 'fixtures', 'check52', '52-ranges-word365-accepted.json'), 'utf8'));
+  const paragraph = ({ bold, italic, underline, words, ...rest }) => rest;
+  const differing = [];
+  for (const [i, theirs] of word.cases.entries()) {
+    if (theirs.n > RANGE_CASES) break;
+    // Range.footnotes is not implemented, and a paragraph's font reads its first run here (CR-002)
+    const view = ({ footnotes, ...r }) => ({ ...r, paragraphs: Array.isArray(r.paragraphs) ? r.paragraphs.map(paragraph) : r.paragraphs });
+    if (JSON.stringify(view(ours.cases[i].region)) !== JSON.stringify(view(theirs.region))) differing.push(theirs.n);
+  }
+  // every tracked deletion and replacement, accepted, is Word's; what differs is listed in the test above:
+  // getTextRanges (the bold cases), Word's extra empty paragraph in a control, comments (phase 3)
+  assert.deepEqual(differing, [49, 50, 51, 52, 53, 54, 55, 56, 60, 66, 79, 80, 81, 82, 84, 85]);
+});
+
+/**
+ * A region's markup, a line a paragraph: its style, alignment and numbering, its mark's properties (`ins`, `del`,
+ * `b`, `+change` for its w:rPrChange) and a w:pPrChange, then its runs, those with the same revision and
+ * properties merged, each `ins:` or `del:` with its properties; a table's rows (`TR del`) and cells' paragraphs.
+ * Ids, dates, rsids, paraIds, w:lastRenderedPageBreak and the complex-script twins (bCs, iCs, szCs) are left out.
+ */
+function markupOf(pkg) {
+  const IGNORED = new Set(['TYPE_NAME', 'PARENT', 'rsidR', 'rsidRPr', 'rsidRDefault', 'rsidP', 'rsidDel', 'paraId', 'textId', 'bCs', 'iCs', 'szCs', 'lang']);
+  const keys = (o) => (o ? Object.keys(o).filter((k) => !IGNORED.has(k) && o[k] !== undefined && k !== 'rPrChange').sort().join(',') + (o.rPrChange ? '+change' : '') : '');
+  const runs = (items, revision = '') => (items ?? []).flatMap((el) => {
+    const name = el.name?.localPart;
+    if (name === 'ins' || name === 'del') return runs(el.value.customXmlOrSmartTagOrSdt, name);
+    if (name === 'hyperlink') return runs(el.value.content, `${revision}link`);
+    if (name !== 'r') return name?.startsWith('comment') || name?.startsWith('bookmark') ? [{ revision: name, rPr: '', text: '' }] : [];
+    const text = (el.value.content ?? []).map((c) => {
+      const n = c.name?.localPart;
+      return n === 't' || n === 'delText' ? c.value.value ?? '' : n === 'lastRenderedPageBreak' ? '' : `<${n}>`;
+    }).join('');
+    return [{ revision, rPr: keys(el.value.rPr), text }];
+  }).reduce((out, r) => {
+    const last = out[out.length - 1];
+    if (last && last.revision === r.revision && last.rPr === r.rPr) last.text += r.text; else out.push({ ...r });
+    return out;
+  }, []);
+  const lines = (el, indent = '') => {
+    const v = el.value;
+    switch (el.name?.localPart) {
+      case 'p': {
+        const pPr = v.pPr ?? {};
+        const props = [pPr.pStyle?.val, pPr.jc?.val, pPr.numPr ? 'num' : '', pPr.pPrChange ? 'pPrChange' : ''].filter(Boolean).join('/');
+        const content = runs(v.content).map((r) => `${r.revision ? `${r.revision}:` : ''}${JSON.stringify(r.text)}${r.rPr ? `{${r.rPr}}` : ''}`).join(' ');
+        return [`${indent}P[${props}|${keys(pPr.rPr)}] ${content}`];
+      }
+      case 'tbl': return (v.content ?? []).flatMap((tr) => [`${indent}TR ${keys(tr.value.trPr)}`,
+        ...(tr.value.content ?? []).flatMap((tc) => (tc.value.content ?? []).flatMap((b) => lines(b, `${indent}  `)))]);
+      case 'sdt': return [`${indent}SDT`, ...(v.sdtContent?.content ?? []).flatMap((b) => lines(b, `${indent}  `))];
+      default: return [`${indent}<${el.name?.localPart}>`];
+    }
+  };
+  const textOf = (el) => (el.name?.localPart === 'p' ? runs(el.value.content).map((r) => r.text).join('') : '');
+  const regions = new Map();
+  let n = null;
+  for (const el of pkg.getMainDocumentPart().contents.body.content) {
+    const begin = /^BEGIN(\d+) /.exec(textOf(el));
+    if (begin) { n = Number(begin[1]); regions.set(n, []); continue; }
+    if (n !== null && textOf(el) === `END${n}`) { n = null; continue; }
+    if (n !== null) regions.get(n).push(...lines(el));
+  }
+  return regions;
+}
+
+test("CR-014 phase 2: the markup check 52's writes leave through the shim is Word 365's in its save after the run, region for region", async () => {
+  const mine = markupOf(await loaded((await phase2Run()).saved));
+  const word = markupOf(await loaded(await saveBytes('52-ranges-word365.docx')));
+  const differing = [...word.keys()].filter((n) => n <= RANGE_CASES && mine.get(n).join('\n') !== word.get(n).join('\n'));
+  // 1, read only: Word's save gave the comment reference's run w:u and w:sz of its own; 13: Word's filler for an
+  // emptied control, a bold run of five spaces (section 9.4); 60 and 66: Word's extra
+  // empty paragraph in a control; 67 and 68: Word gives a paragraph's mark its last run's formatting (italic) when
+  // insertParagraph('After') goes after it, not followed (CR-014 section 10); 79 to 85: insertComment, phase 3's
+  assert.deepEqual(differing, [1, 13, 60, 66, 67, 68, 79, 80, 81, 82, 83, 84, 85]);
+  assert.deepEqual(word.get(13), ['SDT', '  P[ListParagraph/num|] "     "{b}']);
+  assert.deepEqual(mine.get(13), ['SDT', '  P[ListParagraph/num|] ']);
+  for (const n of [67, 68]) {
+    assert.deepEqual(mine.get(n).map((line) => line.replace(/^P\[center\|\] "BODY/, 'P[center|i] "BODY')), word.get(n), `case ${n}`);
+  }
+  // what Word wrote, which this package now writes: a tracked deletion across paragraphs marks every mark but the
+  // last deleted, with no w:pPrChange (case 16); a tracked Replace puts its w:ins before the w:del (case 39); an
+  // untracked one gives its text the heading's look in a body paragraph (case 29); bold skips the heading's runs
+  // and bolds a mark in the range, tracked with its w:rPrChange (case 56); a paragraph split tracked (case 70)
+  assert.deepEqual(word.get(16), ['P[Heading1|del] "HEAD16A " del:"HEAD16B"', 'P[center|] del:"BODY16A"{i} " BODY16B"{i}']);
+  assert.deepEqual(word.get(39), ['P[Heading1|del] "HEAD39A " ins:"NEWTEXT" del:"HEAD39B"', 'P[center|] del:"BODY39A"{i} " BODY39B"{i}']);
+  assert.deepEqual(word.get(29), ['P[center|] "HEAD29A " "NEWTEXT"{b,color,rFonts,sz} " BODY29B"{i}']);
+  assert.deepEqual(word.get(56).slice(1, 3), ['  P[Heading1|] "HEAD56A HEAD56B"', '  P[center|b+change] "BODY56A BODY56B"{b,i+change}']);
+  assert.deepEqual(word.get(70).slice(1), ['P[center|i,ins] "BODY70A"{i}', 'P[center|i,ins] ins:"NEWPARA"{i}', 'P[center|] " BODY70B"{i}']);
+});
+
+test('CR-014 phase 2: delete and Replace across paragraphs, and the range a write leaves; Reject All after a tracked write gives back what was there', async () => {
+  const pkg = await loaded(await check52Bytes());
+  const region = (n) => { const ps = pkg.body.paragraphs; const i = ps.findIndex((p) => p.text.startsWith(`BEGIN${n} `)); return ps.slice(i + 1, ps.findIndex((p, k) => k > i && p.text === `END${n}`)); };
+  const texts = (n) => region(n).map((p) => p.text);
+  // untracked: the paragraphs join in the last one's properties, and the range collapses where they joined
+  const range = wordIn(pkg, 'HEAD3B').expandTo(wordIn(pkg, 'BODY3A'));
+  range.delete();
+  assert.deepEqual(texts(3), ['HEAD3A  BODY3B']);
+  assert.deepEqual([region(3)[0].alignment, region(3)[0].styleBuiltIn], ['Centered', 'Normal']);
+  assert.deepEqual([range.spansParagraphs, range.text, range.start], [false, '', 7]);
+  // Replace: the range covers the new text; '' is a deletion that keeps a last mark
+  const replaced = wordIn(pkg, 'HEAD38B').expandTo(wordIn(pkg, 'BODY38A').paragraphs[0].getRange('Whole'));
+  const inserted = replaced.insertText('NEW', 'Replace');
+  assert.deepEqual([inserted.text, replaced.text, texts(38)], ['NEW', 'NEW', ['HEAD38A NEW', 'NEXT38A NEXT38B']]);
+  wordIn(pkg, 'HEAD29B').expandTo(wordIn(pkg, 'BODY29A')).insertText('', 'Replace');
+  assert.deepEqual(texts(29), ['HEAD29A  BODY29B']);
+  // a footnote whose reference a deletion takes leaves the notes part on save (check 52 case 12)
+  wordIn(pkg, 'HEAD12B').expandTo(wordIn(pkg, 'BODY12A')).delete();
+  const notesOf = async (p) => (await p.getMainDocumentPart().footnotesPart.getContents()).footnote.filter((f) => f.type === undefined || f.type === 'normal').length;
+  const notes = await notesOf(pkg);
+  assert.equal(await notesOf(await WordprocessingMLPackage.load(await pkg.save())), notes - 1);
+
+  // tracked: one deletion across the paragraphs; Reject All gives back the paragraphs, Accept All the untracked join
+  const original = texts(16);
+  pkg.changeTrackingMode = 'TrackAll';
+  const tracked = wordIn(pkg, 'HEAD16B').expandTo(wordIn(pkg, 'BODY16A'));
+  tracked.delete();
+  assert.deepEqual(pkg.body.getTrackedChanges().filter((c) => /16/.test(c.text)).map((c) => [c.type, c.text]), [['Deleted', 'HEAD16B\rBODY16A']]);
+  assert.deepEqual([tracked.spansParagraphs, tracked.text], [false, ''], 'collapsed where the deletion starts, as Simple Markup reads it');
+  wordIn(pkg, 'HEAD49B').expandTo(wordIn(pkg, 'BODY49A')).font.bold = true;
+  wordIn(pkg, 'HEAD57B').expandTo(wordIn(pkg, 'BODY57A')).insertParagraph('NEW', 'Before');
+  wordIn(pkg, 'HEAD39B').expandTo(wordIn(pkg, 'BODY39A')).insertText('NEW', 'Replace');
+  pkg.changeTrackingMode = 'Off';
+  assert.deepEqual(texts(57), ['HEAD57A ', 'NEW', 'HEAD57B', 'BODY57A BODY57B']);
+  const rejected = await loaded(await pkg.save());
+  await rejected.rejectAllRevisions();
+  const after = (n) => { const ps = rejected.body.paragraphs; const i = ps.findIndex((p) => p.text.startsWith(`BEGIN${n} `)); return ps.slice(i + 1, ps.findIndex((p, k) => k > i && p.text === `END${n}`)); };
+  assert.deepEqual(after(16).map((p) => p.text), original);
+  assert.deepEqual(after(57).map((p) => [p.text, p.styleBuiltIn]), [['HEAD57A HEAD57B', 'Heading1'], ['BODY57A BODY57B', 'Normal']]);
+  assert.deepEqual(after(39).map((p) => p.text), ['HEAD39A HEAD39B', 'BODY39A BODY39B']);
+  // the bold rejected: no run and no mark keeps a w:b or a change
+  const xml = await rejected.getMainDocumentPart().getXml();
+  const region49 = xml.slice(xml.indexOf('BEGIN49 '), xml.indexOf('END49'));
+  assert.doesNotMatch(region49, /<w:b\/>|w:rPrChange/);
+});
+
+test('CR-014 phase 2: whole tables, a cell, the body and a control; what Word refuses is refused before anything changes', async () => {
+  const pkg = await loaded(await check52Bytes());
+  const body = pkg.body;
+  // a range starting or ending inside a table: Word's GeneralException, tracked or not, and nothing changed
+  const before = body.text;
+  for (const mode of ['Off', 'TrackAll']) {
+    pkg.changeTrackingMode = mode;
+    for (const [from, to] of [['HEAD9B', 'T9R2C1A'], ['T10R1C1B', 'BODY10A']]) {
+      const range = wordIn(pkg, from).expandTo(wordIn(pkg, to));
+      assert.throws(() => range.delete(), (e) => e.code === 'GeneralException' && /inside a table/.test(e.message));
+      assert.throws(() => range.insertText('X', 'Replace'), (e) => e.code === 'GeneralException');
+    }
+  }
+  pkg.changeTrackingMode = 'Off';
+  assert.equal(body.text, before);
+  // Word applies a font and a paragraph to such a range (check 52 cases 51 and 59)
+  const cell = wordIn(pkg, 'T51R1C1B').expandTo(wordIn(pkg, 'BODY51A'));
+  cell.font.bold = true;
+  assert.equal(cell.font.bold, true);
+  // into a block content control from outside it: unmeasured, refused
+  const control = body.contentControls.find((c) => c.tag === 'c52-13');
+  const into = wordIn(pkg, 'BEGIN13').expandTo(control.paragraphs[0].getRange('Start'));
+  assert.throws(() => into.delete(), NotSupportedError);
+  // a range holding a whole block control: refused under tracking, where Word's markup for it isn't measured
+  // (CR-014 section 10.3); untracked, the control goes as a table does and the paragraphs either side join
+  const around = wordIn(pkg, 'BEGIN26').expandTo(wordIn(pkg, 'END26'));
+  pkg.changeTrackingMode = 'TrackAll';
+  assert.throws(() => around.delete(), (e) => e instanceof NotSupportedError && /holds a whole sdt/.test(e.message));
+  pkg.changeTrackingMode = 'Off';
+  assert.equal(body.text, before);
+  const [controls, paragraphs] = [body.contentControls.length, body.paragraphs.length];
+  around.delete();
+  // BEGIN26, the control's three paragraphs and END26 become one empty paragraph
+  assert.deepEqual([body.contentControls.length, body.paragraphs.length], [controls - 1, paragraphs - 4]);
+  assert.equal(body.paragraphs.filter((p) => /BEGIN26|END26/.test(p.text)).length, 0);
+  // a table's whole range takes the table; a cell's whole range keeps its last paragraph, emptied (CR-002 section 55)
+  const tables = body.tables.length;
+  body.tables[0].getRange().delete();
+  assert.equal(body.tables.length, tables - 1);
+  const cellBody = body.tables[0].getCell(0, 0).body;
+  cellBody.getRange().delete();
+  assert.deepEqual(cellBody.paragraphs.map((p) => p.text), ['']);
+  // the control's content: one paragraph left, in its last paragraph's properties (check 52 case 13)
+  control.getRange('Content').delete();
+  assert.deepEqual(control.paragraphs.map((p) => [p.text, p.styleBuiltIn]), [['', 'ListParagraph']]);
+  // the body's content: one empty paragraph, in the last one's properties
+  body.getRange('Content').delete();
+  assert.deepEqual(body.paragraphs.map((p) => p.text), ['']);
+  assert.equal(body.tables.length, 0);
+});
+
+test('CR-014 phase 2: insertParagraph splits a paragraph inside a link into two links, and refuses a split inside a content control; insertText at the ends; replaceText a paragraph at a time', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  await body.insertXml('<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:pPr><w:jc w:val="center"/></w:pPr>'
+    + '<w:hyperlink w:anchor="here"><w:r><w:t>linked text</w:t></w:r></w:hyperlink><w:r><w:t> after</w:t></w:r></w:p>', 'End');
+  await body.insertXml('<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:sdt><w:sdtPr><w:id w:val="7"/></w:sdtPr>'
+    + '<w:sdtContent><w:r><w:t>in a control</w:t></w:r></w:sdtContent></w:sdt></w:p>', 'End');
+  body.insertParagraph('last one', 'End');
+  const [linked, controlled] = body.paragraphs.filter((p) => p.text !== '');
+  const range = linked.search('text')[0].expandTo(body.search('last')[0]);
+  range.insertParagraph('NEW', 'Before');
+  assert.deepEqual(body.paragraphs.filter((p) => p.text !== '').map((p) => [p.text, p.alignment]).slice(0, 3),
+    [['linked ', 'Centered'], ['NEW', 'Centered'], ['text after', 'Centered']]);
+  assert.deepEqual(body.paragraphs.filter((p) => p.text !== '').slice(0, 3).map((p) => p.getRange().hyperlink), ['#here', '', '#here']);
+  assert.deepEqual([range.text, range.start], ['text after\rin a control\rlast', 0]);
+  // a split inside an inline control would make two of it: refused, nothing changed
+  const across = controlled.search('control')[0].expandTo(body.search('last')[0]);
+  const xml = await pkg.getMainDocumentPart().getXml();
+  assert.throws(() => across.insertParagraph('X', 'Before'), NotSupportedError);
+  assert.equal(await pkg.getMainDocumentPart().getXml(), xml);
+  // insertText at the start and the end; replaceText in each paragraph
+  range.insertText('<', 'Start');
+  range.insertText('>', 'End');
+  assert.equal(range.text, 'text after\rin a control\rlast');
+  assert.equal(body.text.split('\r').filter((t) => t !== '').join('|'), 'linked |NEW|<text after|in a control|last> one');
+  assert.equal(range.replaceText('t', 'T'), 5);
+  assert.equal(range.text, 'TexT afTer\rin a conTrol\rlasT');
 });

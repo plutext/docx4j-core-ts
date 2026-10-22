@@ -538,13 +538,13 @@ export class Paragraph {
    * what the cells of a deleted table row need (a `w:tc` must keep a block-level child, and Word
    * writes `w:del` around every run and `w:pPr/w:rPr/w:del` on every mark inside a deleted row).
    * The same primitives `delete()` uses, without its "take back my own insertion" step.
-   * Does nothing when the mark is already deleted.
+   * A mark already deleted is left as it is, and the text is deleted still: a paragraph another author's
+   * deletion ended keeps text a range's deletion across it must take (CR-014 phase 2).
    */
   markDeletedInPlace(tracker: ChangeTracker): void {
     this.assertWritable();
-    if (markDeleted(this.p)) return;
     this.deleteText(tracker, 0, this.text.length, WHOLE);
-    tracker.markParagraphDeleted(this.p);
+    if (!markDeleted(this.p)) tracker.markParagraphDeleted(this.p);
   }
 
   /**

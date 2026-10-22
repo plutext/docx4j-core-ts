@@ -121,7 +121,7 @@ test("check 51's file: cells, controls, comments and notes of several paragraphs
   assert.deepEqual(inline.text, unescape(word.contentControls[1].text));
   assert.deepEqual([inline.getRange('Whole').text, inline.getRange('Content').text], [word.contentControls[1].whole, word.contentControls[1].content]);
   // a block control of several paragraphs: its range reads as Office JS's, all of them, one Range across them
-  // (CR-014 phase 1; CR-012 section 17.12's SpanningRange until then), which refuses every write until phase 2
+  // (CR-014 phase 1; CR-012 section 17.12's SpanningRange until then); the writes phase 2 doesn't bring refuse
   const range = block.getRange();
   assert.deepEqual([range.text, block.getRange('Content').text], [unescape(word.contentControls[0].whole), unescape(word.contentControls[0].content)]);
   assert.deepEqual(range.paragraphs.map((p) => p.text), word.contentControls[0].paragraphs);
@@ -130,9 +130,7 @@ test("check 51's file: cells, controls, comments and notes of several paragraphs
   assert.deepEqual([block.getRange('End').paragraph.text, block.getRange('End').start], ['CCP3', 4], "its end is the last paragraph's");
   const before = await pkg.getMainDocumentPart().getXml();
   for (const [name, write] of Object.entries({
-    text: () => { range.text = 'x'; }, insertText: () => range.insertText('x', 'Replace'), delete: () => range.delete(),
-    font: () => { range.font.bold = true; }, style: () => { range.styleId = 'Heading1'; }, insertParagraph: () => range.insertParagraph('x', 'After'),
-    replaceText: () => range.replaceText('CCP', 'x'), insertContentControl: () => range.insertContentControl(), hyperlink: () => { range.hyperlink = 'https://example.com'; },
+    style: () => { range.styleId = 'Heading1'; }, insertContentControl: () => range.insertContentControl(), hyperlink: () => { range.hyperlink = 'https://example.com'; },
   })) {
     assert.throws(write, (e) => e.name === 'NotSupportedError' && /CR-014/.test(e.message), name);
   }

@@ -540,10 +540,11 @@ export class Body {
    * phase 3). Internal: what `Table.delete` and `deleteRows` write while changes are tracked.
    */
   markContentDeleted(tracker: ChangeTracker): void {
-    // the paragraphs, then the rows last first: the order, and so the ids, a row's deletion has always written
+    // the paragraphs, then the rows last first: the order, and so the ids, a row's deletion has always written;
+    // a row already deleted is left as it is, as a paragraph already deleted is (a range's deletion, CR-014 phase 2)
     writingEveryBranch(() => {
       for (const p of this.paragraphsIn('every')) p.markDeletedInPlace(tracker);
-      for (const row of this.rowElements().reverse()) tracker.markRowDeleted(row.value as wml.Tr);
+      for (const row of this.rowElements().reverse()) if (!(row.value as wml.Tr).trPr?.del) tracker.markRowDeleted(row.value as wml.Tr);
     });
   }
 
@@ -943,8 +944,11 @@ export class Body {
     return undefined;
   }
 
-  /** Gives a new paragraph a w14:paraId when the document already uses them, free in every branch (CR-013 phase 3). */
-  private assignParaId(p: wml.P): void {
+  /**
+   * Gives a new paragraph a w14:paraId when the document already uses them, free in every branch (CR-013 phase 3).
+   * @internal a paragraph split (CR-014 phase 2) gives its new first half one.
+   */
+  assignParaId(p: wml.P): void {
     if (p.paraId) return;
     const paragraphs = this.paragraphsIn('every');
     if (!paragraphs.some((q) => q.paraId !== undefined)) return;

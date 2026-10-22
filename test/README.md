@@ -3975,7 +3975,13 @@ async function check() {
      snippet (`CHECK52.runCheck`, its `reads` and `report` modes) through the Word shim, on `check52Bytes` and on
      Word's saves, and holds it to Word's JSON case for case. The differences that remain are asserted as they stand
      (CR-014 section 9.4): `^p` (phase 3), Word's style `Other` in three places, `Range.footnotes` and `getTextRanges`
-     not implemented, a control showing its placeholder, and the tracked-change listing's grouping. When this was
+     not implemented, a control showing its placeholder, and the tracked-change listing's grouping. Since CR-014
+     phase 2 (2026-10-22), the writes too. The snippet's `run` mode goes through the shim on `check52Bytes`, and
+     cases 1 to 85 are held to Word's run, to Word's save after the run (each region's markup), and, with Accept
+     All, to Word's report after Accept All (CR-014 section 10.4). The differences left are `getTextRanges` (the bold
+     cases' words), Word's extra empty paragraph on a control's content range, the mark formatting Word gives a
+     paragraph `insertParagraph('After')` goes after (cases 67 and 68, a departure), `insertComment` (phase 3), and
+     the listing's grouping. Cases 86 to 95 wait on CR-002 section 55. When this was
      written, before phase 1, there was nothing to compare: a `Range` here was one paragraph's and had no
      `expandTo`. Until then `ranges.test.mjs` holds the file and the
      snippet to each other: each `BEGIN` paragraph parses with the snippet's own parser to the case it was built as,

@@ -23,6 +23,8 @@ import type { TableCell } from './Table.mjs';
 import { readRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
 import { storyLayout, storyOf, type StoryLayout } from './story.mjs';
 import { styleNameOf, builtInOf } from './styles.mjs';
+import { GeneralException } from './generalException.mjs';
+import { extentOf, assertTrackable, deleteSpan, firstCharacterOf, placeReplacement, insertParagraphAt, formatSpan } from './spanEdits.mjs';
 
 /**
  * A subset of Office JS `Word.Range`: a span of text from an offset in one paragraph to an offset in the same
@@ -33,8 +35,10 @@ import { styleNameOf, builtInOf } from './styles.mjs';
  * A range within one paragraph is what it has been since CR-002: `endParagraph` is `paragraph`. A range across
  * paragraphs (CR-014 phase 1) reads as Office JS's does (check 52): its `text` in `body.text`'s form between
  * its ends, `paragraphs` every paragraph it touches (a table's cells' among them), `font` `null` where the runs
- * differ, `search`, the tracked changes and the comments over all of it. Its writes throw `NotSupportedError`
- * until CR-014 phase 2.
+ * differ, `search`, the tracked changes and the comments over all of it. Its writes (phase 2) are Word's too:
+ * `delete` and `insertText('Replace')` join the paragraphs in the last one's properties, `font` formats every
+ * run and mark in it, `insertText` goes at its ends, and `insertParagraph` splits the paragraph at its start or
+ * end; the rest of its writes throw `NotSupportedError`.
  *
  * A picture has a place in the text and no text of its own, so a picture at the range's start or
  * end offset may be inside it or outside it. `whole` says: a range from `Paragraph.getRange('Whole')`
@@ -43,24 +47,75 @@ import { styleNameOf, builtInOf } from './styles.mjs';
  * hit replaced does not take the picture beside it (CR-002 section 48).
  */
 export class Range {
-  /** The paragraph holding `end`: `paragraph` for a range within one paragraph (CR-014 phase 1). */
-  readonly endParagraph: Paragraph;
+  private startParagraph: Paragraph;
+  private lastParagraph: Paragraph;
+  private holdsWhole: boolean;
+  private holdsMark: boolean;
+  private lastMarkText: string | undefined;
 
-  constructor(readonly paragraph: Paragraph, public start: number, public end: number, readonly whole = false,
+  constructor(paragraph: Paragraph, public start: number, public end: number, whole = false,
     /**
      * A paragraph's 'Whole' range: its text ends with the paragraph's mark, as Office JS's does (check 48:
      * `\r`, and `\t` for a cell's last paragraph, the cell's end), where 'Content' ends with its text.
      * The mark is no offset: every edit and search works on the text before it.
      */
-    readonly mark = false,
+    mark = false,
     /** The paragraph holding `end`, where it isn't `paragraph` (CR-014 phase 1). */
     endParagraph?: Paragraph,
     /**
      * What the range's text ends with in place of `endParagraph`'s mark, where `mark` is set: a table's
      * 'Whole' range ends with its last row's end, `\r\n` (check 52).
      */
-    readonly endMark?: string) {
-    this.endParagraph = endParagraph ?? paragraph;
+    endMark?: string) {
+    this.startParagraph = paragraph;
+    this.lastParagraph = endParagraph ?? paragraph;
+    this.holdsWhole = whole;
+    this.holdsMark = mark;
+    this.lastMarkText = endMark;
+  }
+
+  /** The paragraph holding `start`. */
+  get paragraph(): Paragraph {
+    return this.startParagraph;
+  }
+
+  /** The paragraph holding `end`: `paragraph` for a range within one paragraph (CR-014 phase 1). */
+  get endParagraph(): Paragraph {
+    return this.lastParagraph;
+  }
+
+  /** The range holds its paragraphs' whole content, the pictures at its edges too (CR-002 section 48). */
+  get whole(): boolean {
+    return this.holdsWhole;
+  }
+
+  /** The range's text ends with its last paragraph's mark: a 'Whole' range. */
+  get mark(): boolean {
+    return this.holdsMark;
+  }
+
+  /** What the text ends with in place of the last paragraph's mark: a table's 'Whole' range's `\r\n`. */
+  get endMark(): string | undefined {
+    return this.lastMarkText;
+  }
+
+  /**
+   * True where the range holds its last paragraph's mark (a 'Whole' range ending at the paragraph's end), or a
+   * table's end in its place: what `delete` takes and `Replace` keeps (check 52, W1 and W2). An extension.
+   */
+  get holdsEndMark(): boolean {
+    return this.holdsMark && this.end >= this.lastParagraph.text.length;
+  }
+
+  /** The range collapsed where an edit through it closed it up, or over what the edit put there. */
+  private landAt(paragraph: Paragraph, start: number, end = start): void {
+    this.startParagraph = paragraph;
+    this.lastParagraph = paragraph;
+    this.start = start;
+    this.end = end;
+    this.holdsWhole = false;
+    this.holdsMark = false;
+    this.lastMarkText = undefined;
   }
 
   /** True for a range across paragraphs: its ends are in two (extension; CR-014). */
@@ -104,12 +159,20 @@ export class Range {
     });
   }
 
-  /** Refuses a write to a range across paragraphs, which CR-014 phase 2 brings. */
+  /**
+   * Refuses a write to a range across paragraphs that CR-014 doesn't bring: phase 3 brings comments and content
+   * controls on one; a style, a hyperlink and `insertOoxml` across paragraphs aren't proposed.
+   */
   private assertOneParagraph(member: string): void {
     if (this.spansParagraphs) {
-      throw new NotSupportedError('Range', member, 'this range spans paragraphs, and a write across paragraphs is CR-014 phase 2\'s; '
-        + "edit each paragraph's range, or the content control or comment the range came from");
+      throw new NotSupportedError('Range', member, 'this range spans paragraphs, where this write is not implemented (CR-014: comments and '
+        + "content controls are phase 3's); write each paragraph's range, or the content control or comment the range came from");
     }
+  }
+
+  /** Refuses, before anything changes, a write over a paragraph of the range that is read-only (a text box's, a branch's). */
+  private assertWritableSpan(): void {
+    for (const p of this.paragraphs) p.assertWritable();
   }
 
   /** Every paragraph the range touches, in document order, a table's cells' among them (check 52). */
@@ -291,7 +354,15 @@ export class Range {
         const formatting = readRunOptions(rPr);
           return { formatting, name: (options?.direct === true ? undefined : selector?.asciiFontName(rPr)) ?? formatting.name };
         }));
-      }, () => this.assertOneParagraph('font'));
+      }, (opts) => {
+        // every run in it and every mark it holds (CR-014 phase 2, check 52)
+        this.assertWritableSpan();
+        const pieces = this.pieces();
+        formatSpan(pieces.map((piece, i) => ({
+          paragraph: piece.paragraph, start: piece.start, end: piece.end, runs: () => piece.runs,
+          holdsMark: i < pieces.length - 1 || this.holdsEndMark,
+        })), opts);
+      });
     }
     const holders = (write: boolean): wml.R[] => {
       if (this.start === this.end) return [];
@@ -322,8 +393,22 @@ export class Range {
     return out;
   }
 
+  /**
+   * Text put at the range's start ('Start', 'Before'), at its end ('End', 'After'), or in its place ('Replace').
+   * Across paragraphs (CR-014 phase 2, check 52) the start is in the first paragraph and the end in the last,
+   * before a last mark the range holds, and a replacement is `delete()` keeping a last mark, then the text where the
+   * paragraphs joined: untracked, in the first replaced character's look (`lookOf`); tracked, a `w:ins` before the
+   * deletion, as Word writes it. A range holding its paragraph's mark is replaced so too under tracking.
+   */
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
-    this.assertOneParagraph('insertText');
+    if (location === 'Replace' && (this.spansParagraphs || (this.holdsEndMark && this.paragraph.changeTracker))) return this.replaceAcross(text);
+    if (this.spansParagraphs) {
+      this.assertWritableSpan();
+      if (location === 'End' || location === 'After') return this.endParagraph.splice(this.end, this.end, text);
+      const r = this.paragraph.splice(this.start, this.start, text, 'after');
+      this.start += text.length;
+      return r;
+    }
     let r: Range;
     if (location === 'Replace') r = this.paragraph.splice(this.start, this.end, text, 'before', this.edges);
     // text put before the range joins the run the range starts in - inside the link the range is on,
@@ -336,9 +421,23 @@ export class Range {
     return r;
   }
 
+  /**
+   * A new paragraph of the text. Within one paragraph it goes before or after the paragraph, in its properties
+   * (CR-002). Across paragraphs (CR-014 phase 2, check 52) it goes where the range starts ('Before') or ends
+   * ('After'), splitting the paragraph there, as Word does (`insertParagraphAt`); this range keeps covering its text.
+   */
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
-    this.assertOneParagraph('insertParagraph');
-    return this.paragraph.insertParagraph(text, location);
+    if (!this.spansParagraphs) return this.paragraph.insertParagraph(text, location);
+    this.assertWritableSpan();
+    if (location === 'Before') {
+      const { inserted, firstHalf } = insertParagraphAt(this.paragraph, this.start, text);
+      if (firstHalf) this.start = 0;                       // the paragraph keeps the text from the split on
+      return inserted;
+    }
+    const at = this.holdsEndMark ? this.endParagraph.text.length : this.end;
+    const { inserted, firstHalf } = insertParagraphAt(this.endParagraph, at, text);
+    if (firstHalf) this.lastParagraph = firstHalf;         // the text before the split moved into the first half
+    return inserted;
   }
 
   /**
@@ -367,11 +466,50 @@ export class Range {
       : { element: el, container: this.paragraph.container });
   }
 
-  /** Removes the span's text, and the pictures in it (CR-002 section 48). */
+  /**
+   * Removes the span's text, and the pictures in it (CR-002 section 48). Across paragraphs, or holding its
+   * paragraph's mark, it is Word's (CR-014 phase 2, check 52; `deleteSpan`): the paragraphs join in the last one's
+   * properties, the blocks between go, a last mark the range holds goes with it, joining the paragraph after; a
+   * footnote whose reference goes goes on save. Tracked, the text is deleted and every mark in the range marked
+   * deleted. A range starting or ending inside a table is refused with `GeneralException`, as Office JS refuses it.
+   */
   delete(): void {
-    this.assertOneParagraph('delete');
+    if (this.spansParagraphs || this.holdsEndMark) {
+      const extent = extentOf(this, 'delete');
+      this.assertWritableSpan();
+      if (this.paragraph.changeTracker) assertTrackable(extent, 'delete');
+      const landing = deleteSpan(this, extent, false);
+      if (landing) this.landAt(landing.paragraph, landing.offset);
+      return;
+    }
     this.paragraph.splice(this.start, this.end, '', 'before', this.edges);
     this.end = this.start;
+  }
+
+  /** `insertText(text, 'Replace')` across paragraphs, or holding its mark under tracking (CR-014 phase 2). */
+  private replaceAcross(text: string): Range {
+    const extent = extentOf(this, 'insertText');
+    if (!extent.head) {
+      throw new NotSupportedError('Range', 'insertText', "this range starts with a whole table or content control, so there is no paragraph for the text to go in, and what Word does isn't measured");
+    }
+    this.assertWritableSpan();
+    if (this.paragraph.changeTracker) {
+      assertTrackable(extent, 'insertText');
+      // tracked: the insertion before the deletion (check 52 cases 39 to 48), in the first replaced run's formatting
+      const start = this.start;
+      const paragraph = this.paragraph;
+      paragraph.splice(start, start, text, 'after');
+      this.start += text.length;
+      if (!this.spansParagraphs) this.end += text.length;
+      deleteSpan(this, extentOf(this, 'insertText'), true);
+      this.landAt(paragraph, start, start + text.length);
+      return new Range(paragraph, start, start + text.length);
+    }
+    const first = firstCharacterOf(this);
+    const landing = deleteSpan(this, extent, true)!;
+    placeReplacement(landing, first, text);
+    this.landAt(landing.paragraph, landing.offset, landing.offset + text.length);
+    return new Range(landing.paragraph, landing.offset, landing.offset + text.length);
   }
 
   search(text: string, options?: SearchOptions): Range[] {
@@ -386,7 +524,11 @@ export class Range {
    * (section 26; this one was missed there, section 31).
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
-    this.assertOneParagraph('replaceText');
+    // across paragraphs a paragraph at a time, as `search` (CR-014 section 3), the last first
+    if (this.spansParagraphs) {
+      this.assertWritableSpan();
+      return this.pieces().reverse().reduce((count, piece) => count + piece.replaceText(find, replace, options), 0);
+    }
     const matches = officeMatches(this.paragraph.segments({ objects: true }), find, options, this.start, this.end);
     for (let i = matches.length - 1; i >= 0; i--) {
       const { start, end, match } = matches[i]!;
@@ -790,18 +932,6 @@ export class Range {
     const part = this.paragraph.parentBody.part;
     if (!part) throw new Docx4JException('This range has no part, so a hyperlink cannot be related to it');
     return part.getRelationshipsPart(true)!.addExternalRelationship(Namespaces.HYPERLINK, address).id;
-  }
-}
-
-/**
- * What Office JS throws where the host refuses an operation it has no answer for: its `code`, so that
- * add-in code branching on `error.code` behaves the same here (check 19).
- */
-class GeneralException extends Docx4JException {
-  readonly code = 'GeneralException';
-  constructor(message: string) {
-    super(message);
-    this.name = 'GeneralException';
   }
 }
 

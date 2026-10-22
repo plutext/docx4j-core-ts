@@ -16,7 +16,11 @@ section 2 and every addition of the editor's has its answer. **Phase 0 is done.*
 2026-10-22** (Jason: "implement CR-014 phase 1"; section 9): one `Range` with two ends, read as Word's, the views
 returning one, `SpanningRange` gone; held to check 52 by running its own snippet through the Word shim. Its writes
 refuse until phase 2. Its choices where Word was unmeasured were then measured by check 53 (Jason ran it the same day,
-in both views) and changed to Word's answers where they differed (section 9.7). Not committed.
+in both views) and changed to Word's answers where they differed (section 9.7). Committed `ef57729`. **Phase 2, the writes,
+implemented 2026-10-22** (Jason: "implement CR-014 phase 2"; section 10): `delete`, `insertText` (`Replace`, at the
+ends), `font`, `insertParagraph` and `replaceText` across paragraphs, untracked and tracked, as Word writes them;
+held to check 52 by running its snippet's `run` mode through the Word shim against Word's run, its save after the
+run and its save after Accept All; a range starting or ending inside a table refused as Word refuses it (D3).
 
 ## 1. Why
 
@@ -223,7 +227,7 @@ Accept All. The text reads under tracking include deleted text, as All Markup sh
   in that paragraph's properties. Where the range starts at a paragraph's start or ends with its mark, nothing is
   split. This is not section 3's "before the first or after the last paragraph". Today's `Range.insertParagraph`, on a
   one-paragraph range, goes before or after the whole paragraph; whether Word splits a one-paragraph range the same
-  way isn't measured, and phase 2 asks.
+  way isn't measured, and phase 2 leaves it as it was (section 10.6, item 1).
 - **`insertText` at `'Start'` and `'End'`** goes at the first and last character, before a last mark.
 - **`insertComment`**'s range is the range's text, a last mark not included.
 - **A footnote reference in a deleted range takes its note.**
@@ -275,7 +279,7 @@ Accept All. The text reads under tracking include deleted text, as All Markup sh
 
 ## 9. Phase 1: the reads (2026-10-22)
 
-*Jason, 2026-10-22: "implement CR-014 phase 1". Implemented the same day; not committed.*
+*Jason, 2026-10-22: "implement CR-014 phase 1". Implemented the same day; committed `ef57729`.*
 
 ### 9.1 One `Range`, two ends
 
@@ -329,7 +333,7 @@ constructor call (an internal one: its two paragraphs are in one story, the seco
   So a range from a paragraph into a control lists it, one inside a control doesn't, and one over an inline control
   lists it. **`parentTableCell`** and **`parentTable`** (new) are its start's.
 - **`hyperlink`** reads the first link among its paragraphs.
-- **Every write refuses** with `NotSupportedError` naming phase 2, before anything changes: `text`, `insertText`,
+- **Every write refuses** (until phase 2, section 10) with `NotSupportedError` naming phase 2, before anything changes: `text`, `insertText`,
   `insertParagraph`, `insertOoxml`, `delete`, `replaceText`, `insertComment`, `insertContentControl`, `hyperlink`,
   `style`, `styleId` and `font`. So does `getOoxml` through the shim, and `toApiScript`, whose one `w:p` can't hold
   several blocks.
@@ -510,3 +514,179 @@ tracked-change ranges in 223 files:
 - one formatting change.
 
 Nothing new throws.
+
+## 10. Phase 2: the writes (2026-10-22)
+
+*Jason, 2026-10-22: "implement CR-014 phase 2". Implemented the same day.*
+
+The writes follow check 52's answers (section 6.2). Each goes through `src/model/content/spanEdits.mts`, which
+`Range` calls for a write across paragraphs, and for a delete (or a tracked `Replace`) of a range holding its
+paragraph's mark.
+
+### 10.1 What each write does
+
+- **Where a range stands** (`extentOf`): the innermost list of blocks holding both ends, and in it the block holding
+  each end. That block is the end's paragraph, or a table or block content control the range holds whole: it
+  starts at the block's first paragraph's start, or ends with its last paragraph's mark or a table's row end
+  (`Table.getRange()`, a body that starts with a table). A range starting or ending inside a block it doesn't hold
+  whole is refused, before anything changes:
+  - inside a table with `GeneralException`, which is Word's own refusal (check 52's INTO and CELL, tracked or not;
+    D3);
+  - inside a content control with `NotSupportedError`, since Word wasn't measured there.
+- **`delete()`**, untracked (cases 3 to 15):
+  - the first paragraph loses its text from the range's start, and every block between goes, a table too;
+  - the last paragraph loses its text to the range's end, and the two join in the **last paragraph's properties**,
+    each run keeping its own formatting. This is the resolution side's `joinWithNext`, which Accept All has always
+    used, so the joined paragraph also keeps the last paragraph's `w14:paraId`.
+  - Where the range holds the last paragraph's mark (a 'Whole' range), the mark goes too, and the paragraph after
+    is joined in, in its properties (W1, W2). With no paragraph after it in the same list (a cell's last paragraph,
+    a control's, the body's, one before a table) the mark stays. CR-002 section 55's rule holds: a cell keeps its
+    last paragraph.
+  - A footnote or endnote whose reference goes is queued to leave the notes part on save (case 12), unless a
+    reference to it still stands then.
+  - A section break in the first paragraph's mark goes with the mark, and the relationships its headers and footers
+    held are released. A block-level range marker between the paragraphs stays, and the join brings it into the
+    joined paragraph, as Accept All's does.
+- **`delete()`**, tracked (cases 16 to 28): nothing is joined.
+  - The text is a `w:del`, a hidden run and a note reference inside it.
+  - Every mark in the range is marked deleted, except a last one the range doesn't hold, and **no `w:pPrChange`**
+    is written (the editor's addition 1).
+  - A table in the range has its rows' `w:trPr/w:del`, and its cells' text and marks deleted.
+  - A mark another author's deletion already marked is left as it is, and its paragraph's text is still deleted.
+    (`Paragraph.markDeletedInPlace` skipped that text until now; a table row's deletion inherits the fix.)
+  - Accept All gives the untracked answer, Reject All the original (section 10.5).
+- **`insertText(…, 'Replace')`** is `delete()` keeping a last mark, then the text where the paragraphs joined:
+  - **untracked** (cases 29 to 38), in the first replaced character's look (`lookOf`): its run's own properties,
+    and each property its paragraph's style gave it that the joined paragraph's doesn't, written direct. A heading's
+    font, size, colour and bold come into a body paragraph (case 29). A body paragraph's run gets `w:b w:val="0"`
+    and `w:color w:val="auto"` in a heading (case 30), the neutral value of what the heading's style sets.
+  - **tracked** (cases 39 to 48), the `w:ins` before the deletion, in the first replaced run's direct formatting,
+    as Word writes it. A range within one paragraph holding its mark is replaced so too (case 47); one that doesn't
+    hold its mark keeps CR-002's order, the `w:del` first.
+- **`font`** (cases 49 to 56): every run in the range, a table's cells' too, split at the range's ends, and each
+  mark the range holds.
+  - A toggle (bold, italic, strikethrough, double strikethrough, subscript, superscript) is written only where the
+    run or mark doesn't read it already: no `w:b` on a heading's runs, bold through its style, and no tracked change
+    there.
+  - Tracked, each run and mark written has its `w:rPrChange`. A mark's is a `w:pPr/w:rPr/w:rPrChange` (case 56), new
+    in the tracker (`recordMarkRPrChange`, `settleMarkRPrChange`); the listing already read it as a formatting change.
+- **`insertText` at 'Start' or 'End'** (cases 71 to 78) goes at the first character and at the last, before a last
+  mark ('Before' and 'After' alike).
+- **`insertParagraph`** (cases 57 to 70) goes where the range starts ('Before') or ends ('After'):
+  - **inside a paragraph**, the paragraph is split there (`splitParagraph`). The text before the split becomes a new
+    paragraph in front, in a copy of the properties, with a mark of its own in the formatting of the run before the
+    split. The original keeps the rest, its own mark, its section break and its identity. The new paragraph goes
+    between the halves, its mark and text in that same formatting (case 63's italic).
+  - A link, a revision or a smart tag the split falls inside is cut into two of the same, a revision's second half
+    under a new id. A content control, a field, an equation or a kept `mc:AlternateContent` there is refused, since
+    each half would be one of it.
+  - At a paragraph's start the new paragraph goes before the paragraph, and at its end after it, as
+    `Paragraph.insertParagraph` puts one.
+  - Tracked, the first half's mark and the new paragraph are inserted (cases 69 and 70). Reject All joins them back.
+- **`replaceText`** across paragraphs goes a paragraph at a time, as `search` does (section 3).
+- **The range after a write**: collapsed where a deletion closed up (tracked, where it starts, as Simple Markup
+  reads it); over the new text after `Replace`; after `insertParagraph` and `insertText`, still over its text.
+
+### 10.2 Changed for a range within one paragraph
+
+- **A range holding its paragraph's mark deletes the mark**: `paragraph.getRange('Whole').delete()` removes the
+  paragraph, joining the paragraph after it in, where it emptied the paragraph before (check 52 case 14). The same
+  goes for a single-paragraph block control's 'Whole' range and for an inserted mark's range. Where no paragraph
+  follows in the same list, the paragraph is emptied as before.
+- A tracked `Replace` of such a range writes its insertion before the deletion (case 47).
+- `Paragraph.markDeletedInPlace` deletes a paragraph's text even where its mark is already deleted (section 10.1).
+
+### 10.3 Refused under change tracking
+
+A tracked `delete` or `Replace` whose range holds a whole block that isn't a paragraph or a table is refused with
+`NotSupportedError`, before anything changes (`assertTrackable`). Such blocks are a content control, a custom XML
+element, an `w:altChunk` and a kept `mc:AlternateContent`.
+- A control's content can be marked deleted, but what Word writes for the control itself isn't measured: check 30
+  measured an inserted control's markers only.
+- An `w:altChunk` has no deleted form.
+- Accept All would leave such a block, and an empty paragraph in a control, where the untracked deletion takes it,
+  the paragraphs either side unjoined. The sweep (section 10.5) found exactly that before the refusal.
+
+Untracked, such a block goes whole, as a table does.
+
+### 10.4 Held to Word 365
+
+`test/ranges.test.mjs`, seven tests (eighteen in all with phases 0 and 1):
+- **The run.** Check 52's snippet in its `run` mode, through the Word shim on `check52Bytes`, against Word's run JSON.
+  Compared for each of cases 1 to 85: the error, the result, the range read first, the region's paragraphs, its
+  tracked changes' types and its comments; untracked, also its text, tables and controls. Under tracking Word's text
+  is All Markup's, so a tracked region's paragraphs are compared without their text. Every refusal is Word's
+  (cases 9, 10, 22, 23, 34, 35, 44, 45). The differences left, asserted as they stand:
+  - after a tracked `Replace`, Office JS lists the insertion alone, and this package lists the deletion too (CR-002's
+    listing, phase 1's finding);
+  - the bold cases' report reads each word through `getTextRanges`, which is not implemented, and Word lists a
+    formatting change across a table's cells as one (cases 54 and 55);
+  - Word's extra empty paragraph on a control's content range (cases 60 and 66), which section 6.2 decided not to
+    copy;
+  - `insertComment` across paragraphs, phase 3's (cases 79 to 85; 83 inserts its one-paragraph comment, and the
+    snippet's chained `getRange()` fails on the asynchronous result).
+- **Accept All.** Accept All after the shim's run, saved and reloaded, reported through the shim against Word's
+  report after its Accept All. Every case from 1 to 85 is the same, the tracked deletions and replacements among them.
+  The exceptions are the categories above: the bold cases, 60 and 66, and the comments.
+- **The markup.** Each region's markup after the shim's run, a line a paragraph, held to Word's save after its run.
+  A line gives the paragraph's style, alignment and numbering, its mark's properties and revisions, a `w:pPrChange`,
+  then its runs merged by revision and properties, and a table's rows. Every case from 1 to 85 is Word's markup but:
+  - 1, read only: Word's save gave the comment reference's run `w:u` and `w:sz` of its own;
+  - 13: Word's filler for an emptied control, a bold run of five spaces;
+  - 60 and 66: Word's extra paragraph;
+  - **67 and 68**: Word gives a paragraph's mark its last run's formatting when `insertParagraph('After')` falls at
+    the paragraph's end. Not followed, a departure: the mark is left as it was, as `Paragraph.insertParagraph`
+    leaves it, and under tracking carrying it would need a formatting change on the mark that Reject All undoes;
+  - 79 to 85: the comments.
+
+  The test also pins Word's own lines for case 16 (the tracked deletion's marks), 39 (`w:ins` before `w:del`), 29
+  (the heading's look), 56 (a mark's tracked bold) and 70 (a tracked split).
+- **The API**: refusals before anything changes (a table, a control, under both modes), Reject All after each
+  tracked write giving back the original, a footnote leaving on save, a table's, a cell's, a control's and the
+  body's whole range deleted, a split inside a link and refused inside a control, and `insertText` and
+  `replaceText` across paragraphs.
+
+### 10.5 The sweep
+
+The 808 `.docx` of section 9.5, each with one range from the middle of a paragraph to the middle of one up to four
+later in reading order. Each of six writes was made untracked, then tracked on a fresh load: `delete`, `Replace`,
+`bold`, `insertParagraph` 'Before' and 'After', and a 'Whole' range's `delete`. Each document was saved and reloaded
+after every write. 685 documents had such a range; 119 had too few paragraphs, and 4 (strict namespace) don't load.
+Accept All after the tracked write was held to the untracked write, Accept All'd too, in each paragraph's text,
+style and alignment. Reject All was held to the original, Reject All'd, so that changes a document held already
+cancel out.
+- **Every write that wasn't refused agreed both ways, in every document.**
+- Refused: 224 deletes and as many replacements, all the ranges starting or ending inside a table (167) or a
+  control, holding a control or `w:altChunk` under tracking, or cutting an equation; 30 paragraph splits inside a
+  control or an equation; 4 bolds cutting an equation; one 'Whole' delete taking an equation under tracking.
+- Before section 10.3's refusal and the `markDeletedInPlace` fix, 30 documents differed on Accept All. A control or
+  `w:altChunk` between the ends was left behind and blocked the join. A paragraph between whose mark another author
+  had deleted kept its text.
+
+### 10.6 Choices check 52 didn't measure
+
+Each could go to a check 54, as check 53 measured phase 1's:
+1. A range within one paragraph: `insertParagraph` still goes before or after the paragraph (CR-002), where Word
+   splits a paragraph a range across paragraphs starts or ends in.
+2. A range ending with a whole table after a paragraph's tail: the paragraph keeps its mark, not joined to the one
+   after the table. A W2 range's head is joined that way.
+3. A 'Whole' range of a paragraph followed by a table, or last in its cell, control or body: emptied, its mark kept.
+4. A range holding a whole block control or `w:altChunk`: taken whole untracked, refused tracked (section 10.3). A
+   range starting or ending inside a control: refused.
+5. The toggle rule for the toggles other than bold. Name, size, colour, highlight and underline are written to every
+   run.
+6. `lookOf`'s neutral values beyond `w:b w:val="0"` and automatic colour (`u`, `highlight`, `vertAlign`, `sz` 20).
+7. A tracked `Replace` within one paragraph, not holding its mark: CR-002's `w:del` first, where Office JS wrote
+   `w:ins` first for each shape check 52 measured.
+8. Comments whose reference or markers a deletion takes, and bookmarks it breaks: left as they fall. Notes go
+   (measured).
+9. A tracked deletion over a mark this author inserted: marked deleted (inserted and deleted), not taken back.
+10. A range across paragraphs whose `style`, `styleId` or `hyperlink` is set, or given `insertOoxml`: still refused,
+   as section 3 didn't propose them.
+
+### 10.7 Left
+
+- Phase 3: comments and content controls on such a range, and `^p` in `search`.
+- `Range.footnotes` and `getTextRanges`; CR-002 section 55 (cases 86 to 95).
+- Deleting a range within one paragraph, `Paragraph.delete` and `Body.clear` leave a note whose reference they take
+  in the notes part (CR-002's).
