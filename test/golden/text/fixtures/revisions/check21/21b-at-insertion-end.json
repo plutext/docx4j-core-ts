@@ -1,0 +1,3616 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:33Z",
+    "fixture": "fixtures/revisions/check21/21b-at-insertion-end.docx",
+    "fixtureBytes": 26501,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "3",
+      "lastModifiedBy": "Author B",
+      "created": "2026-09-27T19:44:00Z",
+      "modified": "2026-09-28T00:02:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 9,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Revision fixtures for the docx4j editor\nThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\nThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\n1. Insertions and deletions by two authors\n[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\n[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\nThe quick brown red fox jumps over the very Ylazy dog near the stone bridge.\n2. An insertion deleted by another author\n[A] Type the word \"green \" before \"field\".\n[B] Select the word \"green \" that Author A typed and delete it.\nCows graze in the field beside the river.\n3. A move\n[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\nThe second paragraph of the move: it goes before the first.\nThe first paragraph of the move: it stays where it is.\nThe third paragraph of the move: it stays where it is.\n4. Run formatting changed\n[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\nThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\n5. Paragraph properties changed\n[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\nCentre this paragraph.\nIndent this paragraph by one step.\nGive this paragraph the style Heading 2.\n6. Paragraph marks inserted and deleted\n[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\nSplit this paragraph after the colon:\n the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.This is the paragraph it joins.\n7. Table rows inserted and deleted\n[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\nRow\tAction\tNote\n1\tKeep\trow one stays\n2\tKeep\ta row is inserted below this one\nNew\tNew\tnew\nThe paragraph after the table of rows.\n8. Table properties changed\n[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\nTop left\tTop right\nBottom left\tBottom right\nThe paragraph after the table of properties.\n9. Numbering changed\n[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\nThe first numbered item.\nThe second numbered item.\nThe third numbered item.\nThe paragraph after the list.\n10. Inline items inserted and deleted\n[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\nLeftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence.[1]\n11. Comments (Word 15; in Word 2010 only the two comments)\n[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\n[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\n[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\nAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone.\n12. Section properties changed\n[A] Page Layout (Layout in Word 15), Margins, Narrow.\nThe last paragraph of the document.\n[1] A tracked footnote.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39C77E8A",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Revision fixtures for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "354E35EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "147764A5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "435CD37A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Then do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B29B860",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Insertions and deletions by two authors"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A931888",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28211B8F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "192B03FC",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The quick brown red fox jumps over the very Ylazy dog near the stone bridge."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22449585",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C28C0EB",
+          "runs": [{"kind": "TEXT", "text": "[A] Type the word \"green \" before \"field\".", "italic": true}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "027DDAA8",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Select the word \"green \" that Author A typed and delete it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "313A05FF",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A04CC80",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A move"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45261235",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60954E93",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The second paragraph of the move: it goes before the first."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AF436A4",
+          "runs": [{"kind": "TEXT", "text": "The first paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65E1183A",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "The third paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3DD23E30",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45A89F5D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70F68A26",
+          "runs": [
+            {"kind": "TEXT", "text": "The word "},
+            {"kind": "TEXT", "text": "alpha", "bold": true},
+            {"kind": "TEXT", "text": " becomes bold, the word bravo becomes red, and the word "},
+            {"kind": "TEXT", "text": "charlie", "italic": true},
+            {"kind": "TEXT", "text": " becomes italic and underlined."}
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1ECC11",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6187702E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "23E783E8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03BC240A",
+          "indentLeft": 720,
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph by one step."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63BF556B",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E3CD625",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EF00EFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A7B55E1",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon:"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "089A500A",
+          "runs": [{"kind": "TEXT", "text": " the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FD450F",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one.This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A44AB05",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "7. Table rows inserted and deleted"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5761906B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/36/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/36/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "54EE3C26",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5286717E",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0ABCDA00",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/1",
+              "cells": [
+                {
+                  "address": "body/36/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "521CEFC7",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B277DB5",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "750E6F7A",
+                      "runs": [{"kind": "TEXT", "text": "row one stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/2",
+              "cells": [
+                {
+                  "address": "body/36/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7BA1538F",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "770F8B2F",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2A5B7C31",
+                      "runs": [{"kind": "TEXT", "text": "a row is inserted below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/3",
+              "cells": [
+                {
+                  "address": "body/36/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3F10A60C",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "New"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7CBEEAC1",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "New"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4340EA7F",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "new"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4408200A",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table of rows."}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06C20012",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Table properties changed"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B895D3F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/40/0",
+              "cells": [
+                {
+                  "address": "body/40/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FCB2842",
+                      "runs": [{"kind": "TEXT", "text": "Top left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD434CE",
+                      "runs": [{"kind": "TEXT", "text": "Top right"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/40/1",
+              "cells": [
+                {
+                  "address": "body/40/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3E89C5DE",
+                      "runs": [{"kind": "TEXT", "text": "Bottom left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4678A286",
+                      "runs": [{"kind": "TEXT", "text": "Bottom right"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DD30FF0",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {"kind": "TEXT", "text": "The paragraph after the table of properties."}
+          ]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45171DF7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. Numbering changed"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22E553EA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52D100EA",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The first numbered item."}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "371CE0BB",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The second numbered item."}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69E649F6",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The third numbered item."}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42B04F03",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the list."}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00D40E78",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "623BC60B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A297388",
+          "revisions": 2,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Leftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence."
+            },
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1341FE0D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. Comments (Word 15; in Word 2010 only the two comments)"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BC03CD",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "78EAA975",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D73F379",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44506078",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Author A comments on this sentence, and Author B answers. Author B comments on this sentence alone."
+            }
+          ]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A91AA91",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. Section properties changed"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "214967C0",
+          "runs": [{"kind": "TEXT", "text": "[A] Page Layout (Layout in Word 15), Margins, Narrow.", "italic": true}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "181DF9E2",
+          "runs": [{"kind": "TEXT", "text": "The last paragraph of the document."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "2838CD9B",
+          "style": "FootnoteText",
+          "revisions": 1,
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "A tracked footnote.", "italic": true}
+          ]
+        }
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "Revision fixtures for the docx4j editor\nThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\nThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\n1. Insertions and deletions by two authors\n[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\n[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\nThe quick brown fox jumps over the Ylazy dog near the old stone bridge at dawn.\n2. An insertion deleted by another author\n[A] Type the word \"green \" before \"field\".\n[B] Select the word \"green \" that Author A typed and delete it.\nCows graze in the field beside the river.\n3. A move\n[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\nThe first paragraph of the move: it stays where it is.\nThe second paragraph of the move: it goes before the first.\nThe third paragraph of the move: it stays where it is.\n4. Run formatting changed\n[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\nThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\n5. Paragraph properties changed\n[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\nCentre this paragraph.\nIndent this paragraph by one step.\nGive this paragraph the style Heading 2.\n6. Paragraph marks inserted and deleted\n[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\nSplit this paragraph after the colon: the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\n[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\nRow\tAction\tNote\n1\tKeep\trow one stays\n2\tKeep\ta row is inserted below this one\n3\tDelete\tthis row is deleted\nThe paragraph after the table of rows.\n8. Table properties changed\n[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\nTop left\tTop right\nBottom left\tBottom right\nThe paragraph after the table of properties.\n9. Numbering changed\n[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\nThe first numbered item.\nThe second numbered item.\nThe third numbered item.\nThe paragraph after the list.\n10. Inline items inserted and deleted\n[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\nLeft\tright: the tab between them is deleted. A line break goes after the word break here. The footnote goes at the end of this sentence.\n11. Comments (Word 15; in Word 2010 only the two comments)\n[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\n[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\n[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\nAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone.\n12. Section properties changed\n[A] Page Layout (Layout in Word 15), Margins, Narrow.\nThe last paragraph of the document.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39C77E8A",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Revision fixtures for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "354E35EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "147764A5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "435CD37A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Then do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B29B860",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Insertions and deletions by two authors"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A931888",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28211B8F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "192B03FC",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The quick brown fox jumps over the Ylazy dog near the old stone bridge at dawn."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22449585",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C28C0EB",
+          "runs": [{"kind": "TEXT", "text": "[A] Type the word \"green \" before \"field\".", "italic": true}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "027DDAA8",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Select the word \"green \" that Author A typed and delete it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "313A05FF",
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A04CC80",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A move"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45261235",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60954E93",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "The first paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65E1183A",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The second paragraph of the move: it goes before the first."}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "076B636F",
+          "runs": [{"kind": "TEXT", "text": "The third paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3DD23E30",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45A89F5D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70F68A26",
+          "runs": [
+            {"kind": "TEXT", "text": "The word "},
+            {"kind": "TEXT", "text": "alpha", "bold": true},
+            {"kind": "TEXT", "text": " becomes bold, the word bravo becomes red, and the word "},
+            {"kind": "TEXT", "text": "charlie", "italic": true},
+            {"kind": "TEXT", "text": " becomes italic and underlined."}
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1ECC11",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6187702E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "23E783E8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03BC240A",
+          "indentLeft": 720,
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph by one step."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63BF556B",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E3CD625",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EF00EFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A7B55E1",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon: the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FD450F",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one."}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "694F177B",
+          "runs": [{"kind": "TEXT", "text": "This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A44AB05",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "7. Table rows inserted and deleted"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5761906B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/36/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/36/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "54EE3C26",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5286717E",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0ABCDA00",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/1",
+              "cells": [
+                {
+                  "address": "body/36/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "521CEFC7",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B277DB5",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "750E6F7A",
+                      "runs": [{"kind": "TEXT", "text": "row one stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/2",
+              "cells": [
+                {
+                  "address": "body/36/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7BA1538F",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "770F8B2F",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2A5B7C31",
+                      "runs": [{"kind": "TEXT", "text": "a row is inserted below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/4",
+              "cells": [
+                {
+                  "address": "body/36/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7F295F0B",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "713030D7",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "Delete"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "60CE8E15",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "this row is deleted"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4408200A",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table of rows."}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06C20012",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Table properties changed"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B895D3F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/40/0",
+              "cells": [
+                {
+                  "address": "body/40/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FCB2842",
+                      "runs": [{"kind": "TEXT", "text": "Top left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD434CE",
+                      "runs": [{"kind": "TEXT", "text": "Top right"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/40/1",
+              "cells": [
+                {
+                  "address": "body/40/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3E89C5DE",
+                      "runs": [{"kind": "TEXT", "text": "Bottom left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4678A286",
+                      "runs": [{"kind": "TEXT", "text": "Bottom right"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DD30FF0",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {"kind": "TEXT", "text": "The paragraph after the table of properties."}
+          ]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45171DF7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. Numbering changed"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22E553EA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52D100EA",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The first numbered item."}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "371CE0BB",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The second numbered item."}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69E649F6",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The third numbered item."}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42B04F03",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the list."}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00D40E78",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "623BC60B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A297388",
+          "revisions": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Left\tright: the tab between them is deleted. A line break goes after the word break here. The footnote goes at the end of this sentence."
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1341FE0D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. Comments (Word 15; in Word 2010 only the two comments)"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BC03CD",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "78EAA975",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D73F379",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44506078",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Author A comments on this sentence, and Author B answers. Author B comments on this sentence alone."
+            }
+          ]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A91AA91",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. Section properties changed"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "214967C0",
+          "runs": [{"kind": "TEXT", "text": "[A] Page Layout (Layout in Word 15), Margins, Narrow.", "italic": true}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "181DF9E2",
+          "runs": [{"kind": "TEXT", "text": "The last paragraph of the document."}]
+        }
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Revision fixtures for the docx4j editor\nThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\nThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\n1. Insertions and deletions by two authors\n[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\n[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\nThe quick brown {++Author B, 2026-09-28T05:51:00Z: red ++}fox jumps over the {++Author A, 2026-09-28T05:46:00Z: very ++}Ylazy dog near the {--Author A, 2026-09-28T05:46:00Z: old --}stone bridge{--Author B, 2026-09-28T05:51:00Z:  at dawn--}.\n2. An insertion deleted by another author\n[A] Type the word \"green \" before \"field\".\n[B] Select the word \"green \" that Author A typed and delete it.\nCows graze in the {--Author B, 2026-09-28T05:51:00Z: green --}field beside the river.\n3. A move\n[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\n{++Author A, 2026-09-28T05:47:00Z: The second paragraph of the move: it goes before the first.++}\nThe first paragraph of the move: it stays where it is.\n{--Author A, 2026-09-28T05:47:00Z: The second paragraph of the move: it goes before the first.--}\nThe third paragraph of the move: it stays where it is.\n4. Run formatting changed\n[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\nThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\n5. Paragraph properties changed\n[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\nCentre this paragraph.\nIndent this paragraph by one step.\nGive this paragraph the style Heading 2.\n6. Paragraph marks inserted and deleted\n[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\nSplit this paragraph after the colon:\n the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\n[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\nRow\tAction\tNote\n1\tKeep\trow one stays\n2\tKeep\ta row is inserted below this one\n{++Author A, 2026-09-28T05:48:00Z: New++}\t{++Author A, 2026-09-28T05:48:00Z: New++}\t{++Author A, 2026-09-28T05:48:00Z: new++}\n{--Author A, 2026-09-28T05:48:00Z: 3--}\t{--Author A, 2026-09-28T05:48:00Z: Delete--}\t{--Author A, 2026-09-28T05:48:00Z: this row is deleted--}\nThe paragraph after the table of rows.\n8. Table properties changed\n[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\nTop left\tTop right\nBottom left\tBottom right\nThe paragraph after the table of properties.\n9. Numbering changed\n[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\nThe first numbered item.\nThe second numbered item.\nThe third numbered item.\nThe paragraph after the list.\n10. Inline items inserted and deleted\n[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\nLeft{--Author A, 2026-09-28T05:49:00Z: \t--}right: the tab between them is deleted. A line break goes after the word break{++Author A, 2026-09-28T05:49:00Z: \n++} here. The footnote goes at the end of this sentence.{++Author A, 2026-09-28T05:49:00Z: [1]++}\n11. Comments (Word 15; in Word 2010 only the two comments)\n[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\n[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\n[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\nAuthor A comments on this sentence, and Author B answers.{>>Author A, 2026-09-28T05:50:00Z: A: the first comment.<<}{>>Author B, 2026-09-28T05:51:00Z: B: the reply.<<} Author B comments on this sentence alone.{>>Author B, 2026-09-28T05:52:00Z: B: a comment of B\u2019s own/<<}\n12. Section properties changed\n[A] Page Layout (Layout in Word 15), Margins, Narrow.\nThe last paragraph of the document.\n{++Author A, 2026-09-28T05:49:00Z: [1] A tracked footnote.++}\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39C77E8A",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Revision fixtures for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "354E35EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "147764A5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "435CD37A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Then do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B29B860",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Insertions and deletions by two authors"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A931888",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28211B8F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "192B03FC",
+          "revisions": 4,
+          "runs": [
+            {"kind": "TEXT", "text": "The quick brown "},
+            {
+              "kind": "TEXT",
+              "text": "red ",
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-28T05:51:00Z"}
+            },
+            {"kind": "TEXT", "text": "fox jumps over the "},
+            {
+              "kind": "TEXT",
+              "text": "very ",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:46:00Z"}
+            },
+            {"kind": "TEXT", "text": "Ylazy dog near the "},
+            {
+              "kind": "TEXT",
+              "text": "old ",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:46:00Z"}
+            },
+            {"kind": "TEXT", "text": "stone bridge"},
+            {
+              "kind": "TEXT",
+              "text": " at dawn",
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-28T05:51:00Z"}
+            },
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22449585",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C28C0EB",
+          "runs": [{"kind": "TEXT", "text": "[A] Type the word \"green \" before \"field\".", "italic": true}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "027DDAA8",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Select the word \"green \" that Author A typed and delete it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "313A05FF",
+          "revisions": 2,
+          "runs": [
+            {"kind": "TEXT", "text": "Cows graze in the "},
+            {
+              "kind": "TEXT",
+              "text": "green ",
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-28T05:51:00Z"}
+            },
+            {"kind": "TEXT", "text": "field beside the river."}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A04CC80",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A move"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45261235",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60954E93",
+          "revisions": 2,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The second paragraph of the move: it goes before the first.",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:47:00Z"}
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AF436A4",
+          "runs": [{"kind": "TEXT", "text": "The first paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65E1183A",
+          "revisions": 2,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The second paragraph of the move: it goes before the first.",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:47:00Z"}
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "076B636F",
+          "runs": [{"kind": "TEXT", "text": "The third paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3DD23E30",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45A89F5D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70F68A26",
+          "runs": [
+            {"kind": "TEXT", "text": "The word "},
+            {"kind": "TEXT", "text": "alpha", "bold": true},
+            {"kind": "TEXT", "text": " becomes bold, the word bravo becomes red, and the word "},
+            {"kind": "TEXT", "text": "charlie", "italic": true},
+            {"kind": "TEXT", "text": " becomes italic and underlined."}
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1ECC11",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6187702E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "23E783E8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03BC240A",
+          "indentLeft": 720,
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph by one step."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63BF556B",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E3CD625",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EF00EFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A7B55E1",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon:"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "089A500A",
+          "runs": [{"kind": "TEXT", "text": " the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FD450F",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one."}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "694F177B",
+          "runs": [{"kind": "TEXT", "text": "This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A44AB05",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "7. Table rows inserted and deleted"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5761906B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/36/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/36/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "54EE3C26",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5286717E",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0ABCDA00",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/1",
+              "cells": [
+                {
+                  "address": "body/36/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "521CEFC7",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B277DB5",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "750E6F7A",
+                      "runs": [{"kind": "TEXT", "text": "row one stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/2",
+              "cells": [
+                {
+                  "address": "body/36/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7BA1538F",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "770F8B2F",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2A5B7C31",
+                      "runs": [{"kind": "TEXT", "text": "a row is inserted below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/3",
+              "cells": [
+                {
+                  "address": "body/36/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3F10A60C",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "New",
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7CBEEAC1",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "New",
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4340EA7F",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "new",
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/4",
+              "cells": [
+                {
+                  "address": "body/36/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7F295F0B",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "3",
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "713030D7",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "Delete",
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "60CE8E15",
+                      "revisions": 2,
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "this row is deleted",
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:48:00Z"}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4408200A",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table of rows."}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06C20012",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Table properties changed"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B895D3F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/40/0",
+              "cells": [
+                {
+                  "address": "body/40/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FCB2842",
+                      "runs": [{"kind": "TEXT", "text": "Top left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD434CE",
+                      "runs": [{"kind": "TEXT", "text": "Top right"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/40/1",
+              "cells": [
+                {
+                  "address": "body/40/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3E89C5DE",
+                      "runs": [{"kind": "TEXT", "text": "Bottom left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4678A286",
+                      "runs": [{"kind": "TEXT", "text": "Bottom right"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DD30FF0",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {"kind": "TEXT", "text": "The paragraph after the table of properties."}
+          ]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45171DF7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. Numbering changed"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22E553EA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52D100EA",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The first numbered item."}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "371CE0BB",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The second numbered item."}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69E649F6",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The third numbered item."}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42B04F03",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the list."}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00D40E78",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "623BC60B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A297388",
+          "revisions": 3,
+          "runs": [
+            {"kind": "TEXT", "text": "Left"},
+            {
+              "kind": "TEXT",
+              "text": "\t",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-28T05:49:00Z"}
+            },
+            {"kind": "TEXT", "text": "right: the tab between them is deleted. A line break goes after the word break"},
+            {
+              "kind": "TEXT",
+              "text": "\n",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:49:00Z"}
+            },
+            {"kind": "TEXT", "text": " here. The footnote goes at the end of this sentence."},
+            {
+              "kind": "NOTE_REFERENCE",
+              "text": "",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:49:00Z"},
+              "noteType": "footnote",
+              "noteNumber": 1,
+              "noteId": "1"
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1341FE0D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. Comments (Word 15; in Word 2010 only the two comments)"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BC03CD",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "78EAA975",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D73F379",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44506078",
+          "runs": [
+            {"kind": "TEXT", "text": "Author A comments on this sentence, and Author B answers."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "48"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "49"},
+            {"kind": "TEXT", "text": " Author B comments on this sentence alone."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "50"}
+          ]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A91AA91",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. Section properties changed"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "214967C0",
+          "runs": [{"kind": "TEXT", "text": "[A] Page Layout (Layout in Word 15), Margins, Narrow.", "italic": true}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "181DF9E2",
+          "runs": [{"kind": "TEXT", "text": "The last paragraph of the document."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "2838CD9B",
+          "style": "FootnoteText",
+          "revisions": 1,
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {
+              "kind": "NOTE_MARK",
+              "text": "",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:49:00Z"},
+              "noteType": "footnote",
+              "noteNumber": 1,
+              "noteId": "1"
+            },
+            {
+              "kind": "TEXT",
+              "text": " ",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:49:00Z"}
+            },
+            {
+              "kind": "TEXT",
+              "text": "A tracked footnote.",
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-28T05:49:00Z"},
+              "italic": true
+            }
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "48",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-28T05:50:00Z",
+          "blocks": [
+            {
+              "address": "comment:48/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "3C0945A3",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A: the first comment.", "italic": true}]
+            }
+          ],
+          "replies": ["49"]
+        },
+        {
+          "id": "49",
+          "author": "Author B",
+          "initials": "BB",
+          "date": "2026-09-28T05:51:00Z",
+          "parentId": "48",
+          "blocks": [
+            {
+              "address": "comment:49/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "4AC14BEA",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "B: the reply."}]
+            }
+          ]
+        },
+        {
+          "id": "50",
+          "author": "Author B",
+          "initials": "BB",
+          "date": "2026-09-28T05:52:00Z",
+          "blocks": [
+            {
+              "address": "comment:50/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "748A37B5",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "B: a comment of B\u2019s own/"}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 3; lastModifiedBy: Author B; created: 2026-09-27T19:44:00Z; modified: 2026-09-28T00:02:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 9; DocSecurity: 0]\nRevision fixtures for the docx4j editor\nThis document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.\nThen do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).\n1. Insertions and deletions by two authors\n[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.\n[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).\nThe quick brown red fox jumps over the very Ylazy dog near the stone bridge.\n2. An insertion deleted by another author\n[A] Type the word \"green \" before \"field\".\n[B] Select the word \"green \" that Author A typed and delete it.\nCows graze in the field beside the river.\n3. A move\n[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.\nThe second paragraph of the move: it goes before the first.\nThe first paragraph of the move: it stays where it is.\nThe third paragraph of the move: it stays where it is.\n[page 2]4. Run formatting changed\n[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.\nThe word alpha becomes bold, the word bravo becomes red, and the word charlie becomes italic and underlined.\n5. Paragraph properties changed\n[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.\nCentre this paragraph.\nIndent this paragraph by one step.\nGive this paragraph the style Heading 2.\n6. Paragraph marks inserted and deleted\n[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.\nSplit this paragraph after the colon:\n the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.This is the paragraph it joins.\n7. Table rows inserted and deleted\n[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.\nRow\tAction\tNote\n1\tKeep\trow one stays\n2\tKeep\ta row is inserted below this one\nNew\tNew\tnew\nThe paragraph after the table of rows.\n8. Table properties changed\n[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).\nTop left\tTop right\nBottom left\tBottom right\n[page 3]The paragraph after the table of properties.\n9. Numbering changed\n[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.\n\uf0b7\tThe first numbered item.\n\uf0b7\tThe second numbered item.\n\uf0b7\tThe third numbered item.\nThe paragraph after the list.\n10. Inline items inserted and deleted\n[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.\nLeftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence.[1]\n11. Comments (Word 15; in Word 2010 only the two comments)\n[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"\n[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"\n[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).\nAuthor A comments on this sentence, and Author B answers.{>>A: the first comment.<<}{>>B: the reply.<<} Author B comments on this sentence alone.{>>B: a comment of B\u2019s own/<<}\n12. Section properties changed\n[A] Page Layout (Layout in Word 15), Margins, Narrow.\nThe last paragraph of the document.\n[1] A tracked footnote.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39C77E8A",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Revision fixtures for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "354E35EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This document was built by docx4j (core-ts) for ED-005 section 13 and holds no revisions: Word makes them all. Do it twice, from this file each time: once in Word 2010, saved as revisions-word2010.docx, and once in Word 15, saved as revisions-word15.docx.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "147764A5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\" (in Word 15 also tick \"Always use these values regardless of sign in to Office\"). In Word 15, if the title bar says [Compatibility Mode], use File > Info > Convert first. Then Review > Track Changes on, and in the change tracking options keep \"Track moves\" and \"Track formatting\" ticked.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "435CD37A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Then do every step marked [A] in order; set the user name to \"Author B\" (initials \"BB\") and do every step marked [B]; set it back to \"Author A\" and do the steps marked [A again]. Revise only the black text, never a heading or these blue instructions. Accept and reject nothing. Save as a Word Document (.docx).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B29B860",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Insertions and deletions by two authors"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A931888",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Type the word \"very \" before \"lazy\", and delete the word \"old \" with the space after it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28211B8F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Type the word \"red \" before \"fox\", and delete the words \" at dawn\" (keep the full stop).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "192B03FC",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The quick brown red fox jumps over the very Ylazy dog near the stone bridge."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22449585",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C28C0EB",
+          "runs": [{"kind": "TEXT", "text": "[A] Type the word \"green \" before \"field\".", "italic": true}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "027DDAA8",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Select the word \"green \" that Author A typed and delete it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "313A05FF",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A04CC80",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A move"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45261235",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Triple-click the second paragraph below (it is selected with its paragraph mark), cut it (Ctrl+X), click at the start of the first paragraph below and paste (Ctrl+V). Word marks a move with a double strikethrough where the text was and a double underline where it went, in green. If it shows as an ordinary deletion and insertion, undo, check \"Track moves\", and try again, or drag the selected paragraph instead.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60954E93",
+          "revisions": 2,
+          "runs": [{"kind": "TEXT", "text": "The second paragraph of the move: it goes before the first."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AF436A4",
+          "runs": [{"kind": "TEXT", "text": "The first paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65E1183A",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "The third paragraph of the move: it stays where it is."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3DD23E30",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45A89F5D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Make the word \"alpha\" bold, the word \"bravo\" red (Font Color, Red), and the word \"charlie\" italic and underlined.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70F68A26",
+          "runs": [
+            {"kind": "TEXT", "text": "The word "},
+            {"kind": "TEXT", "text": "alpha", "bold": true},
+            {"kind": "TEXT", "text": " becomes bold, the word bravo becomes red, and the word "},
+            {"kind": "TEXT", "text": "charlie", "italic": true},
+            {"kind": "TEXT", "text": " becomes italic and underlined."}
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1ECC11",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6187702E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Centre the first paragraph below (Ctrl+E), indent the second by one step (Increase Indent), and give the third the style Heading 2.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "23E783E8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03BC240A",
+          "indentLeft": 720,
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph by one step."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63BF556B",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E3CD625",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EF00EFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click right after the colon in the first paragraph below and press Enter. Then click at the very end of the second paragraph and press Delete, joining the third to it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A7B55E1",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon:"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "089A500A",
+          "runs": [{"kind": "TEXT", "text": " the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FD450F",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one.This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A44AB05",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "7. Table rows inserted and deleted"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5761906B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the row \"2\", then Table Tools, Layout, Insert Below, and type \"new\" in each cell of the new row. Then click in the row \"3\" and use Layout, Delete, Delete Rows.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/36/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/36/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "54EE3C26",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5286717E",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0ABCDA00",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/1",
+              "cells": [
+                {
+                  "address": "body/36/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "521CEFC7",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B277DB5",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "750E6F7A",
+                      "runs": [{"kind": "TEXT", "text": "row one stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/2",
+              "cells": [
+                {
+                  "address": "body/36/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7BA1538F",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "770F8B2F",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2A5B7C31",
+                      "runs": [{"kind": "TEXT", "text": "a row is inserted below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/36/3",
+              "cells": [
+                {
+                  "address": "body/36/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3F10A60C",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "New"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7CBEEAC1",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "New"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/36/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/36/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4340EA7F",
+                      "revisions": 2,
+                      "runs": [{"kind": "TEXT", "text": "new"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4408200A",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table of rows."}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06C20012",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Table properties changed"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B895D3F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Click in the table below and use Table Properties, Table, Alignment: Center. Then shade its top left cell yellow (Table Tools, Design, Shading).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/40/0",
+              "cells": [
+                {
+                  "address": "body/40/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FCB2842",
+                      "runs": [{"kind": "TEXT", "text": "Top left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD434CE",
+                      "runs": [{"kind": "TEXT", "text": "Top right"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/40/1",
+              "cells": [
+                {
+                  "address": "body/40/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3E89C5DE",
+                      "runs": [{"kind": "TEXT", "text": "Bottom left"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/40/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/40/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4678A286",
+                      "runs": [{"kind": "TEXT", "text": "Bottom right"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DD30FF0",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {"kind": "TEXT", "text": "The paragraph after the table of properties."}
+          ]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "45171DF7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. Numbering changed"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22E553EA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the three numbered items below and click Bullets, so the list becomes a bulleted one.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52D100EA",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The first numbered item."}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "371CE0BB",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The second numbered item."}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69E649F6",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "The third numbered item."}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42B04F03",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the list."}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00D40E78",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "623BC60B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Delete the tab between \"Left\" and \"right\". Put a line break (Shift+Enter) after the word \"break\". Insert a footnote at the end of the last sentence (References, Insert Footnote) and type \"A tracked footnote.\" in it.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A297388",
+          "revisions": 2,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Leftright: the tab between them is deleted. A line break goes after the word break\n here. The footnote goes at the end of this sentence."
+            },
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1341FE0D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. Comments (Word 15; in Word 2010 only the two comments)"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BC03CD",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A] Select the first sentence below, Review, New Comment, and type \"A: the first comment.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "78EAA975",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[B] Reply to Author A's comment (the Reply button in the comment, Word 15 only) with \"B: the reply.\" Then select the second sentence, New Comment, and type \"B: a comment of B's own.\"",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D73F379",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "[A again] Right-click Author B's reply and choose Mark Comment Done (Word 15 only).",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44506078",
+          "runs": [
+            {"kind": "TEXT", "text": "Author A comments on this sentence, and Author B answers."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "48"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "49"},
+            {"kind": "TEXT", "text": " Author B comments on this sentence alone."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "50"}
+          ]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A91AA91",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. Section properties changed"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "214967C0",
+          "runs": [{"kind": "TEXT", "text": "[A] Page Layout (Layout in Word 15), Margins, Narrow.", "italic": true}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "181DF9E2",
+          "runs": [{"kind": "TEXT", "text": "The last paragraph of the document."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "2838CD9B",
+          "style": "FootnoteText",
+          "revisions": 1,
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "A tracked footnote.", "italic": true}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "48",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-28T05:50:00Z",
+          "blocks": [
+            {
+              "address": "comment:48/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "3C0945A3",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A: the first comment.", "italic": true}]
+            }
+          ],
+          "replies": ["49"]
+        },
+        {
+          "id": "49",
+          "author": "Author B",
+          "initials": "BB",
+          "date": "2026-09-28T05:51:00Z",
+          "parentId": "48",
+          "blocks": [
+            {
+              "address": "comment:49/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "4AC14BEA",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "B: the reply."}]
+            }
+          ]
+        },
+        {
+          "id": "50",
+          "author": "Author B",
+          "initials": "BB",
+          "date": "2026-09-28T05:52:00Z",
+          "blocks": [
+            {
+              "address": "comment:50/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "748A37B5",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "B: a comment of B\u2019s own/"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

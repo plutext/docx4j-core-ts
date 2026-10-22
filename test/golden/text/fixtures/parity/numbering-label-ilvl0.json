@@ -1,0 +1,963 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/parity/numbering-label-ilvl0.docx",
+    "fixtureBytes": 10308,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "P01 N1: w:pStyle NumLinked, whose w:numPr names numId 20 with no w:ilvl; the paragraph carries no w:numPr and no w:ind of its own. The level's indent is 567 left, 567 hanging. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nP02 N1. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP03 N2: the same style, and a direct w:numPr naming numId 20 with w:ilvl 0. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\nP04 N2. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP05 N3: the same style, and a direct w:numPr naming numId 20 with NO w:ilvl at all. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nP06 N3. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP07 N4: the same style, and the paragraph's own w:ind left 1440 hanging 360, against the level's 567/567. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\nP08 N4. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP09 N5: the same style, a direct w:numPr with w:ilvl 0, and the paragraph's own w:ind left 1440 hanging 360. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nP10 N5. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP11 N6: w:pStyle NumLinkedInd0: the same numbered style, but the STYLE states w:ind left 0 firstLine 0. This is J27's shape, where Word ignored the style's indent, used the level's 567, and painted no label. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\nP12 N6. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP13 N7: w:pStyle NumDerived, based on NumBase, which holds both the w:numPr (numId 21, whose level 0 is not style-linked) and w:ind left 227 hanging 227. This is E37's shape, where Word used the style's indent rather than the level's 720/360. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nP14 N7. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP15 N8: an unnumbered style and a direct w:numPr naming numId 21, whose levels carry no w:pStyle link at all, with w:ilvl 0. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP16 N8. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP17 N9: the same, with the paragraph's own w:ind left 1440 hanging 360. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nP18 N9. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP19 N10: an unnumbered style and a direct w:numPr naming numId 22, whose level 0 carries a w:pStyle link to NumUnused - a style which exists but which this paragraph does not use. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\nP20 N10. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP21 N11: w:pStyle NumLinked and a direct w:numPr naming numId 23, a second w:num over the same abstractNum 20 the style's own numId 20 names, so one abstract definition is shared by two instances. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nP22 N11. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP23 N12: w:pStyle NumLinked with a direct w:numPr naming w:numId 0 and no w:ilvl, which is how Word switches a numbered style's numbering off. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\nP24 N12. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP25 N13: the same, with w:ilvl 0 written alongside the w:numId 0. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nP26 N13. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP27 N14: w:pStyle NumLinked, no direct w:numPr, and the paragraph's own w:ind left 0 hanging 0 - an indent which overrides the level's without moving anything. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\nP28 N14. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP29 after. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 N1: w:pStyle NumLinked, whose w:numPr names numId 20 with no w:ilvl; the paragraph carries no w:numPr and no w:ind of its own. The level's indent is 567 left, 567 hanging. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P02 N1. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P03 N2: the same style, and a direct w:numPr naming numId 20 with w:ilvl 0. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P04 N2. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P05 N3: the same style, and a direct w:numPr naming numId 20 with NO w:ilvl at all. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P06 N3. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P07 N4: the same style, and the paragraph's own w:ind left 1440 hanging 360, against the level's 567/567. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P08 N4. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P09 N5: the same style, a direct w:numPr with w:ilvl 0, and the paragraph's own w:ind left 1440 hanging 360. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P10 N5. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P11 N6: w:pStyle NumLinkedInd0: the same numbered style, but the STYLE states w:ind left 0 firstLine 0. This is J27's shape, where Word ignored the style's indent, used the level's 567, and painted no label. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinkedInd0",
+          "indentLeft": 0,
+          "indentFirstLine": 0,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P12 N6. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P13 N7: w:pStyle NumDerived, based on NumBase, which holds both the w:numPr (numId 21, whose level 0 is not style-linked) and w:ind left 227 hanging 227. This is E37's shape, where Word used the style's indent rather than the level's 720/360. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            }
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumDerived",
+          "indentLeft": 227,
+          "indentHanging": 227,
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P14 N7. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P15 N8: an unnumbered style and a direct w:numPr naming numId 21, whose levels carry no w:pStyle link at all, with w:ilvl 0. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P16 N8. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P17 N9: the same, with the paragraph's own w:ind left 1440 hanging 360. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P18 N9. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P19 N10: an unnumbered style and a direct w:numPr naming numId 22, whose level 0 carries a w:pStyle link to NumUnused - a style which exists but which this paragraph does not use. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 1080,
+          "indentHanging": 540,
+          "numbering": {
+            "numId": "22",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "22"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P20 N10. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P21 N11: w:pStyle NumLinked and a direct w:numPr naming numId 23, a second w:num over the same abstractNum 20 the style's own numId 20 names, so one abstract definition is shared by two instances. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "numbering": {
+            "numId": "23",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P22 N11. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P23 N12: w:pStyle NumLinked with a direct w:numPr naming w:numId 0 and no w:ilvl, which is how Word switches a numbered style's numbering off. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P24 N12. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P25 N13: the same, with w:ilvl 0 written alongside the w:numId 0. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P26 N13. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P27 N14: w:pStyle NumLinked, no direct w:numPr, and the paragraph's own w:ind left 0 hanging 0 - an indent which overrides the level's without moving anything. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 0,
+          "indentHanging": 567,
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 7,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P28 N14. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P29 after. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "P01 N1: w:pStyle NumLinked, whose w:numPr names numId 20 with no w:ilvl; the paragraph carries no w:numPr and no w:ind of its own. The level's indent is 567 left, 567 hanging. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n1.\tP02 N1. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP03 N2: the same style, and a direct w:numPr naming numId 20 with w:ilvl 0. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\n2.\tP04 N2. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP05 N3: the same style, and a direct w:numPr naming numId 20 with NO w:ilvl at all. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n3.\tP06 N3. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP07 N4: the same style, and the paragraph's own w:ind left 1440 hanging 360, against the level's 567/567. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\n4.\tP08 N4. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP09 N5: the same style, a direct w:numPr with w:ilvl 0, and the paragraph's own w:ind left 1440 hanging 360. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n5.\tP10 N5. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP11 N6: w:pStyle NumLinkedInd0: the same numbered style, but the STYLE states w:ind left 0 firstLine 0. This is J27's shape, where Word ignored the style's indent, used the level's 567, and painted no label. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\nP12 N6. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP13 N7: w:pStyle NumDerived, based on NumBase, which holds both the w:numPr (numId 21, whose level 0 is not style-linked) and w:ind left 227 hanging 227. This is E37's shape, where Word used the style's indent rather than the level's 720/360. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n1.\tP14 N7. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP15 N8: an unnumbered style and a direct w:numPr naming numId 21, whose levels carry no w:pStyle link at all, with w:ilvl 0. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\n2.\tP16 N8. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP17 N9: the same, with the paragraph's own w:ind left 1440 hanging 360. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n3.\tP18 N9. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP19 N10: an unnumbered style and a direct w:numPr naming numId 22, whose level 0 carries a w:pStyle link to NumUnused - a style which exists but which this paragraph does not use. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\n1.\tP20 N10. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP21 N11: w:pStyle NumLinked and a direct w:numPr naming numId 23, a second w:num over the same abstractNum 20 the style's own numId 20 names, so one abstract definition is shared by two instances. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n6.\tP22 N11. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP23 N12: w:pStyle NumLinked with a direct w:numPr naming w:numId 0 and no w:ilvl, which is how Word switches a numbered style's numbering off. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\nP24 N12. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP25 N13: the same, with w:ilvl 0 written alongside the w:numId 0. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nP26 N13. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP27 N14: w:pStyle NumLinked, no direct w:numPr, and the paragraph's own w:ind left 0 hanging 0 - an indent which overrides the level's without moving anything. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\n7.\tP28 N14. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\nP29 after. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 N1: w:pStyle NumLinked, whose w:numPr names numId 20 with no w:ilvl; the paragraph carries no w:numPr and no w:ind of its own. The level's indent is 567 left, 567 hanging. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P02 N1. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P03 N2: the same style, and a direct w:numPr naming numId 20 with w:ilvl 0. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P04 N2. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P05 N3: the same style, and a direct w:numPr naming numId 20 with NO w:ilvl at all. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "listLabel": "3.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P06 N3. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P07 N4: the same style, and the paragraph's own w:ind left 1440 hanging 360, against the level's 567/567. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "4.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P08 N4. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P09 N5: the same style, a direct w:numPr with w:ilvl 0, and the paragraph's own w:ind left 1440 hanging 360. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "5.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P10 N5. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P11 N6: w:pStyle NumLinkedInd0: the same numbered style, but the STYLE states w:ind left 0 firstLine 0. This is J27's shape, where Word ignored the style's indent, used the level's 567, and painted no label. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinkedInd0",
+          "indentLeft": 0,
+          "indentFirstLine": 0,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P12 N6. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P13 N7: w:pStyle NumDerived, based on NumBase, which holds both the w:numPr (numId 21, whose level 0 is not style-linked) and w:ind left 227 hanging 227. This is E37's shape, where Word used the style's indent rather than the level's 720/360. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            }
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumDerived",
+          "indentLeft": 227,
+          "indentHanging": 227,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P14 N7. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P15 N8: an unnumbered style and a direct w:numPr naming numId 21, whose levels carry no w:pStyle link at all, with w:ilvl 0. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P16 N8. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P17 N9: the same, with the paragraph's own w:ind left 1440 hanging 360. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "3.\t",
+          "numbering": {
+            "numId": "21",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "21"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P18 N9. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P19 N10: an unnumbered style and a direct w:numPr naming numId 22, whose level 0 carries a w:pStyle link to NumUnused - a style which exists but which this paragraph does not use. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumPlain",
+          "indentLeft": 1080,
+          "indentHanging": 540,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "22",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "22"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P20 N10. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P21 N11: w:pStyle NumLinked and a direct w:numPr naming numId 23, a second w:num over the same abstractNum 20 the style's own numId 20 names, so one abstract definition is shared by two instances. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 567,
+          "indentHanging": 567,
+          "listLabel": "6.\t",
+          "numbering": {
+            "numId": "23",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P22 N11. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P23 N12: w:pStyle NumLinked with a direct w:numPr naming w:numId 0 and no w:ilvl, which is how Word switches a numbered style's numbering off. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P24 N12. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P25 N13: the same, with w:ilvl 0 written alongside the w:numId 0. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P26 N13. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P27 N14: w:pStyle NumLinked, no direct w:numPr, and the paragraph's own w:ind left 0 hanging 0 - an indent which overrides the level's without moving anything. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "NumLinked",
+          "indentLeft": 0,
+          "indentHanging": 567,
+          "listLabel": "7.\t",
+          "numbering": {
+            "numId": "20",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 7,
+            "abstractNumId": "20"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P28 N14. This paragraph is long enough to wrap, so the golden shows where its second line starts as well as where its first one does. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P29 after. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

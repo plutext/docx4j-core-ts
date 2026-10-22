@@ -1,0 +1,330 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/parity/numbering-level-vs-style-indent.docx",
+    "fixtureBytes": 8598,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "P01 IndStyleA: the level says w:hanging 360 only; the style says w:left 1440 only.\nP02 IndStyleA item\nP03 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions.\nP04 IndStyleA item\nP05 IndStyleB: the level says w:left 1440 only; the style says w:hanging 360 only.\nP06 IndStyleB item\nP07 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions.\nP08 IndStyleB item\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndPlain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 IndStyleA: the level says w:hanging 360 only; the style says w:left 1440 only."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "50"
+          },
+          "runs": [{"kind": "TEXT", "text": "P02 IndStyleA item"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "50"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P03 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions."
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "50"
+          },
+          "runs": [{"kind": "TEXT", "text": "P04 IndStyleA item"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndPlain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P05 IndStyleB: the level says w:left 1440 only; the style says w:hanging 360 only."
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "51"
+          },
+          "runs": [{"kind": "TEXT", "text": "P06 IndStyleB item"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "51"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P07 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "51"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 IndStyleB item"}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "P01 IndStyleA: the level says w:hanging 360 only; the style says w:left 1440 only.\n1.\tP02 IndStyleA item\n2.\tP03 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions.\n3.\tP04 IndStyleA item\nP05 IndStyleB: the level says w:left 1440 only; the style says w:hanging 360 only.\n1.\tP06 IndStyleB item\n2.\tP07 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions.\n3.\tP08 IndStyleB item\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndPlain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 IndStyleA: the level says w:hanging 360 only; the style says w:left 1440 only."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "50"
+          },
+          "runs": [{"kind": "TEXT", "text": "P02 IndStyleA item"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "50"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P03 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions."
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleA",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "3.\t",
+          "numbering": {
+            "numId": "50",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "50"
+          },
+          "runs": [{"kind": "TEXT", "text": "P04 IndStyleA item"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndPlain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P05 IndStyleB: the level says w:left 1440 only; the style says w:hanging 360 only."
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "51"
+          },
+          "runs": [{"kind": "TEXT", "text": "P06 IndStyleB item"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "51"
+          },
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P07 This item is long enough to wrap onto a second line, so the golden shows the continuation indent as well as the label and first-line positions."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IndStyleB",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "3.\t",
+          "numbering": {
+            "numId": "51",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "51"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 IndStyleB item"}]
+        }
+      ]
+    }
+  }
+}

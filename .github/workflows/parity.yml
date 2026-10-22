@@ -1,5 +1,5 @@
 # CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
-# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_4, runs
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_5, runs
 # the harness (test/java/) over the same fixtures, and opens a pull request when any
 # golden differs, with the docx4j commits since the hash the goldens record in its body.
 #
@@ -27,13 +27,14 @@ jobs:
       # development moved to VERSION_17_3_0 on 2026-09-27 when 17.2.1 was released, to
       # VERSION_17_3_1 on 2026-10-02 when 17.3.0 was released, to VERSION_17_3_2 on
       # 2026-10-07 when 17.3.1 was released, to VERSION_17_3_3 on 2026-10-09 when 17.3.2
-      # was released, and to VERSION_17_3_4 on 2026-10-17 when 17.3.3 was released (the
-      # release branches are frozen at their releases).  Rename here when docx4j moves again.
-      - name: Check out docx4j (VERSION_17_3_4)
+      # was released, to VERSION_17_3_4 on 2026-10-17 when 17.3.3 was released, and to
+      # VERSION_17_3_5 on 2026-10-22 when 17.3.4 was released (the release branches are
+      # frozen at their releases).  Rename here when docx4j moves again.
+      - name: Check out docx4j (VERSION_17_3_5)
         uses: actions/checkout@v4
         with:
           repository: plutext/docx4j
-          ref: VERSION_17_3_4
+          ref: VERSION_17_3_5
           path: .docx4j
           fetch-depth: 0     # the pull request body lists the commits since the recorded hash
 
@@ -46,7 +47,7 @@ jobs:
       - name: The commit the goldens were made from, docx4j's head, and its version
         id: commits
         # docx4j's <revision> is what its build installs and what the harness must resolve
-        # (17.3.3-SNAPSHOT on the branch before, 17.3.4-SNAPSHOT on this one); read it from the checkout so
+        # (17.3.4-SNAPSHOT on the branch before, 17.3.5-SNAPSHOT on this one); read it from the checkout so
         # the branch name above is the only thing to change when docx4j moves on.
         run: |
           old=$(node -e "const g=require('./test/golden/invoice.json'); process.stdout.write(g.header.docx4jCommit)")
@@ -119,6 +120,20 @@ jobs:
           -Dout=${{ runner.temp }}/golden/revisions
           -Ddocx4j.commit=${{ steps.commits.outputs.new }}
 
+      - name: Run the text harness
+        working-directory: test/java
+        # CR-012 phase 6 (its D8 c): what docx4j's org.docx4j.model.text (Texts.of, PlainText.of) answers for
+        # every WordprocessingML document under test/fixtures/ and test/text-extraction/, at any depth, in four
+        # readings (test/golden/text/, a golden's path the directory's name and then the document's, compared
+        # by test/text-parity.test.mjs).
+        run: >
+          mvn -B -q exec:java
+          -Dexec.mainClass=org.docx4j.parity.TextHarness
+          -Ddocx4j.version=${{ steps.commits.outputs.version }}
+          -Dfixtures=../fixtures,../text-extraction
+          -Dout=${{ runner.temp }}/golden/text
+          -Ddocx4j.commit=${{ steps.commits.outputs.new }}
+
       - name: Compare with the committed goldens
         id: compare
         # The date is when the harness ran, the jar hash and file name are the build it ran
@@ -129,17 +144,19 @@ jobs:
         # reason carries its new header along when it is copied in.
         run: |
           shopt -s globstar
+          # the four header fields, at the header's indent: a revision's or a comment's own "date" is deeper,
+          # and in a text golden on the same line as its run, so an unanchored pattern would drop it too
+          header='^    "\(date\|docx4jCoreJarSha256\|docx4jCommit\|docx4jVersion\)": '
           differed=""
-          for golden in test/golden/*.json test/golden/xpath/*.json test/golden/revisions/**/*.json; do
+          for golden in test/golden/*.json test/golden/xpath/*.json test/golden/revisions/**/*.json test/golden/text/**/*.json; do
             name=${golden#test/golden/}
             fresh="${{ runner.temp }}/golden/$name"
             if [ ! -f "$fresh" ]; then differed="$differed $name(missing)"; continue; fi
-            if ! diff -q <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"\|"docx4jVersion"' "$golden") \
-                         <(grep -v '"date"\|"docx4jCoreJarSha256"\|"docx4jCommit"\|"docx4jVersion"' "$fresh") > /dev/null; then
+            if ! diff -q <(grep -v "$header" "$golden") <(grep -v "$header" "$fresh") > /dev/null; then
               differed="$differed $name"
             fi
           done
-          for fresh in ${{ runner.temp }}/golden/*.json ${{ runner.temp }}/golden/xpath/*.json ${{ runner.temp }}/golden/revisions/**/*.json; do
+          for fresh in ${{ runner.temp }}/golden/*.json ${{ runner.temp }}/golden/xpath/*.json ${{ runner.temp }}/golden/revisions/**/*.json ${{ runner.temp }}/golden/text/**/*.json; do
             name=${fresh#${{ runner.temp }}/golden/}
             [ -f "test/golden/$name" ] || differed="$differed $name(new)"
           done
@@ -164,14 +181,16 @@ jobs:
             ${{ runner.temp }}/golden/*.json
             ${{ runner.temp }}/golden/xpath/*.json
             ${{ runner.temp }}/golden/revisions/
+            ${{ runner.temp }}/golden/text/
 
       - name: Take the new goldens
         if: steps.compare.outputs.changed == 'true'
         run: |
           cp ${{ runner.temp }}/golden/*.json test/golden/
-          mkdir -p test/golden/xpath test/golden/revisions
+          mkdir -p test/golden/xpath test/golden/revisions test/golden/text
           cp ${{ runner.temp }}/golden/xpath/*.json test/golden/xpath/
           cp -r ${{ runner.temp }}/golden/revisions/. test/golden/revisions/
+          cp -r ${{ runner.temp }}/golden/text/. test/golden/text/
 
       - name: The docx4j commits since the goldens were made
         if: steps.compare.outputs.changed == 'true'
@@ -181,7 +200,7 @@ jobs:
             echo "body<<PARITY_EOF"
             echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
             echo
-            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_4\` is now at \`${{ steps.commits.outputs.new }}\`."
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_5\` is now at \`${{ steps.commits.outputs.new }}\`."
             echo
             echo "docx4j commits in between:"
             echo
@@ -201,6 +220,6 @@ jobs:
           base: main
           add-paths: test/golden
           commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
-          title: "Parity goldens differ from docx4j VERSION_17_3_4"
+          title: "Parity goldens differ from docx4j VERSION_17_3_5"
           body: ${{ steps.log.outputs.body }}
           delete-branch: true

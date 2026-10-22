@@ -1,0 +1,1856 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "text-extraction/revisions/editor/review/review-for-word-word365-rejected.docx",
+    "fixtureBytes": 22733,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-20T20:20:00Z",
+      "modified": "2026-10-20T20:20:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Review file for Word (ED-005 section 9.2)\nMade by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save.\n1. Text inserted and deleted by two authors\nThe quick brown fox jumps over the lazy dog near the old stone bridge.\n2. An insertion deleted by another author\nCows graze in the field beside the river.\n3. Typed over a selection\nThe notice period is 7 days from delivery.\n4. Run formatting changed\nThe word alpha becomes bold and the word bravo becomes larger.\n5. Paragraph properties changed\nCentre this paragraph.\nIndent this paragraph.\nGive this paragraph the style Heading 2.\nA Heading 2 already in the file, for comparison\n6. Paragraph marks inserted and deleted\nSplit this paragraph after the colon: the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\nRow\tAction\tNote\n1\tKeep\tstays\n2\tKeep\ta row goes below this one\n3\tDelete\tthis row is deleted\nThe paragraph after the table.\n8. Inline items inserted and deleted\nLeft\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence.\nThe footnote on this sentence is deleted[1].\n9. A list started, and a link\nThis paragraph becomes a numbered list item.\nThe docx4j site is linked here.\n10. Replace all\nThe colour of the sky and the colour of the sea.\n11. The parts, changed through the parts panel (untracked)\nThe headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.\nThe first item of a list the engine made.\nThe second item.\n12. The agent's edits\nThe tenant pays rent monthly in arrears.\nNotice must be given within 30 days.\n13. Comments\nAuthor A comments on this sentence, and Author B answers. Author B comments on this sentence alone. This sentence carries a comment that is deleted.\nA comment by Author A runs from here\nto here, over two paragraphs.\n[1] A footnote whose reference is deleted.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "378BBF37",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Review file for Word (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07336339",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Made by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "597224B3",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Text inserted and deleted by two authors"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AF6BA34",
+          "runs": [{"kind": "TEXT", "text": "The quick brown fox jumps over the lazy dog near the old stone bridge."}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "365201D5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "031D10EA",
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0D1E8DE5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. Typed over a selection"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68363619",
+          "runs": [{"kind": "TEXT", "text": "The notice period is 7 days from delivery."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02C65EDA",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F318C78",
+          "runs": [{"kind": "TEXT", "text": "The word alpha becomes bold and the word bravo becomes larger."}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AE67EB5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7797CF8D",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "16024059",
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F6B4E00",
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029C54A2",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A Heading 2 already in the file, for comparison"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42677D6E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AB9E125",
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon: the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "67FF091A",
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E0D2148",
+          "runs": [{"kind": "TEXT", "text": "This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "18C2A425",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "TEXT", "text": "7. Table rows inserted and deleted"}
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/20/0",
+              "cells": [
+                {
+                  "address": "body/20/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7E1FE2E0",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "284F9780",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1073C12D",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/1",
+              "cells": [
+                {
+                  "address": "body/20/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3325A90B",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "46D2C7D6",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1F494977",
+                      "runs": [{"kind": "TEXT", "text": "stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/2",
+              "cells": [
+                {
+                  "address": "body/20/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2317A550",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5D2DA79B",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B83D254",
+                      "runs": [{"kind": "TEXT", "text": "a row goes below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/3",
+              "cells": [
+                {
+                  "address": "body/20/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "327DBA80",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1C6881D7",
+                      "runs": [{"kind": "TEXT", "text": "Delete"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7049D790",
+                      "runs": [{"kind": "TEXT", "text": "this row is deleted"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3006C525",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EC5F6CF",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B9A18EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Left\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3CE17C6D",
+          "runs": [
+            {"kind": "TEXT", "text": "The footnote on this sentence is deleted"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1339AA02",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. A list started, and a link"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "263BD65C",
+          "runs": [{"kind": "TEXT", "text": "This paragraph becomes a numbered list item."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "609B53C6",
+          "runs": [
+            {"kind": "TEXT", "text": "The "},
+            {"kind": "TEXT", "text": "docx4j site", "link": "https://www.docx4java.org/"},
+            {"kind": "TEXT", "text": " is linked here."}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41E9B04A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Replace all"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1CED29",
+          "runs": [{"kind": "TEXT", "text": "The colour of the sky and the colour of the sea."}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19C3156A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. The parts, changed through the parts panel (untracked)"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C193CFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track."
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F4528E0",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The first item of a list the engine made."}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B3DDC23",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The second item."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F32FE7C",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. The agent's edits"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7259B7BB",
+          "runs": [{"kind": "TEXT", "text": "The tenant pays rent monthly in arrears."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FDDF87C",
+          "runs": [{"kind": "TEXT", "text": "Notice must be given within 30 days."}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "61929379",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 3}, {"kind": "TEXT", "text": "13. Comments"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F306E69",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Author A comments on this sentence, and Author B answers. Author B comments on this sentence alone. This sentence carries a comment that is deleted."
+            }
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "21777171",
+          "runs": [{"kind": "TEXT", "text": "A comment by Author A runs from here"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E47BE5C",
+          "runs": [{"kind": "TEXT", "text": "to here, over two paragraphs."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "5C002962",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " A footnote whose reference is deleted."}
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Review file for Word (ED-005 section 9.2)\nMade by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save.\n1. Text inserted and deleted by two authors\nThe quick brown fox jumps over the lazy dog near the old stone bridge.\n2. An insertion deleted by another author\nCows graze in the field beside the river.\n3. Typed over a selection\nThe notice period is 7 days from delivery.\n4. Run formatting changed\nThe word alpha becomes bold and the word bravo becomes larger.\n5. Paragraph properties changed\nCentre this paragraph.\nIndent this paragraph.\nGive this paragraph the style Heading 2.\nA Heading 2 already in the file, for comparison\n6. Paragraph marks inserted and deleted\nSplit this paragraph after the colon: the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\nRow\tAction\tNote\n1\tKeep\tstays\n2\tKeep\ta row goes below this one\n3\tDelete\tthis row is deleted\nThe paragraph after the table.\n8. Inline items inserted and deleted\nLeft\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence.\nThe footnote on this sentence is deleted[1].\n9. A list started, and a link\nThis paragraph becomes a numbered list item.\nThe docx4j site is linked here.\n10. Replace all\nThe colour of the sky and the colour of the sea.\n11. The parts, changed through the parts panel (untracked)\nThe headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.\nThe first item of a list the engine made.\nThe second item.\n12. The agent's edits\nThe tenant pays rent monthly in arrears.\nNotice must be given within 30 days.\n13. Comments\nAuthor A comments on this sentence, and Author B answers.{>>Author A, 2026-09-30T13:34:00Z: A comment by Author A, replied to and resolved.<<}{>>Author B, 2026-09-30T13:34:00Z: A reply by Author B.<<} Author B comments on this sentence alone.{>>Author B, 2026-09-30T13:34:00Z: A comment by Author B.<<} This sentence carries a comment that is deleted.\nA comment by Author A runs from here\nto here, over two paragraphs.{>>Author A, 2026-09-30T13:34:00Z: A comment by Author A over two paragraphs.<<}\n[1] A footnote whose reference is deleted.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "378BBF37",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Review file for Word (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07336339",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Made by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "597224B3",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Text inserted and deleted by two authors"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AF6BA34",
+          "runs": [{"kind": "TEXT", "text": "The quick brown fox jumps over the lazy dog near the old stone bridge."}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "365201D5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "031D10EA",
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0D1E8DE5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. Typed over a selection"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68363619",
+          "runs": [{"kind": "TEXT", "text": "The notice period is 7 days from delivery."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02C65EDA",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F318C78",
+          "runs": [{"kind": "TEXT", "text": "The word alpha becomes bold and the word bravo becomes larger."}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AE67EB5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7797CF8D",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "16024059",
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F6B4E00",
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029C54A2",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A Heading 2 already in the file, for comparison"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42677D6E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AB9E125",
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon: the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "67FF091A",
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E0D2148",
+          "runs": [{"kind": "TEXT", "text": "This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "18C2A425",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "TEXT", "text": "7. Table rows inserted and deleted"}
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/20/0",
+              "cells": [
+                {
+                  "address": "body/20/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7E1FE2E0",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "284F9780",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1073C12D",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/1",
+              "cells": [
+                {
+                  "address": "body/20/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3325A90B",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "46D2C7D6",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1F494977",
+                      "runs": [{"kind": "TEXT", "text": "stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/2",
+              "cells": [
+                {
+                  "address": "body/20/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2317A550",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5D2DA79B",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B83D254",
+                      "runs": [{"kind": "TEXT", "text": "a row goes below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/3",
+              "cells": [
+                {
+                  "address": "body/20/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "327DBA80",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1C6881D7",
+                      "runs": [{"kind": "TEXT", "text": "Delete"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7049D790",
+                      "runs": [{"kind": "TEXT", "text": "this row is deleted"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3006C525",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EC5F6CF",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B9A18EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Left\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3CE17C6D",
+          "runs": [
+            {"kind": "TEXT", "text": "The footnote on this sentence is deleted"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1339AA02",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. A list started, and a link"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "263BD65C",
+          "runs": [{"kind": "TEXT", "text": "This paragraph becomes a numbered list item."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "609B53C6",
+          "runs": [
+            {"kind": "TEXT", "text": "The "},
+            {"kind": "TEXT", "text": "docx4j site", "link": "https://www.docx4java.org/"},
+            {"kind": "TEXT", "text": " is linked here."}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41E9B04A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Replace all"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1CED29",
+          "runs": [{"kind": "TEXT", "text": "The colour of the sky and the colour of the sea."}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19C3156A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. The parts, changed through the parts panel (untracked)"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C193CFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track."
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F4528E0",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The first item of a list the engine made."}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B3DDC23",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The second item."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F32FE7C",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. The agent's edits"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7259B7BB",
+          "runs": [{"kind": "TEXT", "text": "The tenant pays rent monthly in arrears."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FDDF87C",
+          "runs": [{"kind": "TEXT", "text": "Notice must be given within 30 days."}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "61929379",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 3}, {"kind": "TEXT", "text": "13. Comments"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F306E69",
+          "runs": [
+            {"kind": "TEXT", "text": "Author A comments on this sentence, and Author B answers."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"},
+            {"kind": "TEXT", "text": " Author B comments on this sentence alone."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"},
+            {"kind": "TEXT", "text": " This sentence carries a comment that is deleted."}
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "21777171",
+          "runs": [{"kind": "TEXT", "text": "A comment by Author A runs from here"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E47BE5C",
+          "runs": [
+            {"kind": "TEXT", "text": "to here, over two paragraphs."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "3"}
+          ]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "5C002962",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " A footnote whose reference is deleted."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T13:34:00Z",
+          "resolved": true,
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "62B703FC",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author A, replied to and resolved."}]
+            }
+          ],
+          "replies": ["1"]
+        },
+        {
+          "id": "1",
+          "author": "Author B",
+          "initials": "AB",
+          "date": "2026-09-30T13:34:00Z",
+          "parentId": "0",
+          "resolved": true,
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "7C993D2F",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A reply by Author B."}]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "author": "Author B",
+          "initials": "AB",
+          "date": "2026-09-30T13:34:00Z",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "7D754B0A",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author B."}]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T13:34:00Z",
+          "blocks": [
+            {
+              "address": "comment:3/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "3BD46736",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author A over two paragraphs."}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-20T20:20:00Z; modified: 2026-10-20T20:20:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nReview file for Word (ED-005 section 9.2)\nMade by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save.\n1. Text inserted and deleted by two authors\nThe quick brown fox jumps over the lazy dog near the old stone bridge.\n2. An insertion deleted by another author\nCows graze in the field beside the river.\n3. Typed over a selection\nThe notice period is 7 days from delivery.\n4. Run formatting changed\nThe word alpha becomes bold and the word bravo becomes larger.\n5. Paragraph properties changed\nCentre this paragraph.\nIndent this paragraph.\nGive this paragraph the style Heading 2.\nA Heading 2 already in the file, for comparison\n6. Paragraph marks inserted and deleted\nSplit this paragraph after the colon: the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n[page 2]7. Table rows inserted and deleted\nRow\tAction\tNote\n1\tKeep\tstays\n2\tKeep\ta row goes below this one\n3\tDelete\tthis row is deleted\nThe paragraph after the table.\n8. Inline items inserted and deleted\nLeft\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence.\nThe footnote on this sentence is deleted[1].\n9. A list started, and a link\nThis paragraph becomes a numbered list item.\nThe docx4j site is linked here.\n10. Replace all\nThe colour of the sky and the colour of the sea.\n11. The parts, changed through the parts panel (untracked)\nThe headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.\nI.\tThe first item of a list the engine made.\nII.\tThe second item.\n12. The agent's edits\nThe tenant pays rent monthly in arrears.\nNotice must be given within 30 days.\n[page 3]13. Comments\nAuthor A comments on this sentence, and Author B answers.{>>A comment by Author A, replied to and resolved.<<}{>>A reply by Author B.<<} Author B comments on this sentence alone.{>>A comment by Author B.<<} This sentence carries a comment that is deleted.\nA comment by Author A runs from here\nto here, over two paragraphs.{>>A comment by Author A over two paragraphs.<<}\n[1] A footnote whose reference is deleted.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "378BBF37",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Review file for Word (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07336339",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Made by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "597224B3",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Text inserted and deleted by two authors"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AF6BA34",
+          "runs": [{"kind": "TEXT", "text": "The quick brown fox jumps over the lazy dog near the old stone bridge."}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "365201D5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. An insertion deleted by another author"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "031D10EA",
+          "runs": [{"kind": "TEXT", "text": "Cows graze in the field beside the river."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0D1E8DE5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. Typed over a selection"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68363619",
+          "runs": [{"kind": "TEXT", "text": "The notice period is 7 days from delivery."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02C65EDA",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Run formatting changed"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F318C78",
+          "runs": [{"kind": "TEXT", "text": "The word alpha becomes bold and the word bravo becomes larger."}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AE67EB5",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Paragraph properties changed"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7797CF8D",
+          "runs": [{"kind": "TEXT", "text": "Centre this paragraph."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "16024059",
+          "runs": [{"kind": "TEXT", "text": "Indent this paragraph."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F6B4E00",
+          "runs": [{"kind": "TEXT", "text": "Give this paragraph the style Heading 2."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029C54A2",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A Heading 2 already in the file, for comparison"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42677D6E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. Paragraph marks inserted and deleted"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AB9E125",
+          "runs": [{"kind": "TEXT", "text": "Split this paragraph after the colon: the rest becomes a paragraph of its own."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "67FF091A",
+          "runs": [{"kind": "TEXT", "text": "Join this paragraph with the next one."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E0D2148",
+          "runs": [{"kind": "TEXT", "text": "This is the paragraph it joins."}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "18C2A425",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "TEXT", "text": "7. Table rows inserted and deleted"}
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/20/0",
+              "cells": [
+                {
+                  "address": "body/20/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7E1FE2E0",
+                      "runs": [{"kind": "TEXT", "text": "Row"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "284F9780",
+                      "runs": [{"kind": "TEXT", "text": "Action"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1073C12D",
+                      "runs": [{"kind": "TEXT", "text": "Note"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/1",
+              "cells": [
+                {
+                  "address": "body/20/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3325A90B",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "46D2C7D6",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1F494977",
+                      "runs": [{"kind": "TEXT", "text": "stays"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/2",
+              "cells": [
+                {
+                  "address": "body/20/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2317A550",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5D2DA79B",
+                      "runs": [{"kind": "TEXT", "text": "Keep"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B83D254",
+                      "runs": [{"kind": "TEXT", "text": "a row goes below this one"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/20/3",
+              "cells": [
+                {
+                  "address": "body/20/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "327DBA80",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1C6881D7",
+                      "runs": [{"kind": "TEXT", "text": "Delete"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/20/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/20/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7049D790",
+                      "runs": [{"kind": "TEXT", "text": "this row is deleted"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3006C525",
+          "runs": [{"kind": "TEXT", "text": "The paragraph after the table."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EC5F6CF",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "8. Inline items inserted and deleted"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B9A18EC",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Left\tright: the tab between them is deleted. A tab goes after this colon: and a footnote at the end of this sentence."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3CE17C6D",
+          "runs": [
+            {"kind": "TEXT", "text": "The footnote on this sentence is deleted"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1339AA02",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "9. A list started, and a link"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "263BD65C",
+          "runs": [{"kind": "TEXT", "text": "This paragraph becomes a numbered list item."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "609B53C6",
+          "runs": [
+            {"kind": "TEXT", "text": "The "},
+            {"kind": "TEXT", "text": "docx4j site", "link": "https://www.docx4java.org/"},
+            {"kind": "TEXT", "text": " is linked here."}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41E9B04A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "10. Replace all"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3D1CED29",
+          "runs": [{"kind": "TEXT", "text": "The colour of the sky and the colour of the sea."}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19C3156A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "11. The parts, changed through the parts panel (untracked)"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C193CFA",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The headings' colour, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track."
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F4528E0",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "I.\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The first item of a list the engine made."}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B3DDC23",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "II.\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "upperRoman",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1"
+          },
+          "runs": [{"kind": "TEXT", "text": "The second item."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F32FE7C",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "12. The agent's edits"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7259B7BB",
+          "runs": [{"kind": "TEXT", "text": "The tenant pays rent monthly in arrears."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FDDF87C",
+          "runs": [{"kind": "TEXT", "text": "Notice must be given within 30 days."}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "61929379",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 3}, {"kind": "TEXT", "text": "13. Comments"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F306E69",
+          "runs": [
+            {"kind": "TEXT", "text": "Author A comments on this sentence, and Author B answers."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"},
+            {"kind": "TEXT", "text": " Author B comments on this sentence alone."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"},
+            {"kind": "TEXT", "text": " This sentence carries a comment that is deleted."}
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "21777171",
+          "runs": [{"kind": "TEXT", "text": "A comment by Author A runs from here"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E47BE5C",
+          "runs": [
+            {"kind": "TEXT", "text": "to here, over two paragraphs."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "3"}
+          ]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "5C002962",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " A footnote whose reference is deleted."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T13:34:00Z",
+          "resolved": true,
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "62B703FC",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author A, replied to and resolved."}]
+            }
+          ],
+          "replies": ["1"]
+        },
+        {
+          "id": "1",
+          "author": "Author B",
+          "initials": "AB",
+          "date": "2026-09-30T13:34:00Z",
+          "parentId": "0",
+          "resolved": true,
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "7C993D2F",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A reply by Author B."}]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "author": "Author B",
+          "initials": "AB",
+          "date": "2026-09-30T13:34:00Z",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "7D754B0A",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author B."}]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T13:34:00Z",
+          "blocks": [
+            {
+              "address": "comment:3/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "3BD46736",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "A comment by Author A over two paragraphs."}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

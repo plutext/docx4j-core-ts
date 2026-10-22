@@ -1,0 +1,434 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/parity/fonts-cjk-linebox.docx",
+    "fixtureBytes": 8577,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "(a) Meiryo 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 1, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\n(b) Meiryo 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 2, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n(a) Yu Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 3, Calibri 10pt. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\n(b) Yu Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 4, Calibri 10pt. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n(a) MS Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 5, Calibri 10pt. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\n(b) MS Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 6, Calibri 10pt. Internationalization, characteristically, produces extraordinarily long words that constrain justification. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n(a) MS Mincho 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 7, Calibri 10pt. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\n(b) MS Mincho 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 8, Calibri 10pt. The quick brown fox jumps over the lazy dog while the farmer watches from the gate. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n(a) SimSun 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 9, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\n(b) SimSun 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 10, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n(a) Malgun Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 11, Calibri 10pt. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate.\n(b) Malgun Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 12, Calibri 10pt. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n(a) Microsoft JhengHei 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 13, Calibri 10pt. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Internationalization, characteristically, produces extraordinarily long words that constrain justification.\n(b) Microsoft JhengHei 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 14, Calibri 10pt. Internationalization, characteristically, produces extraordinarily long words that constrain justification. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n(a) Calibri 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 15, Calibri 10pt. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. The quick brown fox jumps over the lazy dog while the farmer watches from the gate.\n(b) Calibri 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 16, Calibri 10pt. The quick brown fox jumps over the lazy dog while the farmer watches from the gate. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n(c) Calibri in ascii/hAnsi, Meiryo in w:eastAsia, w:line=276 auto, East Asian text present: \u65e5\u672c\u8a9e\u306e\u30c6\u30ad\u30b9\u30c8 The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 17, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages.\n(c) Calibri in ascii/hAnsi, Yu Gothic in w:eastAsia, w:line=276 auto, East Asian text present: \u65e5\u672c\u8a9e\u306e\u30c6\u30ad\u30b9\u30c8 The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions.\n--- separator 18, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) Meiryo 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 1, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) Meiryo 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 2, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) Yu Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 3, Calibri 10pt. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) Yu Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 4, Calibri 10pt. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) MS Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 5, Calibri 10pt. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) MS Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 6, Calibri 10pt. Internationalization, characteristically, produces extraordinarily long words that constrain justification. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) MS Mincho 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 7, Calibri 10pt. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) MS Mincho 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 8, Calibri 10pt. The quick brown fox jumps over the lazy dog while the farmer watches from the gate. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) SimSun 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 9, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) SimSun 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 10, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) Malgun Gothic 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 11, Calibri 10pt. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate."
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) Malgun Gothic 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 12, Calibri 10pt. A typesetting engine must decide where each line ends and where each page ends; small differences accumulate. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) Microsoft JhengHei 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 13, Calibri 10pt. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Internationalization, characteristically, produces extraordinarily long words that constrain justification."
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) Microsoft JhengHei 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 14, Calibri 10pt. Internationalization, characteristically, produces extraordinarily long words that constrain justification. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            }
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(a) Calibri 10pt, single (w:line=240 auto). The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 15, Calibri 10pt. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. The quick brown fox jumps over the lazy dog while the farmer watches from the gate."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(b) Calibri 10pt, w:line=276 auto. The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 16, Calibri 10pt. The quick brown fox jumps over the lazy dog while the farmer watches from the gate. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(c) Calibri in ascii/hAnsi, Meiryo in w:eastAsia, w:line=276 auto, East Asian text present: \u65e5\u672c\u8a9e\u306e\u30c6\u30ad\u30b9\u30c8 The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 17, Calibri 10pt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages."
+            }
+          ]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "(c) Calibri in ascii/hAnsi, Yu Gothic in w:eastAsia, w:line=276 auto, East Asian text present: \u65e5\u672c\u8a9e\u306e\u30c6\u30ad\u30b9\u30c8 The administration acknowledged that implementation of the recommendations required extraordinary international collaboration. Documentation accompanying the specification describes the responsibilities of every participating organisation comprehensively. Considerable improvements in productivity followed the reorganisation of the manufacturing establishment near Northampton. Understanding the relationship between representation and interpretation demands considerable philosophical sophistication. Environmental considerations increasingly influence infrastructure development throughout the metropolitan municipalities. Professional qualifications and accreditation requirements were harmonised across the participating jurisdictions."
+            }
+          ]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "--- separator 18, Calibri 10pt. Pagination is the process of dividing a document into discrete pages, either electronic pages or printed pages. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            }
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "sameAs": "accepted"
+    }
+  }
+}

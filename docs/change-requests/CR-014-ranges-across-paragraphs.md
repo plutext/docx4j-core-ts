@@ -29,7 +29,7 @@ paragraphs only, any other range Word's `GeneralException`), and a tracked delet
 Word's markup and resolved as Word does. A tracked `Replace` within one paragraph puts its insertion first, as
 Word's (Jason, 2026-10-23; section 12.1, item 7), and a deletion takes a comment's reference with it, its comment
 going untracked and on Accept All (section 12.6). Left: three rules of Word's Accept All, docx4j's to take first
-(section 12.3). Not committed.
+(section 12.3). Committed `87bbb38`.
 
 ## 1. Why
 

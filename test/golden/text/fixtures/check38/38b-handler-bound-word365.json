@@ -1,0 +1,395 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:30Z",
+    "fixture": "fixtures/check38/38b-handler-bound-word365.docx",
+    "fixtureBytes": 23642,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-08T05:41:00Z",
+      "modified": "2026-10-08T05:41:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Check 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them).\n1. A floating red placeholder (200 x 100) in a rich text control, no width parameter. After the bind, the same floating picture shows the blue 300 x 150 image, at the same place and size:\nText in the paragraph that holds the floating picture, wrapping around it on both sides; enough of it to show the wrap, so this sentence goes on a little longer than it needs to.\n2. width=4500: a wide green image (800 x 200, 12000 twips) scaled down to 4500 twips, 3.125 inches:\n\n3. width=auto: the same image scaled down to the text width:\n\n4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell less its margins (108 twips each side: 2784 twips, 1.93 inches):\n\n5. An inline red placeholder bound to an SVG node, no width: after the bind the same drawing shows an orange circle on grey, if this Word reads an SVG part pointed at directly by a:blip (no PNG fallback is written):\n\nAfter the controls.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1BC033D5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "379120D6",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "1. A floating red placeholder (200 x 100) in a rich text control, no width parameter. After the bind, the same floating picture shows the blue 300 x 150 image, at the same place and size:"
+            }
+          ]
+        },
+        {
+          "address": "body/2/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55A57CE5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Text in the paragraph that holds the floating picture, wrapping around it on both sides; enough of it to show the wrap, so this sentence goes on a little longer than it needs to."
+            },
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "the floating placeholder",
+                "name": "Floating picture",
+                "title": "",
+                "part": "/word/media/image1.png"
+              },
+              "description": {"text": "the floating placeholder", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "48B53E26",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "2. width=4500: a wide green image (800 x 200, 12000 twips) scaled down to 4500 twips, 3.125 inches:"
+            }
+          ]
+        },
+        {
+          "address": "body/4/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C1E134A",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Picture 52", "title": "", "part": "/word/media/image2.png"},
+              "description": {"text": "Picture 52", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58D6F5C4",
+          "runs": [{"kind": "TEXT", "text": "3. width=auto: the same image scaled down to the text width:"}]
+        },
+        {
+          "address": "body/6/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "499F5205",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Picture 53", "title": "", "part": "/word/media/image2.png"},
+              "description": {"text": "Picture 53", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "001A604A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell less its margins (108 twips each side: 2784 twips, 1.93 inches):"
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/8/0",
+              "cells": [
+                {
+                  "address": "body/8/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/8/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0EEC9B87",
+                      "runs": [
+                        {
+                          "kind": "IMAGE",
+                          "text": "",
+                          "image": {"descr": "", "name": "Picture 54", "title": "", "part": "/word/media/image2.png"},
+                          "description": {"text": "Picture 54", "provenance": "AUTHOR"}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "639A631F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "5. An inline red placeholder bound to an SVG node, no width: after the bind the same drawing shows an orange circle on grey, if this Word reads an SVG part pointed at directly by a:blip (no PNG fallback is written):"
+            }
+          ]
+        },
+        {
+          "address": "body/10/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "34D99679",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "svg-placeholder.png", "title": "", "part": "/word/media/image3.png"},
+              "description": {"text": "svg-placeholder.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A6E5D40",
+          "runs": [{"kind": "TEXT", "text": "After the controls."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-08T05:41:00Z; modified: 2026-10-08T05:41:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nCheck 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them).\n1. A floating red placeholder (200 x 100) in a rich text control, no width parameter. After the bind, the same floating picture shows the blue 300 x 150 image, at the same place and size:\nText in the paragraph that holds the floating picture, wrapping around it on both sides; enough of it to show the wrap, so this sentence goes on a little longer than it needs to.[image: the floating placeholder]\n2. width=4500: a wide green image (800 x 200, 12000 twips) scaled down to 4500 twips, 3.125 inches:\n[image: Picture 52]\n3. width=auto: the same image scaled down to the text width:\n[image: Picture 53]\n4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell less its margins (108 twips each side: 2784 twips, 1.93 inches):\n[image: Picture 54]\n5. An inline red placeholder bound to an SVG node, no width: after the bind the same drawing shows an orange circle on grey, if this Word reads an SVG part pointed at directly by a:blip (no PNG fallback is written):\n[image: svg-placeholder.png]\nAfter the controls.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1BC033D5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 38b: od:Handler=picture controls, bound through od:xpath entries (no w:dataBinding on any of them)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "379120D6",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "1. A floating red placeholder (200 x 100) in a rich text control, no width parameter. After the bind, the same floating picture shows the blue 300 x 150 image, at the same place and size:"
+            }
+          ]
+        },
+        {
+          "address": "body/2/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55A57CE5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Text in the paragraph that holds the floating picture, wrapping around it on both sides; enough of it to show the wrap, so this sentence goes on a little longer than it needs to."
+            },
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "the floating placeholder",
+                "name": "Floating picture",
+                "title": "",
+                "part": "/word/media/image1.png"
+              },
+              "description": {"text": "the floating placeholder", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "48B53E26",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "2. width=4500: a wide green image (800 x 200, 12000 twips) scaled down to 4500 twips, 3.125 inches:"
+            }
+          ]
+        },
+        {
+          "address": "body/4/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C1E134A",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Picture 52", "title": "", "part": "/word/media/image2.png"},
+              "description": {"text": "Picture 52", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58D6F5C4",
+          "runs": [{"kind": "TEXT", "text": "3. width=auto: the same image scaled down to the text width:"}]
+        },
+        {
+          "address": "body/6/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "499F5205",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Picture 53", "title": "", "part": "/word/media/image2.png"},
+              "description": {"text": "Picture 53", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "001A604A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "4. In a table cell 3000 twips (2.08 inches) wide, width=4500: the image fits the cell less its margins (108 twips each side: 2784 twips, 1.93 inches):"
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/8/0",
+              "cells": [
+                {
+                  "address": "body/8/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/8/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0EEC9B87",
+                      "runs": [
+                        {
+                          "kind": "IMAGE",
+                          "text": "",
+                          "image": {"descr": "", "name": "Picture 54", "title": "", "part": "/word/media/image2.png"},
+                          "description": {"text": "Picture 54", "provenance": "AUTHOR"}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "639A631F",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "5. An inline red placeholder bound to an SVG node, no width: after the bind the same drawing shows an orange circle on grey, if this Word reads an SVG part pointed at directly by a:blip (no PNG fallback is written):"
+            }
+          ]
+        },
+        {
+          "address": "body/10/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "34D99679",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "svg-placeholder.png", "title": "", "part": "/word/media/image3.png"},
+              "description": {"text": "svg-placeholder.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A6E5D40",
+          "runs": [{"kind": "TEXT", "text": "After the controls."}]
+        }
+      ]
+    }
+  }
+}

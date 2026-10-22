@@ -1414,9 +1414,13 @@ export class Extractor {
     }
   }
 
-  /** A DrawingML picture: its `wp:docPr` (or a nested picture's `pic:cNvPr`). */
+  /**
+   * A DrawingML picture: its `wp:docPr` (or a nested picture's `pic:cNvPr`). `descr` and `title` are the
+   * schema's default, `''`, where the element doesn't give them, as docx4j's JAXB getters read them (CR-012
+   * section 20).
+   */
   private image(nv: NonVisual | undefined, part: Part | undefined, vml: boolean, source: object, para: ParagraphState, state: RunState): void {
-    this.imageOf(nv?.descr, nv?.name, nv?.title, decorative(nv), vml, part, source, para, state);
+    this.imageOf(nv ? nv.descr ?? '' : undefined, nv?.name, nv ? nv.title ?? '' : undefined, decorative(nv), vml, part, source, para, state);
   }
 
   private imageOf(descr: string | undefined, name: string | undefined, title: string | undefined, isDecorative: boolean, vml: boolean,

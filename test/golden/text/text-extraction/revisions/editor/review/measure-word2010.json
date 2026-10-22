@@ -1,0 +1,1104 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "text-extraction/revisions/editor/review/measure-word2010.docx",
+    "fixtureBytes": 16596,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "jharrop",
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-09-30T07:37:00Z",
+      "modified": "2026-09-30T07:37:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "14.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 0,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Measurements in Word for the docx4j editor (ED-005 section 9.2)\nBuilt by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.\n1. A comment on one word of a pending insertion\nThe paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.\nThe tenant pays rent monthly in advance.\n2. Align Left with Track Changes off\nMake sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.\nThis paragraph is centred by direct formatting and then aligned left.\n3. New Comment at a caret, right to left and empty\nThe two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.\n3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd\n3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd\n3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".\n- - -\n\n- - -\n4. Optional: No Markup over a deleted paragraph mark\nTurn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.\nA heading joined to the next paragraph\nThe body paragraph after the heading.\n5. Optional: Original over a formatting change\nWith Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.\nThis word becomes bold with tracking on.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Measurements in Word for the docx4j editor (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. A comment on one word of a pending insertion"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 3,
+          "runs": [{"kind": "TEXT", "text": "The tenant pays rent monthly in advance."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Align Left with Track Changes off"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Make sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph is centred by direct formatting and then aligned left."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. New Comment at a caret, right to left and empty"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".",
+              "italic": true
+            }
+          ]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Optional: No Markup over a deleted paragraph mark"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Turn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A heading joined to the next paragraph"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The body paragraph after the heading."}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Optional: Original over a formatting change"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "With Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This word becomes bold with tracking on."}]
+        }
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "Measurements in Word for the docx4j editor (ED-005 section 9.2)\nBuilt by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.\n1. A comment on one word of a pending insertion\nThe paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.\n2. Align Left with Track Changes off\nMake sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.\nThis paragraph is centred by direct formatting and then aligned left.\n3. New Comment at a caret, right to left and empty\nThe two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.\n3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd\n3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd\n3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".\n- - -\n\n- - -\n4. Optional: No Markup over a deleted paragraph mark\nTurn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.\nA heading joined to the next paragraph\nThe body paragraph after the heading.\n5. Optional: Original over a formatting change\nWith Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.\nThis word becomes bold with tracking on.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Measurements in Word for the docx4j editor (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. A comment on one word of a pending insertion"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "revisions": 1,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Align Left with Track Changes off"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Make sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph is centred by direct formatting and then aligned left."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. New Comment at a caret, right to left and empty"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".",
+              "italic": true
+            }
+          ]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Optional: No Markup over a deleted paragraph mark"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Turn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A heading joined to the next paragraph"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The body paragraph after the heading."}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Optional: Original over a formatting change"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "With Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This word becomes bold with tracking on."}]
+        }
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Measurements in Word for the docx4j editor (ED-005 section 9.2)\nBuilt by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.\n1. A comment on one word of a pending insertion\nThe paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.\n{++Claude, 2026-09-30T13:34:00Z: The tenant pays rent monthly ++}{>>Author A, 2026-09-30T17:35:00Z: M1<<}{++Claude, 2026-09-30T13:34:00Z: in advance.++}\n2. Align Left with Track Changes off\nMake sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.\nThis paragraph is centred by direct formatting and then aligned left.\n3. New Comment at a caret, right to left and empty\nThe two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.\n3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd{>>Author A, 2026-09-30T17:36:00Z: M3a<<}\n3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".\n\u05e9\u05dc\u05d5\u05dd{>>Author A, 2026-09-30T17:37:00Z: M3b<<} \u05e2\u05d5\u05dc\u05dd\n3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".\n- - -\n{>>Author A, 2026-09-30T17:37:00Z: M3c<<}\n- - -\n4. Optional: No Markup over a deleted paragraph mark\nTurn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.\nA heading joined to the next paragraph\nThe body paragraph after the heading.\n5. Optional: Original over a formatting change\nWith Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.\nThis word becomes bold with tracking on.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Measurements in Word for the docx4j editor (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. A comment on one word of a pending insertion"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 3,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The tenant pays rent monthly ",
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+            },
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"},
+            {
+              "kind": "TEXT",
+              "text": "in advance.",
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Align Left with Track Changes off"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Make sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph is centred by direct formatting and then aligned left."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. New Comment at a caret, right to left and empty"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "5"},
+            {"kind": "TEXT", "text": " \u05e2\u05d5\u05dc\u05dd"}
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".",
+              "italic": true
+            }
+          ]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "6"}
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Optional: No Markup over a deleted paragraph mark"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Turn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A heading joined to the next paragraph"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The body paragraph after the heading."}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Optional: Original over a formatting change"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "With Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This word becomes bold with tracking on."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "2",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:35:00Z",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M1"}]
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:36:00Z",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3a"}]
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:37:00Z",
+          "blocks": [
+            {
+              "address": "comment:5/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3b"}]
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:37:00Z",
+          "blocks": [
+            {
+              "address": "comment:6/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3c"}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: jharrop; revision: 2; lastModifiedBy: Author A; created: 2026-09-30T07:37:00Z; modified: 2026-09-30T07:37:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 14.0000; Template: Normal.dotm; TotalTime: 0; DocSecurity: 0]\nMeasurements in Word for the docx4j editor (ED-005 section 9.2)\nBuilt by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.\nBefore you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.\n1. A comment on one word of a pending insertion\nThe paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.\nThe tenant pays rent monthly {>>M1<<}in advance.\n2. Align Left with Track Changes off\nMake sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.\nThis paragraph is centred by direct formatting and then aligned left.\n3. New Comment at a caret, right to left and empty\nThe two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.\n3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".\n\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd{>>M3a<<}\n3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".\n\u05e9\u05dc\u05d5\u05dd{>>M3b<<} \u05e2\u05d5\u05dc\u05dd\n3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".\n- - -\n[page 2]{>>M3c<<}\n- - -\n4. Optional: No Markup over a deleted paragraph mark\nTurn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.\nA heading joined to the next paragraph\nThe body paragraph after the heading.\n5. Optional: Original over a formatting change\nWith Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.\nThis word becomes bold with tracking on.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Measurements in Word for the docx4j editor (ED-005 section 9.2)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j for E4.g. Each section asks one question of Word. Do sections 1 to 3 in Word 15 and save as measure-word15.docx; then, from this file again, do sections 1 to 3 in Word 2010 and save as measure-word2010.docx. Sections 4 and 5 are optional, in Word 15 only, and need screenshots rather than a save.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Before you start: File > Options > General, User name \"Author A\", Initials \"AA\". Act only on the black text; never on a heading or these blue instructions. Accept and reject nothing.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. A comment on one word of a pending insertion"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The paragraph below is Claude's tracked insertion, not yet accepted. Select only the word \"monthly\" (double-click it), Review > New Comment, and type \"M1\". Track Changes may be on or off: Word does not track comments.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 3,
+          "runs": [
+            {"kind": "TEXT", "text": "The tenant pays rent monthly "},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"},
+            {"kind": "TEXT", "text": "in advance."}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Align Left with Track Changes off"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Make sure Review > Track Changes is OFF. Click in the centred paragraph below and press Ctrl+L. It is centred by its own formatting; its style (Normal) is left-aligned.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph is centred by direct formatting and then aligned left."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. New Comment at a caret, right to left and empty"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "The two paragraphs below run right to left: two Hebrew words, the first on the right, one space between them. Do not select anything: click to put the caret where each step says, then Review > New Comment.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3a. In the first paragraph, click just to the left of the first (rightmost) word, so that the caret touches that word and the space is on the caret's left. New Comment, type \"M3a\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd \u05e2\u05d5\u05dc\u05dd"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3b. In the second paragraph, click just to the right of the second (leftmost) word, so that the caret touches that word and the space is on the caret's right. New Comment, type \"M3b\".",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "\u05e9\u05dc\u05d5\u05dd"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "5"},
+            {"kind": "TEXT", "text": " \u05e2\u05d5\u05dc\u05dd"}
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3c. Click in the empty paragraph below (between the two lines of dashes), New Comment, type \"M3c\".",
+              "italic": true
+            }
+          ]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "6"}
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "- - -"}]},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. Optional: No Markup over a deleted paragraph mark"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Turn Track Changes ON. Click at the very end of the heading \"A heading joined to the next paragraph\" and press Delete, so that its paragraph mark is deleted. Then Review > Display for Review > No Markup, take a screenshot of the two lines, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A heading joined to the next paragraph"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The body paragraph after the heading."}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. Optional: Original over a formatting change"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "With Track Changes ON, make the word \"bold\" below bold. Then Review > Display for Review > Original, take a screenshot of the line, and go back to All Markup.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This word becomes bold with tracking on."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "2",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:35:00Z",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M1"}]
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:36:00Z",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3a"}]
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:37:00Z",
+          "blocks": [
+            {
+              "address": "comment:5/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3b"}]
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "author": "Author A",
+          "initials": "AA",
+          "date": "2026-09-30T17:37:00Z",
+          "blocks": [
+            {
+              "address": "comment:6/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "M3c"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

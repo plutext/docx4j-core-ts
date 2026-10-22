@@ -41,7 +41,9 @@ plain-text model, `Texts.of` and the block model in `src/model/text/`; Markdown,
 byte for byte; 786 suite rows passing and the agreement test's 588 comparisons agreeing; phase 4, the readers:
 `Paragraph.text` and `search` in Office JS's characters and rules in Word's default view, held to Word 365's checks 48,
 48b and 51, a kept branch's text read and edited (ED-009), text boxes at `textbox:` addresses read-only, `outline()` on the
-model and async, and per block under a context, section 17.13's `{ blocks }`), and CR-013, all four phases
+model and async, and per block under a context, section 17.13's `{ blocks }`; phase 6, the block-model parity goldens:
+282 text goldens from docx4j 17.3.4's `Texts.of`, four readings each, at zero differences outside what phase 5 and REQ-303
+govern), and CR-013, all four phases
 (`mc:AlternateContent` at block, row and cell level: docx4j's `mc-fun` probes in `test/mc-fun/`, the walker audit, the
 text model's rows and cells in the selected branch, `mcePreprocess: true` over the readers' set; the content API's readers and
 the tracked-change listing in the selected branch, a view in a branch read-only; the mutators in every branch, a listed
@@ -285,8 +287,13 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
 `org.docx4j.model.revisions` (its CR-043) lists of each of the 96 fixtures with revision markup, at
 any depth, and what each resolve-all leaves, with and without a filter, tracked changes and (harness
 version 2, CR-002 section 54) comments (`RevisionsHarness`, in UTC; a golden's path mirrors its
-fixture's; recorded from docx4j `VERSION_17_3_4` at `a8bc6cda9`), compared by
-`test/revisions-parity.test.mjs`.
+fixture's; recorded from the docx4j 17.3.4 release, `8f455ebab`), compared by
+`test/revisions-parity.test.mjs`. `test/golden/text/` is CR-012 phase 6's: what docx4j's `org.docx4j.model.text`
+(`Texts.of`, `PlainText.of`) answers for each of the 282 documents under `test/fixtures/` and `test/text-extraction/`,
+in four readings (the three views, and every story and optional item included), as the block model and the plain text
+(`TextHarness`, `-Dfixtures=../fixtures,../text-extraction`; a golden's path is the directory's name and the document's),
+compared by `test/text-parity.test.mjs` with the runs joined by docx4j's rule (CR-012 section 15.5) and its `PENDING`
+table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry required to still differ.
 
 ## Rules
 
@@ -330,10 +337,12 @@ fixture's; recorded from docx4j `VERSION_17_3_4` at `a8bc6cda9`), compared by
   `883a08e07`), to `VERSION_17_3_2` on 2026-10-07 when 17.3.1 was released (tag `docx4j-17.3.1`,
   `5cf47d752`; 17.3.1 ships CR-030, the table context, and otherwise PDF-side work that changes no
   XML), to `VERSION_17_3_3` on 2026-10-09 when 17.3.2 was released (tag `docx4j-17.3.2`,
-  `856afc5da`), and to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
-  `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows). The
-  parity workflow checks out `VERSION_17_3_4`, and `test/java/pom.xml` resolves the 17.3.3 release
-  for a hand-run (the workflow reads docx4j's `<revision>` instead), since CR-011's phase 0. The classes being
+  `856afc5da`), to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
+  `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows), and to
+  `VERSION_17_3_5` on 2026-10-22 when 17.3.4 was released (tag `docx4j-17.3.4`, `8f455ebab`; 17.3.4 ships
+  CR-046, the text model this package's CR-012 follows). The parity workflow checks out `VERSION_17_3_5`,
+  and `test/java/pom.xml` resolves the 17.3.4 release for a hand-run (the workflow reads docx4j's
+  `<revision>` instead), since CR-012's phase 6. The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
@@ -343,10 +352,11 @@ fixture's; recorded from docx4j `VERSION_17_3_4` at `a8bc6cda9`), compared by
   ported against `7fba7a150`; the goldens recorded `a8d20c1cc` (then `VERSION_17_3_0`, refreshed by
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, then `0349796f9`
   (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
-  section 22), then `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge, CR-008 section 6), and now
-  record `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), harness
-  version 4, which needs docx4j 17.3.1's table context; the project does not compile against anything
-  before 17.3.3, whose `org.docx4j.model.revisions` `RevisionsHarness` calls. Build docx4j from the commit you mean to record before regenerating them
+  section 22), then `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge, CR-008 section 6), then
+  `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), and now record
+  `8f455ebab`, the 17.3.4 release (CR-012 phase 6: no answer moved), harness version 4, which needs
+  docx4j 17.3.1's table context; the project does not compile against anything before 17.3.4, whose
+  `org.docx4j.model.text` `TextHarness` calls. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.
 
 ## Portfolio task registry

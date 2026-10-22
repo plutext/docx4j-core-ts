@@ -1,0 +1,1248 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/loadAndSave.docx",
+    "fixtureBytes": 55625,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "Buck Cronk",
+      "revision": "8",
+      "lastModifiedBy": "Buck Cronk",
+      "created": "2026-05-18T22:30:00Z",
+      "modified": "2026-05-18T23:26:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 12,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Title\nTable of Contents\nSection 1\nLorem ipsum\u2026\nBold\nItalics\nUnderline\nColor\nHighlight\nFont (Times New Roman)\nHyperlink\nText with footnote[1]\nText with endnote[1]\nTable:\n1\t2\t3\na\tb\tc\n\nText box:\nHello world\n\n\nImage:\n\nEquation:\n$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$\nRTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b\nField: 6:25 PM\nSection 2\nLorem ipsum\u2026\n\n\n\nSection 3\nLorem ipsum\u2026\n\n[chart: pie]\nA Chart\n\tSales\n1st Qtr\t8.2\n2nd Qtr\t3.2\n3rd Qtr\t1.4\n4th Qtr\t1.2\n[1] Footnote\n[1] Endnote\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "237605FE",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Title"}]
+        },
+        {
+          "address": "body/1/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12CB5464",
+          "style": "TOCHeading",
+          "runs": [{"kind": "TEXT", "text": "Table of Contents"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "494B67C7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0C31734D",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5DEFF9FA",
+          "runs": [{"kind": "TEXT", "text": "Bold", "bold": true}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DA33C43",
+          "runs": [{"kind": "TEXT", "text": "Italics", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36EDF0F7",
+          "runs": [{"kind": "TEXT", "text": "Underline"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7DA301",
+          "runs": [{"kind": "TEXT", "text": "Color"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B539ACC",
+          "runs": [{"kind": "TEXT", "text": "Highlight"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DFB3961",
+          "runs": [{"kind": "TEXT", "text": "Font (Times New Roman)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6778FA00",
+          "runs": [{"kind": "TEXT", "text": "Hyperlink", "link": "https://example.com/"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1692174E",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E4EAF24",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with endnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "66C2B387",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Table:"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/14/0",
+              "cells": [
+                {
+                  "address": "body/14/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "135F171A",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4206060E",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7C23171B",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/14/1",
+              "cells": [
+                {
+                  "address": "body/14/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0083305C",
+                      "runs": [{"kind": "TEXT", "text": "a"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "43E2DD8A",
+                      "runs": [{"kind": "TEXT", "text": "b"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7159BFBD",
+                      "runs": [{"kind": "TEXT", "text": "c"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/15", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "3B826414"},
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C941808",
+          "runs": [{"kind": "TEXT", "text": "Text box:"}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "7726F7C2",
+          "runs": [{"kind": "TEXT", "text": "Hello world"}]
+        },
+        {"address": "body/17", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "72EFD54E"},
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2CA0C306"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2ABF545A",
+          "runs": [{"kind": "TEXT", "text": "Image:"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7822BCB6",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "Badge Tick1 with solid fill",
+                "name": "Graphic 2",
+                "title": "",
+                "part": "/word/media/image1.png"
+              },
+              "description": {"text": "Badge Tick1 with solid fill", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F7BC4B0",
+          "runs": [{"kind": "TEXT", "text": "Equation:"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F03501D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52CC62A9",
+          "runs": [{"kind": "TEXT", "text": "RTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3688C45D",
+          "runs": [{"kind": "TEXT", "text": "Field: 6:25 PM"}],
+          "fields": [{"instr": " TIME  \\* MERGEFORMAT ", "result": "6:25 PM"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B595C45",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 2"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50F1AB8B",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "25D28230",
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "02EAC17F"},
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27E11494",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 3"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6D9DFC81",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {"address": "body/31", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "005211CE"},
+        {
+          "address": "body/31/chart:0",
+          "kind": "CHART",
+          "story": "MAIN",
+          "chartTitle": "A Chart",
+          "chartHeader": ["", "Sales"],
+          "chartRows": [["1st Qtr", "8.2"], ["2nd Qtr", "3.2"], ["3rd Qtr", "1.4"], ["4th Qtr", "1.2"]]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "67B60D70",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Footnote"}
+          ]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "4863C95F",
+          "style": "EndnoteText",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Endnote"}
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Title\nTable of Contents\nSection 1\nLorem ipsum\u2026\nBold\nItalics\nUnderline\nColor\nHighlight\nFont (Times New Roman)\nHyperlink\nText with footnote[1]\nText with endnote[1]\nTable:\n1\t2\t3\na\tb\tc\n\nText box:\nHello world\n\n\nImage:\n\nEquation:\n$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$\nRTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b\nField: 6:25 PM\nSection 2\nLorem ipsum\u2026\n\n\n\nSection 3\nLorem ipsum\u2026{>>Buck Cronk, 2026-05-18T18:21:00Z: Comment<<}\n\n[chart: pie]\nA Chart\n\tSales\n1st Qtr\t8.2\n2nd Qtr\t3.2\n3rd Qtr\t1.4\n4th Qtr\t1.2\n[1] Footnote\n[1] Endnote\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "237605FE",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Title"}]
+        },
+        {
+          "address": "body/1/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12CB5464",
+          "style": "TOCHeading",
+          "runs": [{"kind": "TEXT", "text": "Table of Contents"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "494B67C7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0C31734D",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5DEFF9FA",
+          "runs": [{"kind": "TEXT", "text": "Bold", "bold": true}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DA33C43",
+          "runs": [{"kind": "TEXT", "text": "Italics", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36EDF0F7",
+          "runs": [{"kind": "TEXT", "text": "Underline"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7DA301",
+          "runs": [{"kind": "TEXT", "text": "Color"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B539ACC",
+          "runs": [{"kind": "TEXT", "text": "Highlight"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DFB3961",
+          "runs": [{"kind": "TEXT", "text": "Font (Times New Roman)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6778FA00",
+          "runs": [{"kind": "TEXT", "text": "Hyperlink", "link": "https://example.com/"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1692174E",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E4EAF24",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with endnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "66C2B387",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Table:"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/14/0",
+              "cells": [
+                {
+                  "address": "body/14/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "135F171A",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4206060E",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7C23171B",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/14/1",
+              "cells": [
+                {
+                  "address": "body/14/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0083305C",
+                      "runs": [{"kind": "TEXT", "text": "a"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "43E2DD8A",
+                      "runs": [{"kind": "TEXT", "text": "b"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7159BFBD",
+                      "runs": [{"kind": "TEXT", "text": "c"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/15", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "3B826414"},
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C941808",
+          "runs": [{"kind": "TEXT", "text": "Text box:"}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "7726F7C2",
+          "runs": [{"kind": "TEXT", "text": "Hello world"}]
+        },
+        {"address": "body/17", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "72EFD54E"},
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2CA0C306"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2ABF545A",
+          "runs": [{"kind": "TEXT", "text": "Image:"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7822BCB6",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "Badge Tick1 with solid fill",
+                "name": "Graphic 2",
+                "title": "",
+                "part": "/word/media/image1.png"
+              },
+              "description": {"text": "Badge Tick1 with solid fill", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F7BC4B0",
+          "runs": [{"kind": "TEXT", "text": "Equation:"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F03501D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52CC62A9",
+          "runs": [{"kind": "TEXT", "text": "RTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3688C45D",
+          "runs": [{"kind": "TEXT", "text": "Field: 6:25 PM"}],
+          "fields": [{"instr": " TIME  \\* MERGEFORMAT ", "result": "6:25 PM"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B595C45",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 2"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50F1AB8B",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "25D28230",
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "02EAC17F"},
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27E11494",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 3"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6D9DFC81",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}, {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}]
+        },
+        {"address": "body/31", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "005211CE"},
+        {
+          "address": "body/31/chart:0",
+          "kind": "CHART",
+          "story": "MAIN",
+          "chartTitle": "A Chart",
+          "chartHeader": ["", "Sales"],
+          "chartRows": [["1st Qtr", "8.2"], ["2nd Qtr", "3.2"], ["3rd Qtr", "1.4"], ["4th Qtr", "1.2"]]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "67B60D70",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Footnote"}
+          ]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "4863C95F",
+          "style": "EndnoteText",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Endnote"}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "4",
+          "author": "Buck Cronk",
+          "initials": "BC",
+          "date": "2026-05-18T18:21:00Z",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "36593EBD",
+              "runs": [{"kind": "TEXT", "text": "Comment"}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: Buck Cronk; revision: 8; lastModifiedBy: Buck Cronk; created: 2026-05-18T22:30:00Z; modified: 2026-05-18T23:26:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 12; DocSecurity: 0]\n PAGE 1\nHeader\nSAMPLE\nTitle\nTable of Contents\n TOC \\o \"1-3\" \\h \\z \\u Section 1\t PAGEREF _Toc230018409 \\h 1\nSection 2\t PAGEREF _Toc230018410 \\h 2\nSection 3\t PAGEREF _Toc230018411 \\h 3\n\nSection 1\nLorem ipsum\u2026\nBold\nItalics\nUnderline\nColor\nHighlight\nFont (Times New Roman)\nHyperlink\nText with footnote[1]\nText with endnote[1]\n[page 2]Table:\n1\t2\t3\na\tb\tc\n\nText box:\nHello world\n\n\nImage:\n[image: Badge Tick1 with solid fill]\nEquation:\n$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$\nRTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b\nField:  TIME  \\* MERGEFORMAT 6:25 PM\nSection 2\nLorem ipsum\u2026\n\n\n\nSection 3\nLorem ipsum\u2026{>>Comment<<}\n\n[chart: pie]\nA Chart\n\tSales\n1st Qtr\t8.2\n2nd Qtr\t3.2\n3rd Qtr\t1.4\n4th Qtr\t1.2\n PAGE 1\nFooter\n[1] Footnote\n[1] Endnote\n",
+      "blocks": [
+        {
+          "address": "header:rId16/0/0",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "paraId": "37727DB4",
+          "style": "Header",
+          "runs": [{"kind": "FIELD_CODE", "text": " PAGE "}, {"kind": "TEXT", "text": "1"}],
+          "fields": [{"instr": " PAGE ", "result": "1"}]
+        },
+        {
+          "address": "header:rId16/1",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "paraId": "4CEDEBEE",
+          "style": "Header",
+          "runs": [{"kind": "TEXT", "text": "Header"}]
+        },
+        {
+          "address": "header:rId16/1/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "SAMPLE"}]
+        },
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "237605FE",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Title"}]
+        },
+        {
+          "address": "body/1/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12CB5464",
+          "style": "TOCHeading",
+          "runs": [{"kind": "TEXT", "text": "Table of Contents"}]
+        },
+        {
+          "address": "body/1/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "11DBA0E0",
+          "style": "TOC1",
+          "runs": [
+            {"kind": "FIELD_CODE", "text": " TOC \\o \"1-3\" \\h \\z \\u "},
+            {"kind": "TEXT", "text": "Section 1\t", "link": "#_Toc230018409"},
+            {"kind": "FIELD_CODE", "text": " PAGEREF _Toc230018409 \\h "},
+            {"kind": "TEXT", "text": "1", "link": "#_Toc230018409"}
+          ],
+          "fields": [{"instr": " PAGEREF _Toc230018409 \\h ", "result": "1"}]
+        },
+        {
+          "address": "body/1/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "31B7776F",
+          "style": "TOC1",
+          "runs": [
+            {"kind": "TEXT", "text": "Section 2\t", "link": "#_Toc230018410"},
+            {"kind": "FIELD_CODE", "text": " PAGEREF _Toc230018410 \\h "},
+            {"kind": "TEXT", "text": "2", "link": "#_Toc230018410"}
+          ],
+          "fields": [{"instr": " PAGEREF _Toc230018410 \\h ", "result": "2"}]
+        },
+        {
+          "address": "body/1/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "666DB0CB",
+          "style": "TOC1",
+          "runs": [
+            {"kind": "TEXT", "text": "Section 3\t", "link": "#_Toc230018411"},
+            {"kind": "FIELD_CODE", "text": " PAGEREF _Toc230018411 \\h "},
+            {"kind": "TEXT", "text": "3", "link": "#_Toc230018411"}
+          ],
+          "fields": [{"instr": " PAGEREF _Toc230018411 \\h ", "result": "3"}]
+        },
+        {
+          "address": "body/1/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D713635",
+          "fields": [{"instr": " TOC \\o \"1-3\" \\h \\z \\u ", "result": "Section 1\t1Section 2\t2Section 3\t3"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "494B67C7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0C31734D",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5DEFF9FA",
+          "runs": [{"kind": "TEXT", "text": "Bold", "bold": true}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DA33C43",
+          "runs": [{"kind": "TEXT", "text": "Italics", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36EDF0F7",
+          "runs": [{"kind": "TEXT", "text": "Underline"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7DA301",
+          "runs": [{"kind": "TEXT", "text": "Color"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B539ACC",
+          "runs": [{"kind": "TEXT", "text": "Highlight"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DFB3961",
+          "runs": [{"kind": "TEXT", "text": "Font (Times New Roman)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6778FA00",
+          "runs": [{"kind": "TEXT", "text": "Hyperlink", "link": "https://example.com/"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1692174E",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E4EAF24",
+          "runs": [
+            {"kind": "TEXT", "text": "Text with endnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "66C2B387",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Table:"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/14/0",
+              "cells": [
+                {
+                  "address": "body/14/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "135F171A",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4206060E",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7C23171B",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/14/1",
+              "cells": [
+                {
+                  "address": "body/14/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0083305C",
+                      "runs": [{"kind": "TEXT", "text": "a"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "43E2DD8A",
+                      "runs": [{"kind": "TEXT", "text": "b"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/14/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/14/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7159BFBD",
+                      "runs": [{"kind": "TEXT", "text": "c"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/15", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "3B826414"},
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C941808",
+          "runs": [{"kind": "TEXT", "text": "Text box:"}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "7726F7C2",
+          "runs": [{"kind": "TEXT", "text": "Hello world"}]
+        },
+        {"address": "body/17", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "72EFD54E"},
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2CA0C306"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2ABF545A",
+          "runs": [{"kind": "TEXT", "text": "Image:"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7822BCB6",
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "Badge Tick1 with solid fill",
+                "name": "Graphic 2",
+                "title": "",
+                "part": "/word/media/image1.png"
+              },
+              "description": {"text": "Badge Tick1 with solid fill", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F7BC4B0",
+          "runs": [{"kind": "TEXT", "text": "Equation:"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F03501D",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52CC62A9",
+          "runs": [{"kind": "TEXT", "text": "RTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3688C45D",
+          "runs": [
+            {"kind": "TEXT", "text": "Field: "},
+            {"kind": "FIELD_CODE", "text": " TIME  \\* MERGEFORMAT "},
+            {"kind": "TEXT", "text": "6:25 PM"}
+          ],
+          "fields": [{"instr": " TIME  \\* MERGEFORMAT ", "result": "6:25 PM"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B595C45",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 2"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50F1AB8B",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "25D28230",
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "02EAC17F"},
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27E11494",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Section 3"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6D9DFC81",
+          "runs": [{"kind": "TEXT", "text": "Lorem ipsum\u2026"}, {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}]
+        },
+        {"address": "body/31", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "005211CE"},
+        {
+          "address": "body/31/chart:0",
+          "kind": "CHART",
+          "story": "MAIN",
+          "chartTitle": "A Chart",
+          "chartHeader": ["", "Sales"],
+          "chartRows": [["1st Qtr", "8.2"], ["2nd Qtr", "3.2"], ["3rd Qtr", "1.4"], ["4th Qtr", "1.2"]]
+        },
+        {
+          "address": "footer:rId18/0/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTER",
+          "paraId": "24FD499E",
+          "style": "Footer",
+          "runs": [{"kind": "FIELD_CODE", "text": " PAGE "}, {"kind": "TEXT", "text": "1"}],
+          "fields": [{"instr": " PAGE ", "result": "1"}]
+        },
+        {
+          "address": "footer:rId18/1",
+          "kind": "PARAGRAPH",
+          "story": "FOOTER",
+          "paraId": "555D0C03",
+          "style": "Footer",
+          "runs": [{"kind": "TEXT", "text": "Footer"}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "67B60D70",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Footnote"}
+          ]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "4863C95F",
+          "style": "EndnoteText",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " Endnote"}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "4",
+          "author": "Buck Cronk",
+          "initials": "BC",
+          "date": "2026-05-18T18:21:00Z",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "36593EBD",
+              "runs": [{"kind": "TEXT", "text": "Comment"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,819 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/listnumbering/numbering-linked-level-other-style.docx",
+    "fixtureBytes": 12380,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "P01 Labels: A0-n is list A level 0 (linked to LinkA), A1-n level 1 (unlinked), A2-n level 2 (LinkL2), A3-n level 3 (LinkL3); C0-n list C (unlinked).\nP02 OtherNoIlvl (w:num 100, no ilvl), before any LinkA\nP03 LinkA\nP04 OtherNoIlvl (w:num 100, no ilvl)\nP05 LinkA\nP06 OtherIlvl0 (w:num 100, ilvl 0)\nP07 LinkA\nP08 OtherIlvl1 (w:num 100, ilvl 1, level 1 unlinked)\nP09 LinkA\nP10 DerivedA (based on LinkA, no w:numPr of its own)\nP11 LinkA\nP12 OtherInst (w:num 101, a second w:num on list A)\nP13 LinkA\nP14 LinkL2 (w:num 100, ilvl 0; level 2 names it)\nP15 LinkA\nP16 LinkL3 (w:num 100, no ilvl; level 3 names it)\nP17 LinkA\nP18 Plain, direct w:numPr 100 ilvl 0\nP19 OtherNoIlvl, direct w:numPr 100 ilvl 0\nP20 OtherNoIlvl, direct w:numPr 100, no ilvl\nP21 LinkA\nP22 FirstC (w:num 102, no ilvl)\nP23 SecondC (w:num 102, no ilvl)\nP24 FirstC (w:num 102, no ilvl)\nP25 LinkA\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 Labels: A0-n is list A level 0 (linked to LinkA), A1-n level 1 (unlinked), A2-n level 2 (LinkL2), A3-n level 3 (LinkL3); C0-n list C (unlinked)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P02 OtherNoIlvl (w:num 100, no ilvl), before any LinkA"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 LinkA"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P04 OtherNoIlvl (w:num 100, no ilvl)"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 LinkA"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl0",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P06 OtherIlvl0 (w:num 100, ilvl 0)"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 LinkA"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "A1-%2",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 OtherIlvl1 (w:num 100, ilvl 1, level 1 unlinked)"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 LinkA"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DerivedA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P10 DerivedA (based on LinkA, no w:numPr of its own)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P11 LinkA"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherInst",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P12 OtherInst (w:num 101, a second w:num on list A)"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 7,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P13 LinkA"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkL2",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P14 LinkL2 (w:num 100, ilvl 0; level 2 names it)"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 8,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P15 LinkA"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkL3",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P16 LinkL3 (w:num 100, no ilvl; level 3 names it)"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 9,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 LinkA"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 10,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 Plain, direct w:numPr 100 ilvl 0"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 11,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P19 OtherNoIlvl, direct w:numPr 100 ilvl 0"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 12,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P20 OtherNoIlvl, direct w:numPr 100, no ilvl"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 13,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P21 LinkA"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "102",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "C0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "102"
+          },
+          "runs": [{"kind": "TEXT", "text": "P22 FirstC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "SecondC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P23 SecondC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "102",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "C0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "102"
+          },
+          "runs": [{"kind": "TEXT", "text": "P24 FirstC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 14,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P25 LinkA"}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "P01 Labels: A0-n is list A level 0 (linked to LinkA), A1-n level 1 (unlinked), A2-n level 2 (LinkL2), A3-n level 3 (LinkL3); C0-n list C (unlinked).\nP02 OtherNoIlvl (w:num 100, no ilvl), before any LinkA\nA0-1\tP03 LinkA\nP04 OtherNoIlvl (w:num 100, no ilvl)\nA0-2\tP05 LinkA\nP06 OtherIlvl0 (w:num 100, ilvl 0)\nA0-3\tP07 LinkA\nA1-1\tP08 OtherIlvl1 (w:num 100, ilvl 1, level 1 unlinked)\nA0-4\tP09 LinkA\nA0-5\tP10 DerivedA (based on LinkA, no w:numPr of its own)\nA0-6\tP11 LinkA\nP12 OtherInst (w:num 101, a second w:num on list A)\nA0-7\tP13 LinkA\nP14 LinkL2 (w:num 100, ilvl 0; level 2 names it)\nA0-8\tP15 LinkA\nP16 LinkL3 (w:num 100, no ilvl; level 3 names it)\nA0-9\tP17 LinkA\nA0-10\tP18 Plain, direct w:numPr 100 ilvl 0\nA0-11\tP19 OtherNoIlvl, direct w:numPr 100 ilvl 0\nA0-12\tP20 OtherNoIlvl, direct w:numPr 100, no ilvl\nA0-13\tP21 LinkA\nC0-1\tP22 FirstC (w:num 102, no ilvl)\nP23 SecondC (w:num 102, no ilvl)\nC0-2\tP24 FirstC (w:num 102, no ilvl)\nA0-14\tP25 LinkA\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 Labels: A0-n is list A level 0 (linked to LinkA), A1-n level 1 (unlinked), A2-n level 2 (LinkL2), A3-n level 3 (LinkL3); C0-n list C (unlinked)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P02 OtherNoIlvl (w:num 100, no ilvl), before any LinkA"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-1\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 LinkA"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P04 OtherNoIlvl (w:num 100, no ilvl)"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-2\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 LinkA"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl0",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P06 OtherIlvl0 (w:num 100, ilvl 0)"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-3\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 LinkA"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "A1-1\t",
+          "numbering": {
+            "numId": "100",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "A1-%2",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 OtherIlvl1 (w:num 100, ilvl 1, level 1 unlinked)"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-4\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 LinkA"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DerivedA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-5\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P10 DerivedA (based on LinkA, no w:numPr of its own)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-6\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P11 LinkA"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherInst",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P12 OtherInst (w:num 101, a second w:num on list A)"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-7\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 7,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P13 LinkA"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkL2",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P14 LinkL2 (w:num 100, ilvl 0; level 2 names it)"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-8\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 8,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P15 LinkA"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkL3",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P16 LinkL3 (w:num 100, no ilvl; level 3 names it)"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-9\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 9,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 LinkA"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-10\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 10,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 Plain, direct w:numPr 100 ilvl 0"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-11\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 11,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P19 OtherNoIlvl, direct w:numPr 100 ilvl 0"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherNoIlvl",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-12\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 12,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P20 OtherNoIlvl, direct w:numPr 100, no ilvl"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-13\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 13,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P21 LinkA"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "C0-1\t",
+          "numbering": {
+            "numId": "102",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "C0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "102"
+          },
+          "runs": [{"kind": "TEXT", "text": "P22 FirstC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "SecondC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P23 SecondC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstC",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "C0-2\t",
+          "numbering": {
+            "numId": "102",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "C0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "102"
+          },
+          "runs": [{"kind": "TEXT", "text": "P24 FirstC (w:num 102, no ilvl)"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "LinkA",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "A0-14\t",
+          "numbering": {
+            "numId": "100",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "A0-%1",
+            "start": 1,
+            "value": 14,
+            "abstractNumId": "100"
+          },
+          "runs": [{"kind": "TEXT", "text": "P25 LinkA"}]
+        }
+      ]
+    }
+  }
+}

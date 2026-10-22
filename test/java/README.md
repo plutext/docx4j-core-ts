@@ -19,20 +19,21 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.3.3` (`pom.xml`'s `docx4j.version`, the latest
-release, on Maven Central since 2026-10-17; overridable with `-Ddocx4j.version=...`; **harness
-version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have, and
-`RevisionsHarness` docx4j CR-043's `org.docx4j.model.revisions`, first released in 17.3.3**, so the
-project does not compile against anything earlier) and the JAXB implementation and four font jars
+The harness resolves `org.docx4j:docx4j-core:17.3.4` (`pom.xml`'s `docx4j.version`, the latest
+release, on Maven Central since 2026-10-22; overridable with `-Ddocx4j.version=...`; **harness
+version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have,
+`RevisionsHarness` docx4j CR-043's `org.docx4j.model.revisions`, first released in 17.3.3, and
+`TextHarness` docx4j CR-046's `org.docx4j.model.text`, first released in 17.3.4**, so the project
+does not compile against anything earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
-**docx4j's answers move on its development branch, `VERSION_17_3_4`** (`<revision>`
-`17.3.4-SNAPSHOT`, since 17.3.3 was released on 2026-10-17 from `VERSION_17_3_3`, commit
-`c95b55be6`, tag `docx4j-17.3.3`; the release branches are frozen at their releases:
-`VERSION_17_3_3` at 17.3.3, `VERSION_17_3_2` at 17.3.2, `VERSION_17_3_1` at 17.3.1,
-`VERSION_17_3_0` at 17.3.0, `VERSION_17_2_1` at 17.2.1, and before them development was on
-`VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
-So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_4` and pass
-`-Ddocx4j.version=17.3.4-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
+**docx4j's answers move on its development branch, `VERSION_17_3_5`** (`<revision>`
+`17.3.5-SNAPSHOT`, since 17.3.4 was released on 2026-10-22 from `VERSION_17_3_4`, commit
+`8f455ebab`, tag `docx4j-17.3.4`; the release branches are frozen at their releases:
+`VERSION_17_3_4` at 17.3.4, `VERSION_17_3_3` at 17.3.3, `VERSION_17_3_2` at 17.3.2,
+`VERSION_17_3_1` at 17.3.1, `VERSION_17_3_0` at 17.3.0, `VERSION_17_2_1` at 17.2.1, and before them
+development was on `VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
+So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_5` and pass
+`-Ddocx4j.version=17.3.5-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
 its pom. A released version number is a trap a SNAPSHOT was not: if nothing was installed locally,
 Maven takes Central's release and the harness measures that, not the head; the workflow builds
 first, and so must you:
@@ -178,8 +179,10 @@ A golden is committed and diffed weekly, so two runs on two machines must agree.
   docx4j's own mc-preprocessor was no help then either, since it keeps an
   `mc:AlternateContent` whose parent is a `w:r` — which is where Word puts a text box — and
   prefers the fallback elsewhere.
-- **Dates.** Only the header carries one, and the weekly workflow ignores it (and the jar
-  hash) when it diffs.
+- **Dates.** Only the header carries one of its own making, and the weekly workflow ignores it
+  (and the jar hash, the jar's name and the commit) when it diffs: the four header lines, matched at
+  the header's indent, so that a tracked change's or a comment's `date`, which is the document's,
+  is compared (until 2026-10-23 the pattern was unanchored, and dropped those lines too).
 
 Verified by running the harness twice into different directories and diffing.
 
@@ -278,6 +281,49 @@ About eight seconds for 96 fixtures; the same rules as above for which docx4j it
   has one, this package from the selected branch; with every fixture's Choice requiring `wps`, the
   two are the same. The harness sets `MC_PREFER_CHOICE` all the same.
 
+## The text harness (CR-012)
+
+A fourth main class, the oracle for the text model (CR-012 phase 6, its D8 c): docx4j 17.3.4's
+`org.docx4j.model.text` (its CR-046), `Texts.of` and `PlainText.of`. For every `.docx`, `.docm` and
+`.dotx` under each of the fixtures directories, at any depth, it records the result's metadata
+once and four readings (`TextHarness.READINGS`), each its options in the specification's names and
+values (REQ-1001), which the test passes to `Texts.of` as they stand:
+
+| reading | options |
+|---|---|
+| `accepted` | none: the defaults |
+| `original` | `view: original` |
+| `markup` | `view: markup`, `markup_detail: author_date` |
+| `everything` | `include: headers, footers, comments, glossary`, and `comments`, `hidden`, `field_codes`, `toc`, `list_labels`, `alt_text`, `metadata` and `page_markers` on |
+
+Each reading holds `plainText` (`PlainText.of`), `blocks` (each block's address, kind, story,
+paragraph fields, numbering, runs, fields and table rows, every value docx4j's getters give but
+`getText()`, which is its runs' or cells' text, the package-private `section`, a chart's
+`ChartDescription` and an image's tree object), `comments` and `warnings`. A value is written only
+where it is not its default (null, false, an empty list, 0 for a count, 1 for `gridSpan`); a
+reading whose result is the same as an earlier one's is `{"options": ..., "sameAs": "<reading>"}`;
+and `Json.writeFolded` puts an object or array whose one line fits in 120 columns on that line, so
+that a run is a line. One golden per document under [`../golden/text/`](../golden/text/), at the
+fixtures directory's name and then the document's path, its extension becoming `.json`, compared by
+`test/text-parity.test.mjs`.
+
+```
+mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.TextHarness \
+  -Dfixtures=../fixtures,../text-extraction -Dout=../golden/text -Ddocx4j.commit=<hash>
+```
+
+About six seconds for 288 documents; the same rules as above for which docx4j it runs against. It
+runs in UTC (the header's `timeZone`), with system font discovery off and `MC_PREFER_CHOICE` set,
+as the other harnesses do.
+
+- **`-Dfixtures` takes several directories**, comma-separated: `test/fixtures/` and
+  `test/text-extraction/` (docx4j's suite and the agreement test's documents, CR-012 phase 0). Two
+  documents that would share a golden stop the run.
+- **A working tree may hold more than is committed.** The Word checks' `build.mjs` files write
+  their `.docx` beside them (`test/fixtures/check48/` and `check51` to `check54`), git-ignored; a
+  hand-run writes goldens for them, which are not committed (282 are). `RevisionsHarness` finds the
+  same files. The weekly workflow's checkout has none.
+
 ## Files
 
 - `pom.xml` — Java 21, `docx4j-core` and friends from the local repository, `exec-maven-plugin`;
@@ -287,5 +333,7 @@ About eight seconds for 96 fixtures; the same rules as above for which docx4j it
   the parity harness's fixture list and provenance helpers.
 - `src/main/java/org/docx4j/parity/RevisionsHarness.java` — the revisions harness (CR-011), which
   finds its own fixtures and shares the provenance helpers.
+- `src/main/java/org/docx4j/parity/TextHarness.java` — the text harness (CR-012), which takes
+  several fixtures directories and shares the provenance helpers.
 - `src/main/java/org/docx4j/parity/Json.java` — a small JSON writer, so the only dependency
-  is docx4j.
+  is docx4j; `writeFolded` is the text harness's form.

@@ -1,0 +1,504 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/invoice_Saxon_XPath2.docx",
+    "fixtureBytes": 29474,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "jharrop2",
+      "revision": "3",
+      "lastModifiedBy": "jharrop",
+      "created": "2019-01-02T21:22:00Z",
+      "modified": "2019-01-02T21:23:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "14.0000",
+      "Company": "Hewlett-Packard",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Content Control repeats and conditionals example\n\nINVOICE\nJoe Bloggs\n\nInvoice date: 2019-01-15\nItem\tPrice\napples\t$20\n\nPlease remit funds to ABC Bank, account number 123 456 789. \nThis paragraph should be left out.\n\ndocx4j 8.0 supports XPath 2 expressions (provided you use Saxon)\nThe date given 2019-01-15 is in 2019.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Content Control repeats and conditionals example"}]
+        },
+        {"address": "body/1", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "INVOICE"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Joe Bloggs"}]},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Invoice date: 2019-01-15"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1/0",
+              "cells": [
+                {
+                  "address": "body/6/1/0/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "apples"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/1/0/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "$20"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/7", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/9/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Please remit funds to ABC Bank, account number 123 456 789. "}]
+        },
+        {
+          "address": "body/10/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph should be left out."}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "docx4j 8.0 supports XPath 2 expressions (provided you use Saxon)"}]
+        },
+        {
+          "address": "body/13/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The date given 2019-01-15 is in 2019."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Content Control repeats and conditionals example\n\nINVOICE\nJoe Bloggs\n\nInvoice date: 2019-01-15\nItem\tPrice\napples\t$20\n{>>jharrop2, 2010-07-14T17:28:00Z: The table row is surrounded by a content control.  The content control's tag says this row will repeat as necessary.<<}\nPlease remit funds to ABC Bank, account number 123 456 789. {>>jharrop2, 2010-07-14T17:29:00Z: The paragraph is inside a content control.  The content control's tag says whether the paragraph should be included or not.<<}\nThis paragraph should be left out.\n\ndocx4j 8.0 supports XPath 2 expressions (provided you use Saxon)\nThe date given 2019-01-15 is in 2019.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Content Control repeats and conditionals example"}]
+        },
+        {"address": "body/1", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "INVOICE"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Joe Bloggs"}]},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Invoice date: 2019-01-15"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1/0",
+              "cells": [
+                {
+                  "address": "body/6/1/0/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "apples"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/1/0/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "$20"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}]
+        },
+        {
+          "address": "body/9/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Please remit funds to ABC Bank, account number 123 456 789. "},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"}
+          ]
+        },
+        {
+          "address": "body/10/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph should be left out."}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "docx4j 8.0 supports XPath 2 expressions (provided you use Saxon)"}]
+        },
+        {
+          "address": "body/13/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The date given 2019-01-15 is in 2019."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "jharrop2",
+          "initials": "j",
+          "date": "2010-07-14T17:28:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {
+                  "kind": "TEXT",
+                  "text": "The table row is surrounded by a content control.  The content control's tag says this row will repeat as necessary."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1",
+          "author": "jharrop2",
+          "initials": "j",
+          "date": "2010-07-14T17:29:00Z",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {
+                  "kind": "TEXT",
+                  "text": "The paragraph is inside a content control.  The content control's tag says whether the paragraph should be included or not."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: jharrop2; revision: 3; lastModifiedBy: jharrop; created: 2019-01-02T21:22:00Z; modified: 2019-01-02T21:23:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 14.0000; Company: Hewlett-Packard; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nContent Control repeats and conditionals example\n\nINVOICE\nJoe Bloggs\n\nInvoice date: 2019-01-15\nItem\tPrice\napples\t$20\n{>>The table row is surrounded by a content control.  The content control's tag says this row will repeat as necessary.<<}\nPlease remit funds to ABC Bank, account number 123 456 789. {>>The paragraph is inside a content control.  The content control's tag says whether the paragraph should be included or not.<<}\nThis paragraph should be left out.\n\ndocx4j 8.0 supports XPath 2 expressions (provided you use Saxon)\nThe date given 2019-01-15 is in 2019.\nClick here to enter text.\nClick here to enter text.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Content Control repeats and conditionals example"}]
+        },
+        {"address": "body/1", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "INVOICE"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Joe Bloggs"}]},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Invoice date: 2019-01-15"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1/0",
+              "cells": [
+                {
+                  "address": "body/6/1/0/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "apples"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/1/0/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "$20"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}]
+        },
+        {
+          "address": "body/9/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Please remit funds to ABC Bank, account number 123 456 789. "},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"}
+          ]
+        },
+        {
+          "address": "body/10/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This paragraph should be left out."}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "docx4j 8.0 supports XPath 2 expressions (provided you use Saxon)"}]
+        },
+        {
+          "address": "body/13/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The date given 2019-01-15 is in 2019."}]
+        },
+        {
+          "address": "glossary:0/0",
+          "kind": "PARAGRAPH",
+          "story": "GLOSSARY",
+          "runs": [{"kind": "TEXT", "text": "Click here to enter text."}]
+        },
+        {
+          "address": "glossary:1/0",
+          "kind": "PARAGRAPH",
+          "story": "GLOSSARY",
+          "runs": [{"kind": "TEXT", "text": "Click here to enter text."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "jharrop2",
+          "initials": "j",
+          "date": "2010-07-14T17:28:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {
+                  "kind": "TEXT",
+                  "text": "The table row is surrounded by a content control.  The content control's tag says this row will repeat as necessary."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1",
+          "author": "jharrop2",
+          "initials": "j",
+          "date": "2010-07-14T17:29:00Z",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {
+                  "kind": "TEXT",
+                  "text": "The paragraph is inside a content control.  The content control's tag says whether the paragraph should be included or not."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

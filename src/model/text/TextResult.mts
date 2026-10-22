@@ -105,11 +105,14 @@ export class ImageDescription {
  */
 export class TextImage {
   constructor(
-    /** The alt text: `wp:docPr/@descr` (or a nested picture's `pic:cNvPr/@descr`), VML `v:shape/@alt`. */
+    /**
+     * The alt text: `wp:docPr/@descr` (or a nested picture's `pic:cNvPr/@descr`), `''` where a DrawingML picture has
+     * none (the schema's default); VML `v:shape/@alt`.
+     */
     readonly descr: string | undefined,
     /** `wp:docPr/@name` (`pic:cNvPr/@name`); undefined for a VML picture. */
     readonly name: string | undefined,
-    /** `wp:docPr/@title`. */
+    /** `wp:docPr/@title`, `''` where it has none (the schema's default); undefined for a VML picture. */
     readonly title: string | undefined,
     /** True for a picture marked decorative (`adec:decorative val="1"` in `wp:docPr`'s extensions). */
     readonly decorative: boolean,

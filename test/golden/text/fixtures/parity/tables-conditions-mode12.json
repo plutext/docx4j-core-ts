@@ -1,0 +1,2846 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/parity/tables-conditions-mode12.docx",
+    "fixtureBytes": 6886,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "T01 Full, every look attribute on, 5 x 5\na r0c0\ta r0c1\ta r0c2\ta r0c3\ta r0c4\na r1c0\ta r1c1\ta r1c2\ta r1c3\ta r1c4\na r2c0\ta r2c1\ta r2c2\ta r2c3\ta r2c4\na r3c0\ta r3c1\ta r3c2\ta r3c3\ta r3c4\na r4c0\ta r4c1\ta r4c2\ta r4c3\ta r4c4\nT02 Full, the look as the bitmask 05E0 alone (no column banding)\nb r0c0\tb r0c1\tb r0c2\tb r0c3\nb r1c0\tb r1c1\tb r1c2\tb r1c3\nb r2c0\tb r2c1\tb r2c2\tb r2c3\nb r3c0\tb r3c1\tb r3c2\tb r3c3\nT03 Full, no w:tblLook at all: Word's 04A0\nc r0c0\tc r0c1\tc r0c2\tc r0c3\nc r1c0\tc r1c1\tc r1c2\tc r1c3\nc r2c0\tc r2c1\tc r2c2\tc r2c3\nc r3c0\tc r3c1\tc r3c2\tc r3c3\nT04 Full, look 0000 with banding off: the whole table only\nd r0c0\td r0c1\td r0c2\nd r1c0\td r1c1\td r1c2\nd r2c0\td r2c1\td r2c2\nT05 Wide: band sizes 2 and the look from the style\ne r0c0\te r0c1\te r0c2\te r0c3\te r0c4\te r0c5\te r0c6\ne r1c0\te r1c1\te r1c2\te r1c3\te r1c4\te r1c5\te r1c6\ne r2c0\te r2c1\te r2c2\te r2c3\te r2c4\te r2c5\te r2c6\ne r3c0\te r3c1\te r3c2\te r3c3\te r3c4\te r3c5\te r3c6\ne r4c0\te r4c1\te r4c2\te r4c3\te r4c4\te r4c5\te r4c6\ne r5c0\te r5c1\te r5c2\te r5c3\te r5c4\te r5c5\te r5c6\ne r6c0\te r6c1\te r6c2\te r6c3\te r6c4\te r6c5\te r6c6\nT06 Wide, the table's own band sizes 3 and 1 and its own look\nf r0c0\tf r0c1\tf r0c2\tf r0c3\nf r1c0\tf r1c1\tf r1c2\tf r1c3\nf r2c0\tf r2c1\tf r2c2\tf r2c3\nf r3c0\tf r3c1\tf r3c2\tf r3c3\nf r4c0\tf r4c1\tf r4c2\tf r4c3\nf r5c0\tf r5c1\tf r5c2\tf r5c3\nf r6c0\tf r6c1\tf r6c2\tf r6c3\nT07 Full, paragraph styles and direct formatting over the table level\ng r0c0\tg r0c1\tg r0c2\tg r0c3\ng r1c0\tg r1c1\tg r1c2\tg r1c3\ng r2c0\tg r2c1\tg r2c2\tg r2c3\nT08 Full, w:cnfStyle caches which contradict the positions, and one the look gates\nh r0c0\th r0c1\th r0c2\nh r1c0\th r1c1\th r1c2\nh r2c0\th r2c1\th r2c2\nT09 Full, grid spans, w:gridBefore and w:gridAfter\n[table: listed format]\ni r0c0-1: i r1c1; i r0c0-1: i r1c2-3\ni r0c0-1: i r2c0; i r0c0-1: i r2c1\ni r3c0-3\nT10 Full, a nested table (NoText) in a cell, and content controls around a row and a cell\n[table: listed format]\nj r0c0: j r1c0 in a row control; j r0c1 before the nested table; j nested r0c0; j nested r0c1; j nested r1c0; j nested r1c1; j r0c1 after it: j r1c1 in a block control\nj r0c0: j r2c0 in a cell control; j r0c1 before the nested table; j nested r0c0; j nested r0c1; j nested r1c0; j nested r1c1; j r0c1 after it: j r2c1\nT11 No style named: the default table style, Normal Table\nk r0c0\tk r0c1\nk r1c0\tk r1c1\nT12 A style which is missing\nl r0c0\tl r0c1\nl r1c0\tl r1c1\nT13 NoText: conditions with no text formatting\nm r0c0\tm r0c1\nm r1c0\tm r1c1\nEnd.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T01 Full, every look attribute on, 5 x 5"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/1/0",
+              "cells": [
+                {
+                  "address": "body/1/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/1/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/1/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/1/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/1/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r0c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/0/4",
+                  "blocks": [
+                    {
+                      "address": "body/1/0/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r0c4"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/1/1",
+              "cells": [
+                {
+                  "address": "body/1/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/1/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/1/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/1/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/1/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r1c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/1/4",
+                  "blocks": [
+                    {
+                      "address": "body/1/1/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r1c4"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/1/2",
+              "cells": [
+                {
+                  "address": "body/1/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/1/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/1/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/1/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/1/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r2c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/2/4",
+                  "blocks": [
+                    {
+                      "address": "body/1/2/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r2c4"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/1/3",
+              "cells": [
+                {
+                  "address": "body/1/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/1/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r3c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/1/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r3c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/1/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r3c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/1/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r3c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/3/4",
+                  "blocks": [
+                    {
+                      "address": "body/1/3/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r3c4"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/1/4",
+              "cells": [
+                {
+                  "address": "body/1/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/1/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r4c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/1/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r4c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/1/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r4c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/1/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r4c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/1/4/4",
+                  "blocks": [
+                    {
+                      "address": "body/1/4/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "a r4c4"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T02 Full, the look as the bitmask 05E0 alone (no column banding)"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/3/0",
+              "cells": [
+                {
+                  "address": "body/3/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/3/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/3/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/3/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/3/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r0c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/3/1",
+              "cells": [
+                {
+                  "address": "body/3/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/3/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/3/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/3/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/3/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r1c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/3/2",
+              "cells": [
+                {
+                  "address": "body/3/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/3/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/3/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/3/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/3/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r2c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/3/3",
+              "cells": [
+                {
+                  "address": "body/3/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/3/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r3c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/3/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r3c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/3/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r3c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/3/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/3/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "b r3c3"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T03 Full, no w:tblLook at all: Word's 04A0"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/5/0",
+              "cells": [
+                {
+                  "address": "body/5/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r0c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/1",
+              "cells": [
+                {
+                  "address": "body/5/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r1c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/2",
+              "cells": [
+                {
+                  "address": "body/5/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r2c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/3",
+              "cells": [
+                {
+                  "address": "body/5/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r3c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r3c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r3c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/5/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "c r3c3"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T04 Full, look 0000 with banding off: the whole table only"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/7/0",
+              "cells": [
+                {
+                  "address": "body/7/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r0c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/1",
+              "cells": [
+                {
+                  "address": "body/7/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/2",
+              "cells": [
+                {
+                  "address": "body/7/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/7/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "d r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T05 Wide: band sizes 2 and the look from the style"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/9/0",
+              "cells": [
+                {
+                  "address": "body/9/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/0/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/0/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r0c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/1",
+              "cells": [
+                {
+                  "address": "body/9/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/1/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/1/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r1c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/2",
+              "cells": [
+                {
+                  "address": "body/9/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/2/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/2/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r2c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/3",
+              "cells": [
+                {
+                  "address": "body/9/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/3/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/3/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r3c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/4",
+              "cells": [
+                {
+                  "address": "body/9/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/4/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/4/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r4c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/5",
+              "cells": [
+                {
+                  "address": "body/9/5/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/5/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/5/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r5c6"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/9/6",
+              "cells": [
+                {
+                  "address": "body/9/6/0",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/1",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/2",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/3",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/4",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/4/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c4"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/5",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/5/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/9/6/6",
+                  "blocks": [
+                    {
+                      "address": "body/9/6/6/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "e r6c6"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T06 Wide, the table's own band sizes 3 and 1 and its own look"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/11/0",
+              "cells": [
+                {
+                  "address": "body/11/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r0c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/1",
+              "cells": [
+                {
+                  "address": "body/11/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r1c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/2",
+              "cells": [
+                {
+                  "address": "body/11/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r2c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/3",
+              "cells": [
+                {
+                  "address": "body/11/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r3c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r3c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r3c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r3c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/4",
+              "cells": [
+                {
+                  "address": "body/11/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r4c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r4c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r4c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r4c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/5",
+              "cells": [
+                {
+                  "address": "body/11/5/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/5/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r5c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/5/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/5/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r5c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/5/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/5/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r5c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/5/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/5/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r5c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/11/6",
+              "cells": [
+                {
+                  "address": "body/11/6/0",
+                  "blocks": [
+                    {
+                      "address": "body/11/6/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r6c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/6/1",
+                  "blocks": [
+                    {
+                      "address": "body/11/6/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r6c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/6/2",
+                  "blocks": [
+                    {
+                      "address": "body/11/6/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r6c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/11/6/3",
+                  "blocks": [
+                    {
+                      "address": "body/11/6/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "f r6c3"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T07 Full, paragraph styles and direct formatting over the table level"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/13/0",
+              "cells": [
+                {
+                  "address": "body/13/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/13/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "BoldPara",
+                      "indentLeft": 240,
+                      "alignment": "right",
+                      "runs": [{"kind": "TEXT", "text": "g r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/13/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "UnboldPara",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/13/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r0c2", "bold": true}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/13/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "both",
+                      "runs": [{"kind": "TEXT", "text": "g r0c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/13/1",
+              "cells": [
+                {
+                  "address": "body/13/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/13/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "BoldPara",
+                      "indentLeft": 240,
+                      "alignment": "right",
+                      "runs": [{"kind": "TEXT", "text": "g r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/13/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "UnboldPara",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/13/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r1c2", "bold": true}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/13/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "both",
+                      "runs": [{"kind": "TEXT", "text": "g r1c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/13/2",
+              "cells": [
+                {
+                  "address": "body/13/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/13/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "BoldPara",
+                      "indentLeft": 240,
+                      "alignment": "right",
+                      "runs": [{"kind": "TEXT", "text": "g r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/13/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "UnboldPara",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/13/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "g r2c2", "bold": true}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/13/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/13/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "both",
+                      "runs": [{"kind": "TEXT", "text": "g r2c3"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "T08 Full, w:cnfStyle caches which contradict the positions, and one the look gates"
+            }
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/15/0",
+              "cells": [
+                {
+                  "address": "body/15/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/15/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/15/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r0c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/15/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r0c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/15/1",
+              "cells": [
+                {
+                  "address": "body/15/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/15/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/15/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/15/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/15/2",
+              "cells": [
+                {
+                  "address": "body/15/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/15/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/15/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/15/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/15/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "h r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T09 Full, grid spans, w:gridBefore and w:gridAfter"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/17/0",
+              "cells": [
+                {
+                  "address": "body/17/0/0",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/17/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r0c0-1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/17/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/17/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r0c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/17/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/17/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r0c3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/17/1",
+              "cells": [
+                {
+                  "address": "body/17/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/17/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/17/1/1",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/17/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r1c2-3"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/17/2",
+              "cells": [
+                {
+                  "address": "body/17/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/17/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r2c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/17/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/17/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r2c1"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/17/3",
+              "cells": [
+                {
+                  "address": "body/17/3/0",
+                  "gridSpan": 4,
+                  "blocks": [
+                    {
+                      "address": "body/17/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "i r3c0-3"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "T10 Full, a nested table (NoText) in a cell, and content controls around a row and a cell"
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/19/0",
+              "cells": [
+                {
+                  "address": "body/19/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/19/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/19/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/19/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r0c1 before the nested table"}]
+                    },
+                    {
+                      "address": "body/19/0/1/1",
+                      "kind": "TABLE",
+                      "story": "MAIN",
+                      "rows": [
+                        {
+                          "address": "body/19/0/1/1/0",
+                          "cells": [
+                            {
+                              "address": "body/19/0/1/1/0/0",
+                              "blocks": [
+                                {
+                                  "address": "body/19/0/1/1/0/0/0",
+                                  "kind": "PARAGRAPH",
+                                  "story": "MAIN",
+                                  "alignment": "left",
+                                  "runs": [{"kind": "TEXT", "text": "j nested r0c0"}]
+                                }
+                              ]
+                            },
+                            {
+                              "address": "body/19/0/1/1/0/1",
+                              "blocks": [
+                                {
+                                  "address": "body/19/0/1/1/0/1/0",
+                                  "kind": "PARAGRAPH",
+                                  "story": "MAIN",
+                                  "alignment": "left",
+                                  "runs": [{"kind": "TEXT", "text": "j nested r0c1"}]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "address": "body/19/0/1/1/1",
+                          "cells": [
+                            {
+                              "address": "body/19/0/1/1/1/0",
+                              "blocks": [
+                                {
+                                  "address": "body/19/0/1/1/1/0/0",
+                                  "kind": "PARAGRAPH",
+                                  "story": "MAIN",
+                                  "alignment": "left",
+                                  "runs": [{"kind": "TEXT", "text": "j nested r1c0"}]
+                                }
+                              ]
+                            },
+                            {
+                              "address": "body/19/0/1/1/1/1",
+                              "blocks": [
+                                {
+                                  "address": "body/19/0/1/1/1/1/0",
+                                  "kind": "PARAGRAPH",
+                                  "story": "MAIN",
+                                  "alignment": "left",
+                                  "runs": [{"kind": "TEXT", "text": "j nested r1c1"}]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "address": "body/19/0/1/2",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r0c1 after it"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/19/1/0",
+              "cells": [
+                {
+                  "address": "body/19/1/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/19/1/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r1c0 in a row control"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/19/1/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/19/1/0/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r1c1 in a block control"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/19/2",
+              "cells": [
+                {
+                  "address": "body/19/2/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/19/2/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r2c0 in a cell control"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/19/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/19/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "j r2c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T11 No style named: the default table style, Normal Table"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/21/0",
+              "cells": [
+                {
+                  "address": "body/21/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/21/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "k r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/21/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/21/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "k r0c1"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/21/1",
+              "cells": [
+                {
+                  "address": "body/21/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/21/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "k r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/21/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/21/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "k r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T12 A style which is missing"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/23/0",
+              "cells": [
+                {
+                  "address": "body/23/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/23/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "l r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/23/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/23/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "l r0c1"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/23/1",
+              "cells": [
+                {
+                  "address": "body/23/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/23/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "l r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/23/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/23/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "l r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "T13 NoText: conditions with no text formatting"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/25/0",
+              "cells": [
+                {
+                  "address": "body/25/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/25/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "m r0c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/25/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/25/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "m r0c1"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/25/1",
+              "cells": [
+                {
+                  "address": "body/25/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/25/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "m r1c0"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/25/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/25/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "alignment": "left",
+                      "runs": [{"kind": "TEXT", "text": "m r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "alignment": "left",
+          "runs": [{"kind": "TEXT", "text": "End."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "sameAs": "accepted"
+    }
+  }
+}

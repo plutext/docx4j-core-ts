@@ -24,6 +24,81 @@ final class Json {
 		return out.toString();
 	}
 
+	/** The width {@link #writeFolded} folds to. */
+	static final int FOLD = 120;
+
+	/**
+	 * Pretty printed as {@link #write} is, but an object or array whose one-line form fits in
+	 * {@link #FOLD} columns at its indent is written on that line: TextHarness's goldens, whose runs
+	 * and numberings are many small objects, read as one line each and are a third the size.
+	 */
+	static String writeFolded(Object value) {
+		StringBuilder out = new StringBuilder(1 << 16);
+		folded(value, out, 0);
+		out.append('\n');
+		return out.toString();
+	}
+
+	private static void folded(Object value, StringBuilder out, int depth) {
+		boolean container = (value instanceof Map && !((Map<?, ?>) value).isEmpty())
+				|| (value instanceof List && !((List<?>) value).isEmpty());
+		if (!container) {
+			write(value, out, depth);
+			return;
+		}
+		StringBuilder line = new StringBuilder();
+		oneLine(value, line);
+		if (line.length() + 2 * depth <= FOLD) {
+			out.append(line);
+			return;
+		}
+		boolean map = value instanceof Map;
+		out.append(map ? "{\n" : "[\n");
+		boolean first = true;
+		for (Object o : map ? ((Map<?, ?>) value).entrySet() : (List<?>) value) {
+			if (!first) out.append(",\n");
+			first = false;
+			indent(out, depth + 1);
+			if (map) {
+				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+				string(String.valueOf(e.getKey()), out);
+				out.append(": ");
+				folded(e.getValue(), out, depth + 1);
+			} else {
+				folded(o, out, depth + 1);
+			}
+		}
+		out.append('\n');
+		indent(out, depth);
+		out.append(map ? '}' : ']');
+	}
+
+	private static void oneLine(Object value, StringBuilder out) {
+		if (value instanceof Map) {
+			out.append('{');
+			boolean first = true;
+			for (Map.Entry<?, ?> e : ((Map<?, ?>) value).entrySet()) {
+				if (!first) out.append(", ");
+				first = false;
+				string(String.valueOf(e.getKey()), out);
+				out.append(": ");
+				oneLine(e.getValue(), out);
+			}
+			out.append('}');
+		} else if (value instanceof List) {
+			out.append('[');
+			boolean first = true;
+			for (Object o : (List<?>) value) {
+				if (!first) out.append(", ");
+				first = false;
+				oneLine(o, out);
+			}
+			out.append(']');
+		} else {
+			write(value, out, 0);
+		}
+	}
+
 	private static void write(Object value, StringBuilder out, int depth) {
 
 		if (value == null) {

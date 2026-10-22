@@ -1,0 +1,154 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:35Z",
+    "fixture": "text-extraction/suite/phase0/extraction-probe-html.docx",
+    "fixtureBytes": 11945,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {"creator": "docx4j 17.3.4-SNAPSHOT", "lastModifiedBy": "docx4j 17.3.4-SNAPSHOT"},
+    "app": {"Application": "docx4j", "AppVersion": "11.4"}
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Text extraction probe: HTML chunks\nBuilt by docx4j (ExtractionHtmlCases, in docx4j-core-tests) for CR-053 phase 3. Four altChunks follow, A to D, each between marker paragraphs; marker tokens start HTM_. With formatting marks on, hidden text shows dotted.\nHTM_MAIN_BEFORE_A\nHTM_MAIN_BEFORE_B\nHTM_MAIN_BEFORE_C\nHTM_MAIN_BEFORE_D\nHTM_MAIN_AFTER\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe: HTML chunks"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j (ExtractionHtmlCases, in docx4j-core-tests) for CR-053 phase 3. Four altChunks follow, A to D, each between marker paragraphs; marker tokens start HTM_. With formatting marks on, hidden text shows dotted."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_A"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_B"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_C"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_D"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_AFTER"}]
+        }
+      ],
+      "warnings": [
+        {"kind": "altchunk.not_expanded", "address": "body/3", "contentType": "text/html"},
+        {"kind": "altchunk.not_expanded", "address": "body/5", "contentType": "text/html"},
+        {"kind": "altchunk.not_expanded", "address": "body/7", "contentType": "application/xhtml+xml"},
+        {"kind": "altchunk.not_expanded", "address": "body/9", "contentType": "message/rfc822"}
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: docx4j 17.3.4-SNAPSHOT; lastModifiedBy: docx4j 17.3.4-SNAPSHOT]\n[application properties: Application: docx4j; AppVersion: 11.4]\nText extraction probe: HTML chunks\nBuilt by docx4j (ExtractionHtmlCases, in docx4j-core-tests) for CR-053 phase 3. Four altChunks follow, A to D, each between marker paragraphs; marker tokens start HTM_. With formatting marks on, hidden text shows dotted.\nHTM_MAIN_BEFORE_A\nHTM_MAIN_BEFORE_B\nHTM_MAIN_BEFORE_C\nHTM_MAIN_BEFORE_D\nHTM_MAIN_AFTER\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe: HTML chunks"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j (ExtractionHtmlCases, in docx4j-core-tests) for CR-053 phase 3. Four altChunks follow, A to D, each between marker paragraphs; marker tokens start HTM_. With formatting marks on, hidden text shows dotted."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_A"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_B"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_C"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_BEFORE_D"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "HTM_MAIN_AFTER"}]
+        }
+      ],
+      "warnings": [
+        {"kind": "altchunk.not_expanded", "address": "body/3", "contentType": "text/html"},
+        {"kind": "altchunk.not_expanded", "address": "body/5", "contentType": "text/html"},
+        {"kind": "altchunk.not_expanded", "address": "body/7", "contentType": "application/xhtml+xml"},
+        {"kind": "altchunk.not_expanded", "address": "body/9", "contentType": "message/rfc822"}
+      ]
+    }
+  }
+}

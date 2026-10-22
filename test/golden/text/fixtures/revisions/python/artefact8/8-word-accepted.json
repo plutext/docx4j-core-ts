@@ -1,0 +1,657 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "fixtures/revisions/python/artefact8/8-word-accepted.docx",
+    "fixtureBytes": 18811,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "jharrop",
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-20T19:41:00Z",
+      "modified": "2026-10-20T19:41:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "My second 2010 document.\nAdded by an agent, right after the first paragraph.\n$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$\n\n\nRegion\tQuarter\tTotal\nWest\tQ2\t240\nNorth\tQ2\t300\nThis paragraph will be made bold.\nA heading the appended paragraph follows\nAnd one appended at the very end.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D78D9E3",
+          "runs": [{"kind": "TEXT", "text": "My second 2010 document."}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "53D313D1",
+          "runs": [{"kind": "TEXT", "text": "Added by an agent, right after the first paragraph."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75F501F5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "61598769"},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "42ACAF72"},
+        {
+          "address": "body/5",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/5/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/5/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75D37C42",
+                      "runs": [{"kind": "TEXT", "text": "Region"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D52D3A1",
+                      "runs": [{"kind": "TEXT", "text": "Quarter"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7D8DB7CD",
+                      "runs": [{"kind": "TEXT", "text": "Total"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/1",
+              "cells": [
+                {
+                  "address": "body/5/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3653532D",
+                      "runs": [{"kind": "TEXT", "text": "West"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "35AABED0",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "726706C1",
+                      "runs": [{"kind": "TEXT", "text": "240"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/2",
+              "cells": [
+                {
+                  "address": "body/5/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "45EFA76F",
+                      "runs": [{"kind": "TEXT", "text": "North"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15F7181B",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "436481ED",
+                      "runs": [{"kind": "TEXT", "text": "300"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35D414D2",
+          "runs": [{"kind": "TEXT", "text": "This paragraph will be made bold.", "bold": true}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "242F9DB1",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "A heading the appended paragraph follows"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D1A0A93",
+          "runs": [{"kind": "TEXT", "text": "And one appended at the very end."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "My second{>>Claude, 2026-10-20T04:46:00Z: Changed 'first' to 'second': the source says 2010 was the second.<<} 2010 document.\nAdded by an agent, right after the first paragraph.\n$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$\n\n\nRegion\tQuarter\tTotal\nWest\tQ2\t240\nNorth\tQ2\t300\nThis paragraph will be made bold.\nA heading the appended paragraph follows\nAnd one appended at the very end.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D78D9E3",
+          "runs": [
+            {"kind": "TEXT", "text": "My second"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "TEXT", "text": " 2010 document."}
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "53D313D1",
+          "runs": [{"kind": "TEXT", "text": "Added by an agent, right after the first paragraph."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75F501F5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "61598769"},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "42ACAF72"},
+        {
+          "address": "body/5",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/5/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/5/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75D37C42",
+                      "runs": [{"kind": "TEXT", "text": "Region"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D52D3A1",
+                      "runs": [{"kind": "TEXT", "text": "Quarter"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7D8DB7CD",
+                      "runs": [{"kind": "TEXT", "text": "Total"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/1",
+              "cells": [
+                {
+                  "address": "body/5/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3653532D",
+                      "runs": [{"kind": "TEXT", "text": "West"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "35AABED0",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "726706C1",
+                      "runs": [{"kind": "TEXT", "text": "240"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/2",
+              "cells": [
+                {
+                  "address": "body/5/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "45EFA76F",
+                      "runs": [{"kind": "TEXT", "text": "North"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15F7181B",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "436481ED",
+                      "runs": [{"kind": "TEXT", "text": "300"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35D414D2",
+          "runs": [{"kind": "TEXT", "text": "This paragraph will be made bold.", "bold": true}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "242F9DB1",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "A heading the appended paragraph follows"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D1A0A93",
+          "runs": [{"kind": "TEXT", "text": "And one appended at the very end."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Claude",
+          "initials": "C",
+          "date": "2026-10-20T04:46:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "4EEEBDFB",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "Changed 'first' to 'second': the source says 2010 was the second."}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: jharrop; revision: 2; lastModifiedBy: Author A; created: 2026-10-20T19:41:00Z; modified: 2026-10-20T19:41:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nMy second{>>Changed 'first' to 'second': the source says 2010 was the second.<<} 2010 document.\nAdded by an agent, right after the first paragraph.\n$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$\n\n\nRegion\tQuarter\tTotal\nWest\tQ2\t240\nNorth\tQ2\t300\nThis paragraph will be made bold.\nA heading the appended paragraph follows\nAnd one appended at the very end.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D78D9E3",
+          "runs": [
+            {"kind": "TEXT", "text": "My second"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "TEXT", "text": " 2010 document."}
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "53D313D1",
+          "runs": [{"kind": "TEXT", "text": "Added by an agent, right after the first paragraph."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75F501F5",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "61598769"},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "42ACAF72"},
+        {
+          "address": "body/5",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/5/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/5/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75D37C42",
+                      "runs": [{"kind": "TEXT", "text": "Region"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D52D3A1",
+                      "runs": [{"kind": "TEXT", "text": "Quarter"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7D8DB7CD",
+                      "runs": [{"kind": "TEXT", "text": "Total"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/1",
+              "cells": [
+                {
+                  "address": "body/5/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3653532D",
+                      "runs": [{"kind": "TEXT", "text": "West"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "35AABED0",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "726706C1",
+                      "runs": [{"kind": "TEXT", "text": "240"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/5/2",
+              "cells": [
+                {
+                  "address": "body/5/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "45EFA76F",
+                      "runs": [{"kind": "TEXT", "text": "North"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15F7181B",
+                      "runs": [{"kind": "TEXT", "text": "Q2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/5/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/5/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "436481ED",
+                      "runs": [{"kind": "TEXT", "text": "300"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35D414D2",
+          "runs": [{"kind": "TEXT", "text": "This paragraph will be made bold.", "bold": true}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "242F9DB1",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "A heading the appended paragraph follows"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D1A0A93",
+          "runs": [{"kind": "TEXT", "text": "And one appended at the very end."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Claude",
+          "initials": "C",
+          "date": "2026-10-20T04:46:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "4EEEBDFB",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "Changed 'first' to 'second': the source says 2010 was the second."}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

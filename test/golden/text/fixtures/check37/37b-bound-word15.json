@@ -1,0 +1,448 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:30Z",
+    "fixture": "fixtures/check37/37b-bound-word15.docx",
+    "fixtureBytes": 17647,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "jharrop",
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-08T05:15:00Z",
+      "modified": "2026-10-08T05:15:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "15.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 0,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Check 37: escaped XHTML bound through od:xpath entries (no w:dataBinding on the first two controls).\n1. A block-level control (should show the converted blocks after the bind):\nDelivery terms\nGoods are delivered within 14 days of the order, see the terms.\nStandard delivery is free.\nExpress delivery costs extra.\nService\tDays\nStandard\t14\nExpress\t2\n2. A run-level control (should show the first paragraph's text after the bind): [First paragraph in italics\n3. For contrast, a plain text control with a w:dataBinding to the same node (Word shows the markup as text):\n<h1>Delivery terms</h1><p>Goods are delivered <b>within 14 days</b> of the order, see <a href=\"https://example.org/terms\">the terms</a>.</p><ul><li>Standard delivery is free.</li><li>Express delivery costs extra.</li></ul><table><tr><th>Service</th><th>Days</th></tr><tr><td>Standard</td><td>14</td></tr><tr><td>Express</td><td>2</td></tr></table>\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 37: escaped XHTML bound through od:xpath entries (no w:dataBinding on the first two controls)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "1. A block-level control (should show the converted blocks after the bind):"}]
+        },
+        {
+          "address": "body/2/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Delivery terms"}]
+        },
+        {
+          "address": "body/2/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Goods are delivered "},
+            {"kind": "TEXT", "text": "within 14 days", "bold": true},
+            {"kind": "TEXT", "text": " of the order, see "},
+            {"kind": "TEXT", "text": "the terms", "link": "https://example.org/terms"},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/2/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Standard delivery is free."}]
+        },
+        {
+          "address": "body/2/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Express delivery costs extra."}]
+        },
+        {
+          "address": "body/2/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/2/4/0",
+              "cells": [
+                {
+                  "address": "body/2/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Service"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Days"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/2/4/1",
+              "cells": [
+                {
+                  "address": "body/2/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Standard"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "14"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/2/4/2",
+              "cells": [
+                {
+                  "address": "body/2/4/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Express"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "2. A run-level control (should show the first paragraph's text after the bind): [First paragraph "
+            },
+            {"kind": "TEXT", "text": "in italics", "italic": true}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3. For contrast, a plain text control with a w:dataBinding to the same node (Word shows the markup as text):"
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "<h1>Delivery terms</h1><p>Goods are delivered <b>within 14 days</b> of the order, see <a href=\"https://example.org/terms\">the terms</a>.</p><ul><li>Standard delivery is free.</li><li>Express delivery costs extra.</li></ul><table><tr><th>Service</th><th>Days</th></tr><tr><td>Standard</td><td>14</td></tr><tr><td>Express</td><td>2</td></tr></table>"
+            }
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: jharrop; revision: 2; lastModifiedBy: Author A; created: 2026-10-08T05:15:00Z; modified: 2026-10-08T05:15:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 15.0000; Template: Normal.dotm; TotalTime: 0; DocSecurity: 0]\nCheck 37: escaped XHTML bound through od:xpath entries (no w:dataBinding on the first two controls).\n1. A block-level control (should show the converted blocks after the bind):\nDelivery terms\nGoods are delivered within 14 days of the order, see the terms.\n\uf0b7\tStandard delivery is free.\n\uf0b7\tExpress delivery costs extra.\nService\tDays\nStandard\t14\nExpress\t2\n2. A run-level control (should show the first paragraph's text after the bind): [First paragraph in italics\n3. For contrast, a plain text control with a w:dataBinding to the same node (Word shows the markup as text):\n<h1>Delivery terms</h1><p>Goods are delivered <b>within 14 days</b> of the order, see <a href=\"https://example.org/terms\">the terms</a>.</p><ul><li>Standard delivery is free.</li><li>Express delivery costs extra.</li></ul><table><tr><th>Service</th><th>Days</th></tr><tr><td>Standard</td><td>14</td></tr><tr><td>Express</td><td>2</td></tr></table>\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 37: escaped XHTML bound through od:xpath entries (no w:dataBinding on the first two controls)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "1. A block-level control (should show the converted blocks after the bind):"}]
+        },
+        {
+          "address": "body/2/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Delivery terms"}]
+        },
+        {
+          "address": "body/2/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Goods are delivered "},
+            {"kind": "TEXT", "text": "within 14 days", "bold": true},
+            {"kind": "TEXT", "text": " of the order, see "},
+            {"kind": "TEXT", "text": "the terms", "link": "https://example.org/terms"},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/2/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Standard delivery is free."}]
+        },
+        {
+          "address": "body/2/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Express delivery costs extra."}]
+        },
+        {
+          "address": "body/2/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/2/4/0",
+              "cells": [
+                {
+                  "address": "body/2/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Service"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Days"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/2/4/1",
+              "cells": [
+                {
+                  "address": "body/2/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Standard"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "14"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/2/4/2",
+              "cells": [
+                {
+                  "address": "body/2/4/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Express"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/4/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/4/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "2. A run-level control (should show the first paragraph's text after the bind): [First paragraph "
+            },
+            {"kind": "TEXT", "text": "in italics", "italic": true}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "3. For contrast, a plain text control with a w:dataBinding to the same node (Word shows the markup as text):"
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "<h1>Delivery terms</h1><p>Goods are delivered <b>within 14 days</b> of the order, see <a href=\"https://example.org/terms\">the terms</a>.</p><ul><li>Standard delivery is free.</li><li>Express delivery costs extra.</li></ul><table><tr><th>Service</th><th>Days</th></tr><tr><td>Standard</td><td>14</td></tr><tr><td>Express</td><td>2</td></tr></table>"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1870 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:35Z",
+    "fixture": "text-extraction/suite/phase0/extraction-probe-inspect.docx",
+    "fixtureBytes": 39500,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {"creator": "docx4j 17.3.4-SNAPSHOT", "lastModifiedBy": "docx4j 17.3.4-SNAPSHOT"},
+    "app": {"Application": "docx4j", "AppVersion": "11.4"}
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading"
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "VAN58_SHOWN"}]},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PAR58_VISIBLE "}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_TWO SZ58_ONE_HALF"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_COMPLEX SZ58_NOT_COMPLEX"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "COL58_NEAR COL58_FAR"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_COLLAPSED"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_FIRST"}]},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading4",
+          "outlineLevel": 3,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_NESTED"}]
+        },
+        {"address": "body/13", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_LAST"}]},
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_AFTER"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header"
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Off the page: "}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_OFF_PAGE"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Partly on the page: "}]
+        },
+        {
+          "address": "body/17/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_PARTLY"}]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Flat: "}]},
+        {
+          "address": "body/18/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_FLAT"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Paragraph-relative, below wherever the paragraph falls: "}]
+        },
+        {
+          "address": "body/19/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_INDETERMINATE"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Aligned to the page: "}]
+        },
+        {
+          "address": "body/20/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_ALIGNED"}]
+        },
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Hidden: "}]},
+        {
+          "address": "body/21/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_HIDDEN"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts"
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PUA60_SUPPLEMENTARY \udb80\udc41"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "BIDI60_SPLIT \u202e", "bold": true},
+            {"kind": "TEXT", "text": "\u202c BIDI60_AFTER"}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_TEXT_FONT \uf041"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "ICN60_ICON_FONT \ue700"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path"
+            }
+          ]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT"}],
+          "fields": [
+            {
+              "instr": " includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d ",
+              "result": "FLD61_SIMPLE_RESULT"
+            },
+            {
+              "instr": " IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png ",
+              "result": "FLD61_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT"}],
+          "fields": [
+            {"instr": " link Word.Document.12 FLD61_LINK_BARE.docx ", "result": "FLD61_LINK_SIMPLE_RESULT"},
+            {
+              "instr": " LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" ",
+              "result": "FLD61_LINK_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "FLD61_TARGET "},
+            {"kind": "TEXT", "text": "FLD61_BOOKMARK_RESULT", "link": "#fld61target"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "FLD61_FILE_RESULT", "link": "file:///C:/CR050-MISSING/FLD61_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "FLD61_UNC_RESULT", "link": "\\\\cr050-missing\\share\\FLD61_UNC.docx"}
+          ],
+          "fields": [
+            {"instr": " HYPERLINK \\l \"fld61target\" ", "result": "FLD61_BOOKMARK_RESULT"},
+            {"instr": " HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" ", "result": "FLD61_FILE_RESULT"},
+            {"instr": " HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" ", "result": "FLD61_UNC_RESULT"}
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern"
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_AUTO_FILL"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "BG62_TABLE_STYLE"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_PAGE BG62_PAGE_NOT_WHITE"}]
+        },
+        {"address": "body/37", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BG62_PATTERN"}]},
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text"
+            }
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "NOTE63_HERE"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {"address": "body/40", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "CMT63_HERE"}]},
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "INK63_HERE "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Ink 8", "title": "", "part": "/word/media/document_image_rId11.png"},
+              "description": {"text": "Ink 8", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "After the chunk."}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "EMB63_HERE "}, {"kind": "OBJECT", "text": "", "progId": "Word.Document.12"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "LNK64_FILE_TEXT", "link": "file:///C:/CR050-MISSING/LNK64_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_UNC_TEXT", "link": "file:///\\\\cr050-missing\\share\\LNK64_UNC.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_WEB_TEXT", "link": "https://example.com/LNK64_WEB"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_MAIL_TEXT", "link": "mailto:probe@example.com?subject=LNK64_MAIL"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_BOOKMARK_TEXT", "link": "#fld61target"}
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces"
+            }
+          ]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_WORD CAT"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_TWIN CAT"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_BLANK INVISIBLE INK"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_ZERO MIXED"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NAMED MAT"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SHARED FEE"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CAREFUL SIZE"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PLAIN PLAIN"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SYMBOL \uf041\uf061\uf06b"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CCMP BOB"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_LIGA DOT"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NO_LIGA ODD"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PUA_PLAIN \ue123"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 66: a picture named and not described, a decorative one, a workbook with a hidden row and column"
+            }
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Named: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "PIC66_NAME_ONLY", "title": "", "part": "/word/media/document_image_rId20.png"},
+              "description": {"text": "PIC66_NAME_ONLY", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Decorative: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "PIC66_DECOR_DESCR",
+                "name": "PIC66_DECOR_NAME",
+                "title": "",
+                "decorative": true,
+                "part": "/word/media/document_image_rId21.png"
+              }
+            }
+          ]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "OBJECT", "text": "", "progId": "Excel.Sheet.12"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters"
+            }
+          ]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "MCE67_HERE MCE67_CHOICE "}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " NOTE63_REFERENCED"}
+          ]
+        }
+      ],
+      "warnings": [
+        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
+        {"kind": "sdt.binding_differs", "address": "body/67"}
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>Probe, 2026-10-17T00:00:00Z: CMT63_ANCHORED<<}\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading"
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "VAN58_SHOWN"}]},
+        {"address": "body/4", "kind": "PARAGRAPH", "story": "MAIN"},
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PAR58_VISIBLE "}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_TWO SZ58_ONE_HALF"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_COMPLEX SZ58_NOT_COMPLEX"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "COL58_NEAR COL58_FAR"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_COLLAPSED"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_FIRST"}]},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading4",
+          "outlineLevel": 3,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_NESTED"}]
+        },
+        {"address": "body/13", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_LAST"}]},
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_AFTER"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header"
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Off the page: "}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_OFF_PAGE"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Partly on the page: "}]
+        },
+        {
+          "address": "body/17/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_PARTLY"}]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Flat: "}]},
+        {
+          "address": "body/18/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_FLAT"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Paragraph-relative, below wherever the paragraph falls: "}]
+        },
+        {
+          "address": "body/19/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_INDETERMINATE"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Aligned to the page: "}]
+        },
+        {
+          "address": "body/20/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_ALIGNED"}]
+        },
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Hidden: "}]},
+        {
+          "address": "body/21/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_HIDDEN"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts"
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PUA60_SUPPLEMENTARY \udb80\udc41"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "BIDI60_SPLIT \u202e", "bold": true},
+            {"kind": "TEXT", "text": "\u202c BIDI60_AFTER"}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_TEXT_FONT \uf041"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "ICN60_ICON_FONT \ue700"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path"
+            }
+          ]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT"}],
+          "fields": [
+            {
+              "instr": " includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d ",
+              "result": "FLD61_SIMPLE_RESULT"
+            },
+            {
+              "instr": " IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png ",
+              "result": "FLD61_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT"}],
+          "fields": [
+            {"instr": " link Word.Document.12 FLD61_LINK_BARE.docx ", "result": "FLD61_LINK_SIMPLE_RESULT"},
+            {
+              "instr": " LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" ",
+              "result": "FLD61_LINK_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "FLD61_TARGET "},
+            {"kind": "TEXT", "text": "FLD61_BOOKMARK_RESULT", "link": "#fld61target"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "FLD61_FILE_RESULT", "link": "file:///C:/CR050-MISSING/FLD61_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "FLD61_UNC_RESULT", "link": "\\\\cr050-missing\\share\\FLD61_UNC.docx"}
+          ],
+          "fields": [
+            {"instr": " HYPERLINK \\l \"fld61target\" ", "result": "FLD61_BOOKMARK_RESULT"},
+            {"instr": " HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" ", "result": "FLD61_FILE_RESULT"},
+            {"instr": " HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" ", "result": "FLD61_UNC_RESULT"}
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern"
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_AUTO_FILL"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "BG62_TABLE_STYLE"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_PAGE BG62_PAGE_NOT_WHITE"}]
+        },
+        {"address": "body/37", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BG62_PATTERN"}]},
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text"
+            }
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "NOTE63_HERE"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "CMT63_HERE"}, {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "INK63_HERE "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Ink 8", "title": "", "part": "/word/media/document_image_rId11.png"},
+              "description": {"text": "Ink 8", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "After the chunk."}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "EMB63_HERE "}, {"kind": "OBJECT", "text": "", "progId": "Word.Document.12"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "LNK64_FILE_TEXT", "link": "file:///C:/CR050-MISSING/LNK64_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_UNC_TEXT", "link": "file:///\\\\cr050-missing\\share\\LNK64_UNC.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_WEB_TEXT", "link": "https://example.com/LNK64_WEB"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_MAIL_TEXT", "link": "mailto:probe@example.com?subject=LNK64_MAIL"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_BOOKMARK_TEXT", "link": "#fld61target"}
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces"
+            }
+          ]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_WORD CAT"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_TWIN CAT"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_BLANK INVISIBLE INK"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_ZERO MIXED"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NAMED MAT"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SHARED FEE"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CAREFUL SIZE"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PLAIN PLAIN"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SYMBOL \uf041\uf061\uf06b"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CCMP BOB"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_LIGA DOT"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NO_LIGA ODD"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PUA_PLAIN \ue123"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 66: a picture named and not described, a decorative one, a workbook with a hidden row and column"
+            }
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Named: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "PIC66_NAME_ONLY", "title": "", "part": "/word/media/document_image_rId20.png"},
+              "description": {"text": "PIC66_NAME_ONLY", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Decorative: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "PIC66_DECOR_DESCR",
+                "name": "PIC66_DECOR_NAME",
+                "title": "",
+                "decorative": true,
+                "part": "/word/media/document_image_rId21.png"
+              }
+            }
+          ]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "OBJECT", "text": "", "progId": "Excel.Sheet.12"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters"
+            }
+          ]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "MCE67_HERE MCE67_CHOICE "}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " NOTE63_REFERENCED"}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Probe",
+          "initials": "P",
+          "date": "2026-10-17T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "10000063",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "CMT63_ANCHORED"}]
+            }
+          ]
+        }
+      ],
+      "warnings": [
+        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
+        {"kind": "sdt.binding_differs", "address": "body/67"}
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: docx4j 17.3.4-SNAPSHOT; lastModifiedBy: docx4j 17.3.4-SNAPSHOT]\n[application properties: Application: docx4j; AppVersion: 11.4]\nHDR63_USED\n\nWMK63_WATERMARK\nText extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\nVAN58_INHERITED\nPAR58_VISIBLE PAR58_PART_HIDDEN\nPAR58_WHOLE\nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\n includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d FLD61_SIMPLE_RESULT  IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png FLD61_COMPLEX_RESULT\n link Word.Document.12 FLD61_LINK_BARE.docx FLD61_LINK_SIMPLE_RESULT  LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET  HYPERLINK \\l \"fld61target\" FLD61_BOOKMARK_RESULT  HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" FLD61_FILE_RESULT  HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>CMT63_ANCHORED<<}\nINK63_HERE [image: Ink 8]\nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: [image: PIC66_NAME_ONLY]\nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "blocks": [
+        {
+          "address": "header:rId5/0",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "runs": [{"kind": "TEXT", "text": "HDR63_USED"}]
+        },
+        {"address": "header:rId5/1", "kind": "PARAGRAPH", "story": "HEADER"},
+        {
+          "address": "header:rId5/1/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "WMK63_WATERMARK"}]
+        },
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Built by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading"
+            }
+          ]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "VAN58_SHOWN"}]},
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "VAN58_INHERITED", "hidden": true}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PAR58_VISIBLE "}, {"kind": "TEXT", "text": "PAR58_PART_HIDDEN", "hidden": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "hidden": true,
+          "runs": [{"kind": "TEXT", "text": "PAR58_WHOLE", "hidden": true}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_TWO SZ58_ONE_HALF"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SZ58_COMPLEX SZ58_NOT_COMPLEX"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "COL58_NEAR COL58_FAR"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_COLLAPSED"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_FIRST"}]},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading4",
+          "outlineLevel": 3,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_NESTED"}]
+        },
+        {"address": "body/13", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BODY58_LAST"}]},
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "HEAD58_AFTER"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header"
+            }
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Off the page: "}]
+        },
+        {
+          "address": "body/16/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_OFF_PAGE"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Partly on the page: "}]
+        },
+        {
+          "address": "body/17/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_PARTLY"}]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Flat: "}]},
+        {
+          "address": "body/18/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_FLAT"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Paragraph-relative, below wherever the paragraph falls: "}]
+        },
+        {
+          "address": "body/19/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_INDETERMINATE"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Aligned to the page: "}]
+        },
+        {
+          "address": "body/20/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_ALIGNED"}]
+        },
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "Hidden: "}]},
+        {
+          "address": "body/21/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "runs": [{"kind": "TEXT", "text": "GEO59_HIDDEN"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts"
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "PUA60_SUPPLEMENTARY \udb80\udc41"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "BIDI60_SPLIT \u202e", "bold": true},
+            {"kind": "TEXT", "text": "\u202c BIDI60_AFTER"}
+          ]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SYM60_TEXT_FONT \uf041"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "ICN60_ICON_FONT \ue700"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path"
+            }
+          ]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "FIELD_CODE", "text": " includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d "},
+            {"kind": "TEXT", "text": "FLD61_SIMPLE_RESULT "},
+            {"kind": "FIELD_CODE", "text": " IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png "},
+            {"kind": "TEXT", "text": "FLD61_COMPLEX_RESULT"}
+          ],
+          "fields": [
+            {
+              "instr": " includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d ",
+              "result": "FLD61_SIMPLE_RESULT"
+            },
+            {
+              "instr": " IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png ",
+              "result": "FLD61_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "FIELD_CODE", "text": " link Word.Document.12 FLD61_LINK_BARE.docx "},
+            {"kind": "TEXT", "text": "FLD61_LINK_SIMPLE_RESULT "},
+            {
+              "kind": "FIELD_CODE",
+              "text": " LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" "
+            },
+            {"kind": "TEXT", "text": "FLD61_LINK_COMPLEX_RESULT"}
+          ],
+          "fields": [
+            {"instr": " link Word.Document.12 FLD61_LINK_BARE.docx ", "result": "FLD61_LINK_SIMPLE_RESULT"},
+            {
+              "instr": " LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" ",
+              "result": "FLD61_LINK_COMPLEX_RESULT"
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "FLD61_TARGET "},
+            {"kind": "FIELD_CODE", "text": " HYPERLINK \\l \"fld61target\" "},
+            {"kind": "TEXT", "text": "FLD61_BOOKMARK_RESULT", "link": "#fld61target"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "FIELD_CODE", "text": " HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" "},
+            {"kind": "TEXT", "text": "FLD61_FILE_RESULT", "link": "file:///C:/CR050-MISSING/FLD61_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "FIELD_CODE", "text": " HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" "},
+            {"kind": "TEXT", "text": "FLD61_UNC_RESULT", "link": "\\\\cr050-missing\\share\\FLD61_UNC.docx"}
+          ],
+          "fields": [
+            {"instr": " HYPERLINK \\l \"fld61target\" ", "result": "FLD61_BOOKMARK_RESULT"},
+            {"instr": " HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" ", "result": "FLD61_FILE_RESULT"},
+            {"instr": " HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" ", "result": "FLD61_UNC_RESULT"}
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern"
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_AUTO_FILL"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "BG62_TABLE_STYLE"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "BG62_PAGE BG62_PAGE_NOT_WHITE"}]
+        },
+        {"address": "body/37", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "BG62_PATTERN"}]},
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text"
+            }
+          ]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "NOTE63_HERE"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"}
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "CMT63_HERE"}, {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "INK63_HERE "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "Ink 8", "title": "", "part": "/word/media/document_image_rId11.png"},
+              "description": {"text": "Ink 8", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "After the chunk."}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "EMB63_HERE "}, {"kind": "OBJECT", "text": "", "progId": "Word.Document.12"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "LNK64_FILE_TEXT", "link": "file:///C:/CR050-MISSING/LNK64_FILE.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_UNC_TEXT", "link": "file:///\\\\cr050-missing\\share\\LNK64_UNC.docx"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_WEB_TEXT", "link": "https://example.com/LNK64_WEB"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_MAIL_TEXT", "link": "mailto:probe@example.com?subject=LNK64_MAIL"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "LNK64_BOOKMARK_TEXT", "link": "#fld61target"}
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces"
+            }
+          ]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_WORD CAT"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_TWIN CAT"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_BLANK INVISIBLE INK"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_ZERO MIXED"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NAMED MAT"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SHARED FEE"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CAREFUL SIZE"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PLAIN PLAIN"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_SYMBOL \uf041\uf061\uf06b"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_CCMP BOB"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_LIGA DOT"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_NO_LIGA ODD"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "FNT65_PUA_PLAIN \ue123"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 66: a picture named and not described, a decorative one, a workbook with a hidden row and column"
+            }
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Named: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "", "name": "PIC66_NAME_ONLY", "title": "", "part": "/word/media/document_image_rId20.png"},
+              "description": {"text": "PIC66_NAME_ONLY", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "Decorative: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "PIC66_DECOR_DESCR",
+                "name": "PIC66_DECOR_NAME",
+                "title": "",
+                "decorative": true,
+                "part": "/word/media/document_image_rId21.png"
+              }
+            }
+          ]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "OBJECT", "text": "", "progId": "Excel.Sheet.12"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters"
+            }
+          ]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "MCE67_HERE MCE67_CHOICE "}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " NOTE63_REFERENCED"}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Probe",
+          "initials": "P",
+          "date": "2026-10-17T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "10000063",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "CMT63_ANCHORED"}]
+            }
+          ]
+        }
+      ],
+      "warnings": [
+        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
+        {"kind": "sdt.binding_differs", "address": "body/67"}
+      ]
+    }
+  }
+}

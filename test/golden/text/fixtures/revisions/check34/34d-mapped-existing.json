@@ -1,0 +1,341 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:33Z",
+    "fixture": "fixtures/revisions/check34/34d-mapped-existing.docx",
+    "fixtureBytes": 24630,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-03T02:00:00Z",
+      "modified": "2026-10-03T02:00:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Check 34: Word's XML Mapping Pane. The custom XML part is <data><name>Ann</name><empty/></data>. Do each case in its own paragraph, as test/README.md check 34 says.\n1a. The quick brown fox.\n1b. The quick brown fox.\n1c. The quick brown fox.\n1d. The empty paragraph below:\n\n1e. The quick brown fox.\n1f. First paragraph of two: the quick\nbrown fox, second paragraph of two.\n1g. A picture here:  and text after it.\n1h. An existing rich text control: \n1i. The quick brown fox.\n1j. The quick brown fox.\n2a. The Ann fox.\n2b. The quick brown fox.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6877DBAE",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 34: Word's XML Mapping Pane. The custom XML part is <data><name>Ann</name><empty/></data>. Do each case in its own paragraph, as test/README.md check 34 says."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "59338531",
+          "runs": [
+            {"kind": "TEXT", "text": "1a. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2889809E",
+          "runs": [
+            {"kind": "TEXT", "text": "1b. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E1802BE",
+          "runs": [
+            {"kind": "TEXT", "text": "1c. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A2E0898",
+          "runs": [{"kind": "TEXT", "text": "1d. The empty paragraph below:"}]
+        },
+        {"address": "body/5", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "130C7355"},
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FB13BA0",
+          "runs": [
+            {"kind": "TEXT", "text": "1e. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D49485C",
+          "runs": [{"kind": "TEXT", "text": "1f. First paragraph of two: the quick"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F69C617",
+          "runs": [{"kind": "TEXT", "text": "brown fox, second paragraph of two."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "47E143EF",
+          "runs": [
+            {"kind": "TEXT", "text": "1g. A picture here:  and text after it."},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "a dot", "name": "Picture 1", "title": "", "part": "/word/media/image1.png"},
+              "description": {"text": "a dot", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27F8111A",
+          "runs": [{"kind": "TEXT", "text": "1h. An existing rich text control: "}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72B4CDC9",
+          "runs": [
+            {"kind": "TEXT", "text": "1i. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D4792D4",
+          "runs": [
+            {"kind": "TEXT", "text": "1j. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5DD89DC4",
+          "runs": [{"kind": "TEXT", "text": "2a. The Ann fox."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A293E5F",
+          "runs": [
+            {"kind": "TEXT", "text": "2b. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-03T02:00:00Z; modified: 2026-10-03T02:00:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nCheck 34: Word's XML Mapping Pane. The custom XML part is <data><name>Ann</name><empty/></data>. Do each case in its own paragraph, as test/README.md check 34 says.\n1a. The quick brown fox.\n1b. The quick brown fox.\n1c. The quick brown fox.\n1d. The empty paragraph below:\n\n1e. The quick brown fox.\n1f. First paragraph of two: the quick\nbrown fox, second paragraph of two.\n1g. A picture here:  and text after it.[image: a dot]\n1h. An existing rich text control: \n1i. The quick brown fox.\n1j. The quick brown fox.\n2a. The Ann fox.\n2b. The quick brown fox.\nClick or tap here to enter text.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6877DBAE",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 34: Word's XML Mapping Pane. The custom XML part is <data><name>Ann</name><empty/></data>. Do each case in its own paragraph, as test/README.md check 34 says."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "59338531",
+          "runs": [
+            {"kind": "TEXT", "text": "1a. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2889809E",
+          "runs": [
+            {"kind": "TEXT", "text": "1b. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E1802BE",
+          "runs": [
+            {"kind": "TEXT", "text": "1c. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A2E0898",
+          "runs": [{"kind": "TEXT", "text": "1d. The empty paragraph below:"}]
+        },
+        {"address": "body/5", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "130C7355"},
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FB13BA0",
+          "runs": [
+            {"kind": "TEXT", "text": "1e. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D49485C",
+          "runs": [{"kind": "TEXT", "text": "1f. First paragraph of two: the quick"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F69C617",
+          "runs": [{"kind": "TEXT", "text": "brown fox, second paragraph of two."}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "47E143EF",
+          "runs": [
+            {"kind": "TEXT", "text": "1g. A picture here:  and text after it."},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "a dot", "name": "Picture 1", "title": "", "part": "/word/media/image1.png"},
+              "description": {"text": "a dot", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27F8111A",
+          "runs": [{"kind": "TEXT", "text": "1h. An existing rich text control: "}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72B4CDC9",
+          "runs": [
+            {"kind": "TEXT", "text": "1i. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D4792D4",
+          "runs": [
+            {"kind": "TEXT", "text": "1j. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5DD89DC4",
+          "runs": [{"kind": "TEXT", "text": "2a. The Ann fox."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A293E5F",
+          "runs": [
+            {"kind": "TEXT", "text": "2b. The quick "},
+            {"kind": "TEXT", "text": "brown", "bold": true},
+            {"kind": "TEXT", "text": " fox."}
+          ]
+        },
+        {
+          "address": "glossary:0/0",
+          "kind": "PARAGRAPH",
+          "story": "GLOSSARY",
+          "runs": [{"kind": "TEXT", "text": "Click or tap here to enter text."}]
+        }
+      ]
+    }
+  }
+}

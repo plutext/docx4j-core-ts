@@ -257,6 +257,50 @@ When this was written, docx4j's commits from `d18693760` on were not yet on GitH
 `VERSION_17_3_4` stood at `5c691fc1f`, before the rule; the weekly workflow, which builds that head,
 would record the old comments until they are pushed.
 
+## docx4j 17.3.4, and `text/` (2026-10-23)
+
+All 62 goldens, the 62 under `xpath/` and the 96 under `revisions/` were regenerated from the docx4j
+17.3.4 release on Maven Central (`docx4j-core-17.3.4.jar`, SHA-256 `70d6f1f4782732d5…`, tag
+`docx4j-17.3.4` at `8f455ebab6f24c401d7d06e5c112063f4555b335`, a descendant of `a8bc6cda9` and
+`c95b55be6`), harness versions 4, 1 and 2, with a scratch Maven repository. Header fields aside, no
+answer moved, no XPath hit, and nothing listed, resolved or left of the comments. `text/` was added,
+from the same release (below). CR-012 section 20.
+
+## `text/`: the text model (CR-012 phase 6)
+
+One JSON file per WordprocessingML document under `test/fixtures/` and `test/text-extraction/`, at
+any depth: 282 of them, at the directory's name and then the document's path
+(`fixtures/parity/numbering-stories.json`, `text-extraction/suite/phase0/extraction-probe.json`).
+Each records what docx4j's `org.docx4j.model.text` answers (its CR-046): the result's `metadata`, and
+four `readings`, `accepted`, `original`, `markup` (with `markup_detail: author_date`) and
+`everything` (every story included, every item that is off by default on), each its `options`, its
+`plainText` (`PlainText.of`), its `blocks`, `comments` and `warnings`. A reading the same as an
+earlier one is `sameAs` it: 178 `original` readings, 161 `markup` and 50 `everything`. The rest hold
+31,075 blocks and 35,229 runs. Written by [`../java/`](../java/README.md#the-text-harness-cr-012)'s
+`TextHarness`, and compared by `test/text-parity.test.mjs`, which reads the same documents through
+`Texts.of` and `PlainText.of` with the same options and writes its side by the harness's rule.
+
+What the test sets aside, on both sides:
+- **Run boundaries** (CR-012 section 15.5): a block's runs are compared joined by docx4j's rule
+  (`Extractor.addText`), since this package keeps runs apart where `Paragraph.text` holds text the
+  model leaves out between them. The text is the same; only the boundaries differ.
+- **Phase 5 and REQ-303**, in 20 documents the test's `PENDING` names: an equation's text (5b, LaTeX
+  in docx4j, its `m:t` text here), the chart and SmartArt blocks (5c) and an `altChunk`'s content
+  (5e) that docx4j reads and this package doesn't yet, and the blocks of check 50 and the probe's
+  case 6, whose `mc:Choice` docx4j selects by namespace (REQ-303 by URI). These are the 20 documents
+  CR-012 section 16.5's Markdown sweep found. Each flag must still set aside something that differs,
+  so a phase arriving fails the test until its entries are removed.
+
+Everything else is compared exactly: every other block, run, field, numbering, table row and cell,
+comment and warning, the plain text of every reading in which nothing set aside differs, and the
+metadata.
+
+| | |
+|---|---|
+| docx4j | the 17.3.4 release, `8f455ebab` |
+| harness version | 1 |
+| fixtures | the 252 `.docx`, `.docm` and `.dotx` committed under `test/fixtures/` and the 30 under `test/text-extraction/` |
+
 ## `revisions/`: every story's tracked changes, and what each resolve-all leaves (CR-011)
 
 One JSON file per `.docx` fixture whose `word/` parts hold revision markup, 96 of them, at the
@@ -273,6 +317,6 @@ wall-clock time on both sides.
 
 | | |
 |---|---|
-| docx4j | `VERSION_17_3_4` at `a8bc6cda9`, as above (the 17.3.3 release at harness version 1) |
+| docx4j | the 17.3.4 release, `8f455ebab` (`VERSION_17_3_4` at `a8bc6cda9` when harness version 2 was first recorded, the 17.3.3 release at harness version 1) |
 | harness version | 2 |
 | fixtures | the 96 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,784 changes listed |

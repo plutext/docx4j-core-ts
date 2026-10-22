@@ -1,0 +1,204 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "fixtures/revisions/cr043/comments/c43-u22-reject-one-last-comment-revisions-left.docx",
+    "fixtureBytes": 3529,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked.\nC43_U22_BEFORE C43_U22_INSERTED C43_U22_AFTER\nC43_U22_SECOND  C43_U22_END\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "C43_U22_BEFORE C43_U22_INSERTED C43_U22_AFTER"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C43_U22_SECOND  C43_U22_END"}]
+        }
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked.\nC43_U22_BEFORE  C43_U22_AFTER\nC43_U22_SECOND C43_U22_STILL_TRACKED_DELETION C43_U22_END\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C43_U22_BEFORE  C43_U22_AFTER"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "C43_U22_SECOND C43_U22_STILL_TRACKED_DELETION C43_U22_END"}]
+        }
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked.\nC43_U22_BEFORE {++Probe, 2026-10-21T00:00:00Z: C43_U22_INSERTED++}{>>Probe, 2026-10-21T00:00:00Z: C43_U22_ONLY_COMMENT<<} C43_U22_AFTER\nC43_U22_SECOND {--Probe, 2026-10-21T00:00:00Z: C43_U22_STILL_TRACKED_DELETION--} C43_U22_END\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "runs": [
+            {"kind": "TEXT", "text": "C43_U22_BEFORE "},
+            {
+              "kind": "TEXT",
+              "text": "C43_U22_INSERTED",
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-21T00:00:00Z"}
+            },
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "TEXT", "text": " C43_U22_AFTER"}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "runs": [
+            {"kind": "TEXT", "text": "C43_U22_SECOND "},
+            {
+              "kind": "TEXT",
+              "text": "C43_U22_STILL_TRACKED_DELETION",
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-21T00:00:00Z"}
+            },
+            {"kind": "TEXT", "text": " C43_U22_END"}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Probe",
+          "initials": "P",
+          "date": "2026-10-21T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "22000001",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "C43_U22_ONLY_COMMENT"}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked.\nC43_U22_BEFORE C43_U22_INSERTED{>>C43_U22_ONLY_COMMENT<<} C43_U22_AFTER\nC43_U22_SECOND  C43_U22_END\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 probe: U22: reject only the insertion C43_U22_INSERTED (not Reject All). Its comment is the only one; the deletion stays tracked."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "runs": [
+            {"kind": "TEXT", "text": "C43_U22_BEFORE C43_U22_INSERTED"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"},
+            {"kind": "TEXT", "text": " C43_U22_AFTER"}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C43_U22_SECOND  C43_U22_END"}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Probe",
+          "initials": "P",
+          "date": "2026-10-21T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "22000001",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "C43_U22_ONLY_COMMENT"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

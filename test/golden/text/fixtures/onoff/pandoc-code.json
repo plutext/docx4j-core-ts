@@ -1,0 +1,249 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/onoff/pandoc-code.docx",
+    "fixtureBytes": 10786,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {"created": "2026-10-16T21:02:19Z", "modified": "2026-10-16T21:02:19Z"},
+    "app": {
+      "Application": "Microsoft Word 12.0.0",
+      "AppVersion": "12.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 6,
+      "DocSecurity": 0
+    },
+    "custom": {}
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Heading\nSome text and inline code.\nconst x = 1;\nconsole.log(x);\na\tb\n1\t2\n",
+      "blocks": [
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Heading"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Some "},
+            {"kind": "TEXT", "text": "text", "italic": true},
+            {"kind": "TEXT", "text": " and "},
+            {"kind": "TEXT", "text": "inline code", "monospace": true},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "SourceCode",
+          "runs": [
+            {"kind": "TEXT", "text": "const", "bold": true, "monospace": true},
+            {"kind": "TEXT", "text": " x = 1;", "monospace": true},
+            {"kind": "TEXT", "text": "\n"},
+            {"kind": "TEXT", "text": "console.log(x);", "monospace": true}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/4/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "a"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "b"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/1",
+              "cells": [
+                {
+                  "address": "body/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: created: 2026-10-16T21:02:19Z; modified: 2026-10-16T21:02:19Z]\n[application properties: Application: Microsoft Word 12.0.0; AppVersion: 12.0000; Template: Normal.dotm; TotalTime: 6; DocSecurity: 0]\nHeading\nSome text and inline code.\nconst x = 1;\nconsole.log(x);\na\tb\n1\t2\n",
+      "blocks": [
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Heading"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Some "},
+            {"kind": "TEXT", "text": "text", "italic": true},
+            {"kind": "TEXT", "text": " and "},
+            {"kind": "TEXT", "text": "inline code", "monospace": true},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "SourceCode",
+          "runs": [
+            {"kind": "TEXT", "text": "const", "bold": true, "monospace": true},
+            {"kind": "TEXT", "text": " x = 1;", "monospace": true},
+            {"kind": "TEXT", "text": "\n"},
+            {"kind": "TEXT", "text": "console.log(x);", "monospace": true}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/4/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "a"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "b"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/1",
+              "cells": [
+                {
+                  "address": "body/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "style": "Compact",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

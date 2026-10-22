@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view.
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), not committed when this was written: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20).
 
 ## 1. Why
 
@@ -647,7 +647,7 @@ unless a check says otherwise.
 | 3 | Markdown (REQ-703, REQ-704): headings, emphasis, lists by the numbering model with REQ-703's interrupted-list rules, notes, GFM tables, front matter; `MarkdownExporter.blocks`. **Done 2026-10-21, section 16** | 2 to 3 days |
 | 4 | The readers (D3, D5, D6): `outline()` on the model; text-box `Paragraph` views at their addresses; U+0002 after check 48; ED-009's run content in a kept branch, read and edited, check 49 run 2026-10-20 (section 12). **Done 2026-10-21, section 17** | 3½ to 4½ days |
 | 5 | Section 5's statements, each its own go: a `fields: update`, b math as LaTeX, c charts (after CR-009) and SmartArt, d embedded, e altChunk | each 1 to 4 days |
-| 6 | Block-model parity goldens (D8 c). docx4j's 17.3.4 work is now public, so this can go with phase 2 (section 6.1) | 1 day |
+| 6 | Block-model parity goldens (D8 c). docx4j's 17.3.4 work is now public, so this can go with phase 2 (section 6.1). **Done 2026-10-23, section 20**, from the 17.3.4 release | 1 day |
 
 The estimates are rough. Phase 2 is the bulk, and it is where the agreement test will find the
 deleted-mark and rejected-field cases the paper's REQ-406 NOTE records ("both ports' text views of
@@ -2013,3 +2013,130 @@ writes `\r` after every paragraph, its mark deleted or not.
 last paragraph, which Word never writes but a file may hold.
 
 **Size:** half a day, and a check; the readers' tests (checks 48 and 51) have no deleted mark, so none moves.
+
+## 20. Phase 6: the block-model parity goldens (implemented 2026-10-23)
+
+Jason, 2026-10-23: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens
+from that release". docx4j 17.3.4 reached Maven Central on 2026-10-22 (tag `docx4j-17.3.4` at `8f455ebab`), with
+`org.docx4j.model.text` in it, so D8 (c) no longer needs a branch build (section 6.1).
+
+### 20.1 The parity on docx4j 17.3.4
+
+- **The pom and the workflow.** `test/java/pom.xml` resolves the 17.3.4 release, and `.github/workflows/parity.yml`
+  checks out `VERSION_17_3_5`, docx4j's development branch since 17.3.4 was released. CLAUDE.md,
+  `test/java/README.md` and `test/golden/README.md` say so. `VERSION_17_3_5` is one commit past the tag
+  (`74ca053d5`, the version bump), so the first weekly run should have nothing to report.
+- **The goldens.** The 62 parity goldens, the 62 XPath goldens and the 96 revisions goldens were regenerated from
+  the release jars, resolved from Central into a scratch Maven repository (`docx4j-core-17.3.4.jar`, SHA-256
+  `70d6f1f4782732d5…`). Header fields aside, **no answer moved**. The revisions goldens recorded `a8bc6cda9`, the
+  unpushed `VERSION_17_3_4` commit that completed docx4j CR-043 section 15; the release descends from it.
+- **The weekly comparison** ignored every line holding `"date"`, `"docx4jCommit"`, `"docx4jVersion"` or
+  `"docx4jCoreJarSha256"`. That was meant for the header, but it also dropped every listed change's `date` in the
+  revisions goldens, so a moved date would never have been reported. In a text golden a revision's date sits on
+  its run's line, and the whole run would have gone. The pattern now matches those four keys at the header's
+  indent only. Over all 220 old goldens and the 282 new, it removes exactly the four header lines.
+
+### 20.2 `TextHarness`
+
+A fourth main class in `test/java` (`test/java/README.md`, "The text harness"). For every `.docx`, `.docm` and
+`.dotx` under `test/fixtures/` and `test/text-extraction/`, at any depth, it records the result's metadata once and
+four readings:
+
+| Reading | Options |
+|---|---|
+| `accepted` | the defaults |
+| `original` | `view: original` |
+| `markup` | `view: markup`, `markup_detail: author_date` |
+| `everything` | `include: headers, footers, comments, glossary`; `comments`, `hidden`, `field_codes`, `toc`, `list_labels`, `alt_text`, `metadata`, `page_markers` on |
+
+- **What a reading holds:**
+  - the plain text (`PlainText.of`);
+  - every block docx4j's getters describe: address, kind, story, paraId, style, the flags, the revision count,
+    indents, alignment, list label, outline level, `TextNumbering`, contextual spacing, border, the note's type,
+    number and id, the simple form, a chart's title, header and rows;
+  - each block's runs (kind, text, revision, flags, note and comment ids, the image and its description, ProgID,
+    page number, formatting, link, math), fields and rows (cells with their span, merge and blocks);
+  - the comments, and the warnings with all four selectors.
+- **What it leaves out:** `getText()`, which is the runs' or the cells' text; `section`, which has no getter; a
+  chart's `ChartDescription` (phase 5c can add it, as harness version 2); an image's tree object.
+- **`everything` leaves two options off:** `embedded` and `fields: update`. They change what is read, not what is
+  shown, and this package refuses both (section 15.6).
+- **Size.** A value is written only where it isn't its default. A reading equal to an earlier one is written as
+  `sameAs` (178 `original`, 161 `markup`, 50 `everything`). `Json.writeFolded` puts any object whose one line
+  fits in 120 columns on that line, so a run is one line.
+  - 282 goldens, 14 MB, about 1 MB deflated, none of it in the npm package (`files` is `dist`).
+  - Check 20's family is 46 of the goldens and 6.8 MB: one document of Word's saved 46 ways. It is the place to
+    trim if the size matters.
+- **The documents:** the 252 committed under `test/fixtures/` and the 30 under `test/text-extraction/` (docx4j's
+  suite, and the agreement test's documents outside CR-043's set, phase 0).
+  - The Word checks' built files (`check48/`, `check51/` to `check54/`) are git-ignored and get no committed golden.
+  - Compared by hand (section 20.4).
+
+### 20.3 What the comparison found
+
+On the first run 144 of the 282 documents differed. There were three causes.
+
+1. **Run boundaries** (section 15.5, departure 3), in most of the 144. docx4j joins two neighbouring runs whose
+   kind, revision, flags and formatting agree (`Extractor.addText`). This package also requires them to be
+   contiguous in `Paragraph.text`. Examples:
+   - a joined paragraph's runs from two `w:p`;
+   - text either side of an insertion in the `original` view;
+   - a bound value after the control's surface.
+
+   The text is the same either way. The test joins both sides' runs by docx4j's rule before comparing, which
+   discards the boundaries and nothing else. Every other difference below survives the join.
+2. **A picture's `descr` and `title` where the element has none.** docx4j reads `""`, which is the schema's default
+   (`CT_NonVisualDrawingProps`: `descr` and `title` are `default=""`) and what its JAXB getters return. This
+   package read `undefined`. It is a defect here, fixed in `Extractor.image`: `''` for a DrawingML picture,
+   `undefined` still for VML's, which has no default.
+   - 180 readings of 45 documents hold such a picture, check 38's family above all.
+   - `AltTextDescriber`, the plain text and the Markdown don't change, since an empty description and none are
+     treated alike.
+3. **Phase 5 and REQ-303,** in 20 documents. These are the same 20 that section 16.5's Markdown sweep found.
+   - equations as LaTeX (5b): artefact 8 in six copies, CR-043's three equation fixtures, `loadAndSave.docx`, and
+     the probe;
+   - charts (5c): `waterfall.docx`, `loadAndSave.docx`, the probe;
+   - SmartArt (5c): the probe;
+   - an `altChunk`'s content (5e): three copies of the probe;
+   - `Requires` by URI (REQ-303): check 50 and the probe's case 6.
+
+   The test's `PENDING` table sets aside, on both sides, only what each statement governs:
+   - an equation's run text, masked in the blocks and the plain text;
+   - docx4j's `chart:`, `smartart:` and `altchunk:` blocks;
+   - every `altchunk.not_expanded` warning;
+   - the blocks and warnings at check 50's and case 6's addresses.
+
+   Each flag must still set aside something that differs in some reading. So when a phase lands, the test fails
+   and its entries go.
+   - One block needed an address of its own, `tracked-changes-equations.docx`'s `body/12` in `markup` (`latexOnly`).
+     Its two versions differ only in the accent, U+0305 deleted and U+203E inserted over the same `U`. docx4j's
+     LaTeX tells them apart, so its markup is a deletion and an insertion. The `m:t` text doesn't, so this
+     package writes one run, by the same rule over another text.
+   - The plain text is compared, with equations masked, in every reading where nothing set aside differs.
+
+**No other difference.** Every other block, run, field, numbering, row, cell, comment and warning is the same in all
+four readings of all 282 documents. So are the plain text where it is compared, and the metadata.
+
+### 20.4 Checked as well, not committed
+
+- **The six built check documents** (48, 48b, 51, 52, 53 and 54), through the same harness and comparison. Only
+  check 51's equations differ (5b).
+- **docx4j's `bind-props.docx`** (docx4j `fe77bea88`, after the suite was copied: a control bound to a cover-page
+  property shows the property). It agrees.
+- **docx4j's other text-model commit since the copy,** `24642aa59` (a bound drop-down shows its item's text), has
+  no document in docx4j's resources to read.
+
+### 20.5 Tests
+
+- `test/text-parity.test.mjs`, 283 tests:
+  - the set: 282 goldens, harness version 1, the readings, `PENDING` naming goldens that exist;
+  - one test per document.
+- Nothing else moved: 1,441 tests pass.
+
+### 20.6 What phase 6 leaves
+
+- `PENDING`'s entries go with phases 5b, 5c and 5e and with REQ-303 by URI, each failing the test as it lands.
+- The Markdown could be goldens too (section 16.8): `MarkdownExporter.export` per reading, a harness version 2. Not
+  cut. The suite's Markdown rows and section 16.5's sweep cover it today.
+- The registry entry `core-ts/CR-012.6` goes to the portfolio session after the commit, with its hash.
+

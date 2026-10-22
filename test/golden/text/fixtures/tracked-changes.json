@@ -1,0 +1,2391 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "fixtures/tracked-changes.docx",
+    "fixtureBytes": 142893,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "Jason Harrop",
+      "revision": "4",
+      "lastModifiedBy": "jharrop",
+      "created": "2012-04-01T06:37:00Z",
+      "modified": "2012-05-23T13:01:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "14.0000",
+      "Company": "Plutext Pty Ltd",
+      "Template": "Normal.dotm",
+      "TotalTime": 2,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Docx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\nLevel 1\nLevel 2\n\nNumbering\nLevel 1\nLevel 2\nLevel 3\n\nImages\n\nJpeg:\n\n\n\nGif (scaled):\n\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\nThat was a page break\n\nHere is some change tracking. An insertion Followed by.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "indentLeft": 86,
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Docx sample document"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "This is a document exhibiting basic docx features.  "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "This is style Heading 1"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Some text."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Tables"}]
+        },
+        {"address": "body/6", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/7",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/7/0",
+              "cells": [
+                {
+                  "address": "body/7/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Cell text"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/1",
+                  "blocks": [{"address": "body/7/0/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/1",
+              "cells": [
+                {
+                  "address": "body/7/1/0",
+                  "mergeRestart": true,
+                  "blocks": [
+                    {
+                      "address": "body/7/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Vertical merge"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/1",
+                  "blocks": [{"address": "body/7/1/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/2",
+              "cells": [
+                {
+                  "address": "body/7/2/0",
+                  "mergeContinue": true,
+                  "blocks": [{"address": "body/7/2/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/1",
+                  "blocks": [{"address": "body/7/2/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/2",
+                  "blocks": [{"address": "body/7/2/2/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                }
+              ]
+            },
+            {
+              "address": "body/7/3",
+              "cells": [
+                {
+                  "address": "body/7/3/0",
+                  "blocks": [{"address": "body/7/3/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/3/1",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/7/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Horizontal merge"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/8", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(There is another document which tests tables more thoroughly)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Paragraph properties"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Left indent"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centred "}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "Align Right"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Justified text"}]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented "
+            }
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "First line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb"
+            }
+          ]
+        },
+        {"address": "body/20", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Normal"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 85,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "A short paragraph with 10 points spacing before, 20 points after."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Run properties"}]
+        },
+        {"address": "body/25", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles Aerial Black"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles 18 point"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "bold", "bold": true}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "italic", "italic": true}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles underline"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Bullets & numbering"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Bullets"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 806,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "?",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1526,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Level 2"}]
+        },
+        {"address": "body/36", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Numbering"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 360,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1080,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 3"}]
+        },
+        {"address": "body/41", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 720, "alignment": "both"},
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Images"}]
+        },
+        {"address": "body/43", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Jpeg:"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "name": "Picture 1",
+                "title": "",
+                "part": "/word/media/image1.jpeg"
+              },
+              "description": {
+                "text": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "provenance": "AUTHOR"
+              }
+            }
+          ]
+        },
+        {"address": "body/46", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/47", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Gif (scaled):"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "Escher: Liberation", "name": "Picture 2", "title": "", "part": "/word/media/image2.gif"},
+              "description": {"text": "Escher: Liberation", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/50", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/51", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "TEXT", "text": "Png (from "},
+            {
+              "kind": "TEXT",
+              "text": "http://davidpritchard.org/images/pacsoc-s1b.png",
+              "link": "http://davidpritchard.org/images/pacsoc-s1b.png"
+            },
+            {"kind": "TEXT", "text": " )"}
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "http://davidpritchard.org/images/pacsoc-s1b.png",
+                "name": "Picture 5",
+                "title": "",
+                "part": "/word/media/image3.png"
+              },
+              "description": {"text": "http://davidpritchard.org/images/pacsoc-s1b.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/54", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(TODO: we really should have both 2003 & 2007 pictures)"}]
+        },
+        {"address": "body/56", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 4}, {"kind": "TEXT", "text": "That was a page break"}]
+        },
+        {"address": "body/59", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "indentLeft": 0,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Here is some change tracking. An insertion Followed by."}]
+        },
+        {"address": "body/61", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0, "alignment": "both"},
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "This line contains a soft return\nand here it continues\u0085"}]
+        },
+        {"address": "body/63", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "Docx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\nLevel 1\nLevel 2\n\nNumbering\nLevel 1\nLevel 2\nLevel 3\n\nImages\n\nJpeg:\n\n\n\nGif (scaled):\n\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\nThat was a page break\n\nHere is some change tracking.  Followed by A deletion.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "indentLeft": 86,
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Docx sample document"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "This is a document exhibiting basic docx features.  "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "This is style Heading 1"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Some text."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Tables"}]
+        },
+        {"address": "body/6", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/7",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/7/0",
+              "cells": [
+                {
+                  "address": "body/7/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Cell text"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/1",
+                  "blocks": [{"address": "body/7/0/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/1",
+              "cells": [
+                {
+                  "address": "body/7/1/0",
+                  "mergeRestart": true,
+                  "blocks": [
+                    {
+                      "address": "body/7/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Vertical merge"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/1",
+                  "blocks": [{"address": "body/7/1/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/2",
+              "cells": [
+                {
+                  "address": "body/7/2/0",
+                  "mergeContinue": true,
+                  "blocks": [{"address": "body/7/2/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/1",
+                  "blocks": [{"address": "body/7/2/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/2",
+                  "blocks": [{"address": "body/7/2/2/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                }
+              ]
+            },
+            {
+              "address": "body/7/3",
+              "cells": [
+                {
+                  "address": "body/7/3/0",
+                  "blocks": [{"address": "body/7/3/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/3/1",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/7/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Horizontal merge"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/8", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(There is another document which tests tables more thoroughly)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Paragraph properties"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Left indent"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centred "}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "Align Right"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Justified text"}]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented "
+            }
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "First line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb"
+            }
+          ]
+        },
+        {"address": "body/20", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Normal"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 85,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "A short paragraph with 10 points spacing before, 20 points after."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Run properties"}]
+        },
+        {"address": "body/25", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles Aerial Black"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles 18 point"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "bold", "bold": true}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "italic", "italic": true}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles underline"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Bullets & numbering"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Bullets"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 806,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "?",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1526,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Level 2"}]
+        },
+        {"address": "body/36", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Numbering"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 360,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1080,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 3"}]
+        },
+        {"address": "body/41", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 720, "alignment": "both"},
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Images"}]
+        },
+        {"address": "body/43", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Jpeg:"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "name": "Picture 1",
+                "title": "",
+                "part": "/word/media/image1.jpeg"
+              },
+              "description": {
+                "text": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "provenance": "AUTHOR"
+              }
+            }
+          ]
+        },
+        {"address": "body/46", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/47", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Gif (scaled):"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "Escher: Liberation", "name": "Picture 2", "title": "", "part": "/word/media/image2.gif"},
+              "description": {"text": "Escher: Liberation", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/50", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/51", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "TEXT", "text": "Png (from "},
+            {
+              "kind": "TEXT",
+              "text": "http://davidpritchard.org/images/pacsoc-s1b.png",
+              "link": "http://davidpritchard.org/images/pacsoc-s1b.png"
+            },
+            {"kind": "TEXT", "text": " )"}
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "http://davidpritchard.org/images/pacsoc-s1b.png",
+                "name": "Picture 5",
+                "title": "",
+                "part": "/word/media/image3.png"
+              },
+              "description": {"text": "http://davidpritchard.org/images/pacsoc-s1b.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/54", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(TODO: we really should have both 2003 & 2007 pictures)"}]
+        },
+        {"address": "body/56", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 4}, {"kind": "TEXT", "text": "That was a page break"}]
+        },
+        {"address": "body/59", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "indentLeft": 0,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Here is some change tracking.  Followed by A deletion."}]
+        },
+        {"address": "body/61", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0, "alignment": "both"},
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "This line contains a soft return\nand here it continues\u0085"}]
+        },
+        {"address": "body/63", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Docx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\nLevel 1\nLevel 2\n\nNumbering\nLevel 1\nLevel 2\nLevel 3\n\nImages\n\nJpeg:\n\n\n\nGif (scaled):\n\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\nThat was a page break\n\nHere is some change tracking. {++Jason Harrop, 2007-12-09T10:14:00Z: An insertion++} Followed by{--Jason Harrop, 2007-12-09T10:14:00Z:  A deletion--}.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "indentLeft": 86,
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Docx sample document"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "This is a document exhibiting basic docx features.  "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "This is style Heading 1"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Some text."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Tables"}]
+        },
+        {"address": "body/6", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/7",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/7/0",
+              "cells": [
+                {
+                  "address": "body/7/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Cell text"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/1",
+                  "blocks": [{"address": "body/7/0/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/1",
+              "cells": [
+                {
+                  "address": "body/7/1/0",
+                  "mergeRestart": true,
+                  "blocks": [
+                    {
+                      "address": "body/7/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Vertical merge"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/1",
+                  "blocks": [{"address": "body/7/1/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/2",
+              "cells": [
+                {
+                  "address": "body/7/2/0",
+                  "mergeContinue": true,
+                  "blocks": [{"address": "body/7/2/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/1",
+                  "blocks": [{"address": "body/7/2/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/2",
+                  "blocks": [{"address": "body/7/2/2/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                }
+              ]
+            },
+            {
+              "address": "body/7/3",
+              "cells": [
+                {
+                  "address": "body/7/3/0",
+                  "blocks": [{"address": "body/7/3/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/3/1",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/7/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Horizontal merge"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/8", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(There is another document which tests tables more thoroughly)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Paragraph properties"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Left indent"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centred "}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "Align Right"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Justified text"}]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented "
+            }
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "First line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb"
+            }
+          ]
+        },
+        {"address": "body/20", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Normal"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 85,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "A short paragraph with 10 points spacing before, 20 points after."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Run properties"}]
+        },
+        {"address": "body/25", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles Aerial Black"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles 18 point"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "bold", "bold": true}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "italic", "italic": true}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles underline"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Bullets & numbering"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Bullets"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 806,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "?",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1526,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "1",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Level 2"}]
+        },
+        {"address": "body/36", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Numbering"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 360,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1080,
+          "indentHanging": 360,
+          "alignment": "both",
+          "numbering": {
+            "numId": "2",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 3"}]
+        },
+        {"address": "body/41", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 720, "alignment": "both"},
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Images"}]
+        },
+        {"address": "body/43", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Jpeg:"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "name": "Picture 1",
+                "title": "",
+                "part": "/word/media/image1.jpeg"
+              },
+              "description": {
+                "text": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "provenance": "AUTHOR"
+              }
+            }
+          ]
+        },
+        {"address": "body/46", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/47", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Gif (scaled):"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "Escher: Liberation", "name": "Picture 2", "title": "", "part": "/word/media/image2.gif"},
+              "description": {"text": "Escher: Liberation", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/50", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/51", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "TEXT", "text": "Png (from "},
+            {
+              "kind": "TEXT",
+              "text": "http://davidpritchard.org/images/pacsoc-s1b.png",
+              "link": "http://davidpritchard.org/images/pacsoc-s1b.png"
+            },
+            {"kind": "TEXT", "text": " )"}
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "http://davidpritchard.org/images/pacsoc-s1b.png",
+                "name": "Picture 5",
+                "title": "",
+                "part": "/word/media/image3.png"
+              },
+              "description": {"text": "http://davidpritchard.org/images/pacsoc-s1b.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/54", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(TODO: we really should have both 2003 & 2007 pictures)"}]
+        },
+        {"address": "body/56", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 4}, {"kind": "TEXT", "text": "That was a page break"}]
+        },
+        {"address": "body/59", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 2,
+          "indentLeft": 0,
+          "alignment": "both",
+          "runs": [
+            {"kind": "TEXT", "text": "Here is some change tracking. "},
+            {
+              "kind": "TEXT",
+              "text": "An insertion",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00Z"}
+            },
+            {"kind": "TEXT", "text": " Followed by"},
+            {
+              "kind": "TEXT",
+              "text": " A deletion",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00Z"}
+            },
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {"address": "body/61", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0, "alignment": "both"},
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "This line contains a soft return\nand here it continues\u0085"}]
+        },
+        {"address": "body/63", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: Jason Harrop; revision: 4; lastModifiedBy: jharrop; created: 2012-04-01T06:37:00Z; modified: 2012-05-23T13:01:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 14.0000; Company: Plutext Pty Ltd; Template: Normal.dotm; TotalTime: 2; DocSecurity: 0]\nMy header\n\nDocx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\n?\tLevel 1\no\t[page 2]Level 2\n\nNumbering\n1)\tLevel 1\na)\tLevel 2\ni)\tLevel 3\n\nImages\n\nJpeg:\n[image: C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg]\n\n\nGif (scaled):\n[page 3][image: Escher: Liberation]\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n[image: http://davidpritchard.org/images/pacsoc-s1b.png]\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\n[page 4]That was a page break\n\nHere is some change tracking. An insertion Followed by.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
+      "blocks": [
+        {
+          "address": "header:rId12/0",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "style": "Header",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "My header"}]
+        },
+        {"address": "header:rId12/1", "kind": "PARAGRAPH", "story": "HEADER", "style": "Header", "indentLeft": 86},
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "indentLeft": 86,
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Docx sample document"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "This is a document exhibiting basic docx features.  "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "This is style Heading 1"}]
+        },
+        {"address": "body/3", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Some text."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Tables"}]
+        },
+        {"address": "body/6", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/7",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/7/0",
+              "cells": [
+                {
+                  "address": "body/7/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Cell text"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/0/1",
+                  "blocks": [{"address": "body/7/0/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/1",
+              "cells": [
+                {
+                  "address": "body/7/1/0",
+                  "mergeRestart": true,
+                  "blocks": [
+                    {
+                      "address": "body/7/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Vertical merge"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/7/1/1",
+                  "blocks": [{"address": "body/7/1/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/7/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Shaded grey"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/7/2",
+              "cells": [
+                {
+                  "address": "body/7/2/0",
+                  "mergeContinue": true,
+                  "blocks": [{"address": "body/7/2/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/1",
+                  "blocks": [{"address": "body/7/2/1/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/2/2",
+                  "blocks": [{"address": "body/7/2/2/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                }
+              ]
+            },
+            {
+              "address": "body/7/3",
+              "cells": [
+                {
+                  "address": "body/7/3/0",
+                  "blocks": [{"address": "body/7/3/0/0", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}]
+                },
+                {
+                  "address": "body/7/3/1",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/7/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "indentLeft": 0,
+                      "runs": [{"kind": "TEXT", "text": "Horizontal merge"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/8", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(There is another document which tests tables more thoroughly)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Paragraph properties"}]
+        },
+        {"address": "body/11", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Left indent"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "Centred "}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "Align Right"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Justified text"}]
+        },
+        {"address": "body/16", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented "
+            }
+          ]
+        },
+        {"address": "body/18", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "alignment": "both",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "First line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb"
+            }
+          ]
+        },
+        {"address": "body/20", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {"address": "body/21", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Normal"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 85,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "A short paragraph with 10 points spacing before, 20 points after."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Run properties"}]
+        },
+        {"address": "body/25", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles Aerial Black"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles 18 point"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "bold", "bold": true}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles "}, {"kind": "TEXT", "text": "italic", "italic": true}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Font styles underline"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Bullets & numbering"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Bullets"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 806,
+          "indentHanging": 360,
+          "alignment": "both",
+          "listLabel": "?\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "?",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1526,
+          "indentHanging": 360,
+          "alignment": "both",
+          "listLabel": "o\t",
+          "numbering": {
+            "numId": "1",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1",
+            "bullet": true
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "Level 2"}]
+        },
+        {"address": "body/36", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86, "alignment": "both"},
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Numbering"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 360,
+          "indentHanging": 360,
+          "alignment": "both",
+          "listLabel": "1)\t",
+          "numbering": {
+            "numId": "2",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 1"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "alignment": "both",
+          "listLabel": "a)\t",
+          "numbering": {
+            "numId": "2",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ListParagraph",
+          "indentLeft": 1080,
+          "indentHanging": 360,
+          "alignment": "both",
+          "listLabel": "i)\t",
+          "numbering": {
+            "numId": "2",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3)",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Level 3"}]
+        },
+        {"address": "body/41", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 720, "alignment": "both"},
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "indentLeft": 86,
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "Images"}]
+        },
+        {"address": "body/43", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Jpeg:"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "name": "Picture 1",
+                "title": "",
+                "part": "/word/media/image1.jpeg"
+              },
+              "description": {
+                "text": "C:\\Documents and Settings\\Jason Harrop\\My Documents\\tmp-test-docs\\pangolin.jpeg",
+                "provenance": "AUTHOR"
+              }
+            }
+          ]
+        },
+        {"address": "body/46", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/47", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "Gif (scaled):"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "Escher: Liberation", "name": "Picture 2", "title": "", "part": "/word/media/image2.gif"},
+              "description": {"text": "Escher: Liberation", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/50", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {"address": "body/51", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {"kind": "TEXT", "text": "Png (from "},
+            {
+              "kind": "TEXT",
+              "text": "http://davidpritchard.org/images/pacsoc-s1b.png",
+              "link": "http://davidpritchard.org/images/pacsoc-s1b.png"
+            },
+            {"kind": "TEXT", "text": " )"}
+          ]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "http://davidpritchard.org/images/pacsoc-s1b.png",
+                "name": "Picture 5",
+                "title": "",
+                "part": "/word/media/image3.png"
+              },
+              "description": {"text": "http://davidpritchard.org/images/pacsoc-s1b.png", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {"address": "body/54", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "(TODO: we really should have both 2003 & 2007 pictures)"}]
+        },
+        {"address": "body/56", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 86},
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 86,
+          "runs": [{"kind": "TEXT", "text": "\n"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 4}, {"kind": "TEXT", "text": "That was a page break"}]
+        },
+        {"address": "body/59", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0},
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "revisions": 1,
+          "indentLeft": 0,
+          "alignment": "both",
+          "runs": [{"kind": "TEXT", "text": "Here is some change tracking. An insertion Followed by."}]
+        },
+        {"address": "body/61", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0, "alignment": "both"},
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 0,
+          "runs": [{"kind": "TEXT", "text": "This line contains a soft return\nand here it continues\u0085"}]
+        },
+        {"address": "body/63", "kind": "PARAGRAPH", "story": "MAIN", "indentLeft": 0}
+      ]
+    }
+  }
+}

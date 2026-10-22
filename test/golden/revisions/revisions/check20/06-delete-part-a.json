@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "2",
-    "docx4jCommit": "a8bc6cda93ffdde75df270fc411826fc0080923f",
-    "docx4jVersion": "docx4j-core-17.3.4-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "c7210a1c10a1707e",
-    "date": "2026-10-20T23:03:51Z",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:29:22Z",
     "fixture": "revisions/check20/06-delete-part-a.docx",
     "fixtureBytes": 26451,
     "timeZone": "UTC",

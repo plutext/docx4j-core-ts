@@ -1,0 +1,1427 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "fixtures/revisions/cr043/tracked-changes-equations.docx",
+    "fixtureBytes": 17241,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "Jason Harrop",
+      "revision": "1",
+      "lastModifiedBy": "Jason Harrop",
+      "created": "2026-09-03T01:19:00Z",
+      "modified": "2026-09-03T01:19:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 0,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "with units of metres per second:\n$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n$$U.$$\nAn expectation over a probability distribution is written\n$$E\\left[U\\right]\\mathrm{.}$$\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\ninstantaneous wind;\n1-second average;\n10-minute average;\nhourly average;\ndaily average;\nannual mean.\nBecause wind-to-power conversion is nonlinear,\n$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68C926BD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "with units of metres per second:"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E01148",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A03AADC",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Height above ground is"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39BE7A23",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$z\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B605DBD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Air density is"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AF91160",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\rho$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "601C5110",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "in"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "395EADB4",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "003A9289",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Power is "},
+            {"kind": "TEXT", "text": "$P$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MW, and energy is "},
+            {"kind": "TEXT", "text": "$E$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MWh or GWh."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "62143176",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "Wind direction will usually be denoted by"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3BBA75B4",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\theta\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B424996",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "A bar denotes an average:"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390DFF78",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$U.$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "690E81B9",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "An expectation over a probability distribution is written"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C937BF5",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$E\\left[U\\right]\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71075977",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "These are related concepts but are not always interchangeable."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "420026FC",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "0.5 Time averages matter"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AE47C06",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:"
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A76A9ED",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "instantaneous wind;"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4561C855",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "1-second average;"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "534F398C",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "10-minute average;"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "215F9371",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "hourly average;"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AA818E2",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "daily average;"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4DCF9734",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "annual mean."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2FE87E75",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Because wind-to-power conversion is nonlinear,"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05481CCF",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A85DD8F",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Temporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata."
+            }
+          ]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2573A3A3"}
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "with units of metres per second:\n$$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n$$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n$$\\bar{U}\\mathrm{.}$$\nAn expectation over a probability distribution is written\n$$E[U].$$\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\ninstantaneous wind;\n1-second average;\n10-minute average;\nhourly average;\ndaily average;\nannual mean.\nBecause wind-to-power conversion is nonlinear,\n$$P(E[U])\\ne E[P(U)].$$\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68C926BD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "with units of metres per second:"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E01148",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A03AADC",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Height above ground is"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39BE7A23",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$z\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B605DBD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Air density is"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AF91160",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\rho$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "601C5110",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "in"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "395EADB4",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "003A9289",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Power is "},
+            {"kind": "TEXT", "text": "$P$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MW, and energy is "},
+            {"kind": "TEXT", "text": "$E$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MWh or GWh."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "62143176",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "Wind direction will usually be denoted by"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3BBA75B4",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\theta\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B424996",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "A bar denotes an average:"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390DFF78",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\bar{U}\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "690E81B9",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "An expectation over a probability distribution is written"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C937BF5",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$E[U].$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71075977",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "These are related concepts but are not always interchangeable."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "420026FC",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "0.5 Time averages matter"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AE47C06",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:"
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A76A9ED",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "instantaneous wind;"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4561C855",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "1-second average;"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "534F398C",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "10-minute average;"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "215F9371",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "hourly average;"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AA818E2",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "daily average;"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4DCF9734",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "annual mean."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2FE87E75",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Because wind-to-power conversion is nonlinear,"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05481CCF",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$P(E[U])\\ne E[P(U)].$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A85DD8F",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Temporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata."
+            }
+          ]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2573A3A3"}
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "with units of metres per second:\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$++}\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$++}\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\bar{U}\\mathrm{.}$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$U.$$++}\nAn expectation over a probability distribution is written\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$E[U].$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$E\\left[U\\right]\\mathrm{.}$$++}\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\ninstantaneous wind;\n1-second average;\n10-minute average;\nhourly average;\ndaily average;\nannual mean.\nBecause wind-to-power conversion is nonlinear,\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$P(E[U])\\ne E[P(U)].$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$++}\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68C926BD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "with units of metres per second:"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E01148",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            },
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A03AADC",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Height above ground is"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39BE7A23",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$z\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B605DBD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Air density is"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AF91160",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\rho$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "601C5110",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "in"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "395EADB4",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            },
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "003A9289",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Power is "},
+            {"kind": "TEXT", "text": "$P$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MW, and energy is "},
+            {"kind": "TEXT", "text": "$E$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MWh or GWh."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "62143176",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "Wind direction will usually be denoted by"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3BBA75B4",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\theta\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B424996",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "A bar denotes an average:"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390DFF78",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\bar{U}\\mathrm{.}$$",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            },
+            {
+              "kind": "TEXT",
+              "text": "$$U.$$",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "690E81B9",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "An expectation over a probability distribution is written"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C937BF5",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$E[U].$$",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            },
+            {
+              "kind": "TEXT",
+              "text": "$$E\\left[U\\right]\\mathrm{.}$$",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71075977",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "These are related concepts but are not always interchangeable."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "420026FC",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "0.5 Time averages matter"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AE47C06",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:"
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A76A9ED",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "instantaneous wind;"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4561C855",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "1-second average;"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "534F398C",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "10-minute average;"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "215F9371",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "hourly average;"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AA818E2",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "daily average;"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4DCF9734",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "annual mean."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2FE87E75",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Because wind-to-power conversion is nonlinear,"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05481CCF",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$P(E[U])\\ne E[P(U)].$$",
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            },
+            {
+              "kind": "TEXT",
+              "text": "$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$",
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A85DD8F",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Temporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata."
+            }
+          ]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2573A3A3"}
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: Jason Harrop; revision: 1; lastModifiedBy: Jason Harrop; created: 2026-09-03T01:19:00Z; modified: 2026-09-03T01:19:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 0; DocSecurity: 0]\nwith units of metres per second:\n$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n$$U.$$\nAn expectation over a probability distribution is written\n$$E\\left[U\\right]\\mathrm{.}$$\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\n\uf0b7\tinstantaneous wind;\n\uf0b7\t1-second average;\n\uf0b7\t10-minute average;\n\uf0b7\thourly average;\n\uf0b7\tdaily average;\n\uf0b7\tannual mean.\nBecause wind-to-power conversion is nonlinear,\n$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68C926BD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "with units of metres per second:"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E01148",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A03AADC",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Height above ground is"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39BE7A23",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$z\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B605DBD",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Air density is"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AF91160",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\rho$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "601C5110",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "in"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "395EADB4",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "003A9289",
+          "style": "FirstParagraph",
+          "runs": [
+            {"kind": "TEXT", "text": "Power is "},
+            {"kind": "TEXT", "text": "$P$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MW, and energy is "},
+            {"kind": "TEXT", "text": "$E$", "math": true},
+            {"kind": "TEXT", "text": ", normally in MWh or GWh."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "62143176",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "Wind direction will usually be denoted by"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3BBA75B4",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$\\theta\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B424996",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "A bar denotes an average:"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390DFF78",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$U.$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "690E81B9",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "An expectation over a probability distribution is written"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C937BF5",
+          "style": "BodyText",
+          "runs": [{"kind": "TEXT", "text": "$$E\\left[U\\right]\\mathrm{.}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71075977",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "These are related concepts but are not always interchangeable."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "420026FC",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "0.5 Time averages matter"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AE47C06",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:"
+            }
+          ]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A76A9ED",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "instantaneous wind;"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4561C855",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "1-second average;"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "534F398C",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "10-minute average;"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "215F9371",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "hourly average;"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AA818E2",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 5,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "daily average;"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4DCF9734",
+          "style": "Compact",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 6,
+            "abstractNumId": "0",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "annual mean."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2FE87E75",
+          "style": "FirstParagraph",
+          "runs": [{"kind": "TEXT", "text": "Because wind-to-power conversion is nonlinear,"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05481CCF",
+          "style": "BodyText",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$",
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A85DD8F",
+          "style": "FirstParagraph",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Temporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata."
+            }
+          ]
+        },
+        {"address": "body/28", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "2573A3A3"}
+      ]
+    }
+  }
+}

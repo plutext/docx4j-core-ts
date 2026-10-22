@@ -1,0 +1,827 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/listnumbering/numbering-unlinked-level-claim.docx",
+    "fixtureBytes": 12512,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "P01 Labels: D0-n is list D, E0-n list E, and so on; each list's two styles carry its w:numPr with no w:ilvl, and none of its levels names a style.\nP02 DAlpha\nP03 DZebra\nP04 DAlpha\nP05 DZebra\nP06 EZebra\nP07 EAlpha\nP08 EZebra\nP09 EAlpha\nP10 FZebra\nP11 FAlpha\nP12 FZebra\nP13 FAlpha\nP14 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)\nP15 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)\nP16 HBase\nP17 HDerived (based on HBase, the same w:numPr)\nP18 HBase\nP19 HDerived (based on HBase, the same w:numPr)\nP20 IOwner\nP21 IOther. This paragraph is long enough to wrap, so the golden shows where its second line starts: at the margin, or at 36pt, the level's indent.\nP22 IOwner\nP23 JLinked\nP24 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)\nP25 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)\nP26 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)\nP27 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 Labels: D0-n is list D, E0-n list E, and so on; each list's two styles carry its w:numPr with no w:ilvl, and none of its levels names a style."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P02 DAlpha"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "110",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "D0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "110"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 DZebra"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P04 DAlpha"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "110",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "D0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "110"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 DZebra"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P06 EZebra"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "111",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "E0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "111"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 EAlpha"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P08 EZebra"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "111",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "E0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "111"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 EAlpha"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "112",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "F0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "112"
+          },
+          "runs": [{"kind": "TEXT", "text": "P10 FZebra"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P11 FAlpha"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "112",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "F0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "112"
+          },
+          "runs": [{"kind": "TEXT", "text": "P12 FZebra"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P13 FAlpha"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "GZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P14 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "GZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P15 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HBase",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P16 HBase"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HDerived",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 HDerived (based on HBase, the same w:numPr)"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HBase",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 HBase"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HDerived",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P19 HDerived (based on HBase, the same w:numPr)"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOwner",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "115",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "I0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "115"
+          },
+          "runs": [{"kind": "TEXT", "text": "P20 IOwner"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOther",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P21 IOther. This paragraph is long enough to wrap, so the golden shows where its second line starts: at the margin, or at 36pt, the level's indent."
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOwner",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "115",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "I0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "115"
+          },
+          "runs": [{"kind": "TEXT", "text": "P22 IOwner"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "JLinked",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "116",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "J0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P23 JLinked"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1B",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P24 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "116",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "J1-%2",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P25 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1B",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P26 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "116",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "J1-%2",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P27 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)"}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "P01 Labels: D0-n is list D, E0-n list E, and so on; each list's two styles carry its w:numPr with no w:ilvl, and none of its levels names a style.\nP02 DAlpha\nD0-1\tP03 DZebra\nP04 DAlpha\nD0-2\tP05 DZebra\nP06 EZebra\nE0-1\tP07 EAlpha\nP08 EZebra\nE0-2\tP09 EAlpha\nF0-1\tP10 FZebra\nP11 FAlpha\nF0-2\tP12 FZebra\nP13 FAlpha\nP14 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)\nP15 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)\nH0-1\tP16 HBase\nH0-2\tP17 HDerived (based on HBase, the same w:numPr)\nH0-3\tP18 HBase\nH0-4\tP19 HDerived (based on HBase, the same w:numPr)\nI0-1\tP20 IOwner\nP21 IOther. This paragraph is long enough to wrap, so the golden shows where its second line starts: at the margin, or at 36pt, the level's indent.\nI0-2\tP22 IOwner\nJ0-1\tP23 JLinked\nP24 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)\nJ1-1\tP25 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)\nP26 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)\nJ1-2\tP27 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Plain",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P01 Labels: D0-n is list D, E0-n list E, and so on; each list's two styles carry its w:numPr with no w:ilvl, and none of its levels names a style."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P02 DAlpha"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "D0-1\t",
+          "numbering": {
+            "numId": "110",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "D0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "110"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 DZebra"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P04 DAlpha"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "DZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "D0-2\t",
+          "numbering": {
+            "numId": "110",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "D0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "110"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 DZebra"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P06 EZebra"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "E0-1\t",
+          "numbering": {
+            "numId": "111",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "E0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "111"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 EAlpha"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P08 EZebra"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "EAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "E0-2\t",
+          "numbering": {
+            "numId": "111",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "E0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "111"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 EAlpha"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "F0-1\t",
+          "numbering": {
+            "numId": "112",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "F0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "112"
+          },
+          "runs": [{"kind": "TEXT", "text": "P10 FZebra"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P11 FAlpha"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "F0-2\t",
+          "numbering": {
+            "numId": "112",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "F0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "112"
+          },
+          "runs": [{"kind": "TEXT", "text": "P12 FZebra"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "FAlpha",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P13 FAlpha"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "GZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P14 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "GZebra",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P15 GZebra (GAlphaUnused, first in styles.xml, is used by no paragraph)"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HBase",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "H0-1\t",
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P16 HBase"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HDerived",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "H0-2\t",
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 HDerived (based on HBase, the same w:numPr)"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HBase",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "H0-3\t",
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 HBase"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "HDerived",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "H0-4\t",
+          "numbering": {
+            "numId": "114",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "H0-%1",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "114"
+          },
+          "runs": [{"kind": "TEXT", "text": "P19 HDerived (based on HBase, the same w:numPr)"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOwner",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "I0-1\t",
+          "numbering": {
+            "numId": "115",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "I0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "115"
+          },
+          "runs": [{"kind": "TEXT", "text": "P20 IOwner"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOther",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "P21 IOther. This paragraph is long enough to wrap, so the golden shows where its second line starts: at the margin, or at 36pt, the level's indent."
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "IOwner",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "I0-2\t",
+          "numbering": {
+            "numId": "115",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "I0-%1",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "115"
+          },
+          "runs": [{"kind": "TEXT", "text": "P22 IOwner"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "JLinked",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "J0-1\t",
+          "numbering": {
+            "numId": "116",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "J0-%1",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P23 JLinked"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1B",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P24 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "J1-1\t",
+          "numbering": {
+            "numId": "116",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "J1-%2",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P25 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1B",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "runs": [{"kind": "TEXT", "text": "P26 OtherIlvl1B (w:num 116, ilvl 1; level 1 names no style)"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "OtherIlvl1",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "J1-2\t",
+          "numbering": {
+            "numId": "116",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "J1-%2",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "116"
+          },
+          "runs": [{"kind": "TEXT", "text": "P27 OtherIlvl1 (w:num 116, ilvl 1; level 1 names no style)"}]
+        }
+      ]
+    }
+  }
+}

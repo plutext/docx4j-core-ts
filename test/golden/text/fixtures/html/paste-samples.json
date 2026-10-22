@@ -1,0 +1,984 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/html/paste-samples.docx",
+    "fixtureBytes": 8544,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Paste samples for the docx4j editor\nEach numbered section below is one capture: select from its heading to the line before the next heading, copy, and save the clipboard HTML as paste/README.md says. The last capture is the whole document.\n1. Headings and body text\nA second-level heading\nBody text under the second-level heading, one plain sentence.\nA third-level heading\nBody text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own.\n2. Inline formatting\nThis paragraph has bold, italic, underlined, struck through, a superscript and a subscript run, then bold italic together.\nA line break follows this text\nand this is the same paragraph after it, then a tab\tand text after the tab.\n3. A bulleted list\nFirst bullet\nSecond bullet\nA nested bullet under the second\nAnother nested bullet\nThird bullet, back at the first level\nA plain paragraph after the list.\n4. A numbered list\nFirst item\nSecond item\nA nested item under the second\nAnother nested item\nThird item, back at the first level\nA plain paragraph after the list.\n5. A simple table\nA three-by-three table with a header row:\nName\tQuantity\tPrice\nWidget\t2\t3.50\nGadget\t10\t12.00\nA plain paragraph after the table.\n6. What the editor drops on paste\nThis paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so.\nThis one has a highlighted word.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Paste samples for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Each numbered section below is one capture: select from its heading to the line before the next heading, copy, and save the clipboard HTML as paste/README.md says. The last capture is the whole document."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Headings and body text"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A second-level heading"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Body text under the second-level heading, one plain sentence."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "A third-level heading"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Body text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Inline formatting"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "This paragraph has "},
+            {"kind": "TEXT", "text": "bold", "bold": true},
+            {"kind": "TEXT", "text": ", "},
+            {"kind": "TEXT", "text": "italic", "italic": true},
+            {"kind": "TEXT", "text": ", underlined, "},
+            {"kind": "TEXT", "text": "struck through", "strike": true},
+            {"kind": "TEXT", "text": ", a superscript and a subscript run, then "},
+            {"kind": "TEXT", "text": "bold italic together", "bold": true, "italic": true},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A line break follows this text\nand this is the same paragraph after it, then a tab\tand text after the tab."
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A bulleted list"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "First bullet"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Second bullet"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "A nested bullet under the second"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Another nested bullet"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Third bullet, back at the first level"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the list."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. A numbered list"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "First item"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Second item"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "A nested item under the second"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Another nested item"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Third item, back at the first level"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the list."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. A simple table"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A three-by-three table with a header row:"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/26/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/26/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Name"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Quantity"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/26/1",
+              "cells": [
+                {
+                  "address": "body/26/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Widget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "3.50"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/26/2",
+              "cells": [
+                {
+                  "address": "body/26/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Gadget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "12.00"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the table."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. What the editor drops on paste"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "center",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This one has a highlighted word."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "Paste samples for the docx4j editor\nEach numbered section below is one capture: select from its heading to the line before the next heading, copy, and save the clipboard HTML as paste/README.md says. The last capture is the whole document.\n1. Headings and body text\nA second-level heading\nBody text under the second-level heading, one plain sentence.\nA third-level heading\nBody text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own.\n2. Inline formatting\nThis paragraph has bold, italic, underlined, struck through, a superscript and a subscript run, then bold italic together.\nA line break follows this text\nand this is the same paragraph after it, then a tab\tand text after the tab.\n3. A bulleted list\n\uf0b7\tFirst bullet\n\uf0b7\tSecond bullet\no\tA nested bullet under the second\no\tAnother nested bullet\n\uf0b7\tThird bullet, back at the first level\nA plain paragraph after the list.\n4. A numbered list\n1.\tFirst item\n2.\tSecond item\na.\tA nested item under the second\nb.\tAnother nested item\n3.\tThird item, back at the first level\nA plain paragraph after the list.\n5. A simple table\nA three-by-three table with a header row:\nName\tQuantity\tPrice\nWidget\t2\t3.50\nGadget\t10\t12.00\nA plain paragraph after the table.\n6. What the editor drops on paste\nThis paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so.\nThis one has a highlighted word.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Paste samples for the docx4j editor"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Each numbered section below is one capture: select from its heading to the line before the next heading, copy, and save the clipboard HTML as paste/README.md says. The last capture is the whole document."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "1. Headings and body text"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "A second-level heading"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Body text under the second-level heading, one plain sentence."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading3",
+          "outlineLevel": 2,
+          "runs": [{"kind": "TEXT", "text": "A third-level heading"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Body text under the third-level heading, with a second sentence to make a longer paragraph that Word will wrap on its own."
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "2. Inline formatting"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "This paragraph has "},
+            {"kind": "TEXT", "text": "bold", "bold": true},
+            {"kind": "TEXT", "text": ", "},
+            {"kind": "TEXT", "text": "italic", "italic": true},
+            {"kind": "TEXT", "text": ", underlined, "},
+            {"kind": "TEXT", "text": "struck through", "strike": true},
+            {"kind": "TEXT", "text": ", a superscript and a subscript run, then "},
+            {"kind": "TEXT", "text": "bold italic together", "bold": true, "italic": true},
+            {"kind": "TEXT", "text": "."}
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "A line break follows this text\nand this is the same paragraph after it, then a tab\tand text after the tab."
+            }
+          ]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "3. A bulleted list"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "First bullet"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Second bullet"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "o\t",
+          "numbering": {
+            "numId": "3",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "A nested bullet under the second"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "o\t",
+          "numbering": {
+            "numId": "3",
+            "level": 1,
+            "format": "bullet",
+            "levelText": "o",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Another nested bullet"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "\uf0b7\t",
+          "numbering": {
+            "numId": "3",
+            "level": 0,
+            "format": "bullet",
+            "levelText": "\uf0b7",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "2",
+            "bullet": true
+          },
+          "runs": [{"kind": "TEXT", "text": "Third bullet, back at the first level"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the list."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "4. A numbered list"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "First item"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Second item"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "a.\t",
+          "numbering": {
+            "numId": "4",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "A nested item under the second"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 360,
+          "listLabel": "b.\t",
+          "numbering": {
+            "numId": "4",
+            "level": 1,
+            "format": "lowerLetter",
+            "levelText": "%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Another nested item"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "3.\t",
+          "numbering": {
+            "numId": "4",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "3"
+          },
+          "runs": [{"kind": "TEXT", "text": "Third item, back at the first level"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the list."}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "5. A simple table"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A three-by-three table with a header row:"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/26/0",
+              "header": true,
+              "cells": [
+                {
+                  "address": "body/26/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Name"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Quantity"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/26/1",
+              "cells": [
+                {
+                  "address": "body/26/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Widget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/1/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/1/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "3.50"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/26/2",
+              "cells": [
+                {
+                  "address": "body/26/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "Gadget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/26/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/26/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "12.00"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "A plain paragraph after the table."}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "6. What the editor drops on paste"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "alignment": "center",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "This paragraph is centred, indented and in 14-point red Arial; the editor keeps the text and drops the rest, and says so."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "This one has a highlighted word."}]
+        }
+      ]
+    }
+  }
+}

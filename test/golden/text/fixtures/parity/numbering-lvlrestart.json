@@ -1,0 +1,624 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:31Z",
+    "fixture": "fixtures/parity/numbering-lvlrestart.docx",
+    "fixtureBytes": 8655,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "P01 List A (w:num 80): level 2 carries w:lvlRestart w:val 0.\nP02 list A, level 0\nP03 list A, level 1\nP04 list A, level 2\nP05 list A, level 2\nP06 list A, level 1\nP07 list A, level 2\nP08 list A, level 0\nP09 list A, level 2\nP10 List B (w:num 81): level 2 carries w:lvlRestart w:val 1.\nP11 list B, level 0\nP12 list B, level 1\nP13 list B, level 2\nP14 list B, level 2\nP15 list B, level 1\nP16 list B, level 2\nP17 list B, level 0\nP18 list B, level 2\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "P01 List A (w:num 80): level 2 carries w:lvlRestart w:val 0."}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P02 list A, level 0"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 list A, level 1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P04 list A, level 2"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 list A, level 2"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P06 list A, level 1"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 list A, level 2"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 list A, level 0"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 list A, level 2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "P10 List B (w:num 81): level 2 carries w:lvlRestart w:val 1."}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P11 list B, level 0"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P12 list B, level 1"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P13 list B, level 2"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P14 list B, level 2"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P15 list B, level 1"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P16 list B, level 2"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 list B, level 0"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 list B, level 2"}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "P01 List A (w:num 80): level 2 carries w:lvlRestart w:val 0.\n1.\tP02 list A, level 0\n1.1.\tP03 list A, level 1\n1.1.1.\tP04 list A, level 2\n1.1.2.\tP05 list A, level 2\n1.2.\tP06 list A, level 1\n1.2.3.\tP07 list A, level 2\n2.\tP08 list A, level 0\n2.1.4.\tP09 list A, level 2\nP10 List B (w:num 81): level 2 carries w:lvlRestart w:val 1.\n1.\tP11 list B, level 0\n1.1.\tP12 list B, level 1\n1.1.1.\tP13 list B, level 2\n1.1.2.\tP14 list B, level 2\n1.2.\tP15 list B, level 1\n1.2.3.\tP16 list B, level 2\n2.\tP17 list B, level 0\n2.1.1.\tP18 list B, level 2\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "P01 List A (w:num 80): level 2 carries w:lvlRestart w:val 0."}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P02 list A, level 0"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "1.1.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P03 list A, level 1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.1.1.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P04 list A, level 2"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.1.2.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P05 list A, level 2"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "1.2.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P06 list A, level 1"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.2.3.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P07 list A, level 2"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P08 list A, level 0"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "2.1.4.\t",
+          "numbering": {
+            "numId": "80",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 4,
+            "abstractNumId": "80"
+          },
+          "runs": [{"kind": "TEXT", "text": "P09 list A, level 2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "P10 List B (w:num 81): level 2 carries w:lvlRestart w:val 1."}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P11 list B, level 0"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "1.1.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P12 list B, level 1"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.1.1.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P13 list B, level 2"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.1.2.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P14 list B, level 2"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 1440,
+          "indentHanging": 720,
+          "listLabel": "1.2.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 1,
+            "format": "decimal",
+            "levelText": "%1.%2.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P15 list B, level 1"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "1.2.3.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 3,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P16 list B, level 2"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 720,
+          "indentHanging": 720,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P17 list B, level 0"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 2160,
+          "indentHanging": 720,
+          "listLabel": "2.1.1.\t",
+          "numbering": {
+            "numId": "81",
+            "level": 2,
+            "format": "decimal",
+            "levelText": "%1.%2.%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "81"
+          },
+          "runs": [{"kind": "TEXT", "text": "P18 list B, level 2"}]
+        }
+      ]
+    }
+  }
+}

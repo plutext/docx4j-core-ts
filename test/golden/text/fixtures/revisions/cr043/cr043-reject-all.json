@@ -1,0 +1,1895 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:34Z",
+    "fixture": "fixtures/revisions/cr043/cr043-reject-all.docx",
+    "fixtureBytes": 33537,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-15T23:17:00Z",
+      "modified": "2026-10-15T23:17:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 0,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: \nC02 the PAGE field here is deleted: 1 (after the field).\nC04 a picture is inserted at the end of this paragraph: \nC05 the picture here is deleted:  (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.; C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)\nC10b body half (Normal, right aligned)\nC11 before BOOKMARKED after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: \nC12 the endnote reference here is deleted: [1] (after the reference).\nC12b an endnote is inserted at the end of this paragraph: \nC13 the table after this paragraph is deleted whole.\nC13 r1c1\tC13 r1c2\nC13 r2c1\tC13 r2c2\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\nC15 move one.\nC15 move two.\nC15 move three: these three paragraphs are moved into the cell below.\nC15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: \nC16b a content control is inserted at the end of this paragraph: \nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words: the comment's own text is edited.\nC21 the endnote of this reference is edited: [2]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete: DELETEME. Inserted text goes at the end.\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted.\nC06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n[1] C12 endnote text (its reference is deleted).\n[2] C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02F02877",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "524D1487",
+          "runs": [{"kind": "TEXT", "text": "C01 a PAGE field is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72195AD4",
+          "runs": [{"kind": "TEXT", "text": "C02 the PAGE field here is deleted: 1 (after the field)."}],
+          "fields": [{"instr": " PAGE ", "result": "1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51BE7B6A",
+          "runs": [{"kind": "TEXT", "text": "C04 a picture is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "139169DA",
+          "runs": [
+            {"kind": "TEXT", "text": "C05 the picture here is deleted: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "C05 picture", "name": "c05", "title": "", "part": "/word/media/image1.png"},
+              "description": {"text": "C05 picture", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " (after the picture)."}
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C968997",
+          "runs": [{"kind": "TEXT", "text": "C08 this paragraph's mark, right before a table, is deleted."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "462944F0",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "38469849",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1",
+              "cells": [
+                {
+                  "address": "body/6/1/0",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2D527846",
+                      "runs": [{"kind": "TEXT", "text": "C09 first paragraph in the cell: its mark is deleted."}]
+                    },
+                    {
+                      "address": "body/6/1/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4FDCD0D9",
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "C09 last paragraph in the cell: deleting its mark (the cell's end) is tried."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20C16B71",
+          "runs": [{"kind": "TEXT", "text": "C09 after the table."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3802D938",
+          "alignment": "right",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)"
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "605407DE",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "C10b heading half (Heading 1; its mark deleted, written by docx4j)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12BEB747",
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "C10b body half (Normal, right aligned)"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3989DA49",
+          "runs": [{"kind": "TEXT", "text": "C11 before BOOKMARKED after: the bookmarked word is deleted."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "788804E6",
+          "runs": [{"kind": "TEXT", "text": "C11b text is inserted at the end of this paragraph, and a bookmark put on it: "}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1530D85A",
+          "runs": [
+            {"kind": "TEXT", "text": "C12 the endnote reference here is deleted: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " (after the reference)."}
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DE8C4A6",
+          "runs": [{"kind": "TEXT", "text": "C12b an endnote is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35CCC083",
+          "runs": [{"kind": "TEXT", "text": "C13 the table after this paragraph is deleted whole."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/16/0",
+              "cells": [
+                {
+                  "address": "body/16/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0B0241E0",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70A5F182",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/16/1",
+              "cells": [
+                {
+                  "address": "body/16/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0AF34644",
+                      "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "C13 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "31DB4F1C",
+                      "runs": [{"kind": "TEXT", "text": "C13 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73BF1379",
+          "runs": [{"kind": "TEXT", "text": "C14 a column is added to the table after this paragraph."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/18/0",
+              "cells": [
+                {
+                  "address": "body/18/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "045AEE30",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2F706A33",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/2",
+                  "blocks": [{"address": "body/18/0/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "6F9825D3"}]
+                }
+              ]
+            },
+            {
+              "address": "body/18/1",
+              "cells": [
+                {
+                  "address": "body/18/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4EDD124C",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1213BB8A",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/2",
+                  "blocks": [{"address": "body/18/1/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "264C99EE"}]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F47A716",
+          "runs": [{"kind": "TEXT", "text": "C15 move one."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4AE1A48C",
+          "runs": [{"kind": "TEXT", "text": "C15 move two."}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29B3A4EA",
+          "runs": [{"kind": "TEXT", "text": "C15 move three: these three paragraphs are moved into the cell below."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/22/0",
+              "cells": [
+                {
+                  "address": "body/22/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/22/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6BCA8058",
+                      "runs": [{"kind": "TEXT", "text": "C15 r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75DFA037",
+          "runs": [{"kind": "TEXT", "text": "C16 a hyperlink is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F1241A3",
+          "runs": [{"kind": "TEXT", "text": "C16b a content control is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A6CD42C",
+          "runs": [{"kind": "TEXT", "text": "C17 this whole paragraph, its mark included, is made bold."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C145A2C",
+          "runs": [{"kind": "TEXT", "text": "C18 commented words: the comment's own text is edited."}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13D4410C",
+          "runs": [
+            {"kind": "TEXT", "text": "C21 the endnote of this reference is edited: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50D034E3",
+          "runs": [{"kind": "TEXT", "text": "C22 a text box anchored here is made untracked, then its text edited tracked."}]
+        },
+        {
+          "address": "body/28/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "227D4331",
+          "runs": [{"kind": "TEXT", "text": "C22 text box text, a word to delete: DELETEME. Inserted text goes at the end."}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E89C5E6",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C23 the second row of the table after this paragraph is indented (row property exceptions)."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/30/0",
+              "cells": [
+                {
+                  "address": "body/30/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6679F5CC",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD78CDE",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/30/1",
+              "cells": [
+                {
+                  "address": "body/30/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3AE1B417",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7FC6AAB9",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56239C30",
+          "runs": [{"kind": "TEXT", "text": "C25 a table is inserted in place of the next paragraph."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C174579",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted."
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63D10753",
+          "runs": [{"kind": "TEXT", "text": "C06 first paragraph of section B (left margin 1.5in)."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6512E938",
+          "runs": [{"kind": "TEXT", "text": "C07 last paragraph of section B: section B's left margin is changed to 0.5in."}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "218A0308",
+          "runs": [{"kind": "TEXT", "text": "C07 first paragraph of section C (left margin 1in)."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46A2FCC8",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "7E071D98",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " C12 endnote text (its reference is deleted)."}
+          ]
+        },
+        {
+          "address": "endnote:2/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "72074D1F",
+          "noteType": "endnote",
+          "noteNumber": 2,
+          "noteId": "2",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"},
+            {"kind": "TEXT", "text": " C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end."}
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: \nC02 the PAGE field here is deleted: 1 (after the field).\nC04 a picture is inserted at the end of this paragraph: \nC05 the picture here is deleted:  (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.; C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)\nC10b body half (Normal, right aligned)\nC11 before BOOKMARKED after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: \nC12 the endnote reference here is deleted: [1] (after the reference).\nC12b an endnote is inserted at the end of this paragraph: \nC13 the table after this paragraph is deleted whole.\nC13 r1c1\tC13 r1c2\nC13 r2c1\tC13 r2c2\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\nC15 move one.\nC15 move two.\nC15 move three: these three paragraphs are moved into the cell below.\nC15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: \nC16b a content control is inserted at the end of this paragraph: \nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>CR-043 base, 2026-10-16T00:00:00Z: C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [2]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete: DELETEME. Inserted text goes at the end.\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted.\nC06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n[1] C12 endnote text (its reference is deleted).\n[2] C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02F02877",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "524D1487",
+          "runs": [{"kind": "TEXT", "text": "C01 a PAGE field is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72195AD4",
+          "runs": [{"kind": "TEXT", "text": "C02 the PAGE field here is deleted: 1 (after the field)."}],
+          "fields": [{"instr": " PAGE ", "result": "1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51BE7B6A",
+          "runs": [{"kind": "TEXT", "text": "C04 a picture is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "139169DA",
+          "runs": [
+            {"kind": "TEXT", "text": "C05 the picture here is deleted: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "C05 picture", "name": "c05", "title": "", "part": "/word/media/image1.png"},
+              "description": {"text": "C05 picture", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " (after the picture)."}
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C968997",
+          "runs": [{"kind": "TEXT", "text": "C08 this paragraph's mark, right before a table, is deleted."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "462944F0",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "38469849",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1",
+              "cells": [
+                {
+                  "address": "body/6/1/0",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2D527846",
+                      "runs": [{"kind": "TEXT", "text": "C09 first paragraph in the cell: its mark is deleted."}]
+                    },
+                    {
+                      "address": "body/6/1/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4FDCD0D9",
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "C09 last paragraph in the cell: deleting its mark (the cell's end) is tried."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20C16B71",
+          "runs": [{"kind": "TEXT", "text": "C09 after the table."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3802D938",
+          "alignment": "right",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)"
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "605407DE",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "C10b heading half (Heading 1; its mark deleted, written by docx4j)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12BEB747",
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "C10b body half (Normal, right aligned)"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3989DA49",
+          "runs": [{"kind": "TEXT", "text": "C11 before BOOKMARKED after: the bookmarked word is deleted."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "788804E6",
+          "runs": [{"kind": "TEXT", "text": "C11b text is inserted at the end of this paragraph, and a bookmark put on it: "}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1530D85A",
+          "runs": [
+            {"kind": "TEXT", "text": "C12 the endnote reference here is deleted: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " (after the reference)."}
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DE8C4A6",
+          "runs": [{"kind": "TEXT", "text": "C12b an endnote is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35CCC083",
+          "runs": [{"kind": "TEXT", "text": "C13 the table after this paragraph is deleted whole."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/16/0",
+              "cells": [
+                {
+                  "address": "body/16/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0B0241E0",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70A5F182",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/16/1",
+              "cells": [
+                {
+                  "address": "body/16/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0AF34644",
+                      "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "C13 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "31DB4F1C",
+                      "runs": [{"kind": "TEXT", "text": "C13 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73BF1379",
+          "runs": [{"kind": "TEXT", "text": "C14 a column is added to the table after this paragraph."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/18/0",
+              "cells": [
+                {
+                  "address": "body/18/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "045AEE30",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2F706A33",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/2",
+                  "blocks": [{"address": "body/18/0/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "6F9825D3"}]
+                }
+              ]
+            },
+            {
+              "address": "body/18/1",
+              "cells": [
+                {
+                  "address": "body/18/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4EDD124C",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1213BB8A",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/2",
+                  "blocks": [{"address": "body/18/1/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "264C99EE"}]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F47A716",
+          "runs": [{"kind": "TEXT", "text": "C15 move one."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4AE1A48C",
+          "runs": [{"kind": "TEXT", "text": "C15 move two."}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29B3A4EA",
+          "runs": [{"kind": "TEXT", "text": "C15 move three: these three paragraphs are moved into the cell below."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/22/0",
+              "cells": [
+                {
+                  "address": "body/22/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/22/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6BCA8058",
+                      "runs": [{"kind": "TEXT", "text": "C15 r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75DFA037",
+          "runs": [{"kind": "TEXT", "text": "C16 a hyperlink is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F1241A3",
+          "runs": [{"kind": "TEXT", "text": "C16b a content control is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A6CD42C",
+          "runs": [{"kind": "TEXT", "text": "C17 this whole paragraph, its mark included, is made bold."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C145A2C",
+          "runs": [
+            {"kind": "TEXT", "text": "C18 commented words"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"},
+            {"kind": "TEXT", "text": ": the comment's own text is edited."}
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13D4410C",
+          "runs": [
+            {"kind": "TEXT", "text": "C21 the endnote of this reference is edited: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50D034E3",
+          "runs": [{"kind": "TEXT", "text": "C22 a text box anchored here is made untracked, then its text edited tracked."}]
+        },
+        {
+          "address": "body/28/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "227D4331",
+          "runs": [{"kind": "TEXT", "text": "C22 text box text, a word to delete: DELETEME. Inserted text goes at the end."}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E89C5E6",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C23 the second row of the table after this paragraph is indented (row property exceptions)."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/30/0",
+              "cells": [
+                {
+                  "address": "body/30/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6679F5CC",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD78CDE",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/30/1",
+              "cells": [
+                {
+                  "address": "body/30/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3AE1B417",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7FC6AAB9",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56239C30",
+          "runs": [{"kind": "TEXT", "text": "C25 a table is inserted in place of the next paragraph."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C174579",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted."
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63D10753",
+          "runs": [{"kind": "TEXT", "text": "C06 first paragraph of section B (left margin 1.5in)."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6512E938",
+          "runs": [{"kind": "TEXT", "text": "C07 last paragraph of section B: section B's left margin is changed to 0.5in."}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "218A0308",
+          "runs": [{"kind": "TEXT", "text": "C07 first paragraph of section C (left margin 1in)."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46A2FCC8",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "7E071D98",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " C12 endnote text (its reference is deleted)."}
+          ]
+        },
+        {
+          "address": "endnote:2/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "72074D1F",
+          "noteType": "endnote",
+          "noteNumber": 2,
+          "noteId": "2",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"},
+            {"kind": "TEXT", "text": " C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "1",
+          "author": "CR-043 base",
+          "initials": "CB",
+          "date": "2026-10-16T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "62B43CF7",
+              "runs": [{"kind": "TEXT", "text": "C18 comment text, a word to delete: C18 inserted.."}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-15T23:17:00Z; modified: 2026-10-15T23:17:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 0; DocSecurity: 0]\nC19 header text, a word to delete: DELETEME. Inserted text goes at the end.\nCR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: \nC02 the PAGE field here is deleted:  PAGE 1 (after the field).\nC04 a picture is inserted at the end of this paragraph: \nC05 the picture here is deleted: [image: C05 picture] (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.; C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)\nC10b body half (Normal, right aligned)\nC11 before BOOKMARKED after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: \nC12 the endnote reference here is deleted: [1] (after the reference).\nC12b an endnote is inserted at the end of this paragraph: \nC13 the table after this paragraph is deleted whole.\nC13 r1c1\tC13 r1c2\n[page 2]C13 r2c1\tC13 r2c2\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\nC15 move one.\nC15 move two.\nC15 move three: these three paragraphs are moved into the cell below.\nC15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: \nC16b a content control is inserted at the end of this paragraph: \nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [2]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete: DELETEME. Inserted text goes at the end.\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted.\nC20 footer text, a word to delete: DELETEME. Inserted text goes at the end.\n\nC06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\n\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n[1] C12 endnote text (its reference is deleted).\n[2] C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end.\n",
+      "blocks": [
+        {
+          "address": "header:rId11/0",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "paraId": "477470CE",
+          "runs": [{"kind": "TEXT", "text": "C19 header text, a word to delete: DELETEME. Inserted text goes at the end."}]
+        },
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02F02877",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "524D1487",
+          "runs": [{"kind": "TEXT", "text": "C01 a PAGE field is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72195AD4",
+          "runs": [
+            {"kind": "TEXT", "text": "C02 the PAGE field here is deleted: "},
+            {"kind": "FIELD_CODE", "text": " PAGE "},
+            {"kind": "TEXT", "text": "1 (after the field)."}
+          ],
+          "fields": [{"instr": " PAGE ", "result": "1"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51BE7B6A",
+          "runs": [{"kind": "TEXT", "text": "C04 a picture is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "139169DA",
+          "runs": [
+            {"kind": "TEXT", "text": "C05 the picture here is deleted: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "C05 picture", "name": "c05", "title": "", "part": "/word/media/image1.png"},
+              "description": {"text": "C05 picture", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " (after the picture)."}
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C968997",
+          "runs": [{"kind": "TEXT", "text": "C08 this paragraph's mark, right before a table, is deleted."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/6/0",
+              "cells": [
+                {
+                  "address": "body/6/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "462944F0",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/6/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/6/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "38469849",
+                      "runs": [{"kind": "TEXT", "text": "C08 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/6/1",
+              "cells": [
+                {
+                  "address": "body/6/1/0",
+                  "gridSpan": 2,
+                  "blocks": [
+                    {
+                      "address": "body/6/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2D527846",
+                      "runs": [{"kind": "TEXT", "text": "C09 first paragraph in the cell: its mark is deleted."}]
+                    },
+                    {
+                      "address": "body/6/1/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4FDCD0D9",
+                      "runs": [
+                        {
+                          "kind": "TEXT",
+                          "text": "C09 last paragraph in the cell: deleting its mark (the cell's end) is tried."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20C16B71",
+          "runs": [{"kind": "TEXT", "text": "C09 after the table."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3802D938",
+          "alignment": "right",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C10 heading half (Heading 1; its mark inserted, written by docx4j)C10 body half (Normal, right aligned)"
+            }
+          ]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "605407DE",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "C10b heading half (Heading 1; its mark deleted, written by docx4j)"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12BEB747",
+          "alignment": "right",
+          "runs": [{"kind": "TEXT", "text": "C10b body half (Normal, right aligned)"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3989DA49",
+          "runs": [{"kind": "TEXT", "text": "C11 before BOOKMARKED after: the bookmarked word is deleted."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "788804E6",
+          "runs": [{"kind": "TEXT", "text": "C11b text is inserted at the end of this paragraph, and a bookmark put on it: "}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1530D85A",
+          "runs": [
+            {"kind": "TEXT", "text": "C12 the endnote reference here is deleted: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " (after the reference)."}
+          ]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DE8C4A6",
+          "runs": [{"kind": "TEXT", "text": "C12b an endnote is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "35CCC083",
+          "runs": [{"kind": "TEXT", "text": "C13 the table after this paragraph is deleted whole."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/16/0",
+              "cells": [
+                {
+                  "address": "body/16/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0B0241E0",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70A5F182",
+                      "runs": [{"kind": "TEXT", "text": "C13 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/16/1",
+              "cells": [
+                {
+                  "address": "body/16/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0AF34644",
+                      "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "C13 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/16/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/16/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "31DB4F1C",
+                      "runs": [{"kind": "TEXT", "text": "C13 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73BF1379",
+          "runs": [{"kind": "TEXT", "text": "C14 a column is added to the table after this paragraph."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/18/0",
+              "cells": [
+                {
+                  "address": "body/18/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "045AEE30",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2F706A33",
+                      "runs": [{"kind": "TEXT", "text": "C14 r1c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/0/2",
+                  "blocks": [{"address": "body/18/0/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "6F9825D3"}]
+                }
+              ]
+            },
+            {
+              "address": "body/18/1",
+              "cells": [
+                {
+                  "address": "body/18/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4EDD124C",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/18/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1213BB8A",
+                      "runs": [{"kind": "TEXT", "text": "C14 r2c2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/18/1/2",
+                  "blocks": [{"address": "body/18/1/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "264C99EE"}]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F47A716",
+          "runs": [{"kind": "TEXT", "text": "C15 move one."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4AE1A48C",
+          "runs": [{"kind": "TEXT", "text": "C15 move two."}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29B3A4EA",
+          "runs": [{"kind": "TEXT", "text": "C15 move three: these three paragraphs are moved into the cell below."}]
+        },
+        {
+          "address": "body/22",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/22/0",
+              "cells": [
+                {
+                  "address": "body/22/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/22/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6BCA8058",
+                      "runs": [{"kind": "TEXT", "text": "C15 r1c1"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75DFA037",
+          "runs": [{"kind": "TEXT", "text": "C16 a hyperlink is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F1241A3",
+          "runs": [{"kind": "TEXT", "text": "C16b a content control is inserted at the end of this paragraph: "}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1A6CD42C",
+          "runs": [{"kind": "TEXT", "text": "C17 this whole paragraph, its mark included, is made bold."}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C145A2C",
+          "runs": [
+            {"kind": "TEXT", "text": "C18 commented words"},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"},
+            {"kind": "TEXT", "text": ": the comment's own text is edited."}
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13D4410C",
+          "runs": [
+            {"kind": "TEXT", "text": "C21 the endnote of this reference is edited: "},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"}
+          ]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50D034E3",
+          "runs": [{"kind": "TEXT", "text": "C22 a text box anchored here is made untracked, then its text edited tracked."}]
+        },
+        {
+          "address": "body/28/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "227D4331",
+          "runs": [{"kind": "TEXT", "text": "C22 text box text, a word to delete: DELETEME. Inserted text goes at the end."}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E89C5E6",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C23 the second row of the table after this paragraph is indented (row property exceptions)."
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/30/0",
+              "cells": [
+                {
+                  "address": "body/30/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6679F5CC",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6FD78CDE",
+                      "runs": [{"kind": "TEXT", "text": "C23 r1c2"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/30/1",
+              "cells": [
+                {
+                  "address": "body/30/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3AE1B417",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/30/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/30/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7FC6AAB9",
+                      "runs": [{"kind": "TEXT", "text": "C23 r2c2"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56239C30",
+          "runs": [{"kind": "TEXT", "text": "C25 a table is inserted in place of the next paragraph."}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C174579",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "C06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted."
+            }
+          ]
+        },
+        {
+          "address": "footer:rId13/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTER",
+          "paraId": "1829C9E2",
+          "runs": [{"kind": "TEXT", "text": "C20 footer text, a word to delete: DELETEME. Inserted text goes at the end."}]
+        },
+        {"address": "header:rId17/0", "kind": "PARAGRAPH", "story": "HEADER", "paraId": "43A7B7FB", "style": "Header"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63D10753",
+          "runs": [{"kind": "TEXT", "text": "C06 first paragraph of section B (left margin 1.5in)."}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6512E938",
+          "runs": [{"kind": "TEXT", "text": "C07 last paragraph of section B: section B's left margin is changed to 0.5in."}]
+        },
+        {"address": "footer:rId19/0", "kind": "PARAGRAPH", "story": "FOOTER", "paraId": "16B9B2C6", "style": "Footer"},
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "218A0308",
+          "runs": [{"kind": "TEXT", "text": "C07 first paragraph of section C (left margin 1in)."}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46A2FCC8",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "endnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "7E071D98",
+          "noteType": "endnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " C12 endnote text (its reference is deleted)."}
+          ]
+        },
+        {
+          "address": "endnote:2/0",
+          "kind": "PARAGRAPH",
+          "story": "ENDNOTE",
+          "paraId": "72074D1F",
+          "noteType": "endnote",
+          "noteNumber": 2,
+          "noteId": "2",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "endnote", "noteNumber": 2, "noteId": "2"},
+            {"kind": "TEXT", "text": " C21 endnote text, a word to delete: DELETEME. Inserted text goes at the end."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "1",
+          "author": "CR-043 base",
+          "initials": "CB",
+          "date": "2026-10-16T00:00:00Z",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "62B43CF7",
+              "runs": [{"kind": "TEXT", "text": "C18 comment text, a word to delete: C18 inserted.."}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

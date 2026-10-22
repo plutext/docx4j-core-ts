@@ -1,0 +1,179 @@
+{
+  "header": {
+    "harnessVersion": "1",
+    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
+    "docx4jVersion": "docx4j-core-17.3.4.jar",
+    "docx4jCoreJarSha256": "70d6f1f4782732d5",
+    "date": "2026-10-22T20:35:33Z",
+    "fixture": "fixtures/revisions/check25/25b-bullets-reject.docx",
+    "fixtureBytes": 16786,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "Author A",
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-09-28T03:16:00Z",
+      "modified": "2026-09-28T06:56:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 2,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "One.\nTwo.\nThree.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C0C29B2",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "One."}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50FEE2A9",
+          "style": "ListParagraph",
+          "indentLeft": 2160,
+          "indentHanging": 180,
+          "numbering": {
+            "numId": "1",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Two."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "502EF478",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Three."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: Author A; revision: 2; lastModifiedBy: Author A; created: 2026-09-28T03:16:00Z; modified: 2026-09-28T06:56:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 2; DocSecurity: 0]\n1.\tOne.\ni.\tTwo.\n2.\tThree.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C0C29B2",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "One."}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50FEE2A9",
+          "style": "ListParagraph",
+          "indentLeft": 2160,
+          "indentHanging": 180,
+          "listLabel": "i.\t",
+          "numbering": {
+            "numId": "1",
+            "level": 2,
+            "format": "lowerRoman",
+            "levelText": "%3.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Two."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "502EF478",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "2.\t",
+          "numbering": {
+            "numId": "1",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 2,
+            "abstractNumId": "1"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "Three."}]
+        }
+      ]
+    }
+  }
+}
