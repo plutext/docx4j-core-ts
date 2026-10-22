@@ -97,6 +97,11 @@ gives 3. docx4j's `ThemeColourProbesTest` holds the luminance families to at mos
 (`Tally.luminanceOff() <= 1`), the bar a vector test here would take. A case where it shows: an
 Excel chart style's `tx1` text with `lumMod` 50000 and `lumOff` 50000 is `7F7F7F`, not `808080`.
 
+**Measured since** (check 53, 2026-10-22; CR-002 section 59): Office JS's `font.color` on Heading 1 resolves its
+`w:color w:val="365F91" w:themeColor="accent1" w:themeShade="BF"` through the theme, the created package's Office
+2023 theme (accent1 `156082`), to `#0F4761`. This package's `Font.color` reads `#365F91`, the stored `w:val`. That
+is the case this phase's resolver answers.
+
 ## 4. Noted, not in scope: a hyperlinked TOC's entries
 
 Coming in docx4j, not yet committed: Word draws the entries of a hyperlinked TOC (runs in a

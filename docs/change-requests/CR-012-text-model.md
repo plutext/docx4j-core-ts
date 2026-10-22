@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3).
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view.
 
 ## 1. Why
 
@@ -1956,3 +1956,60 @@ whole outline. The editor's tree knows when an edit is one of those, and this pa
 - The pruned walk is held by the revisions goldens (`revisions-parity.test.mjs`, every change of every
   story's text boxes) and the `textbox:` agreement test.
 - No suite row, agreement comparison or golden moves. 1,118 tests pass.
+
+## 18. A control showing its placeholder reads as empty (proposed 2026-10-22)
+
+*Opened from check 53 (`test/README.md`; CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Nothing
+implemented.*
+
+**What Word does.** Office JS reads a content control showing its placeholder (`w:showingPlcHdr` in its `w:sdtPr`) as
+no text. Measured on Word 365 (16.0.20326.20232), in both views:
+- check 53, case 34, a block control holding Word's own placeholder text, `Click or tap here to enter text.`, in the
+  Placeholder Text style: the control's `text` is `''`, its paragraph's `text` `''`, its 'Whole' range `\r`.
+  `placeholderText` reads `null`.
+- check 53, case 35, the same with five spaces, which is what Word itself writes when a control's content is
+  deleted (check 52, cases 13 and 26): `''` alike.
+
+**What this package does.** The Office JS readers (section 17: `Paragraph.text`, `Body.text`, `ContentControl.text`,
+a `Range`'s text, `search`) read the placeholder's runs as text, and `placeholderText` returns them.
+
+**Proposal.** In the Office JS readers, a control showing its placeholder holds no text, as a hidden run doesn't
+(`hiddenRunsOf`): its runs become zero-width segments, so offsets, `search` and every edit agree.
+- The text model (sections 14 to 16, docx4j's semantics) is not changed by this; what docx4j's text model reads of
+  a placeholder is its own question, which is asked of docx4j first.
+- Writing into such a control: Word replaces the placeholder and clears `w:showingPlcHdr`. This package's
+  `insertText` on a control already handles a placeholder (CR-002 phase E); it is checked again here.
+- `placeholderText` reading `null` without a `w:placeholder` part reference is to be looked at with it.
+
+**To measure first:** a run-level control showing its placeholder (only block-level ones were), and the
+placeholder's text in Word's `search`.
+
+**Size:** half a day, and a check.
+
+## 19. A deleted paragraph mark reads as nothing in Word's default view (proposed 2026-10-22)
+
+*Opened from check 53 (CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Nothing implemented.*
+
+**What Word does.** In Simple Markup, Office JS's `body.text` leaves out a paragraph mark that is tracked as deleted.
+Measured on check 53 (Word 365):
+- `body.text` is 40 characters shorter than this package's reading of the same file;
+- 37 of them are the two placeholders (section 18);
+- the other 3 are the deleted marks of cases 25, 28 and 30: a deletion through a mark, a mark deleted alone, and a
+  wholly deleted paragraph, whose text is already left out.
+
+The paragraphs stay apart in the paragraph collection: case 25 lists `HEAD25A ` and `BODY25B` as two paragraphs. And
+a collapsed deletion at such a mark touches both paragraphs (case 25's change range: two paragraphs, `''`).
+
+**What this package does.** The story layout (CR-014's `story.mts`, which `Body.text` and a range's text read)
+writes `\r` after every paragraph, its mark deleted or not.
+
+**Proposal.** In the accepted view, a paragraph whose mark is deleted is followed by nothing in the layout.
+- `Body.text`, a range's text across paragraphs, and a paragraph's 'Whole' range then read as Word's default view
+  reads them.
+- `Paragraph.markText` gives `''` for a deleted mark, so a whole range of such a paragraph ends with its text.
+- The paragraph views, their offsets and the paragraph collection stay as they are, as Word's do.
+
+**To measure first:** a range across a deleted mark (its `text` and `paragraphs`), and a deleted mark at a cell's
+last paragraph, which Word never writes but a file may hold.
+
+**Size:** half a day, and a check; the readers' tests (checks 48 and 51) have no deleted mark, so none moves.
