@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), not committed when this was written: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20).
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20).
 
 ## 1. Why
 
@@ -2138,5 +2138,5 @@ four readings of all 282 documents. So are the plain text where it is compared, 
 - `PENDING`'s entries go with phases 5b, 5c and 5e and with REQ-303 by URI, each failing the test as it lands.
 - The Markdown could be goldens too (section 16.8): `MarkdownExporter.export` per reading, a harness version 2. Not
   cut. The suite's Markdown rows and section 16.5's sweep cover it today.
-- The registry entry `core-ts/CR-012.6` goes to the portfolio session after the commit, with its hash.
+- The registry entry `core-ts/CR-012.6` is in (portfolio `90fb193`, 2026-10-23).
 
