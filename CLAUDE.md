@@ -221,8 +221,9 @@ Key mechanics:
   section 60, `officeText.mts`): `splice` (every `insertText`, `replaceText`) inserts its text, then writes the span's
   characters that are elements as them (`writeElements`: U+000B a `w:br`, U+000C and U+000E page and column breaks, `\r` a
   `w:cr`, U+001E and U+001F the hyphens, `\t` a `w:tab`); a `\n` or `\r` is a paragraph break (E1, `breakParagraphAt`, the
-  returned `Range` across them), refused before anything changes in a field, an equation, a kept branch or a run-level
-  control (F4); `insertParagraph` and `Paragraph.text =` keep one paragraph (E2: `\n` a `w:br`, `\r` a `w:cr`); a
+  returned `Range` across them), refused before anything changes in an equation, a kept branch or a run-level control
+  (F4), and inside a field's result splitting it, a `w:fldSimple` made a complex field first, as Word does (section 62.3,
+  `unfoldSimpleFieldsAround`); `insertParagraph` and `Paragraph.text =` keep one paragraph (E2: `\n` a `w:br`, `\r` a `w:cr`); a
   plain-text control takes a break as its kind does (F3); the characters XML 1.0 excludes are dropped (E3), and
   `XmlPart.getBytes` refuses a part still holding one (D3). A block-level control bound by `w:dataBinding` (untyped,
   `w:text`, `w:richText`; not a flat OPC node) holds one paragraph: every write that would give it another block is
@@ -285,6 +286,10 @@ both held to Word's case for case, the decided differences listed, and each sect
 shim, and its four files to open holding their shapes (`check56Bytes`, `check56OpenFiles`, `test/fixtures/check56/`); Word 365's
 run (its JSON beside the build, its saves and repairs in `test/check56/`, with a SHA-1 manifest), the shim's run held to
 Word's, and each section 61 rule,
+`fields-equations.test.mjs` CR-002 section 62's: check 57's file (`check57Bytes`, `test/fixtures/check57/`) and its Script Lab snippet held
+to each other; Word 365's run (its JSON beside the build, its saves in `test/check57/`, with a SHA-1 manifest), the shim's run held to
+Word's case for case, this package's save after the run and Word's, each accepted and rejected here, held to Word's saves region for
+region, the readers on Word's saves, and section 62.3's rules (a `w:fldSimple` split, an equation deleted under tracking),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

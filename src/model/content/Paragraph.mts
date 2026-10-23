@@ -21,7 +21,7 @@ import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
-import { breakParagraphAt, SPLITTABLE } from './spanEdits.mjs';
+import { breakParagraphAt, BREAKABLE } from './spanEdits.mjs';
 import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsElementCharacters, type LineBreaks } from './officeText.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
@@ -29,7 +29,7 @@ import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictu
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
-import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, pruneParagraphProperties, type TrackingHost } from './tracking.mjs';
+import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, pruneParagraphProperties, markEquationDeleted, equationRevisionIn, type TrackingHost } from './tracking.mjs';
 import { TrackedChange, trackedChangesOfParagraph } from './TrackedChange.mjs';
 import {
   type List, type ListItem, type StartListOptions,
@@ -416,7 +416,7 @@ export class Paragraph {
     if (!part) throw new Docx4JException('This body has no part, so an image cannot be related to it');
     const tracker = this.changeTracker;
     // refused before the image part is added, not after (CR-012 section 12.4)
-    if (location === 'Replace' && tracker) this.assertPlaceable(0, this.text.length, true);
+    if (location === 'Replace' && tracker) this.assertPlaceable(0, this.text.length, 'replace');
     const { run, drawing } = addImage(part, base64, this.parentBody.container, writableWidthEmu(this.parentBody.container), options);
     // under tracking the picture is an insertion, and what it replaces is deleted as insertText's is
     if (location === 'Replace' && tracker) this.splice(0, this.text.length, '', 'before', WHOLE);
@@ -809,8 +809,9 @@ export class Paragraph {
 
   /**
    * Refuses, before anything changes, a paragraph break where the text lands inside something a paragraph can't be
-   * split in: a field, a content control, an equation, a kept mc:AlternateContent (CR-002 section 60 E1, as
-   * `splitParagraph` refuses one).
+   * split in: a content control, an equation, a kept mc:AlternateContent (CR-002 section 60 E1, as `splitParagraph`
+   * refuses one). A field's result is split: a complex field's runs across the paragraphs, a `w:fldSimple` made a
+   * complex field first (section 62.2 D1).
    */
   private assertBreakable(seg: TextSegment | undefined): void {
     if (!seg) return;
@@ -821,7 +822,7 @@ export class Paragraph {
     if (seg.alternate || seg.math) refuse('an equation or an mc:AlternateContent');
     for (let o = (seg.run as { PARENT?: object }).PARENT; o && o !== this.p; o = (o as { PARENT?: object }).PARENT) {
       const tn = (o as { TYPE_NAME?: string }).TYPE_NAME ?? '';
-      if (!SPLITTABLE.has(tn)) refuse(`a ${tn.replace('org_docx4j_wml.', '')}`);
+      if (!BREAKABLE.has(tn)) refuse(`a ${tn.replace('org_docx4j_wml.', '')}`);
     }
   }
 
@@ -865,7 +866,7 @@ export class Paragraph {
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
     const tracker = this.changeTracker;
-    this.assertPlaceable(start, end, tracker !== undefined);
+    this.assertPlaceable(start, end, tracker === undefined ? false : text.length > 0 ? 'replace' : 'delete');
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
       const deletions = end > start || edges ? this.deleteText(tracker, start, end, edges) : [];
@@ -1184,7 +1185,10 @@ export class Paragraph {
    * turned into `w:delText`, and each run of consecutive ones moved into one `w:del`. Text this
    * author had inserted is simply removed, as Word does, rather than nested in a `w:del`.
    * The pictures in the span (`splice`'s `edges`) are deleted with the text, each in a run of its own
-   * where its run held more, as `InlinePicture.delete` gives it one (CR-002 section 48).
+   * where its run held more, as `InlinePicture.delete` gives it one (CR-002 section 48). An equation is deleted where
+   * it stands, in Word's form, a `w:del` in each math run and each structure's `m:ctrlPr` (`markEquationDeleted`;
+   * section 62.2 D2), the runs either side in `w:del`s of their own; one holding a revision of its own goes into the
+   * `w:del` whole, as every equation did before.
    * Returns the `w:del` elements it made, in document order.
    */
   private deleteText(tracker: ChangeTracker, start: number, end: number, edges?: SpanEdges): Anchor[] {
@@ -1192,7 +1196,12 @@ export class Paragraph {
     for (const seg of targets) tracker.assertEditable(seg.revision);
     type Target = { run: Element; owner: Element[]; own: boolean; revision?: RevisionHolderOf };
     const list: Target[] = [];
+    const equations: object[] = [];
     for (const seg of targets) {
+      if (seg.math && !tracker.ownInsertion(seg.revision) && equationRevisionIn(seg.item.value as object) === undefined) {
+        equations.push(seg.item.value as object);
+        continue;
+      }
       const run = seg.runOwner[seg.runIndex]!;
       if (list.length > 0 && list[list.length - 1]!.run === run) continue;
       const target: Target = { run, owner: seg.runOwner, own: tracker.ownInsertion(seg.revision) };
@@ -1223,6 +1232,7 @@ export class Paragraph {
         && t.owner.indexOf(t.run) === t.owner.indexOf(previous.run) + 1) last.push(t);
       else groups.push([t]);
     }
+    for (const equation of equations) markEquationDeleted(tracker, equation);
     const made: Anchor[] = [];
     for (let g = groups.length - 1; g >= 0; g--) {
       const group = groups[g]!;
@@ -1470,20 +1480,21 @@ export class Paragraph {
 
   /**
    * Refuses an edit that would cut an equation (CR-012 phase 4). Its text is one segment, Word's drawing of
-   * its math runs (`mathTextOf`), so an edit may take it whole but not part of it, nor insert into it, nor,
-   * under change tracking, take it at all: a tracked change inside an equation is its math runs' own, which
-   * nothing here writes. Since phase 4 every other offset is a place in the runs: `text` is the segments'
-   * text, where before it was the objects package's `textOf` and section 12.4 refused an offset past a kept
-   * `mc:AlternateContent` among the runs.
+   * its math runs (`mathTextOf`), so an edit may take it whole but not part of it, nor insert into it. Under change
+   * tracking a deletion takes it whole in Word's form (`deleteText`, CR-002 section 62.2 D2, check 57), and a
+   * replacement doesn't take it at all: where Word puts the new text beside a deleted equation isn't measured. Since
+   * phase 4 every other offset is a place in the runs: `text` is the segments' text, where before it was the objects
+   * package's `textOf` and section 12.4 refused an offset past a kept `mc:AlternateContent` among the runs.
    */
-  private assertPlaceable(start: number, end: number, tracked: boolean): void {
+  private assertPlaceable(start: number, end: number, tracked: false | 'delete' | 'replace'): void {
     for (const seg of this.segments()) {
       if (!seg.math) continue;
       const cuts = (seg.start < start && start < seg.end) || (seg.start < end && end < seg.end);
       const takes = start < seg.end && seg.start < end;
-      if (!cuts && !(tracked && takes)) continue;
+      if (!cuts && !(tracked === 'replace' && takes)) continue;
       throw new NotSupportedError('Paragraph', 'edit', `[${start}, ${end}) ${cuts ? 'cuts' : 'takes'} the equation at [${seg.start}, ${seg.end})`
-        + `${cuts ? '' : ' under change tracking'}: an edit here takes an equation whole and untracked, or not at all (CR-012 phase 4)`);
+        + (cuts ? ': an edit takes an equation whole or not at all (CR-012 phase 4)'
+          : ' under change tracking, with text in its place: a tracked replacement of an equation is not measured (CR-002 section 62.2)'));
     }
   }
 

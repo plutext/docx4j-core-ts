@@ -198,7 +198,7 @@ test("search: Word's own queries give Word's hits; Find codes, a picture's place
 
 // ------------------------------------------------------------- equations
 
-test("an equation reads as Word draws it, and an edit takes it whole and untracked or not at all", async () => {
+test("an equation reads as Word draws it, an edit takes it whole or not at all, and a tracked deletion takes it in Word's form", async () => {
   assert.equal(mathLetter('x', undefined, undefined), '\u{1D465}');
   assert.equal(mathLetter('h', undefined, undefined), 'ℎ', "italic h is the BMP's Planck constant");
   assert.equal(mathLetter('2', undefined, undefined), '2');
@@ -221,9 +221,14 @@ test("an equation reads as Word draws it, and an edit takes it whole and untrack
   p.search('a \u{1D465}+1 ')[0].delete();
   assert.equal(p.text, 'b');
   assert.doesNotMatch(await xmlOf(pkg), /oMath/, 'taken whole');
+  // tracked, a w:del in each math run, its m:rPr in it too (CR-002 sections 51 and 62.2 D2, check 57); accepted, it goes
   const tracked = await make();
   tracked.changeTrackingMode = 'TrackAll';
-  assert.throws(() => tracked.body.paragraphs[0].getRange('Content').delete(), (e) => e.name === 'NotSupportedError' && /change tracking/.test(e.message));
+  tracked.body.paragraphs[0].getRange('Content').delete();
+  assert.equal(tracked.body.paragraphs[0].text, '');
+  assert.match(await xmlOf(tracked), /<m:oMath><m:r><w:del [^>]*><m:t>x<\/m:t><\/w:del><\/m:r><m:r><w:del [^>]*><m:rPr><m:sty m:val="p"\/><\/m:rPr><m:t>\+1<\/m:t><\/w:del><\/m:r><\/m:oMath>/);
+  await tracked.acceptAllRevisions();
+  assert.doesNotMatch(await xmlOf(tracked), /oMath/);
 });
 
 // ------------------------------------------------------------- text boxes (D4, D5)

@@ -4534,3 +4534,68 @@ async function check() {
      to Word's. Case 5 (the multi-line control's `insertParagraph`) is refused (H2). The table and OOXML cases need
      members the shim's `ContentControl` hasn't; through the content API they refuse with Word's `InvalidArgument` and
      `GeneralException`. The four files to open are written as text since, this package's writers no longer making them.
+57. A paragraph break inside a field's result, and a tracked delete of an equation (CR-002 section 62, 2026-10-23;
+   Jason: "write check 57"). docx4j-python's review found the two ports differ here, and neither has measured Word: this
+   package splits a complex field's result and refuses a `w:fldSimple`'s, where docx4j-python refuses both; and its
+   tracked `Paragraph.delete` of a paragraph holding an equation wraps the equation in one `w:del`, where its
+   `Range.delete` and docx4j-python refuse. The file is on the share in `__tmp/57/`, as `fixtures/check57/build.mjs`
+   writes it (git ignores the `.docx`; `check57Bytes` gives a test the same parts). The snippet is beside it,
+   `check57-script-lab.html` and `check57-script-lab.js` (WordApi 1.6), copies of `fixtures/check57/`'s.
+   - **The file**, `57-fields-equations.docx`: a region per case, `BEGIN<n> <operation> <shape>`, the case's paragraph,
+     then `END<n>`. Ten cases:
+     - 1 and 2: `insertText('x\ny', 'After')` on the word `FA<n>` inside a field's result (`QUOTE "FA<n> FB<n>"`),
+       untracked: a complex field (1), a `w:fldSimple` (2);
+     - 3 and 4: `insertParagraph('NEWPARA<n>', 'After')` on the same word, the same two fields;
+     - 5 and 6: nothing done. The file holds what this package's tracked `Paragraph.delete` writes today: one `w:del`
+       around a display equation (`m:oMathPara`, E=mc²) (5), and around an inline one with words either side (6), the
+       paragraph mark deleted, author `docx4j`;
+     - 7 and 8: `paragraph.delete()` under `TrackAll`, on the same two shapes;
+     - 9 and 10: under `TrackAll`, the display equation's paragraph `Content` range deleted (9), and the range from the
+       word `L10` to the word `R10`, the inline equation between them (10).
+   - **The questions:** does Word split a field's result, refuse, or put the break elsewhere, and is the field then one
+     field? Does Word show cases 5 and 6 as deleted, and do Accept All and Reject All take and keep their equations?
+     What does Word write for cases 7 to 10, and how does it accept and reject that?
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/57/57-fields-equations.docx`. Say whether Word reports a problem or offers a repair. If it can't
+        open the file, stop there and say so: cases 5 and 6 are then the likely cause, and a file without them follows.
+     2. Review > Display for Review > **All Markup**. Look at regions 5 and 6 (`BEGIN5 open display-equation` and
+        `BEGIN6 open inline-equation`), and say for each whether the equation shows as deleted (struck through, in the
+        revision colour), as the words around it in region 6 do.
+     3. File > Save As `57-fields-equations-word365.docx`, in the same folder `__tmp/57`, before anything else.
+     4. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/57/check57-script-lab.html` over the HTML tab and `__tmp/57/check57-script-lab.js` over the Script tab.
+     5. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/57/result-run.txt`.
+     6. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane, which
+        has the focus, and the document isn't saved.)
+     7. Review > Accept (the lower half of the button) > **Accept All Changes**. File > Save As
+        `57-fields-equations-word365-accepted.docx` in `__tmp/57`, then File > Close.
+     8. Open `__tmp/57/57-fields-equations-word365.docx` again. Review > Reject (the lower half of the button) >
+        **Reject All Changes**. File > Save As `57-fields-equations-word365-rejected.docx` in `__tmp/57`, then File >
+        Close.
+   - **What the JSON holds.** For each case: the write's tracking mode and what it returned, or Office JS's error as
+     `error: <code>: <message>`; and the region after it: its text, its paragraphs' text, its OOXML (the body's
+     content), its tracked changes (type, text, author) and its fields (code and result).
+   - **What this package gave**, before the run. `fields-equations.test.mjs` runs the snippet through
+     the Word shim. Cases 1 and 3 split the complex field's result, the field running across the paragraphs; 2 and 4
+     are refused (`NotSupportedError`, a `CTSimpleField` can't be cut in two). Cases 7 and 8 write what 5 and 6 hold,
+     each listed as one deletion without the equation's text; 9 and 10 are refused (a tracked edit may not take an
+     equation). The shim has no `Range.fields`, which reads `NotImplemented`.
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab; All Markup).** The JSON is
+     `fixtures/check57/57-fields-equations-word365-run.json`. Word's saves are in `check57/` with a SHA-1 manifest:
+     after the run, after Accept All, and after Reject All. CR-002 section 62.2 has every case. In short:
+     - **Step 1:** Word opened the file without a problem. **Step 2:** regions 5 and 6 showed as deleted, the equation
+       struck through in the revision colour, like the words either side of it in region 6.
+     - **Cases 1 and 3:** Word split the complex field's result as this package does, the field running across the
+       paragraphs (one field, result `FA1x\ry FB1`).
+     - **Cases 2 and 4:** Word made the `w:fldSimple` a complex field and split it the same way. This package refuses.
+     - **Cases 5 and 6:** Word read this package's one `w:del` as its own form: OOXML, save, listing, Accept All and
+       Reject All as for cases 7 and 8. Word's form has a `w:del` in each `m:r` and in the structure's `m:ctrlPr`.
+     - **Cases 9 and 10:** Word deleted the equation in its own form, the mark kept. This package refuses.
+     - **This package on Word's saves:** Reject All matches Word's. Accept All leaves an empty `m:oMath` wherever a whole
+       equation was deleted in Word's form (F1, docx4j's too). `Paragraph.text` reads such an equation's structure
+       characters `,-.` (F2).
+   - **This package since** (CR-002 section 62.3, implemented 2026-10-23): D1, a `w:fldSimple` made a complex field
+     and split; D2, an equation deleted under tracking in Word's form; F1 and F2 fixed. `fields-equations.test.mjs`
+     holds the shim's run to Word's case for case: cases 1 to 4 and 7 to 10 write Word's markup, and Word read cases 5
+     and 6 as cases 7 and 8 now write them. This package's save after the run, and Word's, each accepted and rejected
+     here, match Word's Accept All and Reject All region for region.

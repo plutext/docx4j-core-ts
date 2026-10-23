@@ -1422,7 +1422,9 @@ function resolveMathRun(t: Extract<TrackedChangeTarget, { kind: 'mathRun' }>, ke
   discarding(t.item);
   content.splice(i, 1);
   if (!content.some((item) => mathTextOf(item) !== undefined || (item.value as { TYPE_NAME?: string } | undefined)?.TYPE_NAME === 'org_docx4j_wml.CTMathRunTrackChange')) {
+    const container = (t.run.value as { PARENT?: object }).PARENT;
     remove(t.runOwner, t.run as Element);
+    dropEmptiedEquation(container);
   }
 }
 
@@ -1432,13 +1434,45 @@ function resolveMathRun(t: Extract<TrackedChangeTarget, { kind: 'mathRun' }>, ke
  * whole from its list. An argument's own marker has no structure, and is dropped either way.
  */
 function resolveMathStructure(t: Extract<TrackedChangeTarget, { kind: 'mathStructure' }>, keep: boolean): void {
-  if (!keep && t.structure && t.owner) { remove(t.owner, t.structure); return; }
+  if (!keep && t.structure && t.owner) {
+    const container = (t.structure.value as { PARENT?: object } | undefined)?.PARENT;
+    remove(t.owner, t.structure);
+    dropEmptiedEquation(container);
+    return;
+  }
   const ctrlPr = t.ctrlPr;
   if (!ctrlPr.rPr && t.value.rPr) {
     ctrlPr.rPr = rPrFromElements(t.value.rPr.egrPrBase ?? []);
     linkParents(ctrlPr.rPr, ctrlPr);
   }
   if (t.revision === 'ins') delete ctrlPr.ins; else delete ctrlPr.del;
+}
+
+/**
+ * An `m:oMath` that a resolution left with nothing in it goes, and an `m:oMathPara` left with none of its
+ * `m:oMath` goes with it, as Word's Accept All of an equation deleted whole has it (check 57, CR-002 section
+ * 62.2, F1; docx4j's `Resolver.mathRun` leaves them). A paragraph whose mark went with the equation is then
+ * empty, or joined to the next one empty-handed. An argument left empty stays: its structure keeps its places.
+ */
+function dropEmptiedEquation(container: object | undefined): void {
+  const equation = container as math.CTOMath | undefined;
+  if (equation?.TYPE_NAME !== 'org_docx4j_math.CTOMath' || (equation.egoMathElements ?? []).length > 0) return;
+  const holder = (equation as { PARENT?: object }).PARENT as math.CTOMathPara | undefined;
+  if (holder?.TYPE_NAME === 'org_docx4j_math.CTOMathPara') {
+    const i = holder.oMath.indexOf(equation);
+    if (i >= 0) holder.oMath.splice(i, 1);
+    if (holder.oMath.length === 0) removeValue(holder);
+    return;
+  }
+  removeValue(equation);
+}
+
+/** A value's element taken from the list its `PARENT` keeps. */
+function removeValue(value: object): void {
+  const parent = (value as { PARENT?: object }).PARENT;
+  const list = parent ? runItemsOf(parent) ?? childrenOf(parent) : undefined;
+  const element = list?.find((e) => e === value || (e as { value?: unknown })?.value === value);
+  if (list && element) remove(list, element);
 }
 
 /** What is above a math value as `mathTokens` walks down: the value, the element holding it and that element's list. */

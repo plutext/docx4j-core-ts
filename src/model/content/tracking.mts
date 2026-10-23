@@ -4,6 +4,7 @@
 // `w:pPr/w:rPr/w:del` for a paragraph mark, `w:rPrChange` and `w:pPrChange` for formatting,
 // `w:trPr/w:ins` and `w:trPr/w:del` for a table row.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as math from '@docx4j/generated-objects-ts/modules/org_docx4j_math';
 import { deepCopy, deepCopyAsSync } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import {
@@ -593,6 +594,72 @@ export function markDeleted(p: wml.P): boolean {
 /** True when a paragraph's mark is marked inserted. */
 export function markInserted(p: wml.P): boolean {
   return p.pPr?.rPr?.ins !== undefined;
+}
+
+// --- an equation deleted (CR-002 section 62.2, D2) ----------------------------------------
+
+/** Each equation structure's properties, whose `m:ctrlPr` marks the structure inserted or deleted (CR-002 section 51). */
+const MATH_STRUCTURES: Readonly<Record<string, string>> = Object.fromEntries(
+  ['Acc', 'Bar', 'BorderBox', 'Box', 'D', 'EqArr', 'F', 'Func', 'GroupChr', 'LimLow', 'LimUpp', 'M', 'Nary', 'Phant', 'Rad', 'SPre', 'SSub', 'SSubSup', 'SSup']
+    .map((n) => [`org_docx4j_math.CT${n}`, `${n[0]!.toLowerCase()}${n.slice(1)}Pr`]));
+
+/**
+ * An equation (`m:oMath`, `m:oMathPara`) marked deleted where it stands, in Word's form (check 57 cases 7 to 10): each
+ * math run's content inside a `w:del` in its `m:r`, and each structure's `m:ctrlPr` holding a `w:del` around its run
+ * properties, as Word's tracked `delete()` writes them. An argument's own `m:ctrlPr` marks no structure, and is left as
+ * it is. An equation holding a revision of its own (`equationRevisionIn`) is the caller's to put in a `w:del` whole.
+ */
+export function markEquationDeleted(tracker: ChangeTracker, equation: object): void {
+  const visit = (value: unknown, depth: number): void => {
+    if (typeof value !== 'object' || value === null || depth > 64) return;
+    if (Array.isArray(value)) { for (const v of value) visit(v, depth + 1); return; }
+    const named = value as { name?: unknown; value?: unknown };
+    if (named.name !== undefined && 'value' in named) { visit(named.value, depth + 1); return; }
+    const tn = (value as { TYPE_NAME?: string }).TYPE_NAME ?? '';
+    if (!tn.startsWith('org_docx4j_math.') || tn.endsWith('Pr')) return;
+    if (tn === 'org_docx4j_math.CTR') { deleteMathRun(tracker, value as math.CTR); return; }
+    const key = MATH_STRUCTURES[tn];
+    if (key !== undefined) deleteMathStructure(tracker, value as Record<string, unknown>, tn, key);
+    for (const k of Object.keys(value)) if (k !== 'PARENT' && k !== 'TYPE_NAME' && k !== key) visit((value as Record<string, unknown>)[k], depth + 1);
+  };
+  visit(equation, 0);
+}
+
+/** A math run's content moved into a `w:del` in it (`CT_MathRunTrackChange`), its `m:t` kept as `m:t`, as Word writes it. */
+function deleteMathRun(tracker: ChangeTracker, run: math.CTR): void {
+  const content = (run.content ??= []) as Element[];
+  const value = { TYPE_NAME: 'org_docx4j_wml.CTMathRunTrackChange', ...tracker.markup(), rest: content.splice(0) } as wml.CTMathRunTrackChange;
+  const del = element('del', value);
+  linkParents(value.rest, value);
+  content.push(del as Element);
+  linkParents(del, run);
+}
+
+/** A structure's `m:ctrlPr` holding a `w:del` with the run properties it had, its properties made where it had none. */
+function deleteMathStructure(tracker: ChangeTracker, structure: Record<string, unknown>, tn: string, key: string): void {
+  const properties = (structure[key] ??= { TYPE_NAME: `${tn}Pr` }) as { ctrlPr?: math.CTCtrlPr };
+  const ctrlPr = (properties.ctrlPr ??= { TYPE_NAME: 'org_docx4j_math.CTCtrlPr' });
+  const rPr = createCTRPrChangeRPr({ egrPrBase: ctrlPr.rPr ? rPrToElements(ctrlPr.rPr) : [] });
+  ctrlPr.del = createCTRPrChange({ ...tracker.markup(), rPr });
+  delete ctrlPr.rPr;
+  linkParents(properties, structure);
+}
+
+/**
+ * A revision an equation holds of its own, or undefined: a math run's, a structure's or an argument's, or a `w:ins` or
+ * `w:del` among its runs. How Word deletes such an equation isn't measured, so a tracked deletion puts it whole in a
+ * `w:del`, the form this package wrote for every equation before (CR-002 section 62.2, D2).
+ */
+export function equationRevisionIn(equation: object): string | undefined {
+  let found: string | undefined;
+  walk(equation, (value) => {
+    if (found) return;
+    const tn = (value as { TYPE_NAME?: string }).TYPE_NAME;
+    if (tn === 'org_docx4j_wml.CTMathRunTrackChange') found = 'a math run\'s revision';
+    else if (tn === 'org_docx4j_wml.RunIns' || tn === 'org_docx4j_wml.RunDel' || tn === 'org_docx4j_wml.RunTrackChange') found = 'a revision among its runs';
+    else if (tn === 'org_docx4j_math.CTCtrlPr' && ((value as math.CTCtrlPr).ins || (value as math.CTCtrlPr).del)) found = 'a structure\'s revision';
+  });
+  return found;
 }
 
 // --- w:t <-> w:delText -------------------------------------------------------------------

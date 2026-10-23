@@ -24,7 +24,8 @@ export function isMath(el: Element): boolean {
 
 /**
  * The text of an equation (`m:oMath`, `m:oMathPara`) in a view: the `m:t` of every math run in document
- * order, a revision's runs as the view has them, each letter mapped as Word draws it (`mathLetter`).
+ * order, a revision's runs as the view has them, a structure the view hides (its `m:ctrlPr`'s revision) left out
+ * whole, each letter mapped as Word draws it (`mathLetter`).
  */
 export function mathTextOf(math: unknown, view: View = 'accepted'): string {
   let out = '';
@@ -61,6 +62,8 @@ export function mathTextOf(math: unknown, view: View = 'accepted'): string {
     if (tn === MATH_RUN) { runText(value as { content?: unknown[] }); return; }
     if (isProperties(tn)) return;
     if (tn !== undefined && tn.startsWith('org_docx4j_math.') && !CONTAINERS.has(tn)) {
+      // a structure the view hides, its own m:ctrlPr holding the revision, goes whole (CR-002 section 62.2, F2)
+      if (hidesStructure(value, hides)) return;
       // a structure: `,`, its arguments joined by `-`, `.` (check 51 case 12)
       out += ',';
       argumentsOf(value).forEach((argument, i) => {
@@ -77,6 +80,21 @@ export function mathTextOf(math: unknown, view: View = 'accepted'): string {
   };
   visit(math, 0);
   return out;
+}
+
+/**
+ * True when a structure is inserted or deleted, in Word's form a `w:ins` or `w:del` in the `m:ctrlPr` of its own
+ * properties (`m:sSupPr`, `m:fPr`, ...), and the view hides that revision. An argument's own `m:ctrlPr` marks no
+ * structure (CR-002 section 51).
+ */
+function hidesStructure(structure: object, hides: (name: string) => boolean): boolean {
+  for (const key of Object.keys(structure)) {
+    if (key === 'PARENT' || key === 'TYPE_NAME') continue;
+    const properties = (structure as Record<string, unknown>)[key] as { TYPE_NAME?: string; ctrlPr?: { ins?: unknown; del?: unknown } } | undefined;
+    if (!properties?.TYPE_NAME?.endsWith('Pr') || !properties.ctrlPr) continue;
+    if ((properties.ctrlPr.del && hides('del')) || (properties.ctrlPr.ins && hides('ins'))) return true;
+  }
+  return false;
 }
 
 /** What holds math elements without being a structure: an equation, a display equation, an argument. */

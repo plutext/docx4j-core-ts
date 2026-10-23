@@ -2,6 +2,7 @@
 // Word 365 makes them through Office JS (check 52, test/README.md; CR-014 sections 6.2 and 10). `Range` calls in
 // here for every write whose answer isn't one paragraph's splice; what it gets back is where the text closed up.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { applyRunOptions, readRunOptions, type RunOptions } from '@docx4j/generated-objects-ts/builders/wml';
 import { dropExcluded, linesOf, officeItems, oneParagraphRun } from './officeText.mjs';
@@ -516,9 +517,10 @@ export function breakParagraphAt(p: Paragraph, offsets: readonly number[]): { fi
  * Splits `p` at `offset`, inside its text: what is before it becomes a new paragraph in front of `p`, in a copy of
  * its properties with a mark of its own in `rPr`'s formatting, and `p` keeps the rest with its own mark, its
  * section break and its identity, as Word keeps them (check 52 cases 57 and 63). A link, a revision or a smart tag
- * the offset is inside is split into two of the same; a content control, a field or a kept `mc:AlternateContent`
- * there is refused, since its two halves would be two of it. Tracked, the new mark is inserted, as Word marks the
- * first half's (cases 69 and 70). Returns the first half.
+ * the offset is inside is split into two of the same; a complex field's result is split, the field running across the
+ * two, and a `w:fldSimple` is made a complex field first, as Word makes it (check 57, CR-002 section 62.2 D1); a content
+ * control or a kept `mc:AlternateContent` there is refused, since its two halves would be two of it. Tracked, the new
+ * mark is inserted, as Word marks the first half's (cases 69 and 70). Returns the first half.
  */
 export function splitParagraph(p: Paragraph, offset: number, rPr: wml.RPr | undefined): Paragraph {
   p.assertWritable();
@@ -532,8 +534,9 @@ export function splitParagraph(p: Paragraph, offset: number, rPr: wml.RPr | unde
   // every check before anything changes
   for (let o = (seg.run as { PARENT?: object }).PARENT; o && o !== p.p; o = (o as { PARENT?: object }).PARENT) {
     const tn = (o as { TYPE_NAME?: string }).TYPE_NAME ?? '';
-    if (!SPLITTABLE.has(tn)) throw new NotSupportedError('Range', 'insertParagraph', `the split falls inside a ${tn.replace('org_docx4j_wml.', '')}, which can't be cut in two`);
+    if (!BREAKABLE.has(tn)) throw new NotSupportedError('Range', 'insertParagraph', `the split falls inside a ${tn.replace('org_docx4j_wml.', '')}, which can't be cut in two`);
   }
+  unfoldSimpleFieldsAround(seg.run, p.p);
   p.splitRunsAround(offset, length);
   const at = p.segments().find((s) => s.start >= offset && s.text.length > 0)!;
   let owner = at.runOwner;
@@ -595,6 +598,58 @@ function splitAtEnd(p: Paragraph, rPr: wml.RPr | undefined): Paragraph {
 /** The run holders a paragraph split may cut in two: each half is a whole one of the same. */
 export const SPLITTABLE = new Set(['org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.RunIns', 'org_docx4j_wml.RunDel', 'org_docx4j_wml.RunTrackChange',
   'org_docx4j_wml.CTSmartTagRun', 'org_docx4j_wml.CTCustomXmlRun', 'org_docx4j_wml.P.Dir', 'org_docx4j_wml.P.Bdo']);
+
+const SIMPLE_FIELD = 'org_docx4j_wml.CTSimpleField';
+
+/** The run holders a paragraph break may be made inside: those it cuts in two, and a `w:fldSimple`, made a complex field first (D1). */
+export const BREAKABLE: ReadonlySet<string> = new Set([...SPLITTABLE, SIMPLE_FIELD]);
+
+/**
+ * Every `w:fldSimple` a run is inside, below the paragraph, made a complex field, the innermost first: what Word does
+ * before a paragraph break inside a simple field's result (check 57 cases 2 and 4, CR-002 section 62.2 D1). The caller
+ * has checked that every other holder there can be cut in two.
+ */
+export function unfoldSimpleFieldsAround(run: object, p: object): void {
+  for (;;) {
+    let field: wml.CTSimpleField | undefined;
+    for (let o = (run as { PARENT?: object }).PARENT; o && o !== p; o = (o as { PARENT?: object }).PARENT) {
+      if ((o as { TYPE_NAME?: string }).TYPE_NAME === SIMPLE_FIELD) { field = o as wml.CTSimpleField; break; }
+    }
+    if (!field) return;
+    unfoldSimpleField(field);
+  }
+}
+
+/**
+ * A `w:fldSimple` written in its place as the complex field Word wrote for check 57's: a run holding the begin
+ * `w:fldChar` (the field's `w:fldLock`, `w:dirty` and `w:fldData` on it), a run holding its instruction as a
+ * `w:instrText`, a run holding the separator, the field's content, and a run holding the end. The field characters'
+ * runs take a copy of the result's first run's properties; Word's result run had none, and one with some isn't measured.
+ */
+function unfoldSimpleField(field: wml.CTSimpleField): void {
+  const parent = (field as { PARENT?: object }).PARENT;
+  const list = parent ? runItemsOf(parent) as Element[] | undefined : undefined;
+  const element = list?.find((e) => e.value === field);
+  if (!parent || !list || !element) throw new Docx4JException('The w:fldSimple could not be found in the list that holds it');
+  const content = (field.content ?? []) as Element[];
+  const rPr = (content.find((e) => typeNameOf(e) === 'org_docx4j_wml.R')?.value as wml.R | undefined)?.rPr;
+  const begin: wml.FldChar = { TYPE_NAME: 'org_docx4j_wml.FldChar', fldCharType: 'begin' };
+  if (field.fldLock !== undefined) begin.fldLock = field.fldLock;
+  if (field.dirty !== undefined) begin.dirty = field.dirty;
+  if (field.fldData) begin.fldData = field.fldData;
+  const instr: wml.Text = { TYPE_NAME: 'org_docx4j_wml.Text', value: field.instr };
+  if (/^\s|\s$/.test(field.instr)) instr.space = 'preserve';
+  const runFor = (item: Element): Element => runOf([item], copyRPr(rPr)) as Element;
+  const pieces: Element[] = [
+    runFor(el.fldChar(begin) as Element),
+    runFor(el.instrText(instr) as Element),
+    runFor(el.fldChar({ TYPE_NAME: 'org_docx4j_wml.FldChar', fldCharType: 'separate' }) as Element),
+    ...content.splice(0),
+    runFor(el.fldChar({ TYPE_NAME: 'org_docx4j_wml.FldChar', fldCharType: 'end' }) as Element),
+  ];
+  list.splice(list.indexOf(element), 1, ...pieces);
+  linkParents(pieces, parent);
+}
 
 // --- font ---------------------------------------------------------------------------------------------
 

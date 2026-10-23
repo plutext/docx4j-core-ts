@@ -1710,7 +1710,9 @@ sync, and the editor called it synchronously four times.
 - **An equation in an edit.**
   - A span may take an equation whole, untracked.
   - A span that cuts one, an insertion inside one, or any tracked edit taking one throws
-    `NotSupportedError`: its math runs' own revisions are nothing this package writes.
+    `NotSupportedError`: its math runs' own revisions are nothing this package writes. Since CR-002 section 62.3
+    (2026-10-23), a tracked deletion takes one whole in Word's form, a `w:del` in each math run and structure, as
+    Word 365's check 57 wrote it; a tracked `Paragraph.insertText` replacement taking one still throws.
   - A `Font` write over a span leaves the equation's runs as they are.
 - **Hidden text in an edit** is an object to the span, as a picture is (CR-002 section 48): a deletion takes
   the hidden text strictly inside it, and an insertion beside it goes into the visible run. Word's
