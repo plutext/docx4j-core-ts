@@ -493,20 +493,23 @@ test("check 58's snippet through the Word shim, held to Word 365's Simple Markup
   }
   // K1: Word lists nothing in two deleted paragraphs in a row (2, and 3, whose region lists only the first author's
   // deletion), nor in a paragraph whose text alone is deleted (4); this package lists each in its paragraph. K3: Word's
-  // search finds the placeholder's text, reading each hit as '' (12). K5 and K6: Word's wildcards match the paragraph's
-  // mark, and its classes nothing in the emoji or the Arabic word (13)
+  // search finds the placeholder's text, reading each hit as '' (12). K6: Word's classes match nothing in the emoji or
+  // the Arabic word, where [!a-z ]@ finds them here (13); its mark, as Word's since K7
   assert.deepEqual(differing, ['read 2', 'read 3', 'read 4', 'read 12', 'read 13']);
+  const wildcards = (r) => Object.fromEntries(Object.entries(r).filter(([q]) => q !== '[!a-z ]@'));
+  assert.deepEqual(wildcards(ours.read.cases[12].reads), wildcards(theirs.read.cases[12].reads));
+  assert.deepEqual(ours.read.cases[12].reads['[!a-z ]@'], [['\\ud83d\\ude00', '\\ud83d\\ude00', '\\u0643\\u064e\\u062a\\u064e\\u0628\\u064e', '\\u000d']]);
   const reads = (n) => ours.read.cases[n - 1].reads;
   assert.deepEqual(listing(reads(2)).paragraphs.slice(2, 4), [[['Deleted'], ['Deleted'], ['Deleted']], [[], [], []]]);
   assert.deepEqual(listing(theirs.read.cases[1].reads).paragraphs.slice(2, 4), [[[], [], []], [[], [], []]]);
   assert.deepEqual(reads(12)['Click or tap here to enter text.'], [[], [], ['Click or tap here to enter text.']]);
   assert.deepEqual(theirs.read.cases[11].reads['Click or tap here to enter text.'], [[''], [''], ['Click or tap here to enter text.']]);
-  assert.deepEqual(reads(13)['?'][0], theirs.read.cases[12].reads['?'][0].slice(0, -1), "? a code point (K4); Word's last hit is the mark (K5)");
+  assert.deepEqual(reads(13)['?'], theirs.read.cases[12].reads['?'], '? a code point (K4), and the mark (K7)');
 });
 
 // --- check 59 (2026-10-23): where Word's wildcards match a paragraph mark (CR-002 section 32's K5)
 
-test("check 59's file and snippet agree, and the snippet runs through the Word shim: no wildcard matches a mark here (K5)", async () => {
+test("check 59's file and snippet agree, and the snippet through the Word shim is Word 365's run: wildcards match a mark where ^p does (K7)", async () => {
   const { parseRegion, runCheck } = new Function(`${await readFile(join(here, 'fixtures', 'check59', 'check59-script-lab.js'), 'utf8')}\nreturn CHECK59;`)();
   const { check59Bytes, check59Cases } = await import('./fixtures/check59/build.mjs');
   const { Word } = await import('../dist/office-js/index.mjs');
@@ -517,20 +520,20 @@ test("check 59's file and snippet agree, and the snippet runs through the Word s
   const result = await runCheck((f) => Word.run(pkg, f), 'shim');
   assert.equal(result.cases.length, 5);
   assert.doesNotMatch(JSON.stringify(result), /error: /);
-  // no hit holds a mark, a cell's end or a row's end
-  assert.doesNotMatch(JSON.stringify(result), /\\\\u000[7d9a]/);
-  assert.deepEqual(result.cases[3].reads.table['?'], ['Q', 'Z', 'W', 'X']);
-  // Word 365's run (2026-10-23): every hit but those holding a paragraph mark is this package's, scope for scope; the
-  // marks Word matches are a paragraph's, never a cell's or a row's end, nor across a table's edge, as `^p`'s (K5)
+  // Word 365's run (2026-10-23), scope for scope: a paragraph's mark matched, never a cell's or a row's end, nor across a
+  // table's edge, as `^p`'s; a control's range without its last paragraph's mark
   const word = JSON.parse(await readFile(join(here, 'fixtures', 'check59', '59-wildcard-marks-word365.json'), 'utf8'));
   assert.deepEqual(word.cases.map((c) => c.shape), result.cases.map((c) => c.shape));
-  const withoutMarks = (o) => JSON.parse(JSON.stringify(o, (key, value) => (Array.isArray(value) ? value.filter((h) => typeof h !== 'string' || !h.includes('\\u000d')) : value)));
-  for (const [i, c] of word.cases.entries()) assert.deepEqual(withoutMarks(result.cases[i].reads), withoutMarks(c.reads), c.shape);
-  const marks = (reads) => JSON.stringify(reads).match(/\\\\u000d/g)?.length ?? 0;
-  assert.deepEqual(word.cases.map((c) => marks(c.reads)), [13, 6, 21, 6, 22]);
+  for (const [i, c] of word.cases.entries()) assert.deepEqual(result.cases[i].reads, c.reads, c.shape);
   assert.deepEqual(word.cases[1].reads.cell['?'], ['Q'], "a cell's end: no mark");
   assert.deepEqual(word.cases[3].reads.table['?'], ['Q', 'Z', 'W', 'X'], "cells' and rows' ends: no mark");
   assert.deepEqual(word.cases[4].reads.control['?'], ['Q', '\\u000d', 'Z'], "inside a control: its paragraphs' marks but the last, which its range doesn't hold");
+  // a replacement where a hit holds a mark is refused before anything changes, as a plain ^p's
+  const before = await body.getXml();
+  assert.throws(() => body.replaceText('Q?Z', 'X', { matchWildcards: true }), /holds a paragraph mark/);
+  assert.throws(() => body.paragraphs[2].replaceText('?', 'X', { matchWildcards: true }), /holds a paragraph mark/);
+  assert.equal(await body.getXml(), before);
+  assert.deepEqual([body.paragraphs[2].text, body.paragraphs[2].replaceText('Q', 'X', { matchWildcards: true }), body.paragraphs[2].text], ['Q', 1, 'X'], 'a hit holding no mark is replaced');
 });
 
 test('CR-012 section 19: a deleted mark reads as nothing in Word\'s default view, the paragraphs apart, a cell\'s end kept (check 58)', async () => {

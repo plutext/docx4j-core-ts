@@ -16,7 +16,7 @@ function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> 
 import { Font, markHolderOf, type FontTracking, type RPrHolder } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
-import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, refuseWildcardMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
@@ -464,8 +464,9 @@ export class Paragraph {
 
   /** Matches within this paragraph. */
   search(text: string, options?: SearchOptions): Range[] {
-    // Word's paragraph mark, ^p, is searched in the paragraph's whole range, which holds its mark (CR-014 phase 3)
-    if (!options?.matchWildcards && !options?.matchRegExp && paragraphMarkPieces(text)) return this.getRange('Whole').search(text, options);
+    // Word's paragraph mark, ^p, is searched in the paragraph's whole range, which holds its mark (CR-014 phase 3), and so
+    // is a wildcard query, whose ? or class matches the mark too (check 59; CR-002 section 32, K7)
+    if (options?.matchWildcards || (!options?.matchRegExp && paragraphMarkPieces(text))) return this.getRange('Whole').search(text, options);
     return this.searchMatches(text, options).map((m) => m.range);
   }
 
@@ -486,6 +487,7 @@ export class Paragraph {
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
     refuseMarkReplacement('Paragraph', find, options);
+    if (options?.matchWildcards) refuseWildcardMarkReplacement('Paragraph', this.search(find, options));
     const matches = this.searchMatches(find, options);
     for (let i = matches.length - 1; i >= 0; i--) {
       const { range, match } = matches[i]!;

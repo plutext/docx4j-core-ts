@@ -14,7 +14,7 @@ import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { contentOf } from './ooxml.mjs';
 import { markHolderInserted } from './tracking.mjs';
-import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
+import { officeMatches, wildcardMatchesAcross, refuseWildcardMarkReplacement, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
@@ -621,6 +621,7 @@ export class Range {
   search(text: string, options?: SearchOptions): Range[] {
     const marks = options?.matchWildcards || options?.matchRegExp ? undefined : paragraphMarkPieces(text);
     if (marks) return this.searchMarks(marks, options);
+    if (options?.matchWildcards && (this.spansParagraphs || this.holdsEndMark)) return this.searchWildcards(text, options);
     if (this.spansParagraphs) return this.pieces().flatMap((piece) => piece.search(text, options));
     return officeMatches(this.paragraph.segments({ objects: true }), text, options, this.start, this.end)
       .map(({ start, end }) => new Range(this.paragraph, start, end));
@@ -679,12 +680,46 @@ export class Range {
   }
 
   /**
+   * A wildcard query's hits across the paragraphs' marks, as Word's wildcards match them (check 59; CR-002 section 32,
+   * K7): where `^p` matches one (`searchMarks`), a paragraph's own mark the range holds, never a cell's or a row's end,
+   * and never across a table's edge, so the paragraphs a hit spans are in one cell or in none. `?`, `*` and a class cross
+   * such a mark and `^13` is one; a hit ending with one holds it.
+   */
+  private searchWildcards(query: string, options: SearchOptions): Range[] {
+    const paragraphs = this.paragraphs;
+    const last = paragraphs.length - 1;
+    const cell = (p: Paragraph): object | undefined => p.parentTableCell?.element.value as object | undefined;
+    const markIn = (j: number): boolean => (j < last || this.holdsEndMark) && paragraphs[j]!.markText === '\r';
+    // runs of consecutive paragraphs in one cell, or in none
+    const groups: number[][] = [];
+    paragraphs.forEach((p, j) => {
+      const group = groups[groups.length - 1];
+      if (group && cell(paragraphs[group[group.length - 1]!]!) === cell(p)) group.push(j); else groups.push([j]);
+    });
+    const out: Range[] = [];
+    for (const group of groups) {
+      const pieces = group.map((j) => {
+        const p = paragraphs[j]!;
+        const length = p.text.length;
+        return { segments: p.segments({ objects: true }), from: j === 0 ? this.start : 0, to: j === last ? this.end : length, length, mark: markIn(j) };
+      });
+      for (const m of wildcardMatchesAcross(pieces, query, options)) {
+        const first = paragraphs[group[m.first]!]!;
+        const end = paragraphs[group[m.last]!]!;
+        out.push(new Range(first, m.start, m.end, false, m.mark, end.element === first.element ? undefined : end));
+      }
+    }
+    return out;
+  }
+
+  /**
    * Replaces every match in this span, last first so the offsets stay valid; returns the count
    * (CR-002 section 3.7). The replacement's `$1` or Word's `\1` expands as it does on a paragraph
    * (section 26; this one was missed there, section 31).
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
     refuseMarkReplacement('Range', find, options);
+    if (options?.matchWildcards) refuseWildcardMarkReplacement('Range', this.search(find, options));
     // across paragraphs a paragraph at a time, as `search` (CR-014 section 3), the last first
     if (this.spansParagraphs) {
       this.assertWritableSpan();

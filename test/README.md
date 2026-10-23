@@ -4728,5 +4728,6 @@ async function check() {
        (case 4's table gives `Q`, `Z`, `W`, `X`), anything across a table's edge (`Q?Z` finds nothing in cases 2 and 4).
      - **A control's range** omits its last paragraph's mark (case 5's control gives `Q`, `\r`, `Z`), as the paragraph's
        own range doesn't.
-     - **This package**: every hit but the marks is Word's, scope for scope (`readers.test.mjs`). No wildcard matches a mark
-       here (K5).
+     - **This package**: every hit but the marks was Word's, scope for scope. Since K7 (the same day, CR-002 section 32),
+       the marks are too: `readers.test.mjs` holds the shim's run to Word's in every scope, and `replaceText` with
+       wildcards refuses where a hit holds a mark, as a plain `^p` query is refused.

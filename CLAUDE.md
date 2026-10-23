@@ -210,7 +210,8 @@ Key mechanics:
   `GeneralException`, one holding a whole control or `w:altChunk` refused under tracking. Phase 3: `insertComment`
   puts its markers in the first and last paragraphs, and a plain `search` query holding `^p` matches paragraph marks
   across paragraphs, never a cell's or row's end or across a table's edge (`searchMarks`; `replaceText` with `^p`
-  refuses). Check 54's answers (section 12): `insertParagraph` splits within one paragraph too; a mark the range
+  refuses), and so do wildcards (`?`, `*`, a class, `^13`; `searchWildcards` over `wildcardMatchesAcross`, check 59,
+  CR-002 section 32 K7; `replaceText` refuses where a hit holds a mark). Check 54's answers (section 12): `insertParagraph` splits within one paragraph too; a mark the range
   holds goes (`dropMark`: joins the next paragraph, else its emptied paragraph goes, a cell's last kept); delete
   crosses a control's edge one level down without joining; a font property goes only where it doesn't read so already;
   a comment goes with its reference (every deletion: `Paragraph.splice` and `deleteText` take a reference run in the

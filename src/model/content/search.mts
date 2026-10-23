@@ -37,9 +37,12 @@ export function searchPattern(text: string, options: SearchOptions = {}): RegExp
     source = '';
     for (let i = 0; i < text.length; i++) {
       const c = text[i]!;
-      // a code point, a surrogate pair whole, as Word's ? matches an emoji (check 58 case 13; CR-002 section 32, K4)
-      if (c === '?') source += '(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.)';
-      else if (c === '*') source += '.*?';
+      // a code point, a surrogate pair whole, as Word's ? matches an emoji (check 58 case 13; CR-002 section 32, K4);
+      // ? and * cross a paragraph's mark where a search reads one (`wildcardMatchesAcross`, check 59, K7)
+      if (c === '?') source += '(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\s\\S])';
+      else if (c === '*') source += '[\\s\\S]*?';
+      // ^13, Word's wildcard code for a paragraph mark (check 59)
+      else if (c === '^' && text.startsWith('13', i + 1)) { source += '\\r'; i += 2; }
       else if (c === '<') source += '\\b(?=\\w)';
       else if (c === '>') source += '\\b(?<=\\w)';
       else if (c === '@') source += '+';
@@ -228,6 +231,53 @@ export function officeMatches(segments: readonly SearchSegment[], query: string,
     out.push({ start: starts[a]!, end: ends[b - 1]!, match });
   }
   return out;
+}
+
+/** A paragraph's part in a wildcard search across its marks: its segments, the [from, to) of its text read, its text's length, whether its mark follows. */
+export interface MarkedSegments { segments: readonly SearchSegment[]; from: number; to: number; length: number; mark: boolean }
+
+/** A hit of a wildcard search across marks: from offset `start` in piece `first` to `end` in piece `last`, which holds its mark where `mark`. */
+export interface MarkedMatch { first: number; start: number; last: number; end: number; mark: boolean; match: RegExpExecArray }
+
+/**
+ * A wildcard query's hits over consecutive paragraphs, each followed by its mark where `mark` says, as Word's wildcards
+ * match a paragraph mark (check 59; CR-002 section 32, K7): `?`, `*` and a class cross one, `^13` is one. The text read
+ * in each paragraph is `officeMatches`' for wildcards; the caller gives only paragraphs a hit may span (one cell's, or
+ * none's) and only the marks it may hold (a paragraph's own, never a cell's or a row's end).
+ */
+export function wildcardMatchesAcross(pieces: readonly MarkedSegments[], query: string, options: SearchOptions): MarkedMatch[] {
+  const pattern = searchPattern(query, { ...options, matchWildcards: true });
+  let text = '';
+  const starts: [number, number][] = [];
+  const ends: [number, number][] = [];
+  const marks: boolean[] = [];
+  const put = (c: string, k: number, start: number, end: number, mark: boolean): void => { text += c; starts.push([k, start]); ends.push([k, end]); marks.push(mark); };
+  pieces.forEach((piece, k) => {
+    for (const seg of piece.segments) {
+      if (seg.hidden) continue;
+      if (seg.object) { if (piece.from < seg.start && seg.start < piece.to) put(OBJECT, k, seg.start, seg.start, false); continue; }
+      for (let i = 0; i < seg.text.length; i++) {
+        const at = seg.start + i;
+        if (at >= piece.from && at < piece.to) put(seg.text[i]!, k, at, at + 1, false);
+      }
+    }
+    if (piece.mark) put('\r', k, piece.length, piece.length, true);
+  });
+  return matchesOf(text, pattern).map((match) => {
+    const a = match.index;
+    const b = a + match[0].length;
+    return { first: starts[a]![0], start: starts[a]![1], last: ends[b - 1]![0], end: ends[b - 1]![1], mark: marks[b - 1]!, match };
+  });
+}
+
+/**
+ * Refuses a wildcard replacement where a hit holds a paragraph mark (CR-002 section 32, K7): `search` finds it, as
+ * Word's does (check 59), but what replacing a mark leaves isn't measured, as for a plain `^p` (`refuseMarkReplacement`).
+ */
+export function refuseWildcardMarkReplacement(className: string, hits: readonly { spansParagraphs: boolean; holdsEndMark: boolean }[]): void {
+  if (!hits.some((hit) => hit.spansParagraphs || hit.holdsEndMark)) return;
+  throw new NotSupportedError(className, 'replaceText', "a hit holds a paragraph mark, which Word's wildcards match (check 59), and what replacing "
+    + 'one does isn\'t measured (CR-002 section 32); search for the hits and edit their ranges');
 }
 
 /**

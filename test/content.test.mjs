@@ -876,12 +876,12 @@ test('a search never returns a hit that splits a character', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const emoji = pkg.body.insertParagraph('a\u{1F600}b', 'End');
   assert.equal(emoji.text.length, 4, 'the emoji is two UTF-16 units');
-  assert.deepEqual(emoji.search('[!a-z ]', { matchWildcards: true }).map((r) => r.text), [],
-    'each half of the pair matched the class; neither is a hit');
+  assert.deepEqual(emoji.search('[!a-z ]', { matchWildcards: true }).map((r) => r.text), ['\r'],
+    "each half of the pair matched the class; neither is a hit; the paragraph's mark is, as Word's (check 58 case 13, K7)");
   assert.equal(pkg.body.replaceText('[!a-z ]', 'X', { matchWildcards: true }), 0);
   assert.equal(emoji.text, 'a\u{1F600}b', 'and a replace leaves the emoji whole');
   // ? is a code point, the pair whole, as Word's (check 58 case 13; CR-002 section 32, K4)
-  assert.deepEqual(emoji.search('?', { matchWildcards: true }).map((r) => r.text), ['a', '\u{1F600}', 'b']);
+  assert.deepEqual(emoji.search('?', { matchWildcards: true }).map((r) => r.text), ['a', '\u{1F600}', 'b', '\r'], "and the paragraph's mark, as Word's (K7)");
   assert.deepEqual(emoji.search('a?b', { matchWildcards: true }).map((r) => r.text), ['a\u{1F600}b']);
 
   // a letter and the fatha on it (U+064E) are one cluster: \p{L}+ stops before the mark

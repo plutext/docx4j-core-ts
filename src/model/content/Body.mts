@@ -22,7 +22,7 @@ import { contentOf } from './ooxml.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { type CellEnd, wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph, endCellsWithParagraphs } from './tableRules.mjs';
 import { keepCellMarkLast } from './spanEdits.mjs';
-import { expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
+import { expandReplacement, paragraphMarkPieces, refuseMarkReplacement, refuseWildcardMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
 
 /**
@@ -535,7 +535,9 @@ export class Body {
 
   /** Matches over every paragraph, in document order. */
   search(text: string, options?: SearchOptions): Range[] {
-    // Word's paragraph mark, ^p, is searched across the body's whole range (CR-014 phase 3)
+    // Word's paragraph mark, ^p, is searched across the body's whole range (CR-014 phase 3); a wildcard query across its
+    // content, which Word's wildcards read without the last paragraph's mark (check 59 case 5, a control's; K7)
+    if (options?.matchWildcards && this.paragraphs.length > 0) return this.getRange('Content').search(text, options);
     if (!options?.matchWildcards && !options?.matchRegExp && paragraphMarkPieces(text) && this.paragraphs.length > 0) return this.getRange('Whole').search(text, options);
     return this.paragraphs.flatMap((p) => p.search(text, options));
   }
@@ -547,6 +549,7 @@ export class Body {
    */
   replaceText(find: string, replace: string, options?: SearchOptions): number {
     refuseMarkReplacement('Body', find, options);
+    if (options?.matchWildcards) refuseWildcardMarkReplacement('Body', this.search(find, options));
     this.assertWritable();
     // every branch of a kept mc:AlternateContent, each paragraph searched on its own; counted where a
     // reader sees the match, as resolve-all counts the listed changes (CR-013 phase 3)

@@ -2955,8 +2955,17 @@ and its Replace and Replace all are held to `search` plus `insertText(…, 'Repl
    check 59 now"; `test/README.md`), searches them with `?`, `[!A-Z]`, `^13` and `Q?Z`. Run the same day: Word's
    wildcards match a paragraph mark exactly where `^p` does, and not elsewhere. That is a mark between paragraphs, one
    inside a cell, and one inside a block control, its last paragraph's included. It is never a cell's or a row's end, nor
-   anything across a table's edge. `^13` is the mark's wildcard code. Every other hit is this package's already. Whether to
-   follow it now is Jason's to decide (K7).)* **K6**, the classes over the emoji and the Arabic letters, not
+   anything across a table's edge. `^13` is the mark's wildcard code. Every other hit is this package's already.
+   **K7**, follow it now (Jason, 2026-10-23: "K7 yes, follow it now"), implemented the same day by the `^p` route.
+   `Range.search` with wildcards over a range across paragraphs, or holding its mark, joins the paragraphs of each run in
+   one cell (or in none) by the marks a hit may hold. Those are the paragraph's own (`markText` `\r`), never a cell's end
+   or a deleted mark, and the last one only where the range holds it. The wildcard pattern runs over that text
+   (`wildcardMatchesAcross`: `?` and `*` cross a mark, `^13` is one), and a hit ending with a mark holds it.
+   `Paragraph.search` with wildcards searches its 'Whole' range, its own mark included. `Body.search`, and so a block
+   control's, searches its 'Content' range, without the last paragraph's mark, as Word's control search does (case 5).
+   `replaceText` with wildcards refuses, before anything changes, where a hit holds a mark (`refuseWildcardMarkReplacement`),
+   as a plain `^p` query is refused. Check 59's run through the shim is Word's in every scope (`readers.test.mjs`), and
+   check 58's case 13 differs only by K6's `[!a-z ]@`. `npm test`: 1,494 pass.)* **K6**, the classes over the emoji and the Arabic letters, not
    followed: this package already finds nothing there for `?` and `[!a-z ]`, through the grapheme filter, and
    `[!a-z ]@` keeps finding them.)*
 
