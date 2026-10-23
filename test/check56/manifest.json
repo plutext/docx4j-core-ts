@@ -1,0 +1,39 @@
+{
+ "check": 56,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-23)",
+ "source": "test/fixtures/check56/build.mjs (four files to open; 56-writes.docx, 16 cases)",
+ "saves": {
+  "56a-untyped-two-paragraphs-repaired.docx": "Word's repair of fixtures/check56's 56a-untyped-two-paragraphs.docx (Word found unreadable content on open), saved with File > Save As",
+  "56b-text-two-paragraphs-repaired.docx": "Word's repair of 56b-text-two-paragraphs.docx, the same way",
+  "56c-richtext-two-paragraphs-repaired.docx": "Word's repair of 56c-richtext-two-paragraphs.docx, the same way",
+  "56d-untyped-table-repaired.docx": "Word's repair of 56d-untyped-table.docx, the same way",
+  "56-writes-word365.docx": "56-writes.docx after the Script Lab snippet's \"Run the check\", saved with File > Save (the snippet's JSON: test/fixtures/check56/56-writes-word365-run.json)",
+  "56-writes-word365-repaired.docx": "56-writes-word365.docx opened again: Word found unreadable content and repaired it; saved with File > Save As"
+ },
+ "files": [
+  {
+   "name": "56a-untyped-two-paragraphs-repaired.docx",
+   "sha1": "96d88e5855c7a1b5d6d1595370ab081fb3afec36"
+  },
+  {
+   "name": "56b-text-two-paragraphs-repaired.docx",
+   "sha1": "64f3a0d3f6d9749f52785794c8db7afefffa76cc"
+  },
+  {
+   "name": "56c-richtext-two-paragraphs-repaired.docx",
+   "sha1": "bc2972a23cd9efeec53d03e90c0e79557f52c050"
+  },
+  {
+   "name": "56d-untyped-table-repaired.docx",
+   "sha1": "a8a438d42c6880e98effae13f3fa4e5f701b1de1"
+  },
+  {
+   "name": "56-writes-word365.docx",
+   "sha1": "ea87e16ed7a3abaf7a984c75854c9aaf486dd51b"
+  },
+  {
+   "name": "56-writes-word365-repaired.docx",
+   "sha1": "4a57eb57ff3dd6fef73e6c81685802b6ca1fecdc"
+  }
+ ]
+}

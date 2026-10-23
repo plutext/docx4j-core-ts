@@ -1,0 +1,902 @@
+{
+ "check": 56,
+ "mode": "run",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "cases": [
+  {
+   "n": 1,
+   "op": "paragraph-end",
+   "kind": "untyped",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "NEWPARA1"
+   },
+   "region": {
+    "text": "BEGIN1 paragraph-end untyped\\u000dstart1NEWPARA1\\u000dEND1\\u000d",
+    "paragraphs": [
+     "BEGIN1 paragraph-end untyped",
+     "start1NEWPARA1",
+     "END1"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN1 paragraph-end untyped</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 1\"/><w:tag w:val=\"c56-1\"/><w:id w:val=\"56001\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value1[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start1NEWPARA1</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END1</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start1NEWPARA1",
+     "paragraphs": [
+      "start1NEWPARA1"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start1\\u000d\\u000aNEWPARA1",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 2,
+   "op": "table-end",
+   "kind": "untyped",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: InvalidArgument: InvalidArgument",
+   "region": {
+    "text": "BEGIN2 table-end untyped\\u000dstart2\\u000dEND2\\u000d",
+    "paragraphs": [
+     "BEGIN2 table-end untyped",
+     "start2",
+     "END2"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN2 table-end untyped</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 2\"/><w:tag w:val=\"c56-2\"/><w:id w:val=\"56002\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value2[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start2</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END2</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start2",
+     "paragraphs": [
+      "start2"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start2",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 3,
+   "op": "text-newline",
+   "kind": "untyped",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "xy"
+   },
+   "region": {
+    "text": "BEGIN3 text-newline untyped\\u000dstart3xy\\u000dEND3\\u000d",
+    "paragraphs": [
+     "BEGIN3 text-newline untyped",
+     "start3xy",
+     "END3"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN3 text-newline untyped</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 3\"/><w:tag w:val=\"c56-3\"/><w:id w:val=\"56003\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value3[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start3xy</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END3</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start3xy",
+     "paragraphs": [
+      "start3xy"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start3xy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 4,
+   "op": "ooxml-end",
+   "kind": "untyped",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: GeneralException: GeneralException",
+   "region": {
+    "text": "BEGIN4 ooxml-end untyped\\u000dstart4\\u000dEND4\\u000d",
+    "paragraphs": [
+     "BEGIN4 ooxml-end untyped",
+     "start4",
+     "END4"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN4 ooxml-end untyped</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 4\"/><w:tag w:val=\"c56-4\"/><w:id w:val=\"56004\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value4[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start4</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END4</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start4",
+     "paragraphs": [
+      "start4"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start4",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 5,
+   "op": "paragraph-end",
+   "kind": "text-multi",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "NEWPARA5"
+   },
+   "region": {
+    "text": "BEGIN5 paragraph-end text-multi\\u000dstart5\\u000dNEWPARA5\\u000dEND5\\u000d",
+    "paragraphs": [
+     "BEGIN5 paragraph-end text-multi",
+     "start5",
+     "NEWPARA5",
+     "END5"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN5 paragraph-end text-multi</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 5\"/><w:tag w:val=\"c56-5\"/><w:id w:val=\"56005\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value5[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start5</w:t></w:r></w:p><w:p><w:r><w:t>NEWPARA5</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END5</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start5\\u000dNEWPARA5",
+     "paragraphs": [
+      "start5",
+      "NEWPARA5"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start5\\u000d\\u000aNEWPARA5",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 6,
+   "op": "table-end",
+   "kind": "text-multi",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: InvalidArgument: InvalidArgument",
+   "region": {
+    "text": "BEGIN6 table-end text-multi\\u000dstart6\\u000dEND6\\u000d",
+    "paragraphs": [
+     "BEGIN6 table-end text-multi",
+     "start6",
+     "END6"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN6 table-end text-multi</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 6\"/><w:tag w:val=\"c56-6\"/><w:id w:val=\"56006\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value6[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start6</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END6</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start6",
+     "paragraphs": [
+      "start6"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start6",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 7,
+   "op": "text-newline",
+   "kind": "text-multi",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "text": "BEGIN7 text-newline text-multi\\u000dstart7x\\u000by\\u000dEND7\\u000d",
+    "paragraphs": [
+     "BEGIN7 text-newline text-multi",
+     "start7x\\u000by",
+     "END7"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN7 text-newline text-multi</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 7\"/><w:tag w:val=\"c56-7\"/><w:id w:val=\"56007\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value7[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start7x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END7</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start7x\\u000by",
+     "paragraphs": [
+      "start7x\\u000by"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start7x\\u000d\\u000ay",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 8,
+   "op": "ooxml-end",
+   "kind": "text-multi",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: GeneralException: GeneralException",
+   "region": {
+    "text": "BEGIN8 ooxml-end text-multi\\u000dstart8\\u000dEND8\\u000d",
+    "paragraphs": [
+     "BEGIN8 ooxml-end text-multi",
+     "start8",
+     "END8"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN8 ooxml-end text-multi</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 8\"/><w:tag w:val=\"c56-8\"/><w:id w:val=\"56008\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value8[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start8</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END8</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start8",
+     "paragraphs": [
+      "start8"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start8",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 9,
+   "op": "paragraph-end",
+   "kind": "text-single",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "NEWPARA9"
+   },
+   "region": {
+    "text": "BEGIN9 paragraph-end text-single\\u000dstart9NEWPARA9\\u000dEND9\\u000d",
+    "paragraphs": [
+     "BEGIN9 paragraph-end text-single",
+     "start9NEWPARA9",
+     "END9"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN9 paragraph-end text-single</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 9\"/><w:tag w:val=\"c56-9\"/><w:id w:val=\"56009\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value9[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start9NEWPARA9</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END9</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start9NEWPARA9",
+     "paragraphs": [
+      "start9NEWPARA9"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start9\\u000d\\u000aNEWPARA9",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 10,
+   "op": "table-end",
+   "kind": "text-single",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: InvalidArgument: InvalidArgument",
+   "region": {
+    "text": "BEGIN10 table-end text-single\\u000dstart10\\u000dEND10\\u000d",
+    "paragraphs": [
+     "BEGIN10 table-end text-single",
+     "start10",
+     "END10"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN10 table-end text-single</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 10\"/><w:tag w:val=\"c56-10\"/><w:id w:val=\"56010\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value10[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start10</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END10</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start10",
+     "paragraphs": [
+      "start10"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start10",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 11,
+   "op": "text-newline",
+   "kind": "text-single",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "xy"
+   },
+   "region": {
+    "text": "BEGIN11 text-newline text-single\\u000dstart11xy\\u000dEND11\\u000d",
+    "paragraphs": [
+     "BEGIN11 text-newline text-single",
+     "start11xy",
+     "END11"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN11 text-newline text-single</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 11\"/><w:tag w:val=\"c56-11\"/><w:id w:val=\"56011\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value11[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start11xy</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END11</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start11xy",
+     "paragraphs": [
+      "start11xy"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start11xy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 12,
+   "op": "ooxml-end",
+   "kind": "text-single",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: GeneralException: GeneralException",
+   "region": {
+    "text": "BEGIN12 ooxml-end text-single\\u000dstart12\\u000dEND12\\u000d",
+    "paragraphs": [
+     "BEGIN12 ooxml-end text-single",
+     "start12",
+     "END12"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN12 ooxml-end text-single</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 12\"/><w:tag w:val=\"c56-12\"/><w:id w:val=\"56012\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value12[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start12</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END12</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start12",
+     "paragraphs": [
+      "start12"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start12",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 13,
+   "op": "paragraph-end",
+   "kind": "richtext",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "NEWPARA13"
+   },
+   "region": {
+    "text": "BEGIN13 paragraph-end richtext\\u000dstart13NEWPARA13\\u000dEND13\\u000d",
+    "paragraphs": [
+     "BEGIN13 paragraph-end richtext",
+     "start13NEWPARA13",
+     "END13"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN13 paragraph-end richtext</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 13\"/><w:tag w:val=\"c56-13\"/><w:id w:val=\"56013\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value13[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start13NEWPARA13</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END13</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start13NEWPARA13",
+     "paragraphs": [
+      "start13NEWPARA13"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start13\\u000d\\u000aNEWPARA13",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 14,
+   "op": "table-end",
+   "kind": "richtext",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: InvalidArgument: InvalidArgument",
+   "region": {
+    "text": "BEGIN14 table-end richtext\\u000dstart14\\u000dEND14\\u000d",
+    "paragraphs": [
+     "BEGIN14 table-end richtext",
+     "start14",
+     "END14"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN14 table-end richtext</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 14\"/><w:tag w:val=\"c56-14\"/><w:id w:val=\"56014\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value14[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start14</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END14</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start14",
+     "paragraphs": [
+      "start14"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start14",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 15,
+   "op": "text-newline",
+   "kind": "richtext",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "result": {
+    "via": "body.getContentControls()",
+    "returned": "xy"
+   },
+   "region": {
+    "text": "BEGIN15 text-newline richtext\\u000dstart15xy\\u000dEND15\\u000d",
+    "paragraphs": [
+     "BEGIN15 text-newline richtext",
+     "start15xy",
+     "END15"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN15 text-newline richtext</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 15\"/><w:tag w:val=\"c56-15\"/><w:id w:val=\"56015\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value15[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start15xy</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END15</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start15xy",
+     "paragraphs": [
+      "start15xy"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start15xy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 16,
+   "op": "ooxml-end",
+   "kind": "richtext",
+   "lookups": {
+    "body.getContentControls()": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(PlainText)": {
+     "listed": 16,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls(RichText)": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "paragraph.parentContentControlOrNullObject": {
+     "found": true,
+     "type": "PlainText"
+    }
+   },
+   "error": "error: GeneralException: GeneralException",
+   "region": {
+    "text": "BEGIN16 ooxml-end richtext\\u000dstart16\\u000dEND16\\u000d",
+    "paragraphs": [
+     "BEGIN16 ooxml-end richtext",
+     "start16",
+     "END16"
+    ],
+    "ooxml": "<w:p><w:r><w:t>BEGIN16 ooxml-end richtext</w:t></w:r></w:p><w:sdt><w:sdtPr><w:alias w:val=\"Check 56 control 16\"/><w:tag w:val=\"c56-16\"/><w:id w:val=\"56016\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check56'\" w:xpath=\"/ns0:check56[1]/ns0:value16[1]\" w:storeItemID=\"{56565656-5656-4565-8565-565656565656}\"/><w:text/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>start16</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:t>END16</w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls()",
+     "type": "PlainText",
+     "text": "start16",
+     "paragraphs": [
+      "start16"
+     ],
+     "tables": 0
+    },
+    "node": {
+     "value": "start16",
+     "wellFormed": true
+    }
+   }
+  }
+ ],
+ "caseCount": 16
+}

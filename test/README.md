@@ -4452,3 +4452,73 @@ async function check() {
      - **A single-line control** dropped U+000B from its text (`xy`), but its node read `x\r\ny`.
      - **Case 10:** a node holding `line1`, a line feed and `line2` showed as `line1`, a `w:br` and `line2`, and Word's
        XML of it read `line1\r\nline2`, in the session and in the save.
+56. A bound block control of plain text and a second block (CR-002 section 61, 2026-10-23; Jason: "write check 56").
+   docx4j-python's check found that Word can't open a file holding a bound block control with no type element and two
+   paragraphs. This check opens the same shape as this package writes it, and the `w:text` and `w:richText` kinds beside
+   it, and then measures what Office JS's own block writes do to each kind. The files are on the share in `__tmp/56/`, as
+   `fixtures/check56/build.mjs` writes them (git ignores the `.docx`; `check56Bytes` and `check56OpenFiles` give a test
+   the same parts). The snippet is beside them, `check56-script-lab.html` and `check56-script-lab.js` (WordApi 1.5),
+   copies of `fixtures/check56/`'s.
+   - **The four files to open**, each one block-level control tagged `c56-1`, bound to a custom XML node holding
+     `start1`, given a second block by this package's own writers today:
+     - `56a-untyped-two-paragraphs.docx`: no type element, `start1` and `second paragraph` (docx4j-python's 3a);
+     - `56b-text-two-paragraphs.docx`: `w:text w:multiLine`, the same two paragraphs;
+     - `56c-richtext-two-paragraphs.docx`: `w:richText`, the same two paragraphs;
+     - `56d-untyped-table.docx`: no type element, a one-row table before its paragraph, so that the control still ends
+       with a paragraph.
+   - **The snippet's file**, `56-writes.docx`: a region per case, `BEGIN<n> <operation> <kind>`, a block-level control
+     tagged `c56-<n>` holding one paragraph `start<n>` and bound to `value<n>` (namespace `urn:check56`), then `END<n>`.
+     The kinds: `untyped` (no type element), `text-multi` (`w:text w:multiLine`), `text-single` (`w:text`) and `richtext`
+     (`w:richText`). Each kind gets each write, at the control's end: `insertParagraph('NEWPARA<n>', 'End')`,
+     `insertTable(1, 2, 'End', ...)`, `insertText('x\ny', 'End')`, and `insertOoxml` of two paragraphs. That makes 16
+     cases. Each control is looked for through `getContentControls()` (all, then plain text, then rich text) and
+     `contentControls` on the body, and through its paragraph's `parentContentControlOrNullObject`, each recorded. The
+     write goes through the first that finds it.
+   - **The questions:** does Word open each of the four files, or repair it, and how? Does Office JS refuse each write,
+     or what does it write: a second paragraph, a table, a line break? Does Word then open its own save?
+   - **Steps, in Word 365 only.** First the four files, one at a time:
+     1. Open `__tmp/56/56a-untyped-two-paragraphs.docx`. Say whether it opens, reports a problem, or offers a repair.
+     2. If Word offers to repair it, click Yes, then File > Save As `56a-untyped-two-paragraphs-repaired.docx` in
+        `__tmp/56`, and close it. If it opens, close it without saving.
+     3. The same for `56b-text-two-paragraphs.docx`, `56c-richtext-two-paragraphs.docx` and `56d-untyped-table.docx`,
+        a repaired one saved as its name with `-repaired` before `.docx`.
+
+     Then the snippet:
+     4. Open `__tmp/56/56-writes.docx`. Say whether Word reports a problem or offers a repair.
+     5. File > Save As `56-writes-word365.docx`, in the same folder `__tmp/56`, before anything else.
+     6. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/56/check56-script-lab.html` over the HTML tab and `__tmp/56/check56-script-lab.js` over the Script tab.
+     7. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/56/result-run.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane, which
+        has the focus, and the document isn't saved.)
+     9. File > Close. Open `__tmp/56/56-writes-word365.docx` again, and say whether Word reports a problem or offers a
+        repair. If it offers one, click Yes, then File > Save As `56-writes-word365-repaired.docx` in `__tmp/56`.
+   - **What the JSON holds.** For each case: each lookup (how many controls it lists, whether it finds the case's, its
+     type), the write's way and what it returned, or Office JS's error as `error: <code>: <message>`; and the region
+     after it: its text, its paragraphs' text, its OOXML (the body's content), the control's type, text, paragraphs and
+     table count, and its node's value with whether the custom XML part's XML parses.
+   - **What this package gives**, before section 61 is implemented. `bound-controls.test.mjs` runs the snippet through
+     the Word shim, every control found through `body.contentControls`. `insertParagraph` gives every kind a second
+     paragraph, and `insertText` keeps its `\n` in the `w:t` (section 60 not implemented either). The shim has no
+     `insertTable` or `insertOoxml` on a control, no `getContentControls`, no `parentContentControlOrNullObject` and no
+     `customXmlParts`, so those steps read `NotImplemented`. The four files to open are this package's own writes.
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** The JSON is
+     `fixtures/check56/56-writes-word365-run.json`, and Word's saves are in `check56/` with a SHA-1 manifest: the four
+     files' repairs, the save after the run, and that save's repair. CR-002 section 61.3 has every case. In short:
+     - **All four files to open** were unreadable to Word (56a, 56b, 56c and 56d alike: `w:text`, `w:richText` and a
+       table too). Each repair made the control plain text (`<w:text/>`, multi-line kept for 56b, a `w:richText`
+       replaced) and refilled it from its node (`start1`); the second paragraph, or the table, was lost.
+     - **On opening `56-writes.docx`** (without a problem), Word read every bound control as plain text: the untyped and `w:richText`
+       controls became `<w:text/>`, and every lookup gave `PlainText`. `getContentControls()` with no types found all
+       16, as did `parentContentControlOrNullObject`; `getContentControls` with `RichText` and `contentControls` found
+       none.
+     - **`insertTable`** threw `InvalidArgument` and **`insertOoxml`** of two paragraphs `GeneralException`, in every
+       kind, and nothing changed.
+     - **`insertParagraph('NEWPARA<n>', 'End')`:** in a single-line control, the text joined its paragraph
+       (`start1NEWPARA1`) and its node read `start1\r\nNEWPARA1`. In the multi-line control (case 5), a second
+       paragraph inside the control, its node `start5\r\nNEWPARA5`.
+     - **`insertText('x\ny', 'End')`:** a single-line control dropped the line feed (`start3xy`, its node the same); the
+       multi-line one wrote a `w:br`, its node `start7x\r\ny`.
+     - **Step 9:** Word found unreadable content in its own save and repaired it, keeping `document.xml` byte for byte
+       (only the revision count, dates, rsids and paragraph ids changed). Case 5's two paragraphs are the likely cause,
+       56b's shape, though the save also holds single-line controls whose nodes hold `\r\n`.

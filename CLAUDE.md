@@ -269,6 +269,9 @@ controls; Word's Accept All save in `test/check54/`) the same way, its run and, 
 `characters.test.mjs` CR-002 section 60's: check 55's and 55b's files (`check55Bytes`, `check55bBytes`, `test/fixtures/check55/`) and their Script Lab snippets
 held to each other, every case parsed by the snippet's own parser, and the snippet run through the Word shim; Word 365's
 run (its JSONs beside the build, its save in `test/check55/`, outside `fixtures/`, with a SHA-1 manifest),
+`bound-controls.test.mjs` CR-002 section 61's: check 56's snippet file and snippet held to each other and the snippet run through the Word
+shim, and its four files to open holding their shapes (`check56Bytes`, `check56OpenFiles`, `test/fixtures/check56/`); Word 365's
+run (its JSON beside the build, its saves and repairs in `test/check56/`, with a SHA-1 manifest),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance
