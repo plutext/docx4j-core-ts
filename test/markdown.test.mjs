@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
 import {
   WordprocessingMLPackage, Texts, PlainText, TextOptions, MarkdownExporter, MarkdownExportOptions,
-  NumberingDefinitionsPart, EndnotesPart, CommentsPart, ImagePart, XmlPart,
+  NumberingDefinitionsPart, EndnotesPart, CommentsPart, ImagePart, XmlPart, LinkTargets, Namespaces, setLogger,
 } from '../dist/index.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -508,3 +508,81 @@ test('MarkdownExportOptions: the view is the text options\'; options are taken a
   assert.equal(new MarkdownExporter(o).options, o);
   assert.equal(new MarkdownExportOptions().textOptions.view, 'accepted');
 });
+
+// ------------------------------------------------------------------ CR-012 section 21: docx4j CR-056's links
+
+// docx4j-core-tests LinkTargetsTest (84ee9741c), its property an argument here
+test('LinkTargets: the allowlist, the scheme read as a browser reads it, schemes added, the excerpt (docx4j LinkTargetsTest)', () => {
+  for (const t of [undefined, '', 'http://example.org/a', 'HTTPS://example.org/b', 'mailto:a@example.org',
+    'ftp://example.org/c', 'file:///C:/docs/d.docx', 'tel:+61000000', 'news:comp.lang.java', 'sub/dir/page.html',
+    '#bookmark1', 'C:\\docs\\e.docx', 'c:/docs/e.docx', '\\\\server\\share\\f.docx', 'page.html?x=javascript:1',
+    'page.html#javascript:1', '/root/path:with:colons', '  http://example.org/leading-spaces']) {
+    assert.ok(LinkTargets.isSafe(t), String(t));
+  }
+  for (const t of ['javascript:alert(1)', 'JavaScript:alert(1)', ' \u0001java\tscri\npt:alert(2)',
+    '\r\njavascript:alert(3)', 'vbscript:MsgBox(1)', 'data:text/html,<script>alert(1)</script>', 'onenote:///x',
+    'ms-word:ofe|u|https://example.org/x.docx', 'C:', 'java script:alert(1)', 'about:blank', 'blob:x']) {
+    assert.ok(!LinkTargets.isSafe(t), t);
+  }
+  assert.equal(LinkTargets.scheme(' \u0001java\tscri\npt:alert(2)'), 'javascript');
+  assert.equal(LinkTargets.scheme('HTTP://x'), 'http');
+  assert.equal(LinkTargets.scheme('sub/dir:x'), undefined);
+  assert.equal(LinkTargets.scheme('#frag:x'), undefined);
+  assert.equal(LinkTargets.scheme(':x'), undefined);
+  assert.equal(LinkTargets.scheme('C:\\x'), 'c');
+  // the property's test: docx4j's comma-separated value, as the list it splits to
+  const extra = ' OneNote:, ms-word ,,notes'.split(',');
+  for (const scheme of LinkTargets.defaultSchemes()) assert.ok(LinkTargets.schemes(extra).includes(scheme));
+  assert.ok(LinkTargets.schemes(extra).includes('onenote'));
+  assert.ok(LinkTargets.isSafe('onenote:///x', extra));
+  assert.ok(LinkTargets.isSafe('ms-word:ofe|u|https://example.org/x.docx', extra));
+  assert.ok(LinkTargets.isSafe('Notes://server/db.nsf', extra));
+  assert.ok(!LinkTargets.isSafe('javascript:alert(1)', extra), 'a default is never removed');
+  assert.ok(!LinkTargets.isSafe('onenote:///x'), 'only where given');
+  assert.equal(LinkTargets.excerpt('java\tscri\npt:alert(1)'), 'java scri pt:alert(1)');
+  assert.equal(LinkTargets.excerpt('x'.repeat(200)).length, 83);
+});
+
+/** docx4j-markdown MarkdownHostileLinksTest's document: a paragraph per target, a w:hyperlink to it. */
+async function hostileLinks() {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const main = pkg.getMainDocumentPart();
+  const rels = main.relationshipsPart ?? main.getRelationshipsPart(true);
+  const escape = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Java's String.trim drops every character up to U+0020 at either end, U+0001 too
+  const javaTrim = (text) => text.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '');
+  for (const target of ['javascript:alert(1)', ' \u0001java\tscri\npt:alert(2)', 'vbscript:MsgBox(3)', 'https://example.org/ok', '#bookmark1', 'sub/page.html']) {
+    const rel = rels.addExternalRelationship(Namespaces.HYPERLINK, target);
+    await body.insertXml(`<w:p><w:hyperlink r:id="${rel.id}"><w:r><w:t xml:space="preserve">${escape(`text for ${javaTrim(target)}`)}</w:t></w:r></w:hyperlink></w:p>`, 'End');
+  }
+  return pkg;
+}
+
+test('the Markdown writes no link whose target is a script scheme: the text, once logged; a benign link kept (docx4j MarkdownHostileLinksTest)', async () => {
+  const logged = [];
+  setLogger({ warn: (message) => logged.push(message) });
+  let md;
+  let allowed;
+  try {
+    md = await MarkdownExporter.export(await hostileLinks());
+    allowed = await new MarkdownExporter({ linkSchemes: ['vbscript'] }).export(await hostileLinks());
+  } finally {
+    setLogger();
+  }
+  assert.ok(!(md.includes('(javascript:') || md.includes('(<javascript:')), `javascript: destination\n${md}`);
+  assert.ok(!(md.includes('](') && md.includes('scri\npt:alert(2)>)')), `sneaky javascript: destination\n${md}`);
+  assert.ok(!(md.includes('(vbscript:') || md.includes('(<vbscript:')), `vbscript: destination\n${md}`);
+  assert.ok(md.includes('text for javascript:alert(1)'), `the text kept\n${md}`);
+  assert.ok(!md.includes('[text for javascript:alert(1)]'), `a link around the refused text\n${md}`);
+  // benignLinksKept
+  assert.ok(md.includes('(https://example.org/ok)') || md.includes('(<https://example.org/ok>)'), md);
+  assert.ok(md.includes('(#bookmark1)') || md.includes('(<#bookmark1>)'), md);
+  assert.ok(md.includes('(sub/page.html)') || md.includes('(<sub/page.html>)'), md);
+  // one warning for each document, naming its first refused target (docx4j WARNs once, DEBUG after)
+  assert.deepEqual(logged, Array(2).fill('Link target refused (scheme not in MarkdownExportOptions.linkSchemes): the text is written without a link: javascript:alert(1)'));
+  // a scheme the caller adds is written as a link; a default refusal stays
+  assert.ok(!allowed.includes('(javascript:') && !allowed.includes('(<javascript:'), allowed);
+  assert.ok(allowed.includes('(vbscript:MsgBox(3))') || allowed.includes('(<vbscript:MsgBox(3)>)'), allowed);
+});
+

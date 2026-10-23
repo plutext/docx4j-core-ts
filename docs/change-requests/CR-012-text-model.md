@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20).
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day.
 
 ## 1. Why
 
@@ -2140,3 +2140,53 @@ four readings of all 282 documents. So are the plain text where it is compared, 
   cut. The suite's Markdown rows and section 16.5's sweep cover it today.
 - The registry entry `core-ts/CR-012.6` is in (portfolio `90fb193`, 2026-10-23).
 
+
+## 21. No script-scheme link in the Markdown: docx4j CR-056 (implemented 2026-10-23)
+
+*From docx4j-25's hand-off of docx4j CR-056, accepted 2026-10-23, phases 1 to 3 on `VERSION_17_3_5` (`84ee9741c`,
+`67c44d66a`, `2933e63b7`). Jason, 2026-10-23: "yes, do it before the next release; as a CR-012 section".*
+
+**The defect** (CWE-79, the one apache/poi#1455 fixed in POI). The Markdown export wrote a link's target as its
+destination as it was. A `w:hyperlink` relationship target or a HYPERLINK field target of `javascript:alert(1)`
+became `[text](javascript:alert(1))`, which runs script where a page renders the Markdown as HTML and doesn't
+sanitize it. docx4j measured the same on 17.3.4.
+
+**What applies here.** CR-056 covers docx4j's HTML, XSL-FO, Markdown and docx4j-tika outputs. Of those this package
+has the Markdown alone.
+- **Links (CR-056's first oracle): ported.**
+- **Style IDs CSS-escaped in a stylesheet (its second): not applicable.** Nothing here writes HTML, CSS or FO.
+- **Phase 3, altChunk links kept for the inspector: not applicable.** There is no inspector here.
+- **The HTML import (`./html`): unchanged.** CR-056 leaves imports alone, and `webAddress` takes only `http`,
+  `https` and `mailto` links already.
+- **A picture's click target** (`a:hlinkClick`): docx4j drops the HTML's `<a>` around the image. The Markdown, here as
+  in docx4j-markdown, writes a picture as an image and never with its click target. A picture inside a `w:hyperlink`
+  is in the link's runs, which the rule covers.
+
+**The port:**
+- `LinkTargets` (`src/model/text/LinkTargets.mts`, exported), docx4j's `LinkTargets` line for line:
+  - safe: no scheme (a relative path, a fragment, a UNC path), a drive path, or `http`, `https`, `ftp`, `mailto`,
+    `file`, `news` or `tel`;
+  - the scheme read as a browser reads it: leading controls and spaces ignored, tabs and line breaks dropped anywhere,
+    case ignored, everything before the first `:` that comes before any `/`, `?` or `#`;
+  - so a malformed scheme (`java script:`) is refused.
+- `WmlToMarkdown.linked` writes a refused target's runs as text, with no link (docx4j's 10 lines).
+- **Two departures, from what this package doesn't have:**
+  - docx4j's JVM-wide property `docx4j.convert.out.linkSchemes` is `MarkdownExportOptions.linkSchemes`, an array.
+    Its entries are added to the defaults, never removing one, and read as the property's are (trimmed,
+    lower-cased, a trailing `:` dropped). This package has no properties file, and a host may export several
+    documents under different settings (as `pkg.fonts.defaultTheme` stands for `docx4j.fonts.defaultTheme`).
+  - docx4j WARNs once per document, naming the first refused target in an 80-character excerpt, and logs the rest at
+    DEBUG. Here the first goes to the settable logger property resolution writes to (`setLogger`, `console.warn` by
+    default), and the rest go nowhere: the logger has no DEBUG.
+
+**Tests** (`markdown.test.mjs`): docx4j-core-tests' `LinkTargetsTest` (safe and refused targets, the scheme as a
+browser reads it, the property as an argument, the excerpt), and docx4j-markdown's `MarkdownHostileLinksTest` (its
+document of six links, three refused, built here as docx4j builds it). Added: the one warning per export, and
+`linkSchemes` admitting a scheme.
+
+**What it changes.** Nothing in a committed document. Over the 314 `.docx` committed under `test/`, the text model
+reads 61 link targets: `https` 44, `file` 9, no scheme 6, `http` 1, `mailto` 1. None is refused, so no export moves,
+and the Markdown still agrees with docx4j-markdown's byte for byte wherever it did.
+
+**Next from docx4j:** CR-057 (alt text escaping, altChunk fetching), accepted with CR-056, isn't handed off yet. Alt
+text reaches the Markdown here.

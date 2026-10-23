@@ -38,6 +38,8 @@ export interface MarkdownExportOptionsInit {
   view?: TextModelView;
   /** Where each picture points; a data URI where unset. */
   imageDestination?: MarkdownImageDestination;
+  /** Schemes a link may use beyond `LinkTargets`' defaults. */
+  linkSchemes?: readonly string[];
 }
 
 /**
@@ -58,6 +60,13 @@ export class MarkdownExportOptions {
   textOptions: TextOptions = new TextOptions();
   /** Where each picture points; a data URI (`data:image/png;base64,...`) where unset. */
   imageDestination: MarkdownImageDestination | undefined;
+  /**
+   * Schemes a link may use beyond `LinkTargets`' defaults (`http`, `https`, `ftp`, `mailto`, `file`, `news`, `tel`),
+   * for documents that carry `onenote:` or `ms-word:` links. A link whose target has any other scheme is written as
+   * its text, with no link (docx4j CR-056, CR-012 section 21). docx4j's JVM-wide property
+   * `docx4j.convert.out.linkSchemes`; added to the defaults, never removing one.
+   */
+  linkSchemes: readonly string[] = [];
 
   static of(init?: MarkdownExportOptionsInit | MarkdownExportOptions): MarkdownExportOptions {
     if (init instanceof MarkdownExportOptions) return init;
@@ -65,6 +74,7 @@ export class MarkdownExportOptions {
     if (init?.textOptions !== undefined) o.textOptions = TextOptions.of(init.textOptions);
     if (init?.view !== undefined) o.view = init.view;
     o.imageDestination = init?.imageDestination;
+    if (init?.linkSchemes !== undefined) o.linkSchemes = [...init.linkSchemes];
     return o;
   }
 
@@ -109,8 +119,9 @@ export interface MarkdownBlocks {
  *   adjacent list and going on at Word's count after a paragraph that interrupts it (REQ-703);
  * - bold, italic, struck-through and code text where a run adds them to its paragraph's style; a code-styled
  *   paragraph, or one in a mono paragraph style, a fenced code block;
- * - links from a `w:hyperlink` or a HYPERLINK field; pictures with the describer's text, their image a data
- *   URI unless `imageDestination` says otherwise;
+ * - links from a `w:hyperlink` or a HYPERLINK field, a target whose scheme isn't allowed (`javascript:`) written
+ *   as its text with no link (`LinkTargets`, `linkSchemes`); pictures with the describer's text, their image a
+ *   data URI unless `imageDestination` says otherwise;
  * - notes `[^1]` and `[^e1]`, their definitions after the body; GFM tables, the header the `w:tblHeader` rows
  *   or the first row, a cell's paragraphs `<br>` apart; block quotes from the Quote styles;
  * - in the `markup` view, CriticMarkup: `{++inserted++}`, `{--deleted--}` and `{>>comment<<}`;
@@ -157,7 +168,7 @@ export class MarkdownExporter {
       result = await Texts.of(source, this.options.textOptions);
       styles = source;
     }
-    const writer = new WmlToMarkdown(result, await resolverOf(styles));
+    const writer = new WmlToMarkdown(result, await resolverOf(styles), this.options.linkSchemes);
     const document = writer.convert();
     let index = 0;
     for (const { node, run } of writer.images) {

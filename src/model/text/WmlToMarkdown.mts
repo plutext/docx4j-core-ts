@@ -1,6 +1,8 @@
 // CR-012 phase 3: the block model written as a Markdown tree, docx4j-markdown's org.docx4j.markdown.WmlToMarkdown
 // (VERSION_17_3_4, unchanged since 198d015a3), which commonmark.mts then serializes as commonmark-java does.
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
+import { log } from '../properties/log.mjs';
+import { LinkTargets } from './LinkTargets.mjs';
 import type { TextOptions } from './TextOptions.mjs';
 import type { TextResult, TextBlock, TextRun, TextRevision, TextNumbering, TextRow, TextCell, TextComment, NoteType } from './TextResult.mjs';
 import {
@@ -62,11 +64,15 @@ export class WmlToMarkdown {
   private readonly styleIndents = new Map<string, number>();
   /** The images, in the order written, for their destinations. */
   readonly images: PendingImage[] = [];
+  /** Whether a link target was refused (`LinkTargets`): logged once per document. */
+  private linkRefused = false;
 
   constructor(
     private readonly result: TextResult,
     /** For a style's own indent (a block quote's depth); undefined where there are no styles to ask. */
     private readonly resolver: PropertyResolver | undefined,
+    /** The schemes a link may use beyond `LinkTargets`' defaults (`MarkdownExportOptions.linkSchemes`). */
+    private readonly linkSchemes: readonly string[] = [],
   ) {
     this.textOptions = result.options;
   }
@@ -571,9 +577,15 @@ export class WmlToMarkdown {
   private linked(runs: readonly TextRun[], sink: InlineSink): void {
     let i = 0;
     while (i < runs.length) {
-      const target = runs[i]!.link;
+      let target = runs[i]!.link;
       let j = i;
       while (j < runs.length && runs[j]!.link === target) j++;
+      if (target !== undefined && !LinkTargets.isSafe(target, this.linkSchemes)) {
+        // docx4j CR-056: a script-scheme target; the text, with no link (CR-012 section 21)
+        if (!this.linkRefused) log.warn(LinkTargets.refusedMessage(target));
+        this.linkRefused = true;
+        target = undefined;
+      }
       if (target === undefined) {
         for (let k = i; k < j; k++) this.run(runs[k]!, sink);
       } else {
