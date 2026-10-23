@@ -1,0 +1,562 @@
+{
+ "check": "55b",
+ "mode": "run",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "cases": [
+  {
+   "n": 1,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+0041",
+   "written": "xAy",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "xAy"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN1 bound-multi untracked U+0041",
+     "BOUND1 xAy",
+     "END1"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND1 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 1\"/><w:tag w:val=\"c55b-1\"/><w:id w:val=\"55101\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value1[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>xAy</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "xAy"
+    },
+    "node": {
+     "value": "xAy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 2,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN2 bound-multi untracked U+000B",
+     "BOUND2 x\\u000by",
+     "END2"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND2 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 2\"/><w:tag w:val=\"c55b-2\"/><w:id w:val=\"55102\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value2[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "x\\u000by"
+    },
+    "node": {
+     "value": "x\\u000d\\u000ay",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 3,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN3 bound-multi untracked U+000A",
+     "BOUND3 ",
+     "x\\u000by",
+     "END3"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND3 </w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls",
+     "type": "PlainText",
+     "text": "x\\u000by"
+    },
+    "node": {
+     "value": "x\\u000d\\u000ay",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 4,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN4 bound-multi untracked U+000D",
+     "BOUND4 ",
+     "x\\u000by",
+     "END4"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND4 </w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls",
+     "type": "PlainText",
+     "text": "x\\u000by"
+    },
+    "node": {
+     "value": "x\\u000d\\u000ay",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 5,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u001ey"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN5 bound-multi untracked U+001E",
+     "BOUND5 x\\u001ey",
+     "END5"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND5 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 5\"/><w:tag w:val=\"c55b-5\"/><w:id w:val=\"55105\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value5[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>x</w:t></w:r><w:r><w:noBreakHyphen/><w:t>y</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "x\\u001ey"
+    },
+    "node": {
+     "value": "x-y",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 6,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+0002",
+   "written": "x\\u0002y",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u0002y"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN6 bound-multi untracked U+0002",
+     "BOUND6 x\\u0002y",
+     "END6"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND6 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 6\"/><w:tag w:val=\"c55b-6\"/><w:id w:val=\"55106\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value6[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "x\\u0002y"
+    },
+    "node": {
+     "value": "x y",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 7,
+   "op": "bound-single",
+   "tracked": false,
+   "spec": "U+0041",
+   "written": "xAy",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "xAy"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN7 bound-single untracked U+0041",
+     "BOUND7 xAy",
+     "END7"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND7 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 7\"/><w:tag w:val=\"c55b-7\"/><w:id w:val=\"55107\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value7[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text/></w:sdtPr><w:sdtContent><w:r><w:t>xAy</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "xAy"
+    },
+    "node": {
+     "value": "xAy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 8,
+   "op": "bound-single",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN8 bound-single untracked U+000B",
+     "BOUND8 xy",
+     "END8"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND8 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 8\"/><w:tag w:val=\"c55b-8\"/><w:id w:val=\"55108\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value8[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text/></w:sdtPr><w:sdtContent><w:r><w:t>xy</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "xy"
+    },
+    "node": {
+     "value": "x\\u000d\\u000ay",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 9,
+   "op": "bound-single",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {
+    "via": "range.getContentControls",
+    "returned": "xy"
+   },
+   "region": {
+    "paragraphs": [
+     "BEGIN9 bound-single untracked U+000A",
+     "BOUND9 ",
+     "xy",
+     "END9"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND9 </w:t></w:r></w:p><w:p/>",
+    "control": {
+     "via": "body.getContentControls",
+     "type": "PlainText",
+     "text": "xy"
+    },
+    "node": {
+     "value": "xy",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 10,
+   "op": "bound-read",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": null,
+   "lookups": {
+    "range.getContentControls": {
+     "listed": 1,
+     "found": true,
+     "type": "PlainText"
+    },
+    "body.getContentControls": {
+     "listed": 10,
+     "found": true,
+     "type": "PlainText"
+    },
+    "paragraph.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "range.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    },
+    "body.contentControls": {
+     "listed": 0,
+     "found": false,
+     "type": null
+    }
+   },
+   "result": {},
+   "region": {
+    "paragraphs": [
+     "BEGIN10 bound-read untracked U+000A",
+     "BOUND10 line1\\u000bline2",
+     "END10"
+    ],
+    "ooxml": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND10 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55b bound 10\"/><w:tag w:val=\"c55b-10\"/><w:id w:val=\"55110\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55b'\" w:xpath=\"/ns0:check55b[1]/ns0:value10[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>line1</w:t></w:r><w:r><w:br/><w:t>line2</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+    "control": {
+     "via": "range.getContentControls",
+     "type": "PlainText",
+     "text": "line1\\u000bline2"
+    },
+    "node": {
+     "value": "line1\\u000d\\u000aline2",
+     "wellFormed": true
+    }
+   }
+  }
+ ],
+ "caseCount": 10
+}

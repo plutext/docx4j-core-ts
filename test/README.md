@@ -4396,3 +4396,59 @@ async function check() {
      - **The bound controls (52 to 58) weren't measured.** `body.contentControls.getByTag('c55-<n>')` found none of
        them (`ItemNotFound`), so nothing was written. Their nodes still held `start<n>`, and the custom XML part's XML
        parsed.
+55b. The bound controls check 55 couldn't find (CR-002 section 60.5, 2026-10-23; Jason: "E1 to E4 as recommended", E4
+   being this check). Check 55's `body.contentControls.getByTag` found none of its seven bound plain-text controls, so
+   what Word writes into a bound control's custom XML node is still unmeasured. The file is `__tmp/55b/55b-bound.docx`
+   on the share, as `fixtures/check55/build.mjs` writes it (`check55bBytes`; git ignores the `.docx`). The snippet is
+   beside it, `check55b-script-lab.html` and `check55b-script-lab.js` (WordApi 1.5), copies of `fixtures/check55/`'s.
+   - **A region per case**, as in check 55: `BEGIN<n> <operation> <tracking> <characters>`, a paragraph `BOUND<n> `
+     and a plain-text content control tagged `c55b-<n>`, bound to `value<n>` in the custom XML part whose namespace is
+     `urn:check55b`, then `END<n>`. The control holds `start<n>`, as its node does.
+   - **Each control is looked for five ways, each recorded:** `getContentControls({ types: ['PlainText'] })` on the
+     paragraph's whole range and on the body, and `contentControls` on the paragraph, on its whole range and on the
+     body. The write goes through the first way that finds it.
+   - **The cases:**
+     - 1 to 6: a multi-line control, given `insertText('x' + c + 'y', 'Replace')` for U+0041 (`A`, a plain character,
+       to show a write reaches the node at all), U+000B, U+000A, U+000D, U+001E and U+0002.
+     - 7 to 9: a single-line control, the same for U+0041, U+000B and U+000A.
+     - 10: nothing written. The control holds `stale10`, and its node holds `line1`, a line feed and `line2`: what Word
+       shows of a node's line feed when it opens the file.
+
+     The questions: which ways find a plain-text control? What does the node hold after each write? Does the
+     control's text and markup follow? And what does Word make of a line feed in a node?
+   - **Steps, in Word 365 only.**
+     1. Open `__tmp/55b/55b-bound.docx`. Say whether Word reports a problem or offers a repair. Leave Word's view as it
+        opens.
+     2. File > Save As `55b-bound-word365.docx`, in the same folder `__tmp/55b`, before anything else, so that the
+        run's changes don't go into `55b-bound.docx`.
+     3. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/55b/check55b-script-lab.html` over the HTML tab and `__tmp/55b/check55b-script-lab.js` over the Script
+        tab.
+     4. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/55b/result-run.txt`.
+     5. Click into the document's text, then File > Save, which saves `55b-bound-word365.docx` as the run left it.
+        (Ctrl+S right after the run goes to Script Lab's pane, which has the focus, and the document isn't saved.)
+   - **What the JSON holds.** For each case: the text written, each lookup (how many controls it lists, whether it
+     finds the case's, and the control's type there), the write's way and the range it returned, and the region after
+     it: its paragraphs' text, the bound paragraph's OOXML, the control's text and type, and its node's value as the
+     custom XML part's XML holds it, with whether that XML parses (`wellFormed`). A step Office JS refuses reads
+     `error: <code>: <message>`.
+   - **What this package gives**, before section 60 is implemented. `characters.test.mjs` runs the snippet through
+     the Word shim. Every case's control is found through `paragraph.contentControls`, the first way the shim has:
+     it has no `getContentControls`, and no `customXmlParts` to read the node through. Each write keeps its
+     characters in the control's `w:t`. Case 10's control reads `stale10`, since a package read here isn't bound until
+     `applyBindings` runs.
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** The JSON is
+     `fixtures/check55/55b-bound-word365-run.json`, and Word's save after the run is `check55/55b-bound-word365.docx`
+     (in check 55's SHA-1 manifest). Word reported no problem opening the file. CR-002 section 60.6 has every case. In
+     short:
+     - **The lookups.** `getContentControls({ types: ['PlainText'] })` found every control, on the range (1 listed) and
+       on the body (10 listed). `contentControls` on the paragraph, the range and the body listed none: 0 of the
+       body's 10 plain-text controls.
+     - **A line break (U+000B) into a multi-line control** became a `w:br` in it, and `\r\n` in its node. A
+       non-breaking hyphen became `w:noBreakHyphen`, and `-` in the node. U+0002 went from the control (its text read
+       it until the save), and became a space in the node. `A` went into both as it is.
+     - **`\n` or `\r` into the control** split its paragraph and made the control a block-level one, its paragraph
+       holding `x`, a `w:br` and `y` (multi-line) or `xy` (single-line). Its node read `x\r\ny` (multi-line) or `xy`.
+     - **A single-line control** dropped U+000B from its text (`xy`), but its node read `x\r\ny`.
+     - **Case 10:** a node holding `line1`, a line feed and `line2` showed as `line1`, a `w:br` and `line2`, and Word's
+       XML of it read `line1\r\nline2`, in the session and in the save.
