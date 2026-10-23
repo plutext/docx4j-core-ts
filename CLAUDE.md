@@ -123,7 +123,7 @@ src/model/text/   the text model (CR-012, docx4j's org.docx4j.model.text): Texts
                   TextOptions keyed by the specification's option names, the block model (TextResult, TextBlock, TextRun, ...: docx4j's enum names as strings),
                   Extractor (the walk: selectedBranchOf's branch, the view through content/ResolvedView.mts, scope, characters), PlainText; each TextRun's
                   officeOffset is where its text lies in Paragraph.text (REQ-202's emulated-API exemption). The Office JS readers keep Office JS's text (D2).
-                  MarkdownExporter (export, blocks: a block's Markdown each; a link whose scheme LinkTargets refuses written as its text, CR-012 section 21) over WmlToMarkdown, docx4j-markdown's, which builds a Markdown tree that
+                  MarkdownExporter (export, blocks: a block's Markdown each; a link whose scheme LinkTargets.isSafe refuses, its character references decoded too, written as its text, CR-012 sections 21 and 21.2) over WmlToMarkdown, docx4j-markdown's, which builds a Markdown tree that
                   commonmark.mts, a port of commonmark-java's Markdown renderer (its BSD notice kept), writes as docx4j writes it (CR-012 phase 3)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
                   supported.generated.mts is written by scripts/generate-supported.mjs from test/office-js-subset.ts (npm run generate; pretest runs it): commit it with every subset change

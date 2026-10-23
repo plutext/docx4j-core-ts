@@ -2,11 +2,37 @@
 // `org.docx4j.convert.out.common.writer.LinkTargets`, docx4j 84ee9741c). A document's `w:hyperlink` relationship
 // target or HYPERLINK field target was written as the link's destination as it is, so a crafted
 // `javascript:alert(1)` target ran script in a page that rendered the Markdown as HTML (CWE-79, the defect
-// apache/poi#1455 fixed in POI). The rule is docx4j's allowlist of schemes; a refused target gives the link's text
-// with no link.
+// apache/poi#1455 fixed in POI). The rule is docx4j's allowlist of schemes, read as written and with its character
+// references decoded (docx4j's CR-056 section 14, CR-012 section 21.2 here); a refused target gives the link's text with
+// no link.
 
 /** docx4j's default schemes (POI's set). */
 const DEFAULT_SCHEMES: readonly string[] = Object.freeze(['http', 'https', 'ftp', 'mailto', 'file', 'news', 'tel']);
+
+/**
+ * The HTML5 named character references that decode to an ASCII character. A scheme is ASCII, so these are the ones that
+ * can build one or end one (`&colon;`, `&sol;`, `&num;`, `&quest;`, `&Tab;`, `&NewLine;`); any other decodes to a
+ * character no scheme holds, or stays as written, and either way leaves a scheme malformed, which is refused.
+ */
+const ASCII_REFERENCES: Readonly<Record<string, string>> = Object.freeze({
+  Tab: '\t', NewLine: '\n', excl: '!', quot: '"', QUOT: '"', num: '#', dollar: '$', percnt: '%', amp: '&', AMP: '&',
+  apos: "'", lpar: '(', rpar: ')', ast: '*', midast: '*', plus: '+', comma: ',', period: '.', sol: '/', colon: ':',
+  semi: ';', lt: '<', LT: '<', equals: '=', gt: '>', GT: '>', quest: '?', commat: '@', lsqb: '[', lbrack: '[',
+  bsol: '\\', rsqb: ']', rbrack: ']', Hat: '^', lowbar: '_', UnderBar: '_', grave: '`', DiacriticalGrave: '`',
+  lcub: '{', lbrace: '{', verbar: '|', vert: '|', VerticalLine: '|', rcub: '}', rbrace: '}',
+});
+
+/** docx4j `isSafeAsWritten`, `isSafe` for one reading of the target: no scheme, a drive path, or an allowed scheme. */
+function safeAsWritten(target: string, extra: readonly string[]): boolean {
+  const scheme = LinkTargets.scheme(target);
+  if (scheme === undefined) return true;
+  if (scheme.length === 1 && /\p{L}/u.test(scheme)) {
+    // a Windows drive path, C:\ or C:/
+    const next = normalise(target!).charAt(2);
+    return next === '\\' || next === '/';
+  }
+  return LinkTargets.schemes(extra).includes(scheme);
+}
 
 /** Leading controls and spaces removed; tabs and line breaks removed anywhere. */
 function normalise(target: string): string {
@@ -58,14 +84,46 @@ export const LinkTargets = {
    * write).
    */
   isSafe(target: string | undefined, extra: readonly string[] = []): boolean {
-    const scheme = LinkTargets.scheme(target);
-    if (scheme === undefined) return true;
-    if (scheme.length === 1 && /\p{L}/u.test(scheme)) {
-      // a Windows drive path, C:\ or C:/
-      const next = normalise(target!).charAt(2);
-      return next === '\\' || next === '/';
+    if (target === undefined || target === '') return true;
+    if (!safeAsWritten(target, extra)) return false;
+    // as a CommonMark renderer reads a destination, its character references decoded (docx4j CR-056 section 14)
+    const decoded = LinkTargets.decodeCharacterReferences(target)!;
+    return decoded === target || safeAsWritten(decoded, extra);
+  },
+
+  /**
+   * The target with its character references decoded as CommonMark decodes a link destination: a decimal (`&#58;`) or
+   * hex (`&#x3A;`) reference to its character, U+FFFD for zero, out of range or a surrogate; a named reference that
+   * stands for one ASCII character (`&colon;`, `&sol;`, `&Tab;`, ...) to that character. Other named references, and an
+   * `&` that begins no reference, stay as written. Decoded once, as a renderer decodes once. docx4j
+   * `decodeCharacterReferences`.
+   */
+  decodeCharacterReferences(target: string | undefined): string | undefined {
+    if (target === undefined || !target.includes('&')) return target;
+    let out = '';
+    let i = 0;
+    while (i < target.length) {
+      const c = target.charAt(i);
+      if (c !== '&') { out += c; i++; continue; }
+      const semi = target.indexOf(';', i);
+      if (semi < 0 || semi - i > 40) { out += c; i++; continue; }
+      const ref = target.substring(i + 1, semi);
+      let decoded: string | undefined;
+      if (ref.length > 1 && ref.charAt(0) === '#') {
+        const hex = ref.charAt(1) === 'x' || ref.charAt(1) === 'X';
+        const digits = ref.substring(hex ? 2 : 1);
+        if (digits !== '' && digits.length <= (hex ? 6 : 7) && (hex ? /^[0-9A-Fa-f]+$/ : /^[0-9]+$/).test(digits)) {
+          const cp = parseInt(digits, hex ? 16 : 10);
+          decoded = cp === 0 || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff) ? '\ufffd' : String.fromCodePoint(cp);
+        }
+      } else {
+        decoded = Object.prototype.hasOwnProperty.call(ASCII_REFERENCES, ref) ? ASCII_REFERENCES[ref] : undefined;
+      }
+      if (decoded === undefined) { out += c; i++; continue; }
+      out += decoded;
+      i = semi + 1;
     }
-    return LinkTargets.schemes(extra).includes(scheme);
+    return out;
   },
 
   /**

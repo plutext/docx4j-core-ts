@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day.
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day. Section 21.2 (2026-10-23, from docx4j-python's review): a target refused once its character references are decoded (`javascript&#58;`), in `LinkTargets.isSafe`, as docx4j fixed it the same day.
 
 ## 1. Why
 
@@ -2217,3 +2217,38 @@ builds it: hostile body text, link text, alt text, a revision's author, and a co
 **What it changes.** Nothing in a committed document. The `markup` view's Markdown of the 315 `.docx` committed under
 `test/`, under `author` and `author_date` (630 exports), is the same before and after: none of their authors or dates
 holds a character Markdown escapes.
+
+### 21.2 A script scheme behind character references (2026-10-23)
+
+*Found by docx4j-python's CR-015 draft (its section 2.5 item 1, Q3), confirmed here in reviewing docx4j-python's
+port the same day. Jason, 2026-10-23: "fix the Markdown link-target security hole the review found". As docx4j, which had the same hole
+and fixed it the same day.*
+
+**The hole.** A CommonMark parser decodes entity and numeric character references in a link destination, and the
+writer here leaves `&` as it is, as commonmark-java's does. `LinkTargets.isSafe`, docx4j's rule, reads the target as it
+stands, so four targets docx4j-python listed pass it:
+- `javascript&#58;alert(1)`: no scheme, since a `#` comes before any `:`;
+- `&#106;avascript:alert(2)` and `&#x6A;avascript:alert(4)`: no scheme, since `&` begins no scheme;
+- `javascript&colon;alert(3)`: no `:` at all.
+
+Each was written as a link, such as `[T](<javascript&#58;alert(1)>)`, which a renderer decodes into a `javascript:` link
+(measured here on the Markdown; the rendering is docx4j-python's, with markdown-it-py and no URL check).
+
+**Now, as docx4j's** (its CR-056 section 14, docx4j-25's fix of the same day, uncommitted there when this was written).
+`LinkTargets.isSafe` is safe as written and safe with the target's character references decoded, so every output
+refuses the same targets. `LinkTargets.decodeCharacterReferences`, docx4j's ported line for line, is public. It decodes as
+CommonMark decodes a destination, once:
+- decimal and hexadecimal references, U+FFFD for zero, out of range or a surrogate;
+- the 45 named references that stand for one ASCII character (`&colon;`, `&sol;`, `&num;`, `&quest;`, `&Tab;`,
+  `&NewLine;` among them).
+
+Any other named reference, and an `&` that begins none, stays as written. The scheme is read as before, up to the
+first `:` that comes before any `/`, `?` or `#`. So `&unknown;avascript:x` and `a&b:c/d` are refused as written, and
+`&#106;avascript:` (whose `#` comes first) only once decoded. `&` elsewhere (`page.html?a=1&amp;b=2`,
+`R&D/report.html`, `page.html#&#58;`) is safe, as is a reference that decodes to an allowed scheme
+(`https&#58;//example.org`).
+
+**Tests** (`markdown.test.mjs`): docx4j's `LinkTargetsTest.characterReferencesDecodedAsACommonMarkRendererDecodesThem` and
+`MarkdownHostileLinksTest.noEntityEncodedScriptSchemeDestination`, its document's seven new targets among the hostile
+ones and its `benignLinksKept` cases. Reported to docx4j the same day; docx4j-25 confirmed and fixed it there.
+

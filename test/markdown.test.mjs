@@ -543,6 +543,30 @@ test('LinkTargets: the allowlist, the scheme read as a browser reads it, schemes
   assert.equal(LinkTargets.excerpt('x'.repeat(200)).length, 83);
 });
 
+// docx4j-core-tests LinkTargetsTest.characterReferencesDecodedAsACommonMarkRendererDecodesThem (docx4j CR-056 section 14;
+// CR-012 section 21.2 here, docx4j-python's CR-015 Q3 found it)
+test('LinkTargets: a target refused once its character references are decoded, as a CommonMark renderer decodes them (docx4j LinkTargetsTest)', () => {
+  for (const t of ['javascript&#58;alert(1)', '&#106;avascript:alert(2)', 'javascript&colon;alert(3)',
+    '&#x6A;avascript:alert(4)', '&#X6a;avascript:alert(4)', 'java&Tab;script:alert(5)', 'java&NewLine;script:alert(6)',
+    '&#0000106;avascript:alert(7)', 'vb&#115;cript:x', 'd&#97;ta:text/html,x',
+    // refused as written already: up to the first ':' is the scheme, and these are no scheme a browser accepts
+    '&unknown;avascript:x', 'a&b:c/d']) {
+    assert.ok(!LinkTargets.isSafe(t), t);
+  }
+  for (const t of ['R&D/report.html', 'page.html?a=1&amp;b=2', 'https&#58;//example.org', '&colon', 'page.html#&#58;', 'sub/dir?x=&#58;']) {
+    assert.ok(LinkTargets.isSafe(t), t);
+  }
+  assert.equal(LinkTargets.decodeCharacterReferences('javascript&#58;alert(1)'), 'javascript:alert(1)');
+  assert.equal(LinkTargets.decodeCharacterReferences('&#x6A;avascript&colon;x'), 'javascript:x');
+  assert.equal(LinkTargets.decodeCharacterReferences('&amp;#58;'), '&#58;', 'decoded once');
+  assert.equal(LinkTargets.decodeCharacterReferences('&#0;'), '\uFFFD');
+  assert.equal(LinkTargets.decodeCharacterReferences('&#xFFFFFF;'), '\uFFFD');
+  assert.equal(LinkTargets.decodeCharacterReferences('&colon'), '&colon');
+  assert.equal(LinkTargets.decodeCharacterReferences('&nbsp;x'), '&nbsp;x');
+  assert.equal(LinkTargets.decodeCharacterReferences('R&D'), 'R&D');
+  assert.equal(LinkTargets.decodeCharacterReferences(undefined), undefined);
+});
+
 /** docx4j-markdown MarkdownHostileLinksTest's document: a paragraph per target, a w:hyperlink to it. */
 async function hostileLinks() {
   const pkg = await WordprocessingMLPackage.createPackage();
@@ -552,7 +576,9 @@ async function hostileLinks() {
   const escape = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   // Java's String.trim drops every character up to U+0020 at either end, U+0001 too
   const javaTrim = (text) => text.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '');
-  for (const target of ['javascript:alert(1)', ' \u0001java\tscri\npt:alert(2)', 'vbscript:MsgBox(3)', 'https://example.org/ok', '#bookmark1', 'sub/page.html']) {
+  for (const target of ['javascript:alert(1)', ' \u0001java\tscri\npt:alert(2)', 'vbscript:MsgBox(3)', 'https://example.org/ok', '#bookmark1', 'sub/page.html',
+    'javascript&#58;alert(4)', '&#106;avascript:alert(5)', 'javascript&colon;alert(6)', '&#x6A;avascript:alert(7)',
+    'page.html?a=1&amp;b=2', 'R&D/report.html', 'https&#58;//example.org/entity']) {
     const rel = rels.addExternalRelationship(Namespaces.HYPERLINK, target);
     await body.insertXml(`<w:p><w:hyperlink r:id="${rel.id}"><w:r><w:t xml:space="preserve">${escape(`text for ${javaTrim(target)}`)}</w:t></w:r></w:hyperlink></w:p>`, 'End');
   }
@@ -579,6 +605,17 @@ test('the Markdown writes no link whose target is a script scheme: the text, onc
   assert.ok(md.includes('(https://example.org/ok)') || md.includes('(<https://example.org/ok>)'), md);
   assert.ok(md.includes('(#bookmark1)') || md.includes('(<#bookmark1>)'), md);
   assert.ok(md.includes('(sub/page.html)') || md.includes('(<sub/page.html>)'), md);
+  // noEntityEncodedScriptSchemeDestination: a destination a renderer decodes to a script scheme is no link; its text kept
+  for (const target of ['javascript&#58;alert(4)', '&#106;avascript:alert(5)', 'javascript&colon;alert(6)', '&#x6A;avascript:alert(7)']) {
+    assert.ok(!(md.includes(`](${target}`) || md.includes(`](<${target}`)), `a destination a renderer decodes to a script scheme: ${target}\n${md}`);
+    const asText = `text for ${target.replace(/&/g, '\\&')}`;   // the renderer escapes & in text
+    assert.ok(md.includes(asText), `the text kept: ${target}\n${md}`);
+    assert.ok(!md.includes(`[${asText}]`), `a link around the refused text\n${md}`);
+  }
+  // benignLinksKept: a benign target with an ampersand kept as a link
+  for (const target of ['page.html?a=1&amp;b=2', 'R&D/report.html', 'https&#58;//example.org/entity']) {
+    assert.ok(md.includes(`](${target})`) || md.includes(`](<${target}>)`), `${target}\n${md}`);
+  }
   // one warning for each document, naming its first refused target (docx4j WARNs once, DEBUG after)
   assert.deepEqual(logged, Array(2).fill('Link target refused (scheme not in MarkdownExportOptions.linkSchemes): the text is written without a link: javascript:alert(1)'));
   // a scheme the caller adds is written as a link; a default refusal stays

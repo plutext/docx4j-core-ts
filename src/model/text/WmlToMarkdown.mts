@@ -581,7 +581,8 @@ export class WmlToMarkdown {
       let j = i;
       while (j < runs.length && runs[j]!.link === target) j++;
       if (target !== undefined && !LinkTargets.isSafe(target, this.linkSchemes)) {
-        // docx4j CR-056: a script-scheme target; the text, with no link (CR-012 section 21)
+        // docx4j CR-056: a script-scheme target, its character references decoded too; the text, with no link (CR-012
+        // sections 21 and 21.2)
         if (!this.linkRefused) log.warn(LinkTargets.refusedMessage(target));
         this.linkRefused = true;
         target = undefined;
