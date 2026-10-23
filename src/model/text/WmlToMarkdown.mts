@@ -566,7 +566,7 @@ export class WmlToMarkdown {
       const revision = runs[i]!.revision;
       let j = i;
       while (j < runs.length && this.sameMarker(revision, runs[j]!.revision)) j++;
-      if (revision !== undefined) sink.node(new MdHtmlInline(this.open(revision)));
+      if (revision !== undefined) this.openMarker(revision, sink);
       this.linked(runs.slice(i, j), sink);
       if (revision !== undefined) sink.node(new MdHtmlInline(close(revision)));
       i = j;
@@ -655,7 +655,8 @@ export class WmlToMarkdown {
   }
 
   private comment(comment: TextComment, sink: InlineSink): void {
-    sink.node(new MdHtmlInline(`{>>${this.detail(comment.author, comment.date)}`));
+    sink.node(new MdHtmlInline('{>>'));
+    this.detailText(comment.author, comment.date, sink);
     sink.text(comment.text, false, false, false);
     sink.node(new MdHtmlInline('<<}'));
   }
@@ -671,8 +672,25 @@ export class WmlToMarkdown {
     }
   }
 
+  /** The marker as one string, for a code block, where nothing is markup. */
   private open(revision: TextRevision): string {
     return (revision.type === 'INSERTION' ? '{++' : '{--') + this.detail(revision.author, revision.date);
+  }
+
+  /** The marker in a paragraph: its braces raw, its author and date text (docx4j's `open(revision, sink)`). */
+  private openMarker(revision: TextRevision, sink: InlineSink): void {
+    sink.node(new MdHtmlInline(revision.type === 'INSERTION' ? '{++' : '{--'));
+    this.detailText(revision.author, revision.date, sink);
+  }
+
+  /**
+   * The marker's author and date as text, which the renderer escapes as it does any document text (docx4j CR-056,
+   * `30fb41024`; CR-012 section 21.1): only the braces are raw. Before, the detail went out raw with them, so an
+   * author of `<script>...</script>` reached a renderer that allows raw HTML as markup.
+   */
+  private detailText(author: string | undefined, date: string | undefined, sink: InlineSink): void {
+    const d = this.detail(author, date);
+    if (d !== '') sink.text(d, false, false, false);
   }
 
   private detail(author: string | undefined, date: string | undefined): string {

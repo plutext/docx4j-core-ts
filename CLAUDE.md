@@ -246,7 +246,8 @@ the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed ro
 `text-model.test.mjs` the text model itself (docx4j's `TextsTest`, `TextsTocTest` and `TextsPhase2Test` where phase 2 reaches, and
 this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`),
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest`,
-`MarkdownAlternateContentTest` and `MarkdownHostileLinksTest`, with docx4j's strings, docx4j-core's `LinkTargetsTest`, and `blocks()`),
+`MarkdownAlternateContentTest`, `MarkdownHostileLinksTest` and `MarkdownHostileMarkupTest`, with docx4j's strings, docx4j-core's
+`LinkTargetsTest`, and `blocks()`),
 `mc-fun.test.mjs` CR-013's: docx4j's `mc-fun` probes (`test/mc-fun/`, copied with a manifest, outside `fixtures/`) read by
 every reader against Word 365's saves, docx4j's `TrackedChangesAlternateContentTest` (twins, resolve-all, rows, cells, records), D4's
 refusals, and the mutators reaching every branch,

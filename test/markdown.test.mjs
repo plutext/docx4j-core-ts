@@ -586,3 +586,54 @@ test('the Markdown writes no link whose target is a script scheme: the text, onc
   assert.ok(allowed.includes('(vbscript:MsgBox(3))') || allowed.includes('(<vbscript:MsgBox(3)>)'), allowed);
 });
 
+
+/** docx4j-markdown MarkdownHostileMarkupTest's document: every Markdown sink a document value reaches, under a detail. */
+async function hostileMarkup(detail) {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const escape = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const run = (text) => `<w:r><w:t xml:space="preserve">${escape(text)}</w:t></w:r>`;
+  await body.insertXml(`<w:p>${run("T1 <script>alert('T1')</script> plain text")}</w:p>`, 'End');
+  await body.insertXml(`<w:p>${run("T2 [x](javascript:alert('T2')) as text")}</w:p>`, 'End');
+  await body.insertXml(`<w:p>${run("T3 <img src=x onerror=alert('T3')> as text")}</w:p>`, 'End');
+  // a benign link whose text tries to close the link syntax
+  const main = pkg.getMainDocumentPart();
+  const rel = (main.relationshipsPart ?? main.getRelationshipsPart(true)).addExternalRelationship(Namespaces.HYPERLINK, 'https://example.org/ok');
+  await body.insertXml(`<w:p><w:hyperlink r:id="${rel.id}">${run("T4 a](javascript:alert('T4')) [b")}</w:hyperlink></w:p>`, 'End');
+  // a picture with hostile alt text
+  const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  body.insertParagraph('', 'End').insertInlinePictureFromBase64(png, 'End', {
+    name: "T5\"><img src=x onerror=alert('T5')>", altTextDescription: "T5 ](x) <b>alt</b> <script>alert('T5')</script>",
+  });
+  // a tracked insertion with a hostile author
+  await body.insertXml(`<w:p><w:ins w:id="7" w:author="${escape("T6 <script>alert('T6')</script>")}">${run('inserted')}</w:ins></w:p>`, 'End');
+  // a comment with a hostile author and text
+  await body.insertParagraph('commented', 'End').getRange('Whole')
+    .insertComment("T8 <script>alert('T8')</script> comment text", { author: { name: "T7 <script>alert('T7')</script>" } });
+  return new MarkdownExporter({ textOptions: { view: 'markup', comments: true, markup_detail: detail } }).export(pkg);
+}
+
+/** Whether the markup occurs other than with its `<` backslash-escaped. */
+function unescaped(markup, md) {
+  for (let i = md.indexOf(markup); i >= 0; i = md.indexOf(markup, i + 1)) if (i === 0 || md.charAt(i - 1) !== '\\') return true;
+  return false;
+}
+
+test("a CriticMarkup marker's author and date are text: no raw markup from any document value (docx4j MarkdownHostileMarkupTest)", async () => {
+  for (const detail of ['type', 'author', 'author_date']) {
+    const md = await hostileMarkup(detail);
+    assert.ok(!unescaped('<script>', md), `${detail}: raw <script> in the Markdown\n${md}`);
+    assert.ok(!unescaped('<img ', md), `${detail}: raw <img in the Markdown\n${md}`);
+    assert.ok(!unescaped('](javascript:', md), `${detail}: a link destination from text\n${md}`);
+    assert.ok(md.includes("T1 \\<script\\>alert('T1')\\</script\\> plain text"), `${detail}: the text kept, escaped\n${md}`);
+    assert.ok(md.includes('{++') && md.includes('++}') && md.includes('{>>') && md.includes('<<}'), `${detail}: the markers kept\n${md}`);
+    if (detail !== 'type') {
+      assert.ok(md.includes("{++T6 \\<script\\>alert('T6')\\</script\\>"), `${detail}: the insertion's author, escaped\n${md}`);
+      assert.ok(md.includes("{>>T7 \\<script\\>alert('T7')\\</script\\>"), `${detail}: the comment's author, escaped\n${md}`);
+    }
+  }
+  // benignMarkersUnchanged
+  const md = await hostileMarkup('author');
+  assert.ok(md.includes(': inserted++}'), md);
+  assert.ok(md.includes('comment text<<}'), md);
+});

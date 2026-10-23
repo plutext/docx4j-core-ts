@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day.
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day.
 
 ## 1. Why
 
@@ -2184,9 +2184,36 @@ browser reads it, the property as an argument, the excerpt), and docx4j-markdown
 document of six links, three refused, built here as docx4j builds it). Added: the one warning per export, and
 `linkSchemes` admitting a scheme.
 
-**What it changes.** Nothing in a committed document. Over the 314 `.docx` committed under `test/`, the text model
-reads 61 link targets: `https` 44, `file` 9, no scheme 6, `http` 1, `mailto` 1. None is refused, so no export moves,
+**What it changes.** Nothing in a committed document. Over the 315 `.docx` committed under `test/` (check 55's save
+among them), the text model reads 61 link targets: `https` 44, `file` 9, no scheme 6, `http` 1, `mailto` 1. None is refused, so no export moves,
 and the Markdown still agrees with docx4j-markdown's byte for byte wherever it did.
 
 **Next from docx4j:** CR-057 (alt text escaping, altChunk fetching), accepted with CR-056, isn't handed off yet. Alt
 text reaches the Markdown here.
+
+### 21.1 A CriticMarkup marker's author and date are text (2026-10-23)
+
+*docx4j `30fb41024` (CR-056 section 13, the same day), which WD 0.33 writes into REQ-703 (docx4j-portfolio `da07eab`);
+the portfolio session's note. Within Jason's go for CR-056 ("do it before the next release").*
+
+**The defect.** In the `markup` view, under `markup_detail` `author` or `author_date`, a revision's or a comment's
+author and date went out with the marker's braces as one raw HTML-inline node. So
+`{++<script>alert(1)</script>: inserted++}` reached a renderer that allows raw HTML as markup. Measured here as in
+docx4j, with an author of `<script>alert(1)</script>`. docx4j measured the other sinks a document value reaches, and
+found them escaped already: body text, link text, alt text and a comment's text.
+
+**Now.** Only the braces and operators are raw (`{++`, `{--`, `{>>`, `++}`, `--}`, `<<}`). The detail is a text node,
+escaped as document text is (`{++\<script\>alert(1)\</script\>: inserted++}`), as docx4j's `open(revision, sink)` and
+`detail(author, date, sink)` write it (`openMarker` and `detailText` here). A code block keeps the marker as one
+string, where nothing is markup.
+
+**WD 0.32** (portfolio `55fab92`) adds an inspector kind, `hyperlink.script`. This package has no inspector (section 1),
+so it doesn't apply.
+
+**Tests.** docx4j-markdown's `MarkdownHostileMarkupTest` in `markdown.test.mjs`, its document built here as docx4j
+builds it: hostile body text, link text, alt text, a revision's author, and a comment's author and text, under each
+`markup_detail`.
+
+**What it changes.** Nothing in a committed document. The `markup` view's Markdown of the 315 `.docx` committed under
+`test/`, under `author` and `author_date` (630 exports), is the same before and after: none of their authors or dates
+holds a character Markdown escapes.
