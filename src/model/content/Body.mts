@@ -1,18 +1,20 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { Docx4JException, PropertyResolverNotCreatedException } from '../../opc/exceptions.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import type { OpcPackage } from '../../packages/OpcPackage.mjs';
 import { type Element, type Located, type TextViewOptions, type TextView, type HiddenRuns, type VanishResolver, hiddenRunsOf, typeNameOf, childrenOf, linkParents, BLOCK_LEVEL_TYPES, rowsOf, cellsOf, selectedBranchOf, branchesOf, branchListsOf, ALTERNATE_CONTENT, BRANCH_TYPES, inUnreadBranch, assertOutsideBranch, writingEveryBranch, type BranchMode } from './tree.mjs';
-import { r as textRun, br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
+import { br as breakItem, tbl as tableOf } from '@docx4j/generated-objects-ts/builders/wml';
+import { oneParagraphRun } from './officeText.mjs';
 import { runOf, paragraphOf, runsOf } from './tree.mjs';
 import { textBoxesOf } from './textBoxes.mjs';
 import { outlineReader } from './outline.mjs';
 import { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table, type TableRow, type TableCell } from './Table.mjs';
-import { ContentControl, collectControls, type ContentControlType } from './ContentControl.mjs';
+import { ContentControl, collectControls, assertControlHolds, controlsOfTypes, type BlockRefusal, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
@@ -244,6 +246,15 @@ export class Body {
   }
 
   /**
+   * Office JS `getContentControls` (WordApi 1.5): the content controls `contentControls` lists, those of `options.types`
+   * where given. Word's `contentControls` lists rich-text controls only; this package's lists every kind, a recorded
+   * departure (CR-002 section 60 G1, check 55b), so this is how add-in code that asks for plain-text controls finds them.
+   */
+  getContentControls(options?: ContentControlOptions): ContentControl[] {
+    return controlsOfTypes(this.contentControls, options);
+  }
+
+  /**
    * The content controls a walk in this mode takes: a reader's, `contentControls`; the binding passes'
    * (`'every'`), every branch's of a kept `mc:AlternateContent` too, each other branch's where the element
    * stands (CR-013 phase 3). An extension.
@@ -349,7 +360,8 @@ export class Body {
   }
 
   insertParagraph(text: string, location: 'Start' | 'End'): Paragraph {
-    const el = paragraphOf(text === '' ? [] : [textRun(text)]);
+    const run = oneParagraphRun(text);   // CR-002 section 60 E2: one paragraph, its line breaks w:br and w:cr
+    const el = paragraphOf(run.value.content?.length ? [run] : []);
     return this.insertElement(el, location) as Paragraph;
   }
 
@@ -380,7 +392,7 @@ export class Body {
     // cells the builder wrote, the table's width made automatic (CR-002 section 42.5 item 7).
     const tblPr = (element.value.tblPr ??= {});
     tblPr.tblW = { w: 0, type: 'auto' };
-    this.insertElement(element as Element, location);
+    this.insertElement(element as Element, location, undefined, 'InvalidArgument');
     return new Table(element, this.content, this);
   }
 
@@ -416,7 +428,7 @@ export class Body {
    * before or after a target paragraph, element or address. Links PARENT. Rejects anything the
    * body cannot hold, naming what was passed. Returns the view of the first inserted element.
    */
-  insertElement(element: Element | Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Paragraph | BlockElement {
+  insertElement(element: Element | Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address, refusal?: BlockRefusal, replacing?: Element): Paragraph | BlockElement {
     this.assertWritable();
     const elements = Array.isArray(element) ? element : [element];
     if (elements.length === 0) throw new Docx4JException('Nothing to insert');
@@ -436,6 +448,8 @@ export class Body {
       container = t.container;
       index = container.indexOf(t.element) + (location === 'After' ? 1 : 0);
     }
+    // a bound block control holds one paragraph (CR-002 section 61): `replacing` is the block the write takes away after
+    assertControlHolds(this, this.ownerOf(container), replacing ? container.filter((e) => e !== replacing) : container, elements, refusal);
     container.splice(index, 0, ...elements);
     const owner = this.ownerOf(container);
     const tracker = this.changeTracker;
@@ -454,7 +468,7 @@ export class Body {
   /** Inserts a WML fragment (one or more w:p / w:tbl / ... as inside document.xml); the standard prefixes are declared for it. */
   async insertXml(xml: string, location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
     this.assertWritable();
-    return this.insertContent(await contentOf(xml, { preprocess: this.preprocessor() }), location, target);
+    return this.insertContent(await contentOf(xml, { preprocess: this.preprocessor() }), location, target, 'GeneralException');
   }
 
   /**
@@ -468,10 +482,11 @@ export class Body {
     this.assertWritable();
     const elements = await contentOf(ooxml, { preprocess: this.preprocessor(), target: this.part });
     if (location === 'Replace') {
+      assertControlHolds(this, this.container, [], elements, 'GeneralException');   // before the clear (CR-002 section 61)
       this.clear();
-      return this.insertContent(elements, 'End');
+      return this.insertContent(elements, 'End', undefined, 'GeneralException');
     }
-    return this.insertContent(elements, location, target);
+    return this.insertContent(elements, location, target, 'GeneralException');
   }
 
   /** The package's DOM preprocessor (the MCE one), for fragments and incoming packages. */
@@ -480,9 +495,9 @@ export class Body {
     return preprocess ? (doc: Document) => preprocess(doc) : undefined;
   }
 
-  private insertContent(elements: Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): (Paragraph | BlockElement)[] {
+  private insertContent(elements: Element[], location: 'Start' | 'End' | 'Before' | 'After', target?: Paragraph | BlockElement | Address, refusal?: BlockRefusal): (Paragraph | BlockElement)[] {
     if (elements.length === 0) return [];
-    this.insertElement(elements, location, target);
+    this.insertElement(elements, location, target, refusal);
     return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
       ? new Paragraph(el as Element<wml.P>, this.containerOf(el), this)
       : { element: el, container: this.containerOf(el) });

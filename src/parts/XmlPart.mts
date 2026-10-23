@@ -2,7 +2,7 @@ import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix } from '@do
 import { Part } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
-import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION } from '../xml/dom.mjs';
+import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning } from '../opc/mce/preprocessor.mjs';
 
@@ -178,7 +178,7 @@ export class XmlPart<T = unknown> extends Part {
 
   /** Marshalled bytes when unmarshalled or set, else the source bytes untouched. */
   async getBytes(): Promise<Uint8Array> {
-    if (this.element !== undefined) return encodeText(XML_DECLARATION + serializeXml(await this.marshalToNode()));
+    if (this.element !== undefined) return encodeText(assertXmlCharacters(XML_DECLARATION + serializeXml(await this.marshalToNode()), `Part ${this.partName}`));
     if (this.bytes !== undefined) return this.bytes;
     const loaded = await this.loadSourceBytes();
     if (loaded === undefined) throw new Docx4JException(`Part ${this.partName} has no content and no source container`);

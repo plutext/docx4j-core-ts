@@ -6,7 +6,8 @@ import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import * as wmlFactory from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import * as w15Factory from '@docx4j/generated-objects-ts/factory/org_docx4j_w15';
 import * as w16cidFactory from '@docx4j/generated-objects-ts/factory/org_docx4j_w16cid';
-import { r as textRun, applyRunOptions, linkParents } from '@docx4j/generated-objects-ts/builders/wml';
+import { applyRunOptions, linkParents } from '@docx4j/generated-objects-ts/builders/wml';
+import { oneParagraphRun } from './officeText.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { Body } from './Body.mjs';
 import { Paragraph } from './Paragraph.mjs';
@@ -352,7 +353,9 @@ function nestedIndex(owner: Element[], index: number): number {
 function commentParagraph(text: string, first: boolean): Element<wml.P> {
   const runs: Element[] = [];
   if (first) runs.push(annotationRefRun());
-  if (text !== '') runs.push(textRun(text));
+  // its line's characters as they read (CR-002 section 60 D1, E3); a line break is a paragraph of its own (D5)
+  const run = oneParagraphRun(text);
+  if (run.value.content?.length) runs.push(run);
   return paragraphOf(runs, { TYPE_NAME: 'org_docx4j_wml.PPr', pStyle: { val: COMMENT_TEXT_STYLE } });
 }
 
@@ -638,7 +641,8 @@ function commentId(parts: CommentParts, body: Body, options?: CommentOptions): n
 
 /** The paragraphs of a comment's content: a string splits on newlines, elements are taken as they are. */
 function paragraphsOfContent(content: CommentContent): Element<wml.P>[] {
-  if (typeof content === 'string') return content.split('\n').map((line, i) => commentParagraph(line, i === 0));
+  // a paragraph per line, at \r, \n or \r\n, as Word's comments take them (CR-002 section 60 D5, check 55)
+  if (typeof content === 'string') return content.split(/\r\n|\r|\n/).map((line, i) => commentParagraph(line, i === 0));
   const paragraphs = [...content];
   if (paragraphs.length === 0) throw new Docx4JException('A comment needs at least one paragraph');
   return paragraphs;

@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WordprocessingMLPackage } from '../dist/index.mjs';
-import { Word } from '../dist/office-js/index.mjs';
+import { Word, NotSupportedError } from '../dist/office-js/index.mjs';
 import { check56Bytes, check56Cases, check56OpenFiles, KINDS, STORE_ITEM_ID } from './fixtures/check56/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -46,22 +46,19 @@ test("check 56's snippet file and snippet agree: every case parses to the case i
     assert.deepEqual(control.paragraphs.map((p) => p.text), [`start${c.n}`]);
     assert.equal(data.selectSingleNode(`/ns0:check56/ns0:value${c.n}`, "xmlns:ns0='urn:check56'").text, `start${c.n}`);
   }
-  // through the Word shim, with no error of the snippet's own: what fails is what the shim doesn't have
+  // through the Word shim, with no error of the snippet's own: what fails is what the shim doesn't have, and the
+  // multi-line control's insertParagraph, refused (CR-002 section 61 H2)
   const ours = await runCheck((f) => Word.run(pkg, f), 'run');
   assert.equal(ours.cases.length, 16);
   const errors = new Set(ours.cases.flatMap((c) => [c.error, ...Object.values(c.lookups), ...Object.values(c.region)])
-    .filter((v) => typeof v === 'string' && v.startsWith('error:')));
+    .filter((v) => typeof v === 'string' && v.startsWith('error:')).map((v) => v.split(': this control')[0]));
   assert.deepEqual([...errors].sort(), [
-    'error: NotImplemented: Word.Body.getContentControls is not supported by @docx4j/core-ts',
     'error: NotImplemented: Word.ContentControl.insertOoxml is not supported by @docx4j/core-ts',
+    'error: NotImplemented: Word.ContentControl.insertParagraph is not supported by @docx4j/core-ts',
     'error: NotImplemented: Word.ContentControl.insertTable is not supported by @docx4j/core-ts',
     'error: NotImplemented: Word.Document.customXmlParts is not supported by @docx4j/core-ts',
     'error: NotImplemented: Word.Paragraph.parentContentControlOrNullObject is not supported by @docx4j/core-ts',
   ]);
-  // before section 61: an insertParagraph at a control's end gives it a second paragraph, whatever its kind
-  for (const c of ours.cases.filter((x) => x.op === 'paragraph-end')) {
-    assert.deepEqual(c.region.control.paragraphs, [`start${c.n}`, `NEWPARA${c.n}`], `case ${c.n}`);
-  }
 });
 
 test("check 56's files to open: each a bound block control of its kind, given a second block by this package's writers", async () => {
@@ -100,3 +97,103 @@ test("check 56's run: Word's JSON is of this file's cases, and its saves and rep
     assert.equal(control.text, 'start1', name);
   }
 });
+
+/** A case's paragraphs and control as the snippet reports them, for comparing two runs. */
+const seen = (c) => ({ paragraphs: c.region.paragraphs, type: c.region.control?.type, text: c.region.control?.text, error: c.error?.split(':')[1]?.trim() });
+
+test("CR-002 section 61: check 56's snippet through the Word shim gives Word 365's run, case for case, but for H2's refusal and the writes the shim hasn't", async () => {
+  const source = await readFile(join(here, 'fixtures', 'check56', 'check56-script-lab.js'), 'utf8');
+  const { runCheck } = new Function(`${source}\nreturn CHECK56;`)();
+  const pkg = await loaded(await check56Bytes());
+  const ours = await runCheck((f) => Word.run(pkg, f), 'run');
+  const word = JSON.parse(await readFile(join(here, 'fixtures', 'check56', '56-writes-word365-run.json'), 'utf8'));
+  for (const theirs of word.cases) {
+    const mine = ours.cases.find((c) => c.n === theirs.n);
+    if (theirs.op === 'paragraph-end' && theirs.kind === 'text-multi') {
+      // H2: Word wrote a second paragraph, and then couldn't open its own save; here it is refused
+      assert.equal(seen(theirs).paragraphs.length, 4);
+      assert.equal(seen(mine).error, 'NotImplemented');
+      assert.deepEqual(seen(mine).paragraphs, [`BEGIN${theirs.n} paragraph-end text-multi`, `start${theirs.n}`, `END${theirs.n}`]);
+    } else if (theirs.op === 'table-end' || theirs.op === 'ooxml-end') {
+      // the shim's ContentControl has no insertTable or insertOoxml; the content API's refusals are the next test's
+      assert.equal(seen(theirs).error, theirs.op === 'table-end' ? 'InvalidArgument' : 'GeneralException');
+      assert.equal(seen(mine).error, 'NotImplemented');
+      assert.deepEqual(seen(mine).paragraphs, seen(theirs).paragraphs, `case ${theirs.n}`);
+    } else {
+      assert.deepEqual(seen(mine), seen(theirs), `case ${theirs.n}`);
+    }
+  }
+});
+
+/** A bound block control of a kind in a package of its own: its paragraph, its control, the package. */
+async function boundControl(kind) {
+  const c = check56Cases().find((x) => x.kind === kind && x.op === 'paragraph-end');
+  const pkg = await loaded(await check56Bytes());
+  const control = (await pkg.getBody()).contentControls.find((x) => x.tag === `c56-${c.n}`);
+  return { pkg, control, paragraph: control.paragraphs[0], n: c.n };
+}
+
+test('CR-002 section 61: a bound block control holds one paragraph; every write that would give it another block is refused before anything changes, with Word\'s error where measured', async () => {
+  for (const kind of Object.keys(KINDS)) {
+    const { pkg, control, paragraph, n } = await boundControl(kind);
+    const before = await pkg.getMainDocumentPart().getXml();
+    const body = paragraph.parentBody;
+    // H4: every kind reads as single-line plain text but w:text multi-line
+    assert.equal(control.type, 'PlainText', kind);
+    assert.equal(control.isMultiLine, kind === 'text-multi', kind);
+    assert.ok(body.getContentControls({ types: ['PlainText'] }).length >= 0);
+    // H3: Word's codes where measured, NotSupportedError where Word wasn't given the write
+    assert.throws(() => body.insertTable(1, 2, 'End', [['A', 'B']]), (e) => e.code === 'InvalidArgument', kind);
+    await assert.rejects(body.insertOoxml('<w:p><w:r><w:t>A</w:t></w:r></w:p><w:p><w:r><w:t>B</w:t></w:r></w:p>', 'End'), (e) => e.code === 'GeneralException', kind);
+    await assert.rejects(body.insertXml('<w:p><w:r><w:t>A</w:t></w:r></w:p>', 'End'), (e) => e.code === 'GeneralException', kind);
+    assert.throws(() => paragraph.insertParagraph('x', 'After'), NotSupportedError, kind);
+    assert.throws(() => paragraph.getRange().search(`start${n}`)[0].insertParagraph('x', 'Before'), NotSupportedError, kind);
+    assert.throws(() => paragraph.insertContentControl(), NotSupportedError, kind);
+    assert.equal(await pkg.getMainDocumentPart().getXml(), before, `${kind}: nothing changed`);
+    // H2: insertParagraph joins a single-line control's paragraph, and is refused in a multi-line one
+    if (kind === 'text-multi') assert.throws(() => control.insertParagraph('NEWPARA', 'End'), NotSupportedError);
+    else {
+      const p = control.insertParagraph('NEWPARA', 'End');
+      assert.equal(p.text, `start${n}NEWPARA`);
+      assert.equal(control.paragraphs.length, 1);
+      assert.equal(control.xmlMapping.customXmlNode.text, `start${n}NEWPARA`, `${kind}: the node follows the control (F3)`);
+    }
+    // section 61 item 3: a line feed is a w:br in a multi-line control and goes in a single-line one
+    control.insertText('x\ny', 'End');
+    assert.equal(control.paragraphs.length, 1, kind);
+    assert.match(control.paragraphs[0].text, kind === 'text-multi' ? /x\u000by$/ : /xy$/, kind);
+    // the file opens again as it was written
+    const again = await loaded(await pkg.save());
+    assert.equal((await again.getBody()).contentControls.find((x) => x.tag === `c56-${n}`).paragraphs.length, 1);
+  }
+});
+
+test('CR-002 section 61: what the rule leaves alone — an unbound control, a w15:dataBinding one, a node of flat OPC, and a file already holding two paragraphs (D4)', async () => {
+  // an unbound rich-text control takes a second paragraph, as before
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const unbound = body.insertParagraph('one', 'End').insertContentControl();
+  unbound.insertParagraph('two', 'End');
+  assert.deepEqual(unbound.paragraphs.map((p) => p.text), ['one', 'two']);
+  assert.equal(unbound.type, 'RichText');
+  // the file docx4j-python's 3a is, and 56a, read and saved as it is; a write removing a block is allowed, and the
+  // write-back joins its paragraphs with \n (F1)
+  const [file] = await check56OpenFiles();
+  const two = await loaded(file.bytes);
+  const control = (await two.getBody()).contentControls.find((x) => x.tag === 'c56-1');
+  assert.deepEqual(control.paragraphs.map((p) => p.text), ['start1', 'second paragraph']);
+  await two.customXmlParts.updateFromContentControls();
+  assert.equal(control.xmlMapping.customXmlNode.text, 'start1\nsecond paragraph');
+  control.paragraphs[1].delete();
+  assert.deepEqual(control.paragraphs.map((p) => p.text), ['start1']);
+  // a w15:dataBinding (Word's rich-text binding) is no w:dataBinding: the control stays rich text and takes blocks
+  const { pkg: w15pkg, control: w15 } = await boundControl('richtext');
+  const pr = w15.sdt.sdtPr;
+  const binding = pr.rPrOrAliasOrLock.find((e) => e.name.localPart === 'dataBinding');
+  binding.name = { namespaceURI: 'http://schemas.microsoft.com/office/word/2012/wordml', localPart: 'dataBinding', prefix: 'w15' };
+  assert.equal(w15.type, 'RichText');
+  w15.insertParagraph('two', 'End');
+  assert.equal(w15.paragraphs.length, 2);
+  void w15pkg;
+});
+

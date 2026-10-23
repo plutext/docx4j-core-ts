@@ -4396,6 +4396,10 @@ async function check() {
      - **The bound controls (52 to 58) weren't measured.** `body.contentControls.getByTag('c55-<n>')` found none of
        them (`ItemNotFound`), so nothing was written. Their nodes still held `start<n>`, and the custom XML part's XML
        parsed.
+   - **This package since** (CR-002 section 60, implemented 2026-10-23): `characters.test.mjs` runs the snippet through
+     the Word shim and holds it to Word's run case for case. 42 cases agree. Cases 16 to 18 are E2's departure (one
+     paragraph, a `w:br` or `w:cr`, not Word's escape text). Cases 10, 11, 24, 25, 38 and 39 drop U+0001 and U+0002 at
+     once, as Word's save does, so they are held to Word's reopened report. Cases 52 to 58 are check 55b's.
 55b. The bound controls check 55 couldn't find (CR-002 section 60.5, 2026-10-23; Jason: "E1 to E4 as recommended", E4
    being this check). Check 55's `body.contentControls.getByTag` found none of its seven bound plain-text controls, so
    what Word writes into a bound control's custom XML node is still unmeasured. The file is `__tmp/55b/55b-bound.docx`
@@ -4452,6 +4456,10 @@ async function check() {
      - **A single-line control** dropped U+000B from its text (`xy`), but its node read `x\r\ny`.
      - **Case 10:** a node holding `line1`, a line feed and `line2` showed as `line1`, a `w:br` and `line2`, and Word's
        XML of it read `line1\r\nline2`, in the session and in the save.
+   - **This package since** (CR-002 section 60): `characters.test.mjs` runs the snippet through the shim, after
+     `applyBindings`, which stands in for Word's open, and holds it to Word's run. The differences: cases 3, 4 and 9 are
+     refused (F4); case 6 drops U+0002 at once (E3). The nodes hold `\n` for a break (F1) and `-` for a non-breaking
+     hyphen (F2).
 56. A bound block control of plain text and a second block (CR-002 section 61, 2026-10-23; Jason: "write check 56").
    docx4j-python's check found that Word can't open a file holding a bound block control with no type element and two
    paragraphs. This check opens the same shape as this package writes it, and the `w:text` and `w:richText` kinds beside
@@ -4522,3 +4530,7 @@ async function check() {
      - **Step 9:** Word found unreadable content in its own save and repaired it, keeping `document.xml` byte for byte
        (only the revision count, dates, rsids and paragraph ids changed). Case 5's two paragraphs are the likely cause,
        56b's shape, though the save also holds single-line controls whose nodes hold `\r\n`.
+   - **This package since** (CR-002 section 61, implemented 2026-10-23): `bound-controls.test.mjs` holds the shim's run
+     to Word's. Case 5 (the multi-line control's `insertParagraph`) is refused (H2). The table and OOXML cases need
+     members the shim's `ContentControl` hasn't; through the content API they refuse with Word's `InvalidArgument` and
+     `GeneralException`. The four files to open are written as text since, this package's writers no longer making them.

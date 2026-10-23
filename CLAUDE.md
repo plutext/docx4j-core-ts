@@ -107,6 +107,7 @@ src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout, spanEdits.mts its writes across paragraphs), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
+                  officeText.mts writes Office JS's characters back as the elements they read as (CR-002 section 60: officeItems, dropExcluded, forWriter);
                   textBoxes.mts numbers a paragraph's text boxes as the text model does (`textbox:N`); outline.mts is the registry the text model's outline reader joins (model/text/outline.mts; Body can't import the text model);
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
@@ -216,7 +217,17 @@ Key mechanics:
   `w:customXmlDelRange*` markers (`markHolderDeleted`), which the `holder` tracked change lists and resolves beside the
   Ins form (`holderChangeAt`). `hyperlink` across paragraphs still refuses. `expandTo`, `Body.getRange`, `Table.getRange`, a block
   control's and a group change's range and `Comment.getRange()` (one `Range`; `getRanges()` the per-paragraph array)
-  make one. Code that takes a `Range` checks `spansParagraphs`. `Font` and `Paragraph` reads report **effective**
+  make one. Code that takes a `Range` checks `spansParagraphs`. **The writers write Office JS's characters back** (CR-002
+  section 60, `officeText.mts`): `splice` (every `insertText`, `replaceText`) inserts its text, then writes the span's
+  characters that are elements as them (`writeElements`: U+000B a `w:br`, U+000C and U+000E page and column breaks, `\r` a
+  `w:cr`, U+001E and U+001F the hyphens, `\t` a `w:tab`); a `\n` or `\r` is a paragraph break (E1, `breakParagraphAt`, the
+  returned `Range` across them), refused before anything changes in a field, an equation, a kept branch or a run-level
+  control (F4); `insertParagraph` and `Paragraph.text =` keep one paragraph (E2: `\n` a `w:br`, `\r` a `w:cr`); a
+  plain-text control takes a break as its kind does (F3); the characters XML 1.0 excludes are dropped (E3), and
+  `XmlPart.getBytes` refuses a part still holding one (D3). A block-level control bound by `w:dataBinding` (untyped,
+  `w:text`, `w:richText`; not a flat OPC node) holds one paragraph: every write that would give it another block is
+  refused (CR-002 section 61, `assertControlHolds`), it reads as `PlainText`, and `getContentControls({ types })` finds a
+  kind as Word's does. `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
   direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
@@ -268,10 +279,12 @@ accepted, to Word's Accept All; and check 54's (`test/fixtures/check54/`, phase 
 controls; Word's Accept All save in `test/check54/`) the same way, its run and, accepted, its Accept All,
 `characters.test.mjs` CR-002 section 60's: check 55's and 55b's files (`check55Bytes`, `check55bBytes`, `test/fixtures/check55/`) and their Script Lab snippets
 held to each other, every case parsed by the snippet's own parser, and the snippet run through the Word shim; Word 365's
-run (its JSONs beside the build, its save in `test/check55/`, outside `fixtures/`, with a SHA-1 manifest),
+run (its JSONs beside the build, its save in `test/check55/`, outside `fixtures/`, with a SHA-1 manifest), the shim's run of
+both held to Word's case for case, the decided differences listed, and each section 60 rule,
 `bound-controls.test.mjs` CR-002 section 61's: check 56's snippet file and snippet held to each other and the snippet run through the Word
 shim, and its four files to open holding their shapes (`check56Bytes`, `check56OpenFiles`, `test/fixtures/check56/`); Word 365's
-run (its JSON beside the build, its saves and repairs in `test/check56/`, with a SHA-1 manifest),
+run (its JSON beside the build, its saves and repairs in `test/check56/`, with a SHA-1 manifest), the shim's run held to
+Word's, and each section 61 rule,
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

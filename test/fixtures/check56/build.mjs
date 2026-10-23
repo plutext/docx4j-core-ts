@@ -7,8 +7,8 @@
 // - 56-writes.docx, for the Script Lab snippet: a region per case, a paragraph `BEGIN<n> <op> <kind>`, a block-level
 //   content control tagged c56-<n> holding one paragraph `start<n>`, bound to `value<n>` in the custom XML part whose
 //   namespace is `urn:check56`, and a paragraph `END<n>`; `check56Bytes` gives a test the same parts;
-// - four files only to open, each made by this package's own writers today (section 61 not implemented): a bound
-//   block control given a second block (`check56OpenFiles`).
+// - four files only to open, each a bound block control holding a second block (`check56OpenFiles`). This package's
+//   own writers made them when the check was run; section 61 refuses those writes since, so they are written as text.
 // The kinds: `untyped` (no type element), `text-multi` (`w:text w:multiLine="1"`), `text-single` (`w:text`),
 // `richtext` (`w:richText`). The parts are written as text, not marshalled, but for what the four files' writes add.
 import { writeFile } from 'node:fs/promises';
@@ -66,8 +66,9 @@ const TABLE = `<w:tbl xmlns:w="${W}"><w:tblPr><w:tblW w:w="0" w:type="auto"/></w
   + `<w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>CELLB</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`;
 
 /**
- * The four files only to open, by name: one bound block control each, of a kind, given a second block by this
- * package's own writer, its node left as it was (docx4j-python's 3a: the node doesn't matter).
+ * The four files only to open, by name: one bound block control each, of a kind, holding a second block, its node left
+ * as it was (docx4j-python's 3a: the node doesn't matter). Their markup is what this package's `insertParagraph` and
+ * `insertOoxml` wrote for them when check 56 was run, before section 61 refused those writes.
  */
 const OPEN_FILES = [
   ['56a-untyped-two-paragraphs.docx', 'untyped', 'paragraph'],
@@ -81,12 +82,10 @@ export async function check56OpenFiles() {
   const out = [];
   for (const [name, kind, add] of OPEN_FILES) {
     const title = `Check 56, ${name}: a bound block control (${kind}) given a ${add === 'table' ? 'table before its paragraph' : 'second paragraph'} by @docx4j/core-ts.`;
-    const pkg = await WordprocessingMLPackage.load(await packageOf(documentOf(title, [boundControl(1, kind)]), dataOf([1])));
-    const control = (await pkg.getBody()).contentControls.find((c) => c.tag === 'c56-1');
     // the table before the paragraph, so that the control still ends with one: the table alone is measured
-    if (add === 'table') await control.paragraphs[0].insertOoxml(TABLE, 'Before');
-    else control.insertParagraph('second paragraph', 'End');
-    out.push({ name, kind, add, bytes: await pkg.save() });
+    const second = add === 'table' ? TABLE.replace(` xmlns:w="${W}"`, '') + para(t('start1')) : para(t('start1')) + para('<w:r><w:t>second paragraph</w:t></w:r>');
+    const control = boundControl(1, kind).replace(`<w:sdtContent>${para(t('start1'))}</w:sdtContent>`, `<w:sdtContent>${second}</w:sdtContent>`);
+    out.push({ name, kind, add, bytes: await packageOf(documentOf(title, [control]), dataOf([1])) });
   }
   return out;
 }

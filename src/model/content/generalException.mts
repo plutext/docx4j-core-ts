@@ -12,3 +12,15 @@ export class GeneralException extends Docx4JException {
     this.name = 'GeneralException';
   }
 }
+
+/**
+ * What Office JS throws for an argument it won't take (`InvalidArgument`): its `code`, as `GeneralException` carries its
+ * own (check 56: `insertTable` into a bound block content control).
+ */
+export class InvalidArgument extends Docx4JException {
+  readonly code = 'InvalidArgument';
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidArgument';
+  }
+}

@@ -6,6 +6,7 @@ import type { Body, Paragraph, Range, Font, Table, TableRow, TableCell, InlinePi
 
 namespace OfficeSubset {
   export type InsertLocation = 'Start' | 'End';
+  export interface ContentControlOptions { types: string[] }
   export type ParagraphLocation = 'Before' | 'After';
   export interface SearchOptions { matchCase?: boolean; matchWholeWord?: boolean; matchWildcards?: boolean }
   export type ChangeTrackingMode = 'Off' | 'TrackAll' | 'TrackMineOnly';
@@ -55,6 +56,7 @@ namespace OfficeSubset {
     readonly styleBuiltIn: string;
     readonly tables: ArrayLike<Table>;
     readonly contentControls: ArrayLike<ContentControl>;
+    getContentControls(options?: ContentControlOptions): ArrayLike<ContentControl>;
     getRange(location?: 'Whole' | 'Start' | 'End' | 'Content' | 'After'): Range;
     expandTo(range: Range): Range;
   }
@@ -71,6 +73,7 @@ namespace OfficeSubset {
     getComments(): Promise<ArrayLike<Comment>>;
     insertComment(content: string): Promise<Comment>;
     getTrackedChanges(): ArrayLike<TrackedChange>;
+    getContentControls(options?: ContentControlOptions): ArrayLike<ContentControl>;
     readonly tableNestingLevel: number;
     // CR-002 phase H
     readonly isListItem: boolean;
@@ -96,6 +99,7 @@ namespace OfficeSubset {
     // CR-002 phase C
     readonly tables: ArrayLike<Table>;
     readonly contentControls: ArrayLike<ContentControl>;
+    getContentControls(options?: ContentControlOptions): ArrayLike<ContentControl>;
     readonly inlinePictures: ArrayLike<InlinePicture>;
     insertTable(rowCount: number, columnCount: number, location: InsertLocation, values?: string[][]): Table;
     insertInlinePictureFromBase64(base64EncodedImage: string, location: InsertLocation): InlinePicture;
@@ -189,6 +193,7 @@ namespace OfficeSubset {
     readonly paragraphs: ArrayLike<Paragraph>;
     readonly tables: ArrayLike<Table>;
     readonly contentControls: ArrayLike<ContentControl>;
+    getContentControls(options?: ContentControlOptions): ArrayLike<ContentControl>;
     insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range;
     insertParagraph(text: string, location: 'Start' | 'End' | 'Before' | 'After'): Paragraph;
     search(text: string, options?: SearchOptions): ArrayLike<Range>;

@@ -4,7 +4,7 @@ import type { CellContext } from '../properties/table.mjs';
 import { deepCopy, marshalString } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
-import { r as textRun, t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
+import { t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
@@ -20,7 +20,9 @@ import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplac
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
-import { ContentControl, collectRunControls, type ContentControlType } from './ContentControl.mjs';
+import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
+import { breakParagraphAt, SPLITTABLE } from './spanEdits.mjs';
+import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsElementCharacters, type LineBreaks } from './officeText.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
@@ -146,10 +148,13 @@ export class Paragraph {
   /** Replaces the content with one run of the text, keeping the first run's formatting. */
   set text(value: string) {
     this.assertWritable();
-    if (this.changeTracker) { this.splice(0, this.text.length, value, 'before', WHOLE); return; }
+    // one paragraph, its line breaks w:br and w:cr (CR-002 section 60 E2), or as a plain-text control takes them (F3)
+    const lines = this.blockControl ? plainTextLinesOf(this.blockControl) : undefined;
+    const mode: LineBreaks = lines === 'multi' ? 'multi-line' : lines === 'single' ? 'single-line' : 'one-paragraph';
+    if (this.changeTracker) { this.splice(0, this.text.length, value, 'before', WHOLE, mode); return; }
     const rPr = runsOf(this.p)[0]?.value.rPr;
     this.releaseRelationships(this.p.content);
-    this.p.content = [withRPr(textRun(value), rPr ? deepCopy(rPr) : undefined)] as wml.P['content'];
+    this.p.content = [oneParagraphRun(value, rPr ? deepCopy(rPr) : undefined, mode)] as wml.P['content'];
     linkParents(this.p.content, this.p);
   }
 
@@ -339,6 +344,15 @@ export class Paragraph {
   }
 
   /**
+   * Office JS `getContentControls` (WordApi 1.5): the content controls `contentControls` lists, those of `options.types`
+   * where given. Word's `contentControls` lists rich-text controls only; this package's lists every kind, a recorded
+   * departure (CR-002 section 60 G1, check 55b), so this is how add-in code that asks for plain-text controls finds them.
+   */
+  getContentControls(options?: ContentControlOptions): ContentControl[] {
+    return controlsOfTypes(this.contentControls, options);
+  }
+
+  /**
    * The inline pictures in this paragraph, in order (Office JS Paragraph.inlinePictures): each
    * `w:drawing` whose `wp:inline` holds a `pic:pic`, in a run or in the selected branch of a kept
    * `mc:AlternateContent` (`picturesIn`). An inline chart, text box or group is not one (CR-010
@@ -367,7 +381,8 @@ export class Paragraph {
     this.assertWritable();
     const pPr = this.p.pPr ? deepCopy(this.p.pPr) : undefined;
     if (pPr) { delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; delete pPr.pPrChange; }
-    const el = paragraphOf(text === '' ? [] : [textRun(text)], pPr);
+    const run = oneParagraphRun(text);   // E2
+    const el = paragraphOf(run.value.content?.length ? [run] : [], pPr);
     return this.parentBody.insertElement(el, location, this) as Paragraph;
   }
 
@@ -430,11 +445,11 @@ export class Paragraph {
       return [this];
     }
     if (location === 'Replace') {
-      const inserted = this.parentBody.insertElement(elements, 'Before', this);
+      const inserted = this.parentBody.insertElement(elements, 'Before', this, 'GeneralException', this.element);
       void inserted;
       this.delete();
     } else {
-      this.parentBody.insertElement(elements, location === 'Start' ? 'Before' : location === 'End' ? 'After' : location, this);
+      this.parentBody.insertElement(elements, location === 'Start' ? 'Before' : location === 'End' ? 'After' : location, this, 'GeneralException');
     }
     return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
       ? new Paragraph(el as Element<wml.P>, this.container, this.parentBody)
@@ -714,8 +729,138 @@ export class Paragraph {
    * says the span holds (`WHOLE` for a paragraph's whole content), so a span of no text can still
    * delete a picture (CR-002 section 48).
    */
-  splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges): Range {
+  splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges, lineBreaks?: LineBreaks): Range {
     this.assertWritable();
+    // Office JS's characters written back (CR-002 section 60): the characters XML 1.0 excludes go (E3), a line feed or
+    // carriage return is a paragraph break (E1) unless the writer or the control takes it otherwise, and every
+    // character that is an element is written as it (D1)
+    text = dropExcluded(text);
+    if (text === '') return this.spliceText(start, end, text, prefer, edges);
+    const from = Math.max(0, Math.min(start, this.text.length));
+    const landing = this.landingSegment(from, prefer, end > from);
+    const runControl = this.runControlOf(landing);
+    let mode: LineBreaks = lineBreaks ?? 'paragraphs';
+    if (runControl) {
+      text = textForRunControl(runControl, text);   // F4 and F3
+    } else if (lineBreaks === undefined) {
+      const lines = this.blockControl ? plainTextLinesOf(this.blockControl) : undefined;
+      if (lines) mode = lines === 'multi' ? 'multi-line' : 'single-line';   // section 61 item 3, F3
+    }
+    text = forWriter(text, mode);
+    if (mode === 'paragraphs' && /[\r\n]/.test(text)) return this.spliceLines(start, end, linesOf(text), prefer, edges, landing);
+    const range = this.spliceText(start, end, text, prefer, edges);
+    this.writeElements(range.start, range.start + text.length);
+    return range;
+  }
+
+  /**
+   * Text of several lines put in place of [start, end) as Word's insertText puts it (CR-002 section 60 E1): the lines'
+   * text, then a paragraph break after each line but the last, the paragraphs keeping this one's properties; tracked,
+   * each new mark inserted. Refused before anything changes where a paragraph can't be split there.
+   */
+  private spliceLines(start: number, end: number, lines: string[], prefer: 'before' | 'after', edges: SpanEdges | undefined, landing: TextSegment | undefined): Range {
+    this.assertBreakable(landing);
+    const joined = lines.join('');
+    const range = this.spliceText(start, end, joined, prefer, edges);
+    const from = range.start;
+    this.writeElements(from, from + joined.length);
+    const offsets: number[] = [];
+    let at = from;
+    for (const line of lines.slice(0, -1)) offsets.push(at += line.length);
+    const { first, last } = breakParagraphAt(this, offsets);
+    return new Range(first, from, lines[lines.length - 1]!.length, false, false, last);
+  }
+
+  /** @internal Refuses, before anything changes, a paragraph break at `at` where none can be made (E1; `Range`'s Replace across paragraphs). */
+  assertBreakableAt(at: number, prefer: 'before' | 'after'): void {
+    this.assertBreakable(this.landingSegment(at, prefer));
+  }
+
+  /**
+   * The segment text put at `at` goes into, as `spliceText` chooses it: a replacement's, the one holding the first
+   * replaced character; else the one containing `at`, else the nearer neighbour.
+   */
+  private landingSegment(at: number, prefer: 'before' | 'after', replacing = false): TextSegment | undefined {
+    const segs = this.segments();
+    if (replacing) {
+      const first = segs.find((s) => s.start <= at && at < s.end);
+      if (first) return first;
+    }
+    const containing = segs.find((s) => s.editable && s.start < at && at < s.end);
+    const ending = segs.find((s) => s.editable && s.end === at);
+    const starting = segs.find((s) => s.editable && s.start === at);
+    return containing ?? (prefer === 'after' ? starting ?? ending : ending ?? starting);
+  }
+
+  /** The run-level content control a segment's run is in, the innermost, as a view; undefined for none. */
+  private runControlOf(seg: TextSegment | undefined): ContentControl | undefined {
+    for (let o = (seg?.run as { PARENT?: object } | undefined)?.PARENT; o && o !== this.p; o = (o as { PARENT?: object }).PARENT) {
+      if ((o as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.SdtRun') return controlViewOf(o, this.parentBody);
+    }
+    return undefined;
+  }
+
+  /** The block-level content control holding this paragraph directly, as a view; undefined for none. */
+  get blockControl(): ContentControl | undefined {
+    const content = (this.p as { PARENT?: object }).PARENT as { TYPE_NAME?: string; PARENT?: object } | undefined;
+    const sdt = content?.TYPE_NAME === 'org_docx4j_wml.SdtContentBlock' ? content.PARENT : undefined;
+    return (sdt as { TYPE_NAME?: string } | undefined)?.TYPE_NAME === 'org_docx4j_wml.SdtBlock' ? controlViewOf(sdt!, this.parentBody) : undefined;
+  }
+
+  /**
+   * Refuses, before anything changes, a paragraph break where the text lands inside something a paragraph can't be
+   * split in: a field, a content control, an equation, a kept mc:AlternateContent (CR-002 section 60 E1, as
+   * `splitParagraph` refuses one).
+   */
+  private assertBreakable(seg: TextSegment | undefined): void {
+    if (!seg) return;
+    const refuse = (what: string): never => {
+      throw new NotSupportedError('Paragraph', 'insertText', `a line feed or carriage return is a paragraph break (CR-002 section 60, E1), `
+        + `and this text goes inside ${what}, which can't be cut in two`);
+    };
+    if (seg.alternate || seg.math) refuse('an equation or an mc:AlternateContent');
+    for (let o = (seg.run as { PARENT?: object }).PARENT; o && o !== this.p; o = (o as { PARENT?: object }).PARENT) {
+      const tn = (o as { TYPE_NAME?: string }).TYPE_NAME ?? '';
+      if (!SPLITTABLE.has(tn)) refuse(`a ${tn.replace('org_docx4j_wml.', '')}`);
+    }
+  }
+
+  /**
+   * The characters of [from, to) that are elements written as the elements they read as (CR-002 section 60 D1), each
+   * in its run where it stood: a w:t holding one is cut around it. Characters outside the span are left as they are.
+   */
+  private writeElements(from: number, to: number): void {
+    if (to <= from) return;
+    for (const seg of this.segments().reverse()) {
+      if (!seg.editable || seg.end <= from || seg.start >= to) continue;
+      const value = seg.text;
+      const a = Math.max(0, from - seg.start);
+      const b = Math.min(value.length, to - seg.start);
+      const inside = value.substring(a, b);
+      if (!holdsElementCharacters(inside)) continue;
+      const items: Element[] = [
+        ...(a > 0 ? [textItem(value.substring(0, a)) as Element] : []),
+        ...officeItems(inside),
+        ...(b < value.length ? [textItem(value.substring(b)) as Element] : []),
+      ];
+      const parent = (seg.item.value as { PARENT?: object }).PARENT ?? seg.run;
+      seg.owner.splice(seg.index, 1, ...items);
+      linkParents(items, parent);
+    }
+  }
+
+  /**
+   * The first run's properties, for text with no run beside it to take its look from; none where that run is hidden,
+   * so that text put into a paragraph whose every run is hidden can be seen (CR-002 section 60: the text was hidden
+   * with it, so read as nothing, and its characters escaped the map).
+   */
+  private visibleFirstRunRPr(): wml.RPr | undefined {
+    const first = runsOf(this.p)[0]?.value;
+    return first && !this.hiddenRuns()(first) ? first.rPr : undefined;
+  }
+
+  /** `splice` before section 60: the text put in as it is, as one stretch of a w:t's text. */
+  private spliceText(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges): Range {
     const length = this.text.length;
     start = Math.max(0, Math.min(start, length));
     end = Math.max(start, Math.min(end, length));
@@ -736,8 +881,8 @@ export class Paragraph {
     // the new text is plain and splits the revision, as typed text is (test/README.md check 21), rather
     // than joining the revision it replaced part of.
     if (end > start && text.length > 0 && segs.find((s) => s.start <= start && start < s.end)?.revision) {
-      this.splice(start, end, '', prefer, edges);
-      return this.splice(start, start, text);
+      this.spliceText(start, end, '', prefer, edges);
+      return this.spliceText(start, start, text);
     }
     if (end > start || objects.length > 0 || references.length > 0) {
       // Replace: the new text takes the place (and formatting) of the first replaced character, as Word does.
@@ -806,7 +951,7 @@ export class Paragraph {
         const before = [...segs].reverse().find((s) => s.end <= start);
         const after = segs.find((s) => s.start >= start);
         const neighbour = prefer === 'after' ? after ?? before : before ?? after;
-        const firstRun = runsOf(this.p)[0]?.value.rPr;
+        const firstRun = this.visibleFirstRunRPr();
         const rPr = neighbour?.run.rPr ? deepCopy(neighbour.run.rPr) : firstRun ? deepCopy(firstRun) : undefined;
         const run = runOf([textItem(text)], rPr);
         if (neighbour === before && before) before.runOwner.splice(before.runIndex + 1, 0, run);
@@ -993,6 +1138,8 @@ export class Paragraph {
     // the paragraph's parent read before the builder makes the control its parent: read after, it was the
     // control's own content, and the control's PARENT pointed into itself (found in CR-012 phase 4)
     const parent = (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container;
+    // a bound block control holds one paragraph (CR-002 section 61): checked before sdtOf, which takes the paragraph
+    assertControlHolds(this.parentBody, parent, this.container.filter((e) => e !== this.element), [BLOCK_CONTROL], undefined, ['Paragraph', 'insertContentControl']);
     const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
     linkParents(sdt, parent);
@@ -1247,7 +1394,7 @@ export class Paragraph {
     }
     const neighbour = prefer === 'after' ? after ?? before : before ?? after;
     tracker.assertEditable(neighbour?.revision);
-    const rPr = copyRPr(neighbour?.run.rPr ?? runsOf(this.p)[0]?.value.rPr);
+    const rPr = copyRPr(neighbour?.run.rPr ?? this.visibleFirstRunRPr());
     const ins = tracker.ins([runOf([textItem(text)], rPr)]);
     this.placeInsertion(at, [ins as Element], before, after, () => tracker.nextId(), prefer);
   }

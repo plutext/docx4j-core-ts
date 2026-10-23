@@ -3,7 +3,7 @@ import { PartName } from '../opc/PartName.mjs';
 import { ContentTypes } from '../opc/ContentTypes.mjs';
 import { Namespaces } from './Namespaces.mjs';
 import { Docx4JException } from '../opc/exceptions.mjs';
-import { parseXml, serializeXmlPart, encodeText, decodeXmlText } from '../xml/dom.mjs';
+import { parseXml, serializeXmlPart, encodeText, decodeXmlText, assertXmlCharacters } from '../xml/dom.mjs';
 
 /**
  * An XML part the object model does not type, held as a DOM (docx4j DefaultXmlPart / XmlPart).
@@ -85,7 +85,7 @@ export class DefaultXmlPart extends Part {
   }
 
   async getBytes(): Promise<Uint8Array> {
-    if (this.document !== undefined) return encodeText(serializeXmlPart(this.document));
+    if (this.document !== undefined) return encodeText(assertXmlCharacters(serializeXmlPart(this.document), `Part ${this.partName}`));
     if (this.bytes !== undefined) return this.bytes;
     const loaded = await this.loadSourceBytes();
     if (loaded === undefined) throw new Docx4JException(`Part ${this.partName} has no content and no source container`);

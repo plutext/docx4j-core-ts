@@ -9,6 +9,8 @@ import type * as w15 from '@docx4j/generated-objects-ts/modules/org_docx4j_w15';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import * as w15el from '@docx4j/generated-objects-ts/el/org_docx4j_w15';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
+import { GeneralException, InvalidArgument } from './generalException.mjs';
 import { marshalString, deepCopy } from '@docx4j/generated-objects-ts';
 // CR-002 phase E: the mapping and the typed kinds live in src/model/customxml/; they import
 // nothing from here at run time (types only), so this direction is the only one.
@@ -17,10 +19,11 @@ import {
   CheckboxContentControl, DatePickerContentControl, ListContentControl, PictureContentControl,
   RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
 } from '../customxml/kinds.mjs';
-import { runsForValue, updateFromControl, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
+import { runsForValue, updateFromControl, holdsFlatOpc, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
+import { dropExcluded, forWriter, officeItems } from './officeText.mjs';
 import { declareIgnorable } from './tracking.mjs';
-import { sdtProperty, sdtKindOf, type SdtKind, t as textItem } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -86,7 +89,10 @@ export class ContentControl {
 
   /** The type Word reports (w:sdtPr's kind element); RichText when none is given, as Word does. */
   get type(): ContentControlType {
-    return sdtKindOf(this.sdt.sdtPr);
+    const kind = sdtKindOf(this.sdt.sdtPr);
+    // Word reads a block control bound by w:dataBinding, untyped or w:richText, as single-line plain text, and saves it
+    // so (checks 35 and 56; CR-002 section 61 H4); the file is left as it is
+    return kind === 'RichText' && isBoundBlockControl(this) ? 'PlainText' : kind;
   }
 
   /** w:tag. */
@@ -155,6 +161,15 @@ export class ContentControl {
   }
 
   /**
+   * Office JS `getContentControls` (WordApi 1.5): the content controls `contentControls` lists, those of `options.types`
+   * where given. Word's `contentControls` lists rich-text controls only; this package's lists every kind, a recorded
+   * departure (CR-002 section 60 G1, check 55b), so this is how add-in code that asks for plain-text controls finds them.
+   */
+  getContentControls(options?: ContentControlOptions): ContentControl[] {
+    return controlsOfTypes(this.contentControls, options);
+  }
+
+  /**
    * Text at the start, the end, or replacing the control's text. On a **bound** control the value
    * is written through to the custom XML node as well when the mapping resolves (CR-002 phase E):
    * Word refreshes a bound control from the custom XML part when it opens the document, so an edit
@@ -174,6 +189,7 @@ export class ContentControl {
       throw new Docx4JException(`A ${form.toLowerCase()}-level content control holds ${form === 'Row' ? 'rows' : 'cells'}; replace the text of its cells instead`);
     }
     if (form !== 'Run') return this.body().insertText(text, location);
+    text = textForRunControl(this, dropExcluded(text));   // CR-002 section 60: F4, F3
     const span = this.runSpan();
     if (!span) throw new Docx4JException('This content control is not in a paragraph');
     const { paragraph, start, end } = span;
@@ -187,6 +203,23 @@ export class ContentControl {
   insertParagraph(text: string, location: 'Start' | 'End' | 'Before' | 'After'): Paragraph {
     this.assertWritable();
     const form = this.form;
+    if ((location === 'Start' || location === 'End') && isBoundBlockControl(this)) {
+      // Word holds a bound block control to one paragraph (CR-002 section 61): into a single-line one the text joins
+      // its paragraph, as Word's insertParagraph writes it; into a multi-line one Word's own second paragraph makes a
+      // file Word can't open, so it is refused (check 56, H2)
+      if (this.isMultiLine) {
+        throw new NotSupportedError('ContentControl', 'insertParagraph', 'this control is bound by w:dataBinding, and Word holds a bound '
+          + "block control to one paragraph: its own second paragraph in a multi-line one makes a file Word can't open (CR-002 section 61, check 56); "
+          + 'insertText with a line feed writes a line break');
+      }
+      const paragraphs = this.paragraphs;
+      const p = location === 'Start' ? paragraphs[0] : paragraphs[paragraphs.length - 1];
+      if (p) {
+        p.insertText(text, location);
+        this.syncBoundNode();
+        return p;
+      }
+    }
     if ((form === 'Row' || form === 'Cell') && (location === 'Start' || location === 'End')) {
       throw new Docx4JException(`A ${form.toLowerCase()}-level content control holds ${form === 'Row' ? 'rows' : 'cells'}, not paragraphs; insert into a cell's body`);
     }
@@ -323,9 +356,10 @@ export class ContentControl {
    * marker when it is itself an insertion.
    */
   private insertIntoEmpty(paragraph: Paragraph, text: string): Range {
+    text = textForRunControl(this, dropExcluded(text));
     const sdt = this.sdt;
     const items = ((sdt.sdtContent ??= {} as { content?: Element[] }).content ??= []);
-    const run = runOf([textItem(text)]);
+    const run = runOf(officeItems(text));
     const tracker = paragraph.changeTracker;
     const item: Element = tracker ? tracker.ins([run]) : run;
     const at = items.findIndex((el) => el.name?.localPart === 'customXmlInsRangeStart');
@@ -702,7 +736,66 @@ function collectRunItems(items: Element[], body: Body, out: ContentControl[], mo
 }
 
 function paragraphElement(text: string): Element {
-  return el.p({ content: text === '' ? [] : [el.r({ content: [el.t({ value: text })] })] }) as Element;
+  const items = officeItems(forWriter(dropExcluded(text), 'one-paragraph'));
+  return el.p({ content: items.length === 0 ? [] : [el.r({ content: items as never[] })] }) as Element;
+}
+
+/**
+ * A view of the content control whose `w:sdt` value this is, found in its owner's list (a paragraph's runs, a body's
+ * blocks, a holder's items).
+ */
+export function controlViewOf(sdt: object, body: Body): ContentControl {
+  const owner = (sdt as { PARENT?: Record<string, unknown> }).PARENT;
+  for (const value of Object.values(owner ?? {})) {
+    if (!Array.isArray(value)) continue;
+    const element = (value as Element[]).find((e) => e?.value === sdt);
+    if (element) return new ContentControl(element as Element<wml.SdtBlock>, value as Element[], body);
+  }
+  throw new Docx4JException('This content control is not in the document any more');
+}
+
+/**
+ * A block-level control bound by `w:dataBinding`, untyped, `w:text` or `w:richText`, whose node doesn't hold flat OPC
+ * (CR-002 section 61 H1): Word holds its content to one paragraph, and can't open a file where it holds more (check 56,
+ * docx4j-python's file 3). A node not resolved (the custom XML parts not loaded) counts as not flat OPC. `w15:dataBinding`
+ * is Word's rich-text binding, and isn't this.
+ */
+export function isBoundBlockControl(control: ContentControl): boolean {
+  if (control.form !== 'Block') return false;
+  const pr = control.sdt.sdtPr;
+  if (sdtProperty(pr, 'dataBinding') === undefined) return false;
+  const kind = sdtKindOf(pr);
+  if (kind !== 'RichText' && kind !== 'PlainText') return false;
+  let node: { text: string } | undefined;
+  try {
+    node = control.xmlMapping.customXmlNode;
+  } catch {
+    node = undefined;   // the parts aren't parsed: the rule applies
+  }
+  return !(node && holdsFlatOpc(node.text));
+}
+
+/**
+ * How a control holds lines, as Word reads it: `multi` or `single` for a plain-text control (`w:text` and its
+ * `w:multiLine`), `single` for a bound block control Word reads as plain text (section 61 H4); undefined for any other.
+ */
+export function plainTextLinesOf(control: ContentControl): 'multi' | 'single' | undefined {
+  if (sdtProperty(control.sdt.sdtPr, 'text') !== undefined) return control.isMultiLine ? 'multi' : 'single';
+  return isBoundBlockControl(control) ? 'single' : undefined;
+}
+
+/**
+ * Text for a run-level control: a line feed or carriage return there is refused before anything changes (CR-002
+ * section 60 F4: Word, given one, moved a bound plain-text control to block level), and a plain-text control's breaks
+ * go as its kind takes them (F3: dropped in a single-line one).
+ */
+export function textForRunControl(control: ContentControl, text: string): string {
+  if (/[\r\n]/.test(text)) {
+    throw new NotSupportedError('ContentControl', 'insertText', 'a line feed or carriage return in a run-level content control would make a '
+      + 'paragraph break inside it, which Word answers by moving the control to block level (CR-002 section 60, F4); write a line break (U+000B) instead');
+  }
+  const lines = plainTextLinesOf(control);
+  return lines === 'single' ? forWriter(text, 'single-line') : text;
 }
 
 /** A `w:p` holding these run-level items (CR-002 phase E: the bound content of an empty control). */
@@ -726,4 +819,46 @@ function ownerOf(container: Element[], body: Body): object {
   };
   return seek(body.container as object) ?? (body.container as object);
 }
+
+/** Word's error for a block write into a bound block control, where measured (CR-002 section 61 H3; check 56). */
+export type BlockRefusal = 'InvalidArgument' | 'GeneralException';
+
+/**
+ * Refuses, before anything changes, putting blocks into a block-level control bound by `w:dataBinding` (untyped,
+ * `w:text` or `w:richText`, its node not flat OPC) that would leave it holding anything but one paragraph: Word can't
+ * open such a file, and its repair loses the extra blocks (CR-002 section 61, check 56). Word's own error where
+ * measured (`insertTable` `InvalidArgument`, `insertOoxml` `GeneralException`), else `NotSupportedError` (H3).
+ */
+export function assertControlHolds(body: Body, holder: object, container: Element[], elements: readonly Element[], refusal?: BlockRefusal,
+  member: [string, string] = ['Body', 'insertElement']): void {
+  const owner = holder as { TYPE_NAME?: string; PARENT?: { TYPE_NAME?: string } } | undefined;
+  if (owner?.TYPE_NAME !== 'org_docx4j_wml.SdtContentBlock' || owner.PARENT?.TYPE_NAME !== 'org_docx4j_wml.SdtBlock') return;
+  const control = controlViewOf(owner.PARENT, body);
+  if (!isBoundBlockControl(control)) return;
+  const blocks = [...container, ...elements].filter((e) => BLOCK_LEVEL_TYPES.has(typeNameOf(e) ?? ''));
+  if (blocks.length === 1 && typeNameOf(blocks[0]!) === 'org_docx4j_wml.P') return;
+  const message = `this content control is bound by w:dataBinding, and Word holds a bound block control to one paragraph: it can't open `
+    + `a file where one holds more, and its repair loses them (CR-002 section 61, check 56)`;
+  if (refusal === 'InvalidArgument') throw new InvalidArgument(`Table: ${message}`);
+  if (refusal === 'GeneralException') throw new GeneralException(`insertOoxml: ${message}`);
+  throw new NotSupportedError(member[0], member[1], message);
+}
+
+/** Office JS `Word.ContentControlOptions`: the types `getContentControls` lists. */
+export interface ContentControlOptions {
+  /** `ContentControlType` values; Office JS takes the enum's strings. */
+  types?: readonly string[];
+}
+
+/** The controls of `options.types`, or all of them. */
+export function controlsOfTypes(controls: ContentControl[], options?: ContentControlOptions): ContentControl[] {
+  const types = options?.types;
+  return types && types.length > 0 ? controls.filter((c) => types.includes(c.type)) : controls;
+}
+
+/** A stand-in for a block-level control about to be made, for `assertControlHolds` before `sdtOf` takes its content. */
+export const BLOCK_CONTROL: Element = Object.freeze({
+  name: { namespaceURI: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', localPart: 'sdt' },
+  value: { TYPE_NAME: 'org_docx4j_wml.SdtBlock' },
+}) as unknown as Element;
 

@@ -3,7 +3,9 @@
 // here for every write whose answer isn't one paragraph's splice; what it gets back is where the text closed up.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
-import { applyRunOptions, readRunOptions, t as textItem, type RunOptions } from '@docx4j/generated-objects-ts/builders/wml';
+import { applyRunOptions, readRunOptions, type RunOptions } from '@docx4j/generated-objects-ts/builders/wml';
+import { dropExcluded, linesOf, officeItems, oneParagraphRun } from './officeText.mjs';
+import { assertControlHolds } from './ContentControl.mjs';
 import { createPPr, createParaRPr } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
@@ -427,9 +429,18 @@ function same(a: unknown, b: unknown): boolean {
 }
 
 /** The text of an untracked `Replace`, put where the deletion closed up, in the first replaced character's look. */
-export function placeReplacement(landing: Landing, first: FirstCharacter, text: string): void {
-  if (text === '') return;
-  landing.paragraph.insertItemsAt(landing.offset, [runOf([textItem(text)], lookOf(first, landing.paragraph))]);
+export function placeReplacement(landing: Landing, first: FirstCharacter, text: string): { first: Paragraph; last: Paragraph; start: number; end: number } {
+  // Office JS's characters written back (CR-002 section 60): the excluded ones dropped, a line break a paragraph break
+  const lines = linesOf(dropExcluded(text));
+  const joined = lines.join('');
+  const p = landing.paragraph;
+  if (joined !== '') p.insertItemsAt(landing.offset, [runOf(officeItems(joined), lookOf(first, p))]);
+  if (lines.length === 1) return { first: p, last: p, start: landing.offset, end: landing.offset + joined.length };
+  const offsets: number[] = [];
+  let at = landing.offset;
+  for (const line of lines.slice(0, -1)) offsets.push(at += line.length);
+  const broken = breakParagraphAt(p, offsets);
+  return { ...broken, start: landing.offset, end: lines[lines.length - 1]!.length };
 }
 
 /** A paragraph mark's formatting as run properties: the mark's own revisions left out. */
@@ -456,7 +467,8 @@ export function insertParagraphAt(p: Paragraph, offset: number, text: string): {
   const rPr = rPrBefore(p, offset);
   const firstHalf = splitParagraph(p, offset, rPr);
   const pPr = propertiesOf(p, rPr);
-  const el = paragraphOf(text === '' ? [] : [runOf([textItem(text)], copyRPr(rPr))], pPr);
+  const run = oneParagraphRun(text, copyRPr(rPr));   // CR-002 section 60 E2
+  const el = paragraphOf(run.value.content?.length ? [run] : [], pPr);
   return { inserted: p.parentBody.insertElement(el, 'Before', p) as Paragraph, firstHalf };
 }
 
@@ -478,6 +490,33 @@ function propertiesOf(p: Paragraph, rPr: wml.RPr | undefined): wml.PPr | undefin
 }
 
 /**
+ * Paragraph breaks put into `p` at `offsets` (ascending, in its text), as Word's insertText writes a line feed or
+ * carriage return (CR-002 section 60 E1, check 55): at a split (`splitParagraph`), in the formatting of the run before
+ * it; at the paragraph's end an empty paragraph after it, at its start one before it, in its properties. Tracked, each
+ * new mark is inserted. Returns the first paragraph and the last, which holds what followed the last break.
+ */
+export function breakParagraphAt(p: Paragraph, offsets: readonly number[]): { first: Paragraph; last: Paragraph } {
+  let tail = p;
+  let consumed = 0;
+  let first: Paragraph | undefined;
+  for (const offset of offsets) {
+    const at = offset - consumed;
+    let head: Paragraph;
+    if (at <= 0) head = tail.insertParagraph('', 'Before');
+    else if (at >= tail.text.length) {
+      head = tail;
+      tail = tail.insertParagraph('', 'After');
+    } else {
+      const before = [...tail.segments()].reverse().find((s) => s.end <= at);
+      head = splitParagraph(tail, at, before?.run.rPr);
+    }
+    first ??= head;
+    consumed = offset;
+  }
+  return { first: first ?? p, last: tail };
+}
+
+/**
  * Splits `p` at `offset`, inside its text: what is before it becomes a new paragraph in front of `p`, in a copy of
  * its properties with a mark of its own in `rPr`'s formatting, and `p` keeps the rest with its own mark, its
  * section break and its identity, as Word keeps them (check 52 cases 57 and 63). A link, a revision or a smart tag
@@ -487,6 +526,8 @@ function propertiesOf(p: Paragraph, rPr: wml.RPr | undefined): wml.PPr | undefin
  */
 export function splitParagraph(p: Paragraph, offset: number, rPr: wml.RPr | undefined): Paragraph {
   p.assertWritable();
+  // a bound block control holds one paragraph (CR-002 section 61): a split there is refused, Word not measured on one
+  assertControlHolds(p.parentBody, (p.p as { PARENT?: object }).PARENT ?? p.parentBody.container, listOf(p), [p.element as Element], undefined, ['Range', 'insertParagraph']);
   const length = p.text.length;
   // the character at the split: the holders above it must be ones that can be cut in two
   const seg = p.segments().find((s) => s.start <= offset && offset < s.end);
@@ -535,7 +576,7 @@ export function splitParagraph(p: Paragraph, offset: number, rPr: wml.RPr | unde
 }
 
 /** The run holders a paragraph split may cut in two: each half is a whole one of the same. */
-const SPLITTABLE = new Set(['org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.RunIns', 'org_docx4j_wml.RunDel', 'org_docx4j_wml.RunTrackChange',
+export const SPLITTABLE = new Set(['org_docx4j_wml.P.Hyperlink', 'org_docx4j_wml.RunIns', 'org_docx4j_wml.RunDel', 'org_docx4j_wml.RunTrackChange',
   'org_docx4j_wml.CTSmartTagRun', 'org_docx4j_wml.CTCustomXmlRun', 'org_docx4j_wml.P.Dir', 'org_docx4j_wml.P.Bdo']);
 
 // --- font ---------------------------------------------------------------------------------------------

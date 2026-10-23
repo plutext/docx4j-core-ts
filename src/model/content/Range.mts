@@ -6,7 +6,7 @@ import type { Body, BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, WHOLE, type SpanEdges, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
-import { ContentControl, type ContentControlType } from './ContentControl.mjs';
+import { ContentControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
@@ -108,6 +108,22 @@ export class Range {
   }
 
   /** The range collapsed where an edit through it closed it up, or over what the edit put there. */
+  /**
+   * This range moved onto another's span: its paragraphs and offsets (a replacement's, CR-002 section 60); `fresh`, it
+   * no longer holds a mark or a paragraph's whole content either, as `landAt` leaves one.
+   */
+  private cover(r: Range, fresh = false): void {
+    this.startParagraph = r.paragraph;
+    this.lastParagraph = r.endParagraph;
+    this.start = r.start;
+    this.end = r.end;
+    if (fresh) {
+      this.holdsWhole = false;
+      this.holdsMark = false;
+      this.lastMarkText = undefined;
+    }
+  }
+
   private landAt(paragraph: Paragraph, start: number, end = start): void {
     this.startParagraph = paragraph;
     this.lastParagraph = paragraph;
@@ -333,6 +349,15 @@ export class Range {
     });
   }
 
+  /**
+   * Office JS `getContentControls` (WordApi 1.5): the content controls `contentControls` lists, those of `options.types`
+   * where given. Word's `contentControls` lists rich-text controls only; this package's lists every kind, a recorded
+   * departure (CR-002 section 60 G1, check 55b), so this is how add-in code that asks for plain-text controls finds them.
+   */
+  getContentControls(options?: ContentControlOptions): ContentControl[] {
+    return controlsOfTypes(this.contentControls, options);
+  }
+
   /** A body over this range's story, for its tables and controls. */
   private storyBody(): Body {
     const { owner } = storyOf(this.paragraph.p);
@@ -425,7 +450,8 @@ export class Range {
       this.assertWritableSpan();
       if (location === 'End' || location === 'After') return this.endParagraph.splice(this.end, this.end, text);
       const r = this.paragraph.splice(this.start, this.start, text, 'after');
-      this.start += text.length;
+      this.startParagraph = r.endParagraph;   // the text may have broken the paragraph (CR-002 section 60 E1)
+      this.start = r.end;
       return r;
     }
     let r: Range;
@@ -434,9 +460,15 @@ export class Range {
     // as Office JS (check 32: insertText('Before') on a link's text went into the link, as 'After' did)
     else if (location === 'Before' || location === 'Start') r = this.paragraph.splice(this.start, this.start, text, 'after');
     else r = this.paragraph.splice(this.end, this.end, text);
-    // this range keeps covering the same text: a replacement resizes it, text before it shifts it, text after it leaves it
-    if (location === 'Replace') this.end = this.start + text.length;
-    else if (location === 'Before' || location === 'Start') { this.start += text.length; this.end += text.length; }
+    // this range keeps covering the same text: a replacement resizes it, text before it shifts it, text after it leaves
+    // it; what was put in is the returned range's, which a line break may have taken into the paragraphs it made
+    if (location === 'Replace') this.cover(r);
+    else if (location === 'Before' || location === 'Start') {
+      const length = this.end - this.start;
+      this.startParagraph = this.lastParagraph = r.endParagraph;
+      this.start = r.end;
+      this.end = r.end + length;
+    }
     return r;
   }
 
@@ -562,20 +594,24 @@ export class Range {
     if (this.paragraph.changeTracker) {
       assertTrackable(extent, 'insertText');
       // tracked: the insertion before the deletion (check 52 cases 39 to 48), in the first replaced run's formatting
-      const start = this.start;
-      const paragraph = this.paragraph;
-      paragraph.splice(start, start, text, 'after');
-      this.start += text.length;
-      if (!this.spansParagraphs) this.end += text.length;
+      const length = this.spansParagraphs ? undefined : this.end - this.start;
+      const inserted = this.paragraph.splice(this.start, this.start, text, 'after');
+      // the range's own text follows what was put in, in the paragraph the insertion ended in (E1)
+      this.startParagraph = inserted.endParagraph;
+      this.start = inserted.end;
+      if (length !== undefined) { this.lastParagraph = inserted.endParagraph; this.end = inserted.end + length; }
       deleteSpan(this, extentOf(this, 'insertText'), true);
-      this.landAt(paragraph, start, start + text.length);
-      return new Range(paragraph, start, start + text.length);
+      this.cover(inserted, true);
+      return new Range(inserted.paragraph, inserted.start, inserted.end, false, false, inserted.endParagraph);
     }
     const first = firstCharacterOf(this);
+    // a line break in the text is a paragraph break (E1), refused before anything changes where none can be made
+    if (/[\r\n]/.test(text)) this.paragraph.assertBreakableAt(this.start, 'before');
     const landing = deleteSpan(this, extent, true)!;
-    placeReplacement(landing, first, text);
-    this.landAt(landing.paragraph, landing.offset, landing.offset + text.length);
-    return new Range(landing.paragraph, landing.offset, landing.offset + text.length);
+    const placed = placeReplacement(landing, first, text);
+    const r = new Range(placed.first, placed.start, placed.end, false, false, placed.last);
+    this.cover(r, true);
+    return r;
   }
 
   /**
@@ -842,6 +878,8 @@ export class Range {
     const body = this.paragraph.parentBody;
     const { list, first, last } = extent;
     const parent = (list[first]!.value as { PARENT?: object }).PARENT ?? body.container;
+    // a bound block control holds one paragraph (CR-002 section 61): checked before sdtOf, which takes the paragraphs
+    assertControlHolds(body, parent, list.filter((_, i) => i < first || i > last), [BLOCK_CONTROL], undefined, ['Range', 'insertContentControl']);
     const sdt = sdtOf(list.slice(first, last + 1), { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(body)), form: 'block' }) as Element<wml.SdtBlock>;
     list.splice(first, last - first + 1, sdt as Element);
     linkParents(sdt, parent);

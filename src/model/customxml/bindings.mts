@@ -11,7 +11,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
-import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
+import { sdtProperty, textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { bindPicture } from './pictures.mjs';
@@ -60,6 +60,16 @@ function isContainer(control: ContentControl): boolean {
   if (CONTAINER_KINDS.has(control.type)) return true;
   if (control.contentControls.length > 0) return true;
   return control.form === 'Block' && control.tables.length > 0;
+}
+
+/**
+ * A control's text as its node takes it (CR-002 section 60 D4, F1, F2): `textOf`'s characters, as before CR-012 phase 4
+ * moved `ContentControl.text` to Office JS's, its paragraphs and breaks a line feed each, a non-breaking hyphen `-` as
+ * Word writes it (check 55b), an optional hyphen U+00AD, a note reference nothing. Office JS's U+000B and U+001E are no
+ * XML characters.
+ */
+export function boundValueOf(control: ContentControl): string {
+  return textOf((control.sdt.sdtContent ?? {}) as object).replace(/\u2011/g, '-');
 }
 
 /** docx4j ValueInserterPlainTextImpl: the runs for a value, with the w:sdtPr run properties. */
@@ -175,8 +185,9 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
     if (outcome.note) notes?.push(outcome.note);
     return outcome.done;
   }
-  // Explicit rich text is bound from flat OPC or XHTML in docx4j; deferred, as it is there for this route.
-  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
+  // Explicit rich text is bound from flat OPC or XHTML in docx4j; deferred, as it is there for this route. A block
+  // control bound by w:dataBinding is plain text to Word, w:richText or not (CR-002 section 61 H4), and is bound as text.
+  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined && control.type === 'RichText') return false;
   if (isContainer(control)) return false;
   // A Flat OPC package is a rich text control's content, not text: no control is filled with it.
   if (holdsFlatOpc(value)) return false;
@@ -237,14 +248,15 @@ export function updateFromControl(control: ContentControl): boolean {
   // A picture control is the asynchronous pass's (updateFromPictureControl, CR-005 section 9): its
   // image's bytes go back to the node as base64, as Word 15 writes them (check 38).
   if (control.type === 'Picture') return false;
-  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined) return false;
+  // a block control bound by w:dataBinding is plain text to Word, w:richText or not (H4); its text goes back as text
+  if (sdtProperty(control.sdt.sdtPr, 'richText') !== undefined && control.type === 'RichText') return false;
   if (isContainer(control)) return false;
   // A control showing its placeholder holds no value.
   if (control.isShowingPlaceholder) return false;
   // The node holds a rich text control's content as Flat OPC: text is not written over it.
   if (holdsFlatOpc(node.text)) return false;
 
-  let value = control.text;
+  let value = boundValueOf(control);
   if (control.type === 'CheckBox') {
     const checkbox = control.checkboxContentControl;
     if (!checkbox) return false;

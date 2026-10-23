@@ -60,6 +60,26 @@ export function createDocument(): Document {
   return DOM.createDocument();
 }
 
+/** A character XML 1.0 excludes: a C0 control but tab, line feed and carriage return, U+FFFE, U+FFFF, an unpaired surrogate. */
+const NOT_XML = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+/**
+ * The XML, refused where it holds a character XML 1.0 excludes, which no escape can write (CR-002 section 60 D3): the
+ * part would not be well-formed, and a conforming parser must refuse it. The content API's writers drop such characters
+ * or write them as their elements; this catches what reached the tree some other way (an attribute, a custom XML
+ * node's value, a caller's own edit of the tree).
+ */
+export function assertXmlCharacters(xml: string, where: string): string {
+  const m = NOT_XML.exec(xml);
+  if (m) {
+    const code = m[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+    const before = xml.slice(Math.max(0, m.index - 40), m.index).replace(/[^\x20-\x7e]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+    throw new Docx4JException(`${where} holds U+${code}, which XML 1.0 excludes, so it can't be written as well-formed XML `
+      + `(character ${m.index}, after "${before}"); remove it, or write it as the element it stands for (CR-002 section 60)`);
+  }
+  return xml;
+}
+
 /** XML declaration plus the serialised document element, as one string. */
 export function serializeXmlPart(node: Node): string {
   const el = node.nodeType === 9 ? (node as Document).documentElement : node;
