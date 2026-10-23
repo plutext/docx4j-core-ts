@@ -4,7 +4,7 @@
 // copy route the text model's views are held equal to (WD REQ-406, the agreement test).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { type Element, typeNameOf, runItemsOf, childrenOf, revisionKindOf, itemTextOf } from './tree.mjs';
-import { type TrackedChange, type MovePiece, movePiecesOf, storyOf } from './TrackedChange.mjs';
+import { type TrackedChange, type MovePiece, movePiecesOf, storyOf, firstCellParagraphOf } from './TrackedChange.mjs';
 import { trackedChangesOfStory, type Body } from './Body.mjs';
 import { HOLDER_TYPES } from './tracking.mjs';
 
@@ -113,15 +113,30 @@ export class ResolvedView {
     if (tn !== 'org_docx4j_wml.P') return false;
     const p = v as wml.P;
     if (this.movedMarksGone.has(p) && !this.remainsIn(p)) return true;
-    // an emptied paragraph whose mark is gone, with a table next in its list: gone (docx4j CR-043 section 17, check 54 case 9)
-    return this.marksGone.has(p) && !this.remainsIn(p) && typeNameOf(this.nextBlockAfter(p)) === 'org_docx4j_wml.Tbl';
+    if (!this.marksGone.has(p)) return false;
+    // an emptied paragraph whose mark is gone, with a table or a block control next in its list: gone (docx4j CR-043
+    // section 17: check 54 case 9, the text-left probe's case 3). One with text left and a table next isn't removed but
+    // moved: `joinsIntoTable`, which the walk applies
+    const next = this.nextBlockAfter(p);
+    return !this.remainsIn(p) && (typeNameOf(next) === 'org_docx4j_wml.Tbl' || HOLDER_TYPES.has(typeNameOf(next) ?? ''));
+  }
+
+  /**
+   * The table a paragraph with text left joins into, where its mark is gone and a table is the next block in its list
+   * (Word 365's Accept All, docx4j CR-043 section 17, the text-left probe's case 1: its content lands at the front of the
+   * first cell's first paragraph, which keeps its own properties); undefined otherwise. docx4j `joinsIntoTable`.
+   */
+  joinsIntoTable(p: wml.P): wml.Tbl | undefined {
+    if (!this.marksGone.has(p) || !this.remainsIn(p)) return undefined;
+    const next = this.nextBlockAfter(p);
+    return typeNameOf(next) === 'org_docx4j_wml.Tbl' && firstCellParagraphOf(next as wml.Tbl) ? next as wml.Tbl : undefined;
   }
 
   /**
    * A paragraph's properties in this view, where its mark is gone and no paragraph follows it in its list (Word 365's
    * Accept All, check 54; docx4j CR-043 section 17): a block control next gives it the control's first paragraph's
-   * properties, as a join would have (case 19); a control's last paragraph, emptied, keeps a bare mark, its properties
-   * gone (case 13); otherwise its own. docx4j `paragraphPropertiesOf`.
+   * properties, as a join would have (case 19); a control's last paragraph keeps a bare mark, its properties gone, its
+   * text left or not (case 13, the text-left probe's case 2); otherwise its own. docx4j `paragraphPropertiesOf`.
    */
   paragraphPropertiesOf(p: wml.P): wml.PPr | undefined {
     if (!this.marksGone.has(p)) return p.pPr;
@@ -137,7 +152,7 @@ export class ResolvedView {
         if (typeNameOf(o) === 'org_docx4j_wml.Tbl') break;
       }
     }
-    if (next === undefined && !this.remainsIn(p) && SDT_CONTENTS.has(parent?.TYPE_NAME ?? '')) return undefined;
+    if (next === undefined && SDT_CONTENTS.has(parent?.TYPE_NAME ?? '')) return undefined;   // a bare mark, text or not (the probe's case 2)
     return p.pPr;
   }
 

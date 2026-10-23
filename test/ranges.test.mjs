@@ -833,7 +833,7 @@ test("check 54's run and its report after Accept All (Word 365, 2026-10-22) are 
   }
   const manifest = JSON.parse(await readFile(join(here, 'check54', 'manifest.json'), 'utf8'));
   for (const { name, sha1 } of manifest.files) assert.equal(createHash('sha1').update(await save54(name)).digest('hex'), sha1, name);
-  assert.deepEqual(manifest.files.map((f) => f.name), ['54-writes-word365.docx', '54-writes-word365-accepted.docx']);
+  assert.deepEqual(manifest.files.map((f) => f.name), ['54-writes-word365.docx', '54-writes-word365-accepted.docx', '54-writes-word365-rejected.docx']);
 });
 
 /** Check 54's snippet in its 'run' mode, through the Word shim on its own file, once for the tests below. */
@@ -922,6 +922,39 @@ test("CR-014 phase 3: Accept All after check 54's writes through the shim is Wor
   assert.equal(mine.get(9)[0], 'TR ');
   assert.equal(mine.get(13)[3], '  P[|] ');
   assert.equal(mine.get(19)[0], 'P[center|] "HEAD19A "');
+});
+
+test("check 54: rejectAllRevisions on Word 365's save after the run is Word's Reject All, region for region (docx4j CR-043 section 17)", async () => {
+  const pkg = await loaded(await save54('54-writes-word365.docx'));
+  await pkg.rejectAllRevisions();
+  const mine = markupOf(await loaded(await pkg.save()));
+  const word = markupOf(await loaded(await save54('54-writes-word365-rejected.docx')));
+  assert.equal(word.size, 43);
+  const differing = [...word.keys()].filter((n) => mine.get(n).join('\n') !== word.get(n).join('\n'));
+  // the original everywhere, as Word's, every region's markup the same
+  assert.deepEqual(differing, []);
+});
+
+test("docx4j CR-043 section 17's text-left probe: Accept All and Reject All are Word 365's, region for region, its case 4 aside", async () => {
+  const dir = join(here, 's17');
+  const manifest = JSON.parse(await readFile(join(dir, 'manifest.json'), 'utf8'));
+  for (const { name, sha1 } of manifest.files) assert.equal(createHash('sha1').update(await readFile(join(dir, name))).digest('hex'), sha1, name);
+  for (const [verb, save] of [['acceptAllRevisions', '17-text-left-accepted.docx'], ['rejectAllRevisions', '17-text-left-rejected.docx']]) {
+    const pkg = await loaded(await readFile(join(dir, '17-text-left.docx')));
+    await pkg[verb]();
+    const mine = markupOf(await loaded(await pkg.save()));
+    const word = markupOf(await loaded(await readFile(join(dir, save))));
+    assert.deepEqual([...word.keys()], [1, 2, 3, 4, 5], verb);
+    // case 4, a deleted mark on a cell's last paragraph, is no edit Word writes, and Word's Accept All dropped the
+    // one-cell table; docx4j's resolution keeps the cell's paragraph, and so does this package's (docx4j's section 11)
+    for (const n of [1, 2, 3, 5]) assert.deepEqual(mine.get(n), word.get(n), `${verb}, case ${n}`);
+  }
+  // Accept All: the text joins the table's first cell's first paragraph (1); a control's last paragraph keeps a bare
+  // mark, its text left (2); an emptied paragraph before a control goes (3); text left before a control takes its first
+  // paragraph's properties, its numbering too (5)
+  const accepted = markupOf(await loaded(await readFile(join(dir, '17-text-left-accepted.docx'))));
+  assert.deepEqual(accepted.get(1).slice(0, 2), ['TR ', '  P[|] "HEAD1A T1R1C1"']);
+  assert.equal(accepted.get(3)[0], 'SDT');
 });
 
 test("CR-014 phase 3: the markup check 54's writes leave through the shim is Word 365's in its save after the run, region for region", async () => {

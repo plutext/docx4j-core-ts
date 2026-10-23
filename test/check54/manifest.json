@@ -4,7 +4,8 @@
  "source": "test/fixtures/check54/build.mjs (54-writes.docx, 43 cases), after the Script Lab snippet's \"Run the check\"",
  "saves": {
   "54-writes-word365.docx": "saved after a second run the same day (the snippet's JSON was the first run's, case for case: test/fixtures/check54/54-writes-word365-run.json), with File > Save; the first runs' saves were made with Ctrl+S while Script Lab's pane had the focus, and held the document from before the run",
-  "54-writes-word365-accepted.docx": "after the first run, Review > Accept All Changes (the report: test/fixtures/check54/54-writes-word365-accepted.json)"
+  "54-writes-word365-accepted.docx": "after the first run, Review > Accept All Changes (the report: test/fixtures/check54/54-writes-word365-accepted.json)",
+  "54-writes-word365-rejected.docx": "54-writes-word365.docx opened again in Word 365 (Jason, 2026-10-23), Review > Reject All Changes, saved; copied from docx4j core-tests revisions/core-ts/check54/ at e55a83b8e (docx4j CR-043 section 17)"
  },
  "files": [
   {
@@ -14,6 +15,10 @@
   {
    "name": "54-writes-word365-accepted.docx",
    "sha1": "5047a128aec36d2933d044ca6ae9b7ce62510daf"
+  },
+  {
+   "name": "54-writes-word365-rejected.docx",
+   "sha1": "1b641663414039fa9901eb8d3898a392ae5db004"
   }
  ]
 }

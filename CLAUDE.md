@@ -276,7 +276,8 @@ addresses agreeing with the text model over every fixture holding a text box, th
 addresses, and `outline()`; and check 58's file and snippet (`test/fixtures/check58/`, `check58Bytes`) held to each other and
 run through the shim in both modes and held to Word's runs (K1 to K6), and check 59's (`test/fixtures/check59/`, where a
 wildcard matches a mark) through the shim until Word's run is back,
-`ranges.test.mjs` CR-014's: check 52's file (`check52Bytes`, `test/fixtures/check52/`) and its Script Lab snippet held to each
+`ranges.test.mjs` CR-014's (and docx4j CR-043 section 17's text-left probe with Word's saves in `test/s17/`, with a SHA-1
+manifest, Accept All and Reject All held to Word's): check 52's file (`check52Bytes`, `test/fixtures/check52/`) and its Script Lab snippet held to each
 other, every case parsed by the snippet's own parser and every word it searches for in the file once, Word 365's run and its
 report after Accept All of the same cases, and `acceptAllRevisions()` on Word's save after the run held to Word's own Accept All,
 region for region (`test/check52/`, Word's saves, outside `fixtures/` like `mc-fun/`, with a SHA-1 manifest; phase 0; cases 86

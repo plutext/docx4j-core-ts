@@ -1316,10 +1316,11 @@ function dropMark(paragraph: Paragraph | undefined, which: 'ins' | 'del'): void 
  * `fallbackToPrevious` is for the second case at the end of a container, where this package's
  * inserted paragraph carries its own mark (section 13) and there is nothing after it to join
  * with: the paragraph then goes, its content joining the one before. Otherwise, with no paragraph
- * next, a join never crosses a container's edge, and Word 365's Accept All (check 54, docx4j CR-043
- * section 17) does one of three things: an emptied paragraph with a table next goes (case 9); one
- * with a block control next takes the control's first paragraph's properties, nothing joined (case
- * 19); a control's emptied last paragraph keeps a bare mark (case 13). Else the mark is only dropped.
+ * next, a join never crosses a container's edge, and Word 365's Accept All (check 54 and the text-left
+ * probe, docx4j CR-043 section 17) does one of four things: an emptied paragraph with a table or a
+ * block control next goes; text left with a table next joins the table's first cell's first paragraph,
+ * which keeps its properties; with a block control next it takes the control's first paragraph's
+ * properties, nothing joined; a control's last paragraph keeps a bare mark. Else the mark is only dropped.
  */
 export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' | 'p'>, fallbackToPrevious = false): void {
   discarding();
@@ -1342,19 +1343,36 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
       container.splice(i, 1);
       return;
     }
-    // Word 365's Accept All where no paragraph follows (check 54; docx4j CR-043 section 17, 29dbf5964): a join never
-    // crosses a container's edge, and three shapes do something besides dropping the mark
+    // Word 365's Accept All where no paragraph follows (check 54 and the text-left probe; docx4j CR-043 section 17,
+    // 29dbf5964 and e55a83b8e): a join never crosses a container's edge, and four shapes do something besides dropping
+    // the mark, in docx4j's order
     const emptied = !(p.content ?? []).some((item) => !isRangeMarker(item as Element));
-    if (i >= 0 && emptied && next && typeNameOf(next) === 'org_docx4j_wml.Tbl') {
-      // case 9: an emptied paragraph with a table next goes, the table following what came before
+    const table = next !== undefined && typeNameOf(next) === 'org_docx4j_wml.Tbl';
+    const control = next !== undefined && HOLDER_TYPES.has(typeNameOf(next) ?? '');
+    if (i >= 0 && emptied && (table || control)) {
+      // check 54 case 9, the probe's case 3: an emptied paragraph with a table or a block control next goes, which
+      // then follows what came before
       discarding(undefined, p.pPr);
       container.splice(i, 1);
       return;
     }
-    if (next && HOLDER_TYPES.has(typeNameOf(next) ?? '')) {
-      // case 19: a block control next: nothing joins, but the paragraph takes the properties a join would have
-      // given it, the control's first paragraph's
-      const first = firstParagraphOf(childrenOf(next.value as object));
+    if (i >= 0 && table) {
+      // the probe's case 1: text left with a table next joins the table's first cell's first paragraph, at its front,
+      // the range markers after it with it; that paragraph keeps its own properties
+      const first = firstCellParagraphOf(next!.value as wml.Tbl);
+      if (first) {
+        const moved = [...(p.content ?? []).splice(0), ...container.slice(i + 1, j)] as Element[];
+        (first.content ??= []).splice(0, 0, ...(moved as never[]));
+        linkParents(moved, first);
+        discarding(undefined, p.pPr);
+        container.splice(i, j - i);
+        return;
+      }
+    }
+    if (control) {
+      // check 54 case 19, the probe's case 5: text left with a block control next: nothing joins, but the paragraph
+      // takes the properties a join would have given it, the control's first paragraph's
+      const first = firstParagraphOf(childrenOf(next!.value as object));
       if (first) {
         discarding(undefined, p.pPr);
         p.pPr = first.pPr ? deepCopy(first.pPr) as wml.PPr : undefined;
@@ -1362,8 +1380,8 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
         return;
       }
     }
-    if (i >= 0 && emptied && next === undefined && SDT_CONTENTS.has((p as { PARENT?: { TYPE_NAME?: string } }).PARENT?.TYPE_NAME ?? '')) {
-      // case 13: a control's last paragraph, emptied, keeps a bare mark
+    if (i >= 0 && next === undefined && SDT_CONTENTS.has((p as { PARENT?: { TYPE_NAME?: string } }).PARENT?.TYPE_NAME ?? '')) {
+      // check 54 case 13, the probe's case 2: a control's last paragraph keeps a bare mark, its text with it, if any
       discarding(undefined, p.pPr);
       delete p.pPr;
       return;
@@ -1394,6 +1412,19 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
 
 /** A block-level control's content, which holds paragraphs. */
 const SDT_CONTENTS: ReadonlySet<string> = new Set(['org_docx4j_wml.SdtContentBlock', 'org_docx4j_wml.CTSdtContentBlock']);
+
+/** The first paragraph of a table's first cell, where a paragraph joining into the table lands; docx4j's `firstCellParagraph`. */
+export function firstCellParagraphOf(tbl: wml.Tbl): wml.P | undefined {
+  for (const row of (tbl.content ?? []) as Element[]) {
+    if (typeNameOf(row) !== 'org_docx4j_wml.Tr') continue;
+    for (const cell of ((row.value as wml.Tr).content ?? []) as Element[]) {
+      if (typeNameOf(cell) !== 'org_docx4j_wml.Tc') continue;
+      return firstParagraphOf((cell.value as wml.Tc).content as Element[] | undefined);
+    }
+    return undefined;
+  }
+  return undefined;
+}
 
 /** The first paragraph among a holder's blocks, before any table; docx4j's `firstParagraph`. */
 function firstParagraphOf(items: Element[] | undefined): wml.P | undefined {

@@ -469,6 +469,9 @@ export class Extractor {
     for (let i = 0; i < items.length; i++) i = this.block(items, i, prefix, story, sink, state);
   }
 
+  /** A paragraph chain whose deleted mark has a table next: it joins the table's first cell's first paragraph (docx4j CR-043 section 17). */
+  private pendingTableJoin: { chain: wml.P[]; addresses: string[] } | undefined;
+
   /** The block at `items[i]` into `sink`, with the paragraphs a view joins to it; the index of the last item it took. */
   private block(items: Element[], i: number, prefix: string, story: Story, sink: TextBlock[], state: RunState): number {
     const item = items[i]!;
@@ -482,16 +485,33 @@ export class Extractor {
       let j = i;
       while (this.joinsNext(chain[chain.length - 1]!)) {
         const k = this.nextParagraph(items, j);
-        if (k < 0) break;                                            // no paragraph next: only the mark goes
+        if (k < 0) break;                                            // no paragraph next: only the mark goes, or what the plan says
         chain.push(unwrap(items[k]) as wml.P);
         addresses.push(`${prefix}/${k}`);
         j = k;
+      }
+      if (this.pendingTableJoin) {
+        // the paragraph before the table whose content joins this one, its first cell's first paragraph
+        chain.unshift(...this.pendingTableJoin.chain);
+        addresses.unshift(...this.pendingTableJoin.addresses);
+        this.pendingTableJoin = undefined;
+      }
+      if (this.plan?.joinsIntoTable(chain[chain.length - 1]!)) {
+        // a deleted mark with a table next and text left: into the table's first cell (docx4j CR-043 section 17)
+        this.pendingTableJoin = { chain, addresses };
+        return j;
       }
       this.paragraph(chain, addresses, story, sink, state);
       return j;
     }
     if (tn === TBL) {
       this.table(v as wml.Tbl, address, story, sink, state);
+      if (this.pendingTableJoin) {
+        // the table had no paragraph to take it after all: on its own
+        const { chain, addresses } = this.pendingTableJoin;
+        this.pendingTableJoin = undefined;
+        this.paragraph(chain, addresses, story, sink, state);
+      }
     } else if (isSdt(v) && this.unwraps(item)) {
       // an inserted control rejected: its content in its place, its properties gone
       this.blocks(sdtContentOf(v), address, story, sink, state);

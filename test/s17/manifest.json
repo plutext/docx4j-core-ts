@@ -1,0 +1,24 @@
+{
+ "probe": "docx4j CR-043 section 17, the text-left probe",
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-23)",
+ "source": "docx4j core-tests revisions/cr043/s17/ at e55a83b8e (VERSION_17_3_5), copied unedited; 17-text-left.docx written by build-17-text-left.py",
+ "saves": {
+  "17-text-left.docx": "the probe: five cases in Word's tracked form, a region each (BEGINn .. ENDn), by Author A",
+  "17-text-left-accepted.docx": "17-text-left.docx after Review > Accept All Changes, saved",
+  "17-text-left-rejected.docx": "17-text-left.docx after Review > Reject All Changes, saved"
+ },
+ "files": [
+  {
+   "name": "17-text-left.docx",
+   "sha1": "7e152f3e433f40eac0c66afd641f0f2a5d890d62"
+  },
+  {
+   "name": "17-text-left-accepted.docx",
+   "sha1": "14b0785ee46b25573415e2f04331f3598dc24612"
+  },
+  {
+   "name": "17-text-left-rejected.docx",
+   "sha1": "772c9577a06e44872e15e58be14c35948f156ed1"
+  }
+ ]
+}

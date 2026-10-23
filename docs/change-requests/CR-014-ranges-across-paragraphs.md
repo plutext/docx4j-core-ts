@@ -33,7 +33,9 @@ going untracked and on Accept All (section 12.6). Left: three rules of Word's Ac
 the shim's `getOoxml` and `toApiScript` across paragraphs give the range's blocks, and under tracking no longer mark a
 copy's trimmed text deleted. Section 14 (2026-10-23, docx4j-python's finding): a range holding one table whole, nothing
 either side, deleted the block after it too; fixed, not committed. Section 12.3's three Accept All rules (cases 9, 13
-and 19) followed since 2026-10-23, as docx4j's CR-043 section 17 (`29dbf5964`) adopted them; not committed.
+and 19) followed since 2026-10-23, as docx4j's CR-043 section 17 (`29dbf5964`) adopted them, committed `222cc20`; and
+as docx4j revised them the same day from a text-left probe (`e55a83b8e`), with Word's Reject All of check 54; not
+committed.
 
 ## 1. Why
 
@@ -936,7 +938,28 @@ none.
   13, 15, 17 and 19, Word's own Accept All save, block by block. The view's half fails without the `ResolvedView`
   change. docx4j at `29dbf5964` (built into a separate Maven repository) answers the same as 17.3.4 for all 96
   revisions goldens and all 282 text goldens: no fixture has these shapes, so the goldens stay as recorded.
-  `npm test`: 1,490 pass.
+  `npm test`: 1,490 pass. Committed `222cc20`.
+
+  *Revised the same day, docx4j `e55a83b8e` (Jason: "yes").* Jason ran Word 365's Reject All of check 54's save: the
+  original everywhere, as docx4j's and this package's. A second probe, docx4j's text-left probe, put the paragraph's text
+  left beside the mark, and changed three of the rules. docx4j's order where no paragraph follows a mark that goes is now
+  this, and this package's `joinWithNext` follows it:
+  1. an emptied paragraph with a table or a block control next goes (the control is new: the probe's case 3);
+  2. text left with a table next joins the table's first cell's first paragraph, at its front, the range markers after it
+     with it; that paragraph keeps its own properties (new: case 1, where the paragraph had stayed before the table);
+  3. text left with a block control next takes the control's first paragraph's properties (check 54 case 19, the probe's
+     case 5);
+  4. a control's last paragraph keeps a bare mark, text left or not (before, only when emptied: case 2);
+  5. otherwise the mark is only dropped.
+
+  `ResolvedView` follows (`removes`, `joinsIntoTable`, `paragraphPropertiesOf`), and so does the text model's walk, which
+  holds a chain joining into a table until the table's first cell's first paragraph, as docx4j's Extractor does. Word's
+  saves are copied: check 54's Reject All into `check54/` (its manifest), the probe with Word's Accept All and Reject All
+  saves and docx4j's builder into `s17/`, with a manifest. `ranges.test.mjs` holds Reject All of check 54's save to
+  Word's, every region, and the probe's Accept All and Reject All to Word's, region for region but case 4 (a deleted
+  mark on a cell's last paragraph, which Word doesn't write; docx4j's section 11, not followed). `text-model.test.mjs`
+  holds the probe's accepted view to its Accept All copy and to Word's save. docx4j at `e55a83b8e` answers the same
+  as 17.3.4 for the 96 revisions goldens and the 282 text goldens. `npm test`: 1,497 pass.
 
 ### 12.4 What the save after the run settled
 

@@ -748,3 +748,29 @@ test("check 54's save, its accepted view, its Accept All copy and Word's Accept 
   };
   for (const n of [6, 9, 13, 15, 17, 19]) assert.deepEqual(region(viewed, n), region(word, n), `case ${n}`);
 });
+
+// docx4j CR-043 section 17's text-left probe (e55a83b8e): the accepted view reads as the Accept All copy, block by block,
+// and as Word's own Accept All save in cases 1 to 3 and 5: a paragraph joined into a table's first cell, a control's last
+// paragraph bare, an emptied paragraph before a control gone, a control's first paragraph's properties taken
+test("the text-left probe's accepted view, its Accept All copy and Word's Accept All save read alike, block by block (docx4j CR-043 section 17)", async () => {
+  const dir = join(here, 's17');
+  const blocksOf = (result) => {
+    const view = (blocks) => blocks.map((b) => (b.rows.length > 0
+      ? { rows: b.rows.map((r) => r.cells.map((c) => view(c.blocks))) }
+      : { kind: b.kind, style: b.style, text: b.runs.map((r) => r.text).join('') }));
+    return view(result.blocks);
+  };
+  const probe = await WordprocessingMLPackage.load(readFileSync(join(dir, '17-text-left.docx')));
+  const viewed = blocksOf(await Texts.of(probe, { view: 'accepted' }));
+  const copy = await WordprocessingMLPackage.load(readFileSync(join(dir, '17-text-left.docx')));
+  await copy.acceptAllRevisions();
+  assert.deepEqual(viewed, blocksOf(await Texts.ofResolved(copy, { view: 'accepted' })));
+  const word = blocksOf(await Texts.ofResolved(await WordprocessingMLPackage.load(readFileSync(join(dir, '17-text-left-accepted.docx'))), { view: 'accepted' }));
+  const region = (blocks, n) => {
+    const begin = blocks.findIndex((b) => b.text?.startsWith(`BEGIN${n} `));
+    const end = blocks.findIndex((b, k) => k > begin && b.text === `END${n}`);
+    return blocks.slice(begin + 1, end);
+  };
+  for (const n of [1, 2, 3, 5]) assert.deepEqual(region(viewed, n), region(word, n), `case ${n}`);
+  assert.deepEqual(region(viewed, 1)[0].rows[0][0], [{ kind: 'PARAGRAPH', style: undefined, text: 'HEAD1A T1R1C1' }]);
+});
