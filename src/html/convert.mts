@@ -442,7 +442,8 @@ function trimEdges(inlines: PasteInline[]): void {
 function cellFrom(el: Element, w: Walk): PasteCell {
   const blocks: PasteBlock[] = [];
   walkBlocks(el, blocks, w);
-  if (blocks.length === 0) { blocks.push({ kind: 'paragraph', style: null, inlines: [] }); w.report.paragraphs++; }
+  // a cell ends with a paragraph, as Word reads it, after a table too (CR-002 section 55)
+  if (blocks.length === 0 || blocks[blocks.length - 1]!.kind === 'table') { blocks.push({ kind: 'paragraph', style: null, inlines: [] }); w.report.paragraphs++; }
   const cell: PasteCell = { blocks, colspan: Math.max(1, Number(el.getAttribute('colspan') ?? '1') || 1), rowspan: Math.max(1, Number(el.getAttribute('rowspan') ?? '1') || 1) };
   const width = el.getAttribute('width');
   const styleWidth = styleOf(el).get('width');

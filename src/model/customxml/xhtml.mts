@@ -18,6 +18,7 @@ import type { Element } from '../content/tree.mjs';
 import { typeNameOf, linkParents, childrenOf, writingEveryBranch } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { contentOf } from '../content/ooxml.mjs';
+import { wrappingCellOf, endWithParagraph } from '../content/tableRules.mjs';
 import { convertHtml, styleLookupOf, type PasteResult, type StyleNaming } from '../../html/convert.mjs';
 import { blocksToXml, needsOf, HYPERLINK_STYLE } from '../../html/elements.mjs';
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
@@ -145,6 +146,9 @@ export async function applyXhtmlBindingTo(control: ContentControl, parts: Custom
     content.length = 0;
     content.push(...elements);
     linkParents(content, sdt.sdtContent as object);
+    // markup ending in a table, in a cell's control: the cell ends with a paragraph after it, docx4j's repair (CR-002 section 55)
+    const cell = wrappingCellOf((sdt as { PARENT?: object }).PARENT);
+    if (cell) endWithParagraph(cell);
   }
   // a control in a branch of a kept mc:AlternateContent too: the pass reaches every branch (CR-013 phase 3)
   writingEveryBranch(() => { control.isShowingPlaceholder = false; });

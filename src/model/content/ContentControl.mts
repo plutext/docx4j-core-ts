@@ -24,8 +24,9 @@ import { dropExcluded, forWriter, officeItems } from './officeText.mjs';
 import { declareIgnorable } from './tracking.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { commentReferencesIn } from './TrackedChange.mjs';
+import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, runsOf, textOfView, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -180,9 +181,20 @@ export class ContentControl {
    */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
     this.assertWritable();
-    const range = this.insertTextInto(text, location);
+    // a control showing its placeholder takes the text in the placeholder's place, wherever it is put, the placeholder
+    // being no text, as Word's does (check 58 cases 20 to 22, CR-012 section 18)
+    const placeholder = this.isShowingPlaceholder && (this.form === 'Block' || this.form === 'Run');
+    if (placeholder) this.isShowingPlaceholder = false;
+    const range = this.insertTextInto(text, placeholder ? 'Replace' : location);
+    if (placeholder) for (const run of this.contentRuns()) if (run.rPr?.rStyle?.val === PLACEHOLDER_STYLE) delete run.rPr.rStyle;
     this.syncBoundNode();
     return range;
+  }
+
+  /** The runs of the control's content, a block control's paragraphs' too. */
+  private contentRuns(): wml.R[] {
+    if (this.form === 'Run') return runsOf(this.sdt.sdtContent as object).map((r) => r.value);
+    return this.paragraphs.flatMap((p) => p.runs.map((r) => r.value));
   }
 
   private insertTextInto(text: string, location: 'Start' | 'End' | 'Replace'): Range {
@@ -271,16 +283,27 @@ export class ContentControl {
     return new Range(first, 0, last.text.length, true, location === 'Whole', last);
   }
 
-  /** Removes the control; `keepContent` puts what it held in its place, as Office JS. */
+  /**
+   * Removes the control; `keepContent` puts what it held in its place, as Office JS. Where the control held the
+   * paragraph a table cell ends with, that paragraph stays in its place, emptied, its properties kept, outside
+   * any control, as Word keeps a cell's last paragraph (check 52, case 95; CR-002 section 55.6).
+   */
   delete(keepContent = false): void {
     this.assertWritable();
     const at = this.container.indexOf(this.element as Element);
     if (at < 0) return;
     const content = keepContent ? [...this.content] : [];
+    const owner = ownerOf(this.container, this.parentBody);
+    const cell = this.form === 'Block' ? wrappingCellOf(owner) : undefined;
+    const end = cell ? paragraphEndOf(cell.content as Element[] | undefined) : undefined;
     this.container.splice(at, 1, ...content);
-    if (keepContent) {
-      const owner = ownerOf(this.container, this.parentBody);
-      for (const item of content) linkParents(item, owner);
+    if (keepContent) for (const item of content) linkParents(item, owner);
+    if (cell && !endsWithParagraph(cell.content as Element[] | undefined)) {
+      if (end) {
+        end.element.value.content = [];
+        this.container.splice(at, 0, end.element as Element);
+        linkParents(end.element, owner);
+      } else endWithParagraph(cell);
     }
   }
 
@@ -380,14 +403,18 @@ export class ContentControl {
   }
 
   /**
-   * The placeholder Word shows for an empty control: the control's own text while it is showing
+   * The placeholder Word shows for an empty control: the text of the control's runs while it is showing
    * the placeholder (`w:showingPlcHdr`), else '' — Word keeps the text itself in a glossary
    * document part, which this phase does not create (CR-002 section 12). Setting writes the text
    * as the control's content and sets `w:showingPlcHdr`, which is refused when the control holds
-   * content of its own, so that a value is never lost.
+   * content of its own, so that a value is never lost. The control's `text` reads no placeholder (CR-012
+   * section 18); this reads it from the runs, where Word, with no glossary part to read, reads `null`
+   * (check 58), a departure that keeps the setter's text readable.
    */
   get placeholderText(): string {
-    return this.isShowingPlaceholder ? this.text : '';
+    if (!this.isShowingPlaceholder) return '';
+    if (this.form === 'Run') return textOfView(this.sdt.sdtContent as object);
+    return this.paragraphs.map((p) => textOfView(p.p)).join('\r');
   }
   set placeholderText(text: string) {
     this.assertWritable();
@@ -538,6 +565,11 @@ export class ContentControl {
   /** Whether a plain-text control accepts several lines (`w:text/@w:multiLine`). */
   get isMultiLine(): boolean {
     return (sdtProperty(this.sdt.sdtPr, 'text')?.value as wml.CTSdtText | undefined)?.multiLine === true;
+  }
+
+  /** Office JS's name for `isShowingPlaceholder` (`showingPlaceholderText`, WordApiDesktop 1.3, read-only there). */
+  get showingPlaceholderText(): boolean {
+    return this.isShowingPlaceholder;
   }
 
   /** Whether the control is showing its placeholder rather than a value (`w:showingPlcHdr`). */

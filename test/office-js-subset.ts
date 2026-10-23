@@ -202,6 +202,7 @@ namespace OfficeSubset {
     // CR-002 phase E (WordApiDesktop 1.3): the XML mapping, the w:sdtPr properties and the kinds
     readonly xmlMapping: XmlMapping;
     placeholderText: string;
+    readonly showingPlaceholderText: boolean;
     appearance: string;
     color: string;
     cannotDelete: boolean;

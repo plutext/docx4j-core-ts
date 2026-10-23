@@ -186,7 +186,9 @@ function deleteUntracked(span: Span, extent: Extent, keepLastMark: boolean): Lan
     else joinForward(head);
     return { paragraph: head, offset: span.start };
   }
-  removeBlock(span.paragraph, list, first);
+  // a range holding one block whole, with no paragraph at either end (a table's whole range), took it as its last
+  // above: removed again, the index would take the block after it (docx4j-python's port found it, 2026-10-23)
+  if (tail || first !== last) removeBlock(span.paragraph, list, first);
   return tail ? { paragraph: tail, offset: 0 } : undefined;
 }
 
@@ -295,7 +297,8 @@ function deleteTracked(span: Span, extent: Extent, tracker: ChangeTracker, keepL
     if (extent.tailInside) markBetween(body, extent.tailInside, -1, extent.tailInside.indexOf(tail.element), tracker);
     tail.splice(0, span.end, '', 'before', { start: true, end: span.whole || span.holdsEndMark });
     if (takesMark) deleteMark(tail, tracker);
-  } else {
+  } else if (head || lastBlock !== firstBlock) {
+    // one block held whole was deleted above as the first, and isn't again (a control would take its markers twice)
     deleteBlock(body, list, lastBlock, tracker);
   }
   return head ? { paragraph: head, offset: span.start } : tail ? { paragraph: tail, offset: 0 } : undefined;
@@ -593,6 +596,24 @@ function splitAtEnd(p: Paragraph, rPr: wml.RPr | undefined): Paragraph {
   p.parentBody.assignParaId(el.value);
   p.changeTracker?.markParagraphInserted(el.value);
   return p.viewOf(el, list);
+}
+
+/**
+ * Word's form of a table put after the paragraph a table cell ends with (check 52, cases 86 and 87; CR-002 section 55.6):
+ * that paragraph is split at its end, as a paragraph break there splits it (`splitAtEnd`), the table between the halves,
+ * so the cell's mark stays last. The paragraph keeps its text and becomes the first half, whose new mark takes the
+ * formatting of the text before it and, tracked, is the inserted one; its properties as they were go after the table, in
+ * an empty paragraph, unmarked. The paragraph keeps its text, not its mark, so that a view of it (a `Range`) still holds it.
+ */
+export function keepCellMarkLast(p: Paragraph, cellContent: Element[]): void {
+  p.assertWritable();
+  const mark = paragraphOf([], p.p.pPr ? deepCopy(p.p.pPr) : undefined);
+  const pPr = propertiesOf(p, rPrBefore(p, p.text.length));
+  if (pPr) { p.p.pPr = pPr; linkParents(pPr, p.p); } else delete p.p.pPr;
+  cellContent.push(mark as Element);
+  linkParents(mark, (p.p as { PARENT?: object }).PARENT);
+  p.parentBody.assignParaId(mark.value);
+  p.changeTracker?.markParagraphInserted(p.p);
 }
 
 /** The run holders a paragraph split may cut in two: each half is a whole one of the same. */

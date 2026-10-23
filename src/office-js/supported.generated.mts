@@ -52,6 +52,7 @@ export const SUBSET_MEMBERS: readonly string[] = [
   'ContentControl.removeWhenEdited',
   'ContentControl.repeatingSectionContentControl',
   'ContentControl.search',
+  'ContentControl.showingPlaceholderText',
   'ContentControl.tables',
   'ContentControl.tag',
   'ContentControl.text',

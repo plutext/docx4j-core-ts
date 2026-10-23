@@ -75,6 +75,21 @@ test('a block-level control takes the markup\'s blocks: a heading in its style, 
   assert.ok(Namespaces.HYPERLINK);
 });
 
+test('in a table cell, markup ending in a table leaves the cell ending with a paragraph after the control, docx4j\'s repair (CR-002 section 55)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const cell = body.insertTable(1, 1, 'End').getCell(0, 0);
+  const control = cell.body.insertContentControl('RichText');
+  const data = pkg.customXmlParts.add(`<data><body>${escape('<p>Before</p><table><tr><td>in</td></tr></table>')}</body></data>`);
+  pkg.customXmlParts.add(`<xpaths xmlns="http://opendope.org/xpaths"><xpath id="x1"><dataBinding storeItemID="${data.id}" xpath="/data/body" prefixMappings=""/></xpath></xpaths>`);
+  control.tag = 'od:xpath=x1&od:ContentType=application/xhtml+xml';
+  const result = await pkg.customXmlParts.applyBindings({ html: { parser } });
+  assert.equal(result.updated, 1);
+  const tc = body.tables[0].getCell(0, 0).body.content;
+  assert.deepEqual(tc.map((el) => el.name.localPart), ['sdt', 'p']);
+  assert.deepEqual(tc[0].value.sdtContent.content.map((el) => el.name.localPart), ['p', 'tbl']);
+});
+
 test('a run-level control takes the first paragraph\'s inline content; the blocks after it are noted', async () => {
   const { pkg, body, control } = await template('<p>First <i>one</i></p><p>Second</p><table><tr><td>c</td></tr></table>', { run: true });
   const before = body.paragraphs.length;

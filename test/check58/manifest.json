@@ -1,0 +1,14 @@
+{
+ "check": 58,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-23)",
+ "source": "test/fixtures/check58/build.mjs (58-measures.docx, 22 cases)",
+ "saves": {
+  "58-measures-word365.docx": "58-measures.docx saved as at step 2, after the snippet's Read runs in Simple and All Markup and its Edit run in All Markup, saved with File > Save (the snippet's JSONs: test/fixtures/check58/58-measures-word365-{read-simple,read-all,edit}.json)"
+ },
+ "files": [
+  {
+   "name": "58-measures-word365.docx",
+   "sha1": "0e5184c5ad383c67c68dd08d16ed26fe58e41a8c"
+  }
+ ]
+}

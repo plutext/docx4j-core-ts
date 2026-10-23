@@ -114,6 +114,15 @@ test('a list gets its numbering, a link its hyperlink in Word\'s look, and neith
   assert.equal((await contentOf(resolved)).length, 3);
 });
 
+test('a cell whose last child is a table ends with a paragraph after it, as Word reads a cell (CR-002 section 55)', async () => {
+  const lookup = await lookupFor(await samples());
+  const { blocks } = convertHtml('<table><tr><td>a<table><tr><td>b</td></tr></table></td><td><table><tr><td>c</td></tr></table></td></tr></table>', lookup, options);
+  assert.deepEqual(blocks[0].rows[0].map((cell) => cell.blocks.map((b) => b.kind)), [['paragraph', 'table', 'paragraph'], ['table', 'paragraph']]);
+  // blocksToXml keeps the rule for blocks built elsewhere too
+  const xml = blocksToXml([{ kind: 'table', style: null, rows: [[{ blocks: [{ kind: 'table', style: null, rows: [[{ blocks: [], colspan: 1, rowspan: 1 }]] }], colspan: 1, rowspan: 1 }]] }]);
+  assert.match(xml, /<\/w:tbl><w:p\/><\/w:tc><\/w:tr><\/w:tbl>$/);
+});
+
 test('a cell spanning rows holds its place below with vMerge continuations; a cell spanning columns has its gridSpan; a header row repeats', async () => {
   const lookup = await lookupFor(await samples());
   const html = '<table><tr><th rowspan="2">a</th><th colspan="2">b</th></tr><tr><td>c</td><td>d</td></tr><tr><td>e</td><td>f</td><td>g</td></tr></table>';

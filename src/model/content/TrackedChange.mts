@@ -1315,8 +1315,11 @@ function dropMark(paragraph: Paragraph | undefined, which: 'ins' | 'del'): void 
  *
  * `fallbackToPrevious` is for the second case at the end of a container, where this package's
  * inserted paragraph carries its own mark (section 13) and there is nothing after it to join
- * with: the paragraph then goes, its content joining the one before. With neither neighbour the
- * mark is simply dropped.
+ * with: the paragraph then goes, its content joining the one before. Otherwise, with no paragraph
+ * next, a join never crosses a container's edge, and Word 365's Accept All (check 54, docx4j CR-043
+ * section 17) does one of three things: an emptied paragraph with a table next goes (case 9); one
+ * with a block control next takes the control's first paragraph's properties, nothing joined (case
+ * 19); a control's emptied last paragraph keeps a bare mark (case 13). Else the mark is only dropped.
  */
 export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' | 'p'>, fallbackToPrevious = false): void {
   discarding();
@@ -1337,6 +1340,32 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
       linkParents(items, into);
       discarding(undefined, p.pPr);
       container.splice(i, 1);
+      return;
+    }
+    // Word 365's Accept All where no paragraph follows (check 54; docx4j CR-043 section 17, 29dbf5964): a join never
+    // crosses a container's edge, and three shapes do something besides dropping the mark
+    const emptied = !(p.content ?? []).some((item) => !isRangeMarker(item as Element));
+    if (i >= 0 && emptied && next && typeNameOf(next) === 'org_docx4j_wml.Tbl') {
+      // case 9: an emptied paragraph with a table next goes, the table following what came before
+      discarding(undefined, p.pPr);
+      container.splice(i, 1);
+      return;
+    }
+    if (next && HOLDER_TYPES.has(typeNameOf(next) ?? '')) {
+      // case 19: a block control next: nothing joins, but the paragraph takes the properties a join would have
+      // given it, the control's first paragraph's
+      const first = firstParagraphOf(childrenOf(next.value as object));
+      if (first) {
+        discarding(undefined, p.pPr);
+        p.pPr = first.pPr ? deepCopy(first.pPr) as wml.PPr : undefined;
+        if (p.pPr) linkParents(p.pPr, p); else delete p.pPr;
+        return;
+      }
+    }
+    if (i >= 0 && emptied && next === undefined && SDT_CONTENTS.has((p as { PARENT?: { TYPE_NAME?: string } }).PARENT?.TYPE_NAME ?? '')) {
+      // case 13: a control's last paragraph, emptied, keeps a bare mark
+      discarding(undefined, p.pPr);
+      delete p.pPr;
       return;
     }
     const rPr = p.pPr?.rPr;
@@ -1361,6 +1390,19 @@ export function joinWithNext(paragraph: Pick<Paragraph, 'container' | 'element' 
     if (value === undefined) delete p[key]; else p[key] = value;
   }
   container.splice(i + 1, j - i);
+}
+
+/** A block-level control's content, which holds paragraphs. */
+const SDT_CONTENTS: ReadonlySet<string> = new Set(['org_docx4j_wml.SdtContentBlock', 'org_docx4j_wml.CTSdtContentBlock']);
+
+/** The first paragraph among a holder's blocks, before any table; docx4j's `firstParagraph`. */
+function firstParagraphOf(items: Element[] | undefined): wml.P | undefined {
+  for (const item of items ?? []) {
+    const tn = typeNameOf(item);
+    if (tn === 'org_docx4j_wml.P') return item.value as wml.P;
+    if (tn === 'org_docx4j_wml.Tbl') return undefined;
+  }
+  return undefined;
 }
 
 /** A marker that stands between two paragraphs without keeping them apart: a range's start or end, a bookmark's, a permission's, a proofing mark. */

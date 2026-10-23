@@ -32,7 +32,7 @@ in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
 (section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day. Section 21.2 (2026-10-23, from docx4j-python's review): a target refused once its character references are decoded (`javascript&#58;`), in `LinkTargets.isSafe`, as docx4j fixed it the same day.
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. What each left to measure is in check 58, written and run 2026-10-23 (Jason: "one check 58 first"); both implemented the same day to its answers (section 18.1), not released. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day. Section 21.2 (2026-10-23, from docx4j-python's review): a target refused once its character references are decoded (`javascript&#58;`), in `LinkTargets.isSafe`, as docx4j fixed it the same day.
 
 ## 1. Why
 
@@ -1961,8 +1961,8 @@ whole outline. The editor's tree knows when an edit is one of those, and this pa
 
 ## 18. A control showing its placeholder reads as empty (proposed 2026-10-22)
 
-*Opened from check 53 (`test/README.md`; CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Nothing
-implemented.*
+*Opened from check 53 (`test/README.md`; CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Measured
+by check 58 and implemented 2026-10-23 (section 18.1).*
 
 **What Word does.** Office JS reads a content control showing its placeholder (`w:showingPlcHdr` in its `w:sdtPr`) as
 no text. Measured on Word 365 (16.0.20326.20232), in both views:
@@ -1984,13 +1984,22 @@ a `Range`'s text, `search`) read the placeholder's runs as text, and `placeholde
 - `placeholderText` reading `null` without a `w:placeholder` part reference is to be looked at with it.
 
 **To measure first:** a run-level control showing its placeholder (only block-level ones were), and the
-placeholder's text in Word's `search`.
+placeholder's text in Word's `search`. *In check 58 (`test/README.md`, written 2026-10-23, not run): cases 11 and 12,
+and writing into such a control (cases 20 to 22: `insertText` with `'Replace'` and `'End'`, block and run-level). This
+package, through the Word shim: the placeholder reads as text and `search` finds it; `'End'` writes after the
+placeholder text.* *Check 58, run 2026-10-23: a run-level control showing its placeholder reads as empty too (case 11:
+its text `''`, its paragraph's `PLAIN11A  PLAIN11B`, `placeholderText` `null`). Writing into one replaces the
+placeholder with `'End'` as with `'Replace'` (cases 20 to 22). `search` matches the placeholder's text, but each hit
+reads `''` (case 12). K3, decided as recommended (Jason, 2026-10-23): a placeholder holds no text to search, as hidden
+text holds none, a departure from Word's empty hits. The rest is as proposed:
+`placeholderText` `null` with no `w:placeholder` part, and `insertText` replacing the placeholder at any location.*
 
 **Size:** half a day, and a check.
 
 ## 19. A deleted paragraph mark reads as nothing in Word's default view (proposed 2026-10-22)
 
-*Opened from check 53 (CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Nothing implemented.*
+*Opened from check 53 (CR-014 section 9.7), at Jason's word, 2026-10-22, to schedule later. Measured by check 58 and
+implemented 2026-10-23 (section 19.1).*
 
 **What Word does.** In Simple Markup, Office JS's `body.text` leaves out a paragraph mark that is tracked as deleted.
 Measured on check 53 (Word 365):
@@ -2012,9 +2021,49 @@ writes `\r` after every paragraph, its mark deleted or not.
 - The paragraph views, their offsets and the paragraph collection stay as they are, as Word's do.
 
 **To measure first:** a range across a deleted mark (its `text` and `paragraphs`), and a deleted mark at a cell's
-last paragraph, which Word never writes but a file may hold.
+last paragraph, which Word never writes but a file may hold. *In check 58 (`test/README.md`, written 2026-10-23, not
+run): cases 6 to 8 (a deletion through a mark, a mark alone, a wholly deleted paragraph between a range's ends) and 9 and
+10 (a deleted mark on a cell's only paragraph, and on its last of two), with whether Word opens such a file.* *Check 58,
+run 2026-10-23: as proposed. In Simple Markup a range's text reads nothing for a deleted mark (`HEAD6A BODY6B`,
+`TWO7ATWO7B`, `PLAIN8A\rPLAIN8C` across a wholly deleted paragraph), its paragraphs listed apart. A deleted mark at a
+cell's end reads as the cell's end (`\t`), and Word opened the file without a repair. Nothing left to decide.*
 
 **Size:** half a day, and a check; the readers' tests (checks 48 and 51) have no deleted mark, so none moves.
+
+### 18.1 and 19.1 Implemented (2026-10-23)
+
+Jason, 2026-10-23: "one check 58 first", then K1 to K6 agreed as recommended. The text model (sections 14 to 16,
+docx4j's semantics) is unchanged by both. These are the Office JS readers'.
+
+**Section 18, a control showing its placeholder.**
+- `inShowingPlaceholder(run)` (`tree.mts`) finds a control with `w:showingPlcHdr` up a run's `PARENT`s, run-level or
+  block-level, and `hiddenRunsOf` takes its runs as hidden. So `Paragraph.text`, `Body.text`, `ContentControl.text`,
+  a range's text and its offsets read no placeholder, and `search` finds nothing there (K3, a departure from Word's
+  empty hits).
+- `ContentControl.insertText` into such a control, block or run-level, clears `w:showingPlcHdr`, puts the text in the
+  placeholder's place whatever the location, as Word does with `'End'` (check 58 cases 20 to 22), and drops the
+  `PlaceholderText` character style from the runs it leaves.
+- `placeholderText` reads the control's runs while it shows the placeholder. Word, with no glossary part to read,
+  reads `null`. Kept, a departure, so that the setter's text reads back.
+- `ContentControl.showingPlaceholderText`, Office JS's name (WordApiDesktop 1.3) for `isShowingPlaceholder`, added
+  to the subset; Word 16.0.20326 gave it no value in checks 53 and 58.
+- `Paragraph.font` of a paragraph whose only content is a placeholder reads the placeholder's runs, as Word's does
+  (check 52 case 13 after Accept All: Word's bold filler), before the mark (CR-002 section 59).
+
+**Section 19, a deleted mark.** `storyLayout` writes no `\r` after a paragraph whose mark is tracked as deleted
+(`shownInDefaultView`), and `Paragraph.markText` is `''` for one. A cell's last paragraph keeps the cell's `\t`. So
+`Body.text`, a range's text across paragraphs, and a paragraph's 'Whole' range read as Word's default view reads them,
+and the paragraphs, their offsets and the paragraph collection stay as they are. `^p` doesn't match such a mark
+(`searchMarks` reads `markText`). `Body.getText({ view: 'original' })` takes the original view's rule: a deleted mark
+written, an inserted one not. Each view now reads what its resolution leaves; `tracking.test.mjs` had pinned the
+original view with the inserted paragraph's mark.
+
+**Held to Word.** `readers.test.mjs` holds the shim's run of check 58 to Word's Simple Markup run and its Edit run. The
+differences it lists are K1's (cases 2 to 4), K3's (case 12) and K5's and K6's (case 13). In `ranges.test.mjs`,
+check 52's cases 13 and 26 need no adjustment now: Word's emptied control, five spaces marked as its placeholder, reads
+as this package's empty one. Check 53's case 33 (`body.text`'s length) is Word's, and cases 34 and 35 differ only by
+`placeholderText` and Word's undefined `showingPlaceholderText`. Two new tests cover the rules themselves.
+`npm test`: 1,494 pass.
 
 ## 20. Phase 6: the block-model parity goldens (implemented 2026-10-23)
 

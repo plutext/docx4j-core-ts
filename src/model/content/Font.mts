@@ -16,13 +16,42 @@ export interface FontTracking {
   ownInsertions: ReadonlySet<object>;
 }
 
+/** A run's formatting as a `Font` reads it: its properties, and its document font's name. */
+export interface RunReading {
+  formatting: RunFormatting;
+  name: string;
+}
+
+/** A paragraph mark's run properties as a `Font` reads them: `w:pPr/w:rPr` without the mark's own revisions. */
+export function markHolderOf(p: wml.P): RPrHolder {
+  const rPr = p.pPr?.rPr;
+  if (!rPr) return {};
+  const { ins: _ins, del: _del, moveFrom: _from, moveTo: _to, rPrChange: _change, ...rest } = rPr;
+  return { rPr: { ...rest, TYPE_NAME: 'org_docx4j_wml.RPr' } as wml.RPr };
+}
+
+/**
+ * A run's reading from its properties: an automatic colour (`w:val="auto"`, or none) `#000000` in the effective view,
+ * as Office JS reads it (check 53; CR-002 section 59), and `name` its document font where one is given.
+ */
+export function readingOf(rPr: wml.RPr | undefined, effective: boolean, name?: string): RunReading {
+  const formatting = readRunOptions(rPr);
+  if (effective && (formatting.color === '' || formatting.color === 'auto')) formatting.color = '#000000';
+  return { formatting, name: name ?? formatting.name };
+}
+
 /**
  * A subset of Office JS `Word.Font` over the run properties (`w:rPr`) of one or more runs.
  *
- * **Reads report effective formatting** (CR-001 Phase B step 2): the first run in scope
- * resolved through the document defaults, the paragraph style and the character style, which
- * is what Office JS reports. Pass an `effective` supplier for that; without one the view falls
- * back to direct formatting, which is what `getFont({ direct: true })` asks for.
+ * **Reads report effective formatting** (CR-001 Phase B step 2): each run in scope resolved through
+ * the document defaults, the paragraph style and the character style. Pass an `effective` supplier
+ * for that; without one the view reads direct formatting, which is what `getFont({ direct: true })`
+ * asks for. Where the runs differ a property reads as Office JS reads it (Word 365, checks 52 and 53;
+ * CR-002 section 59): `null`, `''` for the name, the colour and the highlight, and `Mixed` for the
+ * underline. Office JS's own types say `boolean` and `number` there, and so do these. With no run in
+ * scope, a paragraph with no text reads its mark's run properties (`w:pPr/w:rPr`, check 52 case 60),
+ * and an empty range its paragraph's style. An automatic colour (`w:val="auto"`, or none) reads
+ * `#000000` in the effective view, as Office JS reads it (check 53).
  *
  * **Writes are always direct**, and apply to every run in scope. Both directions go through
  * the objects package's one name-to-`w:rPr` mapping (`builders/wml` applyRunOptions /
@@ -40,24 +69,34 @@ export class Font {
     private readonly holders: (write: boolean) => RPrHolder[],
     /** The change tracker and this author's own insertions, when the package is tracking changes. */
     private readonly tracking?: () => FontTracking | undefined,
-    /** The effective `w:rPr` of the first run in scope; absent for a direct-formatting view. */
+    /** The effective `w:rPr` of a run in scope; absent for a direct-formatting view. */
     private readonly effective?: (rPr: wml.RPr | undefined) => wml.RPr | undefined,
     /** The document font of that effective `w:rPr` with its theme reference resolved
      *  (`RunFontSelector.asciiFontName`); absent for a direct-formatting view, and undefined
      *  where the package has no selector yet. */
     private readonly asciiFontName?: (rPr: wml.RPr | undefined) => string | undefined,
+    /** The paragraph mark, read where no run is in scope: a paragraph with no text (CR-002 section 59). */
+    private readonly mark?: () => RPrHolder | undefined,
   ) {}
 
-  private effectiveRPr(): wml.RPr | undefined {
-    const direct = this.holders(false)[0]?.rPr;
-    return this.effective ? this.effective(direct) : direct;
+  /** Each run in scope, read; the mark's properties where there is none, else the paragraph's style's. */
+  protected readings(): RunReading[] {
+    let holders = this.holders(false);
+    if (holders.length === 0) holders = [this.mark?.() ?? {}];
+    return holders.map((h) => {
+      const rPr = this.effective ? this.effective(h.rPr) : h.rPr;
+      return readingOf(rPr, this.effective !== undefined, this.asciiFontName?.(rPr));
+    });
   }
 
-  private read(): RunFormatting {
-    return readRunOptions(this.effectiveRPr());
+  /** A property every reading agrees on, else `null` (also where nothing is read). */
+  private value<K extends keyof RunFormatting>(key: K): RunFormatting[K] | null {
+    const all = this.readings().map((r) => r.formatting[key]);
+    if (all.length === 0) return null;
+    return all.every((v) => v === all[0]) ? all[0]! : null;
   }
 
-  private apply(opts: RunOptions): void {
+  protected apply(opts: RunOptions): void {
     const tracking = this.tracking?.();
     for (const h of this.holders(true)) {
       h.rPr ??= { TYPE_NAME: 'org_docx4j_wml.RPr' };
@@ -68,95 +107,63 @@ export class Font {
     }
   }
 
-  get bold(): boolean { return this.read().bold; }
+  get bold(): boolean { return this.value('bold') as boolean; }
   set bold(v: boolean) { this.apply({ bold: v }); }
-  get italic(): boolean { return this.read().italic; }
+  get italic(): boolean { return this.value('italic') as boolean; }
   set italic(v: boolean) { this.apply({ italic: v }); }
-  get underline(): UnderlineType { return this.read().underline; }
+  get underline(): UnderlineType { return (this.value('underline') ?? 'Mixed') as UnderlineType; }
   set underline(v: UnderlineType) { this.apply({ underline: v }); }
-  get strikeThrough(): boolean { return this.read().strikeThrough; }
+  get strikeThrough(): boolean { return this.value('strikeThrough') as boolean; }
   set strikeThrough(v: boolean) { this.apply({ strikeThrough: v }); }
-  get doubleStrikeThrough(): boolean { return this.read().doubleStrikeThrough; }
+  get doubleStrikeThrough(): boolean { return this.value('doubleStrikeThrough') as boolean; }
   set doubleStrikeThrough(v: boolean) { this.apply({ doubleStrikeThrough: v }); }
-  get subscript(): boolean { return this.read().subscript; }
+  get subscript(): boolean { return this.value('subscript') as boolean; }
   set subscript(v: boolean) { this.apply({ subscript: v }); }
-  get superscript(): boolean { return this.read().superscript; }
+  get superscript(): boolean { return this.value('superscript') as boolean; }
   set superscript(v: boolean) { this.apply({ superscript: v }); }
   /**
    * The document font formatting this run's Latin text: `w:rFonts/@w:ascii` of the effective
    * properties, the face `w:asciiTheme` names, else `w:hAnsi`, else the document default
-   * (docx4j `RunFontSelector.asciiFontName`). '' only in a direct-formatting view with no
-   * `w:ascii`, or where the package's `RunFontSelector` has not been built yet.
+   * (docx4j `RunFontSelector.asciiFontName`). '' where the runs differ, in a direct-formatting
+   * view with no `w:ascii`, or where the package's `RunFontSelector` has not been built yet.
    */
   get name(): string {
-    if (this.asciiFontName !== undefined) {
-      const resolved = this.asciiFontName(this.effectiveRPr());
-      if (resolved !== undefined) return resolved;
-    }
-    return this.read().name;
-  }
-  set name(v: string) { this.apply({ name: v }); }
-  /** Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz. */
-  get size(): number { return this.read().size; }
-  set size(v: number) { this.apply({ size: v }); }
-  /** '#RRGGBB', or the raw value ('auto', a theme colour name) when it is not a hex triple; '' when not set. */
-  get color(): string { return this.read().color; }
-  set color(v: string) { this.apply({ color: v }); }
-  /** '#RRGGBB' of the highlight, or null when there is none. */
-  get highlightColor(): string | null { return this.read().highlightColor; }
-  set highlightColor(v: string | null) { this.apply({ highlightColor: v }); }
-}
-
-/** A run's formatting as a `MixedFont` reads it: its properties, and its document font's name. */
-export interface RunReading {
-  formatting: RunFormatting;
-  name: string;
-}
-
-/**
- * The `Font` of a range across paragraphs (CR-014): each run read in its own paragraph, and a property where the
- * runs differ read as Office JS reads it (checks 52 and 53): `null`, `''` for the name, the colour and the
- * highlight, and `Mixed` for the underline. Office JS's own types say `boolean` and `number` there too. A write
- * goes to `write` (phase 2: every run and mark in the range, as Word formats them).
- */
-export class MixedFont extends Font {
-  constructor(private readonly readings: () => RunReading[], private readonly write: (opts: RunOptions) => void) {
-    super(() => []);
-  }
-
-  private value<K extends keyof RunFormatting>(key: K): RunFormatting[K] | null {
-    const all = this.readings().map((r) => r.formatting[key]);
-    if (all.length === 0) return null;
-    return all.every((v) => v === all[0]) ? all[0]! : null;
-  }
-
-  override get bold(): boolean { return this.value('bold') as boolean; }
-  override set bold(v: boolean) { this.write({ bold: v }); }
-  override get italic(): boolean { return this.value('italic') as boolean; }
-  override set italic(v: boolean) { this.write({ italic: v }); }
-  override get underline(): UnderlineType { return (this.value('underline') ?? 'Mixed') as UnderlineType; }
-  override set underline(v: UnderlineType) { this.write({ underline: v }); }
-  override get strikeThrough(): boolean { return this.value('strikeThrough') as boolean; }
-  override set strikeThrough(v: boolean) { this.write({ strikeThrough: v }); }
-  override get doubleStrikeThrough(): boolean { return this.value('doubleStrikeThrough') as boolean; }
-  override set doubleStrikeThrough(v: boolean) { this.write({ doubleStrikeThrough: v }); }
-  override get subscript(): boolean { return this.value('subscript') as boolean; }
-  override set subscript(v: boolean) { this.write({ subscript: v }); }
-  override get superscript(): boolean { return this.value('superscript') as boolean; }
-  override set superscript(v: boolean) { this.write({ superscript: v }); }
-  override get name(): string {
     const all = this.readings().map((r) => r.name);
     return all.length > 0 && all.every((n) => n === all[0]) ? all[0]! : '';
   }
-  override set name(v: string) { this.write({ name: v }); }
-  override get size(): number { return this.value('size') as number; }
-  override set size(v: number) { this.write({ size: v }); }
-  override get color(): string { return (this.value('color') ?? '') as string; }
-  override set color(v: string) { this.write({ color: v }); }
-  override get highlightColor(): string | null {
+  set name(v: string) { this.apply({ name: v }); }
+  /** Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz; `null` where the runs differ. */
+  get size(): number { return this.value('size') as number; }
+  set size(v: number) { this.apply({ size: v }); }
+  /**
+   * '#RRGGBB', `#000000` for automatic in the effective view, or the raw value (a theme colour name) when it is not
+   * a hex triple; in the direct view '' when not set; '' where the runs differ.
+   */
+  get color(): string { return (this.value('color') ?? '') as string; }
+  set color(v: string) { this.apply({ color: v }); }
+  /** '#RRGGBB' of the highlight, or null when there is none; '' where the runs differ. */
+  get highlightColor(): string | null {
     const all = this.readings().map((r) => r.formatting.highlightColor);
     if (all.length === 0) return null;
     return all.every((v) => v === all[0]) ? all[0]! : '';
   }
-  override set highlightColor(v: string | null) { this.write({ highlightColor: v }); }
+  set highlightColor(v: string | null) { this.apply({ highlightColor: v }); }
+}
+
+/**
+ * The `Font` of a range across paragraphs (CR-014): each run read in its own paragraph, as `Font` reads them. A write
+ * goes to `write` (phase 2: every run and mark in the range, as Word formats them).
+ */
+export class MixedFont extends Font {
+  constructor(private readonly reads: () => RunReading[], private readonly write: (opts: RunOptions) => void) {
+    super(() => []);
+  }
+
+  protected override readings(): RunReading[] {
+    return this.reads();
+  }
+
+  protected override apply(opts: RunOptions): void {
+    this.write(opts);
+  }
 }

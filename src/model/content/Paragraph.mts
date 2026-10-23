@@ -6,14 +6,14 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 import { t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { type Element, segmentsOf, runsOf, runItemsOf, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import { type Element, segmentsOf, runsOf, runItemsOf, inShowingPlaceholder, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
   if (rPr) run.value.rPr = rPr;
   return run;
 }
-import { Font, type FontTracking } from './Font.mjs';
+import { Font, markHolderOf, type FontTracking, type RPrHolder } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import { Range } from './Range.mjs';
 import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
@@ -22,6 +22,7 @@ import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
 import { breakParagraphAt, BREAKABLE } from './spanEdits.mjs';
+import { endsCell, endsWithParagraph, wrappingCellOf } from './tableRules.mjs';
 import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsElementCharacters, type LineBreaks } from './officeText.mjs';
 import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
@@ -298,23 +299,28 @@ export class Paragraph {
   set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; this.settleFormatting(); }
 
   /**
-   * The runs' formatting: reads the first run's *effective* properties, writes direct
-   * formatting to all (extension: `Font` is over runs, not the paragraph mark).
+   * The runs' formatting: reads the *effective* properties of the runs holding the paragraph's text, `null` (or `''`,
+   * `Mixed`) where they differ, and the mark's where it has no text, as Office JS reads them (CR-002 section 59); writes
+   * direct formatting to every run (extension: `Font` is over runs, not the paragraph mark).
    */
   get font(): Font {
     return this.getFont();
   }
 
-  /** `font`, with `{ direct: true }` for the direct formatting of the first run (extension). */
+  /** `font`, with `{ direct: true }` for the runs' direct formatting (extension). */
   getFont(options?: FormattingOptions): Font {
     const holders = (write: boolean): wml.R[] => {
-      if (write) this.assertWritable();
-      return runsOf(this.p).map((r) => r.value);
+      if (write) { this.assertWritable(); return runsOf(this.p).map((r) => r.value); }
+      // a read takes the runs of Paragraph.text, Word's default view, as a range over it does; with none, a placeholder's
+      // runs, which Word's font reads though its text doesn't (check 52 case 13, after Accept All: Word's bold filler)
+      const runs = this.getRange('Content').runs.map((r) => r.value);
+      return runs.length > 0 ? runs : runsOf(this.p).map((r) => r.value).filter((r) => inShowingPlaceholder(r));
     };
-    if (options?.direct === true) return new Font(holders, () => this.fontTracking());
+    const mark = (): RPrHolder => markHolderOf(this.p);
+    if (options?.direct === true) return new Font(holders, () => this.fontTracking(), undefined, undefined, mark);
     return new Font(holders, () => this.fontTracking(),
       (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr, this.cellContext),
-      (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr));
+      (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr), mark);
   }
 
   /** w14:paraId, the stable address Word gives paragraphs. */
@@ -508,28 +514,52 @@ export class Paragraph {
 
   /**
    * The character Office JS gives for this paragraph's mark at the end of its 'Whole' range (check 48):
-   * `\t` for the last paragraph of a table cell, the cell's end, and `\r` for any other.
+   * `\t` for the last paragraph of a table cell, the cell's end; nothing for a mark tracked as deleted, which
+   * Word's default view doesn't show (CR-012 section 19, check 58); and `\r` for any other.
    */
   get markText(): string {
-    return lastInCell(this.p) ? '\t' : '\r';
+    if (lastInCell(this.p)) return '\t';
+    return this.p.pPr?.rPr?.del !== undefined ? '' : '\r';
   }
 
   /**
    * Removes the paragraph from its container. While the package tracks changes, the content
    * becomes a `w:del` and the mark is marked deleted (`w:pPr/w:rPr/w:del`) instead, unless the
    * whole paragraph was this author's own insertion, which Word simply takes back.
+   * The paragraph a table cell ends with, as Word reads it, stays where removing it would leave the
+   * cell without one, emptied, its properties kept; tracked, its mark is never marked deleted, as Word
+   * keeps a cell's last paragraph (check 52, cases 88 to 91; CR-002 section 55.6).
    */
   delete(): void {
+    this.remove(true);
+  }
+
+  /**
+   * `delete()`; with `keepCellEnd` false a cell's last paragraph goes as any other, for `Body.clearContent`'s
+   * callers, which put their own paragraph in next.
+   * @internal
+   */
+  remove(keepCellEnd: boolean): void {
     this.assertWritable();
+    const cellEnd = keepCellEnd && endsCell(this.p);
     const tracker = this.changeTracker;
-    if (tracker) { this.trackedDelete(tracker); return; }
+    if (tracker) { this.trackedDelete(tracker, cellEnd); return; }
     const i = this.index;
     if (i < 0) return;
     this.container.splice(i, 1);
     this.releaseRelationships(this.element);
+    if (cellEnd && !this.cellStillEnds()) {
+      this.p.content = [];
+      this.container.splice(i, 0, this.element as Element);
+    }
   }
 
-  private trackedDelete(tracker: ChangeTracker): void {
+  /** Whether the cell this paragraph was in ends with a paragraph without it, as Word reads it (CR-002 section 55). */
+  private cellStillEnds(): boolean {
+    return endsWithParagraph(wrappingCellOf((this.p as { PARENT?: object }).PARENT)?.content as Element[] | undefined);
+  }
+
+  private trackedDelete(tracker: ChangeTracker, cellEnd: boolean): void {
     if (markDeleted(this.p)) throw new Docx4JException('This paragraph is already marked deleted');
     // the whole content, its pictures too: before, a picture's run, having no text, stayed out of the
     // w:del, and accepting joined it into the next paragraph (CR-002 section 48)
@@ -538,9 +568,15 @@ export class Paragraph {
     const ownMark = rPr?.ins !== undefined && rPr.ins.author === tracker.author;
     if (ownMark && (this.p.content ?? []).length === 0) {
       const i = this.index;
-      if (i >= 0) this.container.splice(i, 1);
+      if (i >= 0) {
+        this.container.splice(i, 1);
+        if (!cellEnd || this.cellStillEnds()) return;
+        this.container.splice(i, 0, this.element as Element);
+      }
       return;
     }
+    // a cell's last mark: Word deletes the paragraph's text and never marks the mark (check 52, cases 90 and 91)
+    if (cellEnd) return;
     tracker.markParagraphDeleted(this.p);
     // Word, deleting a paragraph mark ALONE under tracking, gives the next paragraph this one's
     // properties as a w:pPrChange (CR-002 section 38 item 2, the editor's measure-word15.docx), so

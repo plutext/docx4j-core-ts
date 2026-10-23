@@ -6,6 +6,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { type Element, typeNameOf, runItemsOf, childrenOf, revisionKindOf, itemTextOf } from './tree.mjs';
 import { type TrackedChange, type MovePiece, movePiecesOf, storyOf } from './TrackedChange.mjs';
 import { trackedChangesOfStory, type Body } from './Body.mjs';
+import { HOLDER_TYPES } from './tracking.mjs';
 
 const valueOf = (item: unknown): unknown => (typeof item === 'object' && item !== null && 'value' in item && 'name' in item ? (item as Element).value : item);
 const localName = (item: unknown): string => (typeof item === 'object' && item !== null && 'name' in item ? (item as Element).name?.localPart ?? '' : '');
@@ -15,6 +16,16 @@ const commentIdOf = (item: unknown): unknown => (valueOf(item) as { id?: unknown
 function markerAt(list: readonly Element[], from: number, to: number, local: 'commentRangeStart' | 'commentRangeEnd', id: unknown): number {
   for (let i = from; i < to; i++) if (localName(list[i]) === local && commentIdOf(list[i]) === id) return i;
   return -1;
+}
+
+/** A block-level control's content, which holds paragraphs. */
+const SDT_CONTENTS: ReadonlySet<string> = new Set(['org_docx4j_wml.SdtContentBlock', 'org_docx4j_wml.CTSdtContentBlock']);
+
+/** A marker that stands between two blocks without keeping them apart, as a join reads one. */
+function isRangeMarker(item: unknown): boolean {
+  const name = localName(item);
+  return name.endsWith('RangeStart') || name.endsWith('RangeEnd') || name === 'bookmarkStart' || name === 'bookmarkEnd'
+    || name === 'permStart' || name === 'permEnd' || name === 'proofErr';
 }
 
 /** The live list of run-level content a holder keeps, or of block content a container keeps. */
@@ -97,7 +108,68 @@ export class ResolvedView {
     const v = valueOf(item);
     if (v === undefined || v === null) return false;
     if (this.removed.has(v)) return true;
-    return typeNameOf(v) === 'org_docx4j_wml.P' && this.movedMarksGone.has(v) && !this.remainsIn(v as wml.P);
+    const tn = typeNameOf(v);
+    if (tn === 'org_docx4j_wml.Tbl') return this.emptiedTable(v as wml.Tbl);
+    if (tn !== 'org_docx4j_wml.P') return false;
+    const p = v as wml.P;
+    if (this.movedMarksGone.has(p) && !this.remainsIn(p)) return true;
+    // an emptied paragraph whose mark is gone, with a table next in its list: gone (docx4j CR-043 section 17, check 54 case 9)
+    return this.marksGone.has(p) && !this.remainsIn(p) && typeNameOf(this.nextBlockAfter(p)) === 'org_docx4j_wml.Tbl';
+  }
+
+  /**
+   * A paragraph's properties in this view, where its mark is gone and no paragraph follows it in its list (Word 365's
+   * Accept All, check 54; docx4j CR-043 section 17): a block control next gives it the control's first paragraph's
+   * properties, as a join would have (case 19); a control's last paragraph, emptied, keeps a bare mark, its properties
+   * gone (case 13); otherwise its own. docx4j `paragraphPropertiesOf`.
+   */
+  paragraphPropertiesOf(p: wml.P): wml.PPr | undefined {
+    if (!this.marksGone.has(p)) return p.pPr;
+    const parent = (p as { PARENT?: { TYPE_NAME?: string } }).PARENT;
+    const container = listOf(parent);
+    const k = container ? container.findIndex((item) => valueOf(item) === p) : -1;
+    if (!container || k < 0) return p.pPr;
+    const next = this.nextBlock(container, k);
+    if (typeNameOf(next) === 'org_docx4j_wml.P') return p.pPr;    // a join: the walk takes the chain's last
+    if (next && HOLDER_TYPES.has(typeNameOf(next) ?? '')) {
+      for (const o of childrenOf(next as object) ?? []) {
+        if (typeNameOf(o) === 'org_docx4j_wml.P') return (o.value as wml.P).pPr;
+        if (typeNameOf(o) === 'org_docx4j_wml.Tbl') break;
+      }
+    }
+    if (next === undefined && !this.remainsIn(p) && SDT_CONTENTS.has(parent?.TYPE_NAME ?? '')) return undefined;
+    return p.pPr;
+  }
+
+  /**
+   * A table whose every row this view removes is gone with them, as the resolution removes an emptied table
+   * (check 54 case 6: a deletion from a heading across a whole table joins the heading with the paragraph after it).
+   */
+  private emptiedTable(tbl: wml.Tbl): boolean {
+    let rows = false;
+    for (const item of (tbl.content ?? []) as Element[]) {
+      if (typeNameOf(item) === 'org_docx4j_wml.Tr') {
+        rows = true;
+        if (!this.removed.has(item.value)) return false;
+      } else if (!isRangeMarker(item)) return false;
+    }
+    return rows;
+  }
+
+  /** The block after `p` in its list, past range markers and what this view removes; undefined at the end. */
+  private nextBlockAfter(p: wml.P): unknown {
+    const container = listOf((p as { PARENT?: unknown }).PARENT);
+    const k = container ? container.findIndex((item) => valueOf(item) === p) : -1;
+    return container && k >= 0 ? this.nextBlock(container, k) : undefined;
+  }
+
+  private nextBlock(container: readonly Element[], k: number): unknown {
+    for (let i = k + 1; i < container.length; i++) {
+      const item = container[i]!;
+      if (isRangeMarker(item) || this.removes(item)) continue;
+      return valueOf(item);
+    }
+    return undefined;
   }
 
   /** Whether a content control or custom XML element is gone with its content left in its place (one inserted, rejected). */
@@ -164,8 +236,11 @@ export class ResolvedView {
         if ((t.cell === 'ins') !== this.accepted) this.removed.add(t.tc.value);
         return;
       case 'holder':
-        // a content control inserted keeps its content either way; rejected, the control itself goes
-        if (!this.accepted) this.unwrapped.add(t.holder.value);
+        // a content control inserted keeps its content either way; rejected, the control itself goes. One deleted
+        // whole (Word's customXmlDelRange form), accepted, goes with everything in it; rejected, it stays (docx4j
+        // CR-043 section 17, check 54 cases 15 and 17)
+        if (t.revision === 'ins') { if (!this.accepted) this.unwrapped.add(t.holder.value); }
+        else if (this.accepted) this.removed.add(t.holder.value);
         return;
       default:
         // property records change no text

@@ -31,7 +31,9 @@ Word's (Jason, 2026-10-23; section 12.1, item 7), and a deletion takes a comment
 going untracked and on Accept All (section 12.6). Left: three rules of Word's Accept All, docx4j's to take first
 (section 12.3). Committed `87bbb38`. Section 13 (2026-10-23, Jason: "the shim refuses getOoxml - fix this please"):
 the shim's `getOoxml` and `toApiScript` across paragraphs give the range's blocks, and under tracking no longer mark a
-copy's trimmed text deleted.
+copy's trimmed text deleted. Section 14 (2026-10-23, docx4j-python's finding): a range holding one table whole, nothing
+either side, deleted the block after it too; fixed, not committed. Section 12.3's three Accept All rules (cases 9, 13
+and 19) followed since 2026-10-23, as docx4j's CR-043 section 17 (`29dbf5964`) adopted them; not committed.
 
 ## 1. Why
 
@@ -699,7 +701,7 @@ Each could go to a check 54, as check 53 measured phase 1's:
 ### 10.7 Left
 
 - Phase 3: comments and content controls on such a range, and `^p` in `search`.
-- `Range.footnotes` and `getTextRanges`; CR-002 section 55 (cases 86 to 95).
+- `Range.footnotes` and `getTextRanges`; CR-002 section 55 (cases 86 to 95; implemented 2026-10-23, its section 55.7).
 - Deleting a range within one paragraph, `Paragraph.delete` and `Body.clear` leave a note whose reference they take
   in the notes part (CR-002's).
 
@@ -911,6 +913,31 @@ none.
   docx4j has none of the three. They go to docx4j (its CR-043) as findings. The goldens are docx4j's, so this
   package's resolution changes when docx4j's does.
 
+  *Followed since 2026-10-23.* docx4j adopted the three, and the deleted control of cases 15 and 17 as this package
+  resolves it, as its CR-043 section 17 (`29dbf5964`, `VERSION_17_3_5`, not yet released; Jason's decision there). It
+  holds them to Word's save of this check, copied into its core-tests as `revisions/core-ts/check54/`. This package
+  ports them:
+  - **`joinWithNext`** (`TrackedChange.mts`), where no paragraph follows a mark that goes, does one of three things,
+    as docx4j's `Resolver.joinWithNext` does: an emptied paragraph with a table next goes (case 9); one with a block
+    control next takes the control's first paragraph's properties, nothing joined (case 19); a control's emptied last
+    paragraph keeps a bare mark (case 13). The rules come after this package's own fallback for an inserted mark
+    rejected at a container's end (CR-002 section 13), which docx4j hasn't.
+  - **`ResolvedView`**, docx4j's `ResolvedView` as changed with them. It removes case 9's paragraph. It removes a table
+    whose every row it removes (case 6, which this package's resolution already did). It gives a paragraph its
+    properties through `paragraphPropertiesOf` (cases 13 and 19). And it takes a control deleted whole, accepted,
+    with everything in it, where before a deleted control rejected read as unwrapped. The text model's `Extractor`
+    reads a paragraph's style and properties through `paragraphPropertiesOf`, as docx4j's `viewPPr`.
+  - **The filter** takes `CONTENT_CONTROL_DELETION` among its kinds. It was missing since `87bbb38`, so a filter
+    naming it was refused.
+
+  The Accept All test lists none of the three now: every case is Word's, but for 10, 11 and 29, the style resets
+  (32, 33) and the hyperlink (34). A new test in `text-model.test.mjs`, after docx4j's `ViewAgreementTest`, reads
+  Word's save after the run: its accepted view, this package's Accept All copy, and, region by region for cases 6, 9,
+  13, 15, 17 and 19, Word's own Accept All save, block by block. The view's half fails without the `ResolvedView`
+  change. docx4j at `29dbf5964` (built into a separate Maven repository) answers the same as 17.3.4 for all 96
+  revisions goldens and all 282 text goldens: no fixture has these shapes, so the goldens stay as recorded.
+  `npm test`: 1,490 pass.
+
 ### 12.4 What the save after the run settled
 
 - **A tracked deletion over a whole content control** (cases 15 and 17): Word's `w:customXmlDelRange*` markers
@@ -1000,3 +1027,20 @@ is settled at save against the document, which still holds them.
 
 `ranges.test.mjs`: check 52's `HEAD3B` to `BODY3A`, where it asserted the refusal, now gives the two pieces.
 
+
+## 14. A range holding one block whole deleted the block after it too (2026-10-23)
+
+**Found by** docx4j-python's Phase C port (its CR-013 section 14.5 item 5), which read this package's code at `906d5e3` and
+hit the same shape in its own. Confirmed here: `table.getRange('Whole').delete()` on a table of two cells, with a
+paragraph after it, removed the table and that paragraph. A one-cell table's whole range is within one paragraph and
+doesn't come here.
+
+**Why.** A range holding one block whole, with no paragraph at either end, has `first === last` and no head or tail.
+`deleteUntracked` removed the last block (`removeBlock(…, last)`), then the first, at the same index, which by then
+held the block after it. Tracked, `deleteTracked` deleted the same block twice. That did nothing visible for a table,
+since a row already deleted is left as it is, but a control would have taken Word's markers twice. A control's whole
+range isn't this shape: its paragraphs are the head and the tail, and the delete takes its content.
+
+**Fixed:** the block is removed, or marked deleted, once. `ranges.test.mjs` deletes a two-cell table's whole range
+untracked (the paragraphs either side stay) and tracked (one change; Accept All takes the table alone). The untracked
+half fails on `906d5e3`'s build.

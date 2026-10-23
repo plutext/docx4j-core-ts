@@ -722,3 +722,29 @@ test('REQ-307: a branch\'s text is every w:t in it, whatever the view and hidden
   assert.equal(await text(pkg), 'SAME\nSAMEADDED\nSAME\n');
   assert.deepEqual((await Texts.of(pkg, { warnings: false })).warnings, []);
 });
+
+// docx4j CR-043 section 17 (29dbf5964), its ViewAgreementTest over core-ts's check 54 saves: the accepted view reads
+// as this package's Accept All copy reads, and as Word's own Accept All save, block by block, Word's three rules where no
+// paragraph follows a deleted mark among them (cases 9, 13 and 19), and a table whose every row goes (case 6)
+test("check 54's save, its accepted view, its Accept All copy and Word's Accept All save read alike, block by block (docx4j CR-043 section 17)", async () => {
+  const saves = join(here, 'check54');
+  const blocksOf = (result) => {
+    const view = (blocks) => blocks.map((b) => (b.rows.length > 0
+      ? { rows: b.rows.map((r) => r.cells.map((c) => view(c.blocks))) }
+      : { kind: b.kind, style: b.style, text: b.runs.map((r) => r.text).join('') }));
+    return view(result.blocks);
+  };
+  const run = await WordprocessingMLPackage.load(readFileSync(join(saves, '54-writes-word365.docx')));
+  const viewed = blocksOf(await Texts.of(run, { view: 'accepted' }));
+  const copy = await WordprocessingMLPackage.load(readFileSync(join(saves, '54-writes-word365.docx')));
+  await copy.acceptAllRevisions();
+  assert.deepEqual(viewed, blocksOf(await Texts.ofResolved(copy, { view: 'accepted' })));
+  // and Word's: a region's blocks after its BEGIN paragraph, for the cases this rule set decides
+  const word = blocksOf(await Texts.ofResolved(await WordprocessingMLPackage.load(readFileSync(join(saves, '54-writes-word365-accepted.docx'))), { view: 'accepted' }));
+  const region = (blocks, n) => {
+    const begin = blocks.findIndex((b) => b.text?.startsWith(`BEGIN${n} `));
+    const end = blocks.findIndex((b, k) => k > begin && b.text === `END${n}`);
+    return blocks.slice(begin + 1, end);
+  };
+  for (const n of [6, 9, 13, 15, 17, 19]) assert.deepEqual(region(viewed, n), region(word, n), `case ${n}`);
+});

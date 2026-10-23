@@ -125,7 +125,8 @@ function tableXml(t: PasteTable, resolve: BuildResolvers): string {
   const tcPr = (col: number, span: number, merge: 'restart' | 'continue' | undefined): string =>
     `<w:tcPr><w:tcW w:w="${widthOf(col, span)}" w:type="dxa"/>${span > 1 ? `<w:gridSpan w:val="${span}"/>` : ''}${merge === 'restart' ? '<w:vMerge w:val="restart"/>' : merge === 'continue' ? '<w:vMerge/>' : ''}</w:tcPr>`;
   const cellXml = (c: PasteCell, col: number): string => {
-    const blocks = c.blocks.length > 0 ? blocksToXml(c.blocks, resolve) : '<w:p/>';
+    const last = c.blocks[c.blocks.length - 1];
+    const blocks = last === undefined ? '<w:p/>' : blocksToXml(c.blocks, resolve) + (last.kind === 'table' ? '<w:p/>' : '');
     return `<w:tc>${tcPr(col, c.colspan, c.rowspan > 1 ? 'restart' : undefined)}${blocks}</w:tc>`;
   };
   // A cell spanning rows holds its place in the rows below with a continuation cell, as WordprocessingML writes a vertical merge.

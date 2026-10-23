@@ -315,7 +315,7 @@ test('Font and Paragraph read the table style\'s formatting in a cell; direct re
   assert.equal(outside.font.bold, false);
   assert.equal(outside.font.size, 12);
   // a nested table's paragraph is in the nested table, whose style gives text nothing
-  assert.equal(view('j nested r0c0').font.color, '', 'not the enclosing table\'s colour');
+  assert.equal(view('j nested r0c0').font.color, '#000000', 'automatic, as Office JS reads it (CR-002 section 59), not the enclosing table\'s colour');
   assert.equal(view('j nested r0c0').cellContext.tableStyleId, 'NoText');
 });
 

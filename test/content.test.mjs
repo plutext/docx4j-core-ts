@@ -97,7 +97,11 @@ test('font: reads direct formatting, writes to runs, splits runs for a range', a
   assert.equal(range.font.highlightColor, '#FFFF00');
   assert.equal(range.font.underline, 'Single');
   assert.equal(p.runs[0].value.rPr, undefined, 'other runs untouched');
-  assert.equal(p.font.bold, false, 'first run is not bold');
+  // the paragraph's runs differ: null, '' or Mixed, as Office JS reads them (CR-002 section 59, checks 52 and 53)
+  assert.deepEqual([p.font.bold, p.font.italic, p.font.size, p.font.color, p.font.highlightColor, p.font.underline], [null, null, null, '', '', 'Mixed']);
+  await pkg.getMainDocumentPart().getRunFontSelector();
+  assert.equal(p.font.name, 'Aptos', 'where they agree, their value');
+  assert.equal(p.getFont({ direct: true }).bold, null, 'the direct view reads the same way');
   p.font.name = 'Arial';
   assert.ok(p.runs.every((r) => r.value.rFonts === undefined && r.value.rPr.rFonts.ascii === 'Arial'));
   range.font.bold = false;
@@ -107,6 +111,28 @@ test('font: reads direct formatting, writes to runs, splits runs for a range', a
   // saved text survives the split
   const back = await WordprocessingMLPackage.load(await pkg.save());
   assert.equal((await back.getBody()).paragraphs[0].text, 'plain bold plain');
+});
+
+test('font reads as Office JS: an automatic colour #000000, an empty paragraph its mark, the text of Word\'s default view (CR-002 section 59)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const [plain, auto, heading, mixed] = await body.insertXml([
+    '<w:p><w:r><w:t>plain</w:t></w:r></w:p>',
+    '<w:p><w:r><w:rPr><w:color w:val="auto"/></w:rPr><w:t>auto</w:t></w:r></w:p>',
+    '<w:p><w:pPr><w:pStyle w:val="Heading1"/><w:rPr><w:b w:val="0"/></w:rPr></w:pPr></w:p>',
+    '<w:p><w:r><w:t xml:space="preserve">kept </w:t></w:r><w:del w:id="1" w:author="a"><w:r><w:rPr><w:b/></w:rPr><w:delText>gone</w:delText></w:r></w:del></w:p>',
+  ].join(''), 'End');
+  // no colour anywhere, and w:val="auto": #000000, as check 53 reads every run with no colour; the direct view says what is written
+  assert.deepEqual([plain.font.color, auto.font.color], ['#000000', '#000000']);
+  assert.deepEqual([plain.getFont({ direct: true }).color, auto.getFont({ direct: true }).color], ['', 'auto']);
+  // a paragraph with no text reads its mark's w:rPr, over its style's bold (check 52, case 60), its whole range too
+  await pkg.styles.ensure(['Heading1']);
+  assert.equal(heading.font.bold, false);
+  assert.equal(heading.getRange('Whole').font.bold, false);
+  assert.equal(heading.getRange('Start').font.bold, true, 'a collapsed range reads the style, as before');
+  // the deleted bold run isn't in Paragraph.text, so it isn't read: one run, not bold
+  assert.equal(mixed.text, 'kept ');
+  assert.equal(mixed.font.bold, false);
 });
 
 test('search and replace across runs, options, wildcards', async () => {
@@ -854,7 +880,9 @@ test('a search never returns a hit that splits a character', async () => {
     'each half of the pair matched the class; neither is a hit');
   assert.equal(pkg.body.replaceText('[!a-z ]', 'X', { matchWildcards: true }), 0);
   assert.equal(emoji.text, 'a\u{1F600}b', 'and a replace leaves the emoji whole');
-  assert.deepEqual(emoji.search('?', { matchWildcards: true }).map((r) => r.text), ['a', 'b']);
+  // ? is a code point, the pair whole, as Word's (check 58 case 13; CR-002 section 32, K4)
+  assert.deepEqual(emoji.search('?', { matchWildcards: true }).map((r) => r.text), ['a', '\u{1F600}', 'b']);
+  assert.deepEqual(emoji.search('a?b', { matchWildcards: true }).map((r) => r.text), ['a\u{1F600}b']);
 
   // a letter and the fatha on it (U+064E) are one cluster: \p{L}+ stops before the mark
   const arabic = pkg.body.insertParagraph('\u0628\u064E \u062A', 'End');

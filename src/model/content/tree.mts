@@ -2,7 +2,7 @@
 // builders (walk, find, linkParents, textOf and the element helpers come from there).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { isElement, typeNameOf, runItemsOf, mcBranchOf, type Element } from '@docx4j/generated-objects-ts/builders/wml';
+import { isElement, typeNameOf, runItemsOf, mcBranchOf, sdtProperty, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 import { READ_UNDERSTOOD_PREFIXES } from '../../opc/mce/understood.mjs';
 import { isMath, mathTextOf } from './mathText.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
@@ -363,10 +363,27 @@ export interface VanishResolver {
 export function hiddenRunsOf(resolver: VanishResolver | undefined, p: wml.P): HiddenRuns {
   const pStyle = p.pPr?.pStyle?.val;
   return (run) => {
+    if (inShowingPlaceholder(run)) return true;
     const own = run.rPr?.vanish;
     if (own !== undefined && own !== null) return own.val !== false;
     return resolver?.isVanishedByStyles(pStyle, run.rPr?.rStyle?.val) ?? false;
   };
+}
+
+/**
+ * Whether a run is in a content control showing its placeholder (`w:showingPlcHdr`), run-level or block-level, up its
+ * `PARENT`s. Office JS reads a placeholder as no text, and finds no text there to keep (check 53 cases 34 and 35, check 58
+ * cases 11 and 12; CR-012 section 18), so the readers take its runs as they take hidden ones.
+ */
+export function inShowingPlaceholder(run: object): boolean {
+  let o = (run as { PARENT?: object }).PARENT;
+  for (let guard = 0; o && guard < 32; guard++, o = (o as { PARENT?: object }).PARENT) {
+    const v = o as { sdtPr?: wml.SdtPr; sdtContent?: unknown };
+    if (v.sdtPr === undefined || v.sdtContent === undefined) continue;
+    const item = sdtProperty(v.sdtPr, 'showingPlcHdr');
+    if (item !== undefined && (item.value as wml.BooleanDefaultTrue | undefined)?.val !== false) return true;
+  }
+  return false;
 }
 
 /** The text of a paragraph or container in one of the two views, in Office JS's characters (`segmentsOf`). */

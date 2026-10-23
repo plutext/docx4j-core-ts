@@ -194,7 +194,11 @@ test('insertParagraph marks the new mark inserted; delete() marks the mark delet
   xml = await xmlOf(pkg);
   assert.match(xml, /<w:pPr><w:rPr><w:del w:id="4"[^>]*\/><\/w:rPr><\/w:pPr><w:del w:id="3"[^>]*><w:r><w:delText>two<\/w:delText><\/w:r><\/w:del>/);
   assert.equal(body.paragraphs.length, 3, 'the paragraph is still there while the change is pending');
-  assert.equal(body.getText({ view: 'original' }), 'one\rtwo\r', "body.text's form: a mark \\r per paragraph but the last (check 48)");
+  // body.text's form, a mark \r per paragraph but the last (check 48), in each view what its resolution leaves: the
+  // original, Reject All's, without the inserted paragraph or its mark; Word's default view, Accept All's, without the
+  // deleted text or its mark (CR-012 section 19)
+  assert.equal(body.getText({ view: 'original' }), 'one\rtwo');
+  assert.equal(body.text, 'one\rthree');
 
   assert.equal(xml.includes('pPrChange'), false, 'the next paragraph has the same properties: nothing recorded on it');
 

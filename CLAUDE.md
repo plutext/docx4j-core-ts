@@ -108,6 +108,8 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
                   officeText.mts writes Office JS's characters back as the elements they read as (CR-002 section 60: officeItems, dropExcluded, forWriter);
+                  tableRules.mts is docx4j's TableRules (endsWithParagraph, endWithParagraph: a cell ends with a paragraph as Word reads it), which
+                  Body.insertElement, clear, Paragraph.delete, ContentControl.delete and the XHTML pass keep, as Word keeps a cell's last paragraph (CR-002 section 55);
                   textBoxes.mts numbers a paragraph's text boxes as the text model does (`textbox:N`); outline.mts is the registry the text model's outline reader joins (model/text/outline.mts; Body can't import the text model);
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
@@ -190,7 +192,8 @@ Key mechanics:
   on everything inserted (`linkParents`). `Paragraph.text` is those segments' text, Office JS's
   (CR-012 phase 4): check 48's characters (`officeItemText`: a note reference U+0002, a break
   U+000B, a symbol `(`, an equation as Word draws it, `mathText.mts`), hidden runs left out
-  (`hiddenRunsOf`, zero-width segments listed with the objects), a kept `mc:AlternateContent`'s
+  (`hiddenRunsOf`, zero-width segments listed with the objects), and so a control's placeholder (`inShowingPlaceholder`, CR-012
+  section 18), a mark tracked as deleted written as nothing (`storyLayout`, `markText`, CR-012 section 19), a kept `mc:AlternateContent`'s
   selected branch read and edited in place (`alternate` on a segment; a run split inside a run-level
   branch writes the editor's ED-009 P2 pieces), so text, offsets, `Range`, `search` (`officeMatches`,
   Word's Find codes) and every edit share one reader. A tracked change's `text` reads
@@ -229,7 +232,9 @@ Key mechanics:
   `w:text`, `w:richText`; not a flat OPC node) holds one paragraph: every write that would give it another block is
   refused (CR-002 section 61, `assertControlHolds`), it reads as `PlainText`, and `getContentControls({ types })` finds a
   kind as Word's does. `Font` and `Paragraph` reads report **effective**
-  formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`);
+  formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`); `Font` reads every run in scope
+  (a paragraph's: the runs of its text), `null`, `''` or `Mixed` where they differ, a paragraph with no text its mark, an
+  automatic colour `#000000`, as Office JS (CR-002 section 59);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
   direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
   the table style and its conditional formats (CR-007). `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
@@ -267,7 +272,9 @@ refusals, and the mutators reaching every branch,
 48's, 48b's and 51's files (`check48Bytes`, `check51Bytes` build them in memory; never commit the `.docx`), cells, controls,
 comments and notes of several paragraphs, equations, hidden text, the `textbox:`
 addresses agreeing with the text model over every fixture holding a text box, the read-only boxes, the notes' and comments'
-addresses, and `outline()`,
+addresses, and `outline()`; and check 58's file and snippet (`test/fixtures/check58/`, `check58Bytes`) held to each other and
+run through the shim in both modes and held to Word's runs (K1 to K6), and check 59's (`test/fixtures/check59/`, where a
+wildcard matches a mark) through the shim until Word's run is back,
 `ranges.test.mjs` CR-014's: check 52's file (`check52Bytes`, `test/fixtures/check52/`) and its Script Lab snippet held to each
 other, every case parsed by the snippet's own parser and every word it searches for in the file once, Word 365's run and its
 report after Accept All of the same cases, and `acceptAllRevisions()` on Word's save after the run held to Word's own Accept All,
@@ -290,6 +297,8 @@ Word's, and each section 61 rule,
 to each other; Word 365's run (its JSON beside the build, its saves in `test/check57/`, with a SHA-1 manifest), the shim's run held to
 Word's case for case, this package's save after the run and Word's, each accepted and rejected here, held to Word's saves region for
 region, the readers on Word's saves, and section 62.3's rules (a `w:fldSimple` split, an equation deleted under tracking),
+`table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
+last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

@@ -37,7 +37,8 @@ export function searchPattern(text: string, options: SearchOptions = {}): RegExp
     source = '';
     for (let i = 0; i < text.length; i++) {
       const c = text[i]!;
-      if (c === '?') source += '.';
+      // a code point, a surrogate pair whole, as Word's ? matches an emoji (check 58 case 13; CR-002 section 32, K4)
+      if (c === '?') source += '(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.)';
       else if (c === '*') source += '.*?';
       else if (c === '<') source += '\\b(?=\\w)';
       else if (c === '>') source += '\\b(?<=\\w)';

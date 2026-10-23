@@ -120,11 +120,9 @@ test("check 52: acceptAllRevisions on Word 365's save after the run gives Word's
   assert.equal(word.size, 95);
   assert.deepEqual([...mine.keys()], [...word.keys()]);
   const differing = [...word.keys()].filter((n) => JSON.stringify(mine.get(n)) !== JSON.stringify(word.get(n)));
-  // case 26 (CC, its content deleted under tracking): Word fills the emptied control with five spaces, this package
-  // leaves it empty; the paragraph is the same otherwise
-  assert.deepEqual(differing, [26]);
-  assert.deepEqual(word.get(26).map((p) => p.text), ['     ']);
-  assert.deepEqual(mine.get(26), word.get(26).map((p) => ({ ...p, text: '' })));
+  // case 26 (CC, its content deleted under tracking): Word fills the emptied control with five spaces marked as its
+  // placeholder, which reads as no text, as this package's empty control does (CR-012 section 18)
+  assert.deepEqual(differing, []);
   // the joins: the joined paragraph in the properties of the paragraph the range ended in (HB, BH, LB, BL, TBL)
   assert.deepEqual([16, 17, 18, 19, 21].map((n) => word.get(n).map((p) => [p.text, p.style, p.alignment, p.listItem])), [
     [['HEAD16A  BODY16B', 'Normal', 'Centered', false]],
@@ -175,8 +173,8 @@ test("CR-014 phase 1: check 52's report, run through the Word shim on Word's sav
   const word = JSON.parse(await readFile(join(here, 'fixtures', 'check52', '52-ranges-word365-accepted.json'), 'utf8'));
   assert.equal(ours.cases.length, word.cases.length);
   const bold = new Set(word.cases.filter((c) => c.op === 'bold').map((c) => c.n));
-  // a paragraph's font reads its first run here (CR-002), where Office JS reads null where its runs differ
-  const paragraphOf = ({ bold: b, italic, underline, words, ...rest }) => rest;
+  // getTextRanges, which the bold cases' report reads each word with (`words`), is not implemented; each paragraph's font is Word's (CR-002 section 59)
+  const paragraphOf = ({ words, ...rest }) => rest;
   for (const [i, theirs] of word.cases.entries()) {
     const n = theirs.n;
     const mine = ours.cases[i].region;
@@ -192,21 +190,9 @@ test("CR-014 phase 1: check 52's report, run through the Word shim on Word's sav
       expected.paragraphs = expected.paragraphs.map(paragraphOf);
       mine.paragraphs = mine.paragraphs.map(paragraphOf);
     }
-    // a paragraph after a nested table in a cell: Word's style 'Other' again (cases 89, 91, 94)
-    for (const [k, p] of (expected.paragraphs ?? []).entries()) {
-      if (p.styleBuiltIn === 'Other') {
-        assert.ok([89, 91, 94].includes(n), `${n}`);
-        assert.deepEqual([mine.paragraphs[k].styleBuiltIn, mine.paragraphs[k].style], ['ListParagraph', 'List Paragraph'], `${n}`);
-        expected.paragraphs[k] = { ...p, style: 'List Paragraph', styleBuiltIn: 'ListParagraph' };
-      }
-    }
-    // cases 13 and 26, a control emptied: Word marks it w:showingPlcHdr over a run of five spaces, and reads no
-    // text there, where this package reads the spaces (CR-014 section 9.4)
-    if (n === 13 || n === 26) {
-      expected.text = expected.text.replace('\\u000d\\u000d', '\\u000d     \\u000d');
-      expected.paragraphs[1].text = '     ';
-      expected.contentControls[0].text = '     ';
-    }
+    if (expected.paragraphs) expected.paragraphs = listParagraphForOther(n, expected.paragraphs);
+    // cases 13 and 26, a control emptied: Word marks it w:showingPlcHdr over a run of five spaces, which reads as
+    // no text, here as in Word since CR-012 section 18 (CR-014 section 9.4)
     delete mine.footnotes;
     if (bold.has(n)) delete mine.paragraphs;
     assert.deepEqual(mine, expected, `case ${n} (${theirs.kind} ${theirs.op}${theirs.tracked ? ' tracked' : ''})`);
@@ -246,6 +232,18 @@ test("CR-014 phase 1: the tracked changes a range across paragraphs lists, on Wo
   // case 1's deletion and insertion through a paragraph's mark, each one change spanning two paragraphs, among them
   assert.ok(compared.includes(1) && compared.length >= 19, compared.join(' '));
 });
+
+/**
+ * Word reads a cell's paragraph after a nested table as style '' ('Other') in cases 89, 91 and 94, where its save has
+ * it List Paragraph, as this package reads it: Word's reading taken as its markup says.
+ */
+function listParagraphForOther(n, paragraphs) {
+  return paragraphs.map((p) => {
+    if (p.styleBuiltIn !== 'Other') return p;
+    assert.ok([89, 91, 94].includes(n), `${n}`);
+    return { ...p, style: 'List Paragraph', styleBuiltIn: 'ListParagraph' };
+  });
+}
 
 /** check52Bytes' paragraph holding a word, and a range over that word. */
 const wordIn = (pkg, word) => pkg.body.search(word, { matchCase: true, matchWholeWord: true })[0];
@@ -354,17 +352,19 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
   const differing = {};
   for (const [i, theirs] of word.cases.entries()) {
     const [a, b] = [flat(ours.cases[i].reads), flat(theirs.reads)];
-    // a colour reads '' for automatic and resolves theme colours another way here (Font's, CR-002 and CR-008): compared below where it is CR-014's
-    const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => k !== 'font.color' && JSON.stringify(a[k]) !== JSON.stringify(b[k]));
+    const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
     if (keys.length > 0) differing[theirs.n] = keys;
   }
   const changeRead = (n) => [`paragraphs.${n}.changes.0.type`, `paragraphs.${n}.changes.0.text`, `paragraphs.${n}.changes.0.range`, `paragraphs.${n}.changes.0.rangeParagraphs`,
     `paragraphs.${n}.wholeChanges.0.type`, `paragraphs.${n}.wholeChanges.0.text`, `paragraphs.${n}.wholeChanges.0.range`, `paragraphs.${n}.wholeChanges.0.rangeParagraphs`];
-  const placeholder = ['control.text', 'control.placeholderText', 'control.paragraph', 'control.whole', 'showingPlaceholderText'];
+  // a control showing its placeholder reads as empty, as Word's (CR-012 section 18); its placeholderText reads the runs
+  // here, where Word, with no glossary part, reads null; Word's showingPlaceholderText came back undefined
+  const placeholder = ['control.placeholderText', 'showingPlaceholderText'];
   const styleOther = ['paragraph.style', 'paragraph.styleBuiltIn', 'whole.style', 'whole.styleBuiltIn'];
   assert.deepEqual(differing, {
-    // a single paragraph's font reads its first run (CR-002), where Office JS reads '' or null where its runs differ
-    8: ['font.italic'], 31: ['font.highlightColor'],
+    // Heading 1's theme colour (accent1, shaded) read through the theme, which is CR-008 phase 2's: #0F4761 in Word, the
+    // w:val here. Every other colour, automatic ones #000000, and every font read where runs differ are Word's (CR-002 section 59)
+    3: ['font.color'], 4: ['font.color'], 5: ['font.color'],
     // a paragraph after a nested table in a cell, whose style isn't Normal: Word's 'Other', not followed
     10: styleOther, 12: styleOther,
     // tracked changes in Simple Markup. A change's text here is docx4j's, as All Markup reads it, where Simple Markup
@@ -376,10 +376,6 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
     30: ['region.0.text', ...changeRead(2)],
     // Range.footnotes is not implemented, so the snippet can't reach expandTo's ItemNotFound through the shim
     32: [''],
-    // body.text in Simple Markup joins paragraphs at a deleted mark, drops a deleted paragraph and reads a control
-    // showing its placeholder as empty (CR-012's readers)
-    33: ['text.length', 'Whole.length', 'Content.length'],
-    // a control showing its placeholder reads as empty in Word (CR-012's), and showingPlaceholderText is not implemented
     34: placeholder, 35: placeholder,
   });
   // the colour across two paragraphs whose runs' colours differ: '' (MixedFont), as Word's
@@ -399,28 +395,24 @@ const phase2Run = () => (phase2 ??= (async () => {
   return { result, saved: await pkg.save() };
 })());
 
-/** Cases 86 to 95 are CR-002 section 55's (Word's table rule), which is not implemented: phase 2's tests stop at 85. */
-const RANGE_CASES = 85;
-
 test("CR-014 phase 2: check 52's writes, run through the Word shim on the same file, leave each region as Word 365's run did", async () => {
   const { result: ours } = await phase2Run();
   const word = JSON.parse(await readFile(join(here, 'fixtures', 'check52', '52-ranges-word365-run.json'), 'utf8'));
-  // a paragraph's font reads its first run here (CR-002); under tracking Word's text is All Markup's, deleted text
-  // shown, so a tracked case's paragraphs are compared without their text, and its text, tables and controls not
-  const paragraph = ({ bold, italic, underline, words, ...rest }) => rest;
+  // under tracking Word's text is All Markup's, deleted text shown, and so are its font reads, which take the deleted
+  // runs in; so a tracked case's paragraphs are compared without their text and font, and its text, tables and controls not
+  const paragraph = ({ words, ...rest }) => rest;
   const view = (c) => {
     const r = c.region;
     const out = { error: c.error, result: c.result, range: c.range, comments: r.comments };
     // case 1 is read only, but its content holds tracked changes from the start
     const markup = c.tracked || c.n === 1;
-    out.paragraphs = Array.isArray(r.paragraphs) ? r.paragraphs.map((p) => (markup ? { ...paragraph(p), text: undefined } : paragraph(p))) : r.paragraphs;
+    out.paragraphs = Array.isArray(r.paragraphs) ? listParagraphForOther(c.n, r.paragraphs).map((p) => (markup ? { ...paragraph(p), text: undefined, bold: undefined, italic: undefined, underline: undefined } : paragraph(p))) : r.paragraphs;
     out.changes = Array.isArray(r.trackedChanges) ? r.trackedChanges.map((x) => x.type) : r.trackedChanges;
     if (!markup) Object.assign(out, { text: r.text, tables: r.tables, controls: r.contentControls });
     return JSON.parse(JSON.stringify(out));
   };
   const differing = {};
   for (const [i, theirs] of word.cases.entries()) {
-    if (theirs.n > RANGE_CASES) break;
     const [a, b] = [view(ours.cases[i]), view(theirs)];
     const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
     if (keys.length > 0) differing[theirs.n] = keys;
@@ -439,6 +431,14 @@ test("CR-014 phase 2: check 52's writes, run through the Word shim on the same f
     // insertComment (phase 3): the comments and their ranges are Word's, but the snippet calls getRange() at once
     // on what it returns, which is asynchronous here, so the script fails after the comment is in
     ...each([79, 80, 81, 82, 83, 84, 85], ['error', 'result']),
+    // case 13, a control emptied: Word fills it with a bold run of five spaces (section 9.4), which reads bold; this
+    // package's emptied paragraph reads its mark (CR-002 section 59)
+    13: ['paragraphs'],
+    // a table at a cell's end (CR-002 section 55.6): Word gives the new table's paragraph the cell paragraph's
+    // properties, and so its numbering, which is insertTable's wherever it inserts and not followed (the markup test)
+    ...each([86, 87], ['paragraphs']),
+    // Office JS's Body.insertOoxml returns a Range; this package's the views of what went in (CR-002 phase I)
+    94: ['result'],
   });
   // Word's refusals are this package's: a range starting or ending inside a table, deleted or replaced, tracked or not
   const refused = ours.cases.filter((c) => c.error === 'error: GeneralException').map((c) => c.n);
@@ -455,17 +455,19 @@ test("CR-014 phase 2: Accept All after check 52's writes through the shim gives 
   const back = await loaded(await pkg.save());
   const ours = await runCheck((f) => Word.run(back, f), 'report');
   const word = JSON.parse(await readFile(join(here, 'fixtures', 'check52', '52-ranges-word365-accepted.json'), 'utf8'));
-  const paragraph = ({ bold, italic, underline, words, ...rest }) => rest;
+  const paragraph = ({ words, ...rest }) => rest;
   const differing = [];
   for (const [i, theirs] of word.cases.entries()) {
-    if (theirs.n > RANGE_CASES) break;
-    // Range.footnotes is not implemented, and a paragraph's font reads its first run here (CR-002)
-    const view = ({ footnotes, ...r }) => ({ ...r, paragraphs: Array.isArray(r.paragraphs) ? r.paragraphs.map(paragraph) : r.paragraphs });
+    // Range.footnotes is not implemented
+    const view = ({ footnotes, ...r }) => ({ ...r, paragraphs: Array.isArray(r.paragraphs) ? listParagraphForOther(theirs.n, r.paragraphs).map(paragraph) : r.paragraphs });
     if (JSON.stringify(view(ours.cases[i].region)) !== JSON.stringify(view(theirs.region))) differing.push(theirs.n);
   }
   // every tracked deletion and replacement, accepted, is Word's, and every comment across paragraphs (phase 3);
-  // what differs is listed in the test above: getTextRanges (the bold cases), Word's extra empty paragraph in a control
-  assert.deepEqual(differing, [49, 50, 51, 52, 53, 54, 55, 56, 60, 66]);
+  // what differs is listed in the test above: Word's bold filler in an emptied control (13, and 26 accepted),
+  // getTextRanges (the bold cases), Word's extra empty paragraph in a control, the new table's paragraph in a cell
+  // (CR-002 section 55.6); each cell's last paragraph accepted is Word's (86 to 95), and every paragraph's font
+  // otherwise (CR-002 section 59)
+  assert.deepEqual(differing, [13, 26, 49, 50, 51, 52, 53, 54, 55, 56, 60, 66, 86, 87]);
 });
 
 /**
@@ -522,13 +524,13 @@ function markupOf(pkg) {
 test("CR-014 phase 2: the markup check 52's writes leave through the shim is Word 365's in its save after the run, region for region", async () => {
   const mine = markupOf(await loaded((await phase2Run()).saved));
   const word = markupOf(await loaded(await saveBytes('52-ranges-word365.docx')));
-  const differing = [...word.keys()].filter((n) => n <= RANGE_CASES && mine.get(n).join('\n') !== word.get(n).join('\n'));
+  const differing = [...word.keys()].filter((n) => mine.get(n).join('\n') !== word.get(n).join('\n'));
   // 1, read only: Word's save gave the comment reference's run w:u and w:sz of its own; 13: Word's filler for an
   // emptied control, a bold run of five spaces (section 9.4); 60 and 66: Word's extra
   // empty paragraph in a control; 67 and 68: Word gives a paragraph's mark its last run's formatting (italic) when
   // insertParagraph('After') goes after it, not followed (CR-014 section 10); 79 to 85: insertComment (phase 3),
-  // whose markers are Word's but for the two differences below
-  assert.deepEqual(differing, [1, 13, 60, 66, 67, 68, 79, 80, 81, 82, 83, 84, 85]);
+  // whose markers are Word's but for the two differences below; 86 and 87: the new table's paragraph (below)
+  assert.deepEqual(differing, [1, 13, 60, 66, 67, 68, 79, 80, 81, 82, 83, 84, 85, 86, 87]);
   // the comments across paragraphs (phase 3, section 11): the start marker before the range's first character,
   // the end and the reference run after its last, in its last paragraph, as Word's. Word gives the reference run
   // the text's size and, where text follows it, that text's italic, over the CommentReference style; this
@@ -544,6 +546,15 @@ test("CR-014 phase 2: the markup check 52's writes leave through the shim is Wor
   for (const n of [67, 68]) {
     assert.deepEqual(mine.get(n).map((line) => line.replace(/^P\[center\|\] "BODY/, 'P[center|i] "BODY')), word.get(n), `case ${n}`);
   }
+  // a table at a cell's end (CR-002 section 55.6): the cell's paragraph split at its end, the first half's mark in its
+  // last run's formatting and, tracked, inserted; the cell's own mark last, after the table, unmarked. Word gives the
+  // new table's paragraph the cell paragraph's properties too, which is insertTable's and not followed
+  for (const n of [86, 87]) {
+    const besideTheTable = (lines) => lines.filter((_, k) => k !== 3);
+    assert.deepEqual(besideTheTable(mine.get(n)), besideTheTable(word.get(n)), `case ${n}`);
+  }
+  assert.deepEqual([word.get(86)[3], mine.get(86)[3]], ['    P[ListParagraph/num|u] "NEWCELL"{u}', '    P[|] "NEWCELL"']);
+  assert.deepEqual([word.get(87)[3], mine.get(87)[3]], ['    P[ListParagraph/num|ins,u+change] ins:"NEWCELL"{u}', '    P[|ins] ins:"NEWCELL"']);
   // what Word wrote, which this package now writes: a tracked deletion across paragraphs marks every mark but the
   // last deleted, with no w:pPrChange (case 16); a tracked Replace puts its w:ins before the w:del (case 39); an
   // untracked one gives its text the heading's look in a body paragraph (case 29); bold skips the heading's runs
@@ -663,6 +674,28 @@ test('CR-014 phase 2: whole tables, a cell, the body and a control; what Word re
   body.getRange('Content').delete();
   assert.deepEqual(body.paragraphs.map((p) => p.text), ['']);
   assert.equal(body.tables.length, 0);
+});
+
+test("a range holding one table whole, nothing either side, deletes that table and not the block after it (docx4j-python's finding, 2026-10-23)", async () => {
+  const table = '<w:tbl><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid><w:tr>'
+    + ['IN1', 'IN2'].map((t) => `<w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>${t}</w:t></w:r></w:p></w:tc>`).join('') + '</w:tr></w:tbl>';
+  const shape = (body) => body.content.map((el) => (el.name.localPart === 'p' ? body.paragraphFor(el.value).text : el.name.localPart));
+  for (const tracked of [false, true]) {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    const body = await pkg.getBody();
+    await body.insertXml(`<w:p><w:r><w:t>BEFORE</w:t></w:r></w:p>${table}<w:p><w:r><w:t>AFTER</w:t></w:r></w:p><w:p><w:r><w:t>LAST</w:t></w:r></w:p>`, 'End');
+    const range = body.tables[0].getRange('Whole');
+    assert.equal(range.spansParagraphs, true);
+    if (tracked) pkg.changeTrackingMode = 'TrackAll';
+    range.delete();
+    pkg.changeTrackingMode = 'Off';
+    if (!tracked) { assert.deepEqual(shape(body), ['BEFORE', 'AFTER', 'LAST']); continue; }
+    // tracked, its row deleted once; Accept All takes the table, the paragraphs either side as they were
+    assert.deepEqual(shape(body), ['BEFORE', 'tbl', 'AFTER', 'LAST']);
+    assert.equal(body.getTrackedChanges().length, 1);
+    await pkg.acceptAllRevisions();
+    assert.deepEqual(shape(body), ['BEFORE', 'AFTER', 'LAST']);
+  }
 });
 
 test('CR-014 phase 2: insertParagraph splits a paragraph inside a link into two links, and refuses a split inside a content control; insertText at the ends; replaceText a paragraph at a time', async () => {
@@ -879,20 +912,16 @@ test("CR-014 phase 3: Accept All after check 54's writes through the shim is Wor
   const marked = [...words.keys()].filter((n) => mine.get(n).join('\n') !== words.get(n).join('\n'));
   // every case's result is Word's, untracked or accepted, the tracked deletions of a whole control among them (15,
   // 17), but for: a style's resets (32, 33) and a hyperlink across paragraphs (34), not followed; the reference
-  // run's size (29, section 11.2); Word's 'Other' for an emptied list item in a cell (10, 11, its report alone); and
-  // three rules of Word's Accept All that this package's, docx4j's, doesn't have (9, 13, 19; CR-014 section 12)
-  assert.deepEqual(reported, [9, 10, 11, 13, 19, 32, 33, 34]);
-  assert.deepEqual(marked, [9, 13, 19, 29, 32, 33, 34]);
-  // Word's Accept All: an emptied paragraph whose deleted mark had a table after it goes (9); a control's emptied
-  // last paragraph keeps a bare mark (13); a paragraph whose deleted mark had a control after it takes the
-  // control's first paragraph's properties, its content not joined (19). This package keeps the first, keeps the
-  // second's properties, and the third's own, as docx4j's resolution does
-  assert.equal(words.get(9)[0], 'TR ');
-  assert.equal(mine.get(9)[0], 'P[center|] ');
-  assert.equal(words.get(13)[3], '  P[|] ');
-  assert.equal(mine.get(13)[3], '  P[ListParagraph/num|] ');
-  assert.equal(words.get(19)[0], 'P[center|] "HEAD19A "');
-  assert.equal(mine.get(19)[0], 'P[Heading1|] "HEAD19A "');
+  // run's size (29, section 11.2); and Word's 'Other' for an emptied list item in a cell (10, 11, its report alone)
+  assert.deepEqual(reported, [10, 11, 32, 33, 34]);
+  assert.deepEqual(marked, [29, 32, 33, 34]);
+  // Word's Accept All, which docx4j's resolution and this package's follow since docx4j CR-043 section 17 (29dbf5964,
+  // CR-014 section 12.3): an emptied paragraph whose deleted mark had a table after it goes (9); a control's emptied
+  // last paragraph keeps a bare mark (13); a paragraph whose deleted mark had a control after it takes the control's
+  // first paragraph's properties, its content not joined (19)
+  assert.equal(mine.get(9)[0], 'TR ');
+  assert.equal(mine.get(13)[3], '  P[|] ');
+  assert.equal(mine.get(19)[0], 'P[center|] "HEAD19A "');
 });
 
 test("CR-014 phase 3: the markup check 54's writes leave through the shim is Word 365's in its save after the run, region for region", async () => {

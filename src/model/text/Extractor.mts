@@ -600,8 +600,9 @@ export class Extractor {
     if (chain.length > 1) block.joined = addresses.slice(1);
     block.paraId = first.paraId;
     block.source = first;
-    // a joined paragraph keeps the last one's properties (CR-043's join)
-    block.style = last.pPr?.pStyle?.val;
+    // a joined paragraph keeps the last one's properties (CR-043's join); under a plan, a paragraph whose mark is gone
+    // with no paragraph next takes what Word gives it (docx4j CR-043 section 17)
+    block.style = this.viewPPr(last)?.pStyle?.val;
     block.noteType = story.noteType;
     block.noteNumber = story.noteNumber;
     block.noteId = story.noteId;
@@ -742,7 +743,7 @@ export class Extractor {
   }
 
   private properties(block: TextBlock, p: wml.P): void {
-    const own = p.pPr;
+    const own = this.viewPPr(p);
     block.bottomBorder = own?.pBdr?.bottom !== undefined;
     let effective: wml.PPr | undefined = own;
     if (this.resolver) {
@@ -1627,6 +1628,11 @@ export class Extractor {
 
   private joinsNext(p: wml.P): boolean {
     return this.plan !== undefined && this.plan.removesMark(p);
+  }
+
+  /** The paragraph's properties in the view: its own, or what the plan gives a paragraph whose mark is gone with no paragraph next. */
+  private viewPPr(p: wml.P): wml.PPr | undefined {
+    return this.plan ? this.plan.paragraphPropertiesOf(p) : p.pPr;
   }
 
   // --- hidden text (REQ-507) and formatting -----------------------------------------------------

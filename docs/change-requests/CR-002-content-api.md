@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half not scheduled), and item 3 not scheduled; section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, not released. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Nothing implemented. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, not released. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later; a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), not released. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), not released. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half waiting on check 58 since 2026-10-23), and item 3 not scheduled then, done since by CR-012 phase 4 and CR-014 phase 3 (recorded 2026-10-23); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, not released. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Implemented 2026-10-23 (section 55.7), not released: `tableRules.mts` (docx4j's `TableRules`), the edits keeping a cell's last paragraph as Word does and docx4j's repair elsewhere, check 52's cases 86 to 95 held to Word's run, save and Accept All. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, not released. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later (section 58's two measurements in check 58, run 2026-10-23: the listing kept, K1, section 58.1); a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 59 implemented 2026-10-23 (section 59.1; Office JS's types kept, Jason), not released: `Font` reads every run in scope, `null` where they differ, an empty paragraph its mark, an automatic colour `#000000`; the theme colour is CR-008 phase 2's. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), not released. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), not released. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -2938,7 +2938,27 @@ and its Replace and Replace all are held to `search` plus `insertText(…, 'Repl
    `^t` as a tab and `^^` as a caret; `searchPattern` escapes `^`, so `^t` finds the two
    characters. The editor does not offer them (`\t` in an expression finds a tab, and `^p` could
    never match, since no search crosses a paragraph, section 29). Recorded, not asked: for an
-   Office JS add-in's `search('^t')` to find what it finds in Word, this is where it would go.
+   Office JS add-in's `search('^t')` to find what it finds in Word, this is where it would go. *(Done since: CR-012
+   phase 4 (`9307bdb`, 2026-10-21) gave a plain query Word's Find codes, `^t` and `^^` among them, each held to Word 365
+   in check 48b (`search.mts`, `FIND_CODES`), and CR-014 phase 3 (`87bbb38`, 2026-10-22) `^p`, held to check 52.
+   Recorded 2026-10-23. Item 1's second half, the wildcards' code points, waits on check 58, which measures Word's `?`
+   and `[!a-z ]` over an emoji first.)* *(Check 58, run 2026-10-23, case 13: Word's `?` matches the emoji as one
+   character, and matches the paragraph's mark at its end. `?`, `[!a-z ]` and `[!a-z ]@` match nothing in an Arabic
+   word with its fathas, and the negated class nothing in the emoji. Decided as recommended (Jason, 2026-10-23):
+   **K4**, `?` matches a code point, as Word's does (implemented the same day: `searchPattern`'s wildcard `?` takes a
+   surrogate pair whole, still without the `u` flag, section 26's item 2). **K5**, a wildcard doesn't match the paragraph mark, a departure.
+   The reason is not `replaceText`, whose `?` would join paragraphs in Word too: a mark that `search` finds and
+   `replaceText` refuses has its precedent in a plain `^p` query (CR-014 phase 3), so following Word would be cheap,
+   `searchMarks` plus the refusal. It is that check 58 measured one paragraph only. Whether `?` matches a cell's or a
+   row's end, or a mark inside a control, is unmeasured, and that is where `^p` needed care. One more check of those
+   places would let it be followed by the `^p` route: check 59, written 2026-10-23 at Jason's word ("let's do small
+   check 59 now"; `test/README.md`), searches them with `?`, `[!A-Z]`, `^13` and `Q?Z`. Run the same day: Word's
+   wildcards match a paragraph mark exactly where `^p` does, and not elsewhere. That is a mark between paragraphs, one
+   inside a cell, and one inside a block control, its last paragraph's included. It is never a cell's or a row's end, nor
+   anything across a table's edge. `^13` is the mark's wildcard code. Every other hit is this package's already. Whether to
+   follow it now is Jason's to decide (K7).)* **K6**, the classes over the emoji and the Arabic letters, not
+   followed: this package already finds nothing there for `?` and `[!a-z ]`, through the grapheme filter, and
+   `[!a-z ]@` keeps finding them.)*
 
 ## 33. A finding from the editor's E4.b: `parseXml` does not throw in a browser (2026-09-27)
 
@@ -4779,7 +4799,8 @@ CR-012's views.
 `org.docx4j.model.table.TableRules`. D1 to D4 decided the same day as recommended (Jason: "55.4 Decisions:
 recommendations accepted."). D2's measurement came first, as ten regions added to check 52 (cases 86 to 95), and Jason
 ran it the same day: Word never leaves a cell without its last paragraph, which keeps its properties (section 55.6), so
-the repair takes that shape where an edit removed the paragraph. Nothing is implemented.*
+the repair takes that shape where an edit removed the paragraph. Implemented 2026-10-23 (Jason: "do the group 2 small
+fixes"; section 55.7).*
 
 ### 55.1 The rule, as docx4j measured it
 
@@ -4938,6 +4959,65 @@ plain" (section 55.3) holds in Word's terms: what is inserted is the mark before
 ending in its paragraph. The table's own paragraph taking the cell paragraph's properties is `insertTable`'s, wherever it
 inserts, and is not this section's: noted, not scheduled.
 
+### 55.7 Implemented (2026-10-23)
+
+**`src/model/content/tableRules.mts`** is docx4j's `TableRules`: `endsWithParagraph(items)` and `endWithParagraph(tc)`,
+its names and rule, exported. The last block is found past range markup, through block-level controls and custom XML,
+and through the branch of a kept `mc:AlternateContent` a reader takes (`selectedBranchOf`); docx4j's `lastBlock` counts
+the same five kinds as blocks. `endWithParagraph` returns the paragraph it appended, so that a caller can give it a
+`w14:paraId`. Beside them, for the edits: `paragraphEndOf` (the paragraph a cell ends with, and its list), `wrappingCellOf`
+(the cell a container is in, up `PARENT` past the wrappers) and `endCellsWithParagraphs` (D3, every cell of a list of blocks).
+
+**The edits keep the rule as section 55.6 has Word keep it:**
+- `Paragraph.delete()` of the paragraph a cell ends with, where removing it would leave the cell without one, empties
+  it and keeps its properties (cases 88 and 89). Tracked, it deletes that paragraph's text and leaves the mark unmarked
+  (cases 90 and 91), wherever it stands in the cell: Word never marks a cell's last mark deleted. Where the paragraph
+  before it ends the cell, it goes, as before.
+- `Body.clear()` keeps the paragraph the cell ended with, emptied, outside any control it was in (case 92); tracked,
+  through `Paragraph.delete()` (case 93). `insertText(…, 'Replace')` and `TableCell.value`, which put in a paragraph of
+  their own next, clear as before (`clearContent(false)`): one paragraph, untracked and tracked.
+- `Body.insertOoxml(…, 'Replace')` with content ending in a table puts it before the kept paragraph (case 94). Content
+  ending in a paragraph replaces the cell's paragraph, as before; Word wasn't measured with one.
+- `ContentControl.delete()` of a block control holding the paragraph a cell ends with leaves that paragraph, emptied,
+  where the control was (case 95).
+- A table after the paragraph a cell ends with, in the cell's own content (`insertTable(…, 'End')`, `insertXml` and
+  `insertOoxml` at `'End'`, or `'After'` that paragraph), splits it at its end as `splitAtEnd` does (CR-002 section 60.8),
+  the table between the halves (`keepCellMarkLast`, cases 86 and 87). Its first half's mark takes the formatting of the
+  text before it (case 86's `w:u`) and, tracked, is the inserted one. The properties as they were go after the table, in
+  an empty paragraph, unmarked. Unlike `splitAtEnd`, the paragraph keeps its text, not its mark. A view of it, such as
+  the `Range` that `Range.insertOoxml(table, 'Replace')` then empties, still holds it. Accept All keeps the three blocks,
+  and Reject All gives the one paragraph back.
+- Everything else goes through `Body.insertElement`, which ends a cell it left without a paragraph with docx4j's repair:
+  an empty paragraph after any wrapper, plain under tracking. That covers a table at the end of a control's content in a
+  cell, a broken cell an edit touches (D4), and the edits no Word case measured. D3: `insertElement` repairs the cells of
+  what goes in before it goes in, so under tracking the repair is part of the insertion. So does the XHTML pass, after a
+  cell's block control takes markup ending in a table. The `html` module ends a cell whose last child is a table with an
+  empty paragraph, in `cellFrom` and again in `blocksToXml`.
+
+**Held to Word.** `ranges.test.mjs` now runs check 52's cases 86 to 95 with the rest, through the Word shim, against
+Word's run, its save and its Accept All. Phase 2's tests had stopped at case 85. Cases 88 to 95 are Word's in all three
+(89, 91 and 94 once Word's `Other` is read as section 57 says). Cases 86 and 87 are Word's but for one line, the new
+table's own paragraph. Word gives it the cell paragraph's properties, `List Paragraph`, numbered `2.`, which is
+`insertTable`'s wherever it inserts and isn't followed (section 55.6). The other difference is case 94's returned value:
+Office JS's `Body.insertOoxml` returns a `Range`, and this package returns the views of what went in (phase I).
+
+**Tests.** `test/table-rules.test.mjs` (7) ports docx4j's `TableRulesTest` (the twelve probes, no block, range markup,
+the repair once after the wrapper). It also has each edit of section 55.2's table on a cell holding a paragraph and on one
+holding a nested table and then a paragraph, untracked, tracked, accepted and rejected; D3; D4; and the edits that kept the
+rule. All seven fail on `906d5e3`'s build. `html.test.mjs` and `html-binding.test.mjs` have a test each for the two
+conversions.
+
+**Sweep.** 602 documents: `test/fixtures`, `test/text-extraction` and docx4j's `docx4j-core-tests` resources. Each
+top-level cell of each body took four edits, each edit on a fresh load, on `906d5e3`'s build and on this one. The edits
+were deleting the cell's last paragraph, untracked and tracked; `clear()`; and `insertTable(…, 'End')`. That is 4,097
+cells per edit:
+- Untracked delete, `clear()` and the table: each cell that changed (3,976, 4,031 and 4,031) is one the old build left
+  without a paragraph, and no cell ends without one now.
+- Tracked delete: each of the 3,621 cells that changed differs only by the cell's last mark, no longer marked deleted.
+- The edits each build refused are the same ones (66 to 476, read-only boxes and the like).
+
+`npm test`: 1,485 pass.
+
 ## 56. A bound date is its nominal date, whatever the time zone (2026-10-22)
 
 *Opened and fixed 2026-10-22 (Jason: "open it as CR-002 section 56 and fix it"), from docx4j-25's note of docx4j
@@ -5037,12 +5117,45 @@ there, with its own text and range, accepted or rejected with the whole change.
   needs a check: Word's `accept()` on a paragraph's part.
 - Case 30's empty listing is to be measured again before following it, since it hides a change in its own paragraph.
 
+*Both are in check 58 (`test/README.md`, written 2026-10-23 at Jason's word, "one check 58 first"; not run). Cases 1 to
+5 cover a paragraph's listing: a wholly deleted paragraph again, two in a row, by two authors, a deleted text with its
+mark kept, and an inserted paragraph. Each paragraph's listing is read, and its whole and content ranges'. Cases 14 to 19
+accept or reject the first change paragraph 1 or 2 of a deletion or insertion through a mark lists. Through the Word
+shim, this package lists the deleted paragraph's change in its own paragraph. It lists nothing in the paragraph after the
+mark, and resolves paragraph 1's part alone.*
+
 **Size:** one day, with the check; the revisions goldens (CR-011) list the story, not paragraphs, so none moves.
+
+### 58.1 Check 58's answers (2026-10-23)
+
+Jason ran check 58 the same day (`test/README.md` check 58: Word 365, both views, an Edit run; no repair). A paragraph's
+listing:
+- Lists its change: a wholly deleted paragraph, in its own paragraph (case 1; check 53's case 30, of the same shape,
+  listed none), and an inserted paragraph (case 5).
+- Lists nothing: two deleted paragraphs in a row, one author's or two (cases 2 and 3), and a paragraph whose text is
+  deleted and whose mark isn't (case 4). Case 3's region lists only the first author's deletion.
+- A change through a mark, deleted or inserted, is listed by its first paragraph and not by the next, in every run
+  (cases 14 to 19), where check 53's case 25, built the same way, listed the next paragraph's part too.
+
+A content range lists a change cut to it, the mark left out (case 5's `NEW5A NEW5B`). Accepting or rejecting a
+paragraph's part resolves that part only (cases 14 and 16), as this package does.
+
+**Decided** (Jason, 2026-10-23: "Agree with recommendations K1 to K6"):
+- **K1, the paragraph listing: kept.** Word's listing isn't the same for two files of the same shape, and lists nothing
+  in three of check 58's shapes. This package's listing (a change listed by the paragraph it starts in, a deleted
+  paragraph by its own) is Word's in cases 1, 5 and 14 to 19. Section 58's proposal, each paragraph listing its part
+  of every change, is not implemented. `readers.test.mjs` pins this package's listing against Word's JSON for cases 1
+  to 5 and 14 to 19, so that a Word run that answers otherwise shows as a test difference. The differences it lists are
+  cases 2 and 3 (Word lists nothing in either deleted paragraph, and case 3's region only the first author's deletion)
+  and case 4 (Word lists nothing for a paragraph whose text alone is deleted).
+- **K2, a range's listing cut to the range: not now.** It needs the views of a change's parts that the proposal
+  described. Recorded as a difference (case 5's content range).
 
 ## 59. `Font` reads where runs differ within a paragraph, and an automatic colour (proposed 2026-10-22)
 
-*Opened from checks 52 and 53 (CR-014 sections 9.4 and 9.7), at Jason's word, 2026-10-22, to schedule later. Nothing
-implemented.*
+*Opened from checks 52 and 53 (CR-014 sections 9.4 and 9.7), at Jason's word, 2026-10-22, to schedule later. The types
+decided 2026-10-23 (Jason: Office JS's types kept), and implemented the same day (section 59.1), all but the theme colour,
+which is CR-008 phase 2's.*
 
 **What Word does** (Word 365, checks 52 and 53):
 - **Runs that differ.** A range or a paragraph whose runs differ reads `null` for that property (`bold`, `italic`,
@@ -5074,6 +5187,43 @@ Either the types stay (a caller's `if (font.bold)` reads `null` as false, as it 
 
 **Size:** one day. The parity goldens compare the `PropertyResolver`, not `Font`, so none moves; `content.test.mjs`'s
 font reads are checked one by one.
+
+### 59.1 Implemented (2026-10-23)
+
+**Decided** (Jason, 2026-10-23, as recommended): the getters keep Office JS's types, `boolean` and `number`, and
+return `null` at run time where the runs differ, as Office JS's do and as `MixedFont` already did. `test/office-js-subset.ts`
+stays a copy of `@types/office-js`.
+
+**`Font`** (`src/model/content/Font.mts`) reads each run in scope, not the first, and a property where they differ as
+`MixedFont` read one across paragraphs: `null`, `''` for the name, the colour and the highlight, and `Mixed` for the
+underline. `MixedFont` is now `Font` with its own readings and writes; its rule is no longer a copy.
+- **Which runs.** A paragraph's read takes the runs of `Paragraph.text` (`getRange('Content').runs`): Word's default
+  view, so a deleted run and an equation's math runs aren't read. A write still goes to every run (`runsOf`), as before.
+  A range within one paragraph reads `Range.runs`, as it did.
+- **No run.** A paragraph with no text reads its mark's run properties (`markHolderOf`: `w:pPr/w:rPr` without the
+  mark's revisions), and so does a range holding the mark and no run, an empty paragraph's whole range. A collapsed range
+  reads the paragraph's style, as before.
+- **An automatic colour.** `w:val="auto"`, or no colour anywhere, reads `#000000` in the effective view (`readingOf`,
+  which `MixedFont`'s readings share). The direct view (`getFont({ direct: true })`) still says what is written: `''`
+  where nothing is, `auto` where that is.
+- **The theme colour** isn't here: Heading 1's `w:color w:val="365F91" w:themeColor="accent1" w:themeShade="BF"` still
+  reads `#365F91`, where Word reads `#0F4761` through the theme. That is CR-008 phase 2's resolver.
+
+**Held to Word.** `ranges.test.mjs` now compares the fonts it had set aside:
+- Check 53: cases 8 (`italic` `null`) and 31 (`highlightColor` `''`) read as Word does, and every colour too, the
+  automatic ones `#000000`, but cases 3 to 5's theme colour.
+- Check 52: each paragraph's `bold`, `italic` and `underline` are compared in all three tests, on Word's save, in the run
+  and after Accept All. They were stripped before. Read on Word's save, every paragraph's font is Word's, case 60's empty
+  paragraph's `bold` `false` from its mark among them. The run's tracked cases are compared without their fonts, as
+  without their text: Word's run was in All Markup, and its reads take the deleted runs in. What's left is Word's own:
+  - the bold run of five spaces Word fills an emptied control with (section 9.4: case 13, and 26 accepted);
+  - its extra empty paragraph in a control (cases 60 and 66);
+  - the new table's paragraph (cases 86 and 87, section 55.7).
+
+**Tests.** In `content.test.mjs`, the font test reads a paragraph whose runs differ as `null`, `''` and `Mixed`, and
+reads the name where they agree. A new test covers the automatic colour, a paragraph with no text reading its mark, a
+collapsed range reading the style, and a deleted run left out of the read. `table-context.test.mjs`'s nested-table
+paragraph reads `#000000`, where it read `''`. `npm test`: 1,486 pass.
 
 ## 60. Office JS's characters written back: each becomes the element it reads as (proposed and decided 2026-10-23)
 
@@ -5895,8 +6045,10 @@ the equation is then empty, or joined to the next paragraph with nothing in it. 
 - So does this package's own run, saved, then accepted and rejected.
 - No fixture's resolution changes: the revisions goldens (96) and the 22 resolutions over fixtures holding
   equations are as before.
-- docx4j's `Resolver.mathRun` and `mathStructure` still leave the empty `m:oMath`. That is a note for docx4j,
-  waiting on Jason's word.
+- docx4j's `Resolver.mathRun` and `mathStructure` left the empty `m:oMath` too. Told at Jason's word the same day,
+  docx4j fixed it the same way (`Resolver.dropEmptiedEquation`, `ebb21c990` on `VERSION_17_3_5`, its CR-043 section
+  16), with check 57's three saves copied into its core-tests as `revisions/core-ts/check57/` and
+  `TrackedChangesWordTest` holding its Accept All and Reject All to Word's.
 
 **F2, reading Word's form.** `mathTextOf` leaves out a structure whose own `m:ctrlPr` holds a revision the view hides
 (a `w:del` in the accepted view, a `w:ins` in the original), its characters and its arguments with it

@@ -3983,7 +3983,8 @@ async function check() {
      paragraph `insertParagraph('After')` goes after (cases 67 and 68, a departure), and the listing's grouping.
      Since phase 3 (2026-10-22), `^p` (case 2 and each kind's `marks`) and `insertComment` (cases 79 to 85) are
      Word's too: the hits, and the comments' markers and ranges, but for the reference run's formatting and case 82's
-     start marker (CR-014 section 11.2). Cases 86 to 95 wait on CR-002 section 55. When this was
+     start marker (CR-014 section 11.2). Since CR-002 section 55 (2026-10-23, section 55.7), cases 86 to 95 are held
+     to Word's the same way: Word's but for the new table's own paragraph in 86 and 87, and 94's returned value. When this was
      written, before phase 1, there was nothing to compare: a `Range` here was one paragraph's and had no
      `expandTo`. Until then `ranges.test.mjs` holds the file and the
      snippet to each other: each `BEGIN` paragraph parses with the snippet's own parser to the case it was built as,
@@ -4187,9 +4188,10 @@ async function check() {
        `ItemNotFound`. A control showing its placeholder reads as empty, Word's own placeholder text or five spaces
        alike.
      - **This package since:** `ranges.test.mjs` runs the snippet through the Word shim and holds it to the Simple
-       Markup JSON. The differences left are each listed and explained in the test (a single paragraph's font,
-       Word's `Other` after a nested table, the tracked-change listing and the Simple Markup readers, the placeholder,
-       `Range.footnotes` and `showingPlaceholderText` not implemented).
+       Markup JSON. The differences left are each listed and explained in the test (Heading 1's theme colour, which is
+       CR-008 phase 2's; Word's `Other` after a nested table; the tracked-change listing and the Simple Markup readers;
+       the placeholder; `Range.footnotes` and `showingPlaceholderText` not implemented). A single paragraph's font,
+       read where its runs differ, and an automatic colour are Word's since CR-002 section 59 (2026-10-23).
 54. Writes of a range, for CR-014 phase 3 and phase 2's choices check 52 didn't measure (CR-014 section 10.6, 2026-10-22;
    Jason: "do it", after check 54 first and phase 3's comments and `^p` meanwhile were proposed). What Office JS does
    with each write CR-014 section 10.6 lists as unmeasured, and with `insertContentControl` on a range across
@@ -4599,3 +4601,132 @@ async function check() {
      holds the shim's run to Word's case for case: cases 1 to 4 and 7 to 10 write Word's markup, and Word read cases 5
      and 6 as cases 7 and 8 now write them. This package's save after the run, and Word's, each accepted and rejected
      here, match Word's Accept All and Reject All region for region.
+58. What CR-002 section 58, CR-012 sections 18 and 19 and CR-002 section 32's item 1 left to measure (2026-10-23; Jason:
+   "one check 58 first", before implementing them). Four questions in one run: what a paragraph's tracked-change listing
+   holds and what accepting a paragraph's part of a change does; a content control showing its placeholder at run level,
+   in `search`, and written into; a range across a deleted paragraph mark, and a deleted mark at a cell's end; and Word's
+   wildcards over an emoji and an Arabic letter with its mark. The file is on the share in `__tmp/58/`, as
+   `fixtures/check58/build.mjs` writes it (git ignores the `.docx`; `check58Bytes` gives a test the same bytes). The
+   snippet is beside it, `check58-script-lab.html` and `check58-script-lab.js` (WordApi 1.6), copies of
+   `fixtures/check58/`'s.
+   - **The file**, `58-measures.docx`: a region per case, `BEGIN<n> <op> <args>`, its content, then `END<n>`. The
+     tracked changes are by `Check 58` (and `Check 58 other` in case 3). 22 cases:
+     - **A paragraph's listing** (CR-002 section 58; check 53's case 30 listed no change for a wholly deleted
+       paragraph): 1 a wholly deleted paragraph between two plain ones; 2 two of them in a row; 3 the same by two
+       authors; 4 a paragraph whose text is deleted and whose mark isn't; 5 a wholly inserted paragraph. For each: the
+       region's changes, and each paragraph's `getTrackedChanges()`, its whole range's and its content range's.
+     - **A range across a deleted mark** (CR-012 section 19), its text and paragraphs: 6 a deletion through a heading's
+       mark into the next paragraph; 7 a mark deleted alone; 8 a wholly deleted paragraph between the range's ends.
+     - **A deleted mark at a cell's end** (CR-012 section 19), which Word never writes: 9 the cell's only paragraph; 10
+       its last of two. The table's values and whole range, and the cell's value, text, whole range and paragraphs.
+     - **A control showing its placeholder** (CR-012 section 18): 11 a run-level one between two words, its text and its
+       paragraph's; 12 a block one, a run-level one, and a plain paragraph of the same words, searched for
+       `Click or tap here to enter text.`, `tap` and `PLAIN12A Click`, paragraph by paragraph.
+     - **Wildcards** (CR-002 section 32 item 1): 13 a paragraph `x😀y a😀b كَتَبَ z`, searched with wildcards for `?`,
+       `[!a-z ]`, `a?b`, `x?y` and `[!a-z ]@`.
+     - **Edits** (the **Edit** button only; **Read** reads them as they are): 14 to 17, a deletion through a heading's
+       mark into the next paragraph: the first change paragraph 1 lists accepted (14), paragraph 2's accepted (15),
+       paragraph 1's rejected (16), paragraph 2's rejected (17); 18 and 19, an insertion through a list item's mark into
+       the next paragraph, paragraph 2's part accepted (18) and rejected (19). Then the region's paragraphs and changes.
+       20 to 22, a control showing its placeholder written into with `insertText('FILL<n>', …)`: a block one with
+       `'Replace'` (20) and `'End'` (21), a run-level one with `'End'` (22); then its text and its paragraph's.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/58/58-measures.docx`. Say whether Word reports a problem or offers a repair: cases 9 and 10 hold a
+        deleted mark at a cell's end, which Word never writes.
+     2. File > Save As `58-measures-word365.docx`, in the same folder `__tmp/58`, before anything else (the Edit run in
+        step 7 changes the document, and AutoSave would write it over the file you opened).
+     3. Review > Tracking > Display for Review: choose **Simple Markup**.
+     4. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/58/check58-script-lab.html` over the HTML tab and `__tmp/58/check58-script-lab.js` over the Script tab.
+     5. Leave the label as `Simple Markup` and click **Read**. When it says Done, copy the box into a new file
+        `__tmp/58/result-read-simple.txt`.
+     6. Review > Tracking > Display for Review: choose **All Markup**. Change the label to `All Markup`, click **Read**,
+        and copy the box into a new file `__tmp/58/result-read-all.txt`.
+     7. Still in All Markup, with the label `All Markup`, click **Edit** once. Copy the box into a new file
+        `__tmp/58/result-edit.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane, which
+        has the focus, and the document isn't saved.) Then File > Close.
+   - **What this package gives**, before the run. `readers.test.mjs` runs the snippet through the Word shim, in both
+     modes:
+     - a wholly deleted paragraph lists its change, where check 53 found Word listing none;
+     - a range across a deleted mark reads the mark (`HEAD6A \rBODY6B`);
+     - a deleted mark at a cell's end reads as any other cell end;
+     - a control showing its placeholder reads its text, and `search` finds it;
+     - the wildcards' `?` and `[!a-z ]` find no half of the emoji's surrogate pair and no Arabic letter without its
+       mark (section 32's grapheme filter);
+     - a paragraph after a mark deleted into it lists no part of that change, so cases 15, 17, 18 and 19 have nothing to
+       accept or reject; paragraph 1 lists its part (`HEAD14B\r`), and accepting or rejecting it resolves that part
+       only, the next paragraph's `BODY14A ` staying a deletion;
+     - `insertText(…, 'End')` on a control showing its placeholder writes after the placeholder text.
+     `ContentControl.showingPlaceholderText` isn't implemented here.
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** Word opened the file without a problem or a
+     repair, cases 9 and 10's deleted cell-end marks among it. The JSONs are `fixtures/check58/58-measures-word365-read-simple.json`,
+     `-read-all.json` and `-edit.json`. Word's save after the three runs is `check58/58-measures-word365.docx`, with a SHA-1
+     manifest. In short:
+     - **A paragraph's listing** (cases 1 to 5, 14 to 19), in both views:
+       - a wholly deleted paragraph lists its change in its own paragraph (case 1), where check 53's case 30, of the same
+         shape, listed none;
+       - two deleted paragraphs in a row, by one author or two, list nothing in either paragraph (cases 2 and 3). Case 3's
+         region lists only the first author's deletion;
+       - a paragraph whose text is deleted and whose mark isn't lists nothing (case 4); an inserted paragraph lists its
+         change (case 5);
+       - a deletion or insertion through a mark is listed by its first paragraph (`HEAD14B\r`) and not by the next, in
+         every run, where check 53's case 25, built the same way, listed the next paragraph's part too;
+       - a content range lists a change cut to it (`NEW5A NEW5B` without the mark), the whole range and the paragraph
+         with the mark.
+     - **Accepting or rejecting a paragraph's part** (cases 14 and 16) resolves that part only, `BODY14A ` staying a
+       deletion, as this package does. Cases 15, 17, 18 and 19 had nothing listed to resolve, in Word as here.
+     - **A range across a deleted mark** in Simple Markup reads nothing for the mark: `HEAD6A BODY6B`, `TWO7ATWO7B`, and
+       `PLAIN8A\rPLAIN8C` across a wholly deleted paragraph; its paragraphs are listed apart, the deleted one as `''`.
+       All Markup reads the marks. **A deleted mark at a cell's end** reads as any cell end (`CELL9A\t`), as here.
+     - **A control showing its placeholder** reads as empty, run-level too: its text `''`, its paragraph's
+       `PLAIN11A  PLAIN11B`, `placeholderText` `null`. `search` matches the placeholder's text, block and run-level,
+       but each hit reads `''`; `PLAIN12A Click` matches, reading `PLAIN12A `. Writing into one replaces the placeholder,
+       with `'End'` as with `'Replace'` (`FILL21`, not after it).
+     - **Wildcards:** `?` matches the emoji as one character (`x😀y` for `x?y`, `a😀b` for `a?b`), and matches the
+       paragraph's mark at its end. `?`, `[!a-z ]` and `[!a-z ]@` match nothing in the Arabic word, and the negated class
+       nothing in the emoji: `[!a-z ]` and `[!a-z ]@` find only the mark.
+     - **This package since** (2026-10-23, K1 to K6 as recommended; CR-002 sections 58.1 and 32, CR-012 section 18.1):
+       the listing kept (K1); a deleted mark read as nothing (CR-012 section 19); a placeholder read as no text and no
+       text to search (K3), written over at any location; `?` a code point (K4). `readers.test.mjs` holds the shim's run
+       to Word's, the differences listed: cases 2 to 4 (K1), 12 (K3), 13 (K5, K6). Check 59 measures where a wildcard
+       matches a mark (K5).
+59. Where Word's wildcards match a paragraph mark (CR-002 section 32's K5, 2026-10-23; Jason: "let's do small check 59
+   now"). Check 58 found `?` matching a paragraph's mark at its end, in one body paragraph. A wildcard search that finds a
+   mark could be followed the way a plain `^p` query is (CR-014 phase 3: `search` finds it, `replaceText` refuses). The
+   places `^p` needed care are unmeasured for wildcards: across two paragraphs, a cell's end, a row's end, a mark inside a
+   block control. Read only. The file is `__tmp/59/59-wildcard-marks.docx` on the share, as `fixtures/check59/build.mjs`
+   writes it (git ignores the `.docx`; `check59Bytes` gives a test the same bytes). The snippet is beside it,
+   `check59-script-lab.html` and `check59-script-lab.js` (WordApi 1.6), copies of `fixtures/check59/`'s.
+   - **The file:** five regions, `BEGIN<n> <shape>`, its content, `END<n>`. Each content paragraph holds one capital
+     letter, so a search for `?` lists every character and mark Word matches:
+     - 1 `body`: two body paragraphs, `Q` and `Z`;
+     - 2 `cell-only`: a one-cell table whose cell holds `Q`, then a paragraph `Z`;
+     - 3 `cell-two`: a one-cell table whose cell holds `Q` and `Z`, then `W`;
+     - 4 `cells-rows`: a table of two rows of two cells, `Q` `Z` and `W` `X`, then `Y`;
+     - 5 `control`: a block content control holding `Q` and `Z`, then `W`.
+   - **The searches**, all with wildcards: across the region's range, `Q?Z`, `Q^13Z`, `Q*Z` and `^13` (Word's wildcard
+     code for a paragraph mark); in each paragraph, in the first cell's body, over the table's whole range and in the
+     control, `?`, `[!A-Z]` and `^13` (and `Q?Z`, `Q*Z` over the table and the control). Each hit is reported by its
+     text.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/59/59-wildcard-marks.docx`. Say whether Word reports a problem or offers a repair.
+     2. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/59/check59-script-lab.html` over the HTML tab and `__tmp/59/check59-script-lab.js` over the Script tab.
+     3. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/59/result.txt`.
+     4. Close the document without saving.
+   - **What this package gives**, before the run (`readers.test.mjs` runs the snippet through the Word shim): no wildcard
+     matches a mark anywhere, as K5 decided. `?` lists each paragraph's letter; a cell's body and the table list their
+     letters; `[!A-Z]`, `^13`, `Q?Z`, `Q^13Z` and `Q*Z` find nothing.
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** The JSON is
+     `fixtures/check59/59-wildcard-marks-word365.json`; nothing was saved (read only). Word's wildcards match a paragraph
+     mark where a plain `^p` does (CR-014 phase 3), and nowhere else:
+     - **Matched:** the mark between two body paragraphs (`Q?Z`, `Q^13Z` and `Q*Z` each find `Q\rZ`); a mark inside a
+       cell (case 3); the marks inside a block control, its last paragraph's included (case 5). A paragraph's own search
+       holds its mark (`?` gives `Q`, `\r`). `^13` is Word's wildcard code for the mark.
+     - **Not matched:** a cell's end (case 2's cell gives `Q` alone), a cell's or a row's end in a table of two rows
+       (case 4's table gives `Q`, `Z`, `W`, `X`), anything across a table's edge (`Q?Z` finds nothing in cases 2 and 4).
+     - **A control's range** omits its last paragraph's mark (case 5's control gives `Q`, `\r`, `Z`), as the paragraph's
+       own range doesn't.
+     - **This package**: every hit but the marks is Word's, scope for scope (`readers.test.mjs`). No wildcard matches a mark
+       here (K5).

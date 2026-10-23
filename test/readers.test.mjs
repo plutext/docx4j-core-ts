@@ -417,3 +417,156 @@ test("Paragraph.insertContentControl links the control to the paragraph's old pa
   assert.equal(control.sdt.PARENT, pkg.body.container);
   assert.equal(pkg.body.addressOf(control.paragraphs[0]), 'body/0/0');
 });
+
+// --- check 58 (2026-10-23): what CR-002 section 58, CR-012 sections 18 and 19 and CR-002 section 32's item 1 left to
+// measure. Word runs the snippet on the file, so the two must agree; until Word's run is back the shim's answers are
+// what this package gives.
+
+const snippet58 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check58', 'check58-script-lab.js'), 'utf8')}\nreturn CHECK58;`)();
+
+test("check 58's file and snippet agree: every case parses to the case it was built as, each word a range looks for and each tag once", async () => {
+  const { parseRegion, QUERIES } = await snippet58();
+  const { check58Bytes, check58Cases } = await import('./fixtures/check58/build.mjs');
+  const pkg = await WordprocessingMLPackage.load(await check58Bytes());
+  const body = await pkg.getBody();
+  const regions = body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null);
+  const cases = check58Cases();
+  assert.equal(regions.length, cases.length);
+  assert.deepEqual(regions.map((r) => r.n), cases.map((c) => c.n));
+  const ops = new Set(['changes', 'range', 'cell', 'placeholder', 'search', 'accept', 'reject', 'fill']);
+  for (const r of regions) {
+    assert.ok(ops.has(r.op), `case ${r.n}: ${r.op}`);
+    if (r.op === 'range') for (const word of r.args) assert.equal(body.search(word, { matchCase: true, matchWholeWord: true }).length, 1, `case ${r.n}: ${word}`);
+    if (r.op === 'placeholder' || r.op === 'fill') assert.equal(body.contentControls.filter((c) => c.tag === r.args[0]).length, 1, `case ${r.n}: ${r.args[0]}`);
+    if (r.op === 'search') assert.equal(typeof QUERIES[r.args[0]], 'function', `case ${r.n}`);
+    if (r.op === 'accept' || r.op === 'reject') assert.ok(['1', '2'].includes(r.args[0]), `case ${r.n}`);
+    if (r.op === 'fill') assert.ok(['replace', 'end'].includes(r.args[1]), `case ${r.n}`);
+  }
+  // the controls' ids are distinct, and every control shows its placeholder
+  const ids = body.contentControls.map((c) => c.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(body.contentControls.length, 6);
+});
+
+test("check 58's three JSONs (Word 365, 2026-10-23) are of this file, and its save is Word's, as copied", async () => {
+  const { check58Cases } = await import('./fixtures/check58/build.mjs');
+  const { createHash } = await import('node:crypto');
+  const cases = check58Cases();
+  for (const [mode, label] of [['read-simple', 'Simple Markup'], ['read-all', 'All Markup'], ['edit', 'All Markup']]) {
+    const word = JSON.parse(await readFile(join(here, 'fixtures', 'check58', `58-measures-word365-${mode}.json`), 'utf8'));
+    assert.deepEqual([word.label, word.mode], [label, mode.startsWith('read') ? 'read' : 'edit']);
+    const expected = mode === 'edit' ? cases.filter((c) => /^(accept|reject|fill) /.test(c.spec)) : cases;
+    assert.deepEqual(word.cases.map((c) => c.n), expected.map((c) => c.n), mode);
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check58', 'manifest.json'), 'utf8'));
+  for (const { name, sha1 } of manifest.files) assert.equal(createHash('sha1').update(await readFile(join(here, 'check58', name))).digest('hex'), sha1, name);
+});
+
+test("check 58's snippet through the Word shim, held to Word 365's Simple Markup run and its Edit run, but for the differences listed", async () => {
+  const { runCheck } = await snippet58();
+  const { check58Bytes } = await import('./fixtures/check58/build.mjs');
+  const { Word } = await import('../dist/office-js/index.mjs');
+  const word = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check58', `58-measures-word365-${mode}.json`), 'utf8'));
+  const pkg = await WordprocessingMLPackage.load(await check58Bytes());
+  await pkg.getBody();
+  const ours = { read: await runCheck((f) => Word.run(pkg, f), 'shim', 'read'), edit: await runCheck((f) => Word.run(pkg, f), 'shim', 'edit') };
+  const theirs = { read: await word('read-simple'), edit: await word('edit') };
+  // a listing as K1 pins it (CR-002 section 58.1): the region's changes and each paragraph's, its whole range's and its
+  // content range's, by type. A change's text here is docx4j's, All Markup's, where Simple Markup reads a deletion's as ''
+  const listing = (r) => ({ region: r.region.map((c) => c.type), paragraphs: r.paragraphs.map((p) => [p.changes, p.wholeChanges, p.contentChanges].map((l) => l.map((c) => c.type))) });
+  // placeholderText reads the shown runs here, where Word, with no glossary part, reads null (CR-012 section 18); and
+  // Word's showingPlaceholderText came back undefined, which JSON leaves out
+  const control = ({ placeholderText, ...rest }) => rest;
+  const placeholder = (r) => ({ control: typeof r.control === 'object' ? control(r.control) : r.control });
+  const views = {
+    read: (c) => (['changes', 'accept', 'reject'].includes(c.op) ? listing(c.reads) : ['placeholder', 'fill'].includes(c.op) ? placeholder(c.reads) : c.reads),
+    // the Edit run was in All Markup, so the region's text after it isn't compared; what was resolved and what is left are
+    edit: (c) => (c.op === 'fill' ? { inserted: c.reads.inserted, after: placeholder(c.reads.after) }
+      : { resolved: c.reads.resolved, changes: c.reads.after.changes.map((x) => [x.type, x.text]) }),
+  };
+  const differing = [];
+  for (const mode of ['read', 'edit']) {
+    assert.deepEqual(ours[mode].cases.map((c) => c.n), theirs[mode].cases.map((c) => c.n), mode);
+    for (const [i, c] of theirs[mode].cases.entries()) {
+      if (JSON.stringify(views[mode](c)) !== JSON.stringify(views[mode](ours[mode].cases[i]))) differing.push(`${mode} ${c.n}`);
+    }
+  }
+  // K1: Word lists nothing in two deleted paragraphs in a row (2, and 3, whose region lists only the first author's
+  // deletion), nor in a paragraph whose text alone is deleted (4); this package lists each in its paragraph. K3: Word's
+  // search finds the placeholder's text, reading each hit as '' (12). K5 and K6: Word's wildcards match the paragraph's
+  // mark, and its classes nothing in the emoji or the Arabic word (13)
+  assert.deepEqual(differing, ['read 2', 'read 3', 'read 4', 'read 12', 'read 13']);
+  const reads = (n) => ours.read.cases[n - 1].reads;
+  assert.deepEqual(listing(reads(2)).paragraphs.slice(2, 4), [[['Deleted'], ['Deleted'], ['Deleted']], [[], [], []]]);
+  assert.deepEqual(listing(theirs.read.cases[1].reads).paragraphs.slice(2, 4), [[[], [], []], [[], [], []]]);
+  assert.deepEqual(reads(12)['Click or tap here to enter text.'], [[], [], ['Click or tap here to enter text.']]);
+  assert.deepEqual(theirs.read.cases[11].reads['Click or tap here to enter text.'], [[''], [''], ['Click or tap here to enter text.']]);
+  assert.deepEqual(reads(13)['?'][0], theirs.read.cases[12].reads['?'][0].slice(0, -1), "? a code point (K4); Word's last hit is the mark (K5)");
+});
+
+// --- check 59 (2026-10-23): where Word's wildcards match a paragraph mark (CR-002 section 32's K5)
+
+test("check 59's file and snippet agree, and the snippet runs through the Word shim: no wildcard matches a mark here (K5)", async () => {
+  const { parseRegion, runCheck } = new Function(`${await readFile(join(here, 'fixtures', 'check59', 'check59-script-lab.js'), 'utf8')}\nreturn CHECK59;`)();
+  const { check59Bytes, check59Cases } = await import('./fixtures/check59/build.mjs');
+  const { Word } = await import('../dist/office-js/index.mjs');
+  const pkg = await WordprocessingMLPackage.load(await check59Bytes());
+  const body = await pkg.getBody();
+  const regions = body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null);
+  assert.deepEqual(regions, check59Cases().map((c) => ({ n: c.n, shape: c.shape })));
+  const result = await runCheck((f) => Word.run(pkg, f), 'shim');
+  assert.equal(result.cases.length, 5);
+  assert.doesNotMatch(JSON.stringify(result), /error: /);
+  // no hit holds a mark, a cell's end or a row's end
+  assert.doesNotMatch(JSON.stringify(result), /\\\\u000[7d9a]/);
+  assert.deepEqual(result.cases[3].reads.table['?'], ['Q', 'Z', 'W', 'X']);
+  // Word 365's run (2026-10-23): every hit but those holding a paragraph mark is this package's, scope for scope; the
+  // marks Word matches are a paragraph's, never a cell's or a row's end, nor across a table's edge, as `^p`'s (K5)
+  const word = JSON.parse(await readFile(join(here, 'fixtures', 'check59', '59-wildcard-marks-word365.json'), 'utf8'));
+  assert.deepEqual(word.cases.map((c) => c.shape), result.cases.map((c) => c.shape));
+  const withoutMarks = (o) => JSON.parse(JSON.stringify(o, (key, value) => (Array.isArray(value) ? value.filter((h) => typeof h !== 'string' || !h.includes('\\u000d')) : value)));
+  for (const [i, c] of word.cases.entries()) assert.deepEqual(withoutMarks(result.cases[i].reads), withoutMarks(c.reads), c.shape);
+  const marks = (reads) => JSON.stringify(reads).match(/\\\\u000d/g)?.length ?? 0;
+  assert.deepEqual(word.cases.map((c) => marks(c.reads)), [13, 6, 21, 6, 22]);
+  assert.deepEqual(word.cases[1].reads.cell['?'], ['Q'], "a cell's end: no mark");
+  assert.deepEqual(word.cases[3].reads.table['?'], ['Q', 'Z', 'W', 'X'], "cells' and rows' ends: no mark");
+  assert.deepEqual(word.cases[4].reads.control['?'], ['Q', '\\u000d', 'Z'], "inside a control: its paragraphs' marks but the last, which its range doesn't hold");
+});
+
+test('CR-012 section 19: a deleted mark reads as nothing in Word\'s default view, the paragraphs apart, a cell\'s end kept (check 58)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const del = '<w:del w:id="1" w:author="A" w:date="2026-10-23T00:00:00Z"/>';
+  await body.insertXml(`<w:p><w:pPr><w:rPr>${del}</w:rPr></w:pPr><w:r><w:t>ONE</w:t></w:r></w:p><w:p><w:r><w:t>TWO</w:t></w:r></w:p>`
+    + `<w:tbl><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:rPr>${del.replace('"1"', '"2"')}</w:rPr></w:pPr><w:r><w:t>CELL</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`
+    + '<w:p><w:r><w:t>LAST</w:t></w:r></w:p>', 'End');
+  const [one, two] = body.paragraphs;
+  assert.equal(one.markText, '');
+  assert.equal(one.getRange('Whole').text, 'ONE');
+  assert.equal(one.getRange('Whole').expandTo(two.getRange('Whole')).text, 'ONETWO\r');
+  assert.equal(body.paragraphs.length, 4, 'the paragraphs stay apart');
+  // a cell's last paragraph ends with the cell's \t whatever its mark (check 58 cases 9 and 10)
+  assert.equal(body.paragraphs[2].markText, '\t');
+  assert.equal(body.text, 'ONETWO\rCELL\r\nLAST');
+  assert.equal(body.getText({ view: 'original' }), 'ONE\rTWO\rCELL\r\nLAST', 'the original view keeps a deleted mark');
+});
+
+test('CR-012 section 18: a control showing its placeholder reads as no text, is no text to search, and takes text in the placeholder\'s place (check 58)', async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const placeholder = '<w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:t>Click here.</w:t></w:r>';
+  const sdtPr = (id) => `<w:sdtPr><w:id w:val="${id}"/><w:showingPlcHdr/></w:sdtPr>`;
+  await body.insertXml(`<w:sdt>${sdtPr(1)}<w:sdtContent><w:p>${placeholder}</w:p></w:sdtContent></w:sdt>`
+    + `<w:p><w:r><w:t xml:space="preserve">A </w:t></w:r><w:sdt>${sdtPr(2)}<w:sdtContent>${placeholder}</w:sdtContent></w:sdt><w:r><w:t xml:space="preserve"> B</w:t></w:r></w:p>`, 'End');
+  const [block, run] = body.contentControls;
+  assert.deepEqual([block.text, run.text, body.paragraphs[1].text], ['', '', 'A  B']);
+  assert.deepEqual([block.placeholderText, run.placeholderText], ['Click here.', 'Click here.'], 'read from the runs (Word: null, from the glossary)');
+  assert.equal(body.search('Click').length, 0, 'K3: no text to search');
+  assert.equal(body.text, '\rA  B');
+  // text goes in the placeholder's place, at 'End' as at 'Replace'; the control shows it, not the placeholder style
+  block.insertText('FILLED', 'End');
+  run.insertText('X', 'Start');
+  assert.deepEqual([block.text, block.isShowingPlaceholder, run.text, run.isShowingPlaceholder], ['FILLED', false, 'X', false]);
+  assert.equal(body.paragraphs[1].text, 'A X B');
+  assert.ok([...block.paragraphs[0].runs, ...body.paragraphs[1].runs].every((r) => r.value.rPr?.rStyle?.val !== 'PlaceholderText'));
+});

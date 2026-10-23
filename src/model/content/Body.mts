@@ -20,6 +20,8 @@ import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/i
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
+import { type CellEnd, wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph, endCellsWithParagraphs } from './tableRules.mjs';
+import { keepCellMarkLast } from './spanEdits.mjs';
 import { expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
 
@@ -341,10 +343,11 @@ export class Body {
   }
 
   private textIn(view: TextView): string {
+    // the original view's marks are the ones Reject All keeps: a deleted mark written, an inserted one not
     const { text } = storyLayout(this.content, (el, items) => {
       const p = new Paragraph(el, items, this);
       return view === 'original' ? p.getText({ view }) : p.text;
-    });
+    }, view === 'original' ? (p) => p.pPr?.rPr?.ins === undefined : undefined);
     // the last paragraph's mark is not written
     return text.endsWith('\r') ? text.slice(0, -1) : text;
   }
@@ -370,7 +373,7 @@ export class Body {
     this.assertWritable();
     const paragraphs = this.paragraphs;
     if (location === 'Replace' || paragraphs.length === 0) {
-      this.clear();
+      this.clearContent(false);   // its own paragraph ends a cell, so the cell's last one goes too
       const p = this.insertParagraph(text, 'End');
       return p.getRange('Content');
     }
@@ -450,8 +453,12 @@ export class Body {
     }
     // a bound block control holds one paragraph (CR-002 section 61): `replacing` is the block the write takes away after
     assertControlHolds(this, this.ownerOf(container), replacing ? container.filter((e) => e !== replacing) : container, elements, refusal);
-    container.splice(index, 0, ...elements);
+    // a cell ends with a paragraph, as Word reads it: the cells of what goes in (D3), and the cell it goes in (CR-002 section 55)
+    endCellsWithParagraphs(elements);
     const owner = this.ownerOf(container);
+    const cell = wrappingCellOf(owner);
+    const end = cell ? paragraphEndOf(cell.content as Element[] | undefined) : undefined;
+    container.splice(index, 0, ...elements);
     const tracker = this.changeTracker;
     for (const el of elements) {
       linkParents(el, owner);
@@ -461,6 +468,7 @@ export class Body {
       // nested tables of a table, a block control's content and the control itself (CR-002 section 37)
       if (tracker) trackInsertedBlock(tracker, el, container);
     }
+    if (cell) this.keepCellEnd(cell, end, container);
     const first = elements[0]!;
     return typeNameOf(first) === 'org_docx4j_wml.P' ? new Paragraph(first as Element<wml.P>, container, this) : { element: first, container };
   }
@@ -483,10 +491,32 @@ export class Body {
     const elements = await contentOf(ooxml, { preprocess: this.preprocessor(), target: this.part });
     if (location === 'Replace') {
       assertControlHolds(this, this.container, [], elements, 'GeneralException');   // before the clear (CR-002 section 61)
-      this.clear();
+      // In a cell, what ends with a table goes in before the cell's last paragraph, which stays, emptied, as Word
+      // keeps it (check 52, case 94; CR-002 section 55.6); what ends with a paragraph replaces it, as before
+      const cell = endsWithParagraph(elements) ? undefined : wrappingCellOf(this.container);
+      this.clearContent(cell !== undefined);
+      const end = cell ? paragraphEndOf(cell.content as Element[] | undefined) : undefined;
+      if (end && end.container === this.content) return this.insertContent(elements, 'Before', { element: end.element as Element, container: end.container }, 'GeneralException');
       return this.insertContent(elements, 'End', undefined, 'GeneralException');
     }
     return this.insertContent(elements, location, target, 'GeneralException');
+  }
+
+  /**
+   * After an insertion into a cell: the cell still ends with a paragraph, as Word reads it (CR-002 section 55). Where
+   * a table went in after the paragraph the cell ended with, in the cell's own content, Word's form (check 52, cases 86
+   * and 87, `keepCellMarkLast`): that paragraph split at its end, the cell's mark staying last after the table, the
+   * first half's mark the inserted one under tracking. Anywhere else docx4j's repair, an empty paragraph after any wrapper.
+   */
+  private keepCellEnd(cell: wml.Tc, end: CellEnd | undefined, container: Element[]): void {
+    const content = (cell.content ??= []) as Element[];
+    if (endsWithParagraph(content)) return;
+    if (end && end.container === content && container === content) {
+      keepCellMarkLast(new Paragraph(end.element, content, this), content);
+      return;
+    }
+    const appended = endWithParagraph(cell);
+    if (appended) this.assignParaId(appended);
   }
 
   /** The package's DOM preprocessor (the MCE one), for fragments and incoming packages. */
@@ -534,21 +564,44 @@ export class Body {
    * Removes everything (section properties stay). While the package tracks changes, every
    * paragraph is marked deleted and every row's `w:trPr` takes a `w:del` instead. Removed outright,
    * the relationships the content held (its pictures' images) are settled on save (CR-002 section 47).
+   * In a table cell the paragraph the cell ends with stays, emptied, its properties kept, and tracked
+   * only its text is deleted, as Word keeps a cell's last paragraph (check 52, cases 92 and 93; CR-002 section 55.6).
    */
   clear(): void {
+    this.clearContent(true);
+  }
+
+  /**
+   * `clear()`; with `keepCellEnd` false a cell's last paragraph goes as well, its mark marked deleted under
+   * tracking, for a caller that puts its own paragraph in next (`insertText(…, 'Replace')`, `TableCell.value`).
+   * @internal
+   */
+  clearContent(keepCellEnd: boolean): void {
     this.assertWritable();
     const tracker = this.changeTracker;
     if (!tracker) {
+      const cell = keepCellEnd ? wrappingCellOf(this.container) : undefined;
+      const end = cell ? paragraphEndOf(cell.content as Element[] | undefined) : undefined;
       const ids = new Set<string>();
       relationshipIdsIn(this.content, ids);
       queueRelationshipRemovals((this.package_ as { pendingRelationshipRemovals?: RelationshipRemovals } | undefined)?.pendingRelationshipRemovals, this.part, ids);
       this.content.length = 0;
+      if (cell && !endsWithParagraph(cell.content as Element[] | undefined)) {
+        if (end) {
+          end.element.value.content = [];
+          this.content.push(end.element as Element);
+          linkParents(end.element, this.container);
+        } else {
+          const appended = endWithParagraph(cell);
+          if (appended) this.assignParaId(appended);
+        }
+      }
       return;
     }
     // every branch of a kept mc:AlternateContent (CR-013 phase 3)
     writingEveryBranch(() => {
       for (const row of this.rowElements()) tracker.markRowDeleted(row.value as wml.Tr);
-      for (const p of this.paragraphsIn('every')) p.delete();
+      for (const p of this.paragraphsIn('every')) p.remove(keepCellEnd);
     });
   }
 

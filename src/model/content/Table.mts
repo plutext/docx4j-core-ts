@@ -412,7 +412,7 @@ export class TableCell {
     return this.text;
   }
   set value(text: string) {
-    this.body.clear();
+    this.body.clearContent(false);   // its own paragraph ends the cell (CR-002 section 55)
     this.body.insertParagraph(text, 'End');
   }
 

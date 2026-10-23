@@ -1,5 +1,5 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { Font, MixedFont } from './Font.mjs';
+import { Font, MixedFont, readingOf, markHolderOf, type RPrHolder } from './Font.mjs';
 import { runFontSelectorOf } from '../fonts/lookup.mjs';
 import type { Paragraph, FormattingOptions } from './Paragraph.mjs';
 import type { Body, BlockElement } from './Body.mjs';
@@ -20,7 +20,6 @@ import type { Comment } from './Comment.mjs';
 import type { TrackedChange } from './TrackedChange.mjs';
 import type { Table } from './Table.mjs';
 import type { TableCell } from './Table.mjs';
-import { readRunOptions } from '@docx4j/generated-objects-ts/builders/wml';
 import { storyLayout, storyOf, type StoryLayout } from './story.mjs';
 import { styleNameOf, builtInOf } from './styles.mjs';
 import { GeneralException } from './generalException.mjs';
@@ -393,8 +392,7 @@ export class Range {
         return this.pieces().flatMap((piece) => piece.runs.map((run) => {
         const rPr = options?.direct === true ? run.value.rPr
           : resolver.getEffectiveRPr(run.value.rPr, piece.paragraph.p.pPr, piece.paragraph.cellContext);
-        const formatting = readRunOptions(rPr);
-          return { formatting, name: (options?.direct === true ? undefined : selector?.asciiFontName(rPr)) ?? formatting.name };
+          return readingOf(rPr, options?.direct !== true, options?.direct === true ? undefined : selector?.asciiFontName(rPr));
         }));
       }, (opts) => {
         // every run in it and every mark it holds (CR-014 phase 2, check 52)
@@ -414,10 +412,12 @@ export class Range {
       if (write) this.paragraph.splitRunsAround(this.start, this.end);
       return this.runs.map((r) => r.value);
     };
-    if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking());
+    // a range holding its paragraph's mark and no run, an empty paragraph's whole range, reads the mark (CR-002 section 59)
+    const mark = (): RPrHolder | undefined => (this.holdsEndMark ? markHolderOf(this.paragraph.p) : undefined);
+    if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking(), undefined, undefined, mark);
     return new Font(holders, () => this.paragraph.fontTracking(),
       (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr, this.paragraph.cellContext),
-      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr));
+      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr), mark);
   }
 
   /** The runs the span covers (a run partly inside counts). */

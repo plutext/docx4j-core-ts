@@ -17,7 +17,7 @@ export interface StoryParagraph {
 
 /**
  * A story's text in Word's default view (CR-012 phase 4; checks 30, 31, 48 and 51): each paragraph's text
- * followed by its mark, `\r`; in a table a row's cells a `\t` apart, each cell's paragraphs a mark apart
+ * followed by its mark, `\r`, but a mark tracked as deleted (CR-012 section 19, check 58); in a table a row's cells a `\t` apart, each cell's paragraphs a mark apart
  * (its last mark not written), and the row ended by `\r\n`. Unlike `Body.text` the story's last mark is
  * kept, so that every paragraph's text is followed by what Word puts after it.
  */
@@ -29,8 +29,18 @@ export interface StoryLayout {
   indexOf(p: wml.P): number;
 }
 
-/** Lays out the blocks `items`, each paragraph's text read by `textOf` (its `Paragraph.text`, or another view's). */
-export function storyLayout(items: Element[], textOf: (element: Element<wml.P>, container: Element[]) => string): StoryLayout {
+/**
+ * Whether a paragraph's mark is written in Word's default view: not where it is tracked as deleted, which reads as
+ * nothing there, the paragraphs staying apart (check 58 cases 6 to 8, CR-012 section 19). A cell's last paragraph is
+ * ended by the cell's `\t` whatever its mark (cases 9 and 10).
+ */
+export const shownInDefaultView = (p: wml.P): boolean => p.pPr?.rPr?.del === undefined;
+
+/**
+ * Lays out the blocks `items`, each paragraph's text read by `textOf` (its `Paragraph.text`, or another view's), its
+ * mark written where `markShown` says (Word's default view's rule unless another view's is given).
+ */
+export function storyLayout(items: Element[], textOf: (element: Element<wml.P>, container: Element[]) => string, markShown: (p: wml.P) => boolean = shownInDefaultView): StoryLayout {
   const pieces: string[] = [];
   let length = 0;
   const push = (piece: string): void => { pieces.push(piece); length += piece.length; };
@@ -53,7 +63,7 @@ export function storyLayout(items: Element[], textOf: (element: Element<wml.P>, 
         const text = textOf(el as Element<wml.P>, blocks);
         paragraphs.push({ element: el as Element<wml.P>, container: blocks, start: length, end: length + text.length });
         push(text);
-        push('\r');
+        if (markShown(el.value as wml.P)) push('\r');
         continue;
       }
       const v = el.value;
