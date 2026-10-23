@@ -270,11 +270,15 @@ test('CR-014 phase 1: a range across paragraphs, from expandTo, reads every para
   assert.throws(() => { range.hyperlink = 'https://example.com'; }, NotSupportedError);
   assert.throws(() => range.insertContentControl(), (e) => e.code === 'GeneralException');
   assert.equal(pkg.body.text, before);
-  // and the one w:p a fragment of it would be (toApiScript, the shim's getOoxml)
-  await assert.rejects(Word.run(pkg, async (context) => {
+  // the shim's getOoxml gives its two paragraphs' pieces (toApiScript writes the same blocks)
+  const ooxml = await Word.run(pkg, async (context) => {
     const hit = context.document.body.search('HEAD3B', { matchCase: true })[0];
-    hit.expandTo(context.document.body.search('BODY3A', { matchCase: true })[0]).getOoxml();
-  }), NotSupportedError);
+    const x = hit.expandTo(context.document.body.search('BODY3A', { matchCase: true })[0]).getOoxml();
+    await context.sync();
+    return x.value;
+  });
+  assert.deepEqual([...ooxml.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]), ['HEAD3B', 'BODY3A']);
+  assert.equal((ooxml.match(/<w:p\b/g) ?? []).length, 2);
   // expandTo from a paragraph's whole range takes its mark; ranges in different stories are refused
   const toMark = wordIn(pkg, 'HEAD15B').expandTo(wordIn(pkg, 'BODY15A').paragraphs[0].getRange('Whole'));
   assert.equal(toMark.text, 'HEAD15B\rBODY15A BODY15B\r');

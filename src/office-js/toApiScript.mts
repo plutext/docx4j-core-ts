@@ -13,7 +13,7 @@ import { Paragraph } from '../model/content/Paragraph.mjs';
 import { Range } from '../model/content/Range.mjs';
 import { type Element, isElement, typeNameOf, textOf, selectedBranchOf, ALTERNATE_CONTENT } from '../model/content/tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { paragraphElementOfRange } from './fragment.mjs';
+import { blocksOfRange } from './fragment.mjs';
 import { builtInOf, displayNameOf } from '../model/content/styles.mjs';
 
 export interface ApiScriptOptions {
@@ -151,9 +151,9 @@ class Emitter {
     }
   }
 
-  /** A range: its text and run formatting, as one paragraph. */
+  /** A range: its text and run formatting, as one paragraph; across paragraphs, each block it holds. */
   async range(range: Range): Promise<void> {
-    await this.paragraph(paragraphElementOfRange(range));
+    for (const block of blocksOfRange(range)) await this.element(block);
   }
 
   private emitParagraph(p: wml.P): void {

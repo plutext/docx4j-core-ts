@@ -253,6 +253,47 @@ test('toApiScript: the emitted script reproduces the content when run through Wo
   assert.deepEqual(formatting(reloaded), formatting(body));
 });
 
+test("Range.getOoxml: a range's blocks, across paragraphs too, cut untracked from copies; toApiScript the same", async () => {
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  body.insertParagraph('alpha beta gamma', 'End');
+  body.insertTable(1, 2, 'End', [['c1', 'c2']]);
+  body.insertParagraph('delta epsilon', 'End');
+  const before = await pkg.getMainDocumentPart().getXml();
+  const ooxml = (f) => Word.run(pkg, async (context) => {
+    const hit = (word) => context.document.body.search(word, { matchCase: true })[0];
+    const x = f(hit).getOoxml();
+    await context.sync();
+    return x.value;
+  });
+  const texts = (xml) => [...xml.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]);
+  // within one paragraph, the paragraph trimmed to the range
+  assert.deepEqual(texts(await ooxml((hit) => hit('beta'))), ['beta']);
+  // across paragraphs: the first's tail, the table whole, the last's head
+  const across = await ooxml((hit) => hit('beta').expandTo(hit('delta')));
+  assert.match(across, /^<w:p [\s\S]*?<\/w:p><w:tbl [\s\S]*<\/w:tbl><w:p [\s\S]*<\/w:p>$/);
+  assert.deepEqual(texts(across), ['beta gamma', 'c1', 'c2', 'delta']);
+  // which insertXml takes back
+  const target = await WordprocessingMLPackage.createPackage();
+  const into = await target.getBody();
+  await into.insertXml(across, 'End');
+  assert.match(into.text, /beta gamma\rc1\tc2\r\ndelta$/);
+  // a range starting or ending inside a table it doesn't hold whole is refused
+  await assert.rejects(ooxml((hit) => hit('beta').expandTo(hit('c1'))), (e) => e instanceof NotSupportedError && /inside a table/.test(e.message));
+  // under tracking the copies are cut, not marked deleted, and the document is untouched
+  pkg.changeTrackingMode = 'TrackAll';
+  assert.ok(!(await ooxml((hit) => hit('beta'))).includes('w:del'));
+  const tracked = await ooxml((hit) => hit('gamma').expandTo(hit('delta')));
+  assert.ok(!tracked.includes('w:del'));
+  assert.deepEqual(texts(tracked), ['gamma', 'c1', 'c2', 'delta']);
+  pkg.changeTrackingMode = 'Off';
+  assert.equal((await pkg.getMainDocumentPart().getXml()).replace(/<w:trackRevisions[^>]*\/>/, ''), before);
+  // toApiScript over the same range writes each block
+  const script = await toApiScript(body.paragraphs[0].search('beta')[0].expandTo(body.paragraphs.at(-1).search('delta')[0]));
+  assert.match(script, /^body\.insertParagraph\('beta gamma', 'End'\);/);
+  assert.match(script, /delta/);
+});
+
 test("Word.Style agrees with the content API's built-in list", async () => {
   const { BUILT_IN_STYLES } = await import('../dist/index.mjs');
   const enumValues = Object.values(Word.Style).filter((v) => v !== 'Other').sort();

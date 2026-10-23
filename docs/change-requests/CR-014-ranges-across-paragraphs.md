@@ -29,7 +29,9 @@ paragraphs only, any other range Word's `GeneralException`), and a tracked delet
 Word's markup and resolved as Word does. A tracked `Replace` within one paragraph puts its insertion first, as
 Word's (Jason, 2026-10-23; section 12.1, item 7), and a deletion takes a comment's reference with it, its comment
 going untracked and on Accept All (section 12.6). Left: three rules of Word's Accept All, docx4j's to take first
-(section 12.3). Committed `87bbb38`.
+(section 12.3). Committed `87bbb38`. Section 13 (2026-10-23, Jason: "the shim refuses getOoxml - fix this please"):
+the shim's `getOoxml` and `toApiScript` across paragraphs give the range's blocks, and under tracking no longer mark a
+copy's trimmed text deleted.
 
 ## 1. Why
 
@@ -443,7 +445,7 @@ The same four files throw before and after. **Changed, as intended:**
 Section 7's offsets audit found each place that took a `Range` as one paragraph's:
 - `Range.getTrackedChanges`'s overlap test, which now handles a change across paragraphs;
 - `commentsOf` and `insertComment`, which are given a paragraph's piece, or refuse;
-- `paragraphElementOfRange` (`toApiScript`, the shim's `getOoxml`), which refuses.
+- `paragraphElementOfRange` (`toApiScript`, the shim's `getOoxml`), which refused until section 13.
 
 `TrackedChange.getRange` (section 9.2) is a view, not a consumer.
 
@@ -963,3 +965,38 @@ one paragraph and across:
 that load: the paragraph holding a comment's reference had its content deleted, untracked and tracked. The comment went
 in every one, Accept All gave the untracked result and Reject All the original in every one. Before the fix of an
 empty span's edges (a paragraph holding nothing but the reference, `invoice.docx`), five of them differed.
+
+## 13. `getOoxml` and `toApiScript` across paragraphs (2026-10-23)
+
+*Jason, 2026-10-23: "the shim refuses getOoxml - fix this please". Implemented the same day.*
+
+**Before.** The shim's `Range.getOoxml` and `toApiScript` of a `Range` made one `w:p`, so a range across paragraphs
+refused with `NotSupportedError`. The message still read "until CR-014 phase 2", though phase 2 had not changed it
+(section 9.6).
+
+**Now** (`fragment.mts`, `blocksOfRange`):
+- A range's blocks are detached copies: the first paragraph from the range's start, every block between whole (a
+  table, a content control), and the last paragraph to the range's end. The last is left out where the range ends at
+  its start.
+- The blocks are the ones `delete()` takes (`extentOf`). So a range starting or ending inside a table or a content
+  control it doesn't hold whole is refused, with `NotSupportedError`: a fragment of part of a table isn't written.
+  What Word's `getOoxml` gives there isn't measured.
+- `getOoxml` gives the blocks' XML one after another, the shim's bare fragment form (Office JS's is a `pkg:package`,
+  as before), which `insertXml` takes back. `toApiScript` writes each block as it writes a body's.
+
+**A defect fixed with it, since CR-002 phase I.** The copy was trimmed through `Paragraph.splice` on a view in the
+range's own body. Under tracking that splice is tracked, so `getOoxml` of one word gave the paragraph's other words as
+`w:del` deletions, and `toApiScript` wrote them through its `insertXml` fallback. The copy is now trimmed through a
+body that reads as the range's body does (its package's styles decide hidden text, and so the offsets) and writes
+untracked. What the trim queues on the package, a picture's relationship or a comment whose reference the copy lost,
+is settled at save against the document, which still holds them.
+
+**Tests.** `office-js.test.mjs`:
+- within one paragraph, and across a table, the blocks' text and order;
+- the fragment back through `insertXml`;
+- a range into a table refused;
+- under tracking, no `w:del` and the document unchanged;
+- `toApiScript` over the same range.
+
+`ranges.test.mjs`: check 52's `HEAD3B` to `BODY3A`, where it asserted the refusal, now gives the two pieces.
+
