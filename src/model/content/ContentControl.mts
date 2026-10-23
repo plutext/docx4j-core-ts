@@ -22,6 +22,8 @@ import {
 import { runsForValue, updateFromControl, holdsFlatOpc, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { dropExcluded, forWriter, officeItems } from './officeText.mjs';
 import { declareIgnorable } from './tracking.mjs';
+import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
+import { commentReferencesIn } from './TrackedChange.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
 import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
@@ -400,6 +402,22 @@ export class ContentControl {
     }
   }
 
+  /**
+   * Blocks taken out of the control's content: the relationships only they used (a picture's image) and the comments
+   * whose references they held go when the package is saved, as a deletion's do.
+   */
+  private removeBlocks(content: Element[], blocks: Element[]): void {
+    const pkg = this.parentBody.package_ as { pendingRelationshipRemovals?: RelationshipRemovals; pendingCommentRemovals?: Set<number> } | undefined;
+    const ids = new Set<string>();
+    relationshipIdsIn(blocks, ids);
+    if (ids.size > 0) queueRelationshipRemovals(pkg?.pendingRelationshipRemovals, this.parentBody.part, ids);
+    if (pkg?.pendingCommentRemovals) commentReferencesIn(blocks, pkg.pendingCommentRemovals);
+    for (const block of blocks) {
+      const at = content.indexOf(block);
+      if (at >= 0) content.splice(at, 1);
+    }
+  }
+
   /** Office JS `appearance`: how Word draws the control (`w15:appearance`). */
   get appearance(): ContentControlAppearance {
     const val = (sdtProperty(this.sdt.sdtPr, 'appearance', W15_NS)?.value as { val?: string } | undefined)?.val;
@@ -547,7 +565,9 @@ export class ContentControl {
       content.length = 0;
       content.push(...runs);
       linkParents(content, sdt.sdtContent as object);
-    } else {
+    } else if (!isBoundBlockControl(this)) {
+      // a cell or row control, or a block control section 61's rule doesn't cover (a w15:dataBinding, Word's rich-text
+      // binding, or none): the value goes into its first paragraph, the rest as it is
       const paragraph = this.paragraphs[0];
       if (paragraph) {
         paragraph.p.content = runs as wml.P['content'];
@@ -557,6 +577,23 @@ export class ContentControl {
         content.push(p);
         linkParents(p, sdt.sdtContent as object);
       }
+    } else {
+      // A bound block control holds one paragraph (CR-002 section 61): the value goes into its first paragraph and any
+      // other block it holds goes, as docx4j's bind.xslt writes one paragraph (section 61.6, docx4j-python's review).
+      // Before, the first paragraph took the value and the rest stayed, so a control holding two kept them, and Word
+      // still couldn't open the file.
+      const blocks = content.filter((e) => BLOCK_LEVEL_TYPES.has(typeNameOf(e) ?? ''));
+      const paragraph = blocks.find((e) => typeNameOf(e) === 'org_docx4j_wml.P') as Element<wml.P> | undefined;
+      if (paragraph) {
+        paragraph.value.content = runs as wml.P['content'];
+        linkParents(paragraph.value.content, paragraph.value);
+      } else {
+        const p = paragraphElementOf(runs);
+        content.push(p);
+        linkParents(p, sdt.sdtContent as object);
+      }
+      const others = blocks.filter((e) => e !== paragraph);
+      if (others.length > 0) this.removeBlocks(content, others);
     }
     this.isShowingPlaceholder = showingPlaceholder;
     // The placeholder run names the PlaceholderText style, which a document made here lacks: the
@@ -861,4 +898,14 @@ export const BLOCK_CONTROL: Element = Object.freeze({
   name: { namespaceURI: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', localPart: 'sdt' },
   value: { TYPE_NAME: 'org_docx4j_wml.SdtBlock' },
 }) as unknown as Element;
+
+/**
+ * Whether a block-level control holds one paragraph and nothing else at block level, or nothing yet: what a bound
+ * block control may hold (CR-002 section 61).
+ */
+export function holdsOneParagraph(control: ContentControl): boolean {
+  const content = (control.sdt.sdtContent as { content?: Element[] } | undefined)?.content ?? [];
+  const blocks = content.filter((e) => BLOCK_LEVEL_TYPES.has(typeNameOf(e) ?? ''));
+  return blocks.length === 0 || (blocks.length === 1 && typeNameOf(blocks[0]!) === 'org_docx4j_wml.P');
+}
 

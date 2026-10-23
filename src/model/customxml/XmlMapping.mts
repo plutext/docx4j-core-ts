@@ -6,7 +6,8 @@ import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import * as w15el from '@docx4j/generated-objects-ts/el/org_docx4j_w15';
 import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
-import type { ContentControl } from '../content/ContentControl.mjs';
+import { holdsOneParagraph, type ContentControl } from '../content/ContentControl.mjs';
+import { NotSupportedError } from '../../office-js/errors.mjs';
 import type { CustomXmlPart, CustomXmlNode } from './CustomXmlPart.mjs';
 import { canonicalXPathOf } from './xpath.mjs';
 import { applyBindingTo } from './bindings.mjs';
@@ -129,6 +130,15 @@ export class XmlMapping {
     const binding: wml.CTDataBinding = { TYPE_NAME: 'org_docx4j_wml.CTDataBinding', xpath, storeItemID };
     if (prefixMappings !== '') binding.prefixMappings = prefixMappings;
     const w15 = this.usesW15;
+    // w:dataBinding makes a block control plain text to Word, which holds it to one paragraph: binding one that holds
+    // more is refused before anything changes, since Word couldn't open the file (CR-002 section 61.6, check 56;
+    // docx4j-python's review). w15:dataBinding, Word's rich-text binding, may hold blocks.
+    const control = this.contentControl;
+    if (!w15 && control.form === 'Block' && (control.type === 'PlainText' || control.type === 'RichText') && !holdsOneParagraph(control)) {
+      throw new NotSupportedError('XmlMapping', 'setMapping', 'this block content control holds more than one paragraph, and a control '
+        + "bound by w:dataBinding is plain text to Word, which can't open a file where one holds more (CR-002 section 61, check 56); "
+        + 'leave it one paragraph first');
+    }
     const element = (w15 ? w15el.dataBinding(binding) : el.dataBinding(binding)) as Element;
     const items = this.contentControl.sdt.sdtPr?.rPrOrAliasOrLock as Element[] | undefined;
     const other = w15 ? W_NS : W15_NS;

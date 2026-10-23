@@ -197,3 +197,45 @@ test('CR-002 section 61: what the rule leaves alone — an unbound control, a w1
   void w15pkg;
 });
 
+
+test('CR-002 section 61.6: applyBindings over a bound block control holding more than one block writes one paragraph, as docx4j\'s bind.xslt does', async () => {
+  // (56d's control, holding a table, is a container to the binding pass, as to docx4j's, and is left as it is)
+  for (const file of (await check56OpenFiles()).filter((f) => ['56a-untyped-two-paragraphs.docx', '56c-richtext-two-paragraphs.docx'].includes(f.name))) {
+    const pkg = await loaded(file.bytes);
+    pkg.customXmlParts.getItem(STORE_ITEM_ID).selectSingleNode('/ns0:check56/ns0:value1', "xmlns:ns0='urn:check56'").text = 'bound value';
+    await pkg.customXmlParts.applyBindings();
+    const control = (await pkg.getBody()).contentControls.find((x) => x.tag === 'c56-1');
+    const blocks = control.sdt.sdtContent.content.map((e) => e.name.localPart);
+    assert.deepEqual(blocks, ['p'], file.name);
+    assert.equal(control.text, 'bound value', file.name);
+    await loaded(await pkg.save());
+  }
+});
+
+test('CR-002 section 61.6: setMapping refuses, before anything changes, to bind a plain-text block control holding more than one paragraph', async () => {
+  const pkg = await loaded(await check56Bytes());
+  const body = await pkg.getBody();
+  const text = body.contentControls.find((x) => x.tag === 'c56-5');   // w:text, multi-line
+  const xpath = text.xmlMapping.xpath;
+  const prefixes = text.xmlMapping.prefixMappings;
+  text.xmlMapping.delete();
+  text.insertParagraph('second', 'End');   // unbound now, so it may hold two
+  assert.equal(text.paragraphs.length, 2);
+  const before = await pkg.getMainDocumentPart().getXml();
+  assert.throws(() => text.xmlMapping.setMapping(xpath, prefixes), (e) => e instanceof NotSupportedError && /section 61/.test(e.message));
+  assert.equal(await pkg.getMainDocumentPart().getXml(), before);
+  // one paragraph again, it binds
+  text.paragraphs[1].delete();
+  assert.equal(text.xmlMapping.setMapping(xpath, prefixes), true);
+  assert.ok(text.xmlMapping.isMapped);
+  // an untyped control takes Word's rich-text binding, w15:dataBinding, which may hold blocks
+  const untyped = body.contentControls.find((x) => x.tag === 'c56-1');
+  const xpath1 = untyped.xmlMapping.xpath;
+  untyped.xmlMapping.delete();
+  untyped.insertParagraph('second', 'End');
+  assert.equal(untyped.paragraphs.length, 2);
+  assert.equal(untyped.xmlMapping.setMapping(xpath1, prefixes), true);
+  assert.ok(untyped.sdt.sdtPr.rPrOrAliasOrLock.some((e) => e.name.localPart === 'dataBinding' && /2012/.test(e.name.namespaceURI)));
+  // section 61's rule doesn't cover Word's rich-text binding: its first paragraph takes the node's value, the rest stays
+  assert.deepEqual(untyped.paragraphs.map((p) => p.text), ['start1', 'second']);
+});

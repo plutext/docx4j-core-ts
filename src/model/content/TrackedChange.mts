@@ -955,7 +955,7 @@ export async function flushPendingNoteRemovals(main: NotesHost, pending: NoteRem
 }
 
 /** Adds the ids of the `w:commentReference` elements anywhere in a tree to `into`. */
-function commentReferencesIn(tree: unknown, into: Set<number>): void {
+export function commentReferencesIn(tree: unknown, into: Set<number>): void {
   const visit = (o: unknown): void => {
     if (typeof o !== 'object' || o === null) return;
     if (Array.isArray(o)) { for (const item of o) visit(item); return; }
