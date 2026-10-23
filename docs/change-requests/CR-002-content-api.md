@@ -5433,6 +5433,12 @@ its hidden style with them: the text was hidden too, so it read as nothing, its 
 characters escaped the map (the save guard caught it). With no visible run beside it, new text now takes no hidden run's
 look (`visibleFirstRunRPr`). This was so before section 60, silently.
 
+**Fixed after `6285dfa`**, found comparing docx4j-python's port the same day. A break at a paragraph's end added an
+empty paragraph after it, so the last paragraph of a section kept the section break and the new one fell into the next
+section. It now splits as a paragraph mark does (`splitAtEnd`): what the paragraph held goes into a new paragraph in
+front of it, and the original keeps its mark, its section break and its paraId, empty. That is docx4j-python's rule
+too, and the same as a split inside the text.
+
 **Held by:**
 - `characters.test.mjs`:
   - check 55's snippet run through the Word shim, held to Word 365's run case for case. 42 cases agree; the rest are

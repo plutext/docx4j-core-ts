@@ -212,8 +212,12 @@ test('CR-002 section 60 E1: insertText makes a paragraph of each \\n and \\r, \\
   assert.equal(r.endParagraph.text, 'q');
   // at a paragraph's end and start: an empty paragraph after it, before it
   const e = await one('ab');
+  e.p.pPr().sectPr = { TYPE_NAME: 'org_docx4j_wml.SectPr' };   // the last paragraph of a section
   e.p.insertText('x\n', 'End');
   assert.deepEqual(e.body.paragraphs.map((p) => p.text), ['abx', '']);
+  // as a paragraph mark is one: the new paragraph in front, the original keeping its mark and section break, empty
+  assert.equal(e.p.text, '');
+  assert.ok(e.p.p.pPr.sectPr && !e.body.paragraphs[0].p.pPr?.sectPr);
   const b = await one('ab');
   b.p.insertText('\nx', 'Start');
   assert.deepEqual(b.body.paragraphs.map((p) => p.text), ['', 'xab']);

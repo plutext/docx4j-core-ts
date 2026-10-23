@@ -502,14 +502,10 @@ export function breakParagraphAt(p: Paragraph, offsets: readonly number[]): { fi
   for (const offset of offsets) {
     const at = offset - consumed;
     let head: Paragraph;
+    const before = [...tail.segments()].reverse().find((s) => s.end <= at);
     if (at <= 0) head = tail.insertParagraph('', 'Before');
-    else if (at >= tail.text.length) {
-      head = tail;
-      tail = tail.insertParagraph('', 'After');
-    } else {
-      const before = [...tail.segments()].reverse().find((s) => s.end <= at);
-      head = splitParagraph(tail, at, before?.run.rPr);
-    }
+    else if (at >= tail.text.length) head = splitAtEnd(tail, before?.run.rPr);
+    else head = splitParagraph(tail, at, before?.run.rPr);
     first ??= head;
     consumed = offset;
   }
@@ -565,6 +561,27 @@ export function splitParagraph(p: Paragraph, offset: number, rPr: wml.RPr | unde
     index = next;
   }
   const head = content.splice(0, index);
+  const el = paragraphOf(head, propertiesOf(p, rPr));
+  linkParents(head, el.value);
+  const list = listOf(p);
+  list.splice(list.indexOf(p.element), 0, el as Element);
+  linkParents(el, (p.p as { PARENT?: object }).PARENT);
+  p.parentBody.assignParaId(el.value);
+  p.changeTracker?.markParagraphInserted(el.value);
+  return p.viewOf(el, list);
+}
+
+/**
+ * A paragraph break at the end of `p`'s text, as a paragraph mark makes one (CR-002 section 60 E1): what `p` holds goes
+ * into a new paragraph in front of it, in a copy of its properties with a mark in `rPr`'s formatting, and `p` keeps its
+ * own mark, its section break and its identity, empty, as `splitParagraph` keeps them. Tracked, the new mark is
+ * inserted. Returns the new paragraph.
+ */
+function splitAtEnd(p: Paragraph, rPr: wml.RPr | undefined): Paragraph {
+  p.assertWritable();
+  assertControlHolds(p.parentBody, (p.p as { PARENT?: object }).PARENT ?? p.parentBody.container, listOf(p), [p.element as Element], undefined, ['Range', 'insertParagraph']);
+  const content = (p.p.content ??= []) as Element[];
+  const head = content.splice(0, content.length);
   const el = paragraphOf(head, propertiesOf(p, rPr));
   linkParents(head, el.value);
   const list = listOf(p);
