@@ -1,0 +1,1697 @@
+{
+ "check": 55,
+ "mode": "run",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "cases": [
+  {
+   "n": 1,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+0009",
+   "written": "x\\u0009y",
+   "result": {
+    "returned": "x\\u0009y"
+   },
+   "region": {
+    "text": "BEGIN1 text-end untracked U+0009\\u000dTARGET1x\\u0009y\\u000dEND1\\u000d",
+    "paragraphs": [
+     "BEGIN1 text-end untracked U+0009",
+     "TARGET1x\\u0009y",
+     "END1"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET1x</w:t></w:r><w:r><w:tab/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 2,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "result": {
+    "returned": "x\\u000dy"
+   },
+   "region": {
+    "text": "BEGIN2 text-end untracked U+000A\\u000dTARGET2x\\u000dy\\u000dEND2\\u000d",
+    "paragraphs": [
+     "BEGIN2 text-end untracked U+000A",
+     "TARGET2x",
+     "y",
+     "END2"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET2x</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 3,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "result": {
+    "returned": "x\\u000dy"
+   },
+   "region": {
+    "text": "BEGIN3 text-end untracked U+000D\\u000dTARGET3x\\u000dy\\u000dEND3\\u000d",
+    "paragraphs": [
+     "BEGIN3 text-end untracked U+000D",
+     "TARGET3x",
+     "y",
+     "END3"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET3x</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 4,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000D,U+000A",
+   "written": "x\\u000d\\u000ay",
+   "result": {
+    "returned": "x\\u000dy"
+   },
+   "region": {
+    "text": "BEGIN4 text-end untracked U+000D,U+000A\\u000dTARGET4x\\u000dy\\u000dEND4\\u000d",
+    "paragraphs": [
+     "BEGIN4 text-end untracked U+000D,U+000A",
+     "TARGET4x",
+     "y",
+     "END4"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET4x</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 5,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "result": {
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "text": "BEGIN5 text-end untracked U+000B\\u000dTARGET5x\\u000by\\u000dEND5\\u000d",
+    "paragraphs": [
+     "BEGIN5 text-end untracked U+000B",
+     "TARGET5x\\u000by",
+     "END5"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET5x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 6,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000C",
+   "written": "x\\u000cy",
+   "result": {
+    "returned": "x\\u000cy"
+   },
+   "region": {
+    "text": "BEGIN6 text-end untracked U+000C\\u000dTARGET6x\\u000cy\\u000dEND6\\u000d",
+    "paragraphs": [
+     "BEGIN6 text-end untracked U+000C",
+     "TARGET6x\\u000cy",
+     "END6"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET6x</w:t></w:r><w:r><w:br w:type=\"page\"/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 7,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+000E",
+   "written": "x\\u000ey",
+   "result": {
+    "returned": "x\\u000ey"
+   },
+   "region": {
+    "text": "BEGIN7 text-end untracked U+000E\\u000dTARGET7x\\u000ey\\u000dEND7\\u000d",
+    "paragraphs": [
+     "BEGIN7 text-end untracked U+000E",
+     "TARGET7x\\u000ey",
+     "END7"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET7x</w:t></w:r><w:r><w:br w:type=\"column\"/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 8,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "result": {
+    "returned": "x\\u001ey"
+   },
+   "region": {
+    "text": "BEGIN8 text-end untracked U+001E\\u000dTARGET8x\\u001ey\\u000dEND8\\u000d",
+    "paragraphs": [
+     "BEGIN8 text-end untracked U+001E",
+     "TARGET8x\\u001ey",
+     "END8"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET8x</w:t></w:r><w:r><w:noBreakHyphen/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 9,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+001F",
+   "written": "x\\u001fy",
+   "result": {
+    "returned": "x\\u001fy"
+   },
+   "region": {
+    "text": "BEGIN9 text-end untracked U+001F\\u000dTARGET9x\\u001fy\\u000dEND9\\u000d",
+    "paragraphs": [
+     "BEGIN9 text-end untracked U+001F",
+     "TARGET9x\\u001fy",
+     "END9"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET9x</w:t></w:r><w:r><w:softHyphen/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 10,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+0002",
+   "written": "x\\u0002y",
+   "result": {
+    "returned": "x\\u0002y"
+   },
+   "region": {
+    "text": "BEGIN10 text-end untracked U+0002\\u000dTARGET10x\\u0002y\\u000dEND10\\u000d",
+    "paragraphs": [
+     "BEGIN10 text-end untracked U+0002",
+     "TARGET10x\\u0002y",
+     "END10"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET10x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 11,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+0001",
+   "written": "x\\u0001y",
+   "result": {
+    "returned": "x\\u0001y"
+   },
+   "region": {
+    "text": "BEGIN11 text-end untracked U+0001\\u000dTARGET11x\\u0001y\\u000dEND11\\u000d",
+    "paragraphs": [
+     "BEGIN11 text-end untracked U+0001",
+     "TARGET11x\\u0001y",
+     "END11"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET11x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 12,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+0007",
+   "written": "x\\u0007y",
+   "result": {
+    "returned": "xy"
+   },
+   "region": {
+    "text": "BEGIN12 text-end untracked U+0007\\u000dTARGET12xy\\u000dEND12\\u000d",
+    "paragraphs": [
+     "BEGIN12 text-end untracked U+0007",
+     "TARGET12xy",
+     "END12"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET12xy</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 13,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+2011",
+   "written": "x\\u2011y",
+   "result": {
+    "returned": "x\\u2011y"
+   },
+   "region": {
+    "text": "BEGIN13 text-end untracked U+2011\\u000dTARGET13x\\u2011y\\u000dEND13\\u000d",
+    "paragraphs": [
+     "BEGIN13 text-end untracked U+2011",
+     "TARGET13x\\u2011y",
+     "END13"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET13x</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\" w:cs=\"Cambria Math\"/></w:rPr><w:t>\\u2011</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 14,
+   "op": "text-end",
+   "tracked": false,
+   "spec": "U+00AD",
+   "written": "x\\u00ady",
+   "result": {
+    "returned": "x\\u00ady"
+   },
+   "region": {
+    "text": "BEGIN14 text-end untracked U+00AD\\u000dTARGET14x\\u00ady\\u000dEND14\\u000d",
+    "paragraphs": [
+     "BEGIN14 text-end untracked U+00AD",
+     "TARGET14x\\u00ady",
+     "END14"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET14x\\u00ady</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 15,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+0009",
+   "written": "x\\u0009y",
+   "result": {
+    "returned": "x\\u0009y"
+   },
+   "region": {
+    "text": "BEGIN15 paragraph-after untracked U+0009\\u000dTARGET15\\u000dx\\u0009y\\u000dEND15\\u000d",
+    "paragraphs": [
+     "BEGIN15 paragraph-after untracked U+0009",
+     "TARGET15",
+     "x\\u0009y",
+     "END15"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET15</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:tab/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 16,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "result": {
+    "returned": "x\\ny"
+   },
+   "region": {
+    "text": "BEGIN16 paragraph-after untracked U+000A\\u000dTARGET16\\u000dx\\ny\\u000dEND16\\u000d",
+    "paragraphs": [
+     "BEGIN16 paragraph-after untracked U+000A",
+     "TARGET16",
+     "x\\ny",
+     "END16"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET16</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x\\ny</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 17,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "result": {
+    "returned": "x\\ry"
+   },
+   "region": {
+    "text": "BEGIN17 paragraph-after untracked U+000D\\u000dTARGET17\\u000dx\\ry\\u000dEND17\\u000d",
+    "paragraphs": [
+     "BEGIN17 paragraph-after untracked U+000D",
+     "TARGET17",
+     "x\\ry",
+     "END17"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET17</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x\\ry</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 18,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000D,U+000A",
+   "written": "x\\u000d\\u000ay",
+   "result": {
+    "returned": "x\\r\\ny"
+   },
+   "region": {
+    "text": "BEGIN18 paragraph-after untracked U+000D,U+000A\\u000dTARGET18\\u000dx\\r\\ny\\u000dEND18\\u000d",
+    "paragraphs": [
+     "BEGIN18 paragraph-after untracked U+000D,U+000A",
+     "TARGET18",
+     "x\\r\\ny",
+     "END18"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET18</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x\\r\\ny</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 19,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "result": {
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "text": "BEGIN19 paragraph-after untracked U+000B\\u000dTARGET19\\u000dx\\u000by\\u000dEND19\\u000d",
+    "paragraphs": [
+     "BEGIN19 paragraph-after untracked U+000B",
+     "TARGET19",
+     "x\\u000by",
+     "END19"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET19</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 20,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000C",
+   "written": "x\\u000cy",
+   "result": {
+    "returned": "x\\u000cy"
+   },
+   "region": {
+    "text": "BEGIN20 paragraph-after untracked U+000C\\u000dTARGET20\\u000dx\\u000cy\\u000dEND20\\u000d",
+    "paragraphs": [
+     "BEGIN20 paragraph-after untracked U+000C",
+     "TARGET20",
+     "x\\u000cy",
+     "END20"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET20</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:br w:type=\"page\"/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 21,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+000E",
+   "written": "x\\u000ey",
+   "result": {
+    "returned": "x\\u000ey"
+   },
+   "region": {
+    "text": "BEGIN21 paragraph-after untracked U+000E\\u000dTARGET21\\u000dx\\u000ey\\u000dEND21\\u000d",
+    "paragraphs": [
+     "BEGIN21 paragraph-after untracked U+000E",
+     "TARGET21",
+     "x\\u000ey",
+     "END21"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET21</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:br w:type=\"column\"/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 22,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "result": {
+    "returned": "x\\u001ey"
+   },
+   "region": {
+    "text": "BEGIN22 paragraph-after untracked U+001E\\u000dTARGET22\\u000dx\\u001ey\\u000dEND22\\u000d",
+    "paragraphs": [
+     "BEGIN22 paragraph-after untracked U+001E",
+     "TARGET22",
+     "x\\u001ey",
+     "END22"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET22</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:noBreakHyphen/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 23,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+001F",
+   "written": "x\\u001fy",
+   "result": {
+    "returned": "x\\u001fy"
+   },
+   "region": {
+    "text": "BEGIN23 paragraph-after untracked U+001F\\u000dTARGET23\\u000dx\\u001fy\\u000dEND23\\u000d",
+    "paragraphs": [
+     "BEGIN23 paragraph-after untracked U+001F",
+     "TARGET23",
+     "x\\u001fy",
+     "END23"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET23</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:softHyphen/><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 24,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+0002",
+   "written": "x\\u0002y",
+   "result": {
+    "returned": "x\\u0002y"
+   },
+   "region": {
+    "text": "BEGIN24 paragraph-after untracked U+0002\\u000dTARGET24\\u000dx\\u0002y\\u000dEND24\\u000d",
+    "paragraphs": [
+     "BEGIN24 paragraph-after untracked U+0002",
+     "TARGET24",
+     "x\\u0002y",
+     "END24"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET24</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 25,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+0001",
+   "written": "x\\u0001y",
+   "result": {
+    "returned": "x\\u0001y"
+   },
+   "region": {
+    "text": "BEGIN25 paragraph-after untracked U+0001\\u000dTARGET25\\u000dx\\u0001y\\u000dEND25\\u000d",
+    "paragraphs": [
+     "BEGIN25 paragraph-after untracked U+0001",
+     "TARGET25",
+     "x\\u0001y",
+     "END25"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET25</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 26,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+0007",
+   "written": "x\\u0007y",
+   "result": {
+    "returned": "xy"
+   },
+   "region": {
+    "text": "BEGIN26 paragraph-after untracked U+0007\\u000dTARGET26\\u000dxy\\u000dEND26\\u000d",
+    "paragraphs": [
+     "BEGIN26 paragraph-after untracked U+0007",
+     "TARGET26",
+     "xy",
+     "END26"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET26</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>xy</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 27,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+2011",
+   "written": "x\\u2011y",
+   "result": {
+    "returned": "x\\u2011y"
+   },
+   "region": {
+    "text": "BEGIN27 paragraph-after untracked U+2011\\u000dTARGET27\\u000dx\\u2011y\\u000dEND27\\u000d",
+    "paragraphs": [
+     "BEGIN27 paragraph-after untracked U+2011",
+     "TARGET27",
+     "x\\u2011y",
+     "END27"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET27</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\" w:cs=\"Cambria Math\"/></w:rPr><w:t>\\u2011</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 28,
+   "op": "paragraph-after",
+   "tracked": false,
+   "spec": "U+00AD",
+   "written": "x\\u00ady",
+   "result": {
+    "returned": "x\\u00ady"
+   },
+   "region": {
+    "text": "BEGIN28 paragraph-after untracked U+00AD\\u000dTARGET28\\u000dx\\u00ady\\u000dEND28\\u000d",
+    "paragraphs": [
+     "BEGIN28 paragraph-after untracked U+00AD",
+     "TARGET28",
+     "x\\u00ady",
+     "END28"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET28</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:r><w:t>x\\u00ady</w:t></w:r></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 29,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+0009",
+   "written": "x\\u0009y",
+   "result": {},
+   "region": {
+    "text": "BEGIN29 comment untracked U+0009\\u000dTARGET29\\u000dEND29\\u000d",
+    "paragraphs": [
+     "BEGIN29 comment untracked U+0009",
+     "TARGET29",
+     "END29"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET29</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:tab/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u0009y"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 30,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "result": {},
+   "region": {
+    "text": "BEGIN30 comment untracked U+000A\\u000dTARGET30\\u000dEND30\\u000d",
+    "paragraphs": [
+     "BEGIN30 comment untracked U+000A",
+     "TARGET30",
+     "END30"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET30</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 31,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "result": {},
+   "region": {
+    "text": "BEGIN31 comment untracked U+000D\\u000dTARGET31\\u000dEND31\\u000d",
+    "paragraphs": [
+     "BEGIN31 comment untracked U+000D",
+     "TARGET31",
+     "END31"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET31</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 32,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000D,U+000A",
+   "written": "x\\u000d\\u000ay",
+   "result": {},
+   "region": {
+    "text": "BEGIN32 comment untracked U+000D,U+000A\\u000dTARGET32\\u000dEND32\\u000d",
+    "paragraphs": [
+     "BEGIN32 comment untracked U+000D,U+000A",
+     "TARGET32",
+     "END32"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET32</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 33,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "result": {},
+   "region": {
+    "text": "BEGIN33 comment untracked U+000B\\u000dTARGET33\\u000dEND33\\u000d",
+    "paragraphs": [
+     "BEGIN33 comment untracked U+000B",
+     "TARGET33",
+     "END33"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET33</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000by"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 34,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000C",
+   "written": "x\\u000cy",
+   "result": {},
+   "region": {
+    "text": "BEGIN34 comment untracked U+000C\\u000dTARGET34\\u000dEND34\\u000d",
+    "paragraphs": [
+     "BEGIN34 comment untracked U+000C",
+     "TARGET34",
+     "END34"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET34</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:br w:type=\"page\"/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000cy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 35,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+000E",
+   "written": "x\\u000ey",
+   "result": {},
+   "region": {
+    "text": "BEGIN35 comment untracked U+000E\\u000dTARGET35\\u000dEND35\\u000d",
+    "paragraphs": [
+     "BEGIN35 comment untracked U+000E",
+     "TARGET35",
+     "END35"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET35</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:br w:type=\"column\"/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000ey"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 36,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "result": {},
+   "region": {
+    "text": "BEGIN36 comment untracked U+001E\\u000dTARGET36\\u000dEND36\\u000d",
+    "paragraphs": [
+     "BEGIN36 comment untracked U+001E",
+     "TARGET36",
+     "END36"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET36</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:noBreakHyphen/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u001ey"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 37,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+001F",
+   "written": "x\\u001fy",
+   "result": {},
+   "region": {
+    "text": "BEGIN37 comment untracked U+001F\\u000dTARGET37\\u000dEND37\\u000d",
+    "paragraphs": [
+     "BEGIN37 comment untracked U+001F",
+     "TARGET37",
+     "END37"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET37</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:softHyphen/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u001fy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 38,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+0002",
+   "written": "x\\u0002y",
+   "result": {},
+   "region": {
+    "text": "BEGIN38 comment untracked U+0002\\u000dTARGET38\\u000dEND38\\u000d",
+    "paragraphs": [
+     "BEGIN38 comment untracked U+0002",
+     "TARGET38",
+     "END38"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET38</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u0002y"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 39,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+0001",
+   "written": "x\\u0001y",
+   "result": {},
+   "region": {
+    "text": "BEGIN39 comment untracked U+0001\\u000dTARGET39\\u000dEND39\\u000d",
+    "paragraphs": [
+     "BEGIN39 comment untracked U+0001",
+     "TARGET39",
+     "END39"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET39</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u0001y"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 40,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+0007",
+   "written": "x\\u0007y",
+   "result": {},
+   "region": {
+    "text": "BEGIN40 comment untracked U+0007\\u000dTARGET40\\u000dEND40\\u000d",
+    "paragraphs": [
+     "BEGIN40 comment untracked U+0007",
+     "TARGET40",
+     "END40"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET40</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>xy</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "xy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 41,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+2011",
+   "written": "x\\u2011y",
+   "result": {},
+   "region": {
+    "text": "BEGIN41 comment untracked U+2011\\u000dTARGET41\\u000dEND41\\u000d",
+    "paragraphs": [
+     "BEGIN41 comment untracked U+2011",
+     "TARGET41",
+     "END41"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET41</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\" w:cs=\"Cambria Math\"/></w:rPr><w:t>\\u2011</w:t></w:r><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u2011y"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 42,
+   "op": "comment",
+   "tracked": false,
+   "spec": "U+00AD",
+   "written": "x\\u00ady",
+   "result": {},
+   "region": {
+    "text": "BEGIN42 comment untracked U+00AD\\u000dTARGET42\\u000dEND42\\u000d",
+    "paragraphs": [
+     "BEGIN42 comment untracked U+00AD",
+     "TARGET42",
+     "END42"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET42</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x\\u00ady</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u00ady"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 43,
+   "op": "comment-content",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "result": {},
+   "region": {
+    "text": "BEGIN43 comment-content untracked U+000D\\u000dTARGET43\\u000dEND43\\u000d",
+    "paragraphs": [
+     "BEGIN43 comment-content untracked U+000D",
+     "TARGET43",
+     "END43"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET43</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 44,
+   "op": "comment-content",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "result": {},
+   "region": {
+    "text": "BEGIN44 comment-content untracked U+000A\\u000dTARGET44\\u000dEND44\\u000d",
+    "paragraphs": [
+     "BEGIN44 comment-content untracked U+000A",
+     "TARGET44",
+     "END44"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET44</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 45,
+   "op": "comment-content",
+   "tracked": false,
+   "spec": "U+000D,U+000A",
+   "written": "x\\u000d\\u000ay",
+   "result": {},
+   "region": {
+    "text": "BEGIN45 comment-content untracked U+000D,U+000A\\u000dTARGET45\\u000dEND45\\u000d",
+    "paragraphs": [
+     "BEGIN45 comment-content untracked U+000D,U+000A",
+     "TARGET45",
+     "END45"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET45</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000dy"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 46,
+   "op": "comment-content",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "result": {},
+   "region": {
+    "text": "BEGIN46 comment-content untracked U+000B\\u000dTARGET46\\u000dEND46\\u000d",
+    "paragraphs": [
+     "BEGIN46 comment-content untracked U+000B",
+     "TARGET46",
+     "END46"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>TARGET46</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/><w:sz w:val=\"22\"/><w:szCs w:val=\"22\"/></w:rPr><w:commentReference w:id=\"0\"/></w:r></w:p><w:p/>",
+      "comments": [
+       "<w:comment w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w:initials=\"AA\"><w:p><w:pPr><w:pStyle w:val=\"CommentText\"/></w:pPr><w:r><w:rPr><w:rStyle w:val=\"CommentReference\"/></w:rPr><w:annotationRef/></w:r><w:r><w:t>x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:p></w:comment>"
+      ]
+     }
+    ],
+    "comments": [
+     "x\\u000by"
+    ],
+    "trackedChanges": []
+   }
+  },
+  {
+   "n": 47,
+   "op": "text-end",
+   "tracked": true,
+   "spec": "U+0009",
+   "written": "x\\u0009y",
+   "result": {
+    "returned": "x\\u0009y"
+   },
+   "region": {
+    "text": "BEGIN47 text-end tracked U+0009\\u000dTARGET47x\\u0009y\\u000dEND47\\u000d",
+    "paragraphs": [
+     "BEGIN47 text-end tracked U+0009",
+     "TARGET47x\\u0009y",
+     "END47"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET47</w:t></w:r><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>x</w:t></w:r><w:r><w:tab/><w:t>y</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [
+     {
+      "type": "Added",
+      "text": "x\\u0009y"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "op": "text-end",
+   "tracked": true,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "result": {
+    "returned": "x\\u000dy"
+   },
+   "region": {
+    "text": "BEGIN48 text-end tracked U+000A\\u000dTARGET48x\\u000dy\\u000dEND48\\u000d",
+    "paragraphs": [
+     "BEGIN48 text-end tracked U+000A",
+     "TARGET48x",
+     "y",
+     "END48"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:pPr><w:rPr><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"/></w:rPr></w:pPr><w:r><w:t>TARGET48</w:t></w:r><w:ins w:id=\"1\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>x</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>y</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [
+     {
+      "type": "Added",
+      "text": "x\\u000dy"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "op": "text-end",
+   "tracked": true,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "result": {
+    "returned": "x\\u000dy"
+   },
+   "region": {
+    "text": "BEGIN49 text-end tracked U+000D\\u000dTARGET49x\\u000dy\\u000dEND49\\u000d",
+    "paragraphs": [
+     "BEGIN49 text-end tracked U+000D",
+     "TARGET49x",
+     "y",
+     "END49"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:pPr><w:rPr><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"/></w:rPr></w:pPr><w:r><w:t>TARGET49</w:t></w:r><w:ins w:id=\"1\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>x</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     },
+     {
+      "body": "<w:p><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>y</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [
+     {
+      "type": "Added",
+      "text": "x\\u000dy"
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "op": "text-end",
+   "tracked": true,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "result": {
+    "returned": "x\\u000by"
+   },
+   "region": {
+    "text": "BEGIN50 text-end tracked U+000B\\u000dTARGET50x\\u000by\\u000dEND50\\u000d",
+    "paragraphs": [
+     "BEGIN50 text-end tracked U+000B",
+     "TARGET50x\\u000by",
+     "END50"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET50</w:t></w:r><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>x</w:t></w:r><w:r><w:br/><w:t>y</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [
+     {
+      "type": "Added",
+      "text": "x\\u000by"
+     }
+    ]
+   }
+  },
+  {
+   "n": 51,
+   "op": "text-end",
+   "tracked": true,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "result": {
+    "returned": "x\\u001ey"
+   },
+   "region": {
+    "text": "BEGIN51 text-end tracked U+001E\\u000dTARGET51x\\u001ey\\u000dEND51\\u000d",
+    "paragraphs": [
+     "BEGIN51 text-end tracked U+001E",
+     "TARGET51x\\u001ey",
+     "END51"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t>TARGET51</w:t></w:r><w:ins w:id=\"0\" w:author=\"Author A\" w:date=\"2026-10-23T10:07:00Z\" w16du:dateUtc=\"2026-10-22T23:07:00Z\"><w:r><w:t>x</w:t></w:r><w:r><w:noBreakHyphen/><w:t>y</w:t></w:r></w:ins></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [
+     {
+      "type": "Added",
+      "text": "x\\u001ey"
+     }
+    ]
+   }
+  },
+  {
+   "n": 52,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN52 bound-multi untracked U+000B\\u000dBOUND52 start52\\u000dEND52\\u000d",
+    "paragraphs": [
+     "BEGIN52 bound-multi untracked U+000B",
+     "BOUND52 start52",
+     "END52"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND52 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 52\"/><w:tag w:val=\"c55-52\"/><w:id w:val=\"55052\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value52[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>start52</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start52",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 53,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN53 bound-multi untracked U+000A\\u000dBOUND53 start53\\u000dEND53\\u000d",
+    "paragraphs": [
+     "BEGIN53 bound-multi untracked U+000A",
+     "BOUND53 start53",
+     "END53"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND53 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 53\"/><w:tag w:val=\"c55-53\"/><w:id w:val=\"55053\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value53[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>start53</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start53",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 54,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+000D",
+   "written": "x\\u000dy",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN54 bound-multi untracked U+000D\\u000dBOUND54 start54\\u000dEND54\\u000d",
+    "paragraphs": [
+     "BEGIN54 bound-multi untracked U+000D",
+     "BOUND54 start54",
+     "END54"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND54 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 54\"/><w:tag w:val=\"c55-54\"/><w:id w:val=\"55054\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value54[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>start54</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start54",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 55,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+001E",
+   "written": "x\\u001ey",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN55 bound-multi untracked U+001E\\u000dBOUND55 start55\\u000dEND55\\u000d",
+    "paragraphs": [
+     "BEGIN55 bound-multi untracked U+001E",
+     "BOUND55 start55",
+     "END55"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND55 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 55\"/><w:tag w:val=\"c55-55\"/><w:id w:val=\"55055\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value55[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>start55</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start55",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 56,
+   "op": "bound-multi",
+   "tracked": false,
+   "spec": "U+0002",
+   "written": "x\\u0002y",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN56 bound-multi untracked U+0002\\u000dBOUND56 start56\\u000dEND56\\u000d",
+    "paragraphs": [
+     "BEGIN56 bound-multi untracked U+0002",
+     "BOUND56 start56",
+     "END56"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND56 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 56\"/><w:tag w:val=\"c55-56\"/><w:id w:val=\"55056\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value56[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text w:multiLine=\"1\"/></w:sdtPr><w:sdtContent><w:r><w:t>start56</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start56",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 57,
+   "op": "bound-single",
+   "tracked": false,
+   "spec": "U+000B",
+   "written": "x\\u000by",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN57 bound-single untracked U+000B\\u000dBOUND57 start57\\u000dEND57\\u000d",
+    "paragraphs": [
+     "BEGIN57 bound-single untracked U+000B",
+     "BOUND57 start57",
+     "END57"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND57 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 57\"/><w:tag w:val=\"c55-57\"/><w:id w:val=\"55057\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value57[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text/></w:sdtPr><w:sdtContent><w:r><w:t>start57</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start57",
+     "wellFormed": true
+    }
+   }
+  },
+  {
+   "n": 58,
+   "op": "bound-single",
+   "tracked": false,
+   "spec": "U+000A",
+   "written": "x\\u000ay",
+   "error": "error: ItemNotFound: ItemNotFound",
+   "region": {
+    "text": "BEGIN58 bound-single untracked U+000A\\u000dBOUND58 start58\\u000dEND58\\u000d",
+    "paragraphs": [
+     "BEGIN58 bound-single untracked U+000A",
+     "BOUND58 start58",
+     "END58"
+    ],
+    "ooxml": [
+     {
+      "body": "<w:p><w:r><w:t xml:space=\"preserve\">BOUND58 </w:t></w:r><w:sdt><w:sdtPr><w:alias w:val=\"Check 55 bound 58\"/><w:tag w:val=\"c55-58\"/><w:id w:val=\"55058\"/><w:dataBinding w:prefixMappings=\"xmlns:ns0='urn:check55'\" w:xpath=\"/ns0:check55[1]/ns0:value58[1]\" w:storeItemID=\"{55555555-5555-4555-8555-555555555555}\"/><w:text/></w:sdtPr><w:sdtContent><w:r><w:t>start58</w:t></w:r></w:sdtContent></w:sdt></w:p><w:p/>",
+      "comments": []
+     }
+    ],
+    "comments": [],
+    "trackedChanges": [],
+    "control": "error: ItemNotFound: ItemNotFound",
+    "node": {
+     "value": "start58",
+     "wellFormed": true
+    }
+   }
+  }
+ ],
+ "caseCount": 58
+}

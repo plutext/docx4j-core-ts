@@ -265,6 +265,9 @@ choices, read only, Word's runs in Simple and All Markup) the same way, every di
 the snippet's `run` mode through the shim held to Word's run, to each region's markup in Word's save after the run, and,
 accepted, to Word's Accept All; and check 54's (`test/fixtures/check54/`, phase 2's unmeasured choices and phase 3's
 controls; Word's Accept All save in `test/check54/`) the same way, its run and, accepted, its Accept All,
+`characters.test.mjs` CR-002 section 60's: check 55's file (`check55Bytes`, `test/fixtures/check55/`) and its Script Lab snippet
+held to each other, every case parsed by the snippet's own parser, and the snippet run through the Word shim; Word 365's
+run (its JSONs beside the build, its save in `test/check55/`, outside `fixtures/`, with a SHA-1 manifest),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
 output); helpers in `test/helpers.mjs` (`plain()` strips `PARENT` for deep equality). Fixtures under `test/fixtures/` are from docx4j's
 `docx4j-core-tests` resources; `test/README.md` lists them and holds the manual Word acceptance

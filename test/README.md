@@ -4315,3 +4315,84 @@ async function check() {
        with its reason. Those are a style's resets, the hyperlink field, and the three Accept All rules, which go to
        docx4j. A deleted comment's reference run, which this package left beside the `w:del` (case 28), goes inside it
        since CR-014 section 12.6.
+55. What Office JS's writers do with the characters its readers give (CR-002 section 60, 2026-10-23; Jason: "write
+   check 55"). Check 48 measured only the reads: a `w:br` reads as U+000B, a note reference as U+0002, and so on.
+   Section 60 decided that this package's writers turn each character back into the element it reads as, and refuse
+   U+0002 and the characters XML 1.0 excludes; this check says whether Word's own writers do the same. The file is
+   `__tmp/55/55-characters.docx` on the share, as `fixtures/check55/build.mjs` writes it (its parts as text; git
+   ignores the `.docx`, and `check55Bytes` gives a test the same parts). The snippet is beside it,
+   `check55-script-lab.html` and `check55-script-lab.js` (WordApi 1.6), copies of `fixtures/check55/`'s.
+   - **A region per case**, as in check 54: a paragraph `BEGIN<n> <operation> <tracking> <characters>`, the case's
+     paragraph, and a paragraph `END<n>`. The characters are code points (`U+000B`, or `U+000D,U+000A` for two); the
+     snippet writes `x`, them, then `y`. The case's paragraph is `TARGET<n>`, or for a bound control `BOUND<n> ` and a
+     plain-text content control tagged `c55-<n>`, holding `start<n>`, bound to `value<n>` in the custom XML part whose
+     namespace is `urn:check55`.
+   - **The characters**: tab U+0009, line feed U+000A, carriage return U+000D, the two together, the line break
+     U+000B, the page break U+000C, the column break U+000E, the non-breaking hyphen U+001E, the optional hyphen
+     U+001F, the note reference U+0002; U+0001 and U+0007, which XML 1.0 excludes too; and U+2011 and U+00AD, the
+     hyphens as docx4j's text gives them.
+   - **The cases:**
+     - 1 to 14: `paragraph.insertText('x' + c + 'y', 'End')`, for each character in that order.
+     - 15 to 28: `paragraph.insertParagraph('x' + c + 'y', 'After')`, the same.
+     - 29 to 42: `insertComment('x' + c + 'y')` on the paragraph's word, the same.
+     - 43 to 46: a comment made with `COMMENT<n>`, then its `content = 'x' + c + 'y'`, for U+000D, U+000A, the two
+       together and U+000B.
+     - 47 to 51: `insertText('x' + c + 'y', 'End')` under tracking, for U+0009, U+000A, U+000D, U+000B and U+001E.
+     - 52 to 56: the bound control, multi-line, given `insertText('x' + c + 'y', 'Replace')`, for U+000B, U+000A,
+       U+000D, U+001E and U+0002.
+     - 57 and 58: the same on a single-line bound control, for U+000B and U+000A.
+
+     The questions: does each character become the element it reads as, or stay a character in the `w:t`? Do `\n`,
+     `\r` or the two make a paragraph? What does Word throw for U+0002, U+0001 and U+0007, if it throws? Do U+2011 and
+     U+00AD stay text? What does a bound control's node hold? Tracked is `document.changeTrackingMode` set to
+     `TrackAll` by the snippet for the case; it sets it back to `Off` at the end, and the author is whoever runs it.
+   - **Steps, in Word 365 only.**
+     1. Open `__tmp/55/55-characters.docx`. Say whether Word reports a problem or offers a repair. Leave Word's view as
+        it opens.
+     2. File > Save As `55-characters-word365.docx`, in the same folder `__tmp/55`, before anything else, so that the
+        run's changes don't go into `55-characters.docx`.
+     3. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/55/check55-script-lab.html` over the HTML tab and `__tmp/55/check55-script-lab.js` over the Script
+        tab.
+     4. Click **Run the check**, once. It changes the document case by case, showing which case it is on. When it
+        says Done, copy the box into a new file `__tmp/55/result-run.txt`.
+     5. Click into the document's text, then File > Save, which saves `55-characters-word365.docx` as the run left it.
+        (Ctrl+S right after the run goes to Script Lab's pane, which has the focus, and the document isn't saved.)
+     6. File > Close. Then open `__tmp/55/55-characters-word365.docx` again, and say whether Word reports a problem or
+        offers a repair. If it offers a repair, say No, say so, and stop there.
+     7. Open Script Lab again (Script Lab > Code); the snippet is still there. Click **Report only** (it changes
+        nothing), copy the box into a new file `__tmp/55/result-reopened.txt`, then close the document without saving.
+   - **What the JSON holds.** For each case: the text written (`written`), what the operation returned (the range's
+     or the new paragraph's text), and the region after it: its text, each paragraph's text, the OOXML of each
+     paragraph between BEGIN and END (the body's content with its rsids dropped, and the comments where the OOXML holds
+     them), the comments' content and the tracked changes (type, text). For a bound case, also the control's text and
+     its node's value as the custom XML part's XML holds it, with whether that XML parses (`wellFormed`, by the add-in's
+     `DOMParser`). A step Office JS refuses reads `error: <code>: <message>` in place of its value.
+   - **What this package gives**, before section 60 is implemented. `characters.test.mjs` runs the snippet through
+     the Word shim, and every case runs with no error of the script's own; the custom XML part's read fails, since the
+     shim has no `customXmlParts`.
+     - Cases 1 to 14 and 47 to 51 keep every character in the `w:t`, the tracked ones inside the `w:ins`.
+     - Cases 15 to 28 make a tab a `w:tab` and a line feed a `w:br` (the objects package's `r()`), and keep the rest in
+       the `w:t`; the two together are a `\r` in the `w:t` and a `w:br`.
+     - Cases 29 to 42 make a line feed a second paragraph in the comment and keep the rest in the `w:t`; cases 43 to
+       46 make a paragraph of `\r`, `\n` and the two together, and keep U+000B in the `w:t`.
+     - Cases 52 to 58 keep the characters in the control's `w:t`, multi-line or not, and in its node (read from the
+       package after the run: U+000B, U+001E and U+0002 among them, which XML 1.0 excludes).
+   - **Run 2026-10-23 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** The JSONs are
+     `fixtures/check55/55-characters-word365-run.json` and `55-characters-word365-reopened.json`, and Word's save after
+     the run is `check55/55-characters-word365.docx` (a SHA-1 manifest). Word reported no problem opening the file, nor
+     opening its own save again; that save's document part holds no character XML 1.0 excludes. CR-002 section 60.3 has every case. In short:
+     - **Word refused nothing**, and threw no error in any case.
+     - **Tab, U+000B, U+000C, U+000E, U+001E and U+001F** became `w:tab`, `w:br`, a page break, a column break,
+       `w:noBreakHyphen` and `w:softHyphen`, in their own run after the text, through every writer: `insertText`,
+       tracked too (inside the `w:ins`), `insertParagraph`, `insertComment` and `comment.content`.
+     - **`\n`, `\r` and `\r\n`** each made a new paragraph through `insertText` (`\r\n` one), its returned range reading
+       `x\ry`, and through `insertComment` and `comment.content`. Tracked, the new mark is inserted
+       (`w:pPr/w:rPr/w:ins`). Through `insertParagraph` they became their escapes as text: a backslash and `n`, `r`,
+       or `r` and `n`.
+     - **U+0002 and U+0001** left nothing in the OOXML but a run boundary where they stood. The paragraph's text read
+       them until the save, and not after it. **U+0007** went at once.
+     - **U+2011** stayed a character, in a run of its own in Cambria Math. **U+00AD** stayed a character in the `w:t`.
+     - **The bound controls (52 to 58) weren't measured.** `body.contentControls.getByTag('c55-<n>')` found none of
+       them (`ItemNotFound`), so nothing was written. Their nodes still held `start<n>`, and the custom XML part's XML
+       parsed.

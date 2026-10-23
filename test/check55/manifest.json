@@ -1,0 +1,14 @@
+{
+ "check": 55,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-23)",
+ "source": "test/fixtures/check55/build.mjs (55-characters.docx, 58 cases), after the Script Lab snippet's \"Run the check\"",
+ "saves": {
+  "55-characters-word365.docx": "saved after the run with File > Save (the snippet's JSON: test/fixtures/check55/55-characters-word365-run.json); then closed, opened again, and reported with \"Report only\" (test/fixtures/check55/55-characters-word365-reopened.json)"
+ },
+ "files": [
+  {
+   "name": "55-characters-word365.docx",
+   "sha1": "7da77e50b96e5eba1cfa110835ab42ebd4165c6d"
+  }
+ ]
+}
