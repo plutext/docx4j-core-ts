@@ -327,7 +327,9 @@ trip; docx4j's `RunPropertiesWord365Test`, `OnOffAttributesTest` (every `Boolean
 and `ColourNormalFormOptOutTest`; D8's warnings and save report; and check 60's file (`check60Bytes`, `test/fixtures/check60/`, built
 from 25 of the probes) and snippet, run through the shim and held to Word 365's run (`60-runprops-word365.json`), the WordApiDesktop
 properties the shim lacks held to the resolver; and check 61's (`check61Bytes`, `test/fixtures/check61/`: the sixteen highlight names
-read and written) through the shim, held to Word 365's run with the objects table's 39 differences listed,
+read and written) through the shim, held to Word 365's run with the objects table's 39 differences listed; and check 62's
+(`check62Bytes`, `test/fixtures/check62/`: 7,225 colours written to a highlight, for Word's snapping rule) through the shim, and
+Word's run (`62-highlight-snap-word365.json`) pinned where it speaks plainly (the grey and channel ramps),
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

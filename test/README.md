@@ -4813,3 +4813,31 @@ async function check() {
      highlight by a rule not yet known (`#A9A9A9` `darkGray`, `#123456` `darkCyan`), never as a shading. The shim
      differs in 39 of the 63 cases, all the objects package's table; CR-015 section 12 has the detail.
 
+62. Word's rule for the highlight a written colour becomes (CR-015 section 12.2, 2026-10-24; Jason, through the objects
+   session: "write check 62", "so we can see whether there is a simple rule"). Check 61 found Office JS storing any
+   `#RRGGBB` as one of the sixteen highlight colours, but not always the nearest. The file is
+   `__tmp/62/62-highlight-snap.docx` on the share, as `fixtures/check62/build.mjs` writes it (git ignores the `.docx`;
+   `check62Bytes` gives a test the same bytes). The snippet is beside it, `check62-script-lab.html` and
+   `check62-script-lab.js` (WordApi 1.3), copies of `fixtures/check62/`'s.
+   - **The file:** a title, then 7,225 paragraphs, each holding one colour as six hex digits (a 16-level grid, the grey
+     ramp, single-channel ramps, and the neighbourhoods of `#A9A9A9` and `#123456`).
+   - **What it does:** sets each paragraph's `font.highlightColor` to its colour, 400 at a time, reads each back, and for
+     every 97th takes the stored `w:highlight` from `getOoxml()`. **The writes change the document**: close it without
+     saving. It takes a few minutes; the status line counts the batches.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/62/62-highlight-snap.docx`. Say whether Word reports a problem or offers a repair.
+     2. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/62/check62-script-lab.html` over the HTML tab and `__tmp/62/check62-script-lab.js` over the Script tab.
+     3. Click **Run the check**, once, and wait for Done (about 7,000 colours). Copy the box into a new file
+        `__tmp/62/result.txt`. The box holds one long line, so use Ctrl+A in it, then Ctrl+C.
+     4. Close the document **without saving**.
+   - **What this package gives** (`runprops-word365.test.mjs` runs the snippet through the Word shim): a colour of the
+     objects package's table is stored as its name, and any other is refused. What it should do is objects CR-014's H4,
+     which the run decides.
+   - **Run 2026-10-24 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), no repair, closed without saving.** The JSON is
+     `fixtures/check62/62-highlight-snap-word365.json`. Every colour is stored as one of the sixteen. The grey ramp is four
+     bands (`00` black, `40` darkGray, `A0` lightGray, `E0` white), but for `#A9A9A9`, CSS's `darkgray`, which is darkGray. A
+     single channel over `00` is its dark colour up to `C0` and its bright one above; a single channel under `FF`, with the
+     others at `FF`, is the colour, never white. It is the nearest in RGB for only 61% of the colours. The rule is the
+     objects session's to fit (CR-015 section 12.2).
+

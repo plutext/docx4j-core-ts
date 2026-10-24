@@ -856,3 +856,86 @@ test('check 61 through the Word shim: the objects package\'s highlight table, re
   }
   assert.equal(ours.writes.filter((w) => w.set !== undefined).length, 12);
 });
+
+// ---------------------------------------------------------------- check 62 (CR-015 section 12.2): Word's snap to the palette
+
+const { check62Bytes, CHECK62_POINTS, CHECK62_FAMILIES } = await import('./fixtures/check62/build.mjs');
+
+async function check62() {
+  const source = readFileSync(new URL('./fixtures/check62/check62-script-lab.js', import.meta.url), 'utf8');
+  return new Function(`${source}\nreturn CHECK62;`)();
+}
+
+test('check 62: its file holds each colour once, a paragraph each, as the snippet reads them', async () => {
+  const { parse } = await check62();
+  assert.deepEqual(Object.fromEntries(Object.entries(CHECK62_FAMILIES).map(([k, v]) => [k, v.length])),
+    { grid: 4096, grey: 256, rampsOn00: 768, rampsOnFF: 768, aroundA9A9A9: 729, around123456: 729 });
+  assert.equal(CHECK62_POINTS.length, 7225, 'distinct');
+  for (const c of ['A9A9A9', '123456', '808080', 'C0C0C0', '000000', 'FFFFFF']) assert.ok(CHECK62_POINTS.includes(c), c);
+  const pkg = await WordprocessingMLPackage.load(check62Bytes());
+  const texts = (await pkg.getBody()).paragraphs.map((p) => p.text);
+  assert.equal(parse(texts[0]), null, 'the title');
+  assert.deepEqual(texts.slice(1).map(parse), CHECK62_POINTS.map((c) => `#${c}`));
+});
+
+// What the Word shim gives (the objects package's table): a colour of the table is stored as its name and read back as
+// itself; any other is refused. objects CR-014's H4 decides what it should do, from Word's run.
+test('check 62 through the Word shim: the objects package\'s table, exact values only', async () => {
+  const { runCheck, SPOT } = await check62();
+  const pkg = await WordprocessingMLPackage.load(check62Bytes());
+  await pkg.getBody();
+  const ours = await runCheck((f) => Word.run(pkg, f), 'core-ts');
+  assert.equal(ours.points.length, CHECK62_POINTS.length);
+  const table = ['000000', '0000FF', '00FFFF', '008000', 'FF00FF', 'FF0000', 'FFFF00', 'FFFFFF', '00008B', '008B8B', '006400', '8B008B',
+    '8B0000', 'FFD700', 'A9A9A9', 'D3D3D3'];
+  const accepted = ours.points.filter((p) => typeof p[2] !== 'string');
+  assert.deepEqual(accepted.map((p) => p[0]).sort(), table.filter((c) => CHECK62_POINTS.includes(c)).sort());
+  for (const p of accepted) assert.equal(p[1], p[0], `${p[0]} reads back as itself`);
+  for (const p of ours.points.filter((q) => typeof q[2] === 'string')) {
+    assert.match(p[2], /Not a highlight colour/, p[0]);
+    assert.equal(p[1], null, `${p[0]}: no highlight`);
+  }
+  assert.deepEqual(ours.points[0], ['000000', '000000', { stored: 'black' }], `every ${SPOT}th point also gives the name stored`);
+});
+
+/** Word 365's run of check 62 (Jason, 2026-10-24; Word 16.0.20326.20232, PC; no repair, closed without saving). */
+const CHECK62_WORD = JSON.parse(readFileSync(new URL('./fixtures/check62/62-highlight-snap-word365.json', import.meta.url), 'utf8'));
+
+// What Word's run says outright; the rule behind it is for objects CR-014's H4 to find (CR-015 section 12.2).
+test('check 62 (Word 365): every colour is stored as one of the sixteen, the grey ramp and the channel ramps as measured', () => {
+  const PALETTE = { '000000': 'black', '0000FF': 'blue', '00FFFF': 'cyan', '00FF00': 'green', 'FF00FF': 'magenta', 'FF0000': 'red', 'FFFF00': 'yellow',
+    'FFFFFF': 'white', '000080': 'darkBlue', '008080': 'darkCyan', '008000': 'darkGreen', '800080': 'darkMagenta', '800000': 'darkRed',
+    '808000': 'darkYellow', '808080': 'darkGray', 'C0C0C0': 'lightGray' };
+  assert.deepEqual(CHECK62_WORD.host, { host: 'Word', version: '16.0.20326.20232', platform: 'PC' });
+  assert.deepEqual(CHECK62_WORD.points.map((p) => p[0]), CHECK62_POINTS, 'every colour, in order');
+  assert.ok(CHECK62_WORD.points.every((p) => PALETTE[p[1]] !== undefined), 'each read back as one of the sixteen');
+  assert.ok(CHECK62_WORD.points.every((p) => p.length === 2 || typeof p[2] === 'object'), 'none refused');
+  const spots = CHECK62_WORD.points.filter((p) => p.length === 3);
+  assert.equal(spots.length, 75);
+  assert.ok(spots.every((p) => p[2].stored === PALETTE[p[1]]), 'the name stored is the colour read back\'s');
+  const word = new Map(CHECK62_WORD.points);
+  for (const c of Object.keys(PALETTE)) if (word.has(c)) assert.equal(word.get(c), c, `${c} is itself`);
+  const h2 = (v) => v.toString(16).toUpperCase().padStart(2, '0');
+  const boundaries = (colour) => {
+    const out = [];
+    for (let v = 0; v < 256; v++) {
+      const name = PALETTE[word.get(colour(h2(v)))];
+      if (out.length === 0 || out[out.length - 1][1] !== name) out.push([h2(v), name]);
+    }
+    return out.map(([v, name]) => `${v} ${name}`).join(', ');
+  };
+  // the grey ramp: four bands, and #A9A9A9 (CSS's darkgray) alone darkGray inside lightGray's
+  assert.equal(boundaries((v) => v + v + v), '00 black, 40 darkGray, A0 lightGray, A9 darkGray, AA lightGray, E0 white');
+  // one channel on 00: any but 00 is the dark colour up to C0, the bright one above; on FF, anything below FF is the colour
+  assert.equal(boundaries((v) => `${v}0000`), '00 black, 01 darkRed, C1 red');
+  assert.equal(boundaries((v) => `00${v}00`), '00 black, 01 darkGreen, C1 green');
+  assert.equal(boundaries((v) => `0000${v}`), '00 black, 01 darkBlue, C1 blue');
+  assert.equal(boundaries((v) => `${v}FFFF`), '00 cyan, FF white');
+  assert.equal(boundaries((v) => `FF${v}FF`), '00 magenta, FF white');
+  assert.equal(boundaries((v) => `FFFF${v}`), '00 yellow, FF white');
+  // and not the nearest in RGB: Word's answer is among the nearest (ties counted) for 4,393 of the 7,225
+  const rgb = (h) => [0, 2, 4].map((i) => Number.parseInt(h.substr(i, 2), 16));
+  const distance = (a, b) => rgb(a).reduce((s, v, i) => s + (v - rgb(b)[i]) ** 2, 0);
+  const amongNearest = ([colour, answer]) => distance(colour, answer) === Math.min(...Object.keys(PALETTE).map((p) => distance(colour, p)));
+  assert.equal(CHECK62_WORD.points.filter(amongNearest).length, 4393);
+});

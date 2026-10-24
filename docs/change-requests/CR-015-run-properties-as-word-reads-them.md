@@ -710,6 +710,8 @@ other names is unmeasured. The objects session agreed it should be measured both
 fix probably has two parts: an objects CR giving `readRunOptions`, `applyRunOptions` and `highlightNameForColor` Office
 JS's values, and a docx4j counterpart if Word's palette differs from docx4j's. Jason, 2026-10-24: "write check 61".
 
+### 12.1 Check 61
+
 **Check 61** (`test/fixtures/check61/`; the share's `__tmp/61/`; written and run 2026-10-24):
 - **Reads:** a run in each of `w:highlight`'s sixteen names, one in `none`, and one with a character shading
   (`w:shd w:fill="FFFF00"`), each read through `font.highlightColor`.
@@ -768,4 +770,69 @@ both. A test holds the shim to Word's run with those 39 listed, so that the obje
   input (CSS's 147 names in any case, or a hex in any case), stores a palette value's own name, uses check 61's ten
   measured snaps as data, and refuses anything else, `darkYellow` included. By its count all 63 cases then agree. When
   it is released, this package raises the range and empties `CHECK61_DIFFERS`.
+
+### 12.2 Check 62: Word's rule for the highlight a colour becomes
+
+Jason, 2026-10-24, relayed by the objects session: "write check 62", Word's rule for snapping a hex to the highlight
+palette, "so we can see whether there is a simple rule". It decides objects CR-014's H4: whether `applyRunOptions` can
+take any hex, as Office JS does, and store the name Word would. The objects session found no rule that fits check 61's
+ten points: nearest in RGB (euclidean, Manhattan, by the largest channel), luma-weighted RGB, HLS distance and
+per-channel thresholds to `00`, `80` and `FF` each miss at least two, always `#A9A9A9` (Word: `darkGray`, nearest
+`lightGray`) and `#123456` (Word: `darkCyan`, nearest `darkBlue`).
+
+**Check 62** (`test/fixtures/check62/`; the share's `__tmp/62/`; written and run 2026-10-24). The design is the
+objects session's suggestion:
+- **The file:** a title, then one paragraph per colour, its text the colour's six hex digits: 7,225 colours.
+  - the grid, 16 levels per channel (`00`, `11`, ..., `FF`): 4,096;
+  - the grey ramp in steps of 1, for where `black`, `darkGray`, `lightGray` and `white` meet: 256;
+  - each channel's ramp with the other two at `00`, and again at `FF`: 768 each;
+  - every colour within 8 of check 61's two counterexamples, per channel, in steps of 2: 729 each.
+- **The snippet** sets each paragraph's `font.highlightColor` to its colour, 400 to a sync, and reads each back. A batch
+  that fails is done one by one. For every 97th colour it also takes the `w:highlight` Word stored from the paragraph's
+  `getOoxml()`, since check 61 showed the sixteen palette values and the names map one to one. Its output is compact,
+  `[written, read back]` per colour. The writes change the document, which is closed without saving.
+- **Through the Word shim** a colour of the objects table is stored as its name, and every other is refused. A test
+  holds the file and snippet to each other and pins that.
+- **The rule** is the objects session's to find, testing candidates against the run (distance metrics, colour spaces,
+  Word's own 16-colour quantisation). If none fits every point, H4 falls back to the measured colours as a lookup table.
+
+**Run 2026-10-24** (Jason; Word 365, 16.0.20326.20232, PC; Script Lab; no repair; closed without saving). The JSON is
+`fixtures/check62/62-highlight-snap-word365.json`. Every colour was taken, with no refusal, and read back as one of the
+sixteen. The 75 colours whose stored `w:highlight` was read hold the name of the colour read back, and each palette
+colour among the points is itself. What the data shows outright, which a test pins:
+- **The grey ramp** (`R = G = B`): `00` to `3F` black, `40` to `9F` darkGray, `A0` to `DF` lightGray, `E0` to `FF`
+  white. The one exception is `#A9A9A9`, CSS's `darkgray`, which is darkGray inside lightGray's band (check 61's
+  counterexample, alone: `#A8A8A8` and `#AAAAAA` are lightGray). So Word appears to know some colours by name before any
+  rule applies.
+- **One channel, the other two `00`:** any value but `00` gives the dark colour up to `C0` and the bright one above it
+  (`#010000` is darkRed, not black; `#C10000` red).
+- **One channel, the other two `FF`:** anything below `FF` gives the colour (`#FEFFFF` is cyan, not white).
+- **Not nearest in RGB:** Word's answer is among the nearest palette colours, ties counted, for 4,393 of the 7,225
+  (61%).
+- **Not hue alone:** a hue-sector rule (the nearest of the six hues, dark at a value of `C0` and below, exact greys by
+  the ramp's bands) misses about 2,000. Low-saturation colours go to a grey (`#8888BB` lightGray, `#333355` darkGray),
+  and some near a sector's edge go to its neighbour (`#CC0011` magenta).
+
+Sent to the objects session for the fitting (2026-10-24). **Its fit** (objects CR-014 section 2.1, unpushed when
+written) agrees on 7,075 of the 7,225:
+- **the hue** is Windows' `ColorRGBToHLS` integer hue (`HLSMAX` 240): red below 20, yellow 20 to 60, green 61 to 100,
+  cyan 101 to 140, blue 141 to 179, magenta from 180. Every hue decision fits, `#0A325C` among them (cyan at integer
+  hue 140, where the float hue is 210.7°);
+- **dark** where `max + min` is `C0` or less, else bright: every decision fits;
+- **greys** by `(max + min) / 2` at `40`, `A0` and `E0`, with `#A9A9A9` alone darkGray, matched by name first;
+- **grey or colour:** an HLS saturation below 120 of 240 is the best single test, and still misses 149. No measure of
+  saturation or chroma tried separates them: the edge bends with hue and lightness.
+
+Its H4 recommendation became that rule plus check 62's 149 grey-edge answers as data: exact on every measured colour
+(the 4,096 CSS three-digit colours among them), approximate only near the grey edge elsewhere. A check 63 of that edge
+would follow only if a consumer needs it.
+
+**Decided 2026-10-24** (Jason: "CR-015 accept recs for decisions H1 to H4"): objects CR-014's H1 to H4 as recommended.
+- H1: one table, Word's palette.
+- H2: Office JS's input.
+- H3: CSS's 147 names.
+- H4: the fitted rule plus check 62's 149 grey-edge answers as data, with no check 63 unless a consumer needs it.
+
+Passed to the objects session the same day. When CR-014 is released, this package raises the range, empties
+`CHECK61_DIFFERS`, and holds the shim to checks 61 and 62.
 
