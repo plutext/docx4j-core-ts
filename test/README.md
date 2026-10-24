@@ -4783,3 +4783,33 @@ async function check() {
      resolver on every marker, and `underlineColor` is the `w:u`'s own colour where it states one (even with no underline
      drawn), else the text's under an underline, else `#000000`. CR-015 section 11.6 has the detail.
 
+61. Word's highlight palette through Office JS, read and written (CR-015 section 12, 2026-10-24; Jason: "write check 61").
+   Check 60 found Office JS reading Word's green highlight `#00FF00` where the objects package's table (docx4j's) has
+   `#008000`. This measures all sixteen names before that table changes. The file is `__tmp/61/61-highlights.docx` on the
+   share, as `fixtures/check61/build.mjs` writes it (git ignores the `.docx`; `check61Bytes` gives a test the same bytes).
+   The snippet is beside it, `check61-script-lab.html` and `check61-script-lab.js` (WordApi 1.3), copies of
+   `fixtures/check61/`'s.
+   - **The file:** a paragraph `READ <name>: R_<name> (end)` for each of the sixteen highlight names, `none` and a character
+     shading, the marker run carrying it; then 45 paragraphs `WRITE <n> <value>: W<nn> (end)`, each marker plain (the
+     last highlighted yellow, for the null write).
+   - **What it does:** reads each READ marker's `font.highlightColor`; sets each WRITE marker's `font.highlightColor` to the
+     value its label shows (the names; Word's usual palette; the objects table's other values; `#00ff00`, `Yellow`;
+     `#123456` and `#FF8000`; `null`), then reads it back and takes the run's `w:highlight` and `w:shd` from the range's
+     `getOoxml()`. **The writes change the document**: close it without saving.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/61/61-highlights.docx`. Say whether Word reports a problem or offers a repair.
+     2. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/61/check61-script-lab.html` over the HTML tab and `__tmp/61/check61-script-lab.js` over the Script tab.
+     3. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/61/result.txt`.
+     4. Close the document **without saving**.
+   - **What this package gives** (`runprops-word365.test.mjs` runs the snippet through the Word shim): the objects
+     package's table. Each name reads its value there (`green` `#008000`, `darkBlue` `#00008B`, `darkYellow` `#FFD700`,
+     ...), a value of the table writes its name, and the other 12 values are refused.
+   - **Run 2026-10-24 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), no repair, closed without saving.** The JSON is
+     `fixtures/check61/61-highlights-word365.json`. Office JS reads Word's palette (`green` `#00FF00`, `darkBlue`
+     `#000080`, `darkCyan` `#008080`, `darkGreen` `#008000`, `darkMagenta` `#800080`, `darkRed` `#800000`, `darkYellow`
+     `#808000`, `darkGray` `#808080`, `lightGray` `#C0C0C0`; the bright ones and black and white as the table). Written, a
+     name is a CSS colour name (`green` stores `darkGreen`; `darkYellow` is refused) and any hex is stored as the nearest
+     highlight by a rule not yet known (`#A9A9A9` `darkGray`, `#123456` `darkCyan`), never as a shading. The shim
+     differs in 39 of the 63 cases, all the objects package's table; CR-015 section 12 has the detail.
+

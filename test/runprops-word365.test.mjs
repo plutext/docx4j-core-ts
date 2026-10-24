@@ -770,3 +770,89 @@ test('check 60 (Word 365): allCaps, smallCaps, hidden, emboss, engrave, outline,
   assertNone(diffs);
   assert.equal(n, 337, 'every marker but the three hidden ones');
 });
+
+// ---------------------------------------------------------------- check 61 (CR-015 section 12): Word's highlight palette
+
+const { check61Bytes, CHECK61, CHECK61_READS } = await import('./fixtures/check61/build.mjs');
+
+async function check61Run() {
+  const pkg = await WordprocessingMLPackage.load(check61Bytes());
+  await pkg.getBody();
+  return CHECK61.runCheck((f) => Word.run(pkg, f), 'core-ts');
+}
+
+test('check 61: its file holds a paragraph for every case of its snippet, each marker in it once', async () => {
+  const pkg = await WordprocessingMLPackage.load(check61Bytes());
+  const texts = (await pkg.getBody()).paragraphs.map((p) => p.text);
+  const cases = texts.map((t) => CHECK61.parse(t)).filter((c) => c !== null);
+  assert.deepEqual(cases.filter((c) => c.read !== undefined).map((c) => c.read), CHECK61_READS.map(([label]) => label.substring('READ '.length)));
+  assert.deepEqual(cases.filter((c) => c.write !== undefined).map((c) => c.write), CHECK61.WRITES.map((_, n) => n));
+  for (const c of cases) assert.equal(texts.filter((t) => t.includes(c.marker)).length, 1, c.marker);
+  assert.deepEqual(CHECK61.NAMES, [...HIGHLIGHT_VALUES].filter((v) => v !== 'none'), 'the sixteen names of ST_HighlightColor');
+});
+
+/** Word 365's run of check 61 (Jason, 2026-10-24; Word 16.0.20326.20232, PC; no repair, closed without saving). */
+const CHECK61_WORD = JSON.parse(readFileSync(new URL('./fixtures/check61/61-highlights-word365.json', import.meta.url), 'utf8'));
+
+/**
+ * Where the Word shim reads or writes otherwise than Office JS, every one the objects package's (CR-015 section 12): it
+ * reads docx4j's Highlight.getHexVal() table where Office JS reads Word's palette (nine names), writes a w:highlight name
+ * as itself where Office JS takes a CSS colour name (`green` is CSS's #008000, so darkGreen; `darkYellow` none), and
+ * refuses a hex outside its table where Office JS stores the nearest highlight. Asserted as it stands, so that the
+ * objects fix announces itself.
+ */
+const CHECK61_DIFFERS = [
+  'read green', 'read darkBlue', 'read darkCyan', 'read darkGreen', 'read darkMagenta', 'read darkRed', 'read darkYellow',
+  'read darkGray', 'read lightGray',
+  'write "green"', 'write "darkBlue"', 'write "darkCyan"', 'write "darkGreen"', 'write "darkMagenta"', 'write "darkRed"',
+  'write "darkYellow"', 'write "darkGray"', 'write "lightGray"',
+  'write "#00FF00"', 'write "#000080"', 'write "#008080"', 'write "#008000"', 'write "#800080"', 'write "#800000"',
+  'write "#808000"', 'write "#808080"', 'write "#C0C0C0"',
+  'write "#00008B"', 'write "#008B8B"', 'write "#006400"', 'write "#8B008B"', 'write "#8B0000"', 'write "#FFD700"',
+  'write "#A9A9A9"', 'write "#D3D3D3"', 'write "#00ff00"', 'write "Yellow"', 'write "#123456"', 'write "#FF8000"',
+];
+
+test('check 61 (Word 365): the Word shim reads and writes highlights as Office JS does, but where the objects package\'s table differs', async () => {
+  const ours = await check61Run();
+  assert.deepEqual(CHECK61_WORD.host, { host: 'Word', version: '16.0.20326.20232', platform: 'PC' });
+  assert.deepEqual([CHECK61_WORD.reads.length, CHECK61_WORD.writes.length], [ours.reads.length, ours.writes.length]);
+  // Office JS: Word's palette, read; a CSS colour, written, stored as the nearest highlight (w:shd never)
+  assert.deepEqual(Object.fromEntries(CHECK61_WORD.reads.map((r) => [r.name, r.highlightColor ?? null])), {
+    black: '#000000', blue: '#0000FF', cyan: '#00FFFF', green: '#00FF00', magenta: '#FF00FF', red: '#FF0000', yellow: '#FFFF00',
+    white: '#FFFFFF', darkBlue: '#000080', darkCyan: '#008080', darkGreen: '#008000', darkMagenta: '#800080', darkRed: '#800000',
+    darkYellow: '#808000', darkGray: '#808080', lightGray: '#C0C0C0', none: null, shd: null,
+  });
+  assert.ok(CHECK61_WORD.writes.every((w) => w.stored.shd === null), 'no write stores a shading');
+  const differs = [];
+  for (const [i, w] of CHECK61_WORD.reads.entries()) {
+    if ((ours.reads[i].highlightColor ?? null) !== (w.highlightColor ?? null)) differs.push(`read ${w.name}`);
+  }
+  const reading = (x) => JSON.stringify([x.set === undefined ? 'ok' : 'refused', x.highlightColor ?? null, x.stored?.highlight ?? null]);
+  for (const [i, w] of CHECK61_WORD.writes.entries()) {
+    assert.equal(ours.writes[i].value, w.value);
+    if (reading(ours.writes[i]) !== reading(w)) differs.push(`write ${JSON.stringify(w.value)}`);
+  }
+  assert.deepEqual(differs, CHECK61_DIFFERS);
+});
+
+// What the Word shim gives (the objects package's table, which is docx4j's Highlight.getHexVal()): a name reads its
+// value there, a value of the table writes its name, and any other value is refused.
+test('check 61 through the Word shim: the objects package\'s highlight table, read and written', async () => {
+  const ours = await check61Run();
+  const table = { black: '#000000', blue: '#0000FF', cyan: '#00FFFF', green: '#008000', magenta: '#FF00FF', red: '#FF0000', yellow: '#FFFF00',
+    white: '#FFFFFF', darkBlue: '#00008B', darkCyan: '#008B8B', darkGreen: '#006400', darkMagenta: '#8B008B', darkRed: '#8B0000',
+    darkYellow: '#FFD700', darkGray: '#A9A9A9', lightGray: '#D3D3D3' };
+  assert.deepEqual(Object.fromEntries(ours.reads.map((r) => [r.name, r.highlightColor])), { ...table, none: null, shd: null });
+  const byHex = Object.fromEntries(Object.entries(table).map(([name, hex]) => [hex, name]));
+  for (const w of ours.writes) {
+    const name = w.value === null ? null : table[w.value] !== undefined ? w.value : byHex[w.value];
+    if (w.value !== null && name === undefined) {
+      assert.match(w.set, /Not a highlight colour/, `${w.value} is refused`);
+      assert.deepEqual([w.highlightColor, w.stored], [null, { highlight: null, shd: null }], `${w.value}: the run unchanged`);
+    } else {
+      assert.equal(w.set, undefined, String(w.value));
+      assert.deepEqual([w.highlightColor, w.stored], [name === null ? null : table[name], { highlight: name, shd: null }], String(w.value));
+    }
+  }
+  assert.equal(ours.writes.filter((w) => w.set !== undefined).length, 12);
+});

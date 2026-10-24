@@ -701,3 +701,71 @@ On objects `7feac7f` (phases A and B) and then `b2c9163` (A to C), each packed f
    set identical to `b2c9163`'s, part for part (508 files with check 60's, 8,901 parts), so the tarball is what was
    verified.
 
+## 12. Follow-up: Word's highlight palette (check 61)
+
+Check 60's one difference (section 11.6) is in the objects package's highlight table. `readRunOptions` and
+`applyRunOptions` speak Office JS's vocabulary, and the table they use is docx4j's `Highlight.getHexVal()`: CSS's
+values, `green` `008000`, and `darkYellow` gold. Office JS read Word's `green` as `#00FF00`. Word's palette for the
+other names is unmeasured. The objects session agreed it should be measured both ways before the table changes, and the
+fix probably has two parts: an objects CR giving `readRunOptions`, `applyRunOptions` and `highlightNameForColor` Office
+JS's values, and a docx4j counterpart if Word's palette differs from docx4j's. Jason, 2026-10-24: "write check 61".
+
+**Check 61** (`test/fixtures/check61/`; the share's `__tmp/61/`; written and run 2026-10-24):
+- **Reads:** a run in each of `w:highlight`'s sixteen names, one in `none`, and one with a character shading
+  (`w:shd w:fill="FFFF00"`), each read through `font.highlightColor`.
+- **Writes:** `font.highlightColor` set to each name; to Word's palette as it is usually given (`WdColorIndex`: `000080`,
+  `008080`, `008000`, `800080`, `800000`, `808000`, `808080`, `C0C0C0` and the eight bright ones); to the objects
+  table's values that differ (`00008B`, `008B8B`, `006400`, `8B008B`, `8B0000`, `FFD700`, `A9A9A9`, `D3D3D3`); to
+  `#00ff00` and `Yellow`, for case; to `#123456` and `#FF8000`, in neither; and to `null` on a highlighted run. Each is
+  read back, and the run's `w:highlight` and `w:shd` taken from the range's `getOoxml()`, so it says which name Word
+  stores for each value, and whether it stores a shading for a value outside the palette. The writes change the
+  document, which is closed without saving.
+- **Through the Word shim:** each name reads the objects table's value; a value of the table writes its name; the other
+  12 values are refused (`Not a highlight colour`), as `applyRunOptions` refuses a colour it has no name for.
+
+**Run 2026-10-24** (Jason; Word 365, 16.0.20326.20232, PC; Script Lab; no repair; closed without saving). The JSON is
+`fixtures/check61/61-highlights-word365.json`.
+- **Read:** Office JS reports Word's palette, `WdColorIndex`'s: `black` `#000000`, `blue` `#0000FF`, `cyan` `#00FFFF`,
+  `green` `#00FF00`, `magenta` `#FF00FF`, `red` `#FF0000`, `yellow` `#FFFF00`, `white` `#FFFFFF`, `darkBlue` `#000080`,
+  `darkCyan` `#008080`, `darkGreen` `#008000`, `darkMagenta` `#800080`, `darkRed` `#800000`, `darkYellow` `#808000`,
+  `darkGray` `#808080`, `lightGray` `#C0C0C0`; `none` and a character shading read `null`. Nine names differ from the
+  objects (docx4j) table: `green` and the eight dark and grey ones.
+- **Written, a name is a CSS colour name, not a `w:highlight` name**, in any case, snapped to the palette:
+  - `green` is CSS's `#008000`, so Word stores `darkGreen`;
+  - `darkBlue`, `darkCyan`, `darkGreen`, `darkMagenta`, `darkRed`, `darkGray` and `lightGray` are CSS's values, which
+    snap to the same-named highlights;
+  - `Yellow` is `yellow`;
+  - `darkYellow`, which is not a CSS name, is refused (`InvalidArgument`).
+- **Written, a hex** in any case is stored as a highlight, never as a shading.
+  - Word's 16 palette values store their names exactly.
+  - Every other value snaps to some palette entry: the objects table's eight to the same names (`#FFD700` to
+    `yellow`); `#123456` to `darkCyan`; `#FF8000` to `yellow`.
+  - The snap is not the nearest in RGB: `#A9A9A9` goes to `darkGray` (`#808080`) though `lightGray` (`#C0C0C0`) is
+    nearer, and `#123456` to `darkCyan` though `darkBlue` is nearer. With ten points its rule is not known.
+- **`null`** removes the highlight.
+
+So the shim differs in 39 of the 63 cases, each by the objects package's table or its write rule: the nine reads; the
+nine names that aren't the bright ones, `darkYellow` included; the nine palette hex values and `#008000`, written; the
+objects table's own eight values, which Office JS snaps to Word's palette; `#00ff00` and `Yellow`; and the two outside
+both. A test holds the shim to Word's run with those 39 listed, so that the objects fix announces itself.
+
+**For the objects CR** (the objects session's to write, with Jason; told 2026-10-24):
+- `readRunOptions` should read Word's palette;
+- `applyRunOptions` and `highlightNameForColor` should take Office JS's input: a CSS colour name, any case (the 140
+  names of `WORD_COLOR_NAMES`, or CSS's full list: unmeasured beyond these), or a hex in any case;
+- it should store a palette value's own name. Snapping any other value needs Word's rule, which check 61 doesn't give;
+  refusing such a value, as now, is the safe interim.
+- **docx4j:** its `Highlight.getHexVal()` had the same nine values, so its HTML and PDF drew a dark or grey highlight in
+  CSS's colour, not Word's (`darkYellow` gold, where Word draws `#808000`). It followed the same day, in `a3cfc9789`
+  (local, unpushed when written; its CR-060 section 14, `HighlightPaletteTest`):
+  - `getHexVal()` gives Word's palette;
+  - `setVal("#RRGGBB")` takes Word's values first, then the former CSS ones as aliases (`#D3D3D3` is still `lightGray`;
+    `#008000` is now `darkGreen`), exact values only, with no nearest-colour snap;
+  - `setVal("none")` keeps `none`.
+
+  The parity goldens record `w:highlight` as written, not a colour, so this moves none of them.
+- **objects CR-014** (`e277637`, proposed; H1 to H4 Jason's) gives `HIGHLIGHT_COLORS` Word's palette, takes Office JS's
+  input (CSS's 147 names in any case, or a hex in any case), stores a palette value's own name, uses check 61's ten
+  measured snaps as data, and refuses anything else, `darkYellow` included. By its count all 63 cases then agree. When
+  it is released, this package raises the range and empties `CHECK61_DIFFERS`.
+

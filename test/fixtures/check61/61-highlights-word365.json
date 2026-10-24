@@ -1,0 +1,554 @@
+{
+ "check": 61,
+ "label": "Simple Markup",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "reads": [
+  {
+   "name": "black",
+   "marker": "R_black",
+   "highlightColor": "#000000"
+  },
+  {
+   "name": "blue",
+   "marker": "R_blue",
+   "highlightColor": "#0000FF"
+  },
+  {
+   "name": "cyan",
+   "marker": "R_cyan",
+   "highlightColor": "#00FFFF"
+  },
+  {
+   "name": "green",
+   "marker": "R_green",
+   "highlightColor": "#00FF00"
+  },
+  {
+   "name": "magenta",
+   "marker": "R_magenta",
+   "highlightColor": "#FF00FF"
+  },
+  {
+   "name": "red",
+   "marker": "R_red",
+   "highlightColor": "#FF0000"
+  },
+  {
+   "name": "yellow",
+   "marker": "R_yellow",
+   "highlightColor": "#FFFF00"
+  },
+  {
+   "name": "white",
+   "marker": "R_white",
+   "highlightColor": "#FFFFFF"
+  },
+  {
+   "name": "darkBlue",
+   "marker": "R_darkBlue",
+   "highlightColor": "#000080"
+  },
+  {
+   "name": "darkCyan",
+   "marker": "R_darkCyan",
+   "highlightColor": "#008080"
+  },
+  {
+   "name": "darkGreen",
+   "marker": "R_darkGreen",
+   "highlightColor": "#008000"
+  },
+  {
+   "name": "darkMagenta",
+   "marker": "R_darkMagenta",
+   "highlightColor": "#800080"
+  },
+  {
+   "name": "darkRed",
+   "marker": "R_darkRed",
+   "highlightColor": "#800000"
+  },
+  {
+   "name": "darkYellow",
+   "marker": "R_darkYellow",
+   "highlightColor": "#808000"
+  },
+  {
+   "name": "darkGray",
+   "marker": "R_darkGray",
+   "highlightColor": "#808080"
+  },
+  {
+   "name": "lightGray",
+   "marker": "R_lightGray",
+   "highlightColor": "#C0C0C0"
+  },
+  {
+   "name": "none",
+   "marker": "R_none",
+   "highlightColor": null
+  },
+  {
+   "name": "shd",
+   "marker": "R_SHD",
+   "highlightColor": null
+  }
+ ],
+ "writes": [
+  {
+   "n": 0,
+   "value": "black",
+   "marker": "W00",
+   "highlightColor": "#000000",
+   "stored": {
+    "highlight": "black",
+    "shd": null
+   }
+  },
+  {
+   "n": 1,
+   "value": "blue",
+   "marker": "W01",
+   "highlightColor": "#0000FF",
+   "stored": {
+    "highlight": "blue",
+    "shd": null
+   }
+  },
+  {
+   "n": 2,
+   "value": "cyan",
+   "marker": "W02",
+   "highlightColor": "#00FFFF",
+   "stored": {
+    "highlight": "cyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 3,
+   "value": "green",
+   "marker": "W03",
+   "highlightColor": "#008000",
+   "stored": {
+    "highlight": "darkGreen",
+    "shd": null
+   }
+  },
+  {
+   "n": 4,
+   "value": "magenta",
+   "marker": "W04",
+   "highlightColor": "#FF00FF",
+   "stored": {
+    "highlight": "magenta",
+    "shd": null
+   }
+  },
+  {
+   "n": 5,
+   "value": "red",
+   "marker": "W05",
+   "highlightColor": "#FF0000",
+   "stored": {
+    "highlight": "red",
+    "shd": null
+   }
+  },
+  {
+   "n": 6,
+   "value": "yellow",
+   "marker": "W06",
+   "highlightColor": "#FFFF00",
+   "stored": {
+    "highlight": "yellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 7,
+   "value": "white",
+   "marker": "W07",
+   "highlightColor": "#FFFFFF",
+   "stored": {
+    "highlight": "white",
+    "shd": null
+   }
+  },
+  {
+   "n": 8,
+   "value": "darkBlue",
+   "marker": "W08",
+   "highlightColor": "#000080",
+   "stored": {
+    "highlight": "darkBlue",
+    "shd": null
+   }
+  },
+  {
+   "n": 9,
+   "value": "darkCyan",
+   "marker": "W09",
+   "highlightColor": "#008080",
+   "stored": {
+    "highlight": "darkCyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 10,
+   "value": "darkGreen",
+   "marker": "W10",
+   "highlightColor": "#008000",
+   "stored": {
+    "highlight": "darkGreen",
+    "shd": null
+   }
+  },
+  {
+   "n": 11,
+   "value": "darkMagenta",
+   "marker": "W11",
+   "highlightColor": "#800080",
+   "stored": {
+    "highlight": "darkMagenta",
+    "shd": null
+   }
+  },
+  {
+   "n": 12,
+   "value": "darkRed",
+   "marker": "W12",
+   "highlightColor": "#800000",
+   "stored": {
+    "highlight": "darkRed",
+    "shd": null
+   }
+  },
+  {
+   "n": 13,
+   "value": "darkYellow",
+   "marker": "W13",
+   "set": "error: InvalidArgument",
+   "highlightColor": null,
+   "stored": {
+    "highlight": null,
+    "shd": null
+   }
+  },
+  {
+   "n": 14,
+   "value": "darkGray",
+   "marker": "W14",
+   "highlightColor": "#808080",
+   "stored": {
+    "highlight": "darkGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 15,
+   "value": "lightGray",
+   "marker": "W15",
+   "highlightColor": "#C0C0C0",
+   "stored": {
+    "highlight": "lightGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 16,
+   "value": "#000000",
+   "marker": "W16",
+   "highlightColor": "#000000",
+   "stored": {
+    "highlight": "black",
+    "shd": null
+   }
+  },
+  {
+   "n": 17,
+   "value": "#0000FF",
+   "marker": "W17",
+   "highlightColor": "#0000FF",
+   "stored": {
+    "highlight": "blue",
+    "shd": null
+   }
+  },
+  {
+   "n": 18,
+   "value": "#00FFFF",
+   "marker": "W18",
+   "highlightColor": "#00FFFF",
+   "stored": {
+    "highlight": "cyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 19,
+   "value": "#00FF00",
+   "marker": "W19",
+   "highlightColor": "#00FF00",
+   "stored": {
+    "highlight": "green",
+    "shd": null
+   }
+  },
+  {
+   "n": 20,
+   "value": "#FF00FF",
+   "marker": "W20",
+   "highlightColor": "#FF00FF",
+   "stored": {
+    "highlight": "magenta",
+    "shd": null
+   }
+  },
+  {
+   "n": 21,
+   "value": "#FF0000",
+   "marker": "W21",
+   "highlightColor": "#FF0000",
+   "stored": {
+    "highlight": "red",
+    "shd": null
+   }
+  },
+  {
+   "n": 22,
+   "value": "#FFFF00",
+   "marker": "W22",
+   "highlightColor": "#FFFF00",
+   "stored": {
+    "highlight": "yellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 23,
+   "value": "#FFFFFF",
+   "marker": "W23",
+   "highlightColor": "#FFFFFF",
+   "stored": {
+    "highlight": "white",
+    "shd": null
+   }
+  },
+  {
+   "n": 24,
+   "value": "#000080",
+   "marker": "W24",
+   "highlightColor": "#000080",
+   "stored": {
+    "highlight": "darkBlue",
+    "shd": null
+   }
+  },
+  {
+   "n": 25,
+   "value": "#008080",
+   "marker": "W25",
+   "highlightColor": "#008080",
+   "stored": {
+    "highlight": "darkCyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 26,
+   "value": "#008000",
+   "marker": "W26",
+   "highlightColor": "#008000",
+   "stored": {
+    "highlight": "darkGreen",
+    "shd": null
+   }
+  },
+  {
+   "n": 27,
+   "value": "#800080",
+   "marker": "W27",
+   "highlightColor": "#800080",
+   "stored": {
+    "highlight": "darkMagenta",
+    "shd": null
+   }
+  },
+  {
+   "n": 28,
+   "value": "#800000",
+   "marker": "W28",
+   "highlightColor": "#800000",
+   "stored": {
+    "highlight": "darkRed",
+    "shd": null
+   }
+  },
+  {
+   "n": 29,
+   "value": "#808000",
+   "marker": "W29",
+   "highlightColor": "#808000",
+   "stored": {
+    "highlight": "darkYellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 30,
+   "value": "#808080",
+   "marker": "W30",
+   "highlightColor": "#808080",
+   "stored": {
+    "highlight": "darkGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 31,
+   "value": "#C0C0C0",
+   "marker": "W31",
+   "highlightColor": "#C0C0C0",
+   "stored": {
+    "highlight": "lightGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 32,
+   "value": "#00008B",
+   "marker": "W32",
+   "highlightColor": "#000080",
+   "stored": {
+    "highlight": "darkBlue",
+    "shd": null
+   }
+  },
+  {
+   "n": 33,
+   "value": "#008B8B",
+   "marker": "W33",
+   "highlightColor": "#008080",
+   "stored": {
+    "highlight": "darkCyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 34,
+   "value": "#006400",
+   "marker": "W34",
+   "highlightColor": "#008000",
+   "stored": {
+    "highlight": "darkGreen",
+    "shd": null
+   }
+  },
+  {
+   "n": 35,
+   "value": "#8B008B",
+   "marker": "W35",
+   "highlightColor": "#800080",
+   "stored": {
+    "highlight": "darkMagenta",
+    "shd": null
+   }
+  },
+  {
+   "n": 36,
+   "value": "#8B0000",
+   "marker": "W36",
+   "highlightColor": "#800000",
+   "stored": {
+    "highlight": "darkRed",
+    "shd": null
+   }
+  },
+  {
+   "n": 37,
+   "value": "#FFD700",
+   "marker": "W37",
+   "highlightColor": "#FFFF00",
+   "stored": {
+    "highlight": "yellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 38,
+   "value": "#A9A9A9",
+   "marker": "W38",
+   "highlightColor": "#808080",
+   "stored": {
+    "highlight": "darkGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 39,
+   "value": "#D3D3D3",
+   "marker": "W39",
+   "highlightColor": "#C0C0C0",
+   "stored": {
+    "highlight": "lightGray",
+    "shd": null
+   }
+  },
+  {
+   "n": 40,
+   "value": "#00ff00",
+   "marker": "W40",
+   "highlightColor": "#00FF00",
+   "stored": {
+    "highlight": "green",
+    "shd": null
+   }
+  },
+  {
+   "n": 41,
+   "value": "Yellow",
+   "marker": "W41",
+   "highlightColor": "#FFFF00",
+   "stored": {
+    "highlight": "yellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 42,
+   "value": "#123456",
+   "marker": "W42",
+   "highlightColor": "#008080",
+   "stored": {
+    "highlight": "darkCyan",
+    "shd": null
+   }
+  },
+  {
+   "n": 43,
+   "value": "#FF8000",
+   "marker": "W43",
+   "highlightColor": "#FFFF00",
+   "stored": {
+    "highlight": "yellow",
+    "shd": null
+   }
+  },
+  {
+   "n": 44,
+   "value": null,
+   "marker": "W44",
+   "highlightColor": null,
+   "stored": {
+    "highlight": null,
+    "shd": null
+   }
+  }
+ ]
+}
