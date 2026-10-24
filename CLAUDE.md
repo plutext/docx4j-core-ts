@@ -49,7 +49,9 @@ text model's rows and cells in the selected branch, `mcePreprocess: true` over t
 the tracked-change listing in the selected branch, a view in a branch read-only; the mutators in every branch, a listed
 change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (ranges across paragraphs, as Office JS's: checks
 52 and 53 run in Word 365; one `Range` with two ends, its reads and its writes held to Word's runs and saves through the
-Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54). The editor's release requests are
+Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54), and CR-008 phase 2 (docx4j's colour resolver,
+`org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
+as Word draws it). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -104,6 +106,10 @@ src/model/properties/ PropertyResolver, the property catalogue (one entry per sc
                   tableStyleConditions.mts (namespace TableStyleConditions) and table.mts (TableContext, CellContext, TableContextTracker): a table style reaches a paragraph only through its CellContext (CR-007)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
+src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColor, ThemeColors (ofTheme sync; `await ThemeColors.of(pkg or part)`,
+                  forChart; a themeless package the bundled theme pkg.fonts.defaultTheme names), WordColors (of, ofBorder, ofUnderline, fill, pattern),
+                  DrawingMLColors (transforms in document order, style references), SpreadsheetColors, StyleFill; ColorMath is docx4j's arithmetic
+                  in its order (the luminance rounding depends on it); PropertyResolver.getThemeColors() and resolveColor/resolveFill/... use them
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout, spanEdits.mts its writes across paragraphs), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
                   ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
@@ -235,7 +241,8 @@ Key mechanics:
   kind as Word's does. `Font` and `Paragraph` reads report **effective**
   formatting through the `PropertyResolver` (and, for `Font.name`, the `RunFontSelector`); `Font` reads every run in scope
   (a paragraph's: the runs of its text), `null`, `''` or `Mixed` where they differ, a paragraph with no text its mark, an
-  automatic colour `#000000`, as Office JS (CR-002 section 59);
+  automatic colour `#000000`, as Office JS (CR-002 section 59), a theme colour the colour Word draws (CR-008 phase 2; the
+  direct view keeps `w:val`);
   `{ direct: true }` on `getFont` / `formatting` reads the direct values, and writes are always
   direct. In a table cell the effective reads pass the paragraph's `cellContext`, so they include
   the table style and its conditional formats (CR-007). `test/office-js-subset.ts` must stay assignable: it is the Office JS promise.
@@ -299,6 +306,10 @@ Word's, and each section 61 rule,
 to each other; Word 365's run (its JSON beside the build, its saves in `test/check57/`, with a SHA-1 manifest), the shim's run held to
 Word's case for case, this package's save after the run and Word's, each accepted and rejected here, held to Word's saves region for
 region, the readers on Word's saves, and section 62.3's rules (a `w:fldSimple` split, an equation deleted under tracking),
+`theme-colors.test.mjs` CR-008 phase 2's: docx4j's colour vectors (`test/theme-colors/`, copied unedited with a SHA-1 manifest,
+outside `fixtures/`), every probe case resolved through its host's `ThemeColors` and held to Office's reading at docx4j's bar and to
+docx4j's own tallies family by family, docx4j's `ThemeColorsTest` and `ThemeColourOutputTest`'s resolver cases, and `Font.color` on the
+probes against what Word drew,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

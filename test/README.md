@@ -170,6 +170,16 @@ readers, kept and resolved. Since phase 3 it also holds the mutators to docx4j's
 `TrackedChangesAlternateContentTest`, built in memory as docx4j builds them, and to every branch. They are
 kept outside `fixtures/` for the reason the suite is.
 
+## The theme colour vectors (`theme-colors/`, CR-008 phase 2)
+
+docx4j's vectors for its colour resolver (`org.docx4j.model.color`, its CR-034), copied unedited from docx4j at
+`1fffc20a3` (added in `3dbe4eee5`, Apache-2.0): seven probe files of 1,068 labelled cases (WordprocessingML colours whose
+written value disagrees with their theme reference, a swapped `w:clrSchemeMapping`, 403 DrawingML transform cases in Word and
+in PowerPoint, SpreadsheetML theme, tint and indexed fills, a slide's colour map override), what Word, PowerPoint and Excel 365
+drew for each (`readings.tsv`), and the 117 distinct tint and shade triples of four real-document corpora (`word-tint-shade.tsv`).
+Their `README.md` describes them; `manifest.json` gives each file's SHA-1, which `theme-colors.test.mjs` checks. Kept outside
+`fixtures/` so that no fixture-wide test or harness counts the probes.
+
 ## Check 52's Word saves (`check52/`, CR-014 phase 0)
 
 Word 365's two saves of check 52's file after its Script Lab run (2026-10-22): `52-ranges-word365.docx` as the run left

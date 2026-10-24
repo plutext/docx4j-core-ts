@@ -389,10 +389,11 @@ export class Range {
       return new MixedFont(() => {
         const resolver = this.paragraph.parentBody.propertyResolver;
         const selector = runFontSelectorOf(this.paragraph.parentBody.package_);
+        const themeColors = options?.direct === true ? undefined : resolver.getThemeColors();
         return this.pieces().flatMap((piece) => piece.runs.map((run) => {
         const rPr = options?.direct === true ? run.value.rPr
           : resolver.getEffectiveRPr(run.value.rPr, piece.paragraph.p.pPr, piece.paragraph.cellContext);
-          return readingOf(rPr, options?.direct !== true, options?.direct === true ? undefined : selector?.asciiFontName(rPr));
+          return readingOf(rPr, options?.direct !== true, options?.direct === true ? undefined : selector?.asciiFontName(rPr), themeColors);
         }));
       }, (opts) => {
         // every run in it and every mark it holds (CR-014 phase 2, check 52)
@@ -417,7 +418,8 @@ export class Range {
     if (options?.direct === true) return new Font(holders, () => this.paragraph.fontTracking(), undefined, undefined, mark);
     return new Font(holders, () => this.paragraph.fontTracking(),
       (rPr) => this.paragraph.parentBody.propertyResolver.getEffectiveRPr(rPr, this.paragraph.p.pPr, this.paragraph.cellContext),
-      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr), mark);
+      (rPr) => runFontSelectorOf(this.paragraph.parentBody.package_)?.asciiFontName(rPr), mark,
+      () => this.paragraph.parentBody.propertyResolver.getThemeColors());
   }
 
   /** The runs the span covers (a run partly inside counts). */

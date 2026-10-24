@@ -361,10 +361,9 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
   // here, where Word, with no glossary part, reads null; Word's showingPlaceholderText came back undefined
   const placeholder = ['control.placeholderText', 'showingPlaceholderText'];
   const styleOther = ['paragraph.style', 'paragraph.styleBuiltIn', 'whole.style', 'whole.styleBuiltIn'];
+  // every colour is Word's (CR-002 section 59), automatic ones #000000, and Heading 1's theme colour (accent1, shaded)
+  // read through the theme, #0F4761, not the w:val beside it (CR-008 phase 2); so is every font read where runs differ
   assert.deepEqual(differing, {
-    // Heading 1's theme colour (accent1, shaded) read through the theme, which is CR-008 phase 2's: #0F4761 in Word, the
-    // w:val here. Every other colour, automatic ones #000000, and every font read where runs differ are Word's (CR-002 section 59)
-    3: ['font.color'], 4: ['font.color'], 5: ['font.color'],
     // a paragraph after a nested table in a cell, whose style isn't Normal: Word's 'Other', not followed
     10: styleOther, 12: styleOther,
     // tracked changes in Simple Markup. A change's text here is docx4j's, as All Markup reads it, where Simple Markup
@@ -380,6 +379,8 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
   });
   // the colour across two paragraphs whose runs' colours differ: '' (MixedFont), as Word's
   assert.equal(flat(ours.cases[0].reads)['font.color'], flat(word.cases[0].reads)['font.color']);
+  // Heading 1's w:color 365F91 under themeColor accent1 and themeShade BF, over the created package's Office 2023 theme
+  for (const n of [3, 4, 5]) assert.deepEqual([flat(ours.cases[n - 1].reads)['font.color'], flat(word.cases[n - 1].reads)['font.color']], ['#0F4761', '#0F4761'], `case ${n}`);
   // the changes' text is All Markup's
   for (const n of [25, 28, 30]) assert.equal(ours.cases[n - 1].reads.region[0].text, all.cases[n - 1].reads.region[0].text, `case ${n}`);
 });

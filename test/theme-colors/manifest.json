@@ -1,0 +1,55 @@
+{
+ "docx4j": {
+  "commit": "1fffc20a3eb74daa8a2a08d9fed6572eb7662df0",
+  "branch": "VERSION_17_3_5",
+  "added": "3dbe4eee5",
+  "path": "docx4j-core-tests/src/test/resources/theme-colors/",
+  "licence": "Apache-2.0"
+ },
+ "files": [
+  {
+   "name": "README.md",
+   "sha1": "1160075f9f6e50be38b7d8333cce514049399dde"
+  },
+  {
+   "name": "cases.tsv",
+   "sha1": "ac522b1c34f7ad09bd17bf72771524ba6a8d11a0"
+  },
+  {
+   "name": "readings.tsv",
+   "sha1": "d69d5fe58d5669a4de59e559a460896fe25f410e"
+  },
+  {
+   "name": "tc-p1-precedence.docx",
+   "sha1": "f6d75415b8f439de0c4d28a83b5fb6bc53f8b6de"
+  },
+  {
+   "name": "tc-p2-colour-map.docx",
+   "sha1": "a35e1797850bc81fcbde4f7018bdf0d41e61e4ef"
+  },
+  {
+   "name": "tc-p3-transforms.docx",
+   "sha1": "2adf2fe9fda8a0a3faeb5ca1ad913cbbad6ce7ac"
+  },
+  {
+   "name": "tc-p3-transforms.pptx",
+   "sha1": "e2163264d779a2ad4121501abd390b724a884e32"
+  },
+  {
+   "name": "tc-p4-spreadsheet-palette.xlsx",
+   "sha1": "c57f1a5092e1f150eec780eee64db564259d95a0"
+  },
+  {
+   "name": "tc-p4-spreadsheet.xlsx",
+   "sha1": "182aec5707161791a60e3f2f81ef443009a870e6"
+  },
+  {
+   "name": "tc-p5-map-override.pptx",
+   "sha1": "9e3eac40719eaf2a0739ecd23cd07993e80bdda4"
+  },
+  {
+   "name": "word-tint-shade.tsv",
+   "sha1": "834365f4878d19638e0124aaeda097de5523f2e2"
+  }
+ ]
+}

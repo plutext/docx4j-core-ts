@@ -35,11 +35,18 @@
 // where the style states none and they state one.  docx4j's synthetic style ids (`styleIdFor`,
 // `syntheticStyle`, `sourceStyleOf`) serve its HTML and FO XSLT pathways and are not ported.
 //
+// **Colours** (CR-008 phase 2, docx4j CR-034).  A resolved colour's `w:themeColor` (or a shading's
+// `w:themeFill`) is what Word draws, the value beside it a cache which can be stale: `resolveColor`
+// and its siblings give the colour drawn, in the document's `getThemeColors()` (its theme part, or
+// the bundled theme `pkg.fonts.defaultTheme` names where it has none, and the settings'
+// `w:clrSchemeMapping`).  The effective properties themselves keep the attributes as written.
+//
 // **Live objects.** What the style overloads and `getEffectivePPr(pPr)` return is cached and
 // shared: copy it before changing it.  The cached objects share no leaf with the styles part,
 // and resolution writes nothing into the part (test/properties.test.mjs proves it by
 // marshalling the part before and after).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { Docx4JException, PartUnmarshalException } from '../../opc/exceptions.mjs';
 import { log } from './log.mjs';
@@ -49,6 +56,10 @@ import {
   hasDirectFormattingPPr, hasDirectFormattingRPr, isCyclic, isEmptyStyle,
 } from './styleUtil.mjs';
 import { CellContext, TableContext, enclosingCellOf } from './table.mjs';
+import { ThemeColors } from '../color/ThemeColors.mjs';
+import { WordColors } from '../color/WordColors.mjs';
+import type { ResolvedColor } from '../color/ResolvedColor.mjs';
+import { themeOfSettings, type DefaultTheme, type FontSettings } from '../fonts/defaultTheme.mjs';
 
 /** The parts the resolver reads. Structural, so this module imports no part class. */
 export interface ResolverSource {
@@ -58,9 +69,14 @@ export interface ResolverSource {
   numbering?: wml.Numbering;
   /**
    * The settings part's `w:settings`, or undefined: read for the compatibility mode and
-   * `overrideTableStyleFontSizeAndJustification` (CR-007). A document with none is in mode 12.
+   * `overrideTableStyleFontSizeAndJustification` (CR-007), and `w:clrSchemeMapping` (CR-008).
+   * A document with none is in mode 12.
    */
   settings?: wml.CTSettings;
+  /** The theme part's `a:theme`, or undefined where the package has none (CR-008). */
+  theme?: dml.Theme;
+  /** The bundled theme a package with no theme part is read as having; `defaultThemeSetting()`'s where undefined. */
+  defaultTheme?: DefaultTheme;
 }
 
 /** As much of an `XmlPart<T>` as the resolver uses. */
@@ -76,7 +92,9 @@ interface PackageLike {
     styleDefinitionsPart?: ReadablePart<wml.Styles>;
     numberingDefinitionsPart?: ReadablePart<wml.Numbering>;
     documentSettingsPart?: ReadablePart<wml.CTSettings>;
+    themePart?: ReadablePart<dml.Theme>;
   };
+  fonts?: FontSettings;
 }
 
 /** The cache key for "no style" (a styles part with no default paragraph style). */
@@ -258,11 +276,24 @@ export class PropertyResolver {
     } catch (e) {
       log.warn(`The settings part could not be read; taking compatibility mode ${DEFAULT_COMPATIBILITY_MODE}: ${String(e)}`);
     }
+    // the theme, for its colours (CR-008), privately too; where there is none, or it can't be read, the bundled theme
+    // the package names, parsed now so that getThemeColors() needn't wait
+    const themePart = main.themePart;
+    let privateTheme: dml.Theme | undefined;
+    try {
+      privateTheme = themePart === undefined ? undefined : await themePart.readContents();
+    } catch (e) {
+      log.warn(`The theme part could not be read; its colours are the default theme's: ${String(e)}`);
+    }
+    const defaultTheme = themeOfSettings((pkg as PackageLike).fonts);
+    await ThemeColors.loadDefaultTheme(defaultTheme);
     return new PropertyResolver(
       () => ({
         styles: stylesPart?.isUnmarshalled === true ? stylesPart.contents : privateStyles,
         numbering: numberingPart?.isUnmarshalled === true ? numberingPart.contents : privateNumbering,
         settings: settingsPart?.isUnmarshalled === true ? settingsPart.contents : privateSettings,
+        theme: themePart?.isUnmarshalled === true ? themePart.contents : privateTheme,
+        defaultTheme,
       }),
       () => stylesPart !== undefined && !stylesPart.isUnmarshalled,
     );
@@ -362,8 +393,54 @@ export class PropertyResolver {
     this.vanishCache.clear();
     this.clearTableCaches();
     this.missingLogged.clear();
+    this.themeColors = undefined;
     this.source = this.provider();
     this.init();
+  }
+
+  // ------------------------------------------------------------------ colours (CR-008 phase 2)
+
+  private themeColors: ThemeColors | undefined;
+
+  /**
+   * The document's theme colours: its theme part (or the bundled theme `pkg.fonts.defaultTheme` names where it has
+   * none) and the settings' `w:clrSchemeMapping`. Read once per `refresh()`. A resolver made `fromSource` with no
+   * theme parses the bundled one, which needs the objects package's context built (`ThemeColors.loadDefaultTheme()`).
+   */
+  getThemeColors(): ThemeColors {
+    this.themeColors ??= ThemeColors.ofTheme(this.source.theme, this.source.defaultTheme)
+      .withWordMapping(this.source.settings?.clrSchemeMapping);
+    return this.themeColors;
+  }
+
+  /**
+   * The colour Word draws for a run's `w:color`: its theme reference where it has one (the value beside it is a
+   * cache), else its value.
+   *
+   * @returns undefined for automatic: the caller's default (black text, as a rule)
+   */
+  resolveColor(color: wml.Color | undefined): ResolvedColor | undefined {
+    return WordColors.of(color, this.getThemeColors());
+  }
+
+  /** A border's colour, as {@link resolveColor}; undefined for automatic. docx4j `resolveColor(CTBorder)`. */
+  resolveBorderColor(border: wml.CTBorder | undefined): ResolvedColor | undefined {
+    return WordColors.ofBorder(border, this.getThemeColors());
+  }
+
+  /** An underline's colour, as {@link resolveColor}; undefined for automatic (the text's). docx4j `resolveColor(U)`. */
+  resolveUnderlineColor(u: wml.U | undefined): ResolvedColor | undefined {
+    return WordColors.ofUnderline(u, this.getThemeColors());
+  }
+
+  /** A shading's fill (`w:fill`, `w:themeFill`); undefined for automatic. */
+  resolveFill(shd: wml.CTShd | undefined): ResolvedColor | undefined {
+    return WordColors.fill(shd, this.getThemeColors());
+  }
+
+  /** A shading's pattern colour (`w:color`, `w:themeColor`); undefined for automatic. */
+  resolvePatternColor(shd: wml.CTShd | undefined): ResolvedColor | undefined {
+    return WordColors.pattern(shd, this.getThemeColors());
   }
 
   // ------------------------------------------------------------------ defaults

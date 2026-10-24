@@ -1,6 +1,8 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { applyRunOptions, readRunOptions, type RunOptions, type RunFormatting, type UnderlineType } from '@docx4j/generated-objects-ts/builders/wml';
 import type { ChangeTracker } from './tracking.mjs';
+import { WordColors } from '../color/WordColors.mjs';
+import type { ThemeColors } from '../color/ThemeColors.mjs';
 
 export type { UnderlineType };
 
@@ -31,12 +33,20 @@ export function markHolderOf(p: wml.P): RPrHolder {
 }
 
 /**
- * A run's reading from its properties: an automatic colour (`w:val="auto"`, or none) `#000000` in the effective view,
- * as Office JS reads it (check 53; CR-002 section 59), and `name` its document font where one is given.
+ * A run's reading from its properties: in the effective view a theme colour the colour Word draws, given the
+ * document's theme colours (`w:themeColor`, tint and shade, over the `w:val` beside it, which is a cache: check 53,
+ * CR-008 phase 2), and an automatic colour (`w:val="auto"`, or none) `#000000`, as Office JS reads them (CR-002
+ * section 59); and `name` its document font where one is given.
  */
-export function readingOf(rPr: wml.RPr | undefined, effective: boolean, name?: string): RunReading {
+export function readingOf(rPr: wml.RPr | undefined, effective: boolean, name?: string, themeColors?: ThemeColors): RunReading {
   const formatting = readRunOptions(rPr);
-  if (effective && (formatting.color === '' || formatting.color === 'auto')) formatting.color = '#000000';
+  if (effective) {
+    const themed = rPr?.color?.themeColor;
+    const drawn = themed === undefined || themed === null || themed === 'none' || themeColors === undefined
+      ? undefined : WordColors.of(rPr!.color, themeColors);
+    if (drawn !== undefined) formatting.color = `#${drawn.toHex()}`;
+    else if (formatting.color === '' || formatting.color === 'auto') formatting.color = '#000000';
+  }
   return { formatting, name: name ?? formatting.name };
 }
 
@@ -51,7 +61,8 @@ export function readingOf(rPr: wml.RPr | undefined, effective: boolean, name?: s
  * underline. Office JS's own types say `boolean` and `number` there, and so do these. With no run in
  * scope, a paragraph with no text reads its mark's run properties (`w:pPr/w:rPr`, check 52 case 60),
  * and an empty range its paragraph's style. An automatic colour (`w:val="auto"`, or none) reads
- * `#000000` in the effective view, as Office JS reads it (check 53).
+ * `#000000` in the effective view, and a theme colour the colour Word draws (CR-008 phase 2), as Office JS reads them
+ * (check 53).
  *
  * **Writes are always direct**, and apply to every run in scope. Both directions go through
  * the objects package's one name-to-`w:rPr` mapping (`builders/wml` applyRunOptions /
@@ -77,15 +88,18 @@ export class Font {
     private readonly asciiFontName?: (rPr: wml.RPr | undefined) => string | undefined,
     /** The paragraph mark, read where no run is in scope: a paragraph with no text (CR-002 section 59). */
     private readonly mark?: () => RPrHolder | undefined,
+    /** The document's theme colours, which a theme colour is read through (CR-008 phase 2); absent for a direct view. */
+    private readonly themeColors?: () => ThemeColors | undefined,
   ) {}
 
   /** Each run in scope, read; the mark's properties where there is none, else the paragraph's style's. */
   protected readings(): RunReading[] {
     let holders = this.holders(false);
     if (holders.length === 0) holders = [this.mark?.() ?? {}];
+    const themeColors = this.effective ? this.themeColors?.() : undefined;
     return holders.map((h) => {
       const rPr = this.effective ? this.effective(h.rPr) : h.rPr;
-      return readingOf(rPr, this.effective !== undefined, this.asciiFontName?.(rPr));
+      return readingOf(rPr, this.effective !== undefined, this.asciiFontName?.(rPr), themeColors);
     });
   }
 
@@ -136,8 +150,10 @@ export class Font {
   get size(): number { return this.value('size') as number; }
   set size(v: number) { this.apply({ size: v }); }
   /**
-   * '#RRGGBB', `#000000` for automatic in the effective view, or the raw value (a theme colour name) when it is not
-   * a hex triple; in the direct view '' when not set; '' where the runs differ.
+   * '#RRGGBB': in the effective view the colour Word draws, so a theme colour (`w:themeColor`, with its tint or shade)
+   * through the document's theme, as Office JS reads it (check 53; CR-008 phase 2), and `#000000` for automatic; in
+   * the direct view `w:val` as written, '' when not set; the raw value where it is not a hex triple and no theme
+   * colour applies; '' where the runs differ.
    */
   get color(): string { return (this.value('color') ?? '') as string; }
   set color(v: string) { this.apply({ color: v }); }

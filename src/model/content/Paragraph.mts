@@ -320,7 +320,8 @@ export class Paragraph {
     if (options?.direct === true) return new Font(holders, () => this.fontTracking(), undefined, undefined, mark);
     return new Font(holders, () => this.fontTracking(),
       (rPr) => this.parentBody.propertyResolver.getEffectiveRPr(rPr, this.p.pPr, this.cellContext),
-      (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr), mark);
+      (rPr) => runFontSelectorOf(this.parentBody.package_)?.asciiFontName(rPr), mark,
+      () => this.parentBody.propertyResolver.getThemeColors());
   }
 
   /** w14:paraId, the stable address Word gives paragraphs. */

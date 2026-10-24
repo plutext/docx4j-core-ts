@@ -2,7 +2,8 @@
 
 **Status:** Proposed 2026-10-12, on docx4j CR-034's hand-off (the docx4j session, 2026-10-12).
 Phase 1 (the merge rules) implemented 2026-10-12, at Jason's request relayed by the docx4j-python
-session (section 6), **released in 0.5.0** (2026-10-19); phase 2 (the resolver) is new scope, not scheduled.
+session (section 6), **released in 0.5.0** (2026-10-19). Phase 2 (the resolver) implemented 2026-10-24 at
+Jason's request, the whole package with `Font.color` drawn (section 7; D1 and D2 decided the same day), not released.
 
 ## 1. Why
 
@@ -119,6 +120,13 @@ proposed until a consumer describes TOC formatting.
   repository's goldens from the sibling checkout. It asked for the goldens at docx4j `2e381ef26` or
   later, regenerated in a commit of their own.
 
+- **2026-10-24: phase 2 scheduled** (Jason: "implement CR-008 phase 2"), and two questions decided the
+  same day, both as recommended:
+  - **D1, scope:** the whole of `org.docx4j.model.color` as section 3 lists it, all three hosts and
+    `StyleFill`, held to all 1,068 vectors and the corpus triples; not the Word half first.
+  - **D2, the direct view:** `getFont({ direct: true }).color` keeps `w:val` as written; only the
+    effective view reads a theme colour through the theme.
+
 ## 6. Phase 1 as implemented (2026-10-12)
 
 `catalogue.mts` follows `StyleUtil` at docx4j `2e381ef26` (`VERSION_17_3_3`, local and not pushed
@@ -161,3 +169,93 @@ weekly run will not open that pull request. The thirteen commits after `2e381ef2
 the classes ported here. They are charts (CR-035 phases 2 to 4, CR-036 phase 1), the
 `xlsx4j` cell writers, output-side work (HTML, and section 4's TOC hyperlink style as an output
 preprocess step, `c24c676ad`), and line endings in `EmbeddedPackagePart`.
+
+## 7. Phase 2 as implemented (2026-10-24)
+
+Ported from docx4j `VERSION_17_3_5` at `1fffc20a3`, where `org.docx4j.model.color` is unchanged since
+`691620fb7` (the luminance rounding, 2026-10-13), class for class, under `src/model/color/` and exported from
+`.` and `./model`: `ResolvedColor`, `ThemeColors`, `DrawingMLColors`, `WordColors`, `SpreadsheetColors`,
+`StyleFill`, with `ColorMath` and `ColorTables` internal as in docx4j.
+
+**The arithmetic** is docx4j's expression for expression, in the same order (Java's integer division is
+`Math.trunc` of the quotient; nothing simplified), as section 3's follow-up asks. JS numbers are IEEE doubles,
+and the result bears that out: every probe's tally, family by family, is the one docx4j's own
+`ThemeColourProbesTest` prints at `1fffc20a3` (section 7.2).
+
+### 7.1 Names and departures
+
+docx4j's names, with the CLAUDE.md naming rule's changes:
+
+- getters are properties (`ResolvedColor.red`, `alpha`, `isOpaque`; `StyleFill.kind`, `color`, `fill`;
+  `ThemeColors.formatScheme`, `placeholder`), and docx4j's `null` is `undefined`. `StyleFill.Kind` is its
+  names as strings (`'SOLID'`, ...), as the text model's enums are.
+- `ThemeColors.of(Theme)` is `ThemeColors.ofTheme(theme, defaultTheme?)`, synchronous. `of(WordprocessingMLPackage)`,
+  `of(SpreadsheetMLPackage)` and `of(Part)` are one `await ThemeColors.of(pkgOrPart)`, asynchronous because it
+  reads parts, with `readContents()`, so a theme or slide nobody edited still saves byte for byte. `forChart(chart)`
+  is asynchronous for the same reason. A themeless package's theme is the bundled one `pkg.fonts.defaultTheme`
+  names (docx4j's `docx4j.fonts.defaultTheme`); parsing it needs the objects context, which
+  `ThemeColors.loadDefaultTheme()` builds, so `ofTheme(undefined)` works synchronously once anything has been read.
+- docx4j's overloads by type become names: `WordColors.of(Color)`, `of(CTBorder)`, `of(U)` are `of`, `ofBorder`,
+  `ofUnderline` (the three objects can't be told apart by shape), and `PropertyResolver.resolveColor(Color)`,
+  `(CTBorder)`, `(U)` are `resolveColor`, `resolveBorderColor`, `resolveUnderlineColor`; `resolveFill`,
+  `resolvePatternColor` and `getThemeColors` keep their names.
+- `WordColors.luminance` and `SpreadsheetColors.tint`, package-private in docx4j, are public here: the corpus
+  test calls the first, as docx4j's test does.
+- `DrawingMLColors` knows an object by its `TYPE_NAME` (which unmarshalled and factory-built objects carry), by its
+  element name where it comes as `{ name, value }` (a `JAXBElement`'s counterpart), and a holder of a colour (a
+  scheme slot, a solid fill, a style or font reference) also by its `srgbClr`, `schemeClr`, ... member. docx4j
+  uses `instanceof`, which has no counterpart for plain objects.
+
+### 7.2 The PropertyResolver and `Font.color`
+
+`PropertyResolver.create` reads the theme part privately, as it reads the styles, numbering and settings parts,
+and parses the default theme the package names, so `getThemeColors()` is synchronous: the theme part (or the
+default theme) with the settings' `w:clrSchemeMapping`, made once per `refresh()`. `ResolverSource` gains `theme`
+and `defaultTheme`. The effective properties themselves are unchanged (they keep the attributes as written, as
+docx4j's do), so no parity golden moves.
+
+`Font.color` in the effective view reads a run's effective `w:color` through `WordColors`: where it has a theme
+reference, the colour Word draws (Word's own value where the `w:val` beside it is within one unit, a current
+cache; else the computation). An automatic colour still reads `#000000` (CR-002 section 59), and a value with no
+theme reference reads as before. The direct view is unchanged (D2). A range across paragraphs reads the same way.
+So check 53's cases 3 to 5, Heading 1's `w:color w:val="365F91" w:themeColor="accent1" w:themeShade="BF"` over the
+created package's Office 2023 theme, read `#0F4761`, as Word 365 does; `ranges.test.mjs` no longer lists them
+among check 53's differences, and asserts the colour. Nothing else in the content API reads a colour Office JS
+reports that a theme can give (the subset has no shading, border or underline colour reads).
+
+### 7.3 Tests
+
+`test/theme-colors/` is docx4j's `docx4j-core-tests/src/test/resources/theme-colors/`, copied unedited at
+`1fffc20a3` (added in `3dbe4eee5`, Apache-2.0), with a `manifest.json` of SHA-1s; outside `fixtures/`, so no
+fixture-wide test or harness counts its probes. `test/theme-colors.test.mjs` (18 tests):
+
+- docx4j's `ThemeColourProbesTest`: P3 in Word and in PowerPoint (403 cases each), P1, P2, P5, P4 and the corpus
+  triples, at docx4j's bar (exact, or within one unit where CR-034 records it; the luminance families exact but
+  T239; the saturation set on a grey the one family off) and, beyond it, **docx4j's tallies family by family**,
+  pinned from its run at `1fffc20a3`: P3 the same 40 families in both hosts (`lumMod` 16 exact and 1 within one,
+  `sat` 11, 2 and 2, ...), P1 exact but P1-10, P2, P4 and P5 exact, the corpus 76 exact and 41 within one of 117.
+- docx4j's `ThemeColorsTest`: a new docx has the Office 2023 theme; a themeless package takes the default theme
+  its `fonts.defaultTheme` names (2013's and 2007's both `4472C4`, CR-034 D2); the sheet indexes; a chart drawn
+  in its host's theme, with its `c:clrMapOvr` and its theme override part (built in memory: docx4j's
+  `charts/bar-chart.docx` is not among the fixtures); a slide, layout and master, and a part of a docx.
+- docx4j's `ThemeColourOutputTest`, its resolver cases: stale cache, a direct value, a theme reference with no value,
+  a current cache, `auto` beside a theme colour, shading, a border, an underline, made once, read again on refresh.
+- `Font.color`: the same document through the content API, effective and direct; and every P1 and P2 paragraph's
+  text read through `Body` against what Word drew (17 and 6; P2's `w:clrSchemeMapping` included). A themeless
+  package's resolver at the 2013 default theme.
+
+### 7.4 Findings
+
+1. **hexBinary is declared `string` and unmarshalled as bytes.** `a:sysClr/@lastClr` and SpreadsheetML's `rgb`
+   are `[0, 0, 0]` and `[255, 217, 87, 87]` at run time, where the objects package's declarations say `string`:
+   jsonix-schema-compiler maps hexBinary to `string` (its CR-005 table), and jsonix's `HexBinary` type
+   unmarshals to an array of bytes. The resolver reads either (`bytesOf`), and a test asserts the bytes, so a
+   change on either side shows. Not raised with the compiler or the objects package yet; Jason decides.
+2. docx4j's `WordColors.luminance` comment says "all 119 distinct ones in four corpora, 77 exact"; its vectors
+   hold 117 and its own test prints 76 exact and 41 within one, which is what is pinned here.
+3. docx4j's P2 test counts 21 "run text" readings: its loop takes every `w:p` whose text, text boxes included,
+   starts `P2-`, which is the six runs, the paragraph anchoring the shapes (its text starts with `P2-07`), and the
+   seven shapes' label paragraphs in each branch of their `mc:AlternateContent`. The probe's runs are the six the
+   `Font.color` test counts; not a defect.
+
+Full suite: 1,515 tests pass (1,497 before), typecheck clean.

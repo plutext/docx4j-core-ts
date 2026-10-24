@@ -7,6 +7,8 @@ export * from './properties/index.mjs';
 export * from './listnumbering/index.mjs';
 // CR-001 Phase B step 4: RunFontSelector, the Mapper and the default theme.
 export * from './fonts/index.mjs';
+// CR-008 phase 2: colours as Office draws them (ThemeColors, WordColors, DrawingMLColors, SpreadsheetColors).
+export * from './color/index.mjs';
 // CR-002 phase E: custom XML parts, XML mapping, the XPath engine, the typed content controls.
 export * from './customxml/index.mjs';
 // CR-012: the text model (Texts, the block model, plain text).
