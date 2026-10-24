@@ -7117,3 +7117,57 @@ which fits text typed into an emptied control taking the control's properties.
 Through the shim check 68 gives Word's answer in all 24 cases; it differed in 20. Checks 63 (run 2), 64 to 67 are as
 before, since their controls have no run properties of their own. `placeholders.test.mjs` holds the shim to check 68, and
 63.18's test now shows an entry in its own look under a control whose properties differ.
+
+### 63.22 Word's default entry for each kind of control (2026-10-25)
+
+Jason made one control of each kind from Word 365's Developer tab and saved it as `placeholders.docx` on the share,
+"for what Word does", to be told to docx4j. The file is kept here as
+`test/placeholder-defaults/placeholders-word365.docx`, SHA-1 `9cd6fb70…`, in a manifest. Its settings carry
+`w:formsDesign`, so Design Mode was on at the save, which bears on edits into a placeholder, not on what Word makes.
+
+Each control Word made names its kind's entry in `w:placeholder`, with `w:showingPlcHdr`. Each entry is in the glossary
+with the default entry's `w:docPartPr` and a `w:guid` of its own, its body one run in Placeholder Text:
+
+| Kind | Entry | Text |
+|---|---|---|
+| rich text, plain text | `DefaultPlaceholder_-1854013440` | Click or tap here to enter text. |
+| date picker | `DefaultPlaceholder_-1854013437` | Click or tap to enter a date. |
+| drop-down list, combo box | `DefaultPlaceholder_-1854013438` | Choose an item. |
+| building block gallery (`w:docPartList`) | `DefaultPlaceholder_-1854013436` | Choose a building block. |
+| repeating section item | `DefaultPlaceholder_-1854013435` | Enter any content that you want to repeat, … |
+
+- A picture has the flag over a stock picture and no entry.
+- A check box and a repeating section have neither.
+- Word gave each list control a first `w:listItem` of value "Choose an item.".
+- `-1854013439` is absent; the group, citation, equation, bibliography and `w:docPartObj` kinds weren't made.
+
+docx4j-25 read the file the same way, and docx4j's CR-063 took it as its D8. Jason decided it there ("D8 we go (a)",
+2026-10-25), and docx4j implemented it as its phase 4. This package follows, so the ports agree, uncommitted until Jason
+says commit.
+
+**What changes:**
+- `DEFAULT_ENTRIES` and `defaultEntryFor` (`placeholders.mts`), and `ContentControl.defaultPlaceholderEntry`, give a
+  control its kind's default.
+- **Where a default is given:** a control naming no entry, or one the glossary lacks, is given its kind's default
+  wherever it shows its placeholder. Until now only the text kinds got one.
+  - That covers the binding pass's empty value (`showsWordsFormPlaceholder`), a control emptied in Word's form, and
+    `insertContentControl` on an empty range, which now also makes a date picker, drop-down list or combo box show its
+    default.
+  - The entry is written into the glossary on save, where it lacks it.
+- **The setter:** `placeholderText` set to the kind's default text, or to '', names the kind's default entry.
+- **A kind Word gives no entry** (a picture, a check box, the unmeasured kinds), naming none, shows docx4j's run with no
+  reference, as before. One naming a missing entry keeps the name.
+- **Not done:** the list controls' first `w:listItem` isn't emulated (as docx4j), and the building block and repeating
+  section kinds aren't given a placeholder when made.
+- **D5, as docx4j:** `PLACEHOLDER_TEXT`, docx4j's run's text, is Word 365's "Click or tap here to enter text.", where it
+  was Word 2010's "Click here to enter text.". It now shows only for a kind Word gives no entry.
+
+**One difference from docx4j left:** docx4j gives each default entry the `w:guid` from `placeholders.docx`; this package
+gives each a new one.
+
+**Tests** (`placeholders.test.mjs`):
+- the table held to Word's file, control by control;
+- a date picker, the lists, a plain-text control and a check box made, the date picker emptied after a write, and the
+  glossary on save;
+- a picture showing docx4j's run;
+- a date picker naming a missing entry given its own default.

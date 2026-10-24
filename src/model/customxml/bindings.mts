@@ -16,9 +16,12 @@ import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { bindPicture } from './pictures.mjs';
 
-/** The style Word gives placeholder text, and the text docx4j's placeholder.xml carries. */
+/**
+ * The style Word gives placeholder text, and the text docx4j's placeholder.xml carries: Word 365's since docx4j's CR-063
+ * D5 (CR-002 section 63.22), where it was Word 2010's "Click here to enter text.".
+ */
 export const PLACEHOLDER_STYLE = 'PlaceholderText';
-export const PLACEHOLDER_TEXT = 'Click here to enter text.';
+export const PLACEHOLDER_TEXT = 'Click or tap here to enter text.';
 
 /** What `applyBindings` and `updateFromContentControls` report. */
 export interface BindingResult {

@@ -22,7 +22,7 @@ import {
 import { updateFromControl, holdsFlatOpc, placeholderRun, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { dropExcluded, forWriter, officeItems, type LineBreaks } from './officeText.mjs';
 import { declareIgnorable, markHolderDeleted, type ChangeTracker } from './tracking.mjs';
-import { placeholderEntryOf, namePlaceholderEntry, newEntryName, entryContentOf, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, type GlossaryEntries } from './placeholders.mjs';
+import { placeholderEntryOf, namePlaceholderEntry, newEntryName, entryContentOf, defaultEntryFor, DEFAULT_ENTRIES, type DefaultEntry, type GlossaryEntries } from './placeholders.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { commentReferencesIn } from './TrackedChange.mjs';
 import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
@@ -344,26 +344,30 @@ export class ContentControl {
 
   /**
    * @internal After a 'Content' delete, untracked, that left the control holding no text: in Word's form it shows its
-   * entry again (check 66 case 3); in the bare form Word's filler (D10; check 52's case 13), as for a control of another
-   * kind than text naming an entry the glossary lacks.
+   * entry again (check 66 case 3); in the bare form Word's filler (D10; check 52's case 13), as for a control of a kind
+   * Word gives no default entry, naming an entry the glossary lacks.
    */
   showEmptied(): void {
     if (this.isShowingPlaceholder || this.text !== '' || (this.form !== 'Block' && this.form !== 'Run')) return;
     const name = this.placeholderEntry;
-    if (name !== undefined && (this.isTextControl || this.glossary?.has(name) === true)) this.showPlaceholder(); else this.showFiller();
-  }
-
-  /** @internal A text control (untyped, rich text or plain text), whose default placeholder is Word's default entry. */
-  get isTextControl(): boolean {
-    return this.type === 'RichText' || this.type === 'PlainText';
+    if (name !== undefined && (this.defaultPlaceholderEntry !== undefined || this.glossary?.has(name) === true)) this.showPlaceholder(); else this.showFiller();
   }
 
   /**
-   * @internal Whether an empty control shows a placeholder in Word's form (D8; docx4j CR-063's D3): a text control, or one
-   * of another kind naming an entry the glossary holds.
+   * @internal Word's default placeholder entry for this control's kind (CR-002 section 63.22; docx4j CR-063's D8): the
+   * text kinds', the date picker's, the lists', a building block gallery's, a repeating section item's. Undefined for a
+   * kind Word gives none.
+   */
+  get defaultPlaceholderEntry(): DefaultEntry | undefined {
+    return defaultEntryFor(this.sdt.sdtPr);
+  }
+
+  /**
+   * @internal Whether an empty control shows a placeholder in Word's form (D8; docx4j CR-063's D3 and D8): a kind Word
+   * gives a default entry, or one naming an entry the glossary holds.
    */
   get showsWordsFormPlaceholder(): boolean {
-    if (this.isTextControl) return true;
+    if (this.defaultPlaceholderEntry !== undefined) return true;
     const name = this.placeholderEntry;
     return name !== undefined && name !== '' && this.glossary?.has(name) === true;
   }
@@ -416,26 +420,28 @@ export class ContentControl {
   /**
    * Shows the control's placeholder (CR-002 section 63, D8; section 63.18): a copy of the content of the entry its
    * `w:placeholder` names, as the glossary holds it, the control's own run properties not over it, as Word shows it
-   * (check 68, section 63.21), with `w:showingPlcHdr`. A control naming no entry,
-   * or a text control naming one the glossary lacks, is made to name Word's default entry, which is written into the
-   * glossary on save where it lacks it (D9), as docx4j's CR-063 has it: Word's save drops a reference no entry holds (check
-   * 65). A control of another kind keeps the name it has (the binding pass gives such a control docx4j's run instead), and
-   * so does any control until the glossary is read (`getBody`, `Word.run`); each shows Word's default text. An extension.
+   * (check 68, section 63.21), with `w:showingPlcHdr`. A control naming no entry, or one the glossary lacks, is made to
+   * name Word's default entry for its kind (section 63.22: a date picker's is "Click or tap to enter a date.", a list's
+   * "Choose an item."), which is written into the glossary on save where it lacks it (D9), as docx4j's CR-063 has it:
+   * Word's save drops a reference no entry holds (check 65). A kind Word gives no default entry (a picture, a check box)
+   * keeps the name it has, and naming none shows docx4j's run, with no reference; any control keeps its name until the
+   * glossary is read (`getBody`, `Word.run`), showing its kind's default text. An extension.
    */
   showPlaceholder(): void {
     this.assertWritable();
     const sdtPr = (this.sdt.sdtPr ??= {} as wml.SdtPr);
     const glossary = this.glossary;
+    const fallback = this.defaultPlaceholderEntry;
     let name = this.placeholderEntry ?? '';
-    // Word's default entry is its text controls' (docx4j CR-063's D3)
     const missing = name === '' || (glossary?.loaded === true && !glossary.has(name));
-    if (missing && (this.isTextControl || name === '')) {
-      name = DEFAULT_PLACEHOLDER_ENTRY;
+    if (missing && fallback) {
+      name = fallback.name;
       namePlaceholderEntry(sdtPr, name);
     }
-    if (name === DEFAULT_PLACEHOLDER_ENTRY) glossary?.require(name, DEFAULT_PLACEHOLDER_TEXT);
-    const body = glossary?.bodyOf(name);
-    const paragraphs = body ? entryContentOf(body) : [[placeholderRun(undefined, DEFAULT_PLACEHOLDER_TEXT)]];
+    if (fallback && name === fallback.name) glossary?.require(name, fallback.text);
+    const body = name === '' ? null : glossary?.bodyOf(name);
+    // no entry to copy: the kind's default text as its entry holds it, else docx4j's run (CR-063's D8 (a))
+    const paragraphs = body ? entryContentOf(body) : [[fallback ? placeholderRun(undefined, fallback.text) : placeholderRun(this.runProperties)]];
     this.setBoundContent(paragraphs[0] ?? [], true);
     // a block control shows an entry's further paragraphs too, where it may hold more than one (CR-002 section 61)
     if (this.form !== 'Block' || paragraphs.length < 2 || isBoundBlockControl(this)) return;
@@ -685,9 +691,11 @@ export class ContentControl {
   }
   set placeholderText(text: string) {
     this.assertWritable();
-    const own = text !== '' && text !== DEFAULT_PLACEHOLDER_TEXT;
-    const name = own ? newEntryName() : DEFAULT_PLACEHOLDER_ENTRY;
-    const shown = own ? text : DEFAULT_PLACEHOLDER_TEXT;
+    // the kind's default text, or '', names its default entry (section 63.22); any other text a new entry of its own
+    const fallback = this.defaultPlaceholderEntry ?? DEFAULT_ENTRIES.text;
+    const own = text !== '' && text !== fallback.text;
+    const name = own ? newEntryName() : fallback.name;
+    const shown = own ? text : fallback.text;
     namePlaceholderEntry((this.sdt.sdtPr ??= {} as wml.SdtPr), name);
     this.glossary?.require(name, shown);
     // the entry's run, as the glossary will hold it: the control's own run properties aren't over it (check 68)
@@ -1195,11 +1203,12 @@ export function controlsOfTypes(controls: ContentControl[], options?: ContentCon
 }
 
 /**
- * Whether a control of this kind made on an empty range shows Word's default placeholder, as Word's does (CR-002 section
- * 63, D8; check 64): a rich text or plain text control. Word's other kinds have entries of their own, unmeasured.
+ * Whether a control of this kind made on an empty range shows its default placeholder, as Word's does (CR-002 section
+ * 63, D8; check 64; Jason's `placeholders.docx`, section 63.22): a text control, a date picker, a drop-down list or a
+ * combo box. The building block and repeating section kinds are made as before.
  */
 export function showsPlaceholderWhenMade(kind: ContentControlType | undefined): boolean {
-  return kind === undefined || kind === 'RichText' || kind === 'PlainText';
+  return kind === undefined || kind === 'RichText' || kind === 'PlainText' || kind === 'DatePicker' || kind === 'DropDownList' || kind === 'ComboBox';
 }
 
 /** A stand-in for a block-level control about to be made, for `assertControlHolds` before `sdtOf` takes its content. */

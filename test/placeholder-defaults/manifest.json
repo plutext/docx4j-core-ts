@@ -1,0 +1,10 @@
+{
+ "source": "Jason, 2026-10-25: Word 365 (16.0.20326.20232, PC), one content control of each kind made from the Developer tab and saved (the share's Office 2016/placeholders.docx; its settings carry w:formsDesign: Design Mode was on at the save, which bears on edits into a placeholder, not on what Word makes)",
+ "use": "CR-002 section 63.22: Word's default placeholder entry for each kind (DEFAULT_ENTRIES in src/model/content/placeholders.mts), held to this file by placeholders.test.mjs",
+ "files": [
+  {
+   "name": "placeholders-word365.docx",
+   "sha1": "9cd6fb70e5af3b6d52eab2e95bd13acfbcf3c2c8"
+  }
+ ]
+}

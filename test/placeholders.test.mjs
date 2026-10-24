@@ -1248,17 +1248,16 @@ test('CR-002 section 63.18: a control naming an entry the glossary lacks is give
   kept.showPlaceholder();
   assert.deepEqual([kept.placeholderEntry, kept.isShowingPlaceholder], [check65.MISSING_ENTRY, true]);
   assert.match(await kept.getXml(), /<w:t>Click or tap here to enter text\.<\/w:t>/);
-  // Word's default entry is its text controls': a date control naming a missing entry keeps the name, and an empty
-  // bound value leaves it docx4j's run, as docx4j's CR-063 has it (D3)
+  // a date control naming a missing entry is given its own kind's default entry (section 63.22, docx4j CR-063's D8)
   const { unzipSync: unzip, zipSync, strToU8 } = await import('fflate');
   const zip = unzip(await check65.check65Bytes(b));
   zip['word/document.xml'] = strToU8(strFromU8(zip['word/document.xml']).replace('<w:sectPr>',
     `<w:sdt><w:sdtPr><w:tag w:val="date"/><w:placeholder><w:docPart w:val="${check65.MISSING_ENTRY}"/></w:placeholder><w:date/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>1 January</w:t></w:r></w:p></w:sdtContent></w:sdt><w:sectPr>`));
   const dated = await WordprocessingMLPackage.load(zipSync(zip));
   const date = (await dated.getBody()).contentControls.find((c) => c.tag === 'date');
-  assert.deepEqual([date.type, date.isTextControl, date.showsWordsFormPlaceholder], ['DatePicker', false, false]);
+  assert.deepEqual([date.type, date.defaultPlaceholderEntry?.name, date.showsWordsFormPlaceholder], ['DatePicker', 'DefaultPlaceholder_-1854013437', true]);
   date.showPlaceholder();
-  assert.equal(date.placeholderEntry, check65.MISSING_ENTRY);
+  assert.deepEqual([date.placeholderEntry, date.placeholderText, date.isShowingPlaceholder], ['DefaultPlaceholder_-1854013437', 'Click or tap to enter a date.', true]);
 });
 
 // --- check 68 (CR-002 section 63.19): the run properties a write into a placeholder takes, and a glossary entry under a
@@ -1364,4 +1363,64 @@ test("CR-002 section 63.21: the shim gives check 68's answers in every case (unt
   const ours = await runCheck((f) => Word.run(pkg, f), 'run');
   const word = await wordRun68('run');
   assert.deepEqual(word.cases.filter((c, i) => look68(c) !== look68(ours.cases[i])).map((c) => c.n), []);
+});
+
+// --- CR-002 section 63.22: Word's default placeholder entry for each kind (Jason's placeholders.docx; docx4j CR-063's D8)
+
+test("CR-002 section 63.22: Word's default entry for each kind of control, as Word 365 made one of each (placeholders-word365.docx), is this package's", async () => {
+  const manifest = JSON.parse(await readFile(join(here, 'placeholder-defaults', 'manifest.json'), 'utf8'));
+  const bytes = await readFile(join(here, 'placeholder-defaults', manifest.files[0].name));
+  assert.equal(createHash('sha1').update(bytes).digest('hex'), manifest.files[0].sha1);
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  const controls = (await pkg.getBody()).contentControls;
+  // every control Word made: its kind, the entry it names, and the entry's text, against this package's default for the kind
+  const ours = controls.map((c) => [c.type, c.placeholderEntry ?? null, c.placeholderText, c.defaultPlaceholderEntry?.name ?? null, c.defaultPlaceholderEntry?.text ?? null]);
+  assert.deepEqual(ours, [
+    ['RichText', 'DefaultPlaceholder_-1854013440', 'Click or tap here to enter text.', 'DefaultPlaceholder_-1854013440', 'Click or tap here to enter text.'],
+    ['PlainText', 'DefaultPlaceholder_-1854013440', 'Click or tap here to enter text.', 'DefaultPlaceholder_-1854013440', 'Click or tap here to enter text.'],
+    ['Picture', null, null, null, null],
+    ['BuildingBlockGallery', 'DefaultPlaceholder_-1854013436', 'Choose a building block.', 'DefaultPlaceholder_-1854013436', 'Choose a building block.'],
+    ['CheckBox', null, null, null, null],
+    ['ComboBox', 'DefaultPlaceholder_-1854013438', 'Choose an item.', 'DefaultPlaceholder_-1854013438', 'Choose an item.'],
+    ['DropDownList', 'DefaultPlaceholder_-1854013438', 'Choose an item.', 'DefaultPlaceholder_-1854013438', 'Choose an item.'],
+    ['DatePicker', 'DefaultPlaceholder_-1854013437', 'Click or tap to enter a date.', 'DefaultPlaceholder_-1854013437', 'Click or tap to enter a date.'],
+    ['RepeatingSection', null, null, null, null],
+    ['RepeatingSectionItem', 'DefaultPlaceholder_-1854013435', 'Enter any content that you want to repeat, including other content controls. You can also insert this control around table rows in order to repeat parts of a table.',
+      'DefaultPlaceholder_-1854013435', 'Enter any content that you want to repeat, including other content controls. You can also insert this control around table rows in order to repeat parts of a table.'],
+  ]);
+  // each control Word made shows its entry in Placeholder Text, with the flag; the picture shows the flag over a stock picture
+  for (const c of controls.filter((x) => x.placeholderEntry)) assert.deepEqual([c.isShowingPlaceholder, c.text], [true, ''], c.type);
+});
+
+test("CR-002 section 63.22: a date picker, a list and a text control each show their own kind's default entry, made or emptied; written into the glossary on save", async () => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const made = Object.fromEntries(['DatePicker', 'DropDownList', 'ComboBox', 'PlainText', 'CheckBox'].map((kind) => [kind, body.insertParagraph('', 'End').insertContentControl(kind)]));
+  assert.deepEqual(Object.entries(made).map(([kind, c]) => [kind, c.isShowingPlaceholder, c.placeholderEntry ?? null, c.placeholderText]), [
+    ['DatePicker', true, 'DefaultPlaceholder_-1854013437', 'Click or tap to enter a date.'],
+    ['DropDownList', true, 'DefaultPlaceholder_-1854013438', 'Choose an item.'],
+    ['ComboBox', true, 'DefaultPlaceholder_-1854013438', 'Choose an item.'],
+    ['PlainText', true, 'DefaultPlaceholder_-1854013440', 'Click or tap here to enter text.'],
+    ['CheckBox', false, null, null],
+  ]);
+  assert.match(await made.DatePicker.getXml(), /<w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap to enter a date\.<\/w:t>/);
+  // a date written, then its content deleted: the date picker's entry back (as Word's form does, check 66 case 3)
+  made.DatePicker.insertText('25/10/2026', 'Replace');
+  assert.deepEqual([made.DatePicker.isShowingPlaceholder, made.DatePicker.text], [false, '25/10/2026']);
+  made.DatePicker.getRange('Content').delete();
+  assert.deepEqual([made.DatePicker.isShowingPlaceholder, made.DatePicker.text, made.DatePicker.placeholderText], [true, '', 'Click or tap to enter a date.']);
+  assert.match(await made.DatePicker.getXml(), /<w:t>Click or tap to enter a date\.<\/w:t>/);
+  // setting a date picker's placeholder to its default text names its default entry
+  made.DatePicker.placeholderText = 'Click or tap to enter a date.';
+  assert.equal(made.DatePicker.placeholderEntry, 'DefaultPlaceholder_-1854013437');
+  const glossary = strFromU8(unzipSync(await pkg.save())['word/glossary/document.xml']);
+  assert.deepEqual([...glossary.matchAll(/<w:docPartPr><w:name w:val="([^"]+)"/g)].map((m) => m[1]).sort(),
+    ['DefaultPlaceholder_-1854013437', 'DefaultPlaceholder_-1854013438', 'DefaultPlaceholder_-1854013440']);
+  assert.match(glossary, /<w:name w:val="DefaultPlaceholder_-1854013437"\/>[\s\S]*?<w:t>Click or tap to enter a date\.<\/w:t>/);
+  // a kind Word gives no entry, naming none, shows docx4j's run with no reference
+  const picture = body.insertParagraph('', 'End').insertContentControl('Picture');
+  picture.showPlaceholder();
+  assert.deepEqual([picture.placeholderEntry, picture.isShowingPlaceholder], [undefined, true]);
+  assert.match(await picture.getXml(), /<w:t>Click or tap here to enter text\.<\/w:t>/);
 });

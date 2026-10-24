@@ -12,7 +12,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
-import { sdtProperty, textOf } from '@docx4j/generated-objects-ts/builders/wml';
+import { sdtProperty, sdtKindOf, textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import { linkParents, type Element } from './tree.mjs';
 import { uuid } from '../customxml/CustomXmlPartCollection.mjs';
@@ -25,6 +25,41 @@ import type { Part } from '../../parts/Part.mjs';
 export const DEFAULT_PLACEHOLDER_ENTRY = 'DefaultPlaceholder_-1854013440';
 /** The default entry's text, as Word 365 writes it. */
 export const DEFAULT_PLACEHOLDER_TEXT = 'Click or tap here to enter text.';
+
+/** A default placeholder entry: its name and its text. */
+export interface DefaultEntry {
+  name: string;
+  text: string;
+}
+
+/**
+ * Word's default placeholder entry for each kind of control that has one, as Word 365 makes them from the Developer tab
+ * (Jason's `placeholders.docx`, 2026-10-25; CR-002 section 63.22, as docx4j's CR-063 D8 has it): each in the glossary
+ * with the default entry's `w:docPartPr`, its body one run in the Placeholder Text style. A picture, a check box and a
+ * repeating section have none; the group, citation, equation, bibliography and `w:docPartObj` kinds are unmeasured.
+ */
+export const DEFAULT_ENTRIES = {
+  text: { name: DEFAULT_PLACEHOLDER_ENTRY, text: DEFAULT_PLACEHOLDER_TEXT },
+  date: { name: 'DefaultPlaceholder_-1854013437', text: 'Click or tap to enter a date.' },
+  list: { name: 'DefaultPlaceholder_-1854013438', text: 'Choose an item.' },
+  buildingBlock: { name: 'DefaultPlaceholder_-1854013436', text: 'Choose a building block.' },
+  repeatingSectionItem: {
+    name: 'DefaultPlaceholder_-1854013435',
+    text: 'Enter any content that you want to repeat, including other content controls. You can also insert this control around table rows in order to repeat parts of a table.',
+  },
+} as const satisfies Record<string, DefaultEntry>;
+
+/** The default entry Word gives a control of this kind (`DEFAULT_ENTRIES`); undefined for a kind it gives none. */
+export function defaultEntryFor(sdtPr: wml.SdtPr | undefined): DefaultEntry | undefined {
+  switch (sdtKindOf(sdtPr)) {
+    case 'RichText': case 'PlainText': return DEFAULT_ENTRIES.text;
+    case 'DatePicker': return DEFAULT_ENTRIES.date;
+    case 'DropDownList': case 'ComboBox': return DEFAULT_ENTRIES.list;
+    case 'BuildingBlockGallery': return sdtProperty(sdtPr, 'docPartList') ? DEFAULT_ENTRIES.buildingBlock : undefined;
+    case 'RepeatingSectionItem': return DEFAULT_ENTRIES.repeatingSectionItem;
+    default: return undefined;
+  }
+}
 
 /** The glossary entry a control's `w:placeholder` names; undefined where it names none (the bare form). */
 export function placeholderEntryOf(sdtPr: wml.SdtPr | undefined): string | undefined {
