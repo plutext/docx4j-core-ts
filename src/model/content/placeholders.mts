@@ -175,26 +175,17 @@ function entriesOf(doc: wml.GlossaryDocument | undefined): Map<string, GlossaryE
 }
 
 /**
- * What a control shows of an entry (CR-002 section 63.18, as docx4j CR-063's D2): a copy of each of its body's
- * paragraphs' run-level content, every run as the glossary holds it with the control's own run properties
- * (`w:sdtPr/w:rPr`) over its own, as docx4j's `createPlaceholder` applies them (unmeasured in Word). Word copies an entry as
- * it holds it, not restyling it (check 65's 65b, case 9). The paragraphs' properties stay in the glossary, whose styles
- * they name.
+ * What a control shows of an entry (CR-002 section 63.18, as revised by 63.21): a copy of each of its body's paragraphs'
+ * run-level content, every run as the glossary holds it. Word brought an entry back so, the control's own run properties
+ * not over it (check 68, cases 21 to 24), and doesn't restyle it (check 65's 65b, case 9). The paragraphs' properties stay
+ * in the glossary, whose styles they name.
  */
-export function entryContentOf(body: Element[], rPr: wml.RPr | undefined): Element[][] {
+export function entryContentOf(body: Element[]): Element[][] {
   const out: Element[][] = [];
   for (const block of body) {
     if ((block.value as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.P') continue;
     const items = ((block.value as wml.P).content ?? []).filter((e) => !['proofErr', 'bookmarkStart', 'bookmarkEnd'].includes((e as Element).name?.localPart ?? '')) as Element[];
-    const copies = items.map((item) => ({ name: item.name, value: deepCopy(item.value) }) as Element);
-    if (rPr) {
-      for (const item of copies) {
-        if ((item.value as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.R') continue;
-        const run = item.value as wml.R;
-        run.rPr = { ...(run.rPr ?? {}), ...deepCopy(rPr) } as wml.RPr;
-      }
-    }
-    out.push(copies);
+    out.push(items.map((item) => ({ name: item.name, value: deepCopy(item.value) }) as Element));
   }
   return out;
 }

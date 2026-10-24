@@ -5207,3 +5207,53 @@ async function check() {
      - what check 63's run had that no other has: both its saves carry `<w:formsDesign/>`, which its file didn't. Jason
        confirms that Developer > Design Mode was on, to see the controls, so check 63 measured Design Mode;
      - this package differs in all 72 writes, by the style alone.
+
+68. The run properties a write into a placeholder takes, and a glossary entry under a control's own run properties (CR-002
+   section 63.19, 2026-10-25; Jason: "commit then write check 68", on docx4j-python's request).
+   - **Why:** every placeholder measured so far carried the Placeholder Text style alone, so two rules agreed:
+     - this package writes the text plain;
+     - docx4j-python gives it the placeholder run's own properties, the style dropped.
+
+     And a control's own run properties (`w:sdtPr/w:rPr`), which docx4j's binder writes a value with, have never been
+     measured: on what is typed into the control, nor on a glossary entry Word brings back. Section 63.18 puts them over
+     the entry's runs, as docx4j does.
+   - **The file** is `__tmp/68/68-placeholder-run-properties.docx` on the share, as `fixtures/check68/build.mjs` writes it
+     (git ignores the `.docx`). The snippet is beside it, `check68-script-lab.html` and `check68-script-lab.js`. The
+     placeholder run or entry carries italic, the control bold, so each property shows where it came from. Each case is
+     a control tagged `c68-<n>`, block-level or between `PLAIN<n>A ` and ` PLAIN<n>B`:
+     - **1 to 12, the bare form** (no `w:placeholder`), written `NEW<n>` by the control's `insertText`, `'Replace'` and
+       `'End'`:
+       - 1 to 4: the placeholder run in Placeholder Text and italic, the control with no run properties;
+       - 5 to 8: the run in Placeholder Text alone, the control bold;
+       - 9 to 12: the run bold too, as docx4j's binder writes one.
+     - **13 to 20, Word's form** (the default entry, 66a's glossary), the control bold, written the same way. Its content is
+       Word's own copy of the entry (13 to 16), or this package's since section 63.18, the entry's run with the control's
+       bold (17 to 20).
+     - **21 to 24:** a Word's-form control, bold, holding a bold `VALUE<n>`, its content deleted. It names the default entry
+       (21, 22) or an entry in italic (23, 24). Does the entry Word brings back take the control's bold?
+   - **Steps, in Word 365 only:**
+     1. On the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted. If the Developer tab isn't
+        shown, Design Mode is off. Leave it off throughout.
+     2. Open `__tmp/68/68-placeholder-run-properties.docx`. Say whether Word reports a problem or offers a repair.
+     3. File > Save As `68-opened-word365.docx`, in the same folder `__tmp/68`.
+     4. File > Save As again, `68-run-word365.docx` in `__tmp/68`. This is the copy the run changes.
+     5. In Script Lab, replace check 67's snippet, or start a new one: paste `__tmp/68/check68-script-lab.html` over the HTML
+        tab and `__tmp/68/check68-script-lab.js` over the Script tab.
+     6. Click **Report only**. When it says Done, copy the box into a new file `__tmp/68/result-report.txt`.
+     7. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/68/result-run.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Say
+        whether the text in cases 5 to 20 shows bold, and whether the placeholders in 21 to 24 show bold. Then File >
+        Close.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim and pins each case): every
+     write a plain run, the control's bold left out too. Each emptied control shows its entry with the control's bold over
+     it, an italic entry staying italic.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Design Mode off).** No problem opening the file or Word's
+     saves; Jason: "cases 5 to 20 show bold; placeholders in 21 to 24 do NOT". The JSONs are
+     `fixtures/check68/68-placeholder-run-properties-word365-report.json` and `-run.json`. Word's two saves are in
+     `check68/` with a SHA-1 manifest. CR-002 section 63.20 has it all. In short:
+     - a write into a placeholder takes the control's own run properties and nothing of the placeholder's: plain where the
+       control has none (1 to 4, the placeholder's italic not taken), bold where it is bold (5 to 20), in both forms;
+     - an emptied control's entry comes back as the glossary holds it, Placeholder Text and the entry's italic, without the
+       control's bold (21 to 24).
+
+     This package differed in 5 to 24, and agrees in every case since CR-002 section 63.21.

@@ -7019,3 +7019,101 @@ run properties; and what Office JS reads as the text of a control showing a plac
   bold off over the entry's, and the control's paragraph properties on both paragraphs;
 - a missing entry replaced by the default, nothing written under it, and the name kept while the glossary is unread;
 - a date control naming a missing entry keeping it.
+
+### 63.19 Check 68 written: the run properties a write into a placeholder takes (2026-10-25)
+
+Jason: "commit then write check 68" (section 63.18 committed as `aefc41f`), on docx4j-python's request. Two rules have
+never been measured.
+- **What a write into a bare-form placeholder takes from its run.** Since section 63.17 this package writes the text
+  plain. docx4j-python's port gives it the first placeholder run's properties with the style dropped. Every placeholder
+  measured carried the style alone, so the two agree on every case Word has run; they would differ on a run carrying more,
+  as docx4j's binder writes one under a control's `w:sdtPr/w:rPr`. docx4j-python's user: "Measure; keep ours meanwhile".
+- **What a control's own run properties do.** This package leaves them out of what a write puts in. Section 63.18 puts
+  them over an entry's runs when a control shows its placeholder, as docx4j does.
+
+**Check 68** (`test/fixtures/check68/`; the share's `__tmp/68/`; `test/README.md` check 68 has the steps). One file, with
+Developer > Design Mode off throughout. The placeholder run or entry carries italic and the control bold, so each property
+in a result shows its source.
+- **The bare form**, written by `insertText` with `'Replace'` and `'End'`, block-level and run-level:
+  - the run italic, with no control properties (1 to 4);
+  - the run plain, the control bold (5 to 8);
+  - the run bold and the control bold, as docx4j's binder writes them (9 to 12).
+- **Word's form**, the control bold (13 to 20): its content Word's copy of the default entry (13 to 16), or this package's
+  since section 63.18 (17 to 20).
+- **An emptied Word's-form control**, bold, holding a bold value, its content deleted (21 to 24): the default entry (21,
+  22), or one in italic (23, 24). Does the entry Word brings back take the control's bold?
+
+**Through the shim:** every write is a plain run, the control's bold left out too. Each emptied control shows its entry
+with the control's bold over it, the italic entry still italic (`placeholders.test.mjs`).
+
+**What it decides:**
+- the bare form's rule, this package's or docx4j-python's;
+- whether a write takes a control's own run properties;
+- section 63.18's precedence between the control's properties and the entry's.
+
+Not run yet.
+
+### 63.20 Check 68's run (2026-10-25)
+
+Jason ran check 68 in Word 365 16.0.20326.20232 (PC) with Developer > Design Mode off; neither save carries
+`w:formsDesign`, and no file gave a problem on opening. Where the results are:
+- the JSONs: `fixtures/check68/68-placeholder-run-properties-word365-report.json` and `-run.json`;
+- Word's saves: `test/check68/`, with a SHA-1 manifest.
+
+Office JS refused nothing. Jason: "cases 5 to 20 show bold; placeholders in 21 to 24 do NOT".
+
+**A write into a control showing its placeholder takes the control's own run properties, and nothing of the
+placeholder's.** This holds in Office JS's OOXML and in Word's save alike, for `'Replace'` and `'End'`, at block level and
+run level, in both forms:
+- **1 to 4** (the bare form, the placeholder in Placeholder Text and italic, the control with no run properties): a
+  plain run. The placeholder's italic isn't taken, so docx4j-python's rule (the run's properties, the style dropped) isn't
+  Word's.
+- **5 to 12** (the bare form, the control bold, its placeholder plain or bold): a bold run, from the control.
+- **13 to 20** (Word's form, the control bold): a bold run. This package's plain run isn't Word's here.
+
+**A placeholder Word brings back is its entry as the glossary holds it, with the control's run properties not over it.**
+- **21 to 24:** each bold control, holding a bold value, emptied, shows its entry in the entry's own look: the default
+  entry in Placeholder Text, the custom one in Placeholder Text and italic, no bold.
+- The control's `w:sdtPr/w:rPr` bold stays in its properties.
+
+Section 63.18's order, the control's properties over the entry's runs, isn't Word's, and nor is docx4j's
+(`createPlaceholder`'s, CR-063's D2).
+
+**The case for the five-space filler (D10)** is unchanged: check 52's filler took run properties Word gave the control,
+which fits text typed into an emptied control taking the control's properties.
+
+**This package** (the shim) differs in 20 of the 24 cases (`placeholders.test.mjs`):
+- in 5 to 20 it writes the text plain, where Word's takes the control's bold;
+- in 21 to 24 it puts the control's bold over the entry.
+
+**Proposed** (for Jason's word):
+- **D11, new: a write into a control showing its placeholder takes the control's own run properties** (a copy of its
+  `w:sdtPr/w:rPr`), and nothing of the placeholder's, in both forms. *As Word.* It covers every route, as section 63.17's
+  rule does. A write into an empty control not showing a placeholder is unmeasured, and stays as it is.
+- **Section 63.18 revised: a placeholder shown from an entry is a copy of the entry's content as the glossary holds it**,
+  the control's run properties not applied. *As Word.* The rest of 63.18 stands: the entry's content copied, the further
+  paragraphs taking the control's paragraph properties, a missing entry giving way to Word's default. docx4j-25 and
+  docx4j-python are told.
+- **Unchanged:** docx4j's own run for a control of another kind naming no entry, Placeholder Text over the control's run
+  properties. That form is unmeasured, and Word gives such kinds entries of their own (CR-063's proposed D8).
+
+**Decided 2026-10-25** (Jason: "decisions accepted"): D11, and section 63.18 revised, as proposed.
+
+### 63.21 Implemented: a write takes the control's run properties; an entry is shown as the glossary holds it (2026-10-25)
+
+- **D11.** `ContentControl.writePlaceholder`, every route's write into a control showing its placeholder, gives each run
+  the write leaves in the control a copy of the control's `w:sdtPr/w:rPr`. Where the control has none, the text stays
+  plain, the placeholder's properties not taken.
+- **Section 63.18 revised.** `entryContentOf` copies an entry's runs as the glossary holds them, the control's run
+  properties no longer over them. Two writes of placeholder text follow suit: the `placeholderText` setter, and the
+  default text shown where no glossary is read. Each writes the entry's run as the glossary will hold it, Placeholder
+  Text alone, where they had put the control's run properties under it.
+- **Unchanged:**
+  - the five-space filler (D10), which takes the control's run properties;
+  - docx4j's run for a control of another kind naming no entry, the Placeholder Text style over the control's run
+    properties (unmeasured);
+  - a write into an empty control not showing a placeholder (unmeasured).
+
+Through the shim check 68 gives Word's answer in all 24 cases; it differed in 20. Checks 63 (run 2), 64 to 67 are as
+before, since their controls have no run properties of their own. `placeholders.test.mjs` holds the shim to check 68, and
+63.18's test now shows an entry in its own look under a control whose properties differ.

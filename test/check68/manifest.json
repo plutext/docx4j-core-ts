@@ -1,0 +1,19 @@
+{
+ "check": 68,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25; Developer > Design Mode off)",
+ "source": "test/fixtures/check68/build.mjs (68-placeholder-run-properties.docx, 24 cases)",
+ "saves": {
+  "68-opened-word365.docx": "68-placeholder-run-properties.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "68-run-word365.docx": "the same after the Script Lab snippet's Report only and Run the check, saved with File > Save (the JSONs: test/fixtures/check68/68-placeholder-run-properties-word365-report.json and -run.json); Jason: cases 5 to 20 show bold, the placeholders in 21 to 24 do not"
+ },
+ "files": [
+  {
+   "name": "68-opened-word365.docx",
+   "sha1": "6be5ed8f64f6e9ecb0ab497874d6665a20072ed6"
+  },
+  {
+   "name": "68-run-word365.docx",
+   "sha1": "17e75303cdb859c89ec2f5b9a3b38a45d582facd"
+  }
+ ]
+}

@@ -344,7 +344,8 @@ and with a glossary of one part) through the shim, and Word's runs (its saves in
 and section 63.12's: a tracked Replace over a control's markup, accepted and rejected (D3), the level beside a block control (D6), bound nodes (D7),
 placeholders in Word's form (D8) and the glossary written on save (D9); and check 67's three files (`test/fixtures/check67/`: check 58's writes into
 the bare form in four phases, the view and the tracking mode, through two lookups, for why checks 58 and 63 disagree) and snippet held to each other and run through the shim,
-and Word's run (its saves in `test/check67/`) pinned and the shim held to it: every write a plain run, as check 58's, check 58's save pinned too, and only check 63's run 1 saves holding `w:formsDesign`,
+and Word's run (its saves in `test/check67/`) pinned and the shim held to it: every write a plain run, as check 58's, check 58's save pinned too, and only check 63's run 1 saves holding `w:formsDesign`;
+and check 68's (`test/fixtures/check68/`: the run properties a write into a placeholder takes, and an entry under a control's own) file and snippet held to each other, and Word's run (its saves in `test/check68/`) pinned and the shim held to it,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

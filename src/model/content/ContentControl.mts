@@ -27,7 +27,7 @@ import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals
 import { commentReferencesIn } from './TrackedChange.mjs';
 import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, runsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -216,9 +216,10 @@ export class ContentControl {
 
   /**
    * @internal Text written into the content of this control while it shows its placeholder, by any route: its own
-   * `insertText`, its 'Content' range's, a block control's paragraph's (CR-002 section 63, D1, D2 (b), D5). The
+   * `insertText`, its 'Content' range's, a block control's paragraph's (CR-002 section 63, D1, D2 (b), D5, D11). The
    * placeholder is no content, in either form (checks 64 and 67, check 63's run 2): its runs go, untracked, the text takes
-   * their place, plain, in one paragraph, and the flag is cleared; under tracking only the insertion is recorded.
+   * their place in one paragraph, and the flag is cleared; under tracking only the insertion is recorded. The text takes
+   * the control's own run properties (`w:sdtPr/w:rPr`) and nothing of the placeholder's (check 68, cases 1 to 20).
    */
   writePlaceholder(text: string, options: { lineBreaks?: LineBreaks } = {}): Range {
     this.assertWritable();
@@ -234,6 +235,16 @@ export class ContentControl {
       range = this.insertIntoEmpty(paragraph, text);
     } else {
       range = this.firstParagraph().splice(0, 0, text, 'before', undefined, options.lineBreaks);
+    }
+    // every run now in the control is the write's: each takes a copy of the control's run properties (D11)
+    const rPr = this.runProperties;
+    if (rPr) {
+      const holder = form === 'Run' ? (this.sdt.sdtContent as object) : undefined;
+      const runs = holder ? runsOf(holder) : this.body().paragraphs.flatMap((p) => runsOf(p.p));
+      for (const run of runs) {
+        run.value.rPr = deepCopy(rPr);
+        linkParents(run.value.rPr, run.value);
+      }
     }
     this.syncBoundNode();
     return range;
@@ -404,7 +415,8 @@ export class ContentControl {
 
   /**
    * Shows the control's placeholder (CR-002 section 63, D8; section 63.18): a copy of the content of the entry its
-   * `w:placeholder` names, with the control's own run properties over it, and `w:showingPlcHdr`. A control naming no entry,
+   * `w:placeholder` names, as the glossary holds it, the control's own run properties not over it, as Word shows it
+   * (check 68, section 63.21), with `w:showingPlcHdr`. A control naming no entry,
    * or a text control naming one the glossary lacks, is made to name Word's default entry, which is written into the
    * glossary on save where it lacks it (D9), as docx4j's CR-063 has it: Word's save drops a reference no entry holds (check
    * 65). A control of another kind keeps the name it has (the binding pass gives such a control docx4j's run instead), and
@@ -423,7 +435,7 @@ export class ContentControl {
     }
     if (name === DEFAULT_PLACEHOLDER_ENTRY) glossary?.require(name, DEFAULT_PLACEHOLDER_TEXT);
     const body = glossary?.bodyOf(name);
-    const paragraphs = body ? entryContentOf(body, this.runProperties) : [[placeholderRun(this.runProperties, DEFAULT_PLACEHOLDER_TEXT)]];
+    const paragraphs = body ? entryContentOf(body) : [[placeholderRun(undefined, DEFAULT_PLACEHOLDER_TEXT)]];
     this.setBoundContent(paragraphs[0] ?? [], true);
     // a block control shows an entry's further paragraphs too, where it may hold more than one (CR-002 section 61)
     if (this.form !== 'Block' || paragraphs.length < 2 || isBoundBlockControl(this)) return;
@@ -678,7 +690,8 @@ export class ContentControl {
     const shown = own ? text : DEFAULT_PLACEHOLDER_TEXT;
     namePlaceholderEntry((this.sdt.sdtPr ??= {} as wml.SdtPr), name);
     this.glossary?.require(name, shown);
-    if (this.isShowingPlaceholder || this.text === '') this.setBoundContent([placeholderRun(this.runProperties, shown)], true);
+    // the entry's run, as the glossary will hold it: the control's own run properties aren't over it (check 68)
+    if (this.isShowingPlaceholder || this.text === '') this.setBoundContent([placeholderRun(undefined, shown)], true);
   }
 
   /**

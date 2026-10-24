@@ -17,6 +17,7 @@ import * as check64 from './fixtures/check64/build.mjs';
 import * as check65 from './fixtures/check65/build.mjs';
 import * as check66 from './fixtures/check66/build.mjs';
 import * as check67 from './fixtures/check67/build.mjs';
+import * as check68 from './fixtures/check68/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const snippet63 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check63', 'check63-script-lab.js'), 'utf8')}\nreturn CHECK63;`)();
@@ -1187,7 +1188,7 @@ const WORD_RUN2 = [
 // --- CR-002 section 63.18: a placeholder shows its entry's content, and a control naming a missing entry is given Word's
 // default, as docx4j's CR-063 has them (Jason, 2026-10-25: "ok do it")
 
-test('CR-002 section 63.18: a control shows a copy of the content of the entry it names, its runs as the glossary holds them with the control\'s own run properties over them', async () => {
+test('CR-002 sections 63.18 and 63.21: a control shows a copy of the content of the entry it names, its runs as the glossary holds them, the control\'s own run properties not over them', async () => {
   const { unzipSync, zipSync, strToU8, strFromU8 } = await import('fflate');
   // 66a's glossary given an entry of two paragraphs, a bold run and a plain one; a centred block control in red and not
   // bold naming it, and a run-level one
@@ -1208,14 +1209,15 @@ test('CR-002 section 63.18: a control shows a copy of the content of the entry i
   assert.equal(block.placeholderText, 'Enter the name,\rthen the date.');
   block.showPlaceholder();
   run.showPlaceholder();
-  // the block control: both paragraphs, each run as the entry holds it with the control's properties over it (its w:b off
-  // over the entry's bold, as docx4j's createPlaceholder applies them), the second paragraph with a copy of the control's
-  // paragraph's properties (docx4j's binding); the run-level control: the first paragraph's runs
+  // the block control: both paragraphs, each run as the entry holds it, the control's w:b off and red not over it, as Word
+  // shows an entry (check 68, cases 21 to 24; until section 63.21 the control's properties went over it), the second
+  // paragraph with a copy of the control's paragraph's properties (docx4j's binding); the run-level control: the first
+  // paragraph's runs
   const bold = (rPr) => (rPr?.b === undefined ? 'unset' : rPr.b.val === false ? 'off' : 'on');
   const runs = (p) => p.runs.map((r) => [textOf(r.value), r.value.rPr?.rStyle?.val, bold(r.value.rPr), r.value.rPr?.color?.val]);
   assert.deepEqual(block.paragraphs.map(runs), [
-    [['Enter ', 'PlaceholderText', 'off', 'FF0000'], ['the name,', 'PlaceholderText', 'off', 'FF0000']],
-    [['then the date.', 'PlaceholderText', 'off', 'FF0000']],
+    [['Enter ', 'PlaceholderText', 'on', undefined], ['the name,', 'PlaceholderText', 'unset', undefined]],
+    [['then the date.', 'PlaceholderText', 'unset', undefined]],
   ]);
   assert.deepEqual(block.paragraphs.map((p) => p.p.pPr?.jc?.val), ['center', 'center']);
   // no placeholder text reads (a placeholder of two paragraphs reads its mark between them, '\r'; unmeasured in Word)
@@ -1257,4 +1259,109 @@ test('CR-002 section 63.18: a control naming an entry the glossary lacks is give
   assert.deepEqual([date.type, date.isTextControl, date.showsWordsFormPlaceholder], ['DatePicker', false, false]);
   date.showPlaceholder();
   assert.equal(date.placeholderEntry, check65.MISSING_ENTRY);
+});
+
+// --- check 68 (CR-002 section 63.19): the run properties a write into a placeholder takes, and a glossary entry under a
+// control's own run properties. The placeholder run (or entry) italic, the control bold, so each case shows a property's
+// source; and a Word's-form control holding a bold value, emptied, for what the entry Word brings back carries
+
+const snippet68 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check68', 'check68-script-lab.js'), 'utf8')}\nreturn CHECK68;`)();
+/** A region's control after a case of check 68: `<n> <flag> <run>{<S style><b><i><c colour>} ...`. */
+const look68 = (c) => {
+  const sdt = /<w:sdt>([\s\S]*?)<\/w:sdt>/.exec(c.after.ooxml)?.[1] ?? '';
+  const content = /<w:sdtContent>([\s\S]*?)<\/w:sdtContent>/.exec(sdt)?.[1] ?? '';
+  const runs = [...content.matchAll(/<w:r>(?:<w:rPr>([\s\S]*?)<\/w:rPr>)?<w:t[^>]*>([^<]*)<\/w:t><\/w:r>/g)].map(([, p = '', text]) =>
+    `${text}{${p.includes('PlaceholderText') ? 'S' : ''}${/<w:b\/>/.test(p) ? 'b' : ''}${/<w:i\/>/.test(p) ? 'i' : ''}${/w:color/.test(p) ? 'c' : ''}}`);
+  return `${c.n} ${sdt.includes('showingPlcHdr') ? 'P' : '-'} ${runs.join(' ')}`;
+};
+
+test("check 68's file and snippet agree: every case parses to the case it was built as; the bare and Word's forms, the run and control properties as built", async () => {
+  const { parseRegion } = await snippet68();
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const cases = check68.check68Cases();
+  assert.equal(cases.length, 24);
+  const bytes = await check68.check68Bytes();
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  const body = await pkg.getBody();
+  assert.deepEqual(body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null), cases);
+  for (const c of cases) assert.equal(parseRegion(check68.beginText(c)).n, c.n);
+  const controls = body.contentControls;
+  assert.deepEqual(controls.map((c) => c.tag), cases.map((c) => `c68-${c.n}`));
+  assert.deepEqual(controls.map((c) => c.placeholderEntry ?? null), cases.map((c) => (c.form === 'bare' ? null : c.form === 'value' && c.run === 'i' ? check68.CUSTOM_ENTRY : check68.DEFAULT_ENTRY)));
+  assert.deepEqual(controls.map((c) => c.isShowingPlaceholder), cases.map((c) => c.form !== 'value'));
+  assert.deepEqual(controls.map((c) => c.runProperties?.b !== undefined), cases.map((c) => c.control === 'b'));
+  // the placeholder runs as built: the style, and italic or bold as the case says
+  const xml = strFromU8(unzipSync(bytes)['word/document.xml']);
+  for (const c of cases.filter((x) => x.form !== 'value')) {
+    const extra = c.run === 'i' ? '<w:i/>' : c.run === 'b' ? '<w:b/>' : '';
+    const sdt = /<w:sdt>[\s\S]*?<\/w:sdt>/g;
+    const mine = [...xml.matchAll(sdt)].map((m) => m[0]).find((s) => s.includes(`<w:tag w:val="c68-${c.n}"/>`));
+    assert.match(mine, new RegExp(`<w:r><w:rPr><w:rStyle w:val="PlaceholderText"/>${extra}</w:rPr><w:t xml:space="preserve">Click or tap here to enter text\\.</w:t></w:r>`), `case ${c.n}`);
+  }
+  // the glossary: 66a's two parts, the custom entry's run italic
+  assert.match(strFromU8(unzipSync(bytes)['word/glossary/document.xml']), new RegExp(`<w:name w:val="${check68.CUSTOM_ENTRY}"/>[\\s\\S]*<w:rStyle w:val="PlaceholderText"/><w:i/></w:rPr><w:t xml:space="preserve">Enter the name\\.</w:t>`));
+  assert.ok(Object.keys(unzipSync(bytes)).includes('word/glossary/styles.xml'));
+});
+
+test("CR-002 sections 63.19 and 63.21: check 68's snippet through the Word shim: a write takes the control's own run properties, an emptied control's entry comes back as the glossary holds it", async () => {
+  const { runCheck } = await snippet68();
+  const pkg = await WordprocessingMLPackage.load(await check68.check68Bytes());
+  await pkg.getBody();
+  const report = await runCheck((f) => Word.run(pkg, f), 'report');
+  assert.equal(report.caseCount, 24);
+  const result = await runCheck((f) => Word.run(pkg, f), 'run');
+  assert.equal(result.cases.filter((c) => c.error).length, 0);
+  // until section 63.21 every write was plain and each entry came back under the control's bold
+  assert.deepEqual(result.cases.map(look68), [
+    ...Array.from({ length: 4 }, (_, i) => `${i + 1} - NEW${i + 1}{}`),
+    ...Array.from({ length: 16 }, (_, i) => `${i + 5} - NEW${i + 5}{b}`),
+    '21 P Click or tap here to enter text.{S}', '22 P Click or tap here to enter text.{S}', '23 P Enter the name.{Si}', '24 P Enter the name.{Si}',
+  ]);
+});
+
+const wordRun68 = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check68', `68-placeholder-run-properties-word365-${mode}.json`), 'utf8'));
+
+test("check 68's run: Word's JSONs are of this file's cases, run with Design Mode off, and its saves are Word's, as copied", async () => {
+  for (const mode of ['report', 'run']) {
+    const word = await wordRun68(mode);
+    assert.deepEqual([word.check, word.mode, word.host.version, word.caseCount], [68, mode, '16.0.20326.20232', 24]);
+    assert.deepEqual(word.cases.map(({ n, op, shape, form, run, control }) => ({ n, op, shape, form, run, control })), check68.check68Cases());
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check68', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.files.length, 2);
+  const { unzipSync, strFromU8 } = await import('fflate');
+  for (const { name, sha1 } of manifest.files) {
+    const bytes = await readFile(join(here, 'check68', name));
+    assert.equal(createHash('sha1').update(bytes).digest('hex'), sha1, name);
+    assert.doesNotMatch(strFromU8(unzipSync(bytes)['word/settings.xml']), /formsDesign/, `${name}: Design Mode off`);
+  }
+});
+
+test("CR-002 section 63.20: Word 365's answers (check 68): a write into a placeholder takes the control's own run properties and nothing of the placeholder's; an entry Word brings back is as the glossary holds it, the control's properties not over it", async () => {
+  const run = await wordRun68('run');
+  assert.equal(run.cases.filter((c) => c.error).length, 0, 'Office JS refused nothing');
+  const expected = [
+    // the bare form, the placeholder italic, the control with no properties: plain, the italic not taken
+    '1 - NEW1{}', '2 - NEW2{}', '3 - NEW3{}', '4 - NEW4{}',
+    // the control bold, in the bare form (its placeholder plain, or bold as docx4j's binder writes it) and in Word's: bold
+    ...Array.from({ length: 16 }, (_, i) => `${i + 5} - NEW${i + 5}{b}`),
+    // emptied, the entry in its own look, the control's bold not over it (Jason: "the placeholders in 21 to 24 do NOT")
+    '21 P Click or tap here to enter text.{S}', '22 P Click or tap here to enter text.{S}', '23 P Enter the name.{Si}', '24 P Enter the name.{Si}',
+  ];
+  assert.deepEqual(run.cases.map(look68), expected);
+  // Word's save holds the same, the controls' w:sdtPr/w:rPr bold kept
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const saved = strFromU8(unzipSync(await readFile(join(here, 'check68', '68-run-word365.docx')))['word/document.xml']);
+  assert.deepEqual(run.cases.map((c) => look68({ n: c.n, after: { ooxml: controlIn(saved, `c68-${c.n}`) } })), expected);
+  for (const c of run.cases.filter((x) => x.control === 'b')) assert.match(controlIn(saved, `c68-${c.n}`), /<w:sdtPr><w:rPr><w:b\/><\/w:rPr>/, `case ${c.n}`);
+});
+
+test("CR-002 section 63.21: the shim gives check 68's answers in every case (until then it differed in 5 to 24)", async () => {
+  const { runCheck } = await snippet68();
+  const pkg = await WordprocessingMLPackage.load(await check68.check68Bytes());
+  await pkg.getBody();
+  await runCheck((f) => Word.run(pkg, f), 'report');
+  const ours = await runCheck((f) => Word.run(pkg, f), 'run');
+  const word = await wordRun68('run');
+  assert.deepEqual(word.cases.filter((c, i) => look68(c) !== look68(ours.cases[i])).map((c) => c.n), []);
 });
