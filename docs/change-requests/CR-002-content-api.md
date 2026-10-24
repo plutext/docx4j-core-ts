@@ -6731,3 +6731,101 @@ Moved with them:
 - `ranges.test.mjs`: check 53's `placeholderText` agrees now;
 - `tracking.test.mjs`: a paragraph's tracked Replace writes the insertion first;
 - `fields-equations.test.mjs`: section 62.2's refusal goes.
+
+### 63.13 Check 67 written: checks 58 and 63 disagree on the bare form's look (2026-10-25)
+
+docx4j-python, porting section 63.12 (its CR-019), found two of Word's runs at odds on D2 (a). Checks 58 (cases 20 to 22)
+and 63 (cases 1, 2 and 14) gave a control in the bare form the same untracked `insertText`, `'Replace'` and `'End'`, into a
+block control and a run-level one:
+- the same markup: `w:showingPlcHdr`, no `w:placeholder`, no glossary, one run in the Placeholder Text style;
+- the same Placeholder Text definition and the same settings part;
+- Word 365 16.0.20326.20232.
+
+Word's saves, read here:
+- **check 58** (`check58/58-measures-word365.docx`): `c58-20`, `c58-21` and `c58-22` each hold one plain run,
+  `<w:r><w:t>FILL20</w:t></w:r>`;
+- **check 63** (`check63/63-run-word365.docx`): `c63-1` keeps `<w:rStyle w:val="PlaceholderText"/>`, and `c63-2` and
+  `c63-14` keep it with `<w:color w:val="auto"/>`.
+
+D2 (a) was decided on check 63 alone, so this package now writes the second. One test held check 58's answer: CR-012
+section 18's test in `readers.test.mjs`, which asserted that the text loses the style. Section 63.12 turned it to check 63's
+answer without noticing that it was Word's own measurement, which was a mistake. Nothing here pins check 58's markup now;
+the shim's comparison of check 58 reads text only.
+
+**What differs between the two runs:**
+- **tracking:** check 63 set `changeTrackingMode` to `'Off'` before each write, in the same `Word.run`, and after it;
+  check 58 never touched it;
+- **the view:** check 63 ran in Simple Markup, and check 58's writes in All Markup;
+- **the lookup:** check 63 found the control in `body.getContentControls()` by tag; check 58 used
+  `body.contentControls.getByTag(tag).getFirst()`;
+- **the file:** check 63's held a custom XML part bound to twelve controls; check 58's held tracked changes, a numbering
+  part and other styles;
+- **the order:** check 58's writes came after accepting and rejecting changes in other regions.
+
+**Check 67** (`test/fixtures/check67/`; the share's `__tmp/67/`; `test/README.md` check 67 has the steps):
+- three files that differ only in what else they hold: nothing (67a), a custom XML part and a bound control left alone
+  (67b), tracked changes by another author (67c);
+- in each, check 58's three writes, through each lookup, in four phases. Simple Markup and All Markup with tracking never
+  touched run first, since setting it may last for the session; All Markup and Simple Markup with it set `'Off'` follow.
+
+The snippet's page keeps all five steps in one box, copied once per file.
+
+Through the shim every case gives D2 (a) (`placeholders.test.mjs`). The run decides whether D2 (a) stands, is narrowed to
+the conditions that give it, or changes to check 58's answer, as D2's option (b) would have it. Not run yet.
+
+### 63.14 Check 67's run (2026-10-25)
+
+Jason ran check 67 in Word 365 16.0.20326.20232 (PC); no file gave a problem on opening. Where the results are:
+- the JSONs: `fixtures/check67/67a-plain-word365.json`, `67b-custom-xml-word365.json` and `67c-revisions-word365.json`, each
+  holding all five steps;
+- Word's saves, as opened and after the run, for each file: `test/check67/`, with a SHA-1 manifest.
+
+**Every write is a plain run.** All 72 writes give the same answer:
+- the text `FILL<n>` takes the placeholder's place, the flag is cleared, and Office JS refused none;
+- the run has no Placeholder Text style and no `w:color auto`;
+- that holds in Office JS's OOXML after each write and in Word's save.
+
+It holds across all three files, all four phases and both lookups. It is check 58's answer, and Word's form's (check 64).
+Phase 4 of 67b gave check 63's tracking, view and lookup, in a file holding a custom XML part bound to a control, and its
+writes are plain too. So none of the four differences section 63.13 listed explains check 63.
+
+**What check 63's run had that no other has.** Both of Word's saves of check 63's file carry `<w:formsDesign/>` in their
+settings part. The file Word opened didn't (`check63Bytes`), so Word wrote it in that session. The schema calls it
+"Structured Document Tag Placeholder Text Should be Resaved".
+- None of the saves of checks 58, 64, 66 or 67 carries it, nor 65a's; of 65b's, only the run's does.
+- Word writes it while Developer > Design Mode is on, as Jason confirmed (below). In that mode, typing into a control edits
+  its placeholder text.
+- It would fit check 63's oddities: the style kept, `insertParagraph` leaving the flag on, and the bound nodes left empty
+  and lost on reopening.
+- 65b's run, whose save carries it, gave check 64's answers in Word's form, so in that form it changed nothing measured. It
+  may also have been switched on after the run, at the typing step.
+
+**What this means for section 63.** D2 (a) followed check 63, and against it stand 75 writes in four files (check 58's 3,
+check 67's 72), each plain. The rest of what section 63 decided for the bare form also comes from check 63 alone:
+- D1: the control's `insertParagraph` leaves the flag on;
+- D5: tracked, the insertion, then the placeholder's deletion, with `w:rPrChange`;
+- D3: a Replace or delete over the whole control takes it;
+- D6: Word saved a block control run-level beside an inserted paragraph;
+- D7: Word left the bound nodes empty.
+
+Word's form (checks 64 to 66) isn't affected.
+
+**Confirmed** (Jason, 2026-10-25): "I guess Word added `<w:formsDesign/>` in response to my Developer > Design Mode
+click, which allows me to see the content controls easily."
+- Design Mode was on for the whole of check 63's run: the save before anything was written carries the flag, as does the
+  one after.
+- So check 63's bare-form answers are Design Mode's, where typing into a control edits its placeholder.
+- `test/README.md`'s instructions now say to keep Design Mode off while a check writes into controls.
+
+**Proposed** (for Jason's word):
+- **D2, revised to (b), for the bare form:** text written into a control showing its placeholder is plain, as in Word's
+  form. *Recommended*, on 75 writes in four files.
+- **Check 63 again, with Design Mode off** (the same file and snippet; Jason first confirms Developer > Design Mode is off),
+  to measure D1, D3, D5, D6 and D7 in the bare form afresh. *Recommended* before changing anything else.
+  - If the run gives Word's form's answers throughout, the bare form follows Word's form everywhere. D7's bare-form
+    departure then becomes Word's behaviour.
+  - Optionally a second copy with Design Mode on, to confirm the cause.
+- **Until then the code stays as implemented** (section 63.12), so that D2 and the others change together, once.
+
+**This package** (the shim) differs from Word in all 72 writes, by the style alone (`placeholders.test.mjs`): the text,
+the control's reads and what each write returned agree. Check 58's save of cases 20 to 22 is pinned there now too.

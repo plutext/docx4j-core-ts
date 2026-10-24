@@ -1,0 +1,35 @@
+{
+ "check": 67,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25)",
+ "source": "test/fixtures/check67/build.mjs (67a-plain.docx, 67b-custom-xml.docx, 67c-revisions.docx, 24 cases each)",
+ "saves": {
+  "67x-opened-word365.docx": "each file as Word opened it, before anything was written, saved with File > Save As",
+  "67x-run-word365.docx": "the same after the Script Lab snippet's Report only and its four phases, saved with File > Save (the JSONs: test/fixtures/check67/67x-*-word365.json)"
+ },
+ "files": [
+  {
+   "name": "67a-opened-word365.docx",
+   "sha1": "7c8e453d275f5dda1f656e1179b5ac0e05b4550b"
+  },
+  {
+   "name": "67a-run-word365.docx",
+   "sha1": "747727de000195fee7c830215e2c2efe19d23dcc"
+  },
+  {
+   "name": "67b-opened-word365.docx",
+   "sha1": "f3cbb3400387c07c48fe4a592bc1a29c0b223e55"
+  },
+  {
+   "name": "67b-run-word365.docx",
+   "sha1": "e79485707dfcc6d0bc233a82e39d8f3970641dfe"
+  },
+  {
+   "name": "67c-opened-word365.docx",
+   "sha1": "21caf9a02ca26a2a4aa5725d0a5165c25b4b38e3"
+  },
+  {
+   "name": "67c-run-word365.docx",
+   "sha1": "38f291e350c76b63a469ddab89b25985fbf4f75e"
+  }
+ ]
+}

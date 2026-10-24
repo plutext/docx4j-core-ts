@@ -5,7 +5,7 @@
 // run (2026-10-24) is pinned as its answers, and the shim's held to it since section 63 is implemented (section 63.12).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +15,7 @@ import { check63Bytes, check63Cases, beginText, OPS, MODES, PLACEHOLDER } from '
 import * as check64 from './fixtures/check64/build.mjs';
 import * as check65 from './fixtures/check65/build.mjs';
 import * as check66 from './fixtures/check66/build.mjs';
+import * as check67 from './fixtures/check67/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const snippet63 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check63', 'check63-script-lab.js'), 'utf8')}\nreturn CHECK63;`)();
@@ -22,7 +23,7 @@ const snippet63 = async () => new Function(`${await readFile(join(here, 'fixture
 /**
  * A region after the case as one line: `<n> <control><flag><style> <where> <paragraphs>`. The control is `C` where the
  * region's OOXML still holds w:sdt (else `x`); `P` where its w:sdtPr has w:showingPlcHdr; `S` where a run in its content
- * has the Placeholder Text style among its own properties (`s` where only deleted runs have it). Where NEW<n> landed: `in`, `out` (outside the control),
+ * has the Placeholder Text style among its own properties (`s` where only deleted runs have it). Where NEW<n> (FILL<n>) landed: `in`, `out` (outside the control),
  * or `-`. Then the region's paragraphs' text, `|` between, and the write's error code if it threw.
  */
 function digest(c) {
@@ -34,8 +35,9 @@ function digest(c) {
   const runs = [...content.replace(/<w:rPrChange\b[\s\S]*?<\/w:rPrChange>/g, '').matchAll(/<w:r>(?:<w:rPr>([\s\S]*?)<\/w:rPr>)?<w:(t|delText)\b/g)];
   const styled = runs.filter((m) => (m[1] ?? '').includes('<w:rStyle w:val="PlaceholderText"/>')).map((m) => m[2]);
   const style = styled.includes('t') ? 'S' : styled.length > 0 ? 's' : '-';
-  const token = `NEW${c.n}`;
-  const where = content.includes(token) ? 'in' : xml.includes(token) ? 'out' : '-';
+  // what the case wrote: NEW<n>, or FILL<n> in check 67 (check 58's word)
+  const tokens = [`NEW${c.n}`, `FILL${c.n}`];
+  const where = tokens.some((t) => content.includes(t)) ? 'in' : tokens.some((t) => xml.includes(t)) ? 'out' : '-';
   const error = c.error ? ` ${/^error: (\w+)/.exec(c.error)?.[1] ?? c.error}` : '';
   const paragraphs = Array.isArray(c.after?.paragraphs) ? c.after.paragraphs.join('|') : String(c.after?.paragraphs);
   return `${c.n} ${sdt ? 'C' : 'x'}${pr.includes('showingPlcHdr') ? 'P' : '-'}${style} ${where} ${paragraphs}${error}`;
@@ -909,4 +911,146 @@ test('CR-002 section 63.12, D9: a placeholder written where the file has no glos
   const added = await zipText(await untouched.save());
   assert.equal(added['word/glossary/styles.xml'], source['word/glossary/styles.xml'], 'it holds Placeholder Text already');
   assert.match(added['word/glossary/document.xml'], /<w:t>Another\.<\/w:t>/);
+});
+
+// --- check 67 (CR-002 section 63.13): checks 58 and 63 gave the same untracked write into a control in the bare form, on
+// the same markup, and Word's saves disagree: check 58's a plain run, check 63's the Placeholder Text style. Check 67 gives
+// check 58's three writes in four phases (the view, and changeTrackingMode left alone or set Off) through both lookups,
+// in three files (nothing else, a custom XML part, tracked changes)
+
+const snippet67 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check67', 'check67-script-lab.js'), 'utf8')}\nreturn CHECK67;`)();
+
+test("check 67's files and snippet agree: every case parses to the case it was built as, each control in the bare form, showing its placeholder; the files differ only in what else they hold", async () => {
+  const { parseRegion, PHASES } = await snippet67();
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const cases = check67.check67Cases();
+  assert.equal(cases.length, 24);
+  assert.deepEqual(PHASES.map(([name]) => name), check67.PHASES);
+  // check 58's writes: a block control's Replace and End, a run-level control's End; each phase through both lookups
+  assert.deepEqual(cases.filter((c) => c.phase === 'simple-untouched').map((c) => `${c.op} ${c.shape} ${c.lookup}`), ['control-text-replace block tag', 'control-text-end block tag',
+    'control-text-end run tag', 'control-text-replace block list', 'control-text-end block list', 'control-text-end run list']);
+  for (const file of check67.CHECK67_FILES) {
+    const bytes = await check67.check67Bytes(file);
+    const pkg = await WordprocessingMLPackage.load(bytes);
+    const body = await pkg.getBody();
+    assert.deepEqual(body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null), cases, file.name);
+    for (const c of cases) assert.equal(parseRegion(check67.beginText(c)).n, c.n);
+    assert.match(body.paragraphs[0].text, new RegExp(`^Check 67${file.letter}: `));
+    const controls = body.contentControls.filter((c) => c.tag !== 'c67-0');
+    assert.deepEqual(controls.map((c) => c.tag), cases.map((c) => `c67-${c.n}`), file.name);
+    assert.ok(controls.every((c) => c.isShowingPlaceholder && c.placeholderEntry === undefined && c.text === ''), file.name);
+    const zip = unzipSync(bytes);
+    const xml = strFromU8(zip['word/document.xml']);
+    // checks 58's and 63's markup: the bare form, Word's placeholder text in the style
+    assert.equal(xml.match(/<w:showingPlcHdr\/><\/w:sdtPr><w:sdtContent>(<w:p>)?<w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t xml:space="preserve">Click or tap here to enter text\.<\/w:t>/g).length, 24);
+    assert.doesNotMatch(xml, /<w:placeholder>/);
+    assert.match(strFromU8(zip['word/styles.xml']), /<w:style w:type="character" w:styleId="PlaceholderText"><w:name w:val="Placeholder Text"\/><w:basedOn w:val="DefaultParagraphFont"\/><w:uiPriority w:val="99"\/><w:semiHidden\/><w:rPr><w:color w:val="666666"\/><\/w:rPr><\/w:style>/);
+    // what else each holds: 67b a custom XML part and a bound control, 67c tracked changes in its first paragraph
+    assert.equal(Object.keys(zip).some((k) => k.startsWith('customXml/')), file.letter === 'b', file.name);
+    assert.equal(body.contentControls.some((c) => c.tag === 'c67-0'), file.letter === 'b', file.name);
+    assert.equal(/<w:ins |<w:del /.test(xml), file.letter === 'c', file.name);
+    if (file.letter === 'c') assert.deepEqual(body.getTrackedChanges().map((t) => [t.type, t.text]), [['Added', 'Inserted.'], ['Deleted', ' Deleted.']]);
+  }
+});
+
+test("CR-002 section 63.13: check 67's snippet through the Word shim gives this package's D2 (a) in every phase, lookup and file", async () => {
+  const { runCheck } = await snippet67();
+  for (const file of check67.CHECK67_FILES) {
+    const pkg = await WordprocessingMLPackage.load(await check67.check67Bytes(file));
+    await pkg.getBody();
+    const report = await runCheck((f) => Word.run(pkg, f), 'report');
+    assert.equal(report.caseCount, 24);
+    assert.deepEqual(report.cases.map(digest), check67.check67Cases().map((c) => `${c.n} CPS - ${c.shape === 'run' ? `PLAIN${c.n}A  PLAIN${c.n}B` : ''}`));
+    for (const phase of check67.PHASES) {
+      const result = await runCheck((f) => Word.run(pkg, f), phase);
+      // each phase writes its own six cases only
+      assert.deepEqual(result.cases.map((c) => c.n), check67.check67Cases().filter((c) => c.phase === phase).map((c) => c.n));
+      assert.equal(result.cases.filter((c) => c.error).length, 0, `${file.letter} ${phase}`);
+      // the text in the placeholder's place, the flag cleared, the style kept: check 63's answer, which D2 (a) follows
+      assert.deepEqual(result.cases.map(digest), result.cases.map((c) => `${c.n} C-S in ${c.shape === 'run' ? `PLAIN${c.n}A FILL${c.n} PLAIN${c.n}B` : `FILL${c.n}`}`), `${file.letter} ${phase}`);
+    }
+    assert.equal(pkg.changeTrackingMode, 'Off');
+  }
+});
+
+const wordRun67 = async (file) => JSON.parse(await readFile(join(here, 'fixtures', 'check67', `${file.name.replace('.docx', '')}-word365.json`), 'utf8'));
+const save67 = async (name) => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  return Object.fromEntries(Object.entries(unzipSync(await readFile(join(here, 'check67', name)))).map(([k, v]) => [k, strFromU8(v)]));
+};
+/** A control in a save of Word's, by its tag, without Word's revision ids. */
+const controlIn = (xml, tag) => [...xml.matchAll(/<w:sdt>[\s\S]*?<\/w:sdt>/g)].map((m) => m[0])
+  .find((sdt) => sdt.includes(`<w:tag w:val="${tag}"/>`)).replace(/ (w:rsid\w*|w14:paraId|w14:textId)="[^"]*"/g, '');
+
+test("check 67's run: Word's JSONs are of these files' cases, every step run in order, and its saves are Word's, as copied", async () => {
+  for (const file of check67.CHECK67_FILES) {
+    const word = await wordRun67(file);
+    assert.deepEqual([word.check, word.host.version, Object.keys(word.steps)], [67, '16.0.20326.20232', ['report', ...check67.PHASES]]);
+    assert.match(word.title, new RegExp(`^Check 67${file.letter}: `));
+    assert.deepEqual(word.steps.report.cases.map(({ n, op, shape, phase, lookup }) => ({ n, op, shape, phase, lookup })), check67.check67Cases());
+    for (const phase of check67.PHASES) {
+      assert.deepEqual(word.steps[phase].cases.map((c) => c.n), check67.check67Cases().filter((c) => c.phase === phase).map((c) => c.n), `${file.letter} ${phase}`);
+    }
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check67', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.files.length, 6);
+  for (const { name, sha1 } of manifest.files) assert.equal(createHash('sha1').update(await readFile(join(here, 'check67', name))).digest('hex'), sha1, name);
+});
+
+test("CR-002 section 63.14: Word 365's answers (check 67): every write into a control in the bare form is a plain run, the flag cleared, in every phase, lookup and file, as check 58's were", async () => {
+  for (const file of check67.CHECK67_FILES) {
+    const word = await wordRun67(file);
+    assert.deepEqual(word.steps.report.cases.map(digest), check67.check67Cases().map((c) => `${c.n} CPS - ${c.shape === 'run' ? `PLAIN${c.n}A  PLAIN${c.n}B` : ''}`));
+    for (const phase of check67.PHASES) {
+      const cases = word.steps[phase].cases;
+      assert.equal(cases.filter((c) => c.error).length, 0, `${file.letter} ${phase}`);
+      // no Placeholder Text style, no w:color auto: the text plain, as in Word's own form (check 64)
+      assert.deepEqual(cases.map(digest), cases.map((c) => `${c.n} C-- in ${c.shape === 'run' ? `PLAIN${c.n}A FILL${c.n} PLAIN${c.n}B` : `FILL${c.n}`}`), `${file.letter} ${phase}`);
+      for (const c of cases) assert.doesNotMatch(c.after.ooxml, /w:color w:val="auto"|PlaceholderText/, `${file.letter} case ${c.n}`);
+    }
+    // Word's save holds the same: one plain run in each control, the flag gone
+    const saved = (await save67(`67${file.letter}-run-word365.docx`))['word/document.xml'];
+    for (const c of check67.check67Cases()) {
+      const plain = `<w:r><w:t>FILL${c.n}</w:t></w:r>`;
+      assert.match(controlIn(saved, `c67-${c.n}`), new RegExp(`</w:sdtPr><w:sdtEndPr/><w:sdtContent>${c.shape === 'block' ? `<w:p>${plain}</w:p>` : plain}</w:sdtContent>`), `${file.letter} case ${c.n}`);
+      assert.doesNotMatch(controlIn(saved, `c67-${c.n}`), /showingPlcHdr/, `${file.letter} case ${c.n}`);
+    }
+  }
+  // check 58's save, the same writes (cases 20 to 22): the same plain runs, pinned here since section 63.13
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const files = async (dir) => Object.fromEntries(Object.entries(unzipSync(await readFile(join(here, dir)))).map(([k, v]) => [k, strFromU8(v)]));
+  const check58 = await files('check58/58-measures-word365.docx');
+  for (const [n, block] of [[20, true], [21, true], [22, false]]) {
+    const plain = `<w:r><w:t>FILL${n}</w:t></w:r>`;
+    assert.match(controlIn(check58['word/document.xml'], `c58-${n}`), new RegExp(`<w:sdtContent>${block ? `<w:p>${plain}</w:p>` : plain}</w:sdtContent>`), `check 58 case ${n}`);
+  }
+  // only check 63's saves carry w:formsDesign (the schema's "Structured Document Tag Placeholder Text Should be Resaved"),
+  // which its file didn't hold: Word wrote it in that session. Of the placeholder checks, 65b's run save carries it too
+  const designed = [];
+  for (const dir of ['check58', 'check63', 'check64', 'check65', 'check66', 'check67']) {
+    for (const name of await readdir(join(here, dir))) {
+      if (!name.endsWith('.docx')) continue;
+      if (/<w:formsDesign\/>/.test((await files(`${dir}/${name}`))['word/settings.xml'])) designed.push(name);
+    }
+  }
+  assert.deepEqual(designed.sort(), ['63-placeholders-word365.docx', '63-run-word365.docx', '65b-run-word365.docx']);
+  assert.doesNotMatch(new TextDecoder().decode(unzipSync(await check63Bytes())['word/settings.xml']), /formsDesign/);
+});
+
+test("CR-002 section 63.14: the shim differs from Word in all 72 of check 67's writes: it keeps the Placeholder Text style, D2 (a), check 63's answer", async () => {
+  const { runCheck } = await snippet67();
+  const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text }, returned: c.result?.returned });
+  for (const file of check67.CHECK67_FILES) {
+    const word = await wordRun67(file);
+    const pkg = await WordprocessingMLPackage.load(await check67.check67Bytes(file));
+    await pkg.getBody();
+    const differing = {};
+    for (const step of ['report', ...check67.PHASES]) {
+      const ours = await runCheck((f) => Word.run(pkg, f), step);
+      differing[step] = word.steps[step].cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
+      // the text, the control's reads and what the write returned agree; only the style differs
+      for (const [i, c] of ours.cases.entries()) assert.equal(digest(c).replace(/^(\d+) C-S /, '$1 C-- '), digest(word.steps[step].cases[i]), `${file.letter} case ${c.n}`);
+    }
+    assert.deepEqual(differing, { report: [], ...Object.fromEntries(check67.PHASES.map((p) => [p, check67.check67Cases().filter((c) => c.phase === p).map((c) => c.n)])) }, file.name);
+  }
 });

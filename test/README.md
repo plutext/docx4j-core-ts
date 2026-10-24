@@ -270,6 +270,12 @@ the starting file, File > Save As the step's file name, make the change, Ctrl+S.
 all start from the same input (check 29 on), the copies are made beforehand, one per case and
 already named, so each case starts by opening its own file.
 
+**Developer > Design Mode stays off** while a check writes into, or types into, content controls. In Design Mode Word
+treats a control's placeholder as editable text. Check 63 was run with it on: Word saved its file with `<w:formsDesign/>`
+in the settings. Its writes into a placeholder kept the Placeholder Text style, where check 67, the same writes with Design
+Mode off, wrote plain text (CR-002 section 63.14). A check's file that holds `w:formsDesign` after the run was run in
+Design Mode. Turn it on only to look at the controls after a save.
+
 1. Round trip: load `fixtures/loadAndSave.docx`, save, open in Word. No repair prompt; comments,
    headers, footers, the chart and both images still there.
 2. Re-marshalled main part: as 1, but `await pkg.getMainDocumentPart().getContents()` before
@@ -5095,3 +5101,70 @@ async function check() {
 
      So D9 (a), the document and styles parts, is enough (decided, Jason, 2026-10-25). This package differs in cases 3 and 4
      (none since section 63.12).
+
+67. Why checks 58 and 63 disagree on the bare form's look (CR-002 section 63.13, 2026-10-25; Jason: "yes please", to
+   writing check 67, on docx4j-python's finding).
+   - **Why:** checks 58 (cases 20 to 22) and 63 (cases 1, 2 and 14) gave a control in the bare form (`w:showingPlcHdr`, no
+     `w:placeholder`, no glossary) the same untracked `insertText`, on the same markup, with the same Placeholder Text
+     definition, in the same Word build. Word's saves disagree:
+     - check 58's holds a plain run;
+     - check 63's keeps the Placeholder Text style, with `w:color w:val="auto"` for `'End'`.
+
+     D2 (a) followed check 63. Nothing measured separates the two runs. They differ in four ways:
+     - **tracking:** check 63 set `changeTrackingMode` to `'Off'` before each write; check 58 never touched it;
+     - **the view:** check 63 ran in Simple Markup, check 58's writes in All Markup;
+     - **the lookup:** check 63 found the control in `body.getContentControls()`; check 58 used
+       `body.contentControls.getByTag(tag).getFirst()`;
+     - **the file:** check 63's held a custom XML part bound to some controls; check 58's held tracked changes.
+   - **The files** are on the share in `__tmp/67/`, as `fixtures/check67/build.mjs` writes them (git ignores the `.docx`;
+     `check67Bytes` gives a test the same parts). The snippet is beside them, `check67-script-lab.html` and
+     `check67-script-lab.js`. The three files differ only in what else they hold:
+     - **`67a-plain.docx`:** nothing else;
+     - **`67b-custom-xml.docx`:** a custom XML part, and a control bound to it that nothing writes (check 63's file);
+     - **`67c-revisions.docx`:** an insertion and a deletion tracked by Author A in its first paragraph (check 58's file held
+       tracked changes).
+   - **The cases**, the same 24 in each file, each control tagged `c67-<n>`: check 58's three writes (`FILL<n>` into a
+     block control by `'Replace'` and by `'End'`, and into a run-level control by `'End'`), each through both lookups, in
+     four phases. The phases run in this order, the two that leave tracking alone first, since setting it may last:
+     1. Simple Markup, tracking never touched (cases 1 to 6);
+     2. All Markup, tracking never touched (7 to 12);
+     3. All Markup, `changeTrackingMode` set `'Off'` before and after each write, as check 63 set it (13 to 18);
+     4. Simple Markup, set `'Off'` (19 to 24).
+   - **Steps, in Word 365 only.** First `67a-plain.docx`:
+     1. Open `__tmp/67/67a-plain.docx`. Say whether Word reports a problem or offers a repair.
+     2. File > Save As `67a-opened-word365.docx`, in the same folder `__tmp/67`.
+     3. File > Save As again, `67a-run-word365.docx` in `__tmp/67`. This is the copy the run changes.
+     4. On the Review tab, leave Track Changes off, and set Display for Review to **Simple Markup**.
+     5. In Script Lab, replace check 66's snippet, or start a new one: paste `__tmp/67/check67-script-lab.html` over the
+        HTML tab and `__tmp/67/check67-script-lab.js` over the Script tab. The buttons are enabled one at a time, in order,
+        and the line above the box says what to do next.
+     6. Click **Report only**.
+     7. Click **Phase 1 (Simple Markup)**.
+     8. Review > Display for Review: choose **All Markup**. Click **Phase 2 (All Markup)**.
+     9. Still in All Markup, click **Phase 3 (All Markup)**.
+     10. Review > Display for Review: choose **Simple Markup**. Click **Phase 4 (Simple Markup)**.
+     11. When the line says Done, copy the box into a new file `__tmp/67/result-a.txt`. It holds all five steps.
+     12. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Then File >
+         Close.
+
+     Then the same for `__tmp/67/67b-custom-xml.docx` and `__tmp/67/67c-revisions.docx`, with `b` or `c` for `a` in every
+     name: `67b-opened-word365.docx`, `67b-run-word365.docx`, `result-b.txt`, and so on. In each new file's window, open the
+     snippet afresh, so that its buttons start from Report only. 67c's first paragraph shows its tracked changes in All
+     Markup; leave them as they are.
+   - **What it tells:** where in each file, phase and lookup the written `FILL<n>` keeps the Placeholder Text style (and
+     `w:color auto` for `'End'`) and where it is plain.
+     - If the style follows the phase, tracking or the view decides.
+     - If it follows the lookup, the way the control was found decides.
+     - If it follows the file, a custom XML part or tracked changes decide.
+     - If every case agrees, none of these does. What is left is check 58's run order (its writes came after accepting and
+       rejecting changes) and the rest of its file.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim on each file and pins each
+     case): D2 (a), check 63's answer, everywhere: the text in the placeholder's place, the flag cleared, the style kept.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening any file. The JSONs are
+     `fixtures/check67/67a-plain-word365.json`, `67b-custom-xml-word365.json` and `67c-revisions-word365.json`. Word's six
+     saves, as opened and after the run, are in `check67/` with a SHA-1 manifest. CR-002 section 63.14 has it all. In short:
+     - every one of the 72 writes, in every file, phase and lookup, is a plain run with the flag cleared: no Placeholder
+       Text style, no `w:color auto`. That is check 58's answer, so none of the four differences decides it;
+     - what check 63's run had that no other has: both its saves carry `<w:formsDesign/>`, which its file didn't. Jason
+       confirms that Developer > Design Mode was on, to see the controls, so check 63 measured Design Mode;
+     - this package differs in all 72 writes, by the style alone.
