@@ -5,7 +5,9 @@ one CR each in docx4j, core-ts and docx4j-python, against the same rules and pro
 CR-018). **D1 to D11 decided 2026-10-24 as recommended** (Jason: "CR-015 D1 to D11 decided as now recommended";
 section 7), after probe rounds 5 and 6 and a review against CR-018 (section 10). **Implemented 2026-10-24, phases 0 to
 2b** (Jason: "implement CR-015"; section 11), on objects 0.5.0 (its CR-013 phases A to C, published 2026-10-24; the range
-raised to `^0.5.0`). Phase 3's check 60 is written and waits for Jason's run. docx4j's `82c64bf14` (`w:framePr`'s `anchorLock` read as stated) is ported with
+raised to `^0.5.0`); committed `76fb45d`. **Phase 3's check 60 run the same day** (Jason; no repair): Office JS reads
+every marker as this package does, but Word's green highlight, which it reports `#00FF00` and the objects package's
+table `#008000` (section 11.6). docx4j's `82c64bf14` (`w:framePr`'s `anchorLock` read as stated) is ported with
 it, and the parity goldens regenerated at docx4j `5163c2986`.
 
 ## 1. Why
@@ -622,14 +624,32 @@ so the test was written against it.
 
 ### 11.6 Phase 3: check 60
 
-Written, not run. `test/fixtures/check60/build.mjs` puts 25 of the probes in one file (`60-runprops.docx`, git-ignored;
+`test/fixtures/check60/build.mjs` puts 25 of the probes in one file (`60-runprops.docx`, git-ignored;
 the share's `__tmp/60/`), each probe's paragraphs after a `PROBE <name>` paragraph, the styles together (no id clashes).
 The three `props-enum` probes are left out: Word repairs them, so its repair decides what they show. The snippet reads,
 for every marker, Office JS's `font` properties one at a time (the eleven `Font` properties this package has, then
 WordApiDesktop's on/off ones and `underlineColor`, which a host may lack). Through the Word shim it reads each marker as
-the probe's own `Font` does. When Jason's run is back, the shim is held to it, and differences become this section's.
-One thing it will settle: Word's `green` highlight is `#008000` in the objects package's `highlightHexValue`, and what
-Office JS reports for it is unmeasured.
+the probe's own `Font` does.
+
+**Run 2026-10-24** (Jason; Word 365, 16.0.20326.20232, PC; Script Lab; "no issues": Word opened the file with no repair).
+The JSON is `fixtures/check60/60-runprops-word365.json`: 340 paragraphs, 337 markers read, the three hidden by `w:vanish`
+recorded by their paragraph's text, as the shim records them.
+- **Office JS reads as this package does,** marker for marker, in every property of the shim's `Font` (`bold`, `italic`,
+  `underline`, `strikeThrough`, `doubleStrikeThrough`, `superscript`, `subscript`, `color`, `highlightColor`), but one: an
+  invalid on/off value on, an invalid `w:u` no underline, a colour name its hex, a rejected colour automatic (`#000000`),
+  an invalid highlight `null`, a character style's highlight `null`.
+- **The one difference:** H7's direct green highlight. Office JS reports Word's `green` as `#00FF00`, and the shim
+  `#008000`, the objects package's `highlightHexValue`, which is docx4j's `Highlight.getHexVal()` table (CSS's green; and
+  CSS's values for the dark names, with `darkYellow` gold). Only `green` and `yellow` were in the file, and `yellow`
+  agrees. The fix is the objects package's (its `readRunOptions` and `applyRunOptions` speak Office JS's vocabulary):
+  told 2026-10-24, with the suggestion of a check of all sixteen names, read and written, before its table changes. The
+  test asserts the difference as it stands, so that the fix announces itself.
+- **WordApiDesktop's properties,** which the shim's `Font` lacks: `allCaps`, `smallCaps`, `hidden`, `emboss`, `engrave`,
+  `outline` and `shadow` agree on every marker with the resolver's `caps`, `smallCaps`, `vanish`, `emboss`, `imprint`,
+  `outline` and `shadow` (2,359 readings), and `underlineColor` with this rule: the `w:u`'s own colour where it states one,
+  even where no underline is drawn (`U7_COLOR_ONLY`, and `w:u w:val="true" w:color="red"`, which reads none), else the
+  text's colour where there is an underline, else `#000000`. A test holds the resolver to each, for the day the shim's
+  `Font` gains them.
 
 ### 11.7 The tests
 

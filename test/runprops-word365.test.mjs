@@ -206,8 +206,7 @@ function fontReading(para, text, direct = false) {
 
 /**
  * Word's Font reading of a marker: the save's, with what its PDF shows where the save changes it (a green highlight,
- * in the objects package's `highlightHexValue`; what Office JS itself reports for Word's highlight names is check
- * 60's to measure, CR-015 D4).
+ * in the objects package's `highlightHexValue`; Office JS itself reports it #00FF00, check 60's one difference).
  */
 const FONT_DREW = new Map([
   ['props-enum-styles M6_HIGHLIGHT_GREEN', { highlightColor: '#008000' }],
@@ -719,4 +718,55 @@ test('check 60 through the Word shim reads each marker as the probe\'s Font does
   }
   assertNone(diffs);
   assert.ok(n > 300, `${n} markers read`);
+});
+
+/** Word 365's run of check 60 (Jason, 2026-10-24; Word 16.0.20326.20232, PC; no repair). */
+const CHECK60_WORD = JSON.parse(readFileSync(new URL('./fixtures/check60/60-runprops-word365.json', import.meta.url), 'utf8'));
+
+// Office JS reads Word's green highlight #00FF00; the objects package's highlightHexValue gives docx4j's #008000
+// (Highlight.getHexVal's table, which differs from Word's for green and, unmeasured, the dark names). The difference is
+// the dependency's, asserted as it stands so that a fix announces itself (CLAUDE.md's rule; CR-015 section 11.6).
+const CHECK60_DIFFERS = ['highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN highlightColor: core-ts "#008000", Word "#00FF00"'];
+
+test('check 60 (Word 365): the snippet through the Word shim reads every marker as Office JS does, but for the green highlight', async () => {
+  const { runCheck } = await check60();
+  const pkg = await WordprocessingMLPackage.load(check60Bytes());
+  await pkg.getBody();
+  const ours = await runCheck((f) => Word.run(pkg, f), 'core-ts');
+  assert.deepEqual(CHECK60_WORD.host, { host: 'Word', version: '16.0.20326.20232', platform: 'PC' });
+  assert.equal(CHECK60_WORD.markers.length, ours.markers.length);
+  const diffs = [];
+  for (const [i, w] of CHECK60_WORD.markers.entries()) {
+    const o = ours.markers[i];
+    assert.deepEqual([o.probe, o.text, o.marker, o.reads?.hits], [w.probe, w.text, w.marker, w.reads?.hits], `paragraph ${w.paragraph}`);
+    for (const [k, v] of Object.entries(w.reads?.font ?? {})) {
+      if (o.reads.font[k] === 'error: NotImplemented') continue; // the WordApiDesktop properties: the next test
+      if (JSON.stringify(o.reads.font[k]) !== JSON.stringify(v)) diffs.push(`${w.probe} ${w.marker} ${k}: core-ts ${JSON.stringify(o.reads.font[k])}, Word ${JSON.stringify(v)}`);
+    }
+  }
+  assert.deepEqual(diffs, CHECK60_DIFFERS);
+});
+
+// The WordApiDesktop properties the shim's Font doesn't have, held to the resolver's effective properties: each on/off
+// one as its w:rPr member, and underlineColor as Office JS reports it, the w:u's own colour where it states one (even
+// with no underline drawn: U7, A15, B15), else the text's where there is an underline, else #000000.
+test('check 60 (Word 365): allCaps, smallCaps, hidden, emboss, engrave, outline, shadow and underlineColor as the resolver reads them', async () => {
+  const MEMBERS = { allCaps: 'caps', smallCaps: 'smallCaps', hidden: 'vanish', emboss: 'emboss', engrave: 'imprint', outline: 'outline', shadow: 'shadow' };
+  const diffs = [];
+  let n = 0;
+  for (const w of CHECK60_WORD.markers.filter((m) => m.reads?.font !== undefined)) {
+    const pr = await probe(w.probe);
+    const mk = pr.marker(w.marker);
+    const eff = pr.resolver.getEffectiveRPr(mk.run.rPr, mk.p.pPr);
+    for (const [k, member] of Object.entries(MEMBERS)) {
+      if (isTrue(eff?.[member]) !== w.reads.font[k]) diffs.push(`${mk.key} ${k}: core-ts ${isTrue(eff?.[member])}, Word ${w.reads.font[k]}`);
+    }
+    const u = eff?.u;
+    const underlined = u !== undefined && u.val !== undefined && u.val !== 'none';
+    const colour = `#${pr.resolver.resolveUnderlineColor(u)?.toHex() ?? (underlined ? pr.resolver.resolveColor(eff?.color)?.toHex() : undefined) ?? '000000'}`;
+    if (colour !== w.reads.font.underlineColor) diffs.push(`${mk.key} underlineColor: core-ts ${colour}, Word ${w.reads.font.underlineColor}`);
+    n++;
+  }
+  assertNone(diffs);
+  assert.equal(n, 337, 'every marker but the three hidden ones');
 });

@@ -52,8 +52,8 @@ change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (range
 Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54), and CR-008 phase 2 (docx4j's colour resolver,
 `org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
 as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
-CR-061) is implemented through phase 2b, not yet released, on objects 0.5.0 (its CR-013 A to C); phase 3's check 60 waits for
-Jason's run. The editor's release requests are
+CR-061) is implemented, not yet released, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
+differs only in Word's green highlight (the objects package's table, `#008000` where Office JS reads `#00FF00`). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -325,7 +325,8 @@ probes against what Word drew,
 outside `fixtures/`), each of the 376 markers held to Word's save of its probe through the resolver, the text model, `Font` and a round
 trip; docx4j's `RunPropertiesWord365Test`, `OnOffAttributesTest` (every `Boolean` attribute of the wml mapping), `ColourNormalFormTest`
 and `ColourNormalFormOptOutTest`; D8's warnings and save report; and check 60's file (`check60Bytes`, `test/fixtures/check60/`, built
-from 25 of the probes) and snippet, run through the shim,
+from 25 of the probes) and snippet, run through the shim and held to Word 365's run (`60-runprops-word365.json`), the WordApiDesktop
+properties the shim lacks held to the resolver,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

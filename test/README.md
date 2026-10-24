@@ -4776,4 +4776,10 @@ async function check() {
      invalid highlight none (`null`), a character style's highlight none. A green highlight reads `#008000`, the objects
      package's value for Word's `green`, which Office JS's own is the check's to say. `allCaps` and the rest after
      `highlightColor` are not in the shim's `Font`.
+   - **Run 2026-10-24 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab), no repair.** The JSON is
+     `fixtures/check60/60-runprops-word365.json`. Office JS reads every marker as the shim does, but Word's green highlight:
+     `#00FF00` in Office JS, `#008000` in the objects package's table (docx4j's `Highlight.getHexVal()`), the objects
+     package's to fix. `allCaps`, `smallCaps`, `hidden`, `emboss`, `engrave`, `outline` and `shadow` agree with the
+     resolver on every marker, and `underlineColor` is the `w:u`'s own colour where it states one (even with no underline
+     drawn), else the text's under an underline, else `#000000`. CR-015 section 11.6 has the detail.
 
