@@ -357,9 +357,9 @@ test("check 53 (Word 365, Simple Markup): the snippet through the Word shim read
   }
   const changeRead = (n) => [`paragraphs.${n}.changes.0.type`, `paragraphs.${n}.changes.0.text`, `paragraphs.${n}.changes.0.range`, `paragraphs.${n}.changes.0.rangeParagraphs`,
     `paragraphs.${n}.wholeChanges.0.type`, `paragraphs.${n}.wholeChanges.0.text`, `paragraphs.${n}.wholeChanges.0.range`, `paragraphs.${n}.wholeChanges.0.rangeParagraphs`];
-  // a control showing its placeholder reads as empty, as Word's (CR-012 section 18); its placeholderText reads the runs
-  // here, where Word, with no glossary part, reads null; Word's showingPlaceholderText came back undefined
-  const placeholder = ['control.placeholderText', 'showingPlaceholderText'];
+  // a control showing its placeholder reads as empty, as Word's (CR-012 section 18); its placeholderText reads null, as
+  // Word's, with no glossary part (CR-002 section 63, D8); Word's showingPlaceholderText came back undefined
+  const placeholder = ['showingPlaceholderText'];
   const styleOther = ['paragraph.style', 'paragraph.styleBuiltIn', 'whole.style', 'whole.styleBuiltIn'];
   // every colour is Word's (CR-002 section 59), automatic ones #000000, and Heading 1's theme colour (accent1, shaded)
   // read through the theme, #0F4761, not the w:val beside it (CR-008 phase 2); so is every font read where runs differ

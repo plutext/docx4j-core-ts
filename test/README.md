@@ -4923,7 +4923,9 @@ async function check() {
        and puts the insertion before the deletion. A paragraph inserted beside a block control goes outside it.
      - **Nodes:** a bound control's node stayed empty after every write. Reopened, Word refilled each bound control from
        its node, so cases 21 to 25 and 47 to 51 show empty controls: Word's writes were lost (Jason's screenshots).
-     - **This package** differs in 44 of the 52 writes; D1 to D7 are proposed in section 63.3.
+     - **This package** differs in 44 of the 52 writes; D1 to D7 are proposed in section 63.3. Since section 63's
+       implementation (section 63.12, 2026-10-25) it agrees in all 52; its decided departures (D6 (b), D7 in the bare form)
+       don't show in what the snippet reads.
 
 64. Check 63's writes on controls in Word's own form, and a bound control's node (CR-002 section 63.4, 2026-10-24; Jason:
    "let's do check 64").
@@ -4977,7 +4979,8 @@ async function check() {
      - Word's own `insertContentControl` makes this form.
 
      Check 63's oddities all come of the bare form, which docx4j's binding and this package write. This package differs
-     in 28 of the 52 writes. The first control blinked during the run; the results are as expected.
+     in 28 of the 52 writes (none since section 63.12). The first control blinked during the run; the results are as
+     expected.
 
 65. What Word needs of a placeholder in its own form (CR-002 section 63.7, 2026-10-24; Jason: "write check 65", for D8).
    - **Why:** check 64's controls named Word's default glossary entry, `DefaultPlaceholder_-1854013440`, and the file had
@@ -5038,7 +5041,9 @@ async function check() {
        the share's `65b-run-word365.docx`; the copy is `check65/65b-reopened-typed-word365.docx`. It holds `TYPED14`
        alone, in the control and the node, and Word gave that control, and four others, glossary entries of their own.
 
-     This package differs in writes 2, 3, 5 and 9 of each file, and reads `placeholderText` from the runs.
+     This package differs in writes 2, 3, 5 and 9 of each file, and reads `placeholderText` from the runs. Since section
+     63.12 it reads `placeholderText` as Word does and differs only in 65b's case 9, where Word's glossary had lost the
+     style.
 
 66. How much glossary a placeholder needs (CR-002 section 63.10, 2026-10-25; Jason: "yes", to writing check 66, for D9).
    - **Why:** check 65's 65b had a glossary of the document part alone. Word kept it, but its entries lost the
@@ -5088,4 +5093,5 @@ async function check() {
      - every reference stayed through the run, a reopening and typing;
      - the bare-form control typed into was given no entry, and both typed nodes were written.
 
-     So D9 (a), the document and styles parts, is enough (decided, Jason, 2026-10-25). This package differs in cases 3 and 4.
+     So D9 (a), the document and styles parts, is enough (decided, Jason, 2026-10-25). This package differs in cases 3 and 4
+     (none since section 63.12).

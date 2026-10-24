@@ -201,7 +201,8 @@ namespace OfficeSubset {
     delete(keepContent: boolean): void;
     // CR-002 phase E (WordApiDesktop 1.3): the XML mapping, the w:sdtPr properties and the kinds
     readonly xmlMapping: XmlMapping;
-    placeholderText: string;
+    /** `string` in @types/office-js; Word reads `null` where the glossary lacks the entry (CR-002 section 63, checks 63 and 65). */
+    placeholderText: string | null;
     readonly showingPlaceholderText: boolean;
     appearance: string;
     color: string;

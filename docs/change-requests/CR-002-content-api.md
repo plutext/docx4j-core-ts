@@ -6614,3 +6614,120 @@ shows no placeholder (D8). `placeholders.test.mjs` pins Word's runs, its eight s
 Word completes the rest on save.
 
 **Decided 2026-10-25** (Jason: "D9 (a) agreed"). Not yet implemented.
+
+### 63.12 Implemented (2026-10-25)
+
+Jason: "implement section 63", with D1 to D9 decided (sections 63.6, 63.9 and 63.11). Through the Word shim, this package
+now gives Word's answers in every write of checks 63, 64 and 66 and in all but one of check 65's, as the snippets read
+them (`placeholders.test.mjs`). Until now it differed in 44, 28, 8 and 4 of them.
+
+**The form.** `ContentControl.placeholderEntry` (an extension) is the entry the control's `w:placeholder` names. With
+one, the control is in Word's form; without one, it is in the bare form. `placeholders.mts` holds the form's helpers
+and the glossary's entries.
+
+**One write for every route (D1, D2 (a), D5).** A text write that reaches a control showing its placeholder goes through
+`ContentControl.writePlaceholder` (internal). Its routes:
+- the control's `insertText`;
+- its `Content` range's `insertText`;
+- a block control's paragraph's `insertText`, `text =` and `splice`.
+
+The placeholder's runs come out, and the text takes their place in one paragraph, with the flag cleared:
+- **Word's form:** the runs go untracked and the text is plain. Under tracking only the insertion is recorded.
+- **The bare form:** the text takes the runs' properties.
+  - The Placeholder Text style stays, but goes in a bound plain-text control.
+  - `w:color auto` is added where Word added it: the control's `'End'`, the paragraph's `'End'`, and its `'Start'`
+    untracked. Check 63's case 34, tracked, has none.
+  - Under tracking the insertion comes first, then the runs marked deleted, the change to their properties recorded in a
+    `w:rPrChange` (check 63's cases 28, 35, 40 and 47 to 51).
+- **The control's `insertParagraph('End')`, or `'Start'`:**
+  - in the bare form the text goes in the placeholder's place, in its paragraph, with the flag left on (cases 3 and 29);
+  - in Word's form the placeholder goes, its paragraph is left empty, and the new paragraph follows (check 64's 6 and 27).
+
+F1 and F3 go with it: the tracked write is one paragraph, and it reads as text.
+
+**D4.** A control's `Content` and `Whole` ranges carry the control (`Range.ofControl`, internal), since a run-level
+control showing its placeholder, or holding nothing, has no width of its own:
+- their writes go inside it (F2), an empty run-level control's too (check 64's cases 21 and 42);
+- a `Content` delete keeps the control and its flag; in the bare form its runs go, marked deleted under tracking (check
+  63's 6, 17, 32 and 43).
+
+**D3.** `ContentControl.takeWhole` (internal) takes a control showing its placeholder that a write holds whole:
+- a paragraph's Replace or `Content` delete over a run-level control (`Paragraph.spliceText` untracked, `deleteText`
+  tracked; any span holding one whole, by the span's edges);
+- a run-level control's `Whole` range Replace, or delete;
+- a paragraph's `Content` delete over a block control's only paragraph.
+
+Untracked the control goes, a block control leaving its paragraph, emptied, in its place. Tracked it is marked deleted in
+Word's `w:customXmlDelRange` form (`markHolderDeleted`), with its placeholder in a `w:del` inside. A Replace puts its
+insertion first: before the control, or before the paragraph's deleted text. For that, a tracked `Paragraph.insertText(…,
+'Replace')` now goes through its `Content` range's Replace, as Word's does (check 63's 33, 45 and 52), where it put the
+deletion first. Section 62.2's refusal of one over an equation goes with it, since the text no longer goes after the
+deletion; it writes the equation deleted in Word's form, as a range's Replace does.
+
+**D6 (b).** A paragraph inserted beside the only paragraph of a block control showing its placeholder goes outside the
+control, which stays at block level.
+
+**D7.** `Paragraph.splice` writes the node of every bound control around the span (`boundControlsAt`), where the XPath
+engine is warm, so every route writes it, not only the control's `insertText`. In the bare form this departs from Word,
+which left the nodes empty and lost the writes on reopening (check 63).
+
+**D8.**
+- **`placeholderText`** reads the named entry's text, `null` in the bare form or where the glossary lacks the entry. The
+  Office JS subset's type is now `string | null`; @types/office-js says `string`, and Word reads `null`.
+- **Setting it** names `DefaultPlaceholder_-1854013440` for Word's default text, else a new entry named with 32 hex
+  digits. A control showing its placeholder, or holding nothing, shows the text. A control holding content keeps it, and
+  only its reference changes, where the setter used to refuse.
+- **`showPlaceholder()`** (an extension) shows the named entry, else Word's default, which the control is made to name.
+- **The binding pass:** an empty value shows the placeholder, where docx4j's form wrote `Click here to enter text.` with
+  no reference. This holds for a text control, or any control naming an entry; another kind keeps docx4j's run.
+- **`insertContentControl`** on an empty paragraph, or at a point, makes a rich text or plain text control showing the
+  default entry.
+- **In Word's form, a control emptied** by its `Content` range's delete, untracked, shows its entry again (check 66's
+  case 3).
+- `w:showingPlcHdr` is written without `w:val`, as Word writes it.
+
+**D9.** `pkg.glossaryEntries` (an extension):
+- **Reading:** the entries are read privately when a body is first read (`getBody`, `Word.run`), so an untouched glossary
+  is saved byte for byte.
+- **Writing:** the entries written since wait for the save, which:
+  - makes the glossary document part where the file has none, with its relationship and content type;
+  - adds each entry in Word's form (check 65's), with a `w:guid` of its own;
+  - makes the glossary's styles part, or completes it, with Default Paragraph Font and Placeholder Text as Word defines
+    them. A styles part holding both stays untouched.
+
+A control naming an entry that the glossary lacks, given its placeholder by the binding pass, has that entry written,
+with the default text, so its reference survives Word's save.
+
+**Unmeasured choices.** Each follows the measured case nearest it:
+- the control's `insertText(…, 'Start')` in the bare form adds the colour, as `'End'` does;
+- a run-level control's `Whole` delete takes it, as its Replace does;
+- in Word's form a `Content` delete of a control showing its placeholder changes nothing;
+- D3 is for controls showing their placeholder. A paragraph's Replace over a run-level control holding text keeps the
+  control, emptied, as before;
+- `placeholderText = ''` names the default entry;
+- `Body.insertContentControl` and a range across paragraphs make controls as before.
+
+**Still differing from Word:**
+- check 65's 65b, case 9: Word showed its made control unstyled, its glossary having lost the style;
+- D6 (b) and D7's bare form, as decided;
+- not a placeholder matter, and unchanged: a tracked `insertParagraph('After')` marks the new paragraph's mark, where Word
+  marks the mark before it (check 63's 36, check 64's 27);
+- Word merges runs where this package leaves two (check 63's 18), and orders `w:sdtPr`'s children differently in a control
+  it makes;
+- the shim's `getOoxml` of a region writes an `xsi:type` on a body-level `w:customXmlDelRange` marker. The saved part
+  doesn't; this was found here and not changed.
+
+**Tests:** `placeholders.test.mjs` has 25 tests. The shim's runs are held to Word's (`WORD_RUN`, `WORD_RUN_64`,
+`WORD_RUN_65`), and the pinned runs from before are gone. New tests cover:
+- D3's markup, accepted and rejected;
+- D6's level;
+- D7's nodes in both forms;
+- D8's setter, binding and made controls;
+- D9's glossary: made, added to, and left untouched.
+
+Moved with them:
+- `customxml.test.mjs`: D8;
+- `readers.test.mjs`: check 58's `placeholderText` reads `null`, and a bare-form write keeps the style;
+- `ranges.test.mjs`: check 53's `placeholderText` agrees now;
+- `tracking.test.mjs`: a paragraph's tracked Replace writes the insertion first;
+- `fields-equations.test.mjs`: section 62.2's refusal goes.

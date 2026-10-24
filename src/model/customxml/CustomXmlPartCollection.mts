@@ -263,7 +263,7 @@ function suffixOf(partName: PartName): string {
 }
 
 /** A version 4 UUID, as docx4j's `UUID.randomUUID()` gives (crypto when the runtime has it). */
-function uuid(): string {
+export function uuid(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (c?.randomUUID) return c.randomUUID();
   const hex: string[] = [];

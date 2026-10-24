@@ -2187,10 +2187,11 @@ test('a range over a paragraph\'s whole content takes its pictures; a span of te
     tracked.body.acceptAll();
     assert.equal(tracked.body.inlinePictures.length, 0, `tracked, ${parts.length} parts`);
   }
-  // replacing the whole content, as insertText('Replace') does on a paragraph
+  // replacing the whole content, as insertText('Replace') does on a paragraph: the insertion first, as Word writes it
+  // (CR-002 section 63, D3; check 63 cases 45 and 52), as a range's Replace did already
   const replaced = tracking(await withPicture('a', PIC));
   replaced.body.paragraphs[0].insertText('New', 'Replace');
-  assert.ok((await bodyXml(replaced)).includes('<w:del><w:r><w:delText>a</w:delText></w:r><w:r><w:drawing/></w:r></w:del><w:ins><w:r><w:t>New</w:t></w:r></w:ins>'), await bodyXml(replaced));
+  assert.ok((await bodyXml(replaced)).includes('<w:ins><w:r><w:t>New</w:t></w:r></w:ins><w:del><w:r><w:delText>a</w:delText></w:r><w:r><w:drawing/></w:r></w:del>'), await bodyXml(replaced));
 
   // a search hit holds the pictures strictly inside it, not one beside it
   for (const tracked of [false, true]) {

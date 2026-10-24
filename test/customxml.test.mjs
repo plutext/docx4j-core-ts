@@ -363,12 +363,18 @@ test('typed content controls: the properties Office JS hangs off a control', asy
   control.removeWhenEdited = true;
   assert.equal(control.removeWhenEdited, true);
 
+  // a control made around an empty paragraph shows Word's default placeholder, in Word's form (CR-002 section 63, D8)
   const empty = body.insertParagraph('', 'End').insertContentControl('PlainText');
-  assert.equal(empty.placeholderText, '');
+  assert.equal(empty.placeholderText, 'Click or tap here to enter text.');
+  assert.equal(empty.placeholderEntry, 'DefaultPlaceholder_-1854013440');
   empty.placeholderText = 'Your name';
   assert.equal(empty.isShowingPlaceholder, true);
   assert.equal(empty.placeholderText, 'Your name');
-  assert.throws(() => { control.placeholderText = 'no'; }, /holds content/);
+  assert.match(empty.placeholderEntry, /^[0-9A-F]{32}$/);
+  // a control holding content keeps it; only the entry it names changes (until section 63, refused)
+  const before = control.text;
+  control.placeholderText = 'no';
+  assert.deepEqual([control.text, control.isShowingPlaceholder, control.placeholderText], [before, false, 'no']);
 
   // everything above is real w:sdtPr markup after a round trip
   const again = await WordprocessingMLPackage.load(await pkg.save());

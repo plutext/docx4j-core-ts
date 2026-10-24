@@ -37,6 +37,15 @@ async function ensurePropertyResolver(part: Part): Promise<void> {
   await pkg?.getPropertyResolver?.();
 }
 
+/**
+ * The glossary's placeholder entries, read privately, which `ContentControl.placeholderText` reads synchronously
+ * (CR-002 section 63, D8).
+ */
+async function ensureGlossaryEntries(part: Part): Promise<void> {
+  const pkg = part.package as { glossaryEntries?: { load(glossary: unknown): Promise<void> }; mainDocumentPart?: { glossaryDocumentPart?: unknown } } | undefined;
+  await pkg?.glossaryEntries?.load(pkg.mainDocumentPart?.glossaryDocumentPart);
+}
+
 /** The Body view of a part's block-level container, one per container object. */
 function bodyOf(part: XmlPart<unknown>, container: { content?: unknown[] } | undefined, prefix: string): Body {
   if (!container) throw new Docx4JException(`${part.partName} has no content yet; await getContents() first, or set contents`);
@@ -131,6 +140,7 @@ export class MainDocumentPart extends DocumentPart<wml.Document> {
   async getBody(): Promise<Body> {
     await this.getContents();
     await ensurePropertyResolver(this);
+    await ensureGlossaryEntries(this);
     return this.body;
   }
 
@@ -472,6 +482,7 @@ export class HeaderPart extends XmlPart<wml.Hdr> {
   async getBody(): Promise<Body> {
     await this.getContents();
     await ensurePropertyResolver(this);
+    await ensureGlossaryEntries(this);
     return this.body;
   }
 }
@@ -487,6 +498,7 @@ export class FooterPart extends XmlPart<wml.Ftr> {
   async getBody(): Promise<Body> {
     await this.getContents();
     await ensurePropertyResolver(this);
+    await ensureGlossaryEntries(this);
     return this.body;
   }
 }

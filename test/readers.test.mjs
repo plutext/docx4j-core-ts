@@ -474,9 +474,9 @@ test("check 58's snippet through the Word shim, held to Word 365's Simple Markup
   // a listing as K1 pins it (CR-002 section 58.1): the region's changes and each paragraph's, its whole range's and its
   // content range's, by type. A change's text here is docx4j's, All Markup's, where Simple Markup reads a deletion's as ''
   const listing = (r) => ({ region: r.region.map((c) => c.type), paragraphs: r.paragraphs.map((p) => [p.changes, p.wholeChanges, p.contentChanges].map((l) => l.map((c) => c.type))) });
-  // placeholderText reads the shown runs here, where Word, with no glossary part, reads null (CR-012 section 18); and
-  // Word's showingPlaceholderText came back undefined, which JSON leaves out
-  const control = ({ placeholderText, ...rest }) => rest;
+  // placeholderText reads null, as Word's, with no glossary part (CR-002 section 63, D8); Word's showingPlaceholderText came
+  // back undefined, which JSON leaves out
+  const control = (c) => c;
   const placeholder = (r) => ({ control: typeof r.control === 'object' ? control(r.control) : r.control });
   const views = {
     read: (c) => (['changes', 'accept', 'reject'].includes(c.op) ? listing(c.reads) : ['placeholder', 'fill'].includes(c.op) ? placeholder(c.reads) : c.reads),
@@ -563,13 +563,17 @@ test('CR-012 section 18: a control showing its placeholder reads as no text, is 
     + `<w:p><w:r><w:t xml:space="preserve">A </w:t></w:r><w:sdt>${sdtPr(2)}<w:sdtContent>${placeholder}</w:sdtContent></w:sdt><w:r><w:t xml:space="preserve"> B</w:t></w:r></w:p>`, 'End');
   const [block, run] = body.contentControls;
   assert.deepEqual([block.text, run.text, body.paragraphs[1].text], ['', '', 'A  B']);
-  assert.deepEqual([block.placeholderText, run.placeholderText], ['Click here.', 'Click here.'], 'read from the runs (Word: null, from the glossary)');
+  // null, as Word reads a control naming no glossary entry (CR-002 section 63, D8; until then the runs were read)
+  assert.deepEqual([block.placeholderText, run.placeholderText], [null, null]);
   assert.equal(body.search('Click').length, 0, 'K3: no text to search');
   assert.equal(body.text, '\rA  B');
-  // text goes in the placeholder's place, at 'End' as at 'Replace'; the control shows it, not the placeholder style
+  // text goes in the placeholder's place, at 'End' as at 'Replace'. These controls are in the bare form (no w:placeholder),
+  // whose placeholder Word takes for content: the text keeps its run's style, and Word's w:color auto at an end (CR-002
+  // section 63, D2 (a); check 63 cases 2 and 14). Until then the style was dropped
   block.insertText('FILLED', 'End');
   run.insertText('X', 'Start');
   assert.deepEqual([block.text, block.isShowingPlaceholder, run.text, run.isShowingPlaceholder], ['FILLED', false, 'X', false]);
   assert.equal(body.paragraphs[1].text, 'A X B');
-  assert.ok([...block.paragraphs[0].runs, ...body.paragraphs[1].runs].every((r) => r.value.rPr?.rStyle?.val !== 'PlaceholderText'));
+  assert.deepEqual(block.paragraphs[0].runs.map((r) => [r.value.rPr?.rStyle?.val, r.value.rPr?.color?.val]), [['PlaceholderText', 'auto']]);
+  assert.deepEqual(body.paragraphs[1].runs.filter((r) => r.value.rPr).map((r) => [r.value.rPr.rStyle?.val, r.value.rPr.color?.val]), [['PlaceholderText', 'auto']]);
 });

@@ -20,11 +20,11 @@ import { officeMatches, expandReplacement, paragraphMarkPieces, refuseMarkReplac
 import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
-import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
+import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, holdsOneParagraph, showsPlaceholderWhenMade, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
 import { breakParagraphAt, BREAKABLE } from './spanEdits.mjs';
 import { endsCell, endsWithParagraph, wrappingCellOf } from './tableRules.mjs';
 import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsElementCharacters, type LineBreaks } from './officeText.mjs';
-import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/wml';
+import { sdt as sdtOf, nextSdtId, sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
@@ -152,6 +152,9 @@ export class Paragraph {
     // one paragraph, its line breaks w:br and w:cr (CR-002 section 60 E2), or as a plain-text control takes them (F3)
     const lines = this.blockControl ? plainTextLinesOf(this.blockControl) : undefined;
     const mode: LineBreaks = lines === 'multi' ? 'multi-line' : lines === 'single' ? 'single-line' : 'one-paragraph';
+    // in a block control showing its placeholder, the text in the placeholder's place (CR-002 section 63)
+    const placeholder = this.placeholderControl;
+    if (placeholder) { placeholder.writePlaceholder(value, { lineBreaks: mode }); return; }
     if (this.changeTracker) { this.splice(0, this.text.length, value, 'before', WHOLE, mode); return; }
     const rPr = runsOf(this.p)[0]?.value.rPr;
     this.releaseRelationships(this.p.content);
@@ -377,20 +380,44 @@ export class Paragraph {
 
   /** Text inserted at the start, the end, or replacing the whole paragraph's text. */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
+    // in a block control showing its placeholder the text takes the placeholder's place wherever it is put; in the bare
+    // form Word adds w:color auto at the paragraph's end, and at its start untracked (CR-002 section 63, check 63 cases 7
+    // to 9 and 33 to 35)
+    const placeholder = this.placeholderControl;
+    if (placeholder) return placeholder.writePlaceholder(text, { colour: location === 'End' || (location === 'Start' && !this.changeTracker) });
     const length = this.text.length;
     if (location === 'Start') return this.splice(0, 0, text);
     if (location === 'End') return this.splice(length, length, text);
+    // tracked, the insertion goes first, before the deletion, as a range's Replace writes it and Word wrote this one
+    // (check 63 cases 45 and 52; CR-002 section 63 D3)
+    if (this.changeTracker && length > 0) return this.getRange('Content').insertText(text, 'Replace');
     return this.splice(0, length, text, 'before', WHOLE);
   }
 
-  /** A new paragraph of the text before or after this one, with this paragraph's properties (as Word). */
+  /**
+   * A new paragraph of the text before or after this one, with this paragraph's properties (as Word). Beside the only
+   * paragraph of a block control showing its placeholder it goes outside the control, as Word's went, and the control
+   * stays at block level (CR-002 section 63, D6 (b); check 63 cases 10, 11, 36 and 37).
+   */
   insertParagraph(text: string, location: 'Before' | 'After'): Paragraph {
     this.assertWritable();
     const pPr = this.p.pPr ? deepCopy(this.p.pPr) : undefined;
     if (pPr) { delete pPr.rPr; delete (pPr as { sectPr?: unknown }).sectPr; delete pPr.pPrChange; }
     const run = oneParagraphRun(text);   // E2
     const el = paragraphOf(run.value.content?.length ? [run] : [], pPr);
+    const control = this.blockControl;
+    if (control?.isShowingPlaceholder && holdsOneParagraph(control)) {
+      // the body holding the control: this paragraph's is the control's content
+      const owner = (control.element.value as { PARENT?: { content?: Element[] } }).PARENT ?? this.parentBody.container;
+      return this.parentBody.sub(owner).insertElement(el, location, { element: control.element as Element, container: control.container }) as Paragraph;
+    }
     return this.parentBody.insertElement(el, location, this) as Paragraph;
+  }
+
+  /** The block-level control holding this paragraph directly while it shows its placeholder (CR-002 section 63). */
+  private get placeholderControl(): ContentControl | undefined {
+    const control = this.blockControl;
+    return control?.showsPlaceholderContent ? control : undefined;
   }
 
   insertBreak(type: 'Page' | 'Line', location: 'Before' | 'After' | 'Start' | 'End'): void {
@@ -770,6 +797,45 @@ export class Paragraph {
    */
   splice(start: number, end: number, text: string, prefer: 'before' | 'after' = 'before', edges?: SpanEdges, lineBreaks?: LineBreaks): Range {
     this.assertWritable();
+    // text into a block control showing its placeholder takes the placeholder's place (CR-002 section 63)
+    const placeholder = text === '' ? undefined : this.placeholderControl;
+    if (placeholder) return placeholder.writePlaceholder(text, lineBreaks ? { lineBreaks } : {});
+    // every text write into a bound control writes its node (CR-002 section 63, D7), as ContentControl.insertText did
+    const bound = this.boundControlsAt(start, end);
+    const range = this.spliceWrite(start, end, text, prefer, edges, lineBreaks);
+    for (const control of bound) control.syncBoundNode();
+    return range;
+  }
+
+  /**
+   * The controls bound by `w:dataBinding` that [start, end) is in: those holding the paragraph, and the run-level ones
+   * holding text there.
+   */
+  private boundControlsAt(start: number, end: number): ContentControl[] {
+    const out: ContentControl[] = [];
+    const seen = new Set<object>();
+    const add = (o: object): void => {
+      const tn = (o as { TYPE_NAME?: string }).TYPE_NAME;
+      if (tn === undefined || !SDT_VALUE_TYPES.has(tn) || seen.has(o)) return;
+      seen.add(o);
+      if (sdtProperty((o as { sdtPr?: wml.SdtPr }).sdtPr, 'dataBinding') === undefined) return;
+      try {
+        out.push(controlViewOf(o, this.parentBody));
+      } catch {
+        // not where its PARENT says: nothing to write
+      }
+    };
+    for (let o = (this.p as { PARENT?: object }).PARENT; o; o = (o as { PARENT?: object }).PARENT) add(o);
+    if (!holdsBoundRunControl(this.p)) return out;
+    for (const seg of this.segments({ objects: true })) {
+      if (seg.end < start || seg.start > end) continue;
+      for (let o = (seg.run as { PARENT?: object }).PARENT; o && o !== this.p; o = (o as { PARENT?: object }).PARENT) add(o);
+    }
+    return out;
+  }
+
+  /** `splice`'s write. */
+  private spliceWrite(start: number, end: number, text: string, prefer: 'before' | 'after', edges: SpanEdges | undefined, lineBreaks: LineBreaks | undefined): Range {
     // Office JS's characters written back (CR-002 section 60): the characters XML 1.0 excludes go (E3), a line feed or
     // carriage return is a paragraph break (E1) unless the writer or the control takes it otherwise, and every
     // character that is an element is written as it (D1)
@@ -906,6 +972,9 @@ export class Paragraph {
     end = Math.max(start, Math.min(end, length));
     const tracker = this.changeTracker;
     this.assertPlaceable(start, end, tracker === undefined ? false : text.length > 0 ? 'replace' : 'delete');
+    // a run-level control showing its placeholder that the span holds whole goes with it, as Word takes one; tracked,
+    // `deleteText` marks it deleted (CR-002 section 63, D3; check 63 cases 19, 20 and 26)
+    if (!tracker && (end > start || edges)) for (const control of this.placeholderControlsIn(start, end, edges)) control.takeWhole();
     if (tracker) {
       // a replacement is the w:del first and the w:ins after it, as Word writes one
       const deletions = end > start || edges ? this.deleteText(tracker, start, end, edges) : [];
@@ -1180,6 +1249,7 @@ export class Paragraph {
     const parent = (this.p as { PARENT?: object }).PARENT ?? this.parentBody.container;
     // a bound block control holds one paragraph (CR-002 section 61): checked before sdtOf, which takes the paragraph
     assertControlHolds(this.parentBody, parent, this.container.filter((e) => e !== this.element), [BLOCK_CONTROL], undefined, ['Paragraph', 'insertContentControl']);
+    const empty = this.segments({ objects: true }).length === 0;
     const sdt = sdtOf([this.element as Element], { kind: sdtKindFor(kind), id: nextSdtId(controlIdScope(this.parentBody)), form: 'block' });
     this.container.splice(at, 1, sdt as Element);
     linkParents(sdt, parent);
@@ -1187,7 +1257,10 @@ export class Paragraph {
     // under tracking the control itself is the insertion, the paragraph what it was (check 30)
     const tracker = this.changeTracker;
     if (tracker) markHolderInserted(tracker, sdt as Element, this.container, () => {});
-    return new ContentControl(sdt as Element<wml.SdtBlock>, this.container, this.parentBody);
+    const control = new ContentControl(sdt as Element<wml.SdtBlock>, this.container, this.parentBody);
+    // around an empty paragraph, a control showing Word's default placeholder, as Word's (CR-002 section 63, D8; check 64)
+    if (empty && showsPlaceholderWhenMade(kind)) control.showPlaceholder();
+    return control;
   }
 
   private removeEmptyRuns(): void {
@@ -1231,6 +1304,9 @@ export class Paragraph {
    * Returns the `w:del` elements it made, in document order.
    */
   private deleteText(tracker: ChangeTracker, start: number, end: number, edges?: SpanEdges): Anchor[] {
+    // a run-level control showing its placeholder that the span holds whole is marked deleted whole, in Word's markers,
+    // its placeholder deleted inside (CR-002 section 63, D3; check 63 cases 45, 46 and 52)
+    for (const control of this.placeholderControlsIn(start, end, edges)) control.takeWhole();
     const targets = this.isolate(start, end, edges);
     for (const seg of targets) tracker.assertEditable(seg.revision);
     type Target = { run: Element; owner: Element[]; own: boolean; revision?: RevisionHolderOf };
@@ -1301,6 +1377,22 @@ export class Paragraph {
       made.unshift(anchor);
     }
     return made;
+  }
+
+  /**
+   * The run-level controls showing their placeholder that [start, end) holds whole: where the walk passes one strictly
+   * inside the span, or at an edge `edges` says it holds. A placeholder is no text, so such a control has no width
+   * (CR-002 section 63, D3).
+   */
+  private placeholderControlsIn(start: number, end: number, edges?: SpanEdges): ContentControl[] {
+    const found: object[] = [];
+    this.segments({ visit: (item, at) => {
+      if (typeNameOf(item) !== 'org_docx4j_wml.SdtRun' || !objectInSpan(at, start, end, edges)) return;
+      const sdtPr = (item.value as wml.SdtRun).sdtPr;
+      const flag = sdtProperty(sdtPr, 'showingPlcHdr');
+      if (flag !== undefined && (flag.value as wml.BooleanDefaultTrue | undefined)?.val !== false) found.push(item.value as object);
+    } });
+    return found.map((sdt) => controlViewOf(sdt, this.parentBody));
   }
 
   /**
@@ -1715,3 +1807,16 @@ function commentReferenceIds(runs: Element[]): number[] {
     .filter((c) => c.name?.localPart === 'commentReference').map((c) => Number((c.value as { id?: unknown }).id)));
 }
 
+/** The `w:sdt` value types, block, run, row and cell. */
+const SDT_VALUE_TYPES: ReadonlySet<string> = new Set(['org_docx4j_wml.SdtBlock', 'org_docx4j_wml.SdtRun', 'org_docx4j_wml.CTSdtRow', 'org_docx4j_wml.CTSdtCell']);
+
+/** Whether a paragraph holds a run-level control bound by `w:dataBinding`, at any depth among its runs. */
+function holdsBoundRunControl(holder: object): boolean {
+  for (const item of runItemsOf(holder) ?? []) {
+    const value = item.value as { TYPE_NAME?: string; sdtPr?: wml.SdtPr } | undefined;
+    if (!value || typeof value !== 'object') continue;
+    if (value.TYPE_NAME === 'org_docx4j_wml.SdtRun' && sdtProperty(value.sdtPr, 'dataBinding') !== undefined) return true;
+    if (value.TYPE_NAME !== 'org_docx4j_wml.R' && holdsBoundRunControl(value)) return true;
+  }
+  return false;
+}

@@ -11,7 +11,6 @@ import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WordprocessingMLPackage } from '../dist/index.mjs';
-import { NotSupportedError } from '../dist/office-js/index.mjs';
 import { Word } from '../dist/office-js/index.mjs';
 import { check57Bytes, check57Cases, documentOf, documentXmlOf, packageOf, sourceParagraph } from './fixtures/check57/build.mjs';
 import { strFromU8, unzipSync } from 'fflate';
@@ -213,7 +212,7 @@ test('CR-002 section 62.2 D1: a w:fldSimple a break splits is made a complex fie
 const equationOrFieldParagraphs = (xml) => (xml.match(/<w:p\b(?:(?!<w:p\b)[\s\S])*?<\/w:p>/g) ?? []).slice(1, -1)
   .map((p) => p.replace(/ xmlns:\w+="[^"]*"| w14:\w+="[^"]*"/g, ''));
 
-test('CR-002 section 62.2 D2: a tracked delete of an equation holding a revision of its own puts it whole in one w:del, as before; a tracked Range replacement goes ahead, a Paragraph one is refused', async () => {
+test('CR-002 section 62.2 D2: a tracked delete of an equation holding a revision of its own puts it whole in one w:del, as before; a tracked replacement goes ahead, a Range\'s and a Paragraph\'s', async () => {
   const revised = `<w:p><w:r><w:t xml:space="preserve">x </w:t></w:r><m:oMath><m:r><w:ins w:id="90" w:author="Other" w:date="2026-10-01T00:00:00Z"><m:t>q</m:t></w:ins></m:r></m:oMath><w:r><w:t xml:space="preserve"> y</w:t></w:r></w:p>`;
   {
     const { pkg, body } = await bodyOf([revised]);
@@ -225,13 +224,19 @@ test('CR-002 section 62.2 D2: a tracked delete of an equation holding a revision
     const { pkg, body } = await bodyOf([sourceParagraph(10, 'inline-equation')]);
     pkg.changeTrackingMode = 'TrackAll';
     const p = body.paragraphs[1];
-    const before = documentXmlOf(await pkg.save());
-    // Paragraph.insertText's Replace puts its text after the deletion, where Word's beside a deleted equation isn't measured
-    assert.throws(() => p.insertText('new', 'Replace'), (e) => e instanceof NotSupportedError && /tracked replacement of an equation/.test(e.message));
-    assert.equal(documentXmlOf(await pkg.save()), before);
     // a Range's puts its text before the deletion, as Word's does (check 52 cases 39 to 48), the equation deleted in Word's form
     p.getRange().search('L10')[0].expandTo(p.getRange().search('R10')[0]).insertText('new', 'Replace');
     assert.equal(p.text, 'keep10a new keep10b');
     assert.match(equationOrFieldParagraphs(documentXmlOf(await pkg.save()))[0], /<w:ins [^>]*><w:r><w:t>new<\/w:t><\/w:r><\/w:ins><w:del [^>]*><w:r><w:delText xml:space="preserve">L10 <\/w:delText><\/w:r><\/w:del><m:oMath><m:r><w:del /);
+  }
+  {
+    // Paragraph.insertText's Replace was refused here, since it put its text after the deletion; it puts it first since
+    // CR-002 section 63 (D3, check 63 cases 45 and 52), as a range's does, and goes ahead the same way
+    const { pkg, body } = await bodyOf([sourceParagraph(10, 'inline-equation')]);
+    pkg.changeTrackingMode = 'TrackAll';
+    const p = body.paragraphs[1];
+    p.insertText('new', 'Replace');
+    assert.equal(p.text, 'new');
+    assert.match(equationOrFieldParagraphs(documentXmlOf(await pkg.save()))[0], /^<w:p><w:ins [^>]*><w:r><w:t>new<\/w:t><\/w:r><\/w:ins><w:del [^>]*><w:r><w:delText xml:space="preserve">keep10a L10 <\/w:delText><\/w:r><\/w:del><m:oMath><m:r><w:del /);
   }
 });

@@ -86,11 +86,16 @@ export function runsForValue(value: string, rPr: wml.RPr | undefined, multiLine:
   return out;
 }
 
-/** docx4j's placeholder.xml: a PlaceholderText-styled run, which goes with w:showingPlcHdr. */
-function placeholderRun(rPr: wml.RPr | undefined): Element {
+/**
+ * docx4j's placeholder.xml: a PlaceholderText-styled run over the control's own run properties, which goes with
+ * w:showingPlcHdr; its text docx4j's, or a glossary entry's (CR-002 section 63, D8).
+ */
+export function placeholderRun(rPr: wml.RPr | undefined, text = PLACEHOLDER_TEXT): Element {
   const properties: wml.RPr = rPr ? deepCopy(rPr) : {};
   properties.rStyle = { val: PLACEHOLDER_STYLE };
-  return el.r({ rPr: properties, content: [el.t({ value: PLACEHOLDER_TEXT })] }) as Element;
+  const t: wml.Text = { TYPE_NAME: 'org_docx4j_wml.Text', value: text };
+  if (text.startsWith(' ') || text.endsWith(' ')) t.space = 'preserve';
+  return el.r({ rPr: properties, content: [el.t(t)] }) as Element;
 }
 
 /**
@@ -217,6 +222,13 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
     }
   }
 
+  // an empty value shows the control's placeholder in Word's form: the entry its w:placeholder names, else Word's default
+  // entry for a text control, written into the glossary on save (CR-002 section 63, D8), where docx4j writes the bare
+  // form, which Word takes for content. Another kind naming no entry keeps docx4j's run.
+  if (display === '' && (control.placeholderEntry !== undefined || control.type === 'RichText' || control.type === 'PlainText')) {
+    control.showPlaceholder();
+    return true;
+  }
   control.setBoundContent(runsForValue(display, control.runProperties, control.isMultiLine), display === '');
   return true;
 }

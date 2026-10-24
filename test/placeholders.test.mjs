@@ -2,7 +2,7 @@
 // Office JS's writes do to one, block-level and run-level, bound and not, with change tracking off and on: whether the
 // control stays, whether w:showingPlcHdr and the Placeholder Text style go, and where the text lands. The snippet's
 // file and the snippet must agree, since Word runs one on the other and nothing can be fixed after the run. Word 365's
-// run (2026-10-24) is pinned as its answers, and the shim's as what this package gives until section 63 follows them.
+// run (2026-10-24) is pinned as its answers, and the shim's held to it since section 63 is implemented (section 63.12).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -59,12 +59,14 @@ test("check 63's file and snippet agree: every case parses to the case it was bu
   assert.deepEqual(controls.map((c) => c.tag), cases.map((c) => `c63-${c.n}`));
   assert.ok(controls.every((c) => c.isShowingPlaceholder), 'every control shows its placeholder');
   assert.deepEqual(controls.filter((c) => c.xmlMapping.isMapped).map((c) => c.tag), cases.filter((c) => c.shape.endsWith('-bound')).map((c) => `c63-${c.n}`));
-  // the placeholder's text is Word's own, and reads as no text (CR-012 section 18)
+  // the placeholder's text is Word's own, and reads as no text (CR-012 section 18); placeholderText reads null, as Word's
+  // does, since the control names no glossary entry (CR-002 section 63, D8)
   assert.equal(controls[0].text, '');
-  assert.equal(controls[0].placeholderText, PLACEHOLDER);
+  assert.equal(controls[0].placeholderText, null);
+  assert.equal(controls[0].placeholderEntry, undefined);
 });
 
-test("CR-002 section 63: check 63's snippet through the Word shim, as this package gives it before section 63's changes", async () => {
+test("CR-002 section 63: check 63's snippet through the Word shim gives Word's answers, case by case", async () => {
   const { runCheck } = await snippet63();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check63Bytes());
@@ -83,9 +85,12 @@ test("CR-002 section 63: check 63's snippet through the Word shim, as this packa
   assert.equal(result.caseCount, 54);
   // the shim has no customXmlParts, so a bound control's node isn't read
   for (const c of result.cases.filter((x) => x.shape.endsWith('-bound'))) assert.match(c.after.node, /^error: NotImplemented/, `case ${c.n}`);
-  assert.deepEqual(result.cases.map(digest), EXPECTED_RUN);
-  // F3: a tracked insertText on a run-level control reads its text as '' where its paragraph reads NEW39
-  assert.deepEqual([result.cases[38].after.control.text, result.cases[38].after.paragraphs], ['', ['PLAIN39A NEW39 PLAIN39B']]);
+  // until section 63, 44 of the 52 writes differed from Word's (section 63.2); F1 to F3 are gone with them
+  assert.deepEqual(result.cases.map(digest), WORD_RUN);
+  // F3: a tracked insertText on a run-level control read its text as '' where its paragraph read NEW39
+  assert.deepEqual([result.cases[38].after.control.text, result.cases[38].after.paragraphs], ['NEW39', ['PLAIN39A NEW39 PLAIN39B']]);
+  // F1: a tracked insertText on a bound block control was refused after it had changed it
+  assert.equal(result.cases.filter((c) => c.error).length, 0);
 });
 
 const wordRun = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check63', `63-placeholders-word365-${mode}.json`), 'utf8'));
@@ -120,7 +125,7 @@ test("CR-002 section 63: Word 365's answers (check 63): a text write into the co
   assert.match(strFromU8(saved['customXml/item1.xml']), /<check63 xmlns="urn:check63"><value21\/><value22\/><value23\/><value24\/><value25\/><value26\/><value47\/>/);
 });
 
-test("CR-002 section 63: the shim reads check 63's file as Word does, and after the writes differs from Word's run in the cases section 63.2 lists", async () => {
+test("CR-002 section 63: the shim reads check 63's file as Word does, and after the writes too", async () => {
   const { runCheck } = await snippet63();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check63Bytes());
@@ -137,11 +142,10 @@ test("CR-002 section 63: the shim reads check 63's file as Word does, and after 
     differing[mode] = word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
   }
   assert.deepEqual(differing.report, []);
-  // 44 of the 52 writes. The eight that agree here: a block control's Content range deleted (6, 32), a bound control's
-  // own insertText (21, 24), and four tracked writes over a whole control (38, 45, 46, 52), whose markup still differs:
-  // Word marks the control deleted with w:customXmlDelRange, and puts a Replace's insertion first
-  assert.deepEqual(differing.run, [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 25, 26, 27, 28, 29, 30, 31,
-    33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 44, 47, 48, 49, 50, 51]);
+  // until section 63, 44 of the 52 writes. The decided departures don't show here: a paragraph put beside a block control
+  // leaves it at block level (D6 (b)), where Word's save has it at run level, and a bound control's node is written in the
+  // bare form too (D7), where Word's is left empty
+  assert.deepEqual(differing.run, []);
 });
 
 // Word 365's run (2026-10-24), case by case, as `digest` reads it (CR-002 section 63.2).
@@ -202,71 +206,6 @@ const WORD_RUN = [
   '54 CP- - ',
 ];
 
-// What the shim gives (2026-10-24), case by case; CR-002 section 63 reads it. Only ContentControl.insertText clears the
-// flag; every other write into the control leaves it on, so what it writes reads as no text. The untracked
-// paragraph-text-replace on a run-level control (19, 26) empties the control and keeps it (docx4j-python's probe).
-// F1: a tracked insertText on a bound block control (47) is refused only after it has deleted the placeholder and cleared
-// the flag. F2: a run-level control's Content and Whole ranges are empty at its start, so text written to them lands
-// outside it (15, 16, 18; 41, 42, 44), and its content-delete deletes nothing (17, 43). F3: a tracked write reads as text
-// inside a control still showing its placeholder (33, 49), where the same write untracked reads as none (7, 23), and a
-// tracked ContentControl.insertText on a run-level control (39) reads the control's text as ''.
-const EXPECTED_RUN = [
-  '1 C-- in NEW1',
-  '2 C-- in NEW2',
-  '3 CPS in |',
-  '4 CP- in ',
-  '5 CPS in ',
-  '6 CP- - ',
-  '7 CP- in ',
-  '8 CPS in ',
-  '9 CPS in ',
-  '10 CPS in |',
-  '11 CPS in |',
-  '12 CP- - ',
-  '13 C-- in PLAIN13A NEW13 PLAIN13B',
-  '14 C-- in PLAIN14A NEW14 PLAIN14B',
-  '15 CPS out PLAIN15A NEW15 PLAIN15B',
-  '16 CPS out PLAIN16A NEW16 PLAIN16B',
-  '17 CPS - PLAIN17A  PLAIN17B',
-  '18 CPS out PLAIN18A NEW18 PLAIN18B',
-  '19 CP- out NEW19',
-  '20 CP- - ',
-  '21 C-- in NEW21',
-  '22 CP- in ',
-  '23 CP- in ',
-  '24 C-- in PLAIN24A NEW24 PLAIN24B',
-  '25 CPS out PLAIN25A NEW25 PLAIN25B',
-  '26 CP- out NEW26',
-  '27 C-s in |NEW27',
-  '28 C-s in |NEW28',
-  '29 CPS in |',
-  '30 CPs - ',
-  '31 CPS in ',
-  '32 CPs - ',
-  '33 CPS in NEW33',
-  '34 CPS in ',
-  '35 CPS in ',
-  '36 CPS in |',
-  '37 CPS in |',
-  '38 CPs - ',
-  '39 C-s in PLAIN39A NEW39 PLAIN39B',
-  '40 C-s in PLAIN40A NEW40 PLAIN40B',
-  '41 CPS out PLAIN41A NEW41 PLAIN41B',
-  '42 CPS out PLAIN42A NEW42 PLAIN42B',
-  '43 CPS - PLAIN43A  PLAIN43B',
-  '44 CPS out PLAIN44A NEW44 PLAIN44B',
-  '45 CPs out NEW45',
-  '46 CPs - ',
-  '47 C-s -  NotImplemented',
-  '48 CPs - ',
-  '49 CPS in NEW49',
-  '50 C-s in PLAIN50A NEW50 PLAIN50B',
-  '51 CPS out PLAIN51A NEW51 PLAIN51B',
-  '52 CPs out NEW52',
-  '53 CP- - PLAIN53A  PLAIN53B',
-  '54 CP- - ',
-];
-
 // --- check 64 (CR-002 section 63.4): check 63's writes on controls in Word's own form (w:placeholder and a glossary part
 // Word made), controls Word makes itself, and a bound control's node with and without a placeholder
 
@@ -304,7 +243,7 @@ test("check 64's file and snippet agree: every case parses to the case it was bu
   assert.match(new TextDecoder().decode(parts['word/glossary/document.xml']), /<w:docPartPr><w:name w:val="DefaultPlaceholder_-1854013440"\/>/);
 });
 
-test("CR-002 section 63.4: check 64's snippet through the Word shim, as this package gives it before section 63's changes", async () => {
+test("CR-002 section 63.4: check 64's snippet through the Word shim gives Word's answers, the controls it makes showing Word's placeholder", async () => {
   const { runCheck } = await snippet64();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check64.check64Bytes());
@@ -318,9 +257,14 @@ test("CR-002 section 63.4: check 64's snippet through the Word shim, as this pac
     assert.match(digest(c), expected);
   }
   const result = await run('run');
-  // the shim makes a control around the empty paragraph, or after PLAIN<n>A, showing no placeholder
-  for (const c of result.cases.filter((x) => x.shape.startsWith('made-'))) assert.equal(c.made.at, c.shape === 'made-block' ? 'paragraph' : 'After', `case ${c.n}`);
-  assert.deepEqual(result.cases.map(digest), EXPECTED_RUN_64);
+  // the shim makes a control around the empty paragraph, or after PLAIN<n>A, showing Word's default placeholder in Word's
+  // form, as Word's (CR-002 section 63, D8; until then it showed none)
+  for (const c of result.cases.filter((x) => x.shape.startsWith('made-'))) {
+    assert.equal(c.made.at, c.shape === 'made-block' ? 'paragraph' : 'After', `case ${c.n}`);
+    assert.match(c.made.ooxml, /<w:placeholder><w:docPart w:val="DefaultPlaceholder_-1854013440"\/><\/w:placeholder><w:showingPlcHdr\/>(<w:tag [^>]*\/>)?<\/w:sdtPr><w:sdtContent>(<w:p>)?<w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap here to enter text\.<\/w:t>/, `case ${c.n}`);
+  }
+  // until section 63, 28 of the 52 writes differed (section 63.5)
+  assert.deepEqual(result.cases.map(digest), WORD_RUN_64);
 });
 
 const wordRun64 = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check64', `64-placeholders-word-word365-${mode}.json`), 'utf8'));
@@ -368,7 +312,7 @@ test("CR-002 section 63.5: Word 365's answers (check 64): in Word's form a write
   assert.equal(document.match(/<w:docPart w:val="DefaultPlaceholder_-1854013440"\/>/g).length, 52);
 });
 
-test("CR-002 section 63.5: the shim reads check 64's file as Word does, and after the writes differs from Word's run in the cases listed", async () => {
+test("CR-002 section 63.5: the shim reads check 64's file as Word does, and after the writes too", async () => {
   const { runCheck } = await snippet64();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check64.check64Bytes());
@@ -383,7 +327,7 @@ test("CR-002 section 63.5: the shim reads check 64's file as Word does, and afte
     differing[mode] = word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
   }
   assert.deepEqual(differing.report, []);
-  assert.deepEqual(differing.run, DIFFERING_64);
+  assert.deepEqual(differing.run, []);
 });
 
 // Word 365's run of check 64 (2026-10-24), case by case, as `digest` reads it (CR-002 section 63.5).
@@ -442,70 +386,6 @@ const WORD_RUN_64 = [
   '52 C-- in PLAIN52A NEW52 PLAIN52B',
 ];
 
-// What the shim gives (2026-10-24), case by case: check 63's answers on controls in Word's form, so the w:placeholder and
-// the glossary change nothing here.
-const EXPECTED_RUN_64 = [
-  '1 C-- in NEW1',
-  '2 C-- in NEW2',
-  '3 C-- in NEW3',
-  '4 CP- in ',
-  '5 CPS in ',
-  '6 CPS in |',
-  '7 CP- in ',
-  '8 CPS in ',
-  '9 CPS in ',
-  '10 C-- in PLAIN10A NEW10 PLAIN10B',
-  '11 C-- in PLAIN11A NEW11 PLAIN11B',
-  '12 C-- in PLAIN12A NEW12 PLAIN12B',
-  '13 CPS out PLAIN13A NEW13 PLAIN13B',
-  '14 CPS out PLAIN14A NEW14 PLAIN14B',
-  '15 C-- in NEW15',
-  '16 C-- in NEW16',
-  '17 C-- in NEW17',
-  '18 C-- in NEW18',
-  '19 C-- in PLAIN19ANEW19  PLAIN19B',
-  '20 C-- in PLAIN20ANEW20  PLAIN20B',
-  '21 C-- out PLAIN21ANEW21  PLAIN21B',
-  '22 C-s in |NEW22',
-  '23 C-s in |NEW23',
-  '24 C-s in |NEW24',
-  '25 CPs - ',
-  '26 CPS in ',
-  '27 CPS in |',
-  '28 CPS in NEW28',
-  '29 CPS in ',
-  '30 CPS in ',
-  '31 C-s in PLAIN31A NEW31 PLAIN31B',
-  '32 C-s in PLAIN32A NEW32 PLAIN32B',
-  '33 C-s in PLAIN33A NEW33 PLAIN33B',
-  '34 CPS out PLAIN34A NEW34 PLAIN34B',
-  '35 CPS out PLAIN35A NEW35 PLAIN35B',
-  '36 C-- in |NEW36',
-  '37 C-- in NEW37',
-  '38 C-- in NEW38',
-  '39 C-- in NEW39',
-  '40 C-- in PLAIN40ANEW40  PLAIN40B',
-  '41 C-- in PLAIN41ANEW41  PLAIN41B',
-  '42 C-- out PLAIN42ANEW42  PLAIN42B',
-  '43 C-- in NEW43',
-  '44 CP- in ',
-  '45 CP- in ',
-  '46 C-- in NEW46',
-  '47 C-- in NEW47',
-  '48 C-- in NEW48',
-  '49 C-- in PLAIN49A NEW49 PLAIN49B',
-  '50 CPS out PLAIN50A NEW50 PLAIN50B',
-  '51 C-- in PLAIN51A NEW51 PLAIN51B',
-  '52 C-- in PLAIN52A NEW52 PLAIN52B',
-];
-
-// The writes of check 64 where this package differs from Word (28 of 52): only the control's own insertText clears the
-// flag here, the Content range of a run-level control is outside it (F2), and a tracked write marks the placeholder
-// deleted (or makes a second paragraph, F1), where Word records only the insertion. The made controls agree but for
-// a run-level control's Content range (21, 42) and a tracked insertText's second paragraph (36), since this package
-// makes them showing no placeholder.
-const DIFFERING_64 = [4, 5, 6, 7, 8, 9, 13, 14, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 42, 44, 45, 50];
-
 // --- check 65 (CR-002 section 63.7, for D8): what Word needs of a placeholder in its own form. 65a names Word's default
 // entry with no glossary part; 65b has a glossary of one part, written here, holding that entry and one of its own text
 
@@ -543,7 +423,7 @@ test("check 65's files and snippet agree: every case parses to the case it was b
   }
 });
 
-test("CR-002 section 63.7: check 65's snippet through the Word shim, on both files, as this package gives it before section 63's changes", async () => {
+test("CR-002 section 63.7: check 65's snippet through the Word shim, on both files, gives Word's answers", async () => {
   const { runCheck } = await snippet65();
   const ours = {};
   for (const file of check65.CHECK65_FILES) {
@@ -556,43 +436,14 @@ test("CR-002 section 63.7: check 65's snippet through the Word shim, on both fil
       else ours[file.letter] = result;
     }
   }
-  assert.deepEqual(Object.fromEntries(Object.entries(ours).map(([k, r]) => [k, r.cases.map(digest)])), EXPECTED_RUN_65);
-  // placeholderText here reads the runs, the custom control's own text among them; the setter writes them
+  // Word's, but 65b's made control (9), which shows its placeholder in the style here, where Word's glossary had lost it
+  assert.deepEqual(Object.fromEntries(Object.entries(ours).map(([k, r]) => [k, r.cases.map(digest)])),
+    { a: WORD_RUN_65.a, b: WORD_RUN_65.b.map((d) => (d.startsWith('9 ') ? '9 CPS - ' : d)) });
+  // placeholderText reads the entry the control names (CR-002 section 63, D8), the custom control's among them; the setter
+  // adds an entry of its own
   assert.equal(ours.b.cases[10].after.control.placeholderText, check65.CUSTOM_TEXT);
   assert.equal(ours.a.cases[5].result.placeholderText, 'Enter the name 6.');
 });
-
-// What the shim gives (2026-10-24): check 63's answers again, whatever the glossary holds.
-const EXPECTED_RUN_65 = {
-  a: [
-    '1 C-- in NEW1',
-    '2 CPS in |',
-    '3 C-s in |NEW3',
-    '4 C-- in NEW4',
-    '5 CPS out PLAIN5A NEW5 PLAIN5B',
-    '6 CPS - ',
-    '7 CPS - ',
-    '8 CPS - ',
-    '9 C-- - ',
-    '10 CPS - ',
-  ],
-  b: [
-    '1 C-- in NEW1',
-    '2 CPS in |',
-    '3 C-s in |NEW3',
-    '4 C-- in NEW4',
-    '5 CPS out PLAIN5A NEW5 PLAIN5B',
-    '6 CPS - ',
-    '7 CPS - ',
-    '8 CPS - ',
-    '9 C-- - ',
-    '10 C-- in NEW10',
-    '11 CPS - ',
-    '12 C-- in NEW12',
-    '13 CPS - ',
-    '14 CPS - ',
-  ],
-};
 
 const wordRun65 = async (file, mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check65', `${file.name.replace('.docx', '')}-word365-${mode}.json`), 'utf8'));
 const save65 = async (name) => {
@@ -680,7 +531,7 @@ test("CR-002 section 63.8: Word 365's answers (check 65): the reference gives Wo
   assert.deepEqual([1, 6, 7, 8, 9, 11, 13].map((n) => entryOf(runB['word/document.xml'], n) === entryOf(typedB['word/document.xml'], n)), [true, true, false, false, false, true, false]);
 });
 
-test("CR-002 section 63.8: the shim reads check 65's files as Word does but placeholderText, and after the writes differs from Word's run in 2, 3, 5 and 9", async () => {
+test("CR-002 section 63.8: the shim reads check 65's files as Word does, placeholderText too, and after the writes differs from Word's run only in 65b's made control", async () => {
   const { runCheck } = await snippet65();
   const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text, paragraphs: c.after.control.paragraphs }, returned: c.result?.returned });
   const differing = {};
@@ -695,9 +546,11 @@ test("CR-002 section 63.8: the shim reads check 65's files as Word does but plac
       if (mode === 'report') placeholderTexts[file.letter] = word.cases.filter((c, i) => c.after.control && c.after.control.placeholderText !== ours.cases[i].after.control.placeholderText).map((c) => c.n);
     }
   }
-  assert.deepEqual(differing, { 'a report': [], 'a run': [2, 3, 5, 9], 'b report': [], 'b run': [2, 3, 5, 9] });
-  // this package reads the runs, where Word reads the entry the control names: null where the glossary hasn't it
-  assert.deepEqual(placeholderTexts, { a: [1, 2, 3, 4, 5, 6, 7, 8, 10], b: [12, 13, 14] });
+  // until section 63, 2, 3, 5 and 9 of each. 65b's 9 is Word's made control showing the default entry unstyled, the style
+  // its glossary lacked (section 63.8); this package writes the entry in the style
+  assert.deepEqual(differing, { 'a report': [], 'a run': [], 'b report': [], 'b run': [9] });
+  // the entry the control names, null where the glossary hasn't it, as Word reads it (until section 63, the runs)
+  assert.deepEqual(placeholderTexts, { a: [], b: [] });
 });
 
 // Word 365's runs of check 65 (2026-10-25), as `digest` reads them (CR-002 section 63.8): check 64's answers in both files.
@@ -773,7 +626,7 @@ test("check 66's files and snippet agree: every case parses to the case it was b
   }
 });
 
-test("CR-002 section 63.10: check 66's snippet through the Word shim, on both files, as this package gives it before section 63's changes", async () => {
+test("CR-002 section 63.10: check 66's snippet through the Word shim, on both files, gives Word's answers", async () => {
   const { runCheck } = await snippet66();
   const ours = {};
   for (const file of check66.CHECK66_FILES) {
@@ -785,9 +638,10 @@ test("CR-002 section 63.10: check 66's snippet through the Word shim, on both fi
       ours[`${file.letter} ${mode}`] = result.cases.map(digest);
     }
   }
-  // the glossary makes no difference here: an emptied control (3) and a made one (4) show no placeholder
+  // an emptied control (3) and a made one (4) show the default entry, in the style (CR-002 section 63, D8; until then,
+  // no placeholder)
   const report = ['1 CPS - ', '2 CPS - ', '3 C-- - VALUE3', '4 x-- - ', '5 CPS - ', '6 CPS - '];
-  const run = ['1 CPS - ', '2 CPS - ', '3 C-- - ', '4 C-- - ', '5 CPS - ', '6 CPS - '];
+  const run = ['1 CPS - ', '2 CPS - ', '3 CPS - ', '4 CPS - ', '5 CPS - ', '6 CPS - '];
   assert.deepEqual(ours, { 'a report': report, 'a run': run, 'b report': report, 'b run': run });
 });
 
@@ -858,7 +712,7 @@ test("CR-002 section 63.11: Word 365's answers (check 66): a glossary of the doc
   assert.match(b['word/glossary/settings.xml'], /w:name="compatibilityMode" w:uri="http:\/\/schemas\.microsoft\.com\/office\/word" w:val="15"/);
 });
 
-test("CR-002 section 63.11: the shim reads check 66's files as Word does, and after the writes differs from Word's run in 3 and 4", async () => {
+test("CR-002 section 63.11: the shim reads check 66's files as Word does, and after the writes too", async () => {
   const { runCheck } = await snippet66();
   const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text, paragraphs: c.after.control.paragraphs }, returned: c.result?.returned });
   const differing = {};
@@ -871,6 +725,188 @@ test("CR-002 section 63.11: the shim reads check 66's files as Word does, and af
       differing[`${file.letter} ${mode}`] = word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
     }
   }
-  // an emptied control and a made one show no placeholder here, where Word shows the entry (D8)
-  assert.deepEqual(differing, { 'a report': [], 'a run': [3, 4], 'b report': [], 'b run': [3, 4] });
+  // until section 63, 3 and 4 of each: an emptied control and a made one showed no placeholder, where Word shows the entry
+  assert.deepEqual(differing, { 'a report': [], 'a run': [], 'b report': [], 'b run': [] });
+});
+
+// --- CR-002 section 63.12: section 63 implemented. The checks' runs above are held to Word's; these are what the shim's
+// reads can't show: the markup a tracked write leaves, the node a bound control's write reaches, and the glossary a save
+// writes
+
+/** A check's file run through the shim in `run` mode, its package kept: `{ pkg, result }`. */
+async function shimRun(bytes, snippet, { customXml = false } = {}) {
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  await pkg.getBody();
+  if (customXml) await pkg.customXmlParts.load();
+  const result = await snippet.runCheck((f) => Word.run(pkg, f), 'run');
+  return { pkg, result };
+}
+const zipText = async (bytes) => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  return Object.fromEntries(Object.entries(unzipSync(bytes)).map(([k, v]) => [k, strFromU8(v)]));
+};
+/** A case's region in a document part's XML: what lies between its BEGIN and END paragraphs, revision attributes left out. */
+const regionXml = (xml, n) => {
+  const begin = xml.indexOf(`>BEGIN${n} `);
+  const from = xml.indexOf('</w:p>', begin) + '</w:p>'.length;
+  const to = xml.lastIndexOf('<w:p>', xml.indexOf(`>END${n}<`));
+  return xml.slice(from, to).replace(/ (w:author|w:date|w16du:dateUtc|w:id)="[^"]*"/g, '').replace(/ xml:space="preserve"/g, '');
+};
+
+test("CR-002 section 63.12, D3: a Replace or delete over a whole control showing its placeholder takes it; tracked, Word's markers, the insertion first", async () => {
+  const { pkg, result } = await shimRun(await check63Bytes(), await snippet63());
+  assert.equal(result.cases.filter((c) => c.error).length, 0);
+  const xml = (await zipText(await pkg.save()))['word/document.xml'];
+  const placeholder = '<w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:delText>Click or tap here to enter text.</w:delText></w:r>';
+  const marked = (n, bound = '') => `<w:customXmlDelRangeStart/><w:sdt><w:sdtPr><w:alias w:val="Check 63 control ${n}"/><w:tag w:val="c63-${n}"/><w:id w:val="${63000 + n}"/><w:showingPlcHdr/>${bound}</w:sdtPr>`
+    + `<w:sdtContent><w:customXmlDelRangeEnd/><w:del>${placeholder}</w:del><w:customXmlDelRangeStart/></w:sdtContent></w:sdt><w:customXmlDelRangeEnd/>`;
+  // untracked the control goes: the paragraph's Replace (19), its Content delete (20), the control's Whole Replace (18)
+  assert.equal(regionXml(xml, 19), '<w:p><w:r><w:t>NEW19</w:t></w:r></w:p>');
+  assert.equal(regionXml(xml, 20), '<w:p/>');
+  assert.equal(regionXml(xml, 18), '<w:p><w:r><w:t>PLAIN18A NEW18</w:t></w:r><w:r><w:t> PLAIN18B</w:t></w:r></w:p>');
+  assert.equal(regionXml(xml, 12), '<w:p/>', 'a block control goes, its paragraph emptied in its place');
+  // tracked (44 to 46): Word's markers around the control and inside it, its placeholder deleted, a Replace's insertion first
+  assert.equal(regionXml(xml, 44), `<w:p><w:r><w:t>PLAIN44A </w:t></w:r><w:ins><w:r><w:t>NEW44</w:t></w:r></w:ins>${marked(44)}<w:r><w:t> PLAIN44B</w:t></w:r></w:p>`);
+  assert.equal(regionXml(xml, 45), `<w:p><w:ins><w:r><w:t>NEW45</w:t></w:r></w:ins><w:del><w:r><w:delText>PLAIN45A </w:delText></w:r></w:del>${marked(45)}<w:del><w:r><w:delText> PLAIN45B</w:delText></w:r></w:del></w:p>`);
+  assert.equal(regionXml(xml, 46), `<w:p><w:del><w:r><w:delText>PLAIN46A </w:delText></w:r></w:del>${marked(46)}<w:del><w:r><w:delText> PLAIN46B</w:delText></w:r></w:del></w:p>`);
+  assert.match(regionXml(xml, 38), /^<w:customXmlDelRangeStart\/><w:sdt>.*<w:sdtContent><w:customXmlDelRangeEnd\/><w:p><w:del><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:delText>Click or tap here to enter text\.<\/w:delText><\/w:r><\/w:del><\/w:p><w:customXmlDelRangeStart\/><\/w:sdtContent><\/w:sdt><w:customXmlDelRangeEnd\/>$/);
+  // the bare form's tracked write: the insertion in the placeholder's look, then its deletion; a w:color auto at an end
+  // recorded in a w:rPrChange (28), and in a bound plain-text control the style's removal recorded on both runs (47)
+  assert.equal(regionXml(xml, 28), '<w:sdt><w:sdtPr><w:alias w:val="Check 63 control 28"/><w:tag w:val="c63-28"/><w:id w:val="63028"/></w:sdtPr><w:sdtContent><w:p>'
+    + '<w:ins><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/><w:color w:val="auto"/><w:rPrChange><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr></w:rPrChange></w:rPr><w:t>NEW28</w:t></w:r></w:ins>'
+    + `<w:del>${placeholder}</w:del></w:p></w:sdtContent></w:sdt>`);
+  const styleRemoved = '<w:rPr><w:rPrChange><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr></w:rPrChange></w:rPr>';
+  assert.match(regionXml(xml, 47), new RegExp(`<w:sdtContent><w:p><w:ins><w:r>${styleRemoved}<w:t>NEW47</w:t></w:r></w:ins><w:del><w:r>${styleRemoved}<w:delText>Click or tap here to enter text\\.</w:delText></w:r></w:del></w:p></w:sdtContent>`));
+  // accepted, the controls taken go and the text stays; rejected, they come back showing their placeholder
+  const accepted = await WordprocessingMLPackage.load(await pkg.save());
+  (await accepted.getBody()).acceptAll();
+  const acceptedXml = (await zipText(await accepted.save()))['word/document.xml'];
+  assert.equal(regionXml(acceptedXml, 45), '<w:p><w:r><w:t>NEW45</w:t></w:r></w:p>');
+  assert.equal(regionXml(acceptedXml, 44).replace(/<\/w:t><\/w:r><w:r><w:t>/g, ''), '<w:p><w:r><w:t>PLAIN44A NEW44 PLAIN44B</w:t></w:r></w:p>');
+  const rejected = await WordprocessingMLPackage.load(await pkg.save());
+  (await rejected.getBody()).rejectAll();
+  const restored = (await rejected.getBody()).contentControls.find((c) => c.tag === 'c63-45');
+  assert.deepEqual([restored.isShowingPlaceholder, restored.text, restored.paragraphs[0].text], [true, '', 'PLAIN45A  PLAIN45B']);
+});
+
+test('CR-002 section 63.12, D6 (b): a paragraph put beside the only paragraph of a block control showing its placeholder goes outside it, the control left at block level', async () => {
+  const { pkg } = await shimRun(await check63Bytes(), await snippet63());
+  const xml = (await zipText(await pkg.save()))['word/document.xml'];
+  // Word's save has the control run-level in its paragraph (section 63.2); here it stays as it was
+  for (const [n, before] of [[10, false], [11, true], [36, false], [37, true]]) {
+    const region = regionXml(xml, n);
+    const control = /^(?:<w:p>.*?<\/w:p>)?(<w:sdt>.*<\/w:sdt>)/.exec(before ? region.replace(/^<w:p>(?:(?!<w:p>).)*?NEW\d+.*?<\/w:p>/, '') : region)?.[1];
+    assert.match(control ?? '', /<w:sdtContent><w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap here to enter text\.<\/w:t><\/w:r><\/w:p><\/w:sdtContent><\/w:sdt>/, `case ${n}`);
+    assert.match(region, before ? new RegExp(`^<w:p>.*NEW${n}.*</w:p><w:sdt>`) : new RegExp(`</w:sdt><w:p>.*NEW${n}.*</w:p>$`), `case ${n}`);
+  }
+});
+
+test('CR-002 section 63.12, D7: every text write into a bound control writes its node, in both forms, where the control stays', async () => {
+  const { nodeOf } = await snippet63();
+  // check 63's bare form: Word left every node empty and lost the writes on reopening (section 63.2); written here
+  const bare = await shimRun(await check63Bytes(), await snippet63(), { customXml: true });
+  const data63 = bare.pkg.customXmlParts.getByNamespace('urn:check63')[0].getXml();
+  for (const n of [21, 22, 23, 24, 25, 47, 48, 49, 50, 51]) assert.equal(nodeOf(data63, n), `NEW${n}`, `check 63 case ${n}`);
+  // where the write took the control (26, 52) nothing is bound any more, and the node stays as it was
+  for (const n of [26, 52]) assert.equal(nodeOf(data63, n), '', `check 63 case ${n}`);
+  // check 64, Word's form: every node written, a placeholder's empty node as much as a value's, as Word's were
+  const word = await shimRun(await check64.check64Bytes(), await snippet64(), { customXml: true });
+  const data64 = word.pkg.customXmlParts.getByNamespace('urn:check64')[0].getXml();
+  for (let n = 43; n <= 52; n++) assert.equal(nodeOf(data64, n), `NEW${n}`, `check 64 case ${n}`);
+});
+
+test('CR-002 section 63.12, D8: placeholders in Word\'s form: the setter names an entry, an empty bound value shows the default entry, a made control shows it', async () => {
+  const pkg = await WordprocessingMLPackage.load(await check63Bytes());
+  const body = await pkg.getBody();
+  const [block, run] = ['c63-1', 'c63-13'].map((tag) => body.contentControls.find((c) => c.tag === tag));
+  // a control in the bare form names no entry, and reads null, as Word's (check 63)
+  assert.deepEqual([block.placeholderEntry, block.placeholderText], [undefined, null]);
+  // Word's default text names the default entry; any other a new entry of its own, 32 hex digits, as Word names one (check 65)
+  block.placeholderText = PLACEHOLDER;
+  run.placeholderText = 'Enter a name.';
+  assert.equal(block.placeholderEntry, check65.DEFAULT_ENTRY);
+  assert.match(run.placeholderEntry, /^[0-9A-F]{32}$/);
+  assert.deepEqual([block.placeholderText, run.placeholderText, run.isShowingPlaceholder, run.text], [PLACEHOLDER, 'Enter a name.', true, '']);
+  assert.match(await run.getXml(), /<w:placeholder><w:docPart w:val="[0-9A-F]{32}"\/><\/w:placeholder><w:showingPlcHdr\/><\/w:sdtPr><w:sdtContent><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Enter a name\.<\/w:t><\/w:r><\/w:sdtContent>/);
+  // set again, a new entry; the one named before stays in the glossary
+  const first = run.placeholderEntry;
+  run.placeholderText = 'Enter a name.';
+  assert.notEqual(run.placeholderEntry, first);
+  assert.equal(pkg.glossaryEntries.textOf(first), 'Enter a name.');
+  // an empty bound value: the bound controls show the default entry, in Word's form, where docx4j's binding writes the
+  // bare form (check 64's controls, as Word saves them)
+  const bound = await WordprocessingMLPackage.load(await check63Bytes());
+  await bound.getBody();
+  await bound.customXmlParts.load();
+  await bound.customXmlParts.applyBindings();
+  const controls = (await bound.getBody()).contentControls.filter((c) => c.xmlMapping.isMapped);
+  assert.equal(controls.length, 12);
+  for (const c of controls) {
+    assert.deepEqual([c.placeholderEntry, c.placeholderText, c.isShowingPlaceholder, c.text], [check65.DEFAULT_ENTRY, PLACEHOLDER, true, ''], c.tag);
+    assert.match(await c.getXml(), /<w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap here to enter text\.<\/w:t>/, c.tag);
+  }
+  // a control made on an empty range shows the default entry; a kind Word gives another entry is made as before
+  const made = await WordprocessingMLPackage.createPackage();
+  const madeBody = await made.getBody();
+  const point = madeBody.insertParagraph('Name: ', 'End').getRange('End').insertContentControl();
+  const around = madeBody.insertParagraph('', 'End').insertContentControl('PlainText');
+  const checkbox = madeBody.insertParagraph('', 'End').insertContentControl('CheckBox');
+  assert.deepEqual([point.placeholderText, point.isShowingPlaceholder, around.placeholderText, around.isShowingPlaceholder], [PLACEHOLDER, true, PLACEHOLDER, true]);
+  assert.deepEqual([checkbox.placeholderEntry, checkbox.isShowingPlaceholder], [undefined, false]);
+  // a control around a paragraph holding text holds that text
+  const filled = madeBody.insertParagraph('Kept.', 'End').insertContentControl();
+  assert.deepEqual([filled.isShowingPlaceholder, filled.text], [false, 'Kept.']);
+});
+
+test('CR-002 section 63.12, D9: a placeholder written where the file has no glossary makes one on save, the document part and a styles part holding Placeholder Text; a glossary is otherwise added to, or left untouched', async () => {
+  // check 63's file has no glossary
+  const pkg = await WordprocessingMLPackage.load(await check63Bytes());
+  const [block, run] = (await pkg.getBody()).contentControls.filter((c) => ['c63-1', 'c63-13'].includes(c.tag));
+  block.placeholderText = PLACEHOLDER;
+  run.placeholderText = 'Enter a name.';
+  const saved = await pkg.save();
+  const parts = await zipText(saved);
+  assert.deepEqual(Object.keys(parts).filter((k) => k.startsWith('word/glossary/')).sort(), ['word/glossary/_rels/document.xml.rels', 'word/glossary/document.xml', 'word/glossary/styles.xml']);
+  assert.match(parts['word/_rels/document.xml.rels'], /Target="glossary\/document\.xml" Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/glossaryDocument"/);
+  assert.match(parts['word/glossary/_rels/document.xml.rels'], /Target="styles\.xml" Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/styles"/);
+  assert.match(parts['[Content_Types].xml'], /<Override PartName="\/word\/glossary\/document\.xml" ContentType="application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document\.glossary\+xml"\/>/);
+  assert.match(parts['[Content_Types].xml'], /<Override PartName="\/word\/glossary\/styles\.xml" ContentType="application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.styles\+xml"\/>/);
+  // each entry as Word writes one (check 65): the default entry's docPartPr, a guid of its own, one run in the style
+  const entry = (name, text) => new RegExp(`<w:docPart><w:docPartPr><w:name w:val="${name}"/><w:category><w:name w:val="General"/><w:gallery w:val="placeholder"/></w:category>`
+    + '<w:types><w:type w:val="bbPlcHdr"/></w:types><w:behaviors><w:behavior w:val="content"/></w:behaviors><w:guid w:val="\\{[0-9A-F-]{36}\\}"/></w:docPartPr>'
+    + `<w:docPartBody><w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:t>${text.replace('.', '\\.')}</w:t></w:r></w:p></w:docPartBody></w:docPart>`);
+  assert.match(parts['word/glossary/document.xml'], entry(check65.DEFAULT_ENTRY, PLACEHOLDER));
+  assert.match(parts['word/glossary/document.xml'], entry(run.placeholderEntry, 'Enter a name.'));
+  // the styles as Word defines them (check 66's: Word kept such a glossary's entries in their style)
+  assert.match(parts['word/glossary/styles.xml'], /<w:style w:default="true" w:styleId="DefaultParagraphFont" w:type="character"><w:name w:val="Default Paragraph Font"\/>/);
+  assert.match(parts['word/glossary/styles.xml'], /<w:style w:styleId="PlaceholderText" w:type="character"><w:name w:val="Placeholder Text"\/><w:basedOn w:val="DefaultParagraphFont"\/><w:uiPriority w:val="99"\/><w:unhideWhenUsed\/><w:rPr><w:color w:val="666666"\/><\/w:rPr><\/w:style>/);
+  assert.match(parts['word/styles.xml'], /w:styleId="PlaceholderText"/, 'the main document has the style too');
+  // reloaded, the controls read their entries; saved again, nothing is added twice
+  const again = await WordprocessingMLPackage.load(saved);
+  const [b2, r2] = (await again.getBody()).contentControls.filter((c) => ['c63-1', 'c63-13'].includes(c.tag));
+  assert.deepEqual([b2.placeholderText, r2.placeholderText], [PLACEHOLDER, 'Enter a name.']);
+  assert.equal([...(await zipText(await pkg.save()))['word/glossary/document.xml'].matchAll(/<w:docPart>/g)].length, 2);
+
+  // 65b's glossary is the document part alone: an entry is added to it, and a styles part made, related from it
+  const [, b] = check65.CHECK65_FILES;
+  const minimal = await WordprocessingMLPackage.load(await check65.check65Bytes(b));
+  (await minimal.getBody()).contentControls[0].placeholderText = 'Something else.';
+  const minimalParts = await zipText(await minimal.save());
+  assert.deepEqual([...minimalParts['word/glossary/document.xml'].matchAll(/<w:docPartPr><w:name w:val="([^"]+)"/g)].map((m) => m[1]).slice(0, 2), [check65.DEFAULT_ENTRY, check65.CUSTOM_ENTRY]);
+  assert.equal([...minimalParts['word/glossary/document.xml'].matchAll(/<w:docPart>/g)].length, 3);
+  assert.match(minimalParts['word/glossary/styles.xml'], /w:styleId="PlaceholderText"/);
+  assert.match(minimalParts['word/glossary/_rels/document.xml.rels'], /relationships\/styles/);
+
+  // Word's glossary (66b): read for the entries, untouched on save while nothing is written; an entry added leaves its styles part
+  const [, wordFile] = check66.CHECK66_FILES;
+  const source = await zipText(await check66.check66Bytes(wordFile));
+  const untouched = await WordprocessingMLPackage.load(await check66.check66Bytes(wordFile));
+  assert.equal((await untouched.getBody()).contentControls[0].placeholderText, PLACEHOLDER);
+  const untouchedParts = await zipText(await untouched.save());
+  // (a relationships part is written anew on every save)
+  for (const k of Object.keys(source).filter((k) => k.startsWith('word/glossary/') && !k.includes('_rels'))) assert.equal(untouchedParts[k], source[k], k);
+  (await untouched.getBody()).contentControls[0].placeholderText = 'Another.';
+  const added = await zipText(await untouched.save());
+  assert.equal(added['word/glossary/styles.xml'], source['word/glossary/styles.xml'], 'it holds Placeholder Text already');
+  assert.match(added['word/glossary/document.xml'], /<w:t>Another\.<\/w:t>/);
 });

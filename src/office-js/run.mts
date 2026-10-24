@@ -64,6 +64,8 @@ export class RequestContext implements PendingSink {
 async function prepare(pkg: WordprocessingMLPackage, options: RunOptions): Promise<void> {
   const main = pkg.getMainDocumentPart();
   await main.getContents();
+  // a control's placeholderText reads the glossary's entries, read privately (CR-002 section 63)
+  await pkg.glossaryEntries.load(main.glossaryDocumentPart);
   if (options.unmarshalSideParts === false) return;
   const sideParts = [pkg.docPropsCorePart, pkg.docPropsExtendedPart, main.documentSettingsPart];
   for (const part of sideParts) {

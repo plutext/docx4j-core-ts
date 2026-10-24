@@ -19,14 +19,15 @@ import {
   CheckboxContentControl, DatePickerContentControl, ListContentControl, PictureContentControl,
   RepeatingSectionContentControl, GroupContentControl, checkboxRun, CHECKBOX_FONT,
 } from '../customxml/kinds.mjs';
-import { runsForValue, updateFromControl, holdsFlatOpc, PLACEHOLDER_TEXT, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
-import { dropExcluded, forWriter, officeItems } from './officeText.mjs';
-import { declareIgnorable } from './tracking.mjs';
+import { updateFromControl, holdsFlatOpc, placeholderRun, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
+import { dropExcluded, forWriter, officeItems, type LineBreaks } from './officeText.mjs';
+import { declareIgnorable, markHolderDeleted, toDeletedText, type ChangeTracker } from './tracking.mjs';
+import { placeholderEntryOf, namePlaceholderEntry, newEntryName, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, type GlossaryEntries } from './placeholders.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { commentReferencesIn } from './TrackedChange.mjs';
 import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, runsOf, textOfView, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, runsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -49,6 +50,9 @@ export type ContentControlAppearance = 'BoundingBox' | 'Tags' | 'Hidden';
 /** The namespaces of the Word 2010 and 2012 content-control properties. */
 export const W14_NS = 'http://schemas.microsoft.com/office/word/2010/wordml';
 export const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
+
+/** The markers of a control inserted or deleted under tracking (`markHolderInserted`, `markHolderDeleted`). */
+const TRACKED_HOLDER_MARKER = /^customXml(Ins|Del)Range(Start|End)$/;
 
 /** What a block, row or cell control's content ends with, for its range's end: a paragraph, a table or a row. */
 const BLOCK_ITEMS = new Set(['org_docx4j_wml.P', 'org_docx4j_wml.Tbl', 'org_docx4j_wml.Tr', 'org_docx4j_wml.Tc']);
@@ -181,20 +185,262 @@ export class ContentControl {
    */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
     this.assertWritable();
-    // a control showing its placeholder takes the text in the placeholder's place, wherever it is put, the placeholder
-    // being no text, as Word's does (check 58 cases 20 to 22, CR-012 section 18)
-    const placeholder = this.isShowingPlaceholder && (this.form === 'Block' || this.form === 'Run');
-    if (placeholder) this.isShowingPlaceholder = false;
-    const range = this.insertTextInto(text, placeholder ? 'Replace' : location);
-    if (placeholder) for (const run of this.contentRuns()) if (run.rPr?.rStyle?.val === PLACEHOLDER_STYLE) delete run.rPr.rStyle;
+    // a control showing its placeholder takes the text in the placeholder's place, wherever it is put (check 58 cases 20
+    // to 22, CR-012 section 18; check 63): Word adds w:color auto in the bare form where the text goes at the end, and the
+    // start is taken to be the same (unmeasured)
+    if (this.showsPlaceholderContent) return this.writePlaceholder(text, { colour: location !== 'Replace' });
+    const range = this.insertTextInto(text, location);
     this.syncBoundNode();
     return range;
   }
 
-  /** The runs of the control's content, a block control's paragraphs' too. */
-  private contentRuns(): wml.R[] {
-    if (this.form === 'Run') return runsOf(this.sdt.sdtContent as object).map((r) => r.value);
-    return this.paragraphs.flatMap((p) => p.runs.map((r) => r.value));
+  /** The runs of the control's content, a block control's paragraphs' too, in the accepted view. */
+  private contentRuns(form = this.form): wml.R[] {
+    if (form === 'Run') return runsOf(this.sdt.sdtContent as object).map((r) => r.value);
+    return this.body().paragraphs.flatMap((p) => runsOf(p.p).map((r) => r.value));
+  }
+
+  // --- CR-002 section 63: writing into a control showing its placeholder ---
+
+  /**
+   * The glossary entry the control's `w:placeholder` names, which makes it Word's form; undefined where it names none,
+   * the bare form, whose placeholder runs Word takes for content (CR-002 section 63, check 63; an extension).
+   */
+  get placeholderEntry(): string | undefined {
+    return placeholderEntryOf(this.sdt.sdtPr);
+  }
+
+  /** @internal True for a block or run-level control showing its placeholder, which a text write replaces (section 63). */
+  get showsPlaceholderContent(): boolean {
+    return this.isShowingPlaceholder && (this.form === 'Block' || this.form === 'Run');
+  }
+
+  /** The package's glossary entries, where the control is in a package. */
+  private get glossary(): GlossaryEntries | undefined {
+    return (this.parentBody.package_ as { glossaryEntries?: GlossaryEntries } | undefined)?.glossaryEntries;
+  }
+
+  /**
+   * @internal Text written into the content of this control while it shows its placeholder, by any route: its own
+   * `insertText`, its 'Content' range's, a block control's paragraph's (CR-002 section 63, D1, D2, D5). The placeholder
+   * goes and the text takes its place, in one paragraph, and the flag is cleared (`keepFlag`: left on, as the bare form's
+   * `insertParagraph` leaves it).
+   * - **Word's form** (`w:placeholder`, check 64): the placeholder is no content. Its runs go untracked, and the text is
+   *   plain; under tracking only the insertion is recorded.
+   * - **The bare form** (check 63): the placeholder's runs are content. The text takes their properties, so a rich text
+   *   control keeps the Placeholder Text style and a bound plain-text one drops it; `colour` adds `w:color auto`, as
+   *   Word's writes at an end do. Under tracking the insertion comes first, then the placeholder's deletion, and a change
+   *   to the runs' properties is recorded in `w:rPrChange`, as Word records it.
+   */
+  writePlaceholder(text: string, options: { colour?: boolean; keepFlag?: boolean; lineBreaks?: LineBreaks } = {}): Range {
+    this.assertWritable();
+    const form = this.form;
+    const bare = this.placeholderEntry === undefined;
+    const tracker = this.parentBody.changeTracker;
+    // refused before anything changes: a line break into a run-level control (CR-002 section 60 F4)
+    if (form === 'Run') textForRunControl(this, dropExcluded(text));
+    const taken = this.takePlaceholderRuns(form);
+    this.isShowingPlaceholder = false;
+    let range: Range;
+    if (form === 'Run') {
+      const paragraph = this.parentParagraph();
+      if (!paragraph) throw new Docx4JException('This content control is not in a paragraph');
+      range = this.insertIntoEmpty(paragraph, text);
+    } else {
+      range = this.firstParagraph().splice(0, 0, text, 'before', undefined, options.lineBreaks);
+    }
+    if (bare) this.dressAsPlaceholder(taken, form, tracker, options.colour === true);
+    if (options.keepFlag) this.isShowingPlaceholder = true;
+    this.syncBoundNode();
+    return range;
+  }
+
+  /** The control's first paragraph, made where its content has none. */
+  private firstParagraph(): Paragraph {
+    const body = this.body();
+    const first = body.paragraphs[0];
+    if (first) return first;
+    const p = el.p({ content: [] }) as Element;
+    const content = (this.sdt.sdtContent!.content ??= []);
+    content.push(p);
+    linkParents(p, this.sdt.sdtContent);
+    return body.paragraphs[0]!;
+  }
+
+  /**
+   * Takes the placeholder's runs out of the content: a run-level control's, or a block control's paragraphs', the first
+   * paragraph kept, emptied, and any other going. What held them, for a deletion to go back into.
+   */
+  private takePlaceholderRuns(form: ContentControlForm): { runs: Element<wml.R>[]; holder: Element[]; owner: object } {
+    const runs: Element<wml.R>[] = [];
+    const take = (items: Element[]): void => {
+      for (let i = 0; i < items.length; i++) {
+        if (typeNameOf(items[i]!) !== 'org_docx4j_wml.R') continue;
+        runs.push(items.splice(i, 1)[0] as Element<wml.R>);
+        i--;
+      }
+    };
+    if (form === 'Run') {
+      const owner = (this.sdt.sdtContent ??= {});
+      const holder = (owner.content ??= []);
+      take(holder);
+      return { runs, holder, owner };
+    }
+    const content = this.sdt.sdtContent?.content ?? [];
+    const paragraphs = content.filter((e) => typeNameOf(e) === 'org_docx4j_wml.P') as Element<wml.P>[];
+    for (const p of paragraphs) take((p.value.content ??= []) as Element[]);
+    for (const p of paragraphs.slice(1)) content.splice(content.indexOf(p), 1);
+    const first = paragraphs[0] ?? (this.firstParagraph().element as Element<wml.P>);
+    return { runs, holder: (first.value.content ??= []) as Element[], owner: first.value };
+  }
+
+  /** The placeholder's runs, taken out, put back marked deleted, last in what held them (before an inner start marker). */
+  private putBackDeleted(tracker: ChangeTracker, taken: { runs: Element<wml.R>[]; holder: Element[]; owner: object }): void {
+    if (taken.runs.length === 0) return;
+    for (const run of taken.runs) toDeletedText(run.value);
+    const del = tracker.del(taken.runs as Element[]);
+    pushBeforeMarker(taken.holder, del);
+    linkParents(del, taken.owner);
+  }
+
+  /**
+   * The bare form's look (D2 (a)): the text written takes the placeholder run's properties, the style dropped in a bound
+   * plain-text control and `w:color auto` added for `colour`; under tracking that change is recorded, and the
+   * placeholder's runs go back marked deleted after the insertion (check 63 cases 27 to 51).
+   */
+  private dressAsPlaceholder(taken: { runs: Element<wml.R>[]; holder: Element[]; owner: object }, form: ContentControlForm, tracker: ChangeTracker | undefined, colour: boolean): void {
+    const original = taken.runs[0]?.value.rPr;
+    const plain = sdtProperty(this.sdt.sdtPr, 'dataBinding') !== undefined && this.type === 'PlainText';
+    const look = (rPr: wml.RPr | undefined): wml.RPr => {
+      const out: wml.RPr = rPr ? deepCopy(rPr) : {};
+      delete out.rPrChange;
+      if (plain && out.rStyle?.val === PLACEHOLDER_STYLE) delete out.rStyle;
+      return out;
+    };
+    const dress = (run: wml.R, rPr: wml.RPr | undefined, extra: (r: wml.RPr) => void): void => {
+      const changes = plain || colour;
+      if (tracker && changes) {
+        run.rPr = rPr ? deepCopy(rPr) : {};
+        delete run.rPr.rPrChange;
+        tracker.recordRPrChange(run.rPr);
+        const recorded = run.rPr.rPrChange;
+        const next = look(rPr);
+        extra(next);
+        run.rPr = { ...next, ...(recorded ? { rPrChange: recorded } : {}) };
+      } else {
+        const next = look(rPr);
+        extra(next);
+        if (Object.keys(next).some((k) => k !== 'TYPE_NAME')) run.rPr = next; else delete run.rPr;
+      }
+      if (run.rPr) linkParents(run.rPr, run);
+    };
+    for (const run of this.contentRuns(form)) dress(run, original, (r) => { if (colour) r.color = { val: 'auto' }; });
+    if (!tracker) return;
+    if (plain) for (const run of taken.runs) dress(run.value, run.value.rPr, () => {});
+    this.putBackDeleted(tracker, taken);
+  }
+
+  /**
+   * @internal A write through the control's 'Content' or 'Whole' range that the control takes (D3, D4): text into a
+   * control showing its placeholder, or into an empty run-level control, goes inside it; a 'Whole' range's Replace over
+   * a run-level control showing its placeholder takes the control, the text in its place. Undefined where the range's
+   * own write applies.
+   */
+  writeThrough(part: 'Content' | 'Whole', text: string, location: string): Range | undefined {
+    if (part === 'Content') {
+      if (this.showsPlaceholderContent) return this.writePlaceholder(text);
+      if (this.form !== 'Run' || !this.runSpan()?.empty) return undefined;
+      this.assertWritable();
+      const range = this.insertTextInto(text, 'Replace');
+      this.syncBoundNode();
+      return range;
+    }
+    if (location !== 'Replace' || this.form !== 'Run' || !this.isShowingPlaceholder) return undefined;
+    return this.takeWhole(text);
+  }
+
+  /**
+   * @internal A delete through the control's 'Content' or 'Whole' range that the control takes; false where the range's
+   * own delete applies. A 'Content' delete of a control showing its placeholder keeps the control and the flag, the
+   * placeholder's runs going (marked deleted under tracking; check 63 cases 6, 17, 32 and 43); in Word's form the
+   * placeholder is no content, and nothing changes. A 'Whole' delete takes a run-level control showing its placeholder
+   * (D3).
+   */
+  deleteThrough(part: 'Content' | 'Whole'): boolean {
+    if (part === 'Whole') {
+      if (this.form !== 'Run' || !this.isShowingPlaceholder) return false;
+      this.takeWhole('');
+      return true;
+    }
+    if (!this.showsPlaceholderContent) return false;
+    this.assertWritable();
+    if (this.placeholderEntry !== undefined) return true;
+    const tracker = this.parentBody.changeTracker;
+    const taken = this.takePlaceholderRuns(this.form);
+    if (tracker) this.putBackDeleted(tracker, taken);
+    return true;
+  }
+
+  /**
+   * @internal Takes the control whole (D3): a Replace or delete over a control showing its placeholder, as Word takes one
+   * (check 63 cases 12, 18 to 20, 26, 38, 44 to 46 and 52). Untracked it goes, a block control leaving its paragraph,
+   * emptied, in its place; tracked it is marked deleted in Word's form (`markHolderDeleted`: `w:customXmlDelRange`
+   * markers around it and inside its content), its placeholder marked deleted. `text` goes where a run-level control
+   * stood, before it under tracking, as Word puts a Replace's insertion first.
+   */
+  takeWhole(text = ''): Range {
+    this.assertWritable();
+    const form = this.form;
+    const tracker = this.parentBody.changeTracker;
+    if (form === 'Run') {
+      const span = this.runSpan();
+      if (!span) throw new Docx4JException('This content control is not in a paragraph');
+      const { paragraph, start } = span;
+      if (!tracker) {
+        const at = this.container.indexOf(this.element as Element);
+        if (at >= 0) this.container.splice(at, 1);
+        return text === '' ? new Range(paragraph, start, start) : paragraph.splice(start, start, text);
+      }
+      const inserted = text === '' ? new Range(paragraph, start, start) : paragraph.splice(start, start, text);
+      this.markWholeDeleted(tracker, form);
+      return inserted;
+    }
+    const first = this.firstParagraph();
+    if (!tracker) {
+      const at = this.container.indexOf(this.element as Element);
+      this.takePlaceholderRuns(form);
+      const paragraph = first.element as Element;
+      const owner = (this.element.value as { PARENT?: object }).PARENT ?? ownerOf(this.container, this.parentBody);
+      this.container.splice(at, 1, paragraph);
+      linkParents(paragraph, owner);
+      return new Range(this.parentBody.paragraphFor(paragraph.value as wml.P) ?? first, 0, 0);
+    }
+    this.markWholeDeleted(tracker, form);
+    return new Range(first, 0, 0);
+  }
+
+  /** The control marked deleted with Word's markers, its placeholder's runs in a `w:del` inside (`takeWhole`). */
+  private markWholeDeleted(tracker: ChangeTracker, form: ContentControlForm): void {
+    // inside the content, after the inner w:customXmlDelRangeEnd, as Word puts it (check 63 cases 38 and 44)
+    markHolderDeleted(tracker, this.element as Element, this.container, () => this.putBackDeleted(tracker, this.takePlaceholderRuns(form)));
+  }
+
+  /**
+   * Shows the control's placeholder (CR-002 section 63, D8): the text of the entry its `w:placeholder` names, else of
+   * Word's default entry, which it is made to name, in the Placeholder Text style, with `w:showingPlcHdr`. The entry is
+   * written into the glossary on save where the glossary lacks it (D9). An extension.
+   */
+  showPlaceholder(): void {
+    this.assertWritable();
+    const sdtPr = (this.sdt.sdtPr ??= {} as wml.SdtPr);
+    let name = this.placeholderEntry;
+    if (name === undefined || name === '') {
+      name = DEFAULT_PLACEHOLDER_ENTRY;
+      namePlaceholderEntry(sdtPr, name);
+    }
+    const text = this.glossary?.textOf(name) ?? DEFAULT_PLACEHOLDER_TEXT;
+    this.glossary?.require(name, text);
+    this.setBoundContent([placeholderRun(this.runProperties, text)], true);
   }
 
   private insertTextInto(text: string, location: 'Start' | 'End' | 'Replace'): Range {
@@ -217,6 +463,17 @@ export class ContentControl {
   insertParagraph(text: string, location: 'Start' | 'End' | 'Before' | 'After'): Paragraph {
     this.assertWritable();
     const form = this.form;
+    if ((location === 'Start' || location === 'End') && form === 'Block' && this.isShowingPlaceholder) {
+      // CR-002 section 63, D1: in the bare form Word puts the text in the placeholder's place, in its paragraph, and
+      // leaves the flag on (check 63 cases 3 and 29); in Word's form the placeholder goes, its paragraph left empty, the
+      // flag cleared, and the new paragraph follows (check 64 cases 6 and 27)
+      if (this.placeholderEntry === undefined) {
+        this.writePlaceholder(text, { keepFlag: true });
+        return this.firstParagraph();
+      }
+      this.takePlaceholderRuns(form);
+      this.isShowingPlaceholder = false;
+    }
     if ((location === 'Start' || location === 'End') && isBoundBlockControl(this)) {
       // Word holds a bound block control to one paragraph (CR-002 section 61): into a single-line one the text joins
       // its paragraph, as Word's insertParagraph writes it; into a multi-line one Word's own second paragraph makes a
@@ -259,6 +516,13 @@ export class ContentControl {
    * without the last `\r`).
    */
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
+    const range = this.rangeOf(location);
+    // its own 'Content' and 'Whole' ranges know the control, for a write into one with no width (CR-002 section 63, D4)
+    if ((location === 'Content' || location === 'Whole') && (this.form === 'Run' || this.form === 'Block')) range.ofControl = { control: this, part: location };
+    return range;
+  }
+
+  private rangeOf(location: 'Whole' | 'Start' | 'End' | 'Content'): Range {
     if (this.form === 'Run') {
       const span = this.runSpan();
       if (!span) throw new Docx4JException('This content control is not in a paragraph');
@@ -403,30 +667,27 @@ export class ContentControl {
   }
 
   /**
-   * The placeholder Word shows for an empty control: the text of the control's runs while it is showing
-   * the placeholder (`w:showingPlcHdr`), else '' — Word keeps the text itself in a glossary
-   * document part, which this phase does not create (CR-002 section 12). Setting writes the text
-   * as the control's content and sets `w:showingPlcHdr`, which is refused when the control holds
-   * content of its own, so that a value is never lost. The control's `text` reads no placeholder (CR-012
-   * section 18); this reads it from the runs, where Word, with no glossary part to read, reads `null`
-   * (check 58), a departure that keeps the setter's text readable.
+   * The placeholder Word shows for an empty control: the text of the glossary entry the control's `w:placeholder` names,
+   * as Office JS reads it (CR-002 section 63, D8; check 65), `null` where the control names none (the bare form) or the
+   * glossary lacks the entry. The glossary is read when the body is (`getBody`, `Word.run`). Setting it names Word's
+   * default entry for Word's default text, else a new entry holding the text, named as Word names one (32 hex digits),
+   * which is written into the glossary on save, the entry named before left there; a control showing its placeholder,
+   * or holding nothing, shows the new text. A control's content is left alone. Until section 63 the text was written as
+   * the control's content in the bare form, and a control holding content refused it.
    */
-  get placeholderText(): string {
-    if (!this.isShowingPlaceholder) return '';
-    if (this.form === 'Run') return textOfView(this.sdt.sdtContent as object);
-    return this.paragraphs.map((p) => textOfView(p.p)).join('\r');
+  get placeholderText(): string | null {
+    const name = this.placeholderEntry;
+    if (name === undefined) return null;
+    return this.glossary?.textOf(name) ?? null;
   }
   set placeholderText(text: string) {
     this.assertWritable();
-    if (!this.isShowingPlaceholder && this.text !== '') {
-      throw new Docx4JException('This content control holds content; clear it before setting its placeholder text');
-    }
-    this.setBoundContent(runsForValue('', this.runProperties, false), true);
-    if (text !== '' && text !== PLACEHOLDER_TEXT) {
-      const run = this.firstRunOfContent();
-      const t = run?.content?.[0] as { value?: wml.Text } | undefined;
-      if (t?.value) t.value.value = text;
-    }
+    const own = text !== '' && text !== DEFAULT_PLACEHOLDER_TEXT;
+    const name = own ? newEntryName() : DEFAULT_PLACEHOLDER_ENTRY;
+    const shown = own ? text : DEFAULT_PLACEHOLDER_TEXT;
+    namePlaceholderEntry((this.sdt.sdtPr ??= {} as wml.SdtPr), name);
+    this.glossary?.require(name, shown);
+    if (this.isShowingPlaceholder || this.text === '') this.setBoundContent([placeholderRun(this.runProperties, shown)], true);
   }
 
   /**
@@ -579,7 +840,7 @@ export class ContentControl {
   }
   set isShowingPlaceholder(value: boolean) {
     if (!value) { this.removeProperty('showingPlcHdr'); return; }
-    this.putProperty(el.showingPlcHdr({ val: true }) as Element);
+    this.putProperty(el.showingPlcHdr({}) as Element);   // <w:showingPlcHdr/>, as Word writes it
   }
 
   /**
@@ -594,8 +855,11 @@ export class ContentControl {
     const content = ((sdt.sdtContent as { content?: Element[] }).content ??= []);
     const first = content.find((e) => typeNameOf(e) !== undefined);
     if (this.form === 'Run' || (first && typeNameOf(first) === 'org_docx4j_wml.R')) {
+      // a tracked control's own markers stay where they are, its inner end first and its inner start last (check 30)
+      const ends = content.filter((e) => TRACKED_HOLDER_MARKER.test(e.name?.localPart ?? '') && e.name.localPart.endsWith('End'));
+      const starts = content.filter((e) => TRACKED_HOLDER_MARKER.test(e.name?.localPart ?? '') && e.name.localPart.endsWith('Start'));
       content.length = 0;
-      content.push(...runs);
+      content.push(...ends, ...runs, ...starts);
       linkParents(content, sdt.sdtContent as object);
     } else if (!isBoundBlockControl(this)) {
       // a cell or row control, or a block control section 61's rule doesn't cover (a w15:dataBinding, Word's rich-text
@@ -654,22 +918,16 @@ export class ContentControl {
   }
 
   /**
-   * Writes the control's text into the node it is bound to, when there is one and the XPath engine
-   * is warm. Silent when it is not: reading a custom XML part is `pkg.customXmlParts.load()`'s job,
+   * @internal Writes the control's text into the node it is bound to, when there is one and the XPath engine
+   * is warm (CR-002 section 63, D7: every text write into a bound control). Silent when it is not: reading a custom XML part is `pkg.customXmlParts.load()`'s job,
    * and `updateFromContentControls()` is the explicit form of this write.
    */
-  private syncBoundNode(): void {
+  syncBoundNode(): void {
     try {
       if (this.xmlMapping.isMapped) updateFromControl(this);
     } catch {
       // the part is not parsed, or the engine is not ready: leave it to updateFromContentControls()
     }
-  }
-
-  private firstRunOfContent(): wml.R | undefined {
-    const runs = this.form === 'Run' ? runItemsOf(this.sdt.sdtContent ?? {}) ?? [] : this.paragraphs[0]?.runs ?? [];
-    for (const item of runs) if (typeNameOf(item) === 'org_docx4j_wml.R') return item.value as wml.R;
-    return undefined;
   }
 
   private lockValue(): string | undefined {
@@ -867,6 +1125,13 @@ export function textForRunControl(control: ContentControl, text: string): string
   return lines === 'single' ? forWriter(text, 'single-line') : text;
 }
 
+/** An item put last in a control's content, before the inner start marker a control tracked as inserted ends with (check 30). */
+function pushBeforeMarker(items: Element[], item: Element): void {
+  const last = items[items.length - 1];
+  const marker = last !== undefined && TRACKED_HOLDER_MARKER.test(last.name?.localPart ?? '') && last.name.localPart.endsWith('Start');
+  items.splice(marker ? items.length - 1 : items.length, 0, item);
+}
+
 /** A `w:p` holding these run-level items (CR-002 phase E: the bound content of an empty control). */
 function paragraphElementOf(runs: Element[]): Element {
   return el.p({ content: runs as never }) as Element;
@@ -923,6 +1188,14 @@ export interface ContentControlOptions {
 export function controlsOfTypes(controls: ContentControl[], options?: ContentControlOptions): ContentControl[] {
   const types = options?.types;
   return types && types.length > 0 ? controls.filter((c) => types.includes(c.type)) : controls;
+}
+
+/**
+ * Whether a control of this kind made on an empty range shows Word's default placeholder, as Word's does (CR-002 section
+ * 63, D8; check 64): a rich text or plain text control. Word's other kinds have entries of their own, unmeasured.
+ */
+export function showsPlaceholderWhenMade(kind: ContentControlType | undefined): boolean {
+  return kind === undefined || kind === 'RichText' || kind === 'PlainText';
 }
 
 /** A stand-in for a block-level control about to be made, for `assertControlHolds` before `sdtOf` takes its content. */

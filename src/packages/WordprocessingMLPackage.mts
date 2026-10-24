@@ -7,7 +7,7 @@ import { ContentTypes } from '../opc/ContentTypes.mjs';
 import { Docx4JException } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import type { Part } from '../parts/Part.mjs';
-import { MainDocumentPart, StyleDefinitionsPart, DocumentSettingsPart, type NumberingDefinitionsPart } from '../parts/wml/index.mjs';
+import { MainDocumentPart, StyleDefinitionsPart, DocumentSettingsPart, GlossaryDocumentPart, type NumberingDefinitionsPart } from '../parts/wml/index.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart } from '../parts/docProps/index.mjs';
 import { DEFAULT_STYLES_XML } from '../parts/wml/defaultStyles.mjs';
 import { ThemePart } from '../parts/dml/index.mjs';
@@ -25,6 +25,7 @@ import { ChangeTracker, highestAnnotationId, type ChangeTrackingMode, type Track
 import { NumberingFacade } from '../model/content/List.mjs';
 import { StylesFacade } from '../model/content/stylesFacade.mjs';
 import { flushPendingCommentRemovals } from '../model/content/Comment.mjs';
+import { GlossaryEntries } from '../model/content/placeholders.mjs';
 import type { Bound } from '../model/content/binder.mjs';
 import { PropertyResolver } from '../model/properties/PropertyResolver.mjs';
 import type { Emulator } from '../model/listnumbering/Emulator.mjs';
@@ -160,6 +161,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
    * 47). Settled on save, not at once, so a picture cut and pasted back keeps its image. An extension.
    */
   readonly pendingRelationshipRemovals: RelationshipRemovals = new Map();
+  /**
+   * The glossary's placeholder entries: read privately when a body is first read (`getBody`, `Word.run`), and those a
+   * placeholder written since names, which go into the glossary when the package is saved, the glossary made where the
+   * file has none (CR-002 section 63, D8 and D9). An extension.
+   */
+  readonly glossaryEntries = new GlossaryEntries();
   /**
    * The parts `seedAnnotationIds()` has read, with what it read: `true` for a part still holding its
    * source, whose bytes cannot change, and otherwise the bytes that were set, which stay the same
@@ -664,6 +671,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     for (const id of this.pendingNoteRemovals.footnote) target.pendingNoteRemovals.footnote.add(id);
     for (const id of this.pendingNoteRemovals.endnote) target.pendingNoteRemovals.endnote.add(id);
     for (const [name, ids] of this.pendingRelationshipRemovals) target.pendingRelationshipRemovals.set(name, new Set(ids));
+    this.glossaryEntries.copyTo(target.glossaryEntries);
     target.trackedChangeDate = this.trackedChangeDate;
     target.fonts.defaultTheme = this.fonts.defaultTheme;
     target.xpathEngine = this.xpathEngine;
@@ -680,6 +688,12 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
       if (notes.footnote.size + notes.endnote.size > 0) await flushPendingNoteRemovals(this.getMainDocumentPart(), notes, this);
     }
     if (this.pendingRelationshipRemovals.size > 0) flushPendingRelationshipRemovals(this, this.pendingRelationshipRemovals);
+    if (this.glossaryEntries.waiting) {
+      await this.glossaryEntries.flush(this, {
+        glossary: () => new GlossaryDocumentPart(),
+        styles: () => new StyleDefinitionsPart('/word/glossary/styles.xml'),
+      });
+    }
     if (this.requiredStyles.size > 0) {
       await this.styles.ensure([...this.requiredStyles]);
       this.requiredStyles.clear();

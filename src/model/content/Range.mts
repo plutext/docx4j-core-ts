@@ -6,7 +6,7 @@ import type { Body, BlockElement } from './Body.mjs';
 import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKindOf, WHOLE, type SpanEdges, type RevisionHolder, type TextSegment, type TextViewOptions } from './tree.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
-import { ContentControl, assertControlHolds, controlsOfTypes, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
+import { ContentControl, assertControlHolds, controlsOfTypes, showsPlaceholderWhenMade, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
@@ -72,6 +72,13 @@ export class Range {
     this.holdsMark = mark;
     this.lastMarkText = endMark;
   }
+
+  /**
+   * @internal The content control whose 'Content' or 'Whole' range this is (CR-002 section 63, D4): a run-level
+   * control holding no text, or showing its placeholder, has no width, so its own range is where its writes go in,
+   * not its offset, which the text either side of it shares.
+   */
+  ofControl: { control: ContentControl; part: 'Content' | 'Whole' } | undefined;
 
   /** The paragraph holding `start`. */
   get paragraph(): Paragraph {
@@ -445,6 +452,10 @@ export class Range {
    * deletion, as Word writes it. A range holding its paragraph's mark is replaced so too under tracking.
    */
   insertText(text: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Range {
+    // a control's own range: into a control showing its placeholder, or an empty run-level one, its writes go inside it,
+    // and a Replace over a whole run-level control showing its placeholder takes it (CR-002 section 63, D3 and D4)
+    const through = this.ofControl?.control.writeThrough(this.ofControl.part, text, location);
+    if (through) return through;
     // tracked, the w:ins goes before the w:del within one paragraph too, as Word's (check 54 case 4; Jason,
     // 2026-10-23: "follow Word (insertion first)"), where CR-002 wrote the w:del first
     if (location === 'Replace' && (this.spansParagraphs || this.paragraph.changeTracker)) return this.replaceAcross(text);
@@ -578,6 +589,28 @@ export class Range {
    * deleted. A range starting or ending inside a table is refused with `GeneralException`, as Office JS refuses it.
    */
   delete(): void {
+    // a control's own range takes a control showing its placeholder as Word does; a paragraph's 'Content' range over a
+    // block control's one paragraph takes the control, as Word's took one showing its placeholder (CR-002 section 63, D3)
+    if (this.ofControl) {
+      const { control, part } = this.ofControl;
+      if (control.deleteThrough(part)) { this.end = this.start; return; }
+      const emptied = part === 'Content' && control.placeholderEntry !== undefined && !this.paragraph.changeTracker ? control : undefined;
+      this.deleteSpan();
+      // in Word's form a control emptied shows its placeholder again (check 66 case 3)
+      if (emptied && emptied.text === '' && !emptied.isShowingPlaceholder) emptied.showPlaceholder();
+      return;
+    }
+    const control = this.whole && !this.mark && !this.spansParagraphs ? this.paragraph.blockControl : undefined;
+    if (control?.isShowingPlaceholder && control.paragraphs.length === 1 && this.start === 0 && this.end >= this.paragraph.text.length) {
+      const r = control.takeWhole();
+      this.landAt(r.paragraph, 0);
+      return;
+    }
+    this.deleteSpan();
+  }
+
+  /** `delete()`'s own work. */
+  private deleteSpan(): void {
     if (this.spansParagraphs || this.holdsEndMark) {
       const extent = extentOf(this, 'delete', true);
       this.assertWritableSpan();
@@ -854,7 +887,10 @@ export class Range {
     declareSdtExtensions(body, sdt);
     if (this.start === this.end) {
       paragraph.insertItemsAt(this.start, [sdt as Element]);
-      return new ContentControl(sdt, containerOf(sdt, paragraph), body);
+      const control = new ContentControl(sdt, containerOf(sdt, paragraph), body);
+      // a control showing Word's default placeholder, as Word's made at a point (CR-002 section 63, D8; check 64)
+      if (showsPlaceholderWhenMade(kind)) control.showPlaceholder();
+      return control;
     }
     // Every refusal before anything changes (CR-002 section 43): until then the runs were split first.
     const covered = coveredSegments(paragraph, this.start, this.end);
