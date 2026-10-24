@@ -814,7 +814,7 @@ colour among the points is itself. What the data shows outright, which a test pi
   and some near a sector's edge go to its neighbour (`#CC0011` magenta).
 
 Sent to the objects session for the fitting (2026-10-24). **Its fit** (objects CR-014 section 2.1, unpushed when
-written) agrees on 7,075 of the 7,225:
+written) agrees on 7,076 of the 7,225, `#A9A9A9`'s exception included (7,075 without it), and misses the other 149:
 - **the hue** is Windows' `ColorRGBToHLS` integer hue (`HLSMAX` 240): red below 20, yellow 20 to 60, green 61 to 100,
   cyan 101 to 140, blue 141 to 179, magenta from 180. Every hue decision fits, `#0A325C` among them (cyan at integer
   hue 140, where the float hue is 210.7°);
@@ -835,4 +835,12 @@ would follow only if a consumer needs it.
 
 Passed to the objects session the same day. When CR-014 is released, this package raises the range, empties
 `CHECK61_DIFFERS`, and holds the shim to checks 61 and 62.
+
+Objects CR-014 implemented 2026-10-24 at `ea8a5ba` (unpushed, unreleased), with checks 61 and 62 copied from `dc7e37d`
+and `8a0945c`:
+- `highlightHexValue` and `readRunOptions` read Word's palette;
+- `highlightNameForColor` and `applyRunOptions` take a CSS Color 3 name in any case or any `#RRGGBB`, stored as Word stores
+  it, and refuse anything else (`darkYellow`, `none`, a hex without `#`, `#FFF`, `rgb()`);
+- its tests hold it to all 7,225 of check 62's colours and to check 61's 18 reads and 45 writes.
+Its count above was corrected the same day (it had said 7,075 with the exception).
 
