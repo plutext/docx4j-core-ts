@@ -1,7 +1,8 @@
 // CR-002 section 63: a content control's placeholder in Word's form (D8, D9). Word keeps a placeholder's text in the
 // glossary document part, as a building block the control names in `w:placeholder` (check 64); the control's runs show
 // it while `w:showingPlcHdr` is on. A control with no `w:placeholder` is in the bare form, what docx4j's binding writes:
-// Word treats its runs as the control's content (check 63). The form is the reference's: a control naming any entry,
+// Word writes into it as into Word's form (check 63's run 2), but has no entry to show once it is emptied, nor for
+// `placeholderText` to read, and fills an emptied one with five spaces. The form is the reference's: a control naming any entry,
 // present in the glossary or not, is in Word's form while the file is open, though Word's save drops a reference whose
 // entry no glossary holds (check 65), so where this package writes a reference it writes the entry too.
 //

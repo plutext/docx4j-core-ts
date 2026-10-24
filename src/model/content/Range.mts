@@ -594,10 +594,10 @@ export class Range {
     if (this.ofControl) {
       const { control, part } = this.ofControl;
       if (control.deleteThrough(part)) { this.end = this.start; return; }
-      const emptied = part === 'Content' && control.placeholderEntry !== undefined && !this.paragraph.changeTracker ? control : undefined;
+      const emptied = part === 'Content' && !this.paragraph.changeTracker ? control : undefined;
       this.deleteSpan();
-      // in Word's form a control emptied shows its placeholder again (check 66 case 3)
-      if (emptied && emptied.text === '' && !emptied.isShowingPlaceholder) emptied.showPlaceholder();
+      // a control emptied shows its entry again in Word's form (check 66 case 3), Word's filler in the bare form (D10)
+      emptied?.showEmptied();
       return;
     }
     const control = this.whole && !this.mark && !this.spansParagraphs ? this.paragraph.blockControl : undefined;

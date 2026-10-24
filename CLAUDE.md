@@ -54,8 +54,9 @@ Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54),
 as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
 CR-061) is implemented, not yet released, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
 differs only in Word's green highlight (the objects package's table, `#008000` where Office JS reads `#00FF00`). So is CR-002 section 63
-(writing into a control showing its placeholder, as Word does by the form: Word's, `w:placeholder` naming a glossary entry, or the bare
-form; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 66). The editor's release requests are
+(writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
+entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63
+run again with Design Mode off, since Design Mode changes what a write into a placeholder does). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -336,14 +337,14 @@ read and written) through the shim, held to Word 365's run with the objects tabl
 Word's run (`62-highlight-snap-word365.json`) pinned where it speaks plainly (the grey and channel ramps),
 `placeholders.test.mjs` CR-002 section 63's: check 63's file (`check63Bytes`, `test/fixtures/check63/`: Office JS's writes into a
 control showing its placeholder) and snippet held to each other, Word 365's run (its JSONs beside the build, its saves in `test/check63/`, with a SHA-1
-manifest) pinned case by case, and the shim's run held to it, every write as Word's since section 63's implementation (63.12); and check 64's
+manifest) pinned case by case: run 1, in Design Mode, and run 2, with it off, which the shim's run is held to (section 63.17); and check 64's
 (`test/fixtures/check64/`: the same writes on controls in Word's form, with a glossary Word made, and on controls Word makes) through the shim,
 and Word's run (its saves in `test/check64/`) pinned the same way; and check 65's two files (`test/fixtures/check65/`: D8's form with no glossary part,
 and with a glossary of one part) through the shim, and Word's runs (its saves in `test/check65/`) pinned: the reference gives Word's form, only an entry keeps it through Word's save, and a glossary without its styles loses the Placeholder Text style, and check 66's two (`test/fixtures/check66/`: D9's glossaries, the document and styles parts, and Word's six) through the shim, and Word's runs (its saves in `test/check66/`) pinned: the two alike;
 and section 63.12's: a tracked Replace over a control's markup, accepted and rejected (D3), the level beside a block control (D6), bound nodes (D7),
 placeholders in Word's form (D8) and the glossary written on save (D9); and check 67's three files (`test/fixtures/check67/`: check 58's writes into
 the bare form in four phases, the view and the tracking mode, through two lookups, for why checks 58 and 63 disagree) and snippet held to each other and run through the shim,
-and Word's run (its saves in `test/check67/`) pinned: every write a plain run, as check 58's, check 58's save pinned too, and only check 63's saves holding `w:formsDesign`,
+and Word's run (its saves in `test/check67/`) pinned and the shim held to it: every write a plain run, as check 58's, check 58's save pinned too, and only check 63's run 1 saves holding `w:formsDesign`,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

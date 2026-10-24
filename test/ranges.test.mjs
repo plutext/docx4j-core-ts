@@ -527,7 +527,7 @@ test("CR-014 phase 2: the markup check 52's writes leave through the shim is Wor
   const word = markupOf(await loaded(await saveBytes('52-ranges-word365.docx')));
   const differing = [...word.keys()].filter((n) => mine.get(n).join('\n') !== word.get(n).join('\n'));
   // 1, read only: Word's save gave the comment reference's run w:u and w:sz of its own; 13: Word's filler for an
-  // emptied control, a bold run of five spaces (section 9.4); 60 and 66: Word's extra
+  // emptied control is a bold run of five spaces (section 9.4), this package's not bold; 60 and 66: Word's extra
   // empty paragraph in a control; 67 and 68: Word gives a paragraph's mark its last run's formatting (italic) when
   // insertParagraph('After') goes after it, not followed (CR-014 section 10); 79 to 85: insertComment (phase 3),
   // whose markers are Word's but for the two differences below; 86 and 87: the new table's paragraph (below)
@@ -542,8 +542,10 @@ test("CR-014 phase 2: the markup check 52's writes leave through the shim is Wor
     if (n === 82) expected = expected.filter((line) => line !== '  <commentRangeStart>').map((line) => line.replace('  P[Heading1|] "HEAD82A', '  P[Heading1|] commentRangeStart:"" "HEAD82A'));
     assert.deepEqual(mine.get(n), expected, `case ${n}`);
   }
+  // since CR-002 section 63.17 (D10) this package writes Word's filler too, in the control's own run properties; Word
+  // also gave this control bold ones, w:sdtPr/w:rPr taken from the text deleted, and its filler is bold
   assert.deepEqual(word.get(13), ['SDT', '  P[ListParagraph/num|] "     "{b}']);
-  assert.deepEqual(mine.get(13), ['SDT', '  P[ListParagraph/num|] ']);
+  assert.deepEqual(mine.get(13), ['SDT', '  P[ListParagraph/num|] "     "']);
   for (const n of [67, 68]) {
     assert.deepEqual(mine.get(n).map((line) => line.replace(/^P\[center\|\] "BODY/, 'P[center|i] "BODY')), word.get(n), `case ${n}`);
   }

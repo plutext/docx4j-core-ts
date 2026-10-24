@@ -4932,6 +4932,44 @@ async function check() {
      - **This package** differs in 44 of the 52 writes; D1 to D7 are proposed in section 63.3. Since section 63's
        implementation (section 63.12, 2026-10-25) it agrees in all 52; its decided departures (D6 (b), D7 in the bare form)
        don't show in what the snippet reads.
+   - **That run was in Design Mode.** Both of Word's saves carry `<w:formsDesign/>`, and Jason confirms Developer > Design
+     Mode was on, to see the controls. Check 67 (2026-10-25) gave check 58's writes with Design Mode off, and every one wrote
+     plain text where this run kept the style (CR-002 section 63.14). So run 1's answers are Design Mode's.
+   - **Run 2, Design Mode off** (set up 2026-10-25; Jason: "yes, commit and set up check 63 again"). The same file and
+     snippet, unchanged on the share in `__tmp/63/`, run again with Design Mode off, to measure the bare form's answers
+     afresh: the style (D2), `insertParagraph`'s flag (D1), the tracked markup (D5), a control taken whole (D3), the level
+     beside a block control (D6) and the bound nodes (D7). Run 1's saves and results stay where they are; run 2's go under
+     new names.
+     1. In Word, on the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted. If the
+        Developer tab isn't shown, Design Mode is off. Leave it off until step 10.
+     2. Open `__tmp/63/63-placeholders.docx`. Say whether Word reports a problem or offers a repair.
+     3. File > Save As `63-run2-opened-word365.docx`, in the same folder `__tmp/63`, before anything else.
+     4. File > Save As again, `63-run2-word365.docx` in `__tmp/63`. This is the copy the run changes.
+     5. On the Review tab, leave Track Changes off, and set Display for Review to Simple Markup, as in run 1.
+     6. In Script Lab, open check 63's snippet, or start a new one and paste `__tmp/63/check63-script-lab.html` over the
+        HTML tab and `__tmp/63/check63-script-lab.js` over the Script tab.
+     7. Click **Report only**. When it says Done, copy the box into a new file `__tmp/63/result-run2-report.txt`.
+     8. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/63/result-run2-run.txt`.
+     9. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Then File >
+        Close.
+     10. Open `__tmp/63/63-run2-word365.docx` again, and say whether Word reports a problem or offers a repair. Say what the
+         bound controls show: cases 21 to 26 and 47 to 52. Design Mode may be turned on now to see them. Then File > Close
+         **without saving**.
+   - **Run 2, 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Design Mode off).** No problem opening the file or Word's
+     saves. The JSONs are `fixtures/check63/63-placeholders-word365-run2-report.json` and `-run2-run.json`. Word's saves
+     are `check63/63-run2-opened-word365.docx` and `63-run2-word365.docx`, in the manifest; neither has `w:formsDesign`.
+     Reopened, the bound controls show their writes. CR-002 section 63.16 has every case. In short, the bare form gives
+     Word's form's answers (check 64's):
+     - a write into the control is plain, the flag cleared;
+     - tracked, only the insertion is recorded;
+     - `insertParagraph` clears the flag;
+     - every bound node holds its write.
+
+     Of its own: a control's `Content` deleted keeps the flag over five spaces, and a Replace or delete over the whole
+     control still takes it, tracked with nothing inside marked deleted. This package follows run 2 in every write since
+     CR-002 section 63.17. Turning Design Mode on in the original file,
+     then off, Word refused: placeholder text in a control "contains invalid items". It highlighted control 53, the
+     run-level control showing its placeholder over an empty `w:sdtContent`.
 
 64. Check 63's writes on controls in Word's own form, and a bound control's node (CR-002 section 63.4, 2026-10-24; Jason:
    "let's do check 64").
@@ -5160,6 +5198,7 @@ async function check() {
        rejecting changes) and the rest of its file.
    - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim on each file and pins each
      case): D2 (a), check 63's answer, everywhere: the text in the placeholder's place, the flag cleared, the style kept.
+     Since CR-002 section 63.17, Word's plain run.
    - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening any file. The JSONs are
      `fixtures/check67/67a-plain-word365.json`, `67b-custom-xml-word365.json` and `67c-revisions-word365.json`. Word's six
      saves, as opened and after the run, are in `check67/` with a SHA-1 manifest. CR-002 section 63.14 has it all. In short:

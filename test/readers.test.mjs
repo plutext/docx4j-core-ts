@@ -567,13 +567,11 @@ test('CR-012 section 18: a control showing its placeholder reads as no text, is 
   assert.deepEqual([block.placeholderText, run.placeholderText], [null, null]);
   assert.equal(body.search('Click').length, 0, 'K3: no text to search');
   assert.equal(body.text, '\rA  B');
-  // text goes in the placeholder's place, at 'End' as at 'Replace'. These controls are in the bare form (no w:placeholder),
-  // whose placeholder Word takes for content: the text keeps its run's style, and Word's w:color auto at an end (CR-002
-  // section 63, D2 (a); check 63 cases 2 and 14). Until then the style was dropped
+  // text goes in the placeholder's place, at 'End' as at 'Replace', and the control shows it, plain, as Word's did (check
+  // 58 cases 20 to 22; CR-002 section 63, D2 (b))
   block.insertText('FILLED', 'End');
   run.insertText('X', 'Start');
   assert.deepEqual([block.text, block.isShowingPlaceholder, run.text, run.isShowingPlaceholder], ['FILLED', false, 'X', false]);
   assert.equal(body.paragraphs[1].text, 'A X B');
-  assert.deepEqual(block.paragraphs[0].runs.map((r) => [r.value.rPr?.rStyle?.val, r.value.rPr?.color?.val]), [['PlaceholderText', 'auto']]);
-  assert.deepEqual(body.paragraphs[1].runs.filter((r) => r.value.rPr).map((r) => [r.value.rPr.rStyle?.val, r.value.rPr.color?.val]), [['PlaceholderText', 'auto']]);
+  assert.ok([...block.paragraphs[0].runs, ...body.paragraphs[1].runs].every((r) => r.value.rPr === undefined), 'no Placeholder Text style, no colour');
 });

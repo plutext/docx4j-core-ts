@@ -380,11 +380,10 @@ export class Paragraph {
 
   /** Text inserted at the start, the end, or replacing the whole paragraph's text. */
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
-    // in a block control showing its placeholder the text takes the placeholder's place wherever it is put; in the bare
-    // form Word adds w:color auto at the paragraph's end, and at its start untracked (CR-002 section 63, check 63 cases 7
-    // to 9 and 33 to 35)
+    // in a block control showing its placeholder the text takes the placeholder's place wherever it is put (CR-002
+    // section 63; check 63's run 2, cases 7 to 9 and 33 to 35)
     const placeholder = this.placeholderControl;
-    if (placeholder) return placeholder.writePlaceholder(text, { colour: location === 'End' || (location === 'Start' && !this.changeTracker) });
+    if (placeholder) return placeholder.writePlaceholder(text);
     const length = this.text.length;
     if (location === 'Start') return this.splice(0, 0, text);
     if (location === 'End') return this.splice(length, length, text);
@@ -1305,7 +1304,7 @@ export class Paragraph {
    */
   private deleteText(tracker: ChangeTracker, start: number, end: number, edges?: SpanEdges): Anchor[] {
     // a run-level control showing its placeholder that the span holds whole is marked deleted whole, in Word's markers,
-    // its placeholder deleted inside (CR-002 section 63, D3; check 63 cases 45, 46 and 52)
+    // its placeholder gone unmarked (CR-002 section 63, D3; check 63's run 2, cases 45, 46 and 52)
     for (const control of this.placeholderControlsIn(start, end, edges)) control.takeWhole();
     const targets = this.isolate(start, end, edges);
     for (const seg of targets) tracker.assertEditable(seg.revision);

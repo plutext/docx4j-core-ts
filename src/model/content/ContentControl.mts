@@ -21,13 +21,13 @@ import {
 } from '../customxml/kinds.mjs';
 import { updateFromControl, holdsFlatOpc, placeholderRun, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { dropExcluded, forWriter, officeItems, type LineBreaks } from './officeText.mjs';
-import { declareIgnorable, markHolderDeleted, toDeletedText, type ChangeTracker } from './tracking.mjs';
+import { declareIgnorable, markHolderDeleted, type ChangeTracker } from './tracking.mjs';
 import { placeholderEntryOf, namePlaceholderEntry, newEntryName, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, type GlossaryEntries } from './placeholders.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { commentReferencesIn } from './TrackedChange.mjs';
 import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
 import { sdtProperty, sdtKindOf, type SdtKind } from '@docx4j/generated-objects-ts/builders/wml';
-import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, runsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
+import { type Element, type BranchMode, typeNameOf, childrenOf, runItemsOf, linkParents, runOf, SDT_TYPES, ALTERNATE_CONTENT, BLOCK_LEVEL_TYPES, selectedBranchOf, branchListsOf, inBranch, assertOutsideBranch } from './tree.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
@@ -186,25 +186,19 @@ export class ContentControl {
   insertText(text: string, location: 'Start' | 'End' | 'Replace'): Range {
     this.assertWritable();
     // a control showing its placeholder takes the text in the placeholder's place, wherever it is put (check 58 cases 20
-    // to 22, CR-012 section 18; check 63): Word adds w:color auto in the bare form where the text goes at the end, and the
-    // start is taken to be the same (unmeasured)
-    if (this.showsPlaceholderContent) return this.writePlaceholder(text, { colour: location !== 'Replace' });
+    // to 22, CR-012 section 18; CR-002 section 63)
+    if (this.showsPlaceholderContent) return this.writePlaceholder(text);
     const range = this.insertTextInto(text, location);
     this.syncBoundNode();
     return range;
-  }
-
-  /** The runs of the control's content, a block control's paragraphs' too, in the accepted view. */
-  private contentRuns(form = this.form): wml.R[] {
-    if (form === 'Run') return runsOf(this.sdt.sdtContent as object).map((r) => r.value);
-    return this.body().paragraphs.flatMap((p) => runsOf(p.p).map((r) => r.value));
   }
 
   // --- CR-002 section 63: writing into a control showing its placeholder ---
 
   /**
    * The glossary entry the control's `w:placeholder` names, which makes it Word's form; undefined where it names none,
-   * the bare form, whose placeholder runs Word takes for content (CR-002 section 63, check 63; an extension).
+   * the bare form, which has no entry to show once emptied, nor for `placeholderText` to read (CR-002 section 63; an
+   * extension). Writes are the same in both forms (check 63's run 2).
    */
   get placeholderEntry(): string | undefined {
     return placeholderEntryOf(this.sdt.sdtPr);
@@ -222,24 +216,16 @@ export class ContentControl {
 
   /**
    * @internal Text written into the content of this control while it shows its placeholder, by any route: its own
-   * `insertText`, its 'Content' range's, a block control's paragraph's (CR-002 section 63, D1, D2, D5). The placeholder
-   * goes and the text takes its place, in one paragraph, and the flag is cleared (`keepFlag`: left on, as the bare form's
-   * `insertParagraph` leaves it).
-   * - **Word's form** (`w:placeholder`, check 64): the placeholder is no content. Its runs go untracked, and the text is
-   *   plain; under tracking only the insertion is recorded.
-   * - **The bare form** (check 63): the placeholder's runs are content. The text takes their properties, so a rich text
-   *   control keeps the Placeholder Text style and a bound plain-text one drops it; `colour` adds `w:color auto`, as
-   *   Word's writes at an end do. Under tracking the insertion comes first, then the placeholder's deletion, and a change
-   *   to the runs' properties is recorded in `w:rPrChange`, as Word records it.
+   * `insertText`, its 'Content' range's, a block control's paragraph's (CR-002 section 63, D1, D2 (b), D5). The
+   * placeholder is no content, in either form (checks 64 and 67, check 63's run 2): its runs go, untracked, the text takes
+   * their place, plain, in one paragraph, and the flag is cleared; under tracking only the insertion is recorded.
    */
-  writePlaceholder(text: string, options: { colour?: boolean; keepFlag?: boolean; lineBreaks?: LineBreaks } = {}): Range {
+  writePlaceholder(text: string, options: { lineBreaks?: LineBreaks } = {}): Range {
     this.assertWritable();
     const form = this.form;
-    const bare = this.placeholderEntry === undefined;
-    const tracker = this.parentBody.changeTracker;
     // refused before anything changes: a line break into a run-level control (CR-002 section 60 F4)
     if (form === 'Run') textForRunControl(this, dropExcluded(text));
-    const taken = this.takePlaceholderRuns(form);
+    this.takePlaceholderRuns(form);
     this.isShowingPlaceholder = false;
     let range: Range;
     if (form === 'Run') {
@@ -249,8 +235,6 @@ export class ContentControl {
     } else {
       range = this.firstParagraph().splice(0, 0, text, 'before', undefined, options.lineBreaks);
     }
-    if (bare) this.dressAsPlaceholder(taken, form, tracker, options.colour === true);
-    if (options.keepFlag) this.isShowingPlaceholder = true;
     this.syncBoundNode();
     return range;
   }
@@ -269,7 +253,7 @@ export class ContentControl {
 
   /**
    * Takes the placeholder's runs out of the content: a run-level control's, or a block control's paragraphs', the first
-   * paragraph kept, emptied, and any other going. What held them, for a deletion to go back into.
+   * paragraph kept, emptied, and any other going. What held them.
    */
   private takePlaceholderRuns(form: ContentControlForm): { runs: Element<wml.R>[]; holder: Element[]; owner: object } {
     const runs: Element<wml.R>[] = [];
@@ -294,50 +278,19 @@ export class ContentControl {
     return { runs, holder: (first.value.content ??= []) as Element[], owner: first.value };
   }
 
-  /** The placeholder's runs, taken out, put back marked deleted, last in what held them (before an inner start marker). */
-  private putBackDeleted(tracker: ChangeTracker, taken: { runs: Element<wml.R>[]; holder: Element[]; owner: object }): void {
-    if (taken.runs.length === 0) return;
-    for (const run of taken.runs) toDeletedText(run.value);
-    const del = tracker.del(taken.runs as Element[]);
-    pushBeforeMarker(taken.holder, del);
-    linkParents(del, taken.owner);
-  }
-
   /**
-   * The bare form's look (D2 (a)): the text written takes the placeholder run's properties, the style dropped in a bound
-   * plain-text control and `w:color auto` added for `colour`; under tracking that change is recorded, and the
-   * placeholder's runs go back marked deleted after the insertion (check 63 cases 27 to 51).
+   * Shows Word's filler for a control emptied in the bare form, where no glossary entry gives it a placeholder: the flag
+   * on over a run of five spaces, in the control's own run properties (CR-002 section 63, D10; check 63's run 2, cases 6,
+   * 17, 32 and 43, and check 52's case 13). Nothing is marked under tracking. The spaces read as no text while the flag is
+   * on (CR-012 section 18).
    */
-  private dressAsPlaceholder(taken: { runs: Element<wml.R>[]; holder: Element[]; owner: object }, form: ContentControlForm, tracker: ChangeTracker | undefined, colour: boolean): void {
-    const original = taken.runs[0]?.value.rPr;
-    const plain = sdtProperty(this.sdt.sdtPr, 'dataBinding') !== undefined && this.type === 'PlainText';
-    const look = (rPr: wml.RPr | undefined): wml.RPr => {
-      const out: wml.RPr = rPr ? deepCopy(rPr) : {};
-      delete out.rPrChange;
-      if (plain && out.rStyle?.val === PLACEHOLDER_STYLE) delete out.rStyle;
-      return out;
-    };
-    const dress = (run: wml.R, rPr: wml.RPr | undefined, extra: (r: wml.RPr) => void): void => {
-      const changes = plain || colour;
-      if (tracker && changes) {
-        run.rPr = rPr ? deepCopy(rPr) : {};
-        delete run.rPr.rPrChange;
-        tracker.recordRPrChange(run.rPr);
-        const recorded = run.rPr.rPrChange;
-        const next = look(rPr);
-        extra(next);
-        run.rPr = { ...next, ...(recorded ? { rPrChange: recorded } : {}) };
-      } else {
-        const next = look(rPr);
-        extra(next);
-        if (Object.keys(next).some((k) => k !== 'TYPE_NAME')) run.rPr = next; else delete run.rPr;
-      }
-      if (run.rPr) linkParents(run.rPr, run);
-    };
-    for (const run of this.contentRuns(form)) dress(run, original, (r) => { if (colour) r.color = { val: 'auto' }; });
-    if (!tracker) return;
-    if (plain) for (const run of taken.runs) dress(run.value, run.value.rPr, () => {});
-    this.putBackDeleted(tracker, taken);
+  private showFiller(): void {
+    const { holder, owner } = this.takePlaceholderRuns(this.form);
+    const rPr = this.runProperties;
+    const run = el.r({ ...(rPr ? { rPr: deepCopy(rPr) } : {}), content: [el.t({ TYPE_NAME: 'org_docx4j_wml.Text', value: '     ', space: 'preserve' })] }) as Element;
+    pushBeforeMarker(holder, run);
+    linkParents(run, owner);
+    this.isShowingPlaceholder = true;
   }
 
   /**
@@ -361,10 +314,10 @@ export class ContentControl {
 
   /**
    * @internal A delete through the control's 'Content' or 'Whole' range that the control takes; false where the range's
-   * own delete applies. A 'Content' delete of a control showing its placeholder keeps the control and the flag, the
-   * placeholder's runs going (marked deleted under tracking; check 63 cases 6, 17, 32 and 43); in Word's form the
-   * placeholder is no content, and nothing changes. A 'Whole' delete takes a run-level control showing its placeholder
-   * (D3).
+   * own delete applies. A 'Content' delete of a control showing its placeholder keeps the control and the flag: in the
+   * bare form over Word's filler, five spaces (D10; check 63's run 2, cases 6, 17, 32 and 43, nothing marked under
+   * tracking); in Word's form nothing changes, the placeholder being no content. A 'Whole' delete takes a run-level
+   * control showing its placeholder (D3).
    */
   deleteThrough(part: 'Content' | 'Whole'): boolean {
     if (part === 'Whole') {
@@ -374,19 +327,26 @@ export class ContentControl {
     }
     if (!this.showsPlaceholderContent) return false;
     this.assertWritable();
-    if (this.placeholderEntry !== undefined) return true;
-    const tracker = this.parentBody.changeTracker;
-    const taken = this.takePlaceholderRuns(this.form);
-    if (tracker) this.putBackDeleted(tracker, taken);
+    if (this.placeholderEntry === undefined) this.showFiller();
     return true;
+  }
+
+  /**
+   * @internal After a 'Content' delete, untracked, that left the control holding no text: in Word's form it shows its
+   * entry again (check 66 case 3); in the bare form Word's filler (D10; check 52's case 13).
+   */
+  showEmptied(): void {
+    if (this.isShowingPlaceholder || this.text !== '' || (this.form !== 'Block' && this.form !== 'Run')) return;
+    if (this.placeholderEntry !== undefined) this.showPlaceholder(); else this.showFiller();
   }
 
   /**
    * @internal Takes the control whole (D3): a Replace or delete over a control showing its placeholder, as Word takes one
    * (check 63 cases 12, 18 to 20, 26, 38, 44 to 46 and 52). Untracked it goes, a block control leaving its paragraph,
    * emptied, in its place; tracked it is marked deleted in Word's form (`markHolderDeleted`: `w:customXmlDelRange`
-   * markers around it and inside its content), its placeholder marked deleted. `text` goes where a run-level control
-   * stood, before it under tracking, as Word puts a Replace's insertion first.
+   * markers around it and inside its content), its placeholder gone unmarked and the flag cleared (check 63's run 2,
+   * cases 38, 44 to 46 and 52). `text` goes where a run-level control stood, before it under tracking, as Word puts a
+   * Replace's insertion first.
    */
   takeWhole(text = ''): Range {
     this.assertWritable();
@@ -419,10 +379,10 @@ export class ContentControl {
     return new Range(first, 0, 0);
   }
 
-  /** The control marked deleted with Word's markers, its placeholder's runs in a `w:del` inside (`takeWhole`). */
+  /** The control marked deleted with Word's markers, its placeholder gone, unmarked, and the flag cleared (`takeWhole`). */
   private markWholeDeleted(tracker: ChangeTracker, form: ContentControlForm): void {
-    // inside the content, after the inner w:customXmlDelRangeEnd, as Word puts it (check 63 cases 38 and 44)
-    markHolderDeleted(tracker, this.element as Element, this.container, () => this.putBackDeleted(tracker, this.takePlaceholderRuns(form)));
+    markHolderDeleted(tracker, this.element as Element, this.container, () => { this.takePlaceholderRuns(form); });
+    this.isShowingPlaceholder = false;
   }
 
   /**
@@ -464,13 +424,8 @@ export class ContentControl {
     this.assertWritable();
     const form = this.form;
     if ((location === 'Start' || location === 'End') && form === 'Block' && this.isShowingPlaceholder) {
-      // CR-002 section 63, D1: in the bare form Word puts the text in the placeholder's place, in its paragraph, and
-      // leaves the flag on (check 63 cases 3 and 29); in Word's form the placeholder goes, its paragraph left empty, the
-      // flag cleared, and the new paragraph follows (check 64 cases 6 and 27)
-      if (this.placeholderEntry === undefined) {
-        this.writePlaceholder(text, { keepFlag: true });
-        return this.firstParagraph();
-      }
+      // CR-002 section 63, D1: the placeholder goes, its paragraph left empty, the flag cleared, and the new paragraph
+      // follows, in either form (check 64 cases 6 and 27, check 63's run 2 cases 3 and 29)
       this.takePlaceholderRuns(form);
       this.isShowingPlaceholder = false;
     }

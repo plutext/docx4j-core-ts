@@ -4,7 +4,9 @@
  "source": "test/fixtures/check63/build.mjs (63-placeholders.docx, 54 cases)",
  "saves": {
   "63-placeholders-word365.docx": "63-placeholders.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
-  "63-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check63/63-placeholders-word365-report.json and -run.json); it opened again without a problem"
+  "63-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check63/63-placeholders-word365-report.json and -run.json); it opened again without a problem",
+  "63-run2-opened-word365.docx": "run 2, Developer > Design Mode off (2026-10-25): 63-placeholders.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "63-run2-word365.docx": "run 2, Design Mode off: the same after Report only and Run the check, saved with File > Save (the JSONs: test/fixtures/check63/63-placeholders-word365-run2-report.json and -run2-run.json)"
  },
  "files": [
   {
@@ -14,6 +16,14 @@
   {
    "name": "63-run-word365.docx",
    "sha1": "6c118dcce476b37e7d3f61ed252af0eec6c325b2"
+  },
+  {
+   "name": "63-run2-opened-word365.docx",
+   "sha1": "1c567c54f627ccb7a1c8e7fb50ec16bff98b5e05"
+  },
+  {
+   "name": "63-run2-word365.docx",
+   "sha1": "9ec9fdb8e6591ab359c30f112e106a11892d2383"
   }
  ]
 }

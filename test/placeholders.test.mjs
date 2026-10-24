@@ -68,7 +68,7 @@ test("check 63's file and snippet agree: every case parses to the case it was bu
   assert.equal(controls[0].placeholderEntry, undefined);
 });
 
-test("CR-002 section 63: check 63's snippet through the Word shim gives Word's answers, case by case", async () => {
+test("CR-002 section 63: check 63's snippet through the Word shim gives Word's answers with Design Mode off (run 2), case by case", async () => {
   const { runCheck } = await snippet63();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check63Bytes());
@@ -87,8 +87,9 @@ test("CR-002 section 63: check 63's snippet through the Word shim gives Word's a
   assert.equal(result.caseCount, 54);
   // the shim has no customXmlParts, so a bound control's node isn't read
   for (const c of result.cases.filter((x) => x.shape.endsWith('-bound'))) assert.match(c.after.node, /^error: NotImplemented/, `case ${c.n}`);
-  // until section 63, 44 of the 52 writes differed from Word's (section 63.2); F1 to F3 are gone with them
-  assert.deepEqual(result.cases.map(digest), WORD_RUN);
+  // until section 63, 44 of the 52 writes differed from Word's run 1 (section 63.2), which was in Design Mode; since
+  // section 63.17 they are run 2's. F1 to F3 are gone
+  assert.deepEqual(result.cases.map(digest), WORD_RUN2);
   // F3: a tracked insertText on a run-level control read its text as '' where its paragraph read NEW39
   assert.deepEqual([result.cases[38].after.control.text, result.cases[38].after.paragraphs], ['NEW39', ['PLAIN39A NEW39 PLAIN39B']]);
   // F1: a tracked insertText on a bound block control was refused after it had changed it
@@ -127,7 +128,7 @@ test("CR-002 section 63: Word 365's answers (check 63): a text write into the co
   assert.match(strFromU8(saved['customXml/item1.xml']), /<check63 xmlns="urn:check63"><value21\/><value22\/><value23\/><value24\/><value25\/><value26\/><value47\/>/);
 });
 
-test("CR-002 section 63: the shim reads check 63's file as Word does, and after the writes too", async () => {
+test("CR-002 section 63: the shim against check 63's run 1, in Design Mode: it reads the file as Word did, and differs in the writes Design Mode made", async () => {
   const { runCheck } = await snippet63();
   const run = async (mode) => {
     const pkg = await WordprocessingMLPackage.load(await check63Bytes());
@@ -144,10 +145,9 @@ test("CR-002 section 63: the shim reads check 63's file as Word does, and after 
     differing[mode] = word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
   }
   assert.deepEqual(differing.report, []);
-  // until section 63, 44 of the 52 writes. The decided departures don't show here: a paragraph put beside a block control
-  // leaves it at block level (D6 (b)), where Word's save has it at run level, and a bound control's node is written in the
-  // bare form too (D7), where Word's is left empty
-  assert.deepEqual(differing.run, []);
+  // Design Mode's answers (section 63.14): the style kept, insertParagraph's flag left on, the placeholder marked deleted
+  // under tracking, a Content delete leaving no filler. Section 63.12 followed them; 63.17 follows run 2
+  assert.deepEqual(differing.run, [1, 2, 3, 4, 5, 7, 8, 9, 13, 14, 15, 16, 27, 28, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 42, 43, 44, 45, 46, 52]);
 });
 
 // Word 365's run (2026-10-24), case by case, as `digest` reads it (CR-002 section 63.2).
@@ -755,13 +755,13 @@ const regionXml = (xml, n) => {
   return xml.slice(from, to).replace(/ (w:author|w:date|w16du:dateUtc|w:id)="[^"]*"/g, '').replace(/ xml:space="preserve"/g, '');
 };
 
-test("CR-002 section 63.12, D3: a Replace or delete over a whole control showing its placeholder takes it; tracked, Word's markers, the insertion first", async () => {
+test("CR-002 section 63.17, D3: a Replace or delete over a whole control showing its placeholder takes it; tracked, Word's markers, the insertion first", async () => {
   const { pkg, result } = await shimRun(await check63Bytes(), await snippet63());
   assert.equal(result.cases.filter((c) => c.error).length, 0);
   const xml = (await zipText(await pkg.save()))['word/document.xml'];
-  const placeholder = '<w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:delText>Click or tap here to enter text.</w:delText></w:r>';
-  const marked = (n, bound = '') => `<w:customXmlDelRangeStart/><w:sdt><w:sdtPr><w:alias w:val="Check 63 control ${n}"/><w:tag w:val="c63-${n}"/><w:id w:val="${63000 + n}"/><w:showingPlcHdr/>${bound}</w:sdtPr>`
-    + `<w:sdtContent><w:customXmlDelRangeEnd/><w:del>${placeholder}</w:del><w:customXmlDelRangeStart/></w:sdtContent></w:sdt><w:customXmlDelRangeEnd/>`;
+  // tracked, the control between Word's markers, its placeholder gone unmarked and the flag cleared (check 63's run 2)
+  const marked = (n, bound = '') => `<w:customXmlDelRangeStart/><w:sdt><w:sdtPr><w:alias w:val="Check 63 control ${n}"/><w:tag w:val="c63-${n}"/><w:id w:val="${63000 + n}"/>${bound}</w:sdtPr>`
+    + '<w:sdtContent><w:customXmlDelRangeEnd/><w:customXmlDelRangeStart/></w:sdtContent></w:sdt><w:customXmlDelRangeEnd/>';
   // untracked the control goes: the paragraph's Replace (19), its Content delete (20), the control's Whole Replace (18)
   assert.equal(regionXml(xml, 19), '<w:p><w:r><w:t>NEW19</w:t></w:r></w:p>');
   assert.equal(regionXml(xml, 20), '<w:p/>');
@@ -771,15 +771,17 @@ test("CR-002 section 63.12, D3: a Replace or delete over a whole control showing
   assert.equal(regionXml(xml, 44), `<w:p><w:r><w:t>PLAIN44A </w:t></w:r><w:ins><w:r><w:t>NEW44</w:t></w:r></w:ins>${marked(44)}<w:r><w:t> PLAIN44B</w:t></w:r></w:p>`);
   assert.equal(regionXml(xml, 45), `<w:p><w:ins><w:r><w:t>NEW45</w:t></w:r></w:ins><w:del><w:r><w:delText>PLAIN45A </w:delText></w:r></w:del>${marked(45)}<w:del><w:r><w:delText> PLAIN45B</w:delText></w:r></w:del></w:p>`);
   assert.equal(regionXml(xml, 46), `<w:p><w:del><w:r><w:delText>PLAIN46A </w:delText></w:r></w:del>${marked(46)}<w:del><w:r><w:delText> PLAIN46B</w:delText></w:r></w:del></w:p>`);
-  assert.match(regionXml(xml, 38), /^<w:customXmlDelRangeStart\/><w:sdt>.*<w:sdtContent><w:customXmlDelRangeEnd\/><w:p><w:del><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:delText>Click or tap here to enter text\.<\/w:delText><\/w:r><\/w:del><\/w:p><w:customXmlDelRangeStart\/><\/w:sdtContent><\/w:sdt><w:customXmlDelRangeEnd\/>$/);
-  // the bare form's tracked write: the insertion in the placeholder's look, then its deletion; a w:color auto at an end
-  // recorded in a w:rPrChange (28), and in a bound plain-text control the style's removal recorded on both runs (47)
+  assert.equal(regionXml(xml, 38), '<w:customXmlDelRangeStart/><w:sdt><w:sdtPr><w:alias w:val="Check 63 control 38"/><w:tag w:val="c63-38"/><w:id w:val="63038"/></w:sdtPr>'
+    + '<w:sdtContent><w:customXmlDelRangeEnd/><w:p/><w:customXmlDelRangeStart/></w:sdtContent></w:sdt><w:customXmlDelRangeEnd/>');
+  // a tracked write into the control: only the insertion, plain, the placeholder gone unmarked (D2 (b), D5), in a bound
+  // plain-text control too (28, 47)
   assert.equal(regionXml(xml, 28), '<w:sdt><w:sdtPr><w:alias w:val="Check 63 control 28"/><w:tag w:val="c63-28"/><w:id w:val="63028"/></w:sdtPr><w:sdtContent><w:p>'
-    + '<w:ins><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/><w:color w:val="auto"/><w:rPrChange><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr></w:rPrChange></w:rPr><w:t>NEW28</w:t></w:r></w:ins>'
-    + `<w:del>${placeholder}</w:del></w:p></w:sdtContent></w:sdt>`);
-  const styleRemoved = '<w:rPr><w:rPrChange><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr></w:rPrChange></w:rPr>';
-  assert.match(regionXml(xml, 47), new RegExp(`<w:sdtContent><w:p><w:ins><w:r>${styleRemoved}<w:t>NEW47</w:t></w:r></w:ins><w:del><w:r>${styleRemoved}<w:delText>Click or tap here to enter text\\.</w:delText></w:r></w:del></w:p></w:sdtContent>`));
-  // accepted, the controls taken go and the text stays; rejected, they come back showing their placeholder
+    + '<w:ins><w:r><w:t>NEW28</w:t></w:r></w:ins></w:p></w:sdtContent></w:sdt>');
+  assert.match(regionXml(xml, 47), /<w:sdtContent><w:p><w:ins><w:r><w:t>NEW47<\/w:t><\/w:r><\/w:ins><\/w:p><\/w:sdtContent>/);
+  // a control's Content deleted in the bare form: the flag on over Word's filler, five spaces, untracked or not (D10)
+  for (const n of [6, 32]) assert.match(regionXml(xml, n), /<w:showingPlcHdr\/><\/w:sdtPr><w:sdtContent><w:p><w:r><w:t> {5}<\/w:t><\/w:r><\/w:p><\/w:sdtContent>/, `case ${n}`);
+  for (const n of [17, 43]) assert.match(regionXml(xml, n), /<w:showingPlcHdr\/><\/w:sdtPr><w:sdtContent><w:r><w:t> {5}<\/w:t><\/w:r><\/w:sdtContent>/, `case ${n}`);
+  // accepted, the controls taken go and the text stays; rejected, they come back empty, their flag cleared as Word's markup has it
   const accepted = await WordprocessingMLPackage.load(await pkg.save());
   (await accepted.getBody()).acceptAll();
   const acceptedXml = (await zipText(await accepted.save()))['word/document.xml'];
@@ -788,7 +790,7 @@ test("CR-002 section 63.12, D3: a Replace or delete over a whole control showing
   const rejected = await WordprocessingMLPackage.load(await pkg.save());
   (await rejected.getBody()).rejectAll();
   const restored = (await rejected.getBody()).contentControls.find((c) => c.tag === 'c63-45');
-  assert.deepEqual([restored.isShowingPlaceholder, restored.text, restored.paragraphs[0].text], [true, '', 'PLAIN45A  PLAIN45B']);
+  assert.deepEqual([restored.isShowingPlaceholder, restored.text, restored.paragraphs[0].text], [false, '', 'PLAIN45A  PLAIN45B']);
 });
 
 test('CR-002 section 63.12, D6 (b): a paragraph put beside the only paragraph of a block control showing its placeholder goes outside it, the control left at block level', async () => {
@@ -805,7 +807,7 @@ test('CR-002 section 63.12, D6 (b): a paragraph put beside the only paragraph of
 
 test('CR-002 section 63.12, D7: every text write into a bound control writes its node, in both forms, where the control stays', async () => {
   const { nodeOf } = await snippet63();
-  // check 63's bare form: Word left every node empty and lost the writes on reopening (section 63.2); written here
+  // check 63's bare form: written, as Word's run 2 wrote them (run 1, in Design Mode, left every node empty)
   const bare = await shimRun(await check63Bytes(), await snippet63(), { customXml: true });
   const data63 = bare.pkg.customXmlParts.getByNamespace('urn:check63')[0].getXml();
   for (const n of [21, 22, 23, 24, 25, 47, 48, 49, 50, 51]) assert.equal(nodeOf(data63, n), `NEW${n}`, `check 63 case ${n}`);
@@ -953,7 +955,7 @@ test("check 67's files and snippet agree: every case parses to the case it was b
   }
 });
 
-test("CR-002 section 63.13: check 67's snippet through the Word shim gives this package's D2 (a) in every phase, lookup and file", async () => {
+test("CR-002 section 63.13: check 67's snippet through the Word shim gives Word's answer, a plain run, in every phase, lookup and file", async () => {
   const { runCheck } = await snippet67();
   for (const file of check67.CHECK67_FILES) {
     const pkg = await WordprocessingMLPackage.load(await check67.check67Bytes(file));
@@ -966,8 +968,8 @@ test("CR-002 section 63.13: check 67's snippet through the Word shim gives this 
       // each phase writes its own six cases only
       assert.deepEqual(result.cases.map((c) => c.n), check67.check67Cases().filter((c) => c.phase === phase).map((c) => c.n));
       assert.equal(result.cases.filter((c) => c.error).length, 0, `${file.letter} ${phase}`);
-      // the text in the placeholder's place, the flag cleared, the style kept: check 63's answer, which D2 (a) follows
-      assert.deepEqual(result.cases.map(digest), result.cases.map((c) => `${c.n} C-S in ${c.shape === 'run' ? `PLAIN${c.n}A FILL${c.n} PLAIN${c.n}B` : `FILL${c.n}`}`), `${file.letter} ${phase}`);
+      // the text in the placeholder's place, plain, the flag cleared (D2 (b) since section 63.17; until then the style kept)
+      assert.deepEqual(result.cases.map(digest), result.cases.map((c) => `${c.n} C-- in ${c.shape === 'run' ? `PLAIN${c.n}A FILL${c.n} PLAIN${c.n}B` : `FILL${c.n}`}`), `${file.letter} ${phase}`);
     }
     assert.equal(pkg.changeTrackingMode, 'Off');
   }
@@ -1037,7 +1039,7 @@ test("CR-002 section 63.14: Word 365's answers (check 67): every write into a co
   assert.doesNotMatch(new TextDecoder().decode(unzipSync(await check63Bytes())['word/settings.xml']), /formsDesign/);
 });
 
-test("CR-002 section 63.14: the shim differs from Word in all 72 of check 67's writes: it keeps the Placeholder Text style, D2 (a), check 63's answer", async () => {
+test("CR-002 section 63.14: the shim agrees with Word in all 72 of check 67's writes (until section 63.17 it kept the style in every one)", async () => {
   const { runCheck } = await snippet67();
   const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text }, returned: c.result?.returned });
   for (const file of check67.CHECK67_FILES) {
@@ -1048,9 +1050,135 @@ test("CR-002 section 63.14: the shim differs from Word in all 72 of check 67's w
     for (const step of ['report', ...check67.PHASES]) {
       const ours = await runCheck((f) => Word.run(pkg, f), step);
       differing[step] = word.steps[step].cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
-      // the text, the control's reads and what the write returned agree; only the style differs
-      for (const [i, c] of ours.cases.entries()) assert.equal(digest(c).replace(/^(\d+) C-S /, '$1 C-- '), digest(word.steps[step].cases[i]), `${file.letter} case ${c.n}`);
     }
-    assert.deepEqual(differing, { report: [], ...Object.fromEntries(check67.PHASES.map((p) => [p, check67.check67Cases().filter((c) => c.phase === p).map((c) => c.n)])) }, file.name);
+    assert.deepEqual(differing, { report: [], ...Object.fromEntries(check67.PHASES.map((p) => [p, []])) }, file.name);
   }
 });
+
+// --- check 63, run 2 (CR-002 sections 63.15 and 63.16): the same file and snippet with Developer > Design Mode off. Run 1
+// was in Design Mode (its saves carry w:formsDesign), so its bare-form answers were Design Mode's
+
+const wordRun2 = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check63', `63-placeholders-word365-run2-${mode}.json`), 'utf8'));
+
+test("check 63's run 2: Word's two JSONs are of this file's cases, run with Design Mode off", async () => {
+  const cases = check63Cases();
+  for (const mode of ['report', 'run']) {
+    const word = await wordRun2(mode);
+    assert.deepEqual([word.check, word.mode, word.host.version, word.caseCount], [63, mode, '16.0.20326.20232', 54]);
+    assert.deepEqual(word.cases.map(({ n, op, shape, mode: m }) => ({ n, op, shape, ...(m ? { mode: m } : {}) })), cases);
+  }
+  // run 1's saves carry w:formsDesign, Design Mode's; run 2's don't
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const designed = async (name) => /<w:formsDesign\/>/.test(strFromU8(unzipSync(await readFile(join(here, 'check63', name)))['word/settings.xml']));
+  assert.deepEqual(await Promise.all(['63-placeholders-word365.docx', '63-run-word365.docx', '63-run2-opened-word365.docx', '63-run2-word365.docx'].map(designed)), [true, true, false, false]);
+});
+
+test("CR-002 section 63.16: Word 365's answers with Design Mode off (check 63, run 2): the bare form gives Word's form's answers; a Replace or delete over the whole control still takes it", async () => {
+  const report = await wordRun2('report');
+  const run = await wordRun2('run');
+  // opened, Word reads the file as run 1 did
+  assert.deepEqual(report.cases.map(digest), (await wordRun('report')).cases.map(digest));
+  assert.equal(run.cases.filter((c) => c.error).length, 0, 'Office JS refused nothing');
+  assert.deepEqual(run.cases.map(digest), WORD_RUN2);
+  // a write into the control: plain, as in Word's form (check 64), where run 1 kept the style and added w:color auto
+  for (const n of [1, 2, 4, 5, 7, 8, 9, 13, 14, 15, 16, 27, 28, 30, 31, 33, 34, 35, 39, 40, 41, 42]) {
+    assert.doesNotMatch(run.cases[n - 1].after.ooxml, /PlaceholderText|w:color w:val="auto"/, `case ${n}`);
+  }
+  // tracked, only the insertion is recorded: the placeholder goes unmarked, as in Word's form
+  for (const n of [27, 28, 29, 30, 31, 33, 34, 35, 39, 40, 41, 42, 47, 48, 49, 50, 51]) {
+    assert.match(run.cases[n - 1].after.ooxml, /<w:ins /, `case ${n}`);
+    assert.doesNotMatch(run.cases[n - 1].after.ooxml, /<w:del |<w:delText/, `case ${n}`);
+  }
+  // the control's insertParagraph clears the flag: the placeholder's paragraph left empty, the new one after it (3, 29)
+  assert.match(run.cases[2].after.ooxml, /<\/w:sdtPr><w:sdtContent><w:p\/><w:p><w:r><w:t>NEW3<\/w:t><\/w:r><\/w:p><\/w:sdtContent>/);
+  // a control's Content deleted: the flag stays, over a run of five spaces, untracked and tracked alike (6, 17, 32, 43)
+  for (const n of [6, 17, 32, 43]) {
+    assert.match(run.cases[n - 1].after.ooxml, /<w:showingPlcHdr\/><\/w:sdtPr><w:sdtContent>(<w:p>)?<w:r><w:t xml:space="preserve"> {5}<\/w:t><\/w:r>(<\/w:p>)?<\/w:sdtContent>/, `case ${n}`);
+  }
+  // a Replace or delete over the whole control takes it; tracked, Word's markers around it, nothing inside marked deleted
+  // and the flag gone (38, 44 to 46, 52)
+  for (const n of [38, 44, 45, 46, 52]) {
+    const sdt = /<w:customXmlDelRangeStart [^>]*\/><w:sdt>([\s\S]*?)<\/w:sdt><w:customXmlDelRangeEnd [^>]*\/>/.exec(run.cases[n - 1].after.ooxml)?.[1];
+    assert.ok(sdt, `case ${n}`);
+    assert.doesNotMatch(sdt, /showingPlcHdr|<w:del |PlaceholderText/, `case ${n}`);
+  }
+  // every bound control's node holds the write (21 to 25, 47 to 51), as in Word's form, and the controls showed them on
+  // reopening (Jason); where the write took the control (26, 52) the node stays empty
+  for (const n of [21, 22, 23, 24, 25, 47, 48, 49, 50, 51]) assert.equal(run.cases[n - 1].after.node, `NEW${n}`, `case ${n}`);
+  for (const n of [26, 52]) assert.equal(run.cases[n - 1].after.node, '', `case ${n}`);
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const saved = strFromU8(unzipSync(await readFile(join(here, 'check63', '63-run2-word365.docx')))['customXml/item1.xml']);
+  for (const n of [21, 22, 23, 24, 25, 47, 48, 49, 50, 51]) assert.ok(saved.includes(`<value${n}>NEW${n}</value${n}>`), `node ${n}`);
+  // a paragraph beside a block control's only paragraph goes outside it, the control saved run-level, as in run 1 (10, 11)
+  assert.match(run.cases[9].after.ooxml, /^<w:p>[^]*?<w:p><w:sdt>[^]*<\/w:sdt><\/w:p><w:p><w:r><w:t>NEW10<\/w:t><\/w:r><\/w:p>/);
+});
+
+test("CR-002 section 63.17: the shim gives check 63's run 2 in every write (section 63.12 followed run 1, and differed in 31)", async () => {
+  const { runCheck } = await snippet63();
+  const pkg = await WordprocessingMLPackage.load(await check63Bytes());
+  await pkg.getBody();
+  const ours = await runCheck((f) => Word.run(pkg, f), 'run');
+  const word = await wordRun2('run');
+  const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text, paragraphs: c.after.control.paragraphs }, returned: c.result?.returned });
+  assert.deepEqual(word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n), []);
+  // and the markup where it tells: plain runs, only insertions tracked, Word's filler, nothing marked inside a taken control
+  for (const n of [1, 2, 13, 14, 27, 28, 39, 40]) assert.doesNotMatch(ours.cases[n - 1].after.ooxml, /PlaceholderText|w:color w:val="auto"|<w:del /, `case ${n}`);
+});
+
+// Word 365's run 2 (2026-10-25, Design Mode off), case by case, as `digest` reads it (CR-002 section 63.16).
+const WORD_RUN2 = [
+  '1 C-- in NEW1',
+  '2 C-- in NEW2',
+  '3 C-- in |NEW3',
+  '4 C-- in NEW4',
+  '5 C-- in NEW5',
+  '6 CP- - ',
+  '7 C-- in NEW7',
+  '8 C-- in NEW8',
+  '9 C-- in NEW9',
+  '10 CPS out |NEW10',
+  '11 CPS out NEW11|',
+  '12 x-- - ',
+  '13 C-- in PLAIN13A NEW13 PLAIN13B',
+  '14 C-- in PLAIN14A NEW14 PLAIN14B',
+  '15 C-- in PLAIN15A NEW15 PLAIN15B',
+  '16 C-- in PLAIN16A NEW16 PLAIN16B',
+  '17 CP- - PLAIN17A  PLAIN17B',
+  '18 x-- out PLAIN18A NEW18 PLAIN18B',
+  '19 x-- out NEW19',
+  '20 x-- - ',
+  '21 C-- in NEW21',
+  '22 C-- in NEW22',
+  '23 C-- in NEW23',
+  '24 C-- in PLAIN24A NEW24 PLAIN24B',
+  '25 C-- in PLAIN25A NEW25 PLAIN25B',
+  '26 x-- out NEW26',
+  '27 C-- in NEW27',
+  '28 C-- in NEW28',
+  '29 C-- in |NEW29',
+  '30 C-- in NEW30',
+  '31 C-- in NEW31',
+  '32 CP- - ',
+  '33 C-- in NEW33',
+  '34 C-- in NEW34',
+  '35 C-- in NEW35',
+  '36 CPS out |NEW36',
+  '37 CPS out NEW37|',
+  '38 C-- - ',
+  '39 C-- in PLAIN39A NEW39 PLAIN39B',
+  '40 C-- in PLAIN40A NEW40 PLAIN40B',
+  '41 C-- in PLAIN41A NEW41 PLAIN41B',
+  '42 C-- in PLAIN42A NEW42 PLAIN42B',
+  '43 CP- - PLAIN43A  PLAIN43B',
+  '44 C-- out PLAIN44A NEW44 PLAIN44B',
+  '45 C-- out NEW45',
+  '46 C-- - ',
+  '47 C-- in NEW47',
+  '48 C-- in NEW48',
+  '49 C-- in NEW49',
+  '50 C-- in PLAIN50A NEW50 PLAIN50B',
+  '51 C-- in PLAIN51A NEW51 PLAIN51B',
+  '52 C-- out NEW52',
+  '53 CP- - PLAIN53A  PLAIN53B',
+  '54 CP- - ',
+];
