@@ -14,6 +14,7 @@ import { Word } from '../dist/office-js/index.mjs';
 import { check63Bytes, check63Cases, beginText, OPS, MODES, PLACEHOLDER } from './fixtures/check63/build.mjs';
 import * as check64 from './fixtures/check64/build.mjs';
 import * as check65 from './fixtures/check65/build.mjs';
+import * as check66 from './fixtures/check66/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const snippet63 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check63', 'check63-script-lab.js'), 'utf8')}\nreturn CHECK63;`)();
@@ -731,3 +732,145 @@ const WORD_RUN_65 = {
     '14 CPS - ',
   ],
 };
+
+// --- check 66 (CR-002 section 63.10, for D9): how much glossary to write. 66a has the glossary document part and a styles
+// part holding Placeholder Text (D9 (a)); 66b check 34's glossary, Word's six parts (D9 (b)); the same six cases in both
+
+const snippet66 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check66', 'check66-script-lab.js'), 'utf8')}\nreturn CHECK66;`)();
+
+test("check 66's files and snippet agree: every case parses to the case it was built as; 66a's glossary is the document and styles parts, 66b's Word's", async () => {
+  const { parseRegion } = await snippet66();
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const cases = check66.check66Cases();
+  assert.deepEqual(cases.map((c) => `${c.op} ${c.shape}`), ['open block', 'type block-bound', 'content-delete block-value', 'make made-block', 'set-placeholder-text block', 'type bare-bound']);
+  const word = unzipSync(await readFile(check66.GLOSSARY_SOURCE));
+  for (const file of check66.CHECK66_FILES) {
+    const bytes = await check66.check66Bytes(file);
+    const pkg = await WordprocessingMLPackage.load(bytes);
+    const body = await pkg.getBody();
+    assert.deepEqual(body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null), cases, file.name);
+    assert.match(body.paragraphs[0].text, new RegExp(`^Check 66${file.letter}: `));
+    const withControl = cases.filter((c) => c.shape !== 'made-block');
+    assert.deepEqual(body.contentControls.map((c) => c.tag), withControl.map((c) => `c66-${c.n}`), file.name);
+    assert.deepEqual(body.contentControls.map((c) => c.isShowingPlaceholder), withControl.map((c) => c.shape !== 'block-value'), file.name);
+    const zip = unzipSync(bytes);
+    // every control names the default entry but the bare-form one
+    assert.deepEqual([...strFromU8(zip['word/document.xml']).matchAll(/<w:tag w:val="c66-(\d+)"\/>(?:(?!<\/w:sdtPr>)[\s\S])*?<w:docPart w:val="([^"]+)"\/>/g)].map((m) => `${m[1]} ${m[2]}`),
+      ['1', '2', '3', '5'].map((n) => `${n} ${check66.DEFAULT_ENTRY}`));
+    const glossary = Object.keys(zip).filter((k) => k.startsWith('word/glossary/')).sort();
+    if (file.glossary === 'word') {
+      assert.deepEqual(glossary, Object.keys(word).filter((k) => k.startsWith('word/glossary/')).sort());
+      for (const k of glossary) assert.deepEqual(zip[k], word[k], k);
+    } else {
+      assert.deepEqual(glossary, ['word/glossary/_rels/document.xml.rels', 'word/glossary/document.xml', 'word/glossary/styles.xml']);
+      assert.match(strFromU8(zip['word/glossary/document.xml']), /<w:docPartBody><w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t xml:space="preserve">Click or tap here to enter text\.<\/w:t><\/w:r><\/w:p><\/w:docPartBody>/);
+      // the styles are Word's, as check 34's glossary defines them
+      const wordStyles = strFromU8(word['word/glossary/styles.xml']).replace(/<w:rsid [^>]*\/>/g, '');
+      for (const style of check66.PLACEHOLDER_STYLES.match(/<w:style [\s\S]*?<\/w:style>/g)) assert.ok(wordStyles.includes(style), style);
+    }
+    const main = pkg.getMainDocumentPart();
+    assert.ok(main.glossaryDocumentPart, 'the glossary part is loaded');
+  }
+});
+
+test("CR-002 section 63.10: check 66's snippet through the Word shim, on both files, as this package gives it before section 63's changes", async () => {
+  const { runCheck } = await snippet66();
+  const ours = {};
+  for (const file of check66.CHECK66_FILES) {
+    for (const mode of ['report', 'run']) {
+      const pkg = await WordprocessingMLPackage.load(await check66.check66Bytes(file));
+      await pkg.getBody();
+      const result = await runCheck((f) => Word.run(pkg, f), mode);
+      assert.equal(result.caseCount, 6);
+      ours[`${file.letter} ${mode}`] = result.cases.map(digest);
+    }
+  }
+  // the glossary makes no difference here: an emptied control (3) and a made one (4) show no placeholder
+  const report = ['1 CPS - ', '2 CPS - ', '3 C-- - VALUE3', '4 x-- - ', '5 CPS - ', '6 CPS - '];
+  const run = ['1 CPS - ', '2 CPS - ', '3 C-- - ', '4 C-- - ', '5 CPS - ', '6 CPS - '];
+  assert.deepEqual(ours, { 'a report': report, 'a run': run, 'b report': report, 'b run': run });
+});
+
+const wordRun66 = async (file, mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check66', `${file.name.replace('.docx', '')}-word365-${mode}.json`), 'utf8'));
+const save66 = async (name) => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  return Object.fromEntries(Object.entries(unzipSync(await readFile(join(here, 'check66', name)))).map(([k, v]) => [k, strFromU8(v)]));
+};
+/** Every control in a save of Word's, in order: `<n> <flag><style> <entry> <text>`, the entry `default`, `own` (32 hex digits) or `-`. */
+const controls66 = (xml) => [...xml.matchAll(/<w:sdt>[\s\S]*?<\/w:sdt>/g)].map(([sdt]) => {
+  const entry = /<w:docPart w:val="([^"]+)"\/>/.exec(sdt)?.[1];
+  const text = [.../<w:sdtContent>[\s\S]*<\/w:sdtContent>/.exec(sdt)[0].matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('');
+  return `${/c66-(\d+)/.exec(sdt)[1]} ${sdt.includes('<w:showingPlcHdr/>') ? 'P' : '-'}${sdt.includes('<w:rStyle w:val="PlaceholderText"/>') ? 'S' : '-'} `
+    + `${entry === undefined ? '-' : entry === check66.DEFAULT_ENTRY ? 'default' : /^[0-9A-F]{32}$/.test(entry) ? 'own' : entry} ${text}`;
+});
+
+test("check 66's run: Word's JSONs are of these files' cases, and its saves are Word's, as copied", async () => {
+  for (const file of check66.CHECK66_FILES) {
+    for (const mode of ['report', 'run']) {
+      const word = await wordRun66(file, mode);
+      assert.deepEqual([word.check, word.mode, word.host.version, word.caseCount], [66, mode, '16.0.20326.20232', 6]);
+      assert.deepEqual(word.cases.map(({ n, op, shape, mode: m }) => ({ n, op, shape, mode: m })), check66.check66Cases());
+    }
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check66', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.files.length, 8);
+  for (const { name, sha1 } of manifest.files) assert.equal(createHash('sha1').update(await readFile(join(here, 'check66', name))).digest('hex'), sha1, name);
+});
+
+test("CR-002 section 63.11: Word 365's answers (check 66): a glossary of the document and styles parts does what Word's six parts do, through the run, a reopening and typing", async () => {
+  const placeholder = /<w:docPartBody><w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap here to enter text\.<\/w:t><\/w:r><\/w:p><\/w:docPartBody>/;
+  const strip = (xml) => xml.replace(/ w:rsid\w*="[^"]*"|<w:rsid [^>]*\/>|<w:rsids>[\s\S]*?<\/w:rsids>/g, '');
+  const runs = {};
+  for (const file of check66.CHECK66_FILES) {
+    // opened: placeholderText the entry's text, null for the bare-form control
+    const report = await wordRun66(file, 'report');
+    assert.deepEqual(report.cases.map(digest), ['1 CPS - ', '2 CPS - ', '3 C-- - VALUE3', '4 x-- - ', '5 CPS - ', '6 CPS - ']);
+    assert.deepEqual(report.cases.map((c) => c.after.control?.placeholderText), [PLACEHOLDER, PLACEHOLDER, PLACEHOLDER, undefined, PLACEHOLDER, null]);
+    // the run: the emptied control (3) and the made one (4) show the entry, in the style; 5 reads its own text
+    const run = await wordRun66(file, 'run');
+    runs[file.letter] = run.cases.map(digest);
+    assert.deepEqual(runs[file.letter], ['1 CPS - ', '2 CPS - ', '3 CPS - ', '4 CPS - ', '5 CPS - ', '6 CPS - ']);
+    assert.equal(run.cases.filter((c) => c.error).length, 0);
+    assert.equal(run.cases[4].result.placeholderText, 'Enter the name 5.');
+    // Word's saves: every reference kept through the run, a reopening and typing; nothing moved to an entry of its own
+    const letter = file.letter;
+    const saved = Object.fromEntries(await Promise.all(['opened', 'run', 'reopened', 'typed'].map(async (s) => [s, await save66(`66${letter}-${s}-word365.docx`)])));
+    const shown = '1 PS default Click or tap here to enter text.';
+    assert.deepEqual(controls66(saved.opened['word/document.xml']), [shown, '2 PS default Click or tap here to enter text.', '3 -- default VALUE3', '5 PS default Click or tap here to enter text.', '6 PS - Click or tap here to enter text.']);
+    const afterRun = [shown, '2 PS default Click or tap here to enter text.', '3 PS default Click or tap here to enter text.', '4 PS default Click or tap here to enter text.', '5 PS own Enter the name 5.', '6 PS - Click or tap here to enter text.'];
+    assert.deepEqual(controls66(saved.run['word/document.xml']), afterRun);
+    assert.deepEqual(controls66(saved.reopened['word/document.xml']), afterRun);
+    assert.deepEqual(controls66(saved.typed['word/document.xml']), [shown, '2 -- default TYPED2', ...afterRun.slice(2, 5), '6 -- - TYPED6']);
+    assert.match(saved.typed['customXml/item1.xml'], /<value2>TYPED2<\/value2><value6>TYPED6<\/value6>/);
+    // the glossary: the default entry in the style throughout, case 5's beside it, and the same full set of parts
+    for (const s of Object.values(saved)) {
+      assert.match(strip(s['word/glossary/document.xml']), placeholder);
+      assert.deepEqual([...s['word/glossary/styles.xml'].matchAll(/w:styleId="([^"]+)"/g)].map((m) => m[1]), ['Normal', 'DefaultParagraphFont', 'TableNormal', 'NoList', 'PlaceholderText']);
+      assert.deepEqual(Object.keys(s).filter((k) => k.startsWith('word/glossary/')).sort(), ['word/glossary/_rels/document.xml.rels', 'word/glossary/document.xml', 'word/glossary/fontTable.xml', 'word/glossary/settings.xml', 'word/glossary/styles.xml', 'word/glossary/webSettings.xml']);
+    }
+    assert.equal([...saved.typed['word/glossary/document.xml'].matchAll(/<w:docPart>/g)].length, 2);
+  }
+  // 66a and 66b alike; Word's glossary of 66a differs from 66b's only in the settings and web settings Word wrote for it
+  assert.deepEqual(runs.a, runs.b);
+  const [a, b] = await Promise.all(['66a-opened-word365.docx', '66b-opened-word365.docx'].map(save66));
+  for (const part of ['word/glossary/document.xml', 'word/glossary/styles.xml', 'word/glossary/fontTable.xml', 'word/glossary/_rels/document.xml.rels']) assert.equal(strip(a[part]), strip(b[part]), part);
+  assert.match(a['word/glossary/settings.xml'], /w:name="compatibilityMode" w:uri="http:\/\/schemas\.microsoft\.com\/office\/word" w:val="12"/);
+  assert.match(b['word/glossary/settings.xml'], /w:name="compatibilityMode" w:uri="http:\/\/schemas\.microsoft\.com\/office\/word" w:val="15"/);
+});
+
+test("CR-002 section 63.11: the shim reads check 66's files as Word does, and after the writes differs from Word's run in 3 and 4", async () => {
+  const { runCheck } = await snippet66();
+  const view = (c) => ({ digest: digest(c), control: c.after.control && { type: c.after.control.type, text: c.after.control.text, paragraphs: c.after.control.paragraphs }, returned: c.result?.returned });
+  const differing = {};
+  for (const file of check66.CHECK66_FILES) {
+    for (const mode of ['report', 'run']) {
+      const pkg = await WordprocessingMLPackage.load(await check66.check66Bytes(file));
+      await pkg.getBody();
+      const ours = await runCheck((f) => Word.run(pkg, f), mode);
+      const word = await wordRun66(file, mode);
+      differing[`${file.letter} ${mode}`] = word.cases.filter((c, i) => JSON.stringify(view(c)) !== JSON.stringify(view(ours.cases[i]))).map((c) => c.n);
+    }
+  }
+  // an emptied control and a made one show no placeholder here, where Word shows the entry (D8)
+  assert.deepEqual(differing, { 'a report': [], 'a run': [3, 4], 'b report': [], 'b run': [3, 4] });
+});

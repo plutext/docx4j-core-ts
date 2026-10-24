@@ -5039,3 +5039,53 @@ async function check() {
        alone, in the control and the node, and Word gave that control, and four others, glossary entries of their own.
 
      This package differs in writes 2, 3, 5 and 9 of each file, and reads `placeholderText` from the runs.
+
+66. How much glossary a placeholder needs (CR-002 section 63.10, 2026-10-25; Jason: "yes", to writing check 66, for D9).
+   - **Why:** check 65's 65b had a glossary of the document part alone. Word kept it, but its entries lost the
+     Placeholder Text style, which the glossary's own styles lacked. And a reopened save, typed into, moved controls off
+     the default entry. D9 chooses what this package writes where a file has no glossary: (a) the document part and a
+     styles part, or (b) Word's six parts. This check gives each to Word.
+   - **The files** are on the share in `__tmp/66/`, as `fixtures/check66/build.mjs` writes them (git ignores the `.docx`;
+     `check66Bytes` gives a test the same parts). The snippet is beside them, `check66-script-lab.html` and
+     `check66-script-lab.js`, check 65's with check 66's names.
+     - **`66a-glossary-with-styles.docx`:** D9 (a). The glossary document part holds the default entry in the Placeholder
+       Text style, and a styles part holds that style and the one it is based on, as Word defines them.
+     - **`66b-word-glossary.docx`:** D9 (b). Check 34's glossary, Word's six parts, as check 64 had it.
+   - **The cases**, the same in both files, each control tagged `c66-<n>`:
+     1. a control showing its placeholder, left alone;
+     2. a bound control showing its placeholder, typed into by hand after reopening;
+     3. a control holding `VALUE3`; the snippet deletes its content (does Word bring the placeholder back, grey?);
+     4. a control the snippet makes with `insertContentControl` (is its placeholder grey?);
+     5. `placeholderText` set to `Enter the name 5.`;
+     6. a bound control in the bare form (no glossary reference), typed into by hand after reopening.
+   - **Steps, in Word 365 only.** First `66a-glossary-with-styles.docx`:
+     1. Open `__tmp/66/66a-glossary-with-styles.docx`.
+     2. File > Save As `66a-opened-word365.docx`, in the same folder `__tmp/66`.
+     3. File > Save As again, `66a-run-word365.docx` in `__tmp/66`. This is the copy the run changes.
+     4. In Script Lab, replace check 65's snippet, or start a new one: paste `__tmp/66/check66-script-lab.html` over the
+        HTML tab and `__tmp/66/check66-script-lab.js` over the Script tab.
+     5. Click **Report only**. When it says Done, copy the box into a new file `__tmp/66/result-a-report.txt`.
+     6. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/66/result-a-run.txt`.
+     7. Say whether the placeholders in cases 3 and 4 are grey or black. Then File > Save. (Ctrl+S right after the run goes
+        to Script Lab's pane.)
+     8. File > Close. Open `__tmp/66/66a-run-word365.docx` again. Straight away, typing nothing, File > Save As
+        `66a-reopened-word365.docx` in `__tmp/66`.
+     9. Click into case 2's control (it shows `Click or tap here to enter text.`) and type `TYPED2`. Then click into case
+        6's control and type `TYPED6`, and click outside it. Say whether the typed text replaced each placeholder or went
+        inside it. Then File > Save As `66a-typed-word365.docx` in `__tmp/66`, and File > Close.
+
+     Then the same for `__tmp/66/66b-word-glossary.docx`, with `b` for `a` in every name: `66b-opened-word365.docx`,
+     `66b-run-word365.docx`, `result-b-report.txt`, `result-b-run.txt`, `66b-reopened-word365.docx`,
+     `66b-typed-word365.docx`. The typed cases are 2 and 6 again.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim on both files and pins
+     each case): the same in both files. The control emptied (3) and the control made (4) show no placeholder.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening either file or any of
+     Word's saves. The JSONs are `fixtures/check66/66a-glossary-with-styles-word365-report.json` and `-run.json`, and the
+     same for `66b-word-glossary`. Word's eight saves are in `check66/` with a SHA-1 manifest. Cases 3 and 4 showed their
+     placeholders grey, and the typed text replaced each placeholder, in both files. CR-002 section 63.11 has it all. In
+     short, the two files gave the same answers at every step:
+     - Word kept 66a's entry in the style and completed the glossary to six parts;
+     - every reference stayed through the run, a reopening and typing;
+     - the bare-form control typed into was given no entry, and both typed nodes were written.
+
+     So D9 (a), the document and styles parts, is enough (decided, Jason, 2026-10-25). This package differs in cases 3 and 4.

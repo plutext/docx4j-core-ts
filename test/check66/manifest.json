@@ -1,0 +1,49 @@
+{
+ "check": 66,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25)",
+ "source": "test/fixtures/check66/build.mjs (66a-glossary-with-styles.docx and 66b-word-glossary.docx, 6 cases each)",
+ "saves": {
+  "66a-opened-word365.docx": "66a-glossary-with-styles.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "66a-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check66/66a-glossary-with-styles-word365-report.json and -run.json); cases 3 and 4 showed their placeholders grey",
+  "66a-reopened-word365.docx": "66a-run-word365.docx reopened and saved straight away with File > Save As, nothing typed",
+  "66a-typed-word365.docx": "the same with TYPED2 and TYPED6 typed by hand into cases 2 and 6, each replacing the placeholder, saved with File > Save As",
+  "66b-opened-word365.docx": "66b-word-glossary.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "66b-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check66/66b-word-glossary-word365-report.json and -run.json); cases 3 and 4 showed their placeholders grey",
+  "66b-reopened-word365.docx": "66b-run-word365.docx reopened and saved straight away with File > Save As, nothing typed",
+  "66b-typed-word365.docx": "the same with TYPED2 and TYPED6 typed by hand into cases 2 and 6, each replacing the placeholder, saved with File > Save As"
+ },
+ "files": [
+  {
+   "name": "66a-opened-word365.docx",
+   "sha1": "edfd58eae3231210d1a33e5a2f4893807600d36c"
+  },
+  {
+   "name": "66a-run-word365.docx",
+   "sha1": "4c47d2aa764314ac134ebb68ea3154555f1add0b"
+  },
+  {
+   "name": "66a-reopened-word365.docx",
+   "sha1": "b4f371fd0ef5f3b4dcf94d7077f39896801dea62"
+  },
+  {
+   "name": "66a-typed-word365.docx",
+   "sha1": "59c34e08dd25edb91812c9ce233513d653a1a9e7"
+  },
+  {
+   "name": "66b-opened-word365.docx",
+   "sha1": "343f9e002eaa3a0454a77e56ca0aef8777dc5cf9"
+  },
+  {
+   "name": "66b-run-word365.docx",
+   "sha1": "372254cc3333419a4114529c9a35a579f03d0c38"
+  },
+  {
+   "name": "66b-reopened-word365.docx",
+   "sha1": "3e4e23751a24f0eec62e9e18faf5b6062a385cbc"
+  },
+  {
+   "name": "66b-typed-word365.docx",
+   "sha1": "d9309b2e7a002f5e105b72cc621d1bdfdfa4882b"
+  }
+ ]
+}
