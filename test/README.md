@@ -4841,3 +4841,140 @@ async function check() {
      others at `FF`, is the colour, never white. It is the nearest in RGB for only 61% of the colours. The rule is the
      objects session's to fit (CR-015 section 12.2).
 
+
+63. Writing into a content control showing its placeholder (CR-002 section 63, 2026-10-24; Jason: "write check 63"). From
+   docx4j-python's port of CR-012 section 18 (its CR-016 sections 11.6 and 11.11):
+   - Only `ContentControl.insertText` clears `w:showingPlcHdr`, here and there.
+   - Every other write into such a control leaves the flag on, so the text it writes reads as no text.
+   - `Paragraph.text =` on a paragraph holding a run-level placeholder control drops the control and its binding. That's
+     here; docx4j-python refuses the write.
+
+   Nobody has measured Word for any of these. The file is `__tmp/63/63-placeholders.docx` on the share, as
+   `fixtures/check63/build.mjs` writes it (git ignores the `.docx`; `check63Bytes` gives a test the same parts). The snippet
+   is beside it, `check63-script-lab.html` and `check63-script-lab.js` (WordApi 1.5), copies of `fixtures/check63/`'s.
+   - **The file:** a region per case, `BEGIN<n> <op> <shape> <mode>`, one control tagged `c63-<n>` showing Word's own
+     placeholder text (`Click or tap here to enter text.`, in the Placeholder Text style, with `w:showingPlcHdr`; no glossary
+     part, as check 58's), then `END<n>`.
+     - **The shapes:** `block`, a block-level control holding one paragraph; `run`, a run-level control between
+       `PLAIN<n>A` and `PLAIN<n>B`; `block-bound` and `run-bound`, the same as `w:text` controls bound to an empty node.
+     - **The writes**, each `NEW<n>`, untracked (cases 1 to 26) and tracked (27 to 52):
+       - through the control: `insertText` with `'Replace'` and `'End'`, `insertParagraph` at its end;
+       - through its `Content` range: `insertText` with `'Replace'` and `'End'`, and `delete()`;
+       - through its `Whole` range: `insertText` with `'Replace'` (run-level);
+       - through its paragraph, or the paragraph holding it: `insertText` with `'Replace'`, `'Start'` and `'End'`,
+         `insertParagraph` `'After'` and `'Before'`, and the `Content` range's `delete()`.
+     - **Cases 53 and 54** are written nothing. They hold what this package leaves after a delete: a control showing its
+       placeholder with no placeholder text, run-level with an empty `w:sdtContent`, and block-level with an empty
+       paragraph.
+   - **The questions:**
+     - After each write, does the control stay?
+     - Does Word clear `w:showingPlcHdr` and drop the Placeholder Text style?
+     - Where does the text land, and what do `text`, `placeholderText` and `showingPlaceholderText` read?
+     - Under tracking, what is marked?
+     - For a bound control, what does its node hold?
+     - What do cases 53 and 54 show?
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/63/63-placeholders.docx`. Say whether Word reports a problem or offers a repair. Then say what the
+        controls in cases 53 and 54 show on the page: nothing, `Click or tap here to enter text.`, or something else.
+     2. File > Save As `63-opened-word365.docx`, in the same folder `__tmp/63`, before anything else.
+     3. File > Save As again, `63-run-word365.docx` in `__tmp/63`. This is the copy the run changes.
+     4. On the Review tab, leave Track Changes off, and set Display for Review to Simple Markup.
+     5. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/63/check63-script-lab.html` over the HTML tab and `__tmp/63/check63-script-lab.js` over the Script tab.
+     6. Click **Report only**. When it says Done, copy the box into a new file `__tmp/63/result-report.txt`.
+     7. Click **Run the check**, once. It turns Track Changes on for each tracked case, and off again after it. When it says
+        Done, copy the box into a new file `__tmp/63/result-run.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane, which has
+        the focus, and the document isn't saved.)
+     9. File > Close. Open `__tmp/63/63-run-word365.docx` again, and say whether Word reports a problem or offers a repair.
+        If it offers one, click Yes, then File > Save As `63-run-word365-repaired.docx` in `__tmp/63`.
+   - **What the JSON holds.** For each case:
+     - the write's result: the way the control was found, and the text of the range the write returned, or Office JS's
+       error as `error: <code>: <message>`;
+     - the region after it: its paragraphs' text and its OOXML (the body's content);
+     - the control's type, `text`, `placeholderText`, paragraphs and `showingPlaceholderText` (`undefined` where Word
+       gives none);
+     - for a bound control, its node.
+   - **What this package gives**, before the run (`placeholders.test.mjs` runs the snippet through the Word shim and pins
+     each case):
+     - Only `ContentControl.insertText` clears the flag. Every other write into the control leaves it on, so its text
+       reads as no text.
+     - The untracked `insertText('Replace')` on the paragraph holding a run-level control (cases 19 and 26) empties the
+       control and keeps it.
+     - Three defects show (CR-002 section 63):
+       - a tracked `insertText` on a bound block control is refused only after it has changed the control (case 47);
+       - text written to a run-level control's `Content` or `Whole` range lands outside it (15, 16, 18; 41, 42, 44), and
+         deleting its `Content` range deletes nothing;
+       - a tracked write into a block control still showing its placeholder reads as text, where untracked it reads as
+         none (33, 49).
+     - The shim has no `customXmlParts`, so a bound control's node reads `NotImplemented`.
+   - **Run 2026-10-24 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening the file or Word's save
+     after the run. The JSONs are `fixtures/check63/63-placeholders-word365-report.json` and `-run.json`. Word's saves are
+     in `check63/` with a SHA-1 manifest: the file as opened (saved as `63-placeholders-word365.docx`) and after the run.
+     CR-002 section 63.2 has every case. In short:
+     - **Opened:** cases 53 and 54 show an empty control, kept as written.
+     - **Writes into the control:** every text write that reaches the control's content replaces the placeholder and
+       clears `w:showingPlcHdr`, at any location, through the control, its `Content` range or a block control's
+       paragraph. The control's `insertParagraph` replaces it but leaves the flag on.
+     - **Formatting:** the Placeholder Text style stays in a rich text control (with `w:color w:val="auto"` added for an
+       `'End'`, and for a paragraph's `'Start'`), and goes in a bound `w:text` control.
+     - **Replaces and deletes:** the paragraph's `insertText(…, 'Replace')` or `Content` delete takes the control, and so
+       does a run-level control's `Whole` Replace. Tracked, Word marks the control deleted with `w:customXmlDelRange`,
+       and puts the insertion before the deletion. A paragraph inserted beside a block control goes outside it.
+     - **Nodes:** a bound control's node stayed empty after every write. Reopened, Word refilled each bound control from
+       its node, so cases 21 to 25 and 47 to 51 show empty controls: Word's writes were lost (Jason's screenshots).
+     - **This package** differs in 44 of the 52 writes; D1 to D7 are proposed in section 63.3.
+
+64. Check 63's writes on controls in Word's own form, and a bound control's node (CR-002 section 63.4, 2026-10-24; Jason:
+   "let's do check 64").
+   - **Why:** check 63's controls had no `w:placeholder` and the file no glossary part, so Word had only the content's run to
+     format a write from. That may be why the Placeholder Text style stayed, with `w:color w:val="auto"` added for some
+     writes (D2). And Word left every bound node empty, then lost the writes when it reopened the file (D7). This check
+     asks whether that comes of the placeholder or of the binding.
+   - **The file** is `__tmp/64/64-placeholders-word.docx` on the share, as `fixtures/check64/build.mjs` writes it (git ignores
+     the `.docx`; `check64Bytes` gives a test the same parts). The snippet is beside it, `check64-script-lab.html` and
+     `check64-script-lab.js` (WordApi 1.5), copies of `fixtures/check64/`'s.
+     - Every control is in Word's form, as Word saved one in check 34 (`fixtures/revisions/check34/34a-mapped.docx`):
+       `w:placeholder` naming `DefaultPlaceholder_-1854013440`, with that file's glossary parts copied unedited.
+     - Regions as check 63's, `BEGIN<n> <op> <shape> <mode>` ... `END<n>`, the control tagged `c64-<n>`.
+   - **The cases** (52):
+     - **1 to 9 and 22 to 30:** a block control showing its placeholder, given check 63's writes (and the control's
+       `insertText` at `'Start'`), untracked and tracked.
+     - **10 to 14 and 31 to 35:** a run-level control showing its placeholder, the same.
+     - **15 to 21 and 36 to 42:** no control in the file. The snippet makes one with `insertContentControl`, with Track
+       Changes off: around the region's empty paragraph, or at the point after `PLAIN<n>A`. It reports the control as Word
+       made it, then gives it a write.
+     - **43 to 52**, untracked: a bound `w:text` control showing its placeholder over an empty node (43 to 45 block, 49 and
+       50 run-level), and one bound to a node holding `VALUE<n>`, which it shows (46 to 48 block, 51 and 52 run-level). Each
+       gets `insertText(…, 'Replace')` through the control, its `Content` range and, for a block control, its paragraph.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/64/64-placeholders-word.docx`. Say whether Word reports a problem or offers a repair.
+     2. File > Save As `64-opened-word365.docx`, in the same folder `__tmp/64`, before anything else.
+     3. File > Save As again, `64-run-word365.docx` in `__tmp/64`. This is the copy the run changes.
+     4. On the Review tab, leave Track Changes off, and set Display for Review to Simple Markup.
+     5. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/64/check64-script-lab.html` over the HTML tab and `__tmp/64/check64-script-lab.js` over the Script tab.
+     6. Click **Report only**. When it says Done, copy the box into a new file `__tmp/64/result-report.txt`.
+     7. Click **Run the check**, once. It turns Track Changes on for each tracked case, and off again after it. When it
+        says Done, copy the box into a new file `__tmp/64/result-run.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.)
+     9. File > Close. Open `__tmp/64/64-run-word365.docx` again, and say whether Word reports a problem or offers a repair.
+        Then say, or screenshot, what cases 43 to 52 show: `NEW<n>`, `VALUE<n>`, or nothing.
+   - **What the JSON holds:** check 63's, and for a made case what making the control gave: where it was made, or
+     Office JS's error, and the region's OOXML with the control as Word made it.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim and pins each case):
+     - The `w:placeholder` and the glossary change nothing: check 63's answers, case for case.
+     - A made control shows no placeholder.
+     - A bound control showing a value takes every write, and `ContentControl.insertText` writes its node. The shim has no
+       `customXmlParts`, so the node isn't read here.
+   - **Run 2026-10-24 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening the file or Word's save
+     after the run. The JSONs are `fixtures/check64/64-placeholders-word-word365-report.json` and `-run.json`. Word's saves
+     are in `check64/` with a SHA-1 manifest. Reopened, every bound control showed `NEW<n>`. CR-002 section 63.5 has every
+     case. In short, in Word's form the placeholder is not content:
+     - every write, `insertParagraph` too, takes it away and clears the flag, leaving plain text;
+     - under tracking, only the insertion is recorded;
+     - every bound node, empty or not, receives the write;
+     - Word's own `insertContentControl` makes this form.
+
+     Check 63's oddities all come of the bare form, which docx4j's binding and this package write. This package differs
+     in 28 of the 52 writes. The first control blinked during the run; the results are as expected.

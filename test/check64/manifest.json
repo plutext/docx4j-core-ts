@@ -1,0 +1,19 @@
+{
+ "check": 64,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-24)",
+ "source": "test/fixtures/check64/build.mjs (64-placeholders-word.docx, 52 cases)",
+ "saves": {
+  "64-opened-word365.docx": "64-placeholders-word.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "64-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check64/64-placeholders-word-word365-report.json and -run.json); reopened, it showed NEW<n> in every bound control (Jason's screenshot)"
+ },
+ "files": [
+  {
+   "name": "64-opened-word365.docx",
+   "sha1": "bff704e268525a444db9732af7cd44df6d1404a0"
+  },
+  {
+   "name": "64-run-word365.docx",
+   "sha1": "62220a054f033c842ed4ba1f7711c9e0f314a361"
+  }
+ ]
+}

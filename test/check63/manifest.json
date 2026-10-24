@@ -1,0 +1,19 @@
+{
+ "check": 63,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-24)",
+ "source": "test/fixtures/check63/build.mjs (63-placeholders.docx, 54 cases)",
+ "saves": {
+  "63-placeholders-word365.docx": "63-placeholders.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "63-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", saved with File > Save (the snippet's JSONs: test/fixtures/check63/63-placeholders-word365-report.json and -run.json); it opened again without a problem"
+ },
+ "files": [
+  {
+   "name": "63-placeholders-word365.docx",
+   "sha1": "b8dc3e3b7b272a7c7bf0dbf7fdb76336ac78a3e8"
+  },
+  {
+   "name": "63-run-word365.docx",
+   "sha1": "6c118dcce476b37e7d3f61ed252af0eec6c325b2"
+  }
+ ]
+}

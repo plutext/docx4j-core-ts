@@ -330,6 +330,11 @@ properties the shim lacks held to the resolver; and check 61's (`check61Bytes`, 
 read and written) through the shim, held to Word 365's run with the objects table's 39 differences listed; and check 62's
 (`check62Bytes`, `test/fixtures/check62/`: 7,225 colours written to a highlight, for Word's snapping rule) through the shim, and
 Word's run (`62-highlight-snap-word365.json`) pinned where it speaks plainly (the grey and channel ramps),
+`placeholders.test.mjs` CR-002 section 63's: check 63's file (`check63Bytes`, `test/fixtures/check63/`: Office JS's writes into a
+control showing its placeholder) and snippet held to each other, Word 365's run (its JSONs beside the build, its saves in `test/check63/`, with a SHA-1
+manifest) pinned case by case, and the shim's run held to it with the 44 writes section 63.3's decisions would change listed; and check 64's
+(`test/fixtures/check64/`: the same writes on controls in Word's form, with a glossary Word made, and on controls Word makes) through the shim,
+and Word's run (its saves in `test/check64/`) pinned the same way,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

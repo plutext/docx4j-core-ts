@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half waiting on check 58 since 2026-10-23), and item 3 not scheduled then, done since by CR-012 phase 4 and CR-014 phase 3 (recorded 2026-10-23); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, not released. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Implemented 2026-10-23 (section 55.7), not released: `tableRules.mts` (docx4j's `TableRules`), the edits keeping a cell's last paragraph as Word does and docx4j's repair elsewhere, check 52's cases 86 to 95 held to Word's run, save and Accept All. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, not released. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later (section 58's two measurements in check 58, run 2026-10-23: the listing kept, K1, section 58.1); a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 59 implemented 2026-10-23 (section 59.1; Office JS's types kept, Jason), not released: `Font` reads every run in scope, `null` where they differ, an empty paragraph its mark, an automatic colour `#000000`; the theme colour is CR-008 phase 2's. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), not released. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), not released. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half waiting on check 58 since 2026-10-23), and item 3 not scheduled then, done since by CR-012 phase 4 and CR-014 phase 3 (recorded 2026-10-23); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), not released. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, not released. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Implemented 2026-10-23 (section 55.7), not released: `tableRules.mts` (docx4j's `TableRules`), the edits keeping a cell's last paragraph as Word does and docx4j's repair elsewhere, check 52's cases 86 to 95 held to Word's run, save and Accept All. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, not released. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later (section 58's two measurements in check 58, run 2026-10-23: the listing kept, K1, section 58.1); a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 59 implemented 2026-10-23 (section 59.1; Office JS's types kept, Jason), not released: `Font` reads every run in scope, `null` where they differ, an empty paragraph its mark, an automatic colour `#000000`; the theme colour is CR-008 phase 2's. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), not released. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), not released. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57. Section 63 (2026-10-24, from docx4j-python's port of CR-012 section 18): writing into a content control showing its placeholder; check 63 written and run the same day (sections 63.1 and 63.2): every text write into the control replaces the placeholder and clears the flag but the control's `insertParagraph`, the Placeholder Text style kept in a rich text control, and a Replace or delete over a run-level control takes it; this package differs in 44 of the 52 writes, three defects among them (F1 to F3). D1 to D7 proposed (section 63.3). Check 64 written and run the same day (sections 63.4 and 63.5): on controls in Word's own form (`w:placeholder` and a glossary entry) every write takes the placeholder away, plain, recorded under tracking as an insertion only, and reaches a bound control's node, so check 63's oddities come of the bare form docx4j and this package write; decisions revised (section 63.6), D8 proposed: write placeholders in Word's form; D1 to D8 decided the same day as recommended, not implemented; check 65 (D8's form) next.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -6083,3 +6083,333 @@ included, and Accept All take the equation. Suite 1,476 passed; typecheck passed
 - a tracked region's text is Simple Markup's here and All Markup's in Word's run (CR-014 section 6.2);
 - a change's `text` is docx4j's reader's (`E=mc2`), where Word's is the equation as it draws it;
 - the shim has no `Range.fields`.
+
+## 63. Writing into a content control showing its placeholder (proposed 2026-10-24)
+
+*From docx4j-python's port of CR-012 section 18 and this package's `222cc20` (its CR-016 Phase B; its sections 11.6 item
+1 and 11.11 item 2), sent 2026-10-24. Check 63 written the same day (Jason: "write check 63"), not run.*
+
+**What docx4j-python found.**
+- **Only `ContentControl.insertText` clears `w:showingPlcHdr`,** in both ports. Other writes into a placeholder
+  control's content leave the flag on, so the text they write reads as no text:
+  - `Paragraph.insertText` and `text` on a paragraph inside a block placeholder control;
+  - `insertParagraph`;
+  - a range's `insertText`.
+
+  docx4j-python's user decided to keep parity until a Word measurement settles it, and then both ports change together.
+- **A departure, decided there.** Where a paragraph holds a run-level control showing its placeholder, `paragraph.text =`
+  is refused there, tracked or not, and nothing changes (`range.holds_placeholder`). Here the untracked setter replaces
+  the paragraph's whole content, and the control and its binding go with it. The placeholder reads as no text, so
+  nothing a reader returns shows the loss: `p.text = p.text` drops the control. docx4j-python's span path, like this
+  package's, keeps the control. It would follow this package if a Word measurement says otherwise.
+
+**What this package does** (probed 2026-10-24 on `A `, a run-level control showing its placeholder, ` B`):
+- `Paragraph.text =`, untracked, drops the control and its binding. Tracked, it goes through `splice`, which keeps the
+  control and marks its placeholder run deleted.
+- `insertText(…, 'Replace')` on the paragraph or its `Content` range, and a `Whole` or `Content` range's `delete()`, keep
+  the control. Untracked, its placeholder run goes, leaving an empty `w:sdtContent` with the flag still on. Tracked, the
+  run is marked deleted inside the control.
+
+Check 63's run through the Word shim (`placeholders.test.mjs` pins each case) found three defects besides:
+- **F1:** a tracked `ContentControl.insertText` on a bound block control showing its placeholder (case 47) is refused
+  by section 61's rule only after it has deleted the placeholder and cleared the flag. A refusal has to come before
+  anything changes. Its untracked form (21) works. The root is that a tracked `insertText` on any block placeholder
+  control (27, 28) writes the new text as a second paragraph, after the deleted one.
+- **F2:** a run-level control's `Content` and `Whole` ranges are empty and sit at its start, since the placeholder reads
+  as no text. So text written to them lands outside the control, in the run before it untracked (15, 16, 18) and beside
+  the control tracked (41, 42, 44). The `Content` range's `delete()` deletes nothing (17, 43).
+- **F3:** a tracked write into a block control still showing its placeholder reads as text (33, 49). The same write
+  untracked reads as no text (7, 23). And a tracked `ContentControl.insertText` on a run-level control (39) reads the
+  control's `text` as `''` where its paragraph reads `NEW39`.
+
+**To measure.** Check 63 asks what Word does, case for case:
+- does the control stay?
+- does Word clear `w:showingPlcHdr` and drop the Placeholder Text style?
+- where does the text land, what do the readers say, and what is marked under tracking?
+- what does a bound control's node hold?
+
+It also asks what Word shows for the two states this package leaves after a delete, a control showing its placeholder
+with no placeholder text (run-level, an empty `w:sdtContent`; block-level, an empty paragraph). Office JS has no
+`Paragraph.text` setter; its nearest write is `paragraph.insertText(…, 'Replace')`, which check 63 measures (cases 19,
+26, 45 and 52, run-level).
+
+**Proposal**, once the run is back:
+- each write follows Word: the flag and the style cleared where Word clears them, and the control kept or taken as Word
+  keeps or takes it;
+- the untracked `Paragraph.text =` goes through `splice`, as the tracked one does, so the setter and `insertText(…,
+  'Replace')` agree, unless Word shows otherwise;
+- F1 to F3 fixed to Word's answers;
+- docx4j-python told of each, so both ports change together.
+
+### 63.1 Check 63 written (2026-10-24)
+
+`test/fixtures/check63/` (`build.mjs`, `check63-script-lab.js`, `.html`); the share's `__tmp/63/`; `test/README.md`
+check 63 has the steps.
+- **The file:** 54 regions, each `BEGIN<n> <op> <shape> <mode>`, one control tagged `c63-<n>` showing Word's own
+  placeholder text, and `END<n>`.
+  - The shapes: block-level, run-level between two words, and each as a `w:text` control bound to an empty node.
+  - The writes, each `NEW<n>`, untracked (cases 1 to 26) and tracked (27 to 52): through the control (`insertText`
+    `'Replace'` and `'End'`, `insertParagraph` `'End'`); its `Content` range (`insertText` `'Replace'` and `'End'`,
+    `delete()`); its `Whole` range (`insertText` `'Replace'`, run-level); and its paragraph (`insertText` `'Replace'`,
+    `'Start'` and `'End'`, `insertParagraph` `'After'` and `'Before'`, the `Content` range's `delete()`).
+  - Cases 53 and 54 are written nothing.
+- **The snippet:** "Report only" reads every region, changing nothing. "Run the check" gives each case its write, with
+  Track Changes on for a tracked case and off otherwise, then reads the region: its paragraphs' text, its OOXML, the
+  control's reads, and a bound control's node.
+- **The saves:** Word's save of the file as it opened (`63-opened-word365.docx`) and after the run
+  (`63-run-word365.docx`).
+- **The test:** `placeholders.test.mjs` holds the file and snippet to each other, and pins the shim's run case by case,
+  for comparison with Word's.
+
+### 63.2 Check 63's run (2026-10-24)
+
+Jason ran it in Word 365 (16.0.20326.20232, PC; Script Lab). Word opened the file without a problem, and opened its own
+save after the run without one. The JSONs are `test/fixtures/check63/63-placeholders-word365-report.json` and
+`-run.json`. Word's two saves are in `test/check63/` with a SHA-1 manifest: the file as opened, saved as
+`63-placeholders-word365.docx` (step 2's file), and after the run, `63-run-word365.docx`. Office JS refused none of the 52
+writes.
+
+**As opened**, Word kept every control as written (adding `w:sdtEndPr`).
+- Cases 53 and 54 show an empty control: a control showing its placeholder with no placeholder text. Word itself leaves
+  that state after a control's `Content` range is deleted (6, 17).
+- Office JS reads every control as no text, `placeholderText` as `null` (no glossary part) and `showingPlaceholderText`
+  as `undefined`. The shim reads every region as Word does.
+
+**A text write that reaches the control's content replaces the placeholder and clears `w:showingPlcHdr`,** at any
+location ('Replace', 'Start', 'End') and by any route:
+- the control's `insertText` (1, 2, 13, 14);
+- its `Content` range's (4, 5, 15, 16);
+- a block control's paragraph's (7, 8, 9);
+- bound controls the same (21 to 25).
+
+The new text takes the placeholder run's properties:
+- **In a rich text control, the Placeholder Text style stays.** Where the write is the control's `insertText(…, 'End')` or
+  the paragraph's `'Start'` or `'End'`, Word adds `w:color w:val="auto"` beside the style (2, 8, 9, 14). A `'Replace'`,
+  and the `Content` range's writes, don't add it (1, 4, 5, 7, 13, 15, 16).
+- **In a bound `w:text` control, the style goes:** the run has no properties (21 to 25).
+
+The exception is the control's `insertParagraph(…, 'End')` (3). It replaces the placeholder with its paragraph's text,
+in the one paragraph, but leaves the flag on, so Word too reads it as no text (`text` `''`).
+
+**A paragraph inserted beside a block control's only paragraph** (`insertParagraph` `'After'` or `'Before'`, 10 and
+11) goes outside the control. The control keeps its placeholder and flag, and Word saves it as a run-level control
+inside its paragraph.
+
+**A Replace or delete over the whole control takes it:**
+- **Run-level controls:**
+  - the paragraph's `insertText(…, 'Replace')` (19, and 26 bound) leaves `<w:p><w:r><w:t>NEW19</w:t></w:r></w:p>`;
+  - the paragraph's `Content` delete (20) leaves an empty paragraph;
+  - the control's `Whole` range `insertText(…, 'Replace')` (18) leaves `NEW18` in its place.
+- **Block-level:** the paragraph's `Content` delete (12) takes the block control and leaves an empty paragraph.
+- **The control's own `Content` range delete** keeps it, emptied, with the flag on (6, 17).
+
+**Tracked** (27 to 52), the same rules, in Word's markup:
+- **A write into the control** (27, 28, 30, 31, 33 to 35, 39 to 42, 47 to 51) puts `w:ins` of the new text first, then
+  `w:del` of the placeholder run, in one paragraph, and clears the flag.
+  - Where Word adds the colour untracked, the inserted run records the change in a `w:rPrChange` (28, 35, 40). A tracked
+    paragraph `'Start'` (34) adds none.
+  - In a bound control, both runs record the style's removal in a `w:rPrChange` (47 to 51).
+- **The control's `insertParagraph`** (29) does the same, but leaves the flag on.
+- **A Replace or delete over the whole control** marks the control deleted (38, 44, 45, 46, 52):
+  - `w:customXmlDelRangeStart` and `End` around it and inside its content, as check 54 found for a tracked delete holding
+    a whole control;
+  - its placeholder marked deleted, and the flag left on;
+  - a Replace's insertion first, before the deleted text (45, 52) or before the control (44).
+- **The control's own `Content` delete** (32, 43) marks the placeholder deleted, and the flag stays on.
+- **A paragraph inserted beside** (36, 37) goes outside the control, with the new paragraph mark marked inserted.
+
+**A bound control's node:** every write left it empty, in Office JS's read straight after the write and in Word's save
+(21 to 26, 47 to 52). In check 56, Word's writes into a bound control holding a value did reach its node.
+
+**Reopened** (Jason's screenshots of `63-run-word365.docx`, the same day), Word refilled each bound control from its
+empty node:
+- Cases 21 to 25 and 47 to 51 show empty controls, so Word's own writes into them were lost.
+- The tracked ones show no change bar, so their revisions went too.
+- Cases 26 and 52, where the write took the control, show `NEW26` and `NEW52`.
+
+**This package** differs in 44 of the 52 writes (`placeholders.test.mjs` lists them):
+- only `ContentControl.insertText` clears the flag;
+- that write drops the Placeholder Text style, where Word keeps it in a rich text control;
+- F2 puts a run-level control's range writes outside it;
+- a Replace over a paragraph keeps an emptied run-level control, and a tracked one leaves it unmarked;
+- F1 writes a tracked `insertText` as a second paragraph;
+- `insertParagraph` beside a block control's paragraph goes inside the control;
+- `ContentControl.insertText` writes a bound control's node (21, 24), where Word leaves it empty.
+
+The eight writes that agree are the `Content` range deletes of a block control (6, 32), a bound control's own `insertText`
+(21, 24), and four tracked writes over a whole control (38, 45, 46, 52). The markup of those four still differs: this
+package writes no `w:customXmlDelRange` there, and puts a Replace's insertion last.
+
+**For docx4j-python's two questions:**
+- **Its item 2:** yes. Word clears the flag for every text write into the control's content, but for the control's own
+  `insertParagraph`. It drops the Placeholder Text style only in a bound plain-text control.
+- **Its item 1:** Word takes the control. Over a paragraph holding a run-level control showing its placeholder,
+  `insertText(…, 'Replace')` removes the control untracked and marks it deleted tracked. This package's untracked
+  `Paragraph.text =` gives Word's result. Its `insertText(…, 'Replace')`, which keeps an emptied control, doesn't, and
+  nor does docx4j-python's refusal.
+
+### 63.3 Decisions (proposed 2026-10-24)
+
+- **D1, the flag.** Every text write that reaches the control's content replaces the placeholder and clears the flag:
+  the control's `insertText`, its `Content` range's, and a block control's paragraph's, at any location. The control's
+  `insertParagraph` replaces the placeholder and leaves the flag on, as Word does. *Recommended: as Word.*
+- **D2, the formatting.**
+  - (a) Word's markup as measured: the placeholder run's properties kept, so a rich text control keeps the Placeholder
+    Text style; `w:color w:val="auto"` where Word adds it; the style dropped in a bound plain-text control; and under
+    tracking, the `w:rPrChange` Word records.
+  - (b) The style rule only: kept in a rich text control, dropped in a bound plain-text one, with no colour added.
+
+  *Recommended: (a).* The difference shows: Word's `'End'` writes read black, and (b) leaves them in the style's grey.
+- **D3, a Replace or delete over the whole control** (docx4j-python's item 1). A paragraph's `insertText(…, 'Replace')`,
+  a run-level control's `Whole` range Replace and a paragraph's `Content` delete take a control showing its placeholder.
+  Tracked, the control is marked deleted in Word's `w:customXmlDelRange` form (`markHolderDeleted`, CR-014 phase 3), the
+  insertion first. The untracked `Paragraph.text =` keeps its result, and `insertText(…, 'Replace')` and the tracked
+  setter come to it. *Recommended: as Word.* docx4j-python's refusal then departs from Word, and it is told.
+- **D4, a run-level control's ranges (F2).** Its `Content` range is inside the control, and its `Whole` range around
+  it, so a write lands where Word's does and a `Content` delete empties it. *Recommended: as Word.*
+- **D5, a tracked write into the control (F1, F3).** One paragraph: the insertion, then the deletion of the placeholder
+  run, and the flag cleared. F1's late refusal goes with the second paragraph, and F3's reads follow from D1.
+  *Recommended: as Word.*
+- **D6, a paragraph inserted beside a block control's only paragraph.**
+  - (a) Outside the control, with the control made run-level, as in Word's save.
+  - (b) Outside the control, which stays block-level.
+
+  *Recommended: (b).* The reads agree with Word's run either way, and changing a control's level is a larger change
+  that no reader here needs. What Word does beside a block control not showing its placeholder is unmeasured.
+- **D7, a bound control's node.** Word's writes left it empty, and Word lost them when it reopened its own save. This
+  package's `ContentControl.insertText` writes the node (21, 24). Its range and paragraph writes don't (22, 23, 25), so
+  under D1 their text would show until Word reopened the file, then be lost as Word's was.
+  - (a) Every text write into a bound control writes its node, as `ContentControl.insertText` does here already, so the
+    write survives Word's reopen.
+  - (b) Follow Word, and write no node.
+
+  *Recommended: (a).* Word's own result loses the write. Check 56 saw Word's writes reach a node holding a value, so the
+  empty node is likely Word's quirk with a control showing its placeholder.
+
+**Size:** about a day.
+
+### 63.4 Check 64 written (2026-10-24)
+
+Jason, on the run: "does the observed behaviour surprise you, or make sense?" Most of it fits one model. Word keeps the
+placeholder as real characters, which Office JS's text reads hide, and a control is a range over the text, whose level
+is how Word saves it. Under that model:
+- a write into the content clears the flag;
+- a range over the whole control takes it (and F2 comes of this package's treating the placeholder as zero-width);
+- a paragraph inserted beside a block control leaves it run-level.
+
+Three things don't fit:
+- the `w:color w:val="auto"` Word adds to some writes and not others (D2);
+- the flag `insertParagraph` leaves on;
+- the bound nodes left empty, and the writes lost on reopening (D7).
+
+Check 63's controls had no `w:placeholder` and the file no glossary part, as no Word-made file has, so the first and
+the last may come of the file. Jason: "let's do check 64".
+
+**Check 64** (`test/fixtures/check64/`; the share's `__tmp/64/`; `test/README.md` check 64 has the steps):
+- **Word's form.** Every control is as Word saved one in check 34 (`fixtures/revisions/check34/34a-mapped.docx`):
+  `w:placeholder` naming `DefaultPlaceholder_-1854013440`, and that file's glossary parts, copied unedited.
+  - Check 63's writes are given again, untracked and tracked: to a block control showing its placeholder (nine writes,
+    the control's `insertText` at `'Start'` among them), and to a run-level one (five).
+- **Controls Word makes.** For 14 cases the snippet makes the control itself with `insertContentControl`, tracking off,
+  around an empty paragraph or at a point in one. It reports what Word made, then writes.
+- **The node.** Bound `w:text` controls are given `insertText(…, 'Replace')` through each route: showing their
+  placeholder over an empty node, and showing a value their node holds. After the run Jason reopens the save and says
+  what the bound controls show.
+
+**What it decides.**
+- **D2:** whether the style and the colour are Word's rule, or its answer for a file without a glossary.
+- **D1:** whether a Word-made control's `insertParagraph` leaves the flag on too.
+- **D7:** whether a write reaches the node once the control holds a value, so that the empty node comes of the
+  placeholder.
+
+Through the shim, check 63's answers come again case for case, and a control the shim makes shows no placeholder
+(`placeholders.test.mjs`).
+
+### 63.5 Check 64's run (2026-10-24)
+
+Jason ran it in Word 365 (16.0.20326.20232, PC; Script Lab). Word opened the file and its save after the run without a
+problem.
+- The JSONs are `test/fixtures/check64/64-placeholders-word-word365-report.json` and `-run.json`.
+- Word's saves are in `test/check64/` with a SHA-1 manifest: as opened (`64-opened-word365.docx`) and after the run.
+- Reopened, every bound control showed `NEW<n>` (Jason's screenshot).
+- Office JS refused none of the 52 writes.
+- During the run, the first control blinked rapidly. Every result is as expected. Most likely Word redraws as the snippet
+  lists every control in the document, several times a case, and the first control is the one in view; that is a guess,
+  not measured.
+
+**In Word's form the placeholder is not content:**
+- **As opened**, `placeholderText` reads the glossary's text, `Click or tap here to enter text.` (`null` in checks 58 and
+  63, without one).
+- **Untracked, every write takes the placeholder away and clears the flag**, by every route and at every location
+  (1 to 14). The new text is a plain run: no Placeholder Text style and no colour.
+  - The control's `insertParagraph` does the same (6): the placeholder's paragraph is left empty, and the new paragraph
+    follows it.
+  - A run-level control's `Content` range writes inside it (13, 14).
+- **Tracked, only the insertion is recorded** (22 to 42): `w:ins` of the new text, and the placeholder gone with no
+  `w:del`. The control's `insertParagraph` records its new paragraph mark as inserted (27).
+- **Controls Word makes** with `insertContentControl` (15 to 21, 36 to 42; a run-level one at the point after
+  `PLAIN<n>A`, which Office JS took) show the placeholder: `Click or tap here to enter text.` in the Placeholder Text
+  style, with `w:placeholder`. In Word's save every one names `DefaultPlaceholder_-1854013440`, as check 64's own do, so
+  Word's own controls are this form. (The other names in the JSON are those of `getOoxml`'s own glossary.) The writes
+  then go as for the file's controls.
+- **Every write reached a bound control's node** (43 to 52), a placeholder's empty node as much as a value's. That holds
+  in Office JS's read straight after the write and in Word's save, and on reopening the controls show the writes.
+
+**So every oddity of check 63 comes of a placeholder without `w:placeholder` and a glossary entry:**
+- the style kept and the colour added;
+- `insertParagraph`'s flag left on;
+- the placeholder marked deleted under tracking;
+- the node left empty, and the write lost on reopening.
+
+Without the reference, Word treats the placeholder's runs as the control's content. That bare form is what docx4j's
+binding writes for an empty value: `placeholder.xml`'s run and `w:showingPlcHdr`, while its `bind.xslt` drops any
+`w:placeholder` "so missing data does not result in Click here to enter text in Word". It is also what this package's
+`placeholderText` setter and binding passes write, though `applyBindings` here keeps a `w:placeholder` already in the
+file.
+
+Check 64 doesn't separate whether Word needs the reference alone or the glossary entry too.
+
+**This package** differs in 28 of the 52 writes (`placeholders.test.mjs` lists them):
+- only the control's own `insertText` clears the flag;
+- F2 puts a run-level control's `Content` writes outside it;
+- under tracking it marks the placeholder deleted, or writes a second paragraph (F1);
+- the controls it makes show no placeholder.
+
+### 63.6 Decisions, revised after check 64 (proposed 2026-10-24)
+
+These supersede section 63.3's. There are two forms: Word's, where the control's `w:placeholder` names a glossary
+entry, and the bare form, without one.
+
+- **D1, the flag.** Every text write that reaches the control's content clears it, in both forms. The control's
+  `insertParagraph` clears it in Word's form and leaves it on in the bare form, as Word does. *Recommended: as Word, by
+  form.*
+- **D2, the formatting.** In Word's form, the new text is plain and the placeholder's runs go. For the bare form:
+  - (a) as Word: the run's properties kept, so the Placeholder Text style stays, with `w:color w:val="auto"` where Word
+    adds it;
+  - (b) Word's form's rule here too.
+
+  *Recommended: (a).* The bare form is the one D8 would stop this package writing.
+- **D3, a Replace or delete over the whole control** takes it, as check 63 measured, in Word's tracked markup.
+  Check 64 didn't measure it in Word's form; there it is taken to be the same. *Recommended: as Word.*
+- **D4:** a run-level control's `Content` range is inside it, in both forms. *Recommended: as Word.*
+- **D5, a tracked write into the control:** one paragraph, in both forms. In Word's form only the insertion is recorded;
+  in the bare form the insertion, then the placeholder's deletion. *Recommended: as Word, by form.*
+- **D6:** as section 63.3, (b).
+- **D7, the node.** Every text write into a bound control writes its node. In Word's form that is Word's behaviour. In
+  the bare form it departs from Word, whose own writes are lost on reopening. *Recommended: (a).*
+- **D8 (Jason, 2026-10-24: "should we alter docx4j and core-ts to produce placeholders matching Word's check 64 form?")**
+  This package writes placeholders in Word's form: the `placeholderText` setter, an empty value in the binding passes,
+  and `insertContentControl`.
+  - The control gets `w:placeholder` naming `DefaultPlaceholder_-1854013440`, or an entry of its own for other text.
+  - The glossary part and entry are added where they are missing.
+  - `placeholderText` reads the glossary's text, as Word does.
+  - `insertContentControl` on an empty range makes a control showing the placeholder, as Word's does.
+
+  docx4j's counterpart is its binding: keep `w:placeholder`, and write the reference for an empty value. That is
+  docx4j's to decide, through its session. *Recommended: yes, after a check 65* that settles three things:
+  - whether Word needs the glossary entry or only the reference;
+  - whether a minimal glossary part (the document part alone, one entry) is enough;
+  - how Word names and stores an entry for other text.
+
+**Decided 2026-10-24** (Jason: "yes", to taking D1 to D8 as recommended): D1 and D3 to D5 as Word, by form; D2 (a); D6
+(b); D7 (a); D8 yes, after check 65. Not yet implemented.
