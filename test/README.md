@@ -4978,3 +4978,64 @@ async function check() {
 
      Check 63's oddities all come of the bare form, which docx4j's binding and this package write. This package differs
      in 28 of the 52 writes. The first control blinked during the run; the results are as expected.
+
+65. What Word needs of a placeholder in its own form (CR-002 section 63.7, 2026-10-24; Jason: "write check 65", for D8).
+   - **Why:** check 64's controls named Word's default glossary entry, `DefaultPlaceholder_-1854013440`, and the file had
+     Word's whole glossary, six parts. D8 has this package write that form; this check settles how little of it Word needs.
+   - **The files** are on the share in `__tmp/65/`, as `fixtures/check65/build.mjs` writes them (git ignores the `.docx`;
+     `check65Bytes` gives a test the same parts). The snippet is beside them, `check65-script-lab.html` and
+     `check65-script-lab.js` (WordApi 1.5), copies of `fixtures/check65/`'s.
+     - **`65a-reference-only.docx`:** the controls name the default entry, and the file has no glossary part.
+     - **`65b-minimal-glossary.docx`:** a glossary written here, the glossary document part alone. It holds the default
+       entry and one of its own text (`Enter the name.`, under a name of Word's kind, 32 hex digits).
+   - **The cases**, regions as check 63's, each control tagged `c65-<n>`:
+     - **In both files:**
+       1. the control's `insertText('NEW1', 'End')`, which in the bare form kept the style;
+       2. its `insertParagraph`, which in the bare form left the flag on;
+       3. a tracked `insertText(…, 'Replace')`, which in the bare form marked the placeholder deleted;
+       4. a bound `w:text` control's `insertText` over an empty node;
+       5. a run-level bound control's `Content` range `insertText`;
+       6. setting `placeholderText` to `Enter the name 6.`, which Word keeps in a glossary;
+       7. and 8. a control and a bound control left alone;
+       9. a control made by `insertContentControl`, nothing written;
+       - the last case (10 in 65a, 14 in 65b): a bound `w:text` control in the bare form, check 63's, with no
+         `w:placeholder`. The snippet writes nothing there; you type into it by hand (docx4j CR-063's question: does a
+         typed value reach the node, where Office JS's didn't).
+     - **In 65b only:** a control showing the glossary's own entry (10 written, 11 left alone), and one naming an entry
+       the glossary hasn't (12 written, 13 left alone).
+   - **Steps, in Word 365 only.** First `65a-reference-only.docx`:
+     1. Open `__tmp/65/65a-reference-only.docx`. Say whether Word reports a problem or offers a repair, and what case 7's
+        control shows on the page.
+     2. File > Save As `65a-opened-word365.docx`, in the same folder `__tmp/65`.
+     3. File > Save As again, `65a-run-word365.docx` in `__tmp/65`. This is the copy the run changes.
+     4. On the Review tab, leave Track Changes off, and set Display for Review to Simple Markup.
+     5. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/65/check65-script-lab.html` over the HTML tab and `__tmp/65/check65-script-lab.js` over the Script tab.
+     6. Click **Report only**. When it says Done, copy the box into a new file `__tmp/65/result-a-report.txt`.
+     7. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/65/result-a-run.txt`.
+     8. Click into case 10's control (it shows `Click or tap here to enter text.`), type `TYPED10`, then click outside it.
+        Then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.)
+     9. File > Close. Open `__tmp/65/65a-run-word365.docx` again. Say whether Word reports a problem or offers a repair,
+        and what cases 4, 5 and 10 show: `NEW4`, `NEW5` and `TYPED10`, or nothing.
+
+     Then the same for `__tmp/65/65b-minimal-glossary.docx`, with `b` for `a` in every name: `65b-opened-word365.docx`,
+     `65b-run-word365.docx`, `result-b-report.txt`, `result-b-run.txt`. At step 1, also say what cases 11 and 13 show on
+     the page. At steps 8 and 9 the typed case is 14: type `TYPED14`.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim on both files and pins
+     each case): check 63's answers again, whatever the glossary holds. `placeholderText` reads the control's runs, the
+     custom control's `Enter the name.` among them.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Script Lab).** No problem opening either file or Word's
+     saves. The JSONs are `fixtures/check65/65a-reference-only-word365-report.json` and `-run.json`, and the same for
+     `65b-minimal-glossary`. Word's saves are in `check65/` with a SHA-1 manifest. Reopened, 65a showed `NEW4`, `NEW5`
+     and `TYPED10`, and 65b `NEW4` and `NEW5`. CR-002 section 63.8 has every case. In short:
+     - the reference alone gives Word's form while the file is open: 65a's writes all give check 64's answers;
+     - Word's save drops a reference whose entry no glossary holds, so the file is back in the bare form;
+     - Word keeps a glossary of the document part alone, but its entries lose the Placeholder Text style, which the
+       glossary's own styles lack;
+     - `placeholderText` set through Office JS is a new entry, named with 32 hex digits;
+     - typed by hand, 65a's bare-form bound control took `TYPED10` and wrote its node. In 65b the typing at step 8 went
+       into case 10. `TYPED14` typed into case 14 after reopening (on screen inside the placeholder text) was saved over
+       the share's `65b-run-word365.docx`; the copy is `check65/65b-reopened-typed-word365.docx`. It holds `TYPED14`
+       alone, in the control and the node, and Word gave that control, and four others, glossary entries of their own.
+
+     This package differs in writes 2, 3, 5 and 9 of each file, and reads `placeholderText` from the runs.

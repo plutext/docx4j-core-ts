@@ -1,0 +1,34 @@
+{
+ "check": 65,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25)",
+ "source": "test/fixtures/check65/build.mjs (65a-reference-only.docx, 10 cases; 65b-minimal-glossary.docx, 14 cases)",
+ "saves": {
+  "65a-opened-word365.docx": "65a-reference-only.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "65a-run-word365.docx": "the same after the Script Lab snippet's \"Report only\" and \"Run the check\", TYPED10 typed by hand into case 10's control, saved with File > Save (the snippet's JSONs: test/fixtures/check65/65a-reference-only-word365-report.json and -run.json); its title lost its first letter to a keystroke between the two runs, outside every case; reopened, it showed NEW4, NEW5 and TYPED10",
+  "65b-opened-word365.docx": "65b-minimal-glossary.docx as Word opened it, saved with File > Save As (no problem on open)",
+  "65b-run-word365.docx": "the same after \"Report only\" and \"Run the check\", TYPED10 typed by hand into case 10 (at step 8, where 65b's typed case is 14), saved with File > Save (JSONs: test/fixtures/check65/65b-minimal-glossary-word365-report.json and -run.json); reopened, it showed NEW4 and NEW5",
+  "65b-reopened-typed-word365.docx": "65b-run-word365.docx reopened, TYPED14 typed by hand into case 14 (the bare-form bound control), saved with File > Save over the share's 65b-run-word365.docx at 05:55 (this copy renamed; the run's save above is the one copied at 05:40)"
+ },
+ "files": [
+  {
+   "name": "65a-opened-word365.docx",
+   "sha1": "62099bc3c8f03c831db1c30f89c5b1a916d628cc"
+  },
+  {
+   "name": "65a-run-word365.docx",
+   "sha1": "103732a66b418219820020d50fcd1f8b77fbc02c"
+  },
+  {
+   "name": "65b-opened-word365.docx",
+   "sha1": "943147384f4f97483887e903a7eaf1b26258e198"
+  },
+  {
+   "name": "65b-run-word365.docx",
+   "sha1": "6d83e00bb110655256035652f05c640c36434472"
+  },
+  {
+   "name": "65b-reopened-typed-word365.docx",
+   "sha1": "483ccf6e6851a8d82124994570724d0108e3bd34"
+  }
+ ]
+}
