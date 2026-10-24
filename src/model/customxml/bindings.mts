@@ -223,9 +223,9 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
   }
 
   // an empty value shows the control's placeholder in Word's form: the entry its w:placeholder names, else Word's default
-  // entry for a text control, written into the glossary on save (CR-002 section 63, D8), where docx4j writes the bare
-  // form, which shows its text only until the control is first written into. Another kind naming no entry keeps docx4j's run.
-  if (display === '' && (control.placeholderEntry !== undefined || control.type === 'RichText' || control.type === 'PlainText')) {
+  // entry for a text control, written into the glossary on save (CR-002 section 63, D8; docx4j CR-063's D2 and D3).
+  // Another kind naming no entry, or one the glossary lacks, keeps docx4j's run.
+  if (display === '' && control.showsWordsFormPlaceholder) {
     control.showPlaceholder();
     return true;
   }

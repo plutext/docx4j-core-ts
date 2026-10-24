@@ -11,6 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WordprocessingMLPackage } from '../dist/index.mjs';
 import { Word } from '../dist/office-js/index.mjs';
+import { textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { check63Bytes, check63Cases, beginText, OPS, MODES, PLACEHOLDER } from './fixtures/check63/build.mjs';
 import * as check64 from './fixtures/check64/build.mjs';
 import * as check65 from './fixtures/check65/build.mjs';
@@ -1182,3 +1183,78 @@ const WORD_RUN2 = [
   '53 CP- - PLAIN53A  PLAIN53B',
   '54 CP- - ',
 ];
+
+// --- CR-002 section 63.18: a placeholder shows its entry's content, and a control naming a missing entry is given Word's
+// default, as docx4j's CR-063 has them (Jason, 2026-10-25: "ok do it")
+
+test('CR-002 section 63.18: a control shows a copy of the content of the entry it names, its runs as the glossary holds them with the control\'s own run properties over them', async () => {
+  const { unzipSync, zipSync, strToU8, strFromU8 } = await import('fflate');
+  // 66a's glossary given an entry of two paragraphs, a bold run and a plain one; a centred block control in red and not
+  // bold naming it, and a run-level one
+  const [a] = check66.CHECK66_FILES;
+  const zip = unzipSync(await check66.check66Bytes(a));
+  const name = '6767ABCDEF0123456789ABCDEF012345';
+  const entry = `<w:docPart><w:docPartPr><w:name w:val="${name}"/><w:category><w:name w:val="General"/><w:gallery w:val="placeholder"/></w:category>`
+    + '<w:types><w:type w:val="bbPlcHdr"/></w:types><w:behaviors><w:behavior w:val="content"/></w:behaviors></w:docPartPr><w:docPartBody>'
+    + '<w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/><w:b/></w:rPr><w:t xml:space="preserve">Enter </w:t></w:r><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:t>the name,</w:t></w:r></w:p>'
+    + '<w:p><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:t>then the date.</w:t></w:r></w:p></w:docPartBody></w:docPart>';
+  zip['word/glossary/document.xml'] = strToU8(strFromU8(zip['word/glossary/document.xml']).replace('</w:docParts>', `${entry}</w:docParts>`));
+  zip['word/document.xml'] = strToU8(strFromU8(zip['word/document.xml']).replace('<w:sectPr>',
+    `<w:sdt><w:sdtPr><w:rPr><w:b w:val="0"/><w:color w:val="FF0000"/></w:rPr><w:tag w:val="block"/><w:placeholder><w:docPart w:val="${name}"/></w:placeholder></w:sdtPr><w:sdtContent><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>VALUE</w:t></w:r></w:p></w:sdtContent></w:sdt>`
+    + `<w:p><w:r><w:t xml:space="preserve">A </w:t></w:r><w:sdt><w:sdtPr><w:tag w:val="run"/><w:placeholder><w:docPart w:val="${name}"/></w:placeholder></w:sdtPr><w:sdtContent><w:r><w:t>VALUE</w:t></w:r></w:sdtContent></w:sdt></w:p><w:sectPr>`));
+  const pkg = await WordprocessingMLPackage.load(zipSync(zip));
+  const body = await pkg.getBody();
+  const [block, run] = ['block', 'run'].map((tag) => body.contentControls.find((c) => c.tag === tag));
+  assert.equal(block.placeholderText, 'Enter the name,\rthen the date.');
+  block.showPlaceholder();
+  run.showPlaceholder();
+  // the block control: both paragraphs, each run as the entry holds it with the control's properties over it (its w:b off
+  // over the entry's bold, as docx4j's createPlaceholder applies them), the second paragraph with a copy of the control's
+  // paragraph's properties (docx4j's binding); the run-level control: the first paragraph's runs
+  const bold = (rPr) => (rPr?.b === undefined ? 'unset' : rPr.b.val === false ? 'off' : 'on');
+  const runs = (p) => p.runs.map((r) => [textOf(r.value), r.value.rPr?.rStyle?.val, bold(r.value.rPr), r.value.rPr?.color?.val]);
+  assert.deepEqual(block.paragraphs.map(runs), [
+    [['Enter ', 'PlaceholderText', 'off', 'FF0000'], ['the name,', 'PlaceholderText', 'off', 'FF0000']],
+    [['then the date.', 'PlaceholderText', 'off', 'FF0000']],
+  ]);
+  assert.deepEqual(block.paragraphs.map((p) => p.p.pPr?.jc?.val), ['center', 'center']);
+  // no placeholder text reads (a placeholder of two paragraphs reads its mark between them, '\r'; unmeasured in Word)
+  assert.deepEqual([block.isShowingPlaceholder, block.text.replace(/\r/g, ''), block.placeholderEntry], [true, '', name]);
+  assert.match(await run.getXml(), /<w:sdtContent><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><w:b\/><\/w:rPr><w:t xml:space="preserve">Enter <\/w:t><\/w:r><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>the name,<\/w:t><\/w:r><\/w:sdtContent>/);
+  assert.deepEqual([run.isShowingPlaceholder, run.text, run.placeholderEntry], [true, '', name]);
+  // the entry itself is left as it was
+  assert.match(strFromU8(unzipSync(await pkg.save())['word/glossary/document.xml']), new RegExp(`<w:name w:val="${name}"/>`));
+});
+
+test('CR-002 section 63.18: a control naming an entry the glossary lacks is given Word\'s default entry when it shows its placeholder; until the glossary is read, its name is kept', async () => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const [, b] = check65.CHECK65_FILES;
+  const missing = (body) => body.contentControls.find((c) => c.placeholderEntry === check65.MISSING_ENTRY);
+  const pkg = await WordprocessingMLPackage.load(await check65.check65Bytes(b));
+  const control = missing(await pkg.getBody());
+  assert.equal(control.placeholderText, null);
+  control.showPlaceholder();
+  // named the default entry, which 65b's glossary holds, and showing it; nothing written under the missing name
+  assert.deepEqual([control.placeholderEntry, control.placeholderText, control.isShowingPlaceholder, control.text], [check65.DEFAULT_ENTRY, PLACEHOLDER, true, '']);
+  const glossary = strFromU8(unzipSync(await pkg.save())['word/glossary/document.xml']);
+  assert.deepEqual([...glossary.matchAll(/<w:docPartPr><w:name w:val="([^"]+)"/g)].map((m) => m[1]), [check65.DEFAULT_ENTRY, check65.CUSTOM_ENTRY]);
+  // the glossary not yet read (no getBody, no Word.run): the reference is kept, and Word's default text shown
+  const unread = await WordprocessingMLPackage.load(await check65.check65Bytes(b));
+  const main = unread.getMainDocumentPart();
+  await main.getContents();
+  const kept = missing(main.body);
+  kept.showPlaceholder();
+  assert.deepEqual([kept.placeholderEntry, kept.isShowingPlaceholder], [check65.MISSING_ENTRY, true]);
+  assert.match(await kept.getXml(), /<w:t>Click or tap here to enter text\.<\/w:t>/);
+  // Word's default entry is its text controls': a date control naming a missing entry keeps the name, and an empty
+  // bound value leaves it docx4j's run, as docx4j's CR-063 has it (D3)
+  const { unzipSync: unzip, zipSync, strToU8 } = await import('fflate');
+  const zip = unzip(await check65.check65Bytes(b));
+  zip['word/document.xml'] = strToU8(strFromU8(zip['word/document.xml']).replace('<w:sectPr>',
+    `<w:sdt><w:sdtPr><w:tag w:val="date"/><w:placeholder><w:docPart w:val="${check65.MISSING_ENTRY}"/></w:placeholder><w:date/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>1 January</w:t></w:r></w:p></w:sdtContent></w:sdt><w:sectPr>`));
+  const dated = await WordprocessingMLPackage.load(zipSync(zip));
+  const date = (await dated.getBody()).contentControls.find((c) => c.tag === 'date');
+  assert.deepEqual([date.type, date.isTextControl, date.showsWordsFormPlaceholder], ['DatePicker', false, false]);
+  date.showPlaceholder();
+  assert.equal(date.placeholderEntry, check65.MISSING_ENTRY);
+});

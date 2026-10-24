@@ -22,7 +22,7 @@ import {
 import { updateFromControl, holdsFlatOpc, placeholderRun, PLACEHOLDER_STYLE } from '../customxml/bindings.mjs';
 import { dropExcluded, forWriter, officeItems, type LineBreaks } from './officeText.mjs';
 import { declareIgnorable, markHolderDeleted, type ChangeTracker } from './tracking.mjs';
-import { placeholderEntryOf, namePlaceholderEntry, newEntryName, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, type GlossaryEntries } from './placeholders.mjs';
+import { placeholderEntryOf, namePlaceholderEntry, newEntryName, entryContentOf, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, type GlossaryEntries } from './placeholders.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { commentReferencesIn } from './TrackedChange.mjs';
 import { wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph } from './tableRules.mjs';
@@ -333,11 +333,28 @@ export class ContentControl {
 
   /**
    * @internal After a 'Content' delete, untracked, that left the control holding no text: in Word's form it shows its
-   * entry again (check 66 case 3); in the bare form Word's filler (D10; check 52's case 13).
+   * entry again (check 66 case 3); in the bare form Word's filler (D10; check 52's case 13), as for a control of another
+   * kind than text naming an entry the glossary lacks.
    */
   showEmptied(): void {
     if (this.isShowingPlaceholder || this.text !== '' || (this.form !== 'Block' && this.form !== 'Run')) return;
-    if (this.placeholderEntry !== undefined) this.showPlaceholder(); else this.showFiller();
+    const name = this.placeholderEntry;
+    if (name !== undefined && (this.isTextControl || this.glossary?.has(name) === true)) this.showPlaceholder(); else this.showFiller();
+  }
+
+  /** @internal A text control (untyped, rich text or plain text), whose default placeholder is Word's default entry. */
+  get isTextControl(): boolean {
+    return this.type === 'RichText' || this.type === 'PlainText';
+  }
+
+  /**
+   * @internal Whether an empty control shows a placeholder in Word's form (D8; docx4j CR-063's D3): a text control, or one
+   * of another kind naming an entry the glossary holds.
+   */
+  get showsWordsFormPlaceholder(): boolean {
+    if (this.isTextControl) return true;
+    const name = this.placeholderEntry;
+    return name !== undefined && name !== '' && this.glossary?.has(name) === true;
   }
 
   /**
@@ -386,21 +403,40 @@ export class ContentControl {
   }
 
   /**
-   * Shows the control's placeholder (CR-002 section 63, D8): the text of the entry its `w:placeholder` names, else of
-   * Word's default entry, which it is made to name, in the Placeholder Text style, with `w:showingPlcHdr`. The entry is
-   * written into the glossary on save where the glossary lacks it (D9). An extension.
+   * Shows the control's placeholder (CR-002 section 63, D8; section 63.18): a copy of the content of the entry its
+   * `w:placeholder` names, with the control's own run properties over it, and `w:showingPlcHdr`. A control naming no entry,
+   * or a text control naming one the glossary lacks, is made to name Word's default entry, which is written into the
+   * glossary on save where it lacks it (D9), as docx4j's CR-063 has it: Word's save drops a reference no entry holds (check
+   * 65). A control of another kind keeps the name it has (the binding pass gives such a control docx4j's run instead), and
+   * so does any control until the glossary is read (`getBody`, `Word.run`); each shows Word's default text. An extension.
    */
   showPlaceholder(): void {
     this.assertWritable();
     const sdtPr = (this.sdt.sdtPr ??= {} as wml.SdtPr);
-    let name = this.placeholderEntry;
-    if (name === undefined || name === '') {
+    const glossary = this.glossary;
+    let name = this.placeholderEntry ?? '';
+    // Word's default entry is its text controls' (docx4j CR-063's D3)
+    const missing = name === '' || (glossary?.loaded === true && !glossary.has(name));
+    if (missing && (this.isTextControl || name === '')) {
       name = DEFAULT_PLACEHOLDER_ENTRY;
       namePlaceholderEntry(sdtPr, name);
     }
-    const text = this.glossary?.textOf(name) ?? DEFAULT_PLACEHOLDER_TEXT;
-    this.glossary?.require(name, text);
-    this.setBoundContent([placeholderRun(this.runProperties, text)], true);
+    if (name === DEFAULT_PLACEHOLDER_ENTRY) glossary?.require(name, DEFAULT_PLACEHOLDER_TEXT);
+    const body = glossary?.bodyOf(name);
+    const paragraphs = body ? entryContentOf(body, this.runProperties) : [[placeholderRun(this.runProperties, DEFAULT_PLACEHOLDER_TEXT)]];
+    this.setBoundContent(paragraphs[0] ?? [], true);
+    // a block control shows an entry's further paragraphs too, where it may hold more than one (CR-002 section 61)
+    if (this.form !== 'Block' || paragraphs.length < 2 || isBoundBlockControl(this)) return;
+    const content = this.sdt.sdtContent!.content ??= [];
+    const first = content.find((e) => typeNameOf(e) === 'org_docx4j_wml.P') as Element<wml.P> | undefined;
+    let at = first ? content.indexOf(first) + 1 : content.length;
+    // the further paragraphs take a copy of the control's own paragraph's properties, as docx4j's binding gives them
+    const pPr = first?.value.pPr;
+    for (const runs of paragraphs.slice(1)) {
+      const p = el.p({ ...(pPr ? { pPr: deepCopy(pPr) } : {}), content: runs as never }) as Element;
+      content.splice(at++, 0, p);
+      linkParents(p, this.sdt.sdtContent);
+    }
   }
 
   private insertTextInto(text: string, location: 'Start' | 'End' | 'Replace'): Range {

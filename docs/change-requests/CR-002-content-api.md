@@ -6696,7 +6696,8 @@ which left the nodes empty and lost the writes on reopening (check 63).
     them. A styles part holding both stays untouched.
 
 A control naming an entry that the glossary lacks, given its placeholder by the binding pass, has that entry written,
-with the default text, so its reference survives Word's save.
+with the default text, so its reference survives Word's save. (Since section 63.18 such a control is given Word's
+default entry instead, as docx4j's CR-063 has it, and shows a copy of the entry's content.)
 
 **Unmeasured choices.** Each follows the measured case nearest it:
 - the control's `insertText(…, 'Start')` in the bare form adds the colour, as `'End'` does;
@@ -6951,3 +6952,70 @@ answer in all 72 writes; before, it differed in all of them, by the style.
 - `ranges.test.mjs`: check 52's case 13 now carries the filler.
 
 **For the other ports:** docx4j-python's port already writes check 58's plain look; the rest of 63.16 applies to it as here.
+
+### 63.18 A placeholder shows its entry's content; a missing entry gives way to Word's default (2026-10-25)
+
+docx4j's CR-063, reviewed here (section 63.17's follow-up), settled two points differently from section 63.12; docx4j-25
+recorded the review in its section 11 (`b3dc288fb`). Asked which was right and whether it was measured, the answer
+given was:
+- the first was measured once and favours docx4j;
+- the second is unmeasured, and Word does neither.
+
+Jason: "ok do it", aligning this package with docx4j on both.
+
+**1. What a control showing its placeholder holds: a copy of the entry's content.** Section 63.12 wrote the entry's text
+as one run in the Placeholder Text style. Now `showPlaceholder` copies each of the entry's paragraphs' run-level content,
+every run as the glossary holds it, with the control's own `w:sdtPr/w:rPr` applied over the run's own properties.
+- A block control takes every paragraph, but a bound one only the first (section 61); a run-level control takes the first
+  paragraph's.
+- The entry's paragraph properties stay in the glossary, whose styles they name. The control's own paragraph keeps its
+  properties, and the entry's further paragraphs take a copy of them.
+
+The measurement is check 65's 65b, case 9. As built, its entry's run named Placeholder Text, but its glossary had no
+styles part defining it. Word dropped the undefined style when it read the glossary: its save shows the entries without
+it. The control Word made from the entry then showed the text unstyled. So Word copies the entry as it holds it, and
+doesn't apply the style itself. When this was put to Jason it was described as an entry that "had lost the style"; the
+style was lost in Word's reading, not in the file.
+
+This package doesn't drop a style a glossary doesn't define, so case 9 still differs (`placeholders.test.mjs`). Where this
+package writes the glossary, its styles part holds Placeholder Text (D9), and the two rules give the same markup.
+
+**2. A text control naming an entry the glossary lacks is given Word's default entry** when it shows its placeholder (the
+binding pass's empty value, an emptied control in Word's form). It is made to name `DefaultPlaceholder_-1854013440`, the
+default entry is written where the glossary lacks it, and nothing is written under the missing name.
+
+Word's default entry is its text controls' (untyped, rich text, plain text). A control of another kind naming a missing
+entry keeps the name: an empty bound value leaves it docx4j's run, and emptied it shows Word's filler
+(`showsWordsFormPlaceholder`).
+- Section 63.12 kept the name and wrote an entry under it, with the default text.
+- Word does neither: its save drops such a reference, leaving the bare form (check 65).
+- This is a choice, docx4j's: a control Word makes itself names the default entry, and no text goes under a name it
+  didn't come from.
+- Until the glossary has been read (`getBody`, `Word.run`), an entry it holds would read as missing, so the name is kept
+  and Word's default text shown.
+
+**docx4j's implementation** (CR-063 phases 1 and 2, `5f5e53921` on `VERSION_17_3_5`, docx4j-25, 2026-10-25) was checked
+against this before it was committed here, and agreed on three details first written the other way here:
+- the control's run properties over the entry run's own, docx4j's `createPlaceholder` rule (the run's had won here);
+- the further paragraphs' copy of the control's paragraph's properties;
+- the default entry for text controls only.
+
+None of the three is measured in Word; they are the two ports agreeing.
+
+Where docx4j still differs:
+- it writes the entries during binding, where this package writes them on save, with the same result;
+- it gives the default entry check 34's `w:guid`, where this package gives a new one;
+- it has a configurable placeholder run, which this package lacks.
+
+Its `placeholder.xml` now reads Word 365's "Click or tap here to enter text." (its D5). This package's `PLACEHOLDER_TEXT`,
+for a control of another kind naming no entry, still reads "Click here to enter text.".
+
+**Unmeasured:** an entry of several paragraphs, or with other formatting; how Word combines an entry with a control's own
+run properties; and what Office JS reads as the text of a control showing a placeholder of several paragraphs (here
+`'\r'`, the mark between them).
+
+**Tests** (`placeholders.test.mjs`):
+- an entry of two paragraphs and two runs copied into a block control and a run-level one, the control's colour and its
+  bold off over the entry's, and the control's paragraph properties on both paragraphs;
+- a missing entry replaced by the default, nothing written under it, and the name kept while the glossary is unread;
+- a date control naming a missing entry keeping it.

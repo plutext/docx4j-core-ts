@@ -13,6 +13,7 @@ import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { sdtProperty, textOf } from '@docx4j/generated-objects-ts/builders/wml';
+import { deepCopy } from '@docx4j/generated-objects-ts';
 import { linkParents, type Element } from './tree.mjs';
 import { uuid } from '../customxml/CustomXmlPartCollection.mjs';
 import { PLACEHOLDER_STYLE, placeholderRun } from '../customxml/bindings.mjs';
@@ -62,7 +63,7 @@ export interface GlossaryHost {
  */
 export class GlossaryEntries {
   /** Entries by name, as the glossary part was last read; undefined until `load`. */
-  private read: Map<string, string> | undefined;
+  private read: Map<string, GlossaryEntry> | undefined;
   /** The part they were read from. */
   private source: XmlPart<wml.GlossaryDocument> | undefined;
   /** Entries to write on save: name, text. */
@@ -80,11 +81,28 @@ export class GlossaryEntries {
    * entry's paragraphs are a `\r` apart, as a control's are.
    */
   textOf(name: string): string | null {
+    return this.entry(name)?.text ?? null;
+  }
+
+  /**
+   * An entry's body, the blocks of its `w:docPartBody` (not copies), `null` where neither the glossary nor this session
+   * holds it; an entry written this session is one paragraph, one run of its text in the Placeholder Text style.
+   */
+  bodyOf(name: string): Element[] | null {
+    return this.entry(name)?.body ?? null;
+  }
+
+  /** True once the glossary has been read (`load`): until then an entry it holds reads as missing. */
+  get loaded(): boolean {
+    return this.read !== undefined || this.source?.isUnmarshalled === true;
+  }
+
+  private entry(name: string): GlossaryEntry | undefined {
     const pending = this.pending.get(name);
-    if (pending !== undefined) return pending;
+    if (pending !== undefined) return { text: pending, body: [el.p({ content: [placeholderRun(undefined, pending) as never] }) as Element] };
     const part = this.source;
-    if (part?.isUnmarshalled) return entriesOf(part.contents).get(name) ?? null;
-    return this.read?.get(name) ?? null;
+    if (part?.isUnmarshalled) return entriesOf(part.contents).get(name);
+    return this.read?.get(name);
   }
 
   /** Whether the glossary holds an entry of this name, or one is waiting to be written. */
@@ -137,14 +155,46 @@ export class GlossaryEntries {
   }
 }
 
-/** A glossary's entries: name and text, each body's paragraphs a `\r` apart. */
-function entriesOf(doc: wml.GlossaryDocument | undefined): Map<string, string> {
-  const out = new Map<string, string>();
+/** An entry: its text, its body's paragraphs a `\r` apart, and the body's blocks. */
+interface GlossaryEntry {
+  text: string;
+  body: Element[];
+}
+
+/** A glossary's entries by name. */
+function entriesOf(doc: wml.GlossaryDocument | undefined): Map<string, GlossaryEntry> {
+  const out = new Map<string, GlossaryEntry>();
   for (const part of doc?.docParts?.docPart ?? []) {
     const name = part.docPartPr?.nameOrStyleOrCategory.find((i) => i.TYPE_NAME === 'org_docx4j_wml.CTDocPartName') as wml.CTDocPartName | undefined;
     if (!name?.val) continue;
-    const paragraphs = (part.docPartBody?.content ?? []).filter((e) => (e.value as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.P');
-    out.set(name.val, paragraphs.map((p) => textOf(p.value as object)).join('\r'));
+    const body = (part.docPartBody?.content ?? []) as Element[];
+    const paragraphs = body.filter((e) => (e.value as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_wml.P');
+    out.set(name.val, { text: paragraphs.map((p) => textOf(p.value as object)).join('\r'), body });
+  }
+  return out;
+}
+
+/**
+ * What a control shows of an entry (CR-002 section 63.18, as docx4j CR-063's D2): a copy of each of its body's
+ * paragraphs' run-level content, every run as the glossary holds it with the control's own run properties
+ * (`w:sdtPr/w:rPr`) over its own, as docx4j's `createPlaceholder` applies them (unmeasured in Word). Word copies an entry as
+ * it holds it, not restyling it (check 65's 65b, case 9). The paragraphs' properties stay in the glossary, whose styles
+ * they name.
+ */
+export function entryContentOf(body: Element[], rPr: wml.RPr | undefined): Element[][] {
+  const out: Element[][] = [];
+  for (const block of body) {
+    if ((block.value as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.P') continue;
+    const items = ((block.value as wml.P).content ?? []).filter((e) => !['proofErr', 'bookmarkStart', 'bookmarkEnd'].includes((e as Element).name?.localPart ?? '')) as Element[];
+    const copies = items.map((item) => ({ name: item.name, value: deepCopy(item.value) }) as Element);
+    if (rPr) {
+      for (const item of copies) {
+        if ((item.value as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.R') continue;
+        const run = item.value as wml.R;
+        run.rPr = { ...(run.rPr ?? {}), ...deepCopy(rPr) } as wml.RPr;
+      }
+    }
+    out.push(copies);
   }
   return out;
 }
