@@ -201,6 +201,8 @@ export class PropertyResolver {
   /** A style's `w:basedOn` chain merged root-first, WITHOUT the document defaults, per style id. */
   private readonly chainPPrCache = new Map<string, wml.PPr>();
   private readonly chainRPrCache = new Map<string, wml.RPr>();
+  /** A character style's chain as it applies to a run, where it differs from its chain: see {@link characterLevel}. */
+  private readonly characterLevelCache = new Map<string, wml.RPr>();
   /** The document defaults with the chain applied over them: what the style overloads return. */
   private readonly effectivePPrByStyle = new Map<string, wml.PPr>();
   private readonly effectiveRPrByStyle = new Map<string, wml.RPr>();
@@ -388,6 +390,7 @@ export class PropertyResolver {
   refresh(): void {
     this.chainPPrCache.clear();
     this.chainRPrCache.clear();
+    this.characterLevelCache.clear();
     this.effectivePPrByStyle.clear();
     this.effectiveRPrByStyle.clear();
     this.vanishCache.clear();
@@ -548,6 +551,24 @@ export class PropertyResolver {
     }
     this.chainRPrCache.set(styleId, chain);
     return chain;
+  }
+
+  /**
+   * A character style's chain as a level over a run or a paragraph mark: {@link getChainRPr} without its highlight,
+   * since Word draws no highlight from a character style (docx4j CR-060 section 13, round 6: alone, with bold, or
+   * through `w:basedOn`; its save writes `w:highlight="none"` on such a run). A paragraph style's highlight and a
+   * run's own are drawn. docx4j `characterLevel` (1d1b824a9). Cached; live: copy before changing.
+   */
+  private characterLevel(styleId: string): wml.RPr {
+    const chain = this.getChainRPr(styleId);
+    if (chain.highlight === undefined) return chain;
+    let level = this.characterLevelCache.get(styleId);
+    if (level === undefined) {
+      level = deepCopy(chain);
+      delete level.highlight;
+      this.characterLevelCache.set(styleId, level);
+    }
+    return level;
   }
 
   /**
@@ -737,7 +758,7 @@ export class PropertyResolver {
       if (this.getLiveStyle(runStyleId) === undefined) {
         this.logMissing(runStyleId);
       } else {
-        applyStyleLevel(this.getChainRPr(runStyleId), effective, this.documentDefaultRPr);
+        applyStyleLevel(this.characterLevel(runStyleId), effective, this.documentDefaultRPr);
       }
     }
     if (hasDirectFormattingRPr(rPr)) applyRPr<wml.RPr>(rPr, effective);
@@ -774,7 +795,7 @@ export class PropertyResolver {
       if (this.getLiveStyle(runStyleId) === undefined) {
         this.logMissing(runStyleId);
       } else {
-        applyStyleLevel(this.getChainRPr(runStyleId), effective, this.documentDefaultRPr);
+        applyStyleLevel(this.characterLevel(runStyleId), effective, this.documentDefaultRPr);
       }
     }
     applyRPr<wml.RPr>(mark, effective);
@@ -1084,6 +1105,7 @@ export class PropertyResolver {
     // resolution of this style (and of anything based on it) has to be recomputed
     this.chainPPrCache.clear();
     this.chainRPrCache.clear();
+    this.characterLevelCache.clear();
     this.effectivePPrByStyle.clear();
     this.effectiveRPrByStyle.clear();
     this.clearTableCaches();

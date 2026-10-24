@@ -95,7 +95,8 @@ test('catalogue: schema order, and the twelve toggles', () => {
 const CANDIDATES = [
   {},                                     // w:b and the w14 members: the element itself is the statement
   { val: 1 },                             // w:sz, w:jc, w:outlineLvl, w:gridSpan, ...
-  { val: 'single' },                      // w:u, w:highlight, w:rStyle, w:vMerge, ...
+  { val: 'single' },                      // w:u, w:rStyle, w:vMerge, ...
+  { val: 'yellow' },                      // w:highlight (one of ST_HighlightColor's) and w:color (a name Word reads)
   { ascii: 'Arial' },                     // w:rFonts
   { bidi: 'he-IL' },                      // w:lang
   { ilvl: { val: 1 } },                   // w:numPr, stating only the level
@@ -143,10 +144,7 @@ for (const [label, catalogue] of [['RUN', RUN], ['PARAGRAPH', PARAGRAPH], ['TABL
       assert.notEqual(carried, undefined, `${p.name}: apply carries it`);
       assert.equal(p.isEmpty(carried), false, `${p.name}: carried non-empty`);
       assert.notEqual(carried, sample, `${p.name}: the carried value is a copy, not the source's instance`);
-      // w:framePr is the one member whose merge writes a default out: docx4j reads w:anchorLock
-      // through isAnchorLock(), which answers true when the attribute is absent
-      const expected = p.name === 'framePr' ? { ...plain(sample), anchorLock: true } : plain(sample);
-      assert.deepEqual(plain(carried), expected, `${p.name}: and equal to it`);
+      assert.deepEqual(plain(carried), plain(sample), `${p.name}: and equal to it`);
 
       unsetCatalogue(catalogue, source, destination);
       assert.equal(p.get(destination), undefined, `${p.name}: unset removes it`);
@@ -194,6 +192,27 @@ test('merge: w:numId and w:ilvl each inherit (CR-015 probe styles-numpr-ilvl-onl
   applyPPrBase(await pPrOf('<w:numPr><w:ilvl w:val="1"/></w:numPr>'), destination);
   assert.equal(destination.numPr.numId.val, 3, 'the id is inherited');
   assert.equal(destination.numPr.ilvl.val, 1, 'the level is the more specific one');
+});
+
+// docx4j StyleUtilFramePrAnchorLockTest (82c64bf14, its CR-059): w:anchorLock read as stated, so a
+// w:framePr with nothing set is empty and one that omits it keeps the style's
+test('merge: w:framePr\'s w:anchorLock as stated (docx4j StyleUtilFramePrAnchorLockTest)', async () => {
+  const framePr = async (attributes) => (await pPrOf(`<w:framePr ${attributes}/>`)).framePr;
+  assert.equal(isEmptyPPrBase({ framePr: await framePr('') }), true, 'a framePr with nothing set is empty');
+  for (const a of ['w:anchorLock="1"', 'w:anchorLock="0"', 'w:w="3600"']) {
+    assert.equal(isEmptyPPrBase({ framePr: await framePr(a) }), false, a);
+  }
+  const merge = async (source, destination) => {
+    const out = { framePr: await framePr(destination) };
+    applyPPrBase({ framePr: await framePr(source) }, out);
+    return out.framePr;
+  };
+  const kept = await merge('w:w="3600"', 'w:w="3629" w:anchorLock="1"');
+  assert.equal(kept.anchorLock, true, 'an omitted anchorLock keeps the style\'s');
+  assert.equal(kept.w, 3600);
+  assert.equal((await merge('w:w="1" w:anchorLock="0"', 'w:anchorLock="1"')).anchorLock, false, 'a stated one wins');
+  assert.equal((await merge('w:w="1" w:anchorLock="1"', 'w:w="2"')).anchorLock, true, 'a stated one wins');
+  assert.equal((await merge('w:w="1"', 'w:w="2"')).anchorLock, undefined, 'neither states it and none is written');
 });
 
 test('merge: w:lang, w:u and w:tblpPr inherit per attribute', async () => {

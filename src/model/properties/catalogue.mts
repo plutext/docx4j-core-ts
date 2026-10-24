@@ -13,6 +13,7 @@
 // leaf (it allocates a Map for cycle detection on every call); these are one- and
 // two-attribute objects.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import { WordColors } from '../color/WordColors.mjs';
 
 /** Run properties: `w:rPr` and the paragraph mark's `w:pPr/w:rPr`, which have the same members. */
 export type RunProps = wml.RPr | wml.ParaRPr;
@@ -85,6 +86,16 @@ function statesColour(val: string | undefined, theme: wml.STThemeColor | undefin
   return !emptyString(val) || !emptyThemeColor(theme);
 }
 
+/**
+ * docx4j `StyleUtil.statesWordColour` (its CR-060, 1d1b824a9): as {@link statesColour}, for a text or underline
+ * colour, whose value Word reads as absent where it rejects it ({@link WordColors.stated}: `F00`, `bogus`, `Auto`).
+ * A fill's or a border's colour keeps {@link statesColour}: Word reads any value there, one it rejects as automatic,
+ * which overrides a style's (CR-015 section 2, rule 5).
+ */
+function statesWordColour(val: string | undefined, theme: wml.STThemeColor | undefined): boolean {
+  return WordColors.stated(val) || !emptyThemeColor(theme);
+}
+
 /** A merge with no per-attribute rule: a copy of the source where it has one, else the inherited. */
 export function mergeReplace<V>(source: V | undefined, destination: V | undefined): V | undefined {
   return source === undefined ? destination : copyLeaf(source);
@@ -135,23 +146,41 @@ export function isEmptyRFonts(value: wml.RFonts | undefined): boolean {
 
 /**
  * A `w:color` stating only a theme colour is not empty: it is inherited, where until docx4j CR-034
- * (2e381ef26) it was dropped.
+ * (2e381ef26) it was dropped. A value Word reads as absent (`F00`, `bogus`, `Auto`) is empty, so a style's
+ * colour beneath still shows, and only exactly `auto` overrides it (docx4j CR-060, {@link WordColors.stated};
+ * CR-015 section 2, rules 4 and 5).
  */
 export function isEmptyColor(value: wml.Color | undefined): boolean {
   return value === undefined
-    || (emptyString(value.val) && value.themeColor === undefined
+    || (!WordColors.stated(value.val) && value.themeColor === undefined
       && emptyString(value.themeTint) && emptyString(value.themeShade));
 }
 
-/** The underline's colour attributes count, the theme ones too (docx4j CR-034, 2e381ef26). */
+/**
+ * The underline's colour attributes count, the theme ones too (docx4j CR-034, 2e381ef26); a colour Word reads as
+ * absent doesn't (docx4j CR-060, {@link WordColors.stated}).
+ */
 export function isEmptyU(value: wml.U | undefined): boolean {
   return value === undefined
-    || (value.val === undefined && emptyString(value.color) && value.themeColor === undefined
+    || (value.val === undefined && !WordColors.stated(value.color) && value.themeColor === undefined
       && emptyString(value.themeTint) && emptyString(value.themeShade));
 }
 
+/** `ST_HighlightColor`'s values, which Word compares case-exactly (docx4j `WordRepairs`). */
+const HIGHLIGHT_COLORS: ReadonlySet<string> = new Set(['black', 'blue', 'cyan', 'green', 'magenta', 'red', 'yellow',
+  'white', 'darkBlue', 'darkCyan', 'darkGreen', 'darkMagenta', 'darkRed', 'darkYellow', 'darkGray', 'lightGray', 'none']);
+
+/** Whether a `w:highlight` value is one of `ST_HighlightColor`'s, compared case-exactly, as Word does (docx4j `WordRepairs.isHighlightColor`). */
+export function isHighlightColor(val: string | undefined): boolean {
+  return val !== undefined && HIGHLIGHT_COLORS.has(val);
+}
+
+/**
+ * A value outside `ST_HighlightColor` (`YELLOW`, `bogus`), or none, is empty: Word's repair drops it, so a style's
+ * highlight beneath still shows (docx4j CR-060, its `StyleUtil.isEmpty(Highlight)`).
+ */
 export function isEmptyHighlight(value: wml.Highlight | undefined): boolean {
-  return value === undefined || emptyString(value.val);
+  return value === undefined || !isHighlightColor(value.val);
 }
 
 /** @since CR-015 phase 1: a style stating only `w:lang` used to count as empty and was never applied. */
@@ -221,7 +250,10 @@ export function isEmptyNumPr(value: wml.PPrBase.NumPr | undefined): boolean {
       && (value.ilvl === undefined || value.ilvl.val === undefined));
 }
 
-/** `w:anchorLock` defaults to true, so only an explicit `w:anchorLock="0"` makes a frame non-empty by itself. */
+/**
+ * Empty only with `w:anchorLock` absent too, as docx4j 82c64bf14 reads it (its CR-059: until then
+ * `isAnchorLock()`, which the schema's old `default="true"` made true for an absent attribute).
+ */
 export function isEmptyFramePr(value: wml.CTFramePr | undefined): boolean {
   return value === undefined
     || (value.dropCap === undefined && value.lines === undefined && value.w === undefined
@@ -229,7 +261,7 @@ export function isEmptyFramePr(value: wml.CTFramePr | undefined): boolean {
       && value.wrap === undefined && value.hAnchor === undefined && value.vAnchor === undefined
       && value.x === undefined && value.xAlign === undefined
       && value.y === undefined && value.yAlign === undefined && value.hRule === undefined
-      && (value.anchorLock ?? true));
+      && value.anchorLock === undefined);
 }
 
 function isEmptyTblWidth(value: wml.TblWidth | undefined): boolean {
@@ -370,7 +402,7 @@ export const mergeColor: Merge<wml.Color> = (source, destination) => {
   if (isEmptyColor(source)) return destination;
   const s = source as wml.Color;
   const out = (destination ?? {}) as wml.Color;
-  if (statesColour(s.val, s.themeColor)) {
+  if (statesWordColour(s.val, s.themeColor)) {
     out.val = s.val as string;
     out.themeColor = s.themeColor;
     out.themeTint = s.themeTint;
@@ -388,7 +420,7 @@ export const mergeU: Merge<wml.U> = (source, destination) => {
   const s = source as wml.U;
   const out = destination ?? {};
   out.val = attr(s.val, out.val);
-  if (statesColour(s.color, s.themeColor)) {
+  if (statesWordColour(s.color, s.themeColor)) {
     out.color = s.color;
     out.themeColor = s.themeColor;
     out.themeTint = s.themeTint;
@@ -568,8 +600,8 @@ export const mergeTabs: Merge<wml.Tabs> = (source, destination) => {
 
 /**
  * `w:framePr`'s attributes each inherit on their own: a paragraph whose direct `w:framePr`
- * gives only `w:x`/`w:y` keeps the anchors its style states. `w:anchorLock` defaults to true,
- * and docx4j's merge writes that default out explicitly.
+ * gives only `w:x`/`w:y` keeps the anchors its style states, `w:anchorLock` among them (docx4j
+ * 82c64bf14 merges it as stated; until then its merge wrote `isAnchorLock()`'s default out).
  */
 export const mergeFramePr: Merge<wml.CTFramePr> = (source, destination) => {
   if (isEmptyFramePr(source)) return destination;
@@ -589,8 +621,7 @@ export const mergeFramePr: Merge<wml.CTFramePr> = (source, destination) => {
   out.y = attr(s.y, out.y);
   out.yAlign = attr(s.yAlign, out.yAlign);
   out.hRule = attr(s.hRule, out.hRule);
-  // docx4j reads this through isAnchorLock(), which answers true when the attribute is absent
-  out.anchorLock = s.anchorLock ?? true;
+  out.anchorLock = attr(s.anchorLock, out.anchorLock);
   return out;
 };
 

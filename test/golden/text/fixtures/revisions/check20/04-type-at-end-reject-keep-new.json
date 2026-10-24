@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "8f455ebab6f24c401d7d06e5c112063f4555b335",
-    "docx4jVersion": "docx4j-core-17.3.4.jar",
-    "docx4jCoreJarSha256": "70d6f1f4782732d5",
-    "date": "2026-10-22T20:35:32Z",
+    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
+    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
+    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
+    "date": "2026-10-24T02:23:06Z",
     "fixture": "fixtures/revisions/check20/04-type-at-end-reject-keep-new.docx",
     "fixtureBytes": 26376,
     "timeZone": "UTC",

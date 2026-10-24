@@ -3,9 +3,10 @@
 **Status:** Proposed 2026-10-24, drafted at Jason's request relayed by the portfolio session ("yes please" to drafting
 one CR each in docx4j, core-ts and docx4j-python, against the same rules and probes; docx4j's is CR-060, python's
 CR-018). **D1 to D11 decided 2026-10-24 as recommended** (Jason: "CR-015 D1 to D11 decided as now recommended";
-section 7), after probe rounds 5 and 6 and a review against CR-018 (section 10). Not scheduled. Implementation waits on
-objects CR-013 .A, .B and .C (jsonix-CR-010, the other dependency, is released in 3.7.0; section 6), on docx4j CR-060's
-push and CR-061, and on Jason.
+section 7), after probe rounds 5 and 6 and a review against CR-018 (section 10). **Implemented 2026-10-24, phases 0 to
+2b** (Jason: "implement CR-015"; section 11), on objects 0.5.0 (its CR-013 phases A to C, published 2026-10-24; the range
+raised to `^0.5.0`). Phase 3's check 60 is written and waits for Jason's run. docx4j's `82c64bf14` (`w:framePr`'s `anchorLock` read as stated) is ported with
+it, and the parity goldens regenerated at docx4j `5163c2986`.
 
 ## 1. Why
 
@@ -234,6 +235,26 @@ marker paragraph was also loaded on its own in an in-memory copy, to see which v
     - For the facade's part of the scoping, objects prefers marking the WordprocessingML mappings lenient over
       setting it per part, since a `document.xml` also holds DrawingML and VML booleans, for which Word's rule
       isn't measured.
+  - **Implemented 2026-10-24: phases A and B** (objects main `7feac7f`, then planned for 0.4.4 and released in 0.5.0; floor `@docx4j/jsonix`
+    `^3.7.0`). That is everything this CR needs from objects but phase C.
+    - `helpers/wml`: `WORD_COLOR_NAMES` (the 140 names, frozen, held equal to docx4j's) and `wordColor(value)`.
+      Exactly `auto` gives `'auto'`; hex, trimmed, with an optional `#`, or a name in any case gives `'#RRGGBB'`; else
+      `undefined`, which the caller reads by place (absent in `w:color` and `w:u/@w:color`, automatic in a fill or
+      border).
+    - `readRunOptions`: `color` is `wordColor(val) ?? ''`, `highlightColor` is `null` outside `ST_HighlightColor`, and
+      `underline` is `'None'` (no longer `'Mixed'`) outside `ST_Underline`.
+    - The facade's `unmarshalString`, `unmarshalNode` and `unmarshalPackage` pass `wordInvalidValue` as
+      `onInvalidValue` unless given their own. It is scoped to `wml`, `w14`, `w15`, `w15symex`, `w16`, `w16cex` and
+      `w16cid` (D10): a refused boolean is `true`, a refused enumeration value is dropped, and `w:u`'s six on/off words
+      give `'none'`. Anything else still fails the part.
+    - D8's `onWordReading(reading)` option on `unmarshalString` and `unmarshalNode` gives `{ element, attribute, text,
+      value, kind }`. `w:u="true"` reports `value.kept.invalid` with value `'none'`. It isn't called when a caller
+      passes its own `onInvalidValue` (`wordInvalidValue` is exported to compose), and `unmarshalPackage` takes no
+      options, so it reads by the rule and reports to no one.
+    - Over Jason's 28 probes (rounds 1 to 6), 373 of 376 markers read as Word's saves do. The 3 differences are
+      `colour-elsewhere-styles` U2 to U4, where Word's save drops a direct `w:u w:val="single"` that repeats the
+      style's. The 341 corpus hashes are identical to 0.4.3's.
+    - Phase C waits on jsonix-CR-011, which objects is verifying for jsonix-d2.
   - **CR-013.C:** the save normaliser, revised for this CR's decisions (objects `7009f54`, unpushed; it depends on .A
     and .B, and waits for Jason's go).
     - It follows docx4j CR-060 with CR-061's table, value for value, as a marshal-only pass over the marshalled DOM,
@@ -401,9 +422,10 @@ rounds 5 and 6 answered them, D7 following docx4j's phase 4, D11 settled.
     - `CT_OnOff.val`, a `Boolean` (`w14:checkbox`/`w14:checked`, `w14:conflictMode`, `w14:discardImageEditingData`),
       takes the `Boolean` rule, so `"TRUE"` reads true.
     - Two on/off values are typed as an anonymous enumeration of `true`, `false`, `0` and `1`:
-      `CT_LinearShadeProperties/@scaled`, and `CT_StyleSet/@val` in `w14:stylisticSets`. Under the enumeration rule
-      `"TRUE"` or `"on"` there would be dropped, not read as on. O5 reads them by the `Boolean` rule mapped onto the
-      members instead: `false` for exactly `false`, `off` or `0`, else `true`.
+      `CT_LinearShadeProperties/@scaled`, and `CT_StyleSet/@val` in `w14:stylisticSets`. O5 proposed reading them by
+      the `Boolean` rule mapped onto the members. On implementing, objects found both are strings in the mapping (as in
+      docx4j), never refused and held as written, so the rule has nothing to apply to there. `w14`'s `CT_OnOff`
+      (`w14:checked`) is a real boolean and does get it.
     - `w14`'s 13 other enumerations, the text effects among them, would become lenient too. `w15`, `w15symex`,
       `w16`, `w16cex` and `w16cid` have no booleans, and one enumeration between them.
 - **D11. The spelling of on and off, across ports: settled.** CR-018 writes a rewritten on bare and off `"0"`; docx4j
@@ -510,3 +532,152 @@ implementation; its stale sections 3.2 and 4.10 fixed):
    Its parse covers every `xs:boolean` in every namespace, so the `w14:checked` gap doesn't arise there (D10).
 
 Python agrees with the jsonix trimming measurement (CR-018 Q15).
+
+## 11. Implementation (2026-10-24)
+
+Jason, 2026-10-24: "implement CR-015". Phases 0, 1, 2 and 2b are implemented; phase 3's check is written and waits for
+his run. The code needs objects CR-013 phases A to C, verified here at objects `b2c9163` (section 11.8) and published the
+same day as **0.5.0** (tag at `2c18fbb`, `b2c9163` with the version; a minor, Jason's choice, since phase C changes what a
+save writes by default), over `@docx4j/jsonix` ^3.8.0. The range is `^0.5.0`.
+
+### 11.1 The goldens at docx4j `5163c2986`, and `w:framePr`'s `anchorLock`
+
+docx4j's `82c64bf14` (its CR-059 section 11, a regression docx4j-python found in `ac97b56c5`) reads
+`w:framePr/@w:anchorLock` as stated: a `w:framePr` is empty only with `anchorLock` absent too, and a merge keeps the
+style's where the more specific `w:framePr` omits it. Until then docx4j read it through `isAnchorLock()`, whose old
+schema default made an absent attribute true, and wrote that `true` out in every merge. The catalogue followed the old
+reading (`isEmptyFramePr`, `mergeFramePr`); it now follows the new one, with docx4j's `StyleUtilFramePrAnchorLockTest`
+ported to `properties.test.mjs`.
+
+All 502 committed goldens were regenerated from docx4j `VERSION_17_3_5` at `5163c2986` (pushed; a `git archive` built
+into a scratch Maven repository; harness versions 4, 1, 2 and 1). Eight answers moved, each a paragraph's
+`effectivePPr` losing `w:anchorLock="true"`: five in `loadAndSave.json`, two in `NumberingImplicitNumId.json`, one in
+`NumberingIndents.json`. Nothing else moved: CR-060 and CR-061 change no fixture's answer, as section 5 predicted, and no
+XPath hit, revision listing or text block moved. Parity is zero differences, under objects 0.4.3 and under `b2c9163`.
+`test/golden/README.md` and CLAUDE.md record the commit; `test/java/pom.xml` still resolves the 17.3.4 release for a
+hand-run, which gives the eight `framePr` answers the old way.
+
+### 11.2 Phase 0: the probes
+
+docx4j's `runprops/word365/` at `5163c2986` (rounds 1 to 7: 33 probes, Word's 33 saves and the README) is copied
+unedited into `test/runprops-word365/`, with a `manifest.json` of SHA-1s that `runprops-word365.test.mjs` checks.
+docx4j has since added round 8's probes there (its CR-062, `6f00d217f`, unpushed); they are rendering probes
+(underline styles, `w:em` marks) with nothing for this package's readers, and are not copied.
+
+Under objects 0.4.3 thirteen of the 66 files fail to unmarshal (the part refused at its first invalid on/off or
+enumeration value). Phase 0's assertions of that behaviour were never committed: the dependency arrived the same day,
+so the test was written against it.
+
+### 11.3 Phase 1: on/off and the enumerations
+
+- **The parse** is the objects facade's (D1 (a)): `wordInvalidValue` as jsonix-CR-010's `onInvalidValue`, scoped to
+  `wml`, `w14`, `w15`, `w15symex`, `w16`, `w16cex` and `w16cid` (D10). Every reader here was already right once the
+  parse gives Word's boolean; nothing on/off was changed.
+- **The catalogue** follows docx4j CR-060's `StyleUtil`:
+  - `isEmptyHighlight` is membership of `ST_HighlightColor`, case-exact (`isHighlightColor`, docx4j's
+    `WordRepairs`), so an invalid highlight leaves a style's beneath;
+  - `isEmptyColor` and `isEmptyU` count a colour value only where Word states one (`WordColors.stated`: one Word
+    accepts, or exactly `auto`), and `mergeColor`/`mergeU` carry it only then (`statesWordColour`); a fill's and a
+    border's keep `statesColour`, any value, since Word reads one it rejects there as automatic, overriding.
+- **The resolver:** a character style's chain applies as a level without its `w:highlight` (`characterLevel`, docx4j
+  `1d1b824a9`), for a run and for a paragraph mark; Word draws no highlight from a character style (round 6).
+- **D8, the record of a read:** each value the facade reads by Word's rule is a `ValueKeptWarning` on the part's
+  `warnings` (`value.kept.exact` or `value.kept.invalid`, CR-018's names; the element and attribute as written, the
+  text, the value held, the line and column where the DOM gives them), from objects' `onWordReading`, and
+  `OpcPackage.warnings` gathers them. `PartWarning` is now `McBranchesDifferWarning | ValueKeptWarning`. A private read
+  (`readContents`) records them too, and leaves the part untouched.
+
+### 11.4 Phase 2: colours
+
+- `WordColors.normalise` and `stated` are docx4j's (`WordColorValues`), over the objects package's `wordColor` (O2),
+  which its smoke test holds to docx4j's 140-name table.
+- `WordColors.of` (a run's colour) and `ofUnderline` resolve the normalised value, as docx4j's do.
+- `WordColors.fill`, `pattern` and `ofBorder` normalise too, as docx4j's do since `a9e0303ff` (local, unpushed when
+  written; its CR-060 section 14, `WordColorsNamesTest`). At `5163c2986` docx4j's `WordColors` normalised only in
+  `of(Color)` and `of(U)`, so its `fill(CTShd)` read `aqua` as automatic. Its `Property.fillColour` and `borderColour`,
+  which its HTML and PDF draw with, normalised, and so does Word (round 5: a name in a fill or a border is drawn). This
+  port normalised all five, and asked docx4j-25, who agreed and made the resolver follow. The parity goldens record no
+  resolved colour, so the commit moves none of them.
+- The same answer: docx4j's `RunPropertiesWord365Test` round trip still checked that `props-enum-other`'s save kept
+  `w:color w:val="red"` (CR-060's D4, before CR-061). It passed only because the probe's label text holds those words.
+  `a9e0303ff` checks the `N6_COLOR_NAME` run for `FF0000`, as `runprops-word365.test.mjs` does.
+- `Font.color` needed nothing: the objects package's `readRunOptions` reads `w:color` by `wordColor`, and a theme
+  colour goes through `WordColors.of`.
+
+### 11.5 Phase 2b: what a save writes
+
+- The objects facade's normaliser (its CR-013 phase C, docx4j CR-061's rule value for value) is on by default in every
+  marshal. `OpcPackage.normaliseOnSave` (undefined, false or true) is passed to each part's marshal
+  (`XmlPart.marshalToNode`, so `getBytes`, `getXml` and a save); undefined defers to the objects package's
+  `setNormaliseOnSave`, process-wide, which this package re-exports. `clone()` carries the setting.
+- **D8, the save report:** `OpcPackage.lastSave.normalised` lists each value the last save normalised, a
+  `ValueNormalised` (`value.normalised`; the part, the path from its root, before and after, `after` null where the
+  attribute or the element was left out), from objects' `onNormalised`. A part nobody unmarshalled is copied and
+  reports nothing.
+- **The round-trip contract** gains the tolerated category (section 8): `onoff/pandoc-code.docx`'s styles part, the one
+  fixture part holding a value outside the normal form, reloads deep-equal but for its 20 lower-case hex colours, each
+  written upper-case; with `normaliseOnSave: false` it reloads exactly.
+- The editor's requirement (its ED-002 section 3.7, relayed by jsonix-d2): an unedited document saves byte for byte.
+  It still does: only an unmarshalled part is marshalled, and so normalised.
+
+### 11.6 Phase 3: check 60
+
+Written, not run. `test/fixtures/check60/build.mjs` puts 25 of the probes in one file (`60-runprops.docx`, git-ignored;
+the share's `__tmp/60/`), each probe's paragraphs after a `PROBE <name>` paragraph, the styles together (no id clashes).
+The three `props-enum` probes are left out: Word repairs them, so its repair decides what they show. The snippet reads,
+for every marker, Office JS's `font` properties one at a time (the eleven `Font` properties this package has, then
+WordApiDesktop's on/off ones and `underlineColor`, which a host may lack). Through the Word shim it reads each marker as
+the probe's own `Font` does. When Jason's run is back, the shim is held to it, and differences become this section's.
+One thing it will settle: Word's `green` highlight is `#008000` in the objects package's `highlightHexValue`, and what
+Office JS reports for it is unmeasured.
+
+### 11.7 The tests
+
+`runprops-word365.test.mjs`, 25 tests:
+- **the probes and their manifest; every probe and save unmarshals;**
+- **docx4j's `RunPropertiesWord365Test`, through this package's readers:** each of the 376 markers in the 28 files
+  reads in the probe as in Word's save (with H7, M6 and U4 from the PDFs): through the effective resolver (on/off, `u`,
+  highlight, `vertAlign`, `em`, colour, underline colour, fill, border), the text model (bold, italic, strike) and
+  Office JS's `Font` (effective), and after a round trip here. The direct `Font` differs from Word's save in six
+  markers only, each where the save rewrites direct markup (listed in the test). Its HTML and PDF tests have no
+  counterpart here;
+- **`anInvalidValueOverAStyleLeavesTheStyles`, `colourOnlyUnderlineIsNotDrawn`, `wordsOwnSaveChangesWhatItDrew`;**
+- **D8's records** (a read's warnings, a private read's, the save report);
+- **docx4j's `OnOffAttributesTest`:** the wml mapping's 48 `Boolean` attributes (docx4j's 46, and `checkStyle` and
+  `actualPg`, which docx4j binds as primitives its adapter can't reach and jsonix as `Boolean` like the rest), each
+  reached through a document from a global element by a search of the mapping, read for 15 values; `BooleanDefaultFalse`
+  is declared but no element has the type, so no document reaches it;
+- **docx4j's `ColourNormalFormTest` and `ColourNormalFormOptOutTest`,** the round-trip contract's category, and
+  `WordColors.normalise`/`stated`;
+- **check 60's file, snippet and shim run.**
+
+Elsewhere:
+- `properties.test.mjs` gains the `anchorLock` test, and a `{ val: 'yellow' }` sample, since a highlight and a colour
+  are now stated only by a value Word reads;
+- `mce.test.mjs`'s kept-branch save asserts objects 0.5.0's declaration of a source-only `Requires` prefix on its
+  `mc:Choice` (the objects package's CR-012, `869b725`; Word declares it there), where 0.4.3 declared it on the root.
+
+### 11.8 Verifying the objects release (the six steps)
+
+On objects `7feac7f` (phases A and B) and then `b2c9163` (A to C), each packed from a `git archive` and installed with
+`npm install --no-save`, with jsonix 3.8.0:
+
+1. The swap confirmed (`wordColor`, then `setNormaliseOnSave`, in the installed `dist`), `package.json` and the lock
+   untouched.
+2. The whole suite: with 11.1 alone, 1,516 of 1,516 under 0.4.3 and 1,515 of 1,516 under `7feac7f`, the one being the
+   `mce.test.mjs` assertion above; with all of this CR on `b2c9163`, 1,541 of 1,541; typecheck clean; parity zero.
+3. Every part a load re-marshals, hashed under 0.4.3 and under `b2c9163`, over this package's fixtures and docx4j's
+   chart corpus (507 files, 8,896 parts): two differ, each named. Check 50's `document.xml` declares its source-only
+   prefixes on their `mc:Choice` (objects CR-012), and pandoc-code's `styles.xml` writes 20 colours upper-case (phase
+   C's normaliser, listed by `onNormalised`). The 66 probe files all load under both of objects' commits; 13 fail under
+   0.4.3.
+4. The probes are the real data. Under jsonix in strict mode (a `--require` hook prepending `"use strict"` to
+   `jsonix-factory.js`, as a browser bundle loads it), the probe, round-trip, kept-branch and parity tests pass, 301 of
+   301.
+5. Restored with `npm ci` afterwards (the tree then needed the release: `WordColors` imports `wordColor`, which 0.4.3
+   lacks).
+6. Reported to the objects session, which published 0.5.0. **Against the published tarball** (the range `^0.5.0`,
+   `npm ci`, integrity `sha512-S75UZqQ0...motYkafQ==`, jsonix 3.8.0): typecheck clean, 1,541 of 1,541, and step 3's hash
+   set identical to `b2c9163`'s, part for part (508 files with check 60's, 8,901 parts), so the tarball is what was
+   verified.
+

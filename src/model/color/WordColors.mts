@@ -1,5 +1,6 @@
 // WordprocessingML colours resolved as Word draws them: docx4j `org.docx4j.model.color.WordColors` (CR-034).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import { wordColor } from '@docx4j/generated-objects-ts/helpers/wml';
 import * as ColorMath from './ColorMath.mjs';
 import { ResolvedColor } from './ResolvedColor.mjs';
 import type { ThemeColors } from './ThemeColors.mjs';
@@ -28,6 +29,11 @@ function truncate(v: number): number {
  * - Word's own rounding of that arithmetic is not reproduced exactly (within one unit per channel in all 7,700 tints
  *   and shades of four corpora), so where the written value is within one unit of the computed one - a current
  *   cache - Word's value is returned: exact for every attribute Word itself wrote against the document's theme.
+ * - A value is read as Word 365 reads it ({@link WordColors.normalise}, docx4j CR-060 and core-ts CR-015): trimmed,
+ *   hex in either case with an optional `#`, or one of the 140 classic HTML colour names. One Word rejects is
+ *   automatic. A fill, a pattern colour and a border's colour are read the same way, as Word reads them (round 5: a
+ *   name there is drawn): docx4j's `WordColors` since `a9e0303ff` (until then it normalised in `of(Color)` and `of(U)`
+ *   only; CR-015 section 11.4).
  *
  * docx4j's overloads `of(Color)`, `of(CTBorder)` and `of(U)` are {@link WordColors.of}, {@link WordColors.ofBorder}
  * and {@link WordColors.ofUnderline} here, since the three objects can't be told apart by shape; its `null` (for
@@ -57,32 +63,58 @@ export const WordColors = {
     return written !== undefined && written.within(computed, 1) ? written : computed;
   },
 
+  /**
+   * A colour value (`w:color/@w:val`, `w:u/@w:color`, `w:shd/@w:fill`, a border's `w:color`) as Word 365 reads it
+   * (docx4j CR-060 section 1, rule 3, and sections 12 and 13): surrounding whitespace trimmed, six hex digits in
+   * either case with an optional leading `#`; else a classic HTML colour name, in any case. The rule is the objects
+   * package's `wordColor` (its CR-013, held to docx4j's `WordColorValues`).
+   *
+   * @returns six upper-case hex digits; undefined for `auto` and for a value Word rejects, which Word reads as
+   * automatic in a fill or a border colour, and as absent in a text or underline colour ({@link WordColors.stated})
+   */
+  normalise(val: string | undefined | null): string | undefined {
+    const w = typeof val === 'string' ? wordColor(val) : undefined;
+    return w === undefined || w === 'auto' ? undefined : w.substring(1);
+  },
+
+  /**
+   * Whether a `w:color/@w:val` or `w:u/@w:color` value states a colour, as Word reads it (docx4j CR-060 sections 12
+   * and 13): one {@link WordColors.normalise} accepts, or exactly `auto` (automatic, which overrides a style's
+   * colour). Word reads any other value (`F00`, `bogus`, `""`, `Auto`, `" auto"`) as absent: a style's colour beneath
+   * still shows. (In a fill or a border colour it reads such a value as automatic instead.)
+   */
+  stated(val: string | undefined | null): boolean {
+    return typeof val === 'string' && wordColor(val) !== undefined;
+  },
+
   /** A run's colour (`w:color`); undefined for automatic. */
   of(c: wml.Color | undefined | null, theme: ThemeColors | undefined): ResolvedColor | undefined {
-    return c === undefined || c === null ? undefined : WordColors.resolve(c.val, c.themeColor, c.themeTint, c.themeShade, theme);
+    return c === undefined || c === null ? undefined
+      : WordColors.resolve(WordColors.normalise(c.val), c.themeColor, c.themeTint, c.themeShade, theme);
   },
 
   /** A shading's fill (`w:fill`, `w:themeFill`); undefined for automatic. */
   fill(shd: wml.CTShd | undefined | null, theme: ThemeColors | undefined): ResolvedColor | undefined {
     return shd === undefined || shd === null ? undefined
-      : WordColors.resolve(shd.fill, shd.themeFill, shd.themeFillTint, shd.themeFillShade, theme);
+      : WordColors.resolve(WordColors.normalise(shd.fill), shd.themeFill, shd.themeFillTint, shd.themeFillShade, theme);
   },
 
   /** A shading's pattern colour (`w:color`, `w:themeColor`); undefined for automatic. */
   pattern(shd: wml.CTShd | undefined | null, theme: ThemeColors | undefined): ResolvedColor | undefined {
     return shd === undefined || shd === null ? undefined
-      : WordColors.resolve(shd.color, shd.themeColor, shd.themeTint, shd.themeShade, theme);
+      : WordColors.resolve(WordColors.normalise(shd.color), shd.themeColor, shd.themeTint, shd.themeShade, theme);
   },
 
   /** A border's colour; undefined for automatic. docx4j `of(CTBorder)`. */
   ofBorder(border: wml.CTBorder | undefined | null, theme: ThemeColors | undefined): ResolvedColor | undefined {
     return border === undefined || border === null ? undefined
-      : WordColors.resolve(border.color, border.themeColor, border.themeTint, border.themeShade, theme);
+      : WordColors.resolve(WordColors.normalise(border.color), border.themeColor, border.themeTint, border.themeShade, theme);
   },
 
   /** An underline's colour; undefined for automatic (the text's colour). docx4j `of(U)`. */
   ofUnderline(u: wml.U | undefined | null, theme: ThemeColors | undefined): ResolvedColor | undefined {
-    return u === undefined || u === null ? undefined : WordColors.resolve(u.color, u.themeColor, u.themeTint, u.themeShade, theme);
+    return u === undefined || u === null ? undefined
+      : WordColors.resolve(WordColors.normalise(u.color), u.themeColor, u.themeTint, u.themeShade, theme);
   },
 
   /**

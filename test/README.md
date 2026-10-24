@@ -180,6 +180,15 @@ drew for each (`readings.tsv`), and the 117 distinct tint and shade triples of f
 Their `README.md` describes them; `manifest.json` gives each file's SHA-1, which `theme-colors.test.mjs` checks. Kept outside
 `fixtures/` so that no fixture-wide test or harness counts the probes.
 
+## The run property probes (`runprops-word365/`, CR-015)
+
+docx4j's probes for run properties Word 365 reads leniently (its CR-060 and CR-061), copied unedited from docx4j at
+`5163c2986` (`docx4j-core-tests/src/test/resources/runprops/word365/`, added in `87e6ace56`, Apache-2.0): Jason's seven
+rounds of 2026-10-24, 33 probes and Word 365's save of each (`<name>-word365.docx`), with docx4j's `README.md` of what each
+round tests. Each probe paragraph after the first is `label: MARKER (end)`, and only the marker run carries the property
+tested. `manifest.json` gives each file's SHA-1, which `runprops-word365.test.mjs` checks. Kept outside `fixtures/` so that no
+fixture-wide test or harness counts the probes; check 60's file (`fixtures/check60/build.mjs`) is built from 25 of them.
+
 ## Check 52's Word saves (`check52/`, CR-014 phase 0)
 
 Word 365's two saves of check 52's file after its Script Lab run (2026-10-22): `52-ranges-word365.docx` as the run left
@@ -4741,3 +4750,30 @@ async function check() {
      - **This package**: every hit but the marks was Word's, scope for scope. Since K7 (the same day, CR-002 section 32),
        the marks are too: `readers.test.mjs` holds the shim's run to Word's in every scope, and `replaceText` with
        wildcards refuses where a hit holds a mark, as a plain `^p` query is refused.
+
+60. What Office JS's `Font` reports for run properties Word reads leniently (CR-015 D4, 2026-10-24; Jason: "implement
+   CR-015"). Read only: nothing is changed. The file is `__tmp/60/60-runprops.docx` on the share, as
+   `fixtures/check60/build.mjs` writes it (git ignores the `.docx`; `check60Bytes` gives a test the same bytes). The snippet
+   is beside it, `check60-script-lab.html` and `check60-script-lab.js` (WordApi 1.3), copies of `fixtures/check60/`'s.
+   - **The file** is 25 of docx4j's probes (`runprops-word365/`, rounds 1 to 6), one after another, each starting with a
+     paragraph `PROBE <name>`; every other paragraph is `label: MARKER (end)`, the marker run carrying the property tested
+     (on/off values such as `yes`, `FALSE` and `" "`; `w:u` values outside its list; colour names and hex spellings; values
+     over styles). Word opened each of these probes without a repair. The three `props-enum` probes are left out: Word
+     repairs them, and what they show is its repair's doing.
+   - **What it reads:** for each marker, Office JS's `font.bold`, `italic`, `underline`, `strikeThrough`,
+     `doubleStrikeThrough`, `superscript`, `subscript`, `color` and `highlightColor`, then `allCaps`, `smallCaps`, `hidden`,
+     `emboss`, `engrave`, `outline`, `shadow` and `underlineColor` where the host has them (each read alone, so one it lacks
+     reads as an error and the rest still come back). A hidden marker (`w:vanish`) is recorded by its paragraph's text alone.
+   - **Steps, in Word 365 only:**
+     1. Open `__tmp/60/60-runprops.docx`. Say whether Word reports a problem or offers a repair.
+     2. Open Script Lab (Insert > Get Add-ins > Script Lab, then Script Lab > Code > New snippet). Paste the share's
+        `__tmp/60/check60-script-lab.html` over the HTML tab and `__tmp/60/check60-script-lab.js` over the Script tab.
+     3. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/60/result.txt`.
+     4. Close the document without saving.
+   - **What this package gives**, before the run (`runprops-word365.test.mjs` runs the snippet through the Word shim):
+     each marker reads as the probe's own `Font` does, which is Word's save's reading: an invalid on/off value on, an
+     invalid `w:u` no underline, a colour name its hex (`red` `#FF0000`), an invalid colour automatic (`#000000`), an
+     invalid highlight none (`null`), a character style's highlight none. A green highlight reads `#008000`, the objects
+     package's value for Word's `green`, which Office JS's own is the check's to say. `allCaps` and the rest after
+     `highlightColor` are not in the shim's `Font`.
+

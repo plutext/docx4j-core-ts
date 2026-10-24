@@ -1,10 +1,10 @@
-import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix } from '@docx4j/generated-objects-ts';
-import { Part } from './Part.mjs';
+import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading } from '@docx4j/generated-objects-ts';
+import { Part, type PartBytesOptions } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
-import type { PartWarning } from '../opc/mce/preprocessor.mjs';
+import type { PartWarning, ValueKeptWarning } from '../opc/mce/preprocessor.mjs';
 
 /**
  * The element or attribute a located runtime error names, out of its message: jsonix writes
@@ -24,6 +24,22 @@ function locationOf(message: string, located: boolean): string | undefined {
 function positionOf(line: number | undefined, column: number | undefined): string {
   if (line === undefined) return '';
   return column === undefined ? ` (line ${line})` : ` (line ${line}, column ${column})`;
+}
+
+/** A value the objects facade read by Word's rule, as a warning on the part (CR-015 D8). */
+function valueKept(reading: WordReading, partName: string): ValueKeptWarning {
+  const node = reading.element as Element & { lineNumber?: number; columnNumber?: number };
+  const name = reading.attribute;
+  const attribute = node.getAttributeNodeNS?.(name.namespaceURI || null, name.localPart)?.name ?? name.localPart;
+  const value = reading.value;
+  const read = value === true ? 'on' : value === undefined ? 'absent' : JSON.stringify(value);
+  return {
+    code: reading.kind, partName,
+    ...(typeof node.lineNumber === 'number' ? { line: node.lineNumber } : {}),
+    ...(typeof node.columnNumber === 'number' ? { column: node.columnNumber } : {}),
+    element: node.nodeName, attribute, text: reading.text, value,
+    message: `${partName}: ${node.nodeName}/@${attribute}=${JSON.stringify(reading.text)}${positionOf(node.lineNumber, node.columnNumber)} is not a value its type allows; read as ${read}, as Word 365 reads it`,
+  };
 }
 
 /** What `selectObjects` needs: the engine to evaluate with, and any prefixes beyond the defaults. */
@@ -95,9 +111,10 @@ export class XmlPart<T = unknown> extends Part {
   }
 
   /**
-   * What the preprocessor reported the last time this part was parsed (CR-010 phase 1): an
-   * mc:AlternateContent whose branches' text differs (`mce.branches_differ`). Empty until the part
-   * is parsed, by `getContents()` or a private read, and again once its contents are set.
+   * What the last parse of this part reported: an mc:AlternateContent whose branches' text differs
+   * (`mce.branches_differ`, CR-010 phase 1), and each attribute value its type refuses that was read as
+   * Word 365 reads it (`value.kept.exact`, `value.kept.invalid`: CR-015 D8). Empty until the part is
+   * parsed, by `getContents()` or a private read, and again once its contents are set.
    */
   get warnings(): readonly PartWarning[] {
     return this.parseWarnings;
@@ -177,8 +194,8 @@ export class XmlPart<T = unknown> extends Part {
   }
 
   /** Marshalled bytes when unmarshalled or set, else the source bytes untouched. */
-  async getBytes(): Promise<Uint8Array> {
-    if (this.element !== undefined) return encodeText(assertXmlCharacters(XML_DECLARATION + serializeXml(await this.marshalToNode()), `Part ${this.partName}`));
+  async getBytes(options?: PartBytesOptions): Promise<Uint8Array> {
+    if (this.element !== undefined) return encodeText(assertXmlCharacters(XML_DECLARATION + serializeXml(await this.marshalToNode(options)), `Part ${this.partName}`));
     if (this.bytes !== undefined) return this.bytes;
     const loaded = await this.loadSourceBytes();
     if (loaded === undefined) throw new Docx4JException(`Part ${this.partName} has no content and no source container`);
@@ -213,10 +230,18 @@ export class XmlPart<T = unknown> extends Part {
     return boundsOf(engine.select(xpath, snapshot.root, namespaces), snapshot);
   }
 
-  /** The root element as a DOM element (docx4j XmlUtils.marshaltoW3CDomDocument). */
-  async marshalToNode(): Promise<Element> {
+  /**
+   * The root element as a DOM element (docx4j XmlUtils.marshaltoW3CDomDocument). Run properties are written in
+   * their normal form unless the package's `normaliseOnSave` (else the objects package's `setNormaliseOnSave`) is
+   * false (CR-015 D2, the objects facade's CR-013 phase C): the tree keeps what it read.
+   */
+  async marshalToNode(options?: PartBytesOptions): Promise<Element> {
     if (this.element === undefined) await this.getContents();
-    return marshalNode(this.element as Jsonix.TypedNamedValue);
+    const marshal: MarshalOptions = {};
+    const normalise = this.package?.normaliseOnSave;
+    if (normalise !== undefined) marshal.normaliseOnSave = normalise;
+    if (options?.onNormalised !== undefined) marshal.onNormalised = options.onNormalised;
+    return marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
   }
 
   /**
@@ -248,8 +273,13 @@ export class XmlPart<T = unknown> extends Part {
    * locator).
    */
   private async unmarshal(doc: Document): Promise<Jsonix.TypedNamedValue<T>> {
+    const kept: ValueKeptWarning[] = [];
     try {
-      return await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc);
+      const element = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {
+        onWordReading: (reading) => kept.push(valueKept(reading, this.partName.name)),
+      });
+      if (kept.length > 0) this.parseWarnings = [...this.parseWarnings, ...kept];
+      return element;
     } catch (cause) {
       type LocatedNode = { lineNumber?: number; columnNumber?: number; getAttributeNS?(ns: string | null, local: string): string | null };
       const located = cause as { message?: unknown; node?: LocatedNode | undefined; attributeName?: { namespaceURI?: string; localPart?: string } | undefined; jsonixLocated?: boolean };

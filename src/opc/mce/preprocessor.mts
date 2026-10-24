@@ -64,8 +64,34 @@ export interface McBranchesDifferWarning {
   message: string;
 }
 
+/**
+ * An attribute value of Word's own WordprocessingML that its type refuses, read as Word 365 reads it
+ * rather than failing the part (CR-015 D8; the objects facade's `wordInvalidValue`, its CR-013):
+ * `value.kept.exact` where the text, trimmed of XML whitespace, is a form its type reads (`" false"`),
+ * else `value.kept.invalid` (`"yes"`, `"Single"`). The names are docx4j-python CR-018's.
+ */
+export interface ValueKeptWarning {
+  code: 'value.kept.exact' | 'value.kept.invalid';
+  partName: string | undefined;
+  /** Where the element starts in the part, where the DOM records it (xmldom does; a browser's DOMParser does not). */
+  line?: number;
+  column?: number;
+  /** The element and the attribute, as the part writes them: `w:b`, `w:val`. */
+  element: string;
+  attribute: string;
+  /** The attribute's text, as written. */
+  text: string;
+  /**
+   * What the tree holds instead: `true` for an on/off value (Word reads only exactly `false`, `off` and
+   * `0` as off), `'none'` for `w:u`'s on/off words, and undefined where the value was dropped, so the
+   * attribute reads as absent (a style's value beneath shows).
+   */
+  value: boolean | string | undefined;
+  message: string;
+}
+
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning;
+export type PartWarning = McBranchesDifferWarning | ValueKeptWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a

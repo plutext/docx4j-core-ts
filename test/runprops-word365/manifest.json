@@ -1,0 +1,279 @@
+{
+ "docx4j": {
+  "commit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
+  "branch": "VERSION_17_3_5",
+  "added": "87e6ace56",
+  "path": "docx4j-core-tests/src/test/resources/runprops/word365/",
+  "licence": "Apache-2.0"
+ },
+ "files": [
+  {
+   "name": "README.md",
+   "sha1": "85d7ac69f52b2ec3c56bd5ba18bb7a4e700ee1c9"
+  },
+  {
+   "name": "colour-auto-styles-word365.docx",
+   "sha1": "166f90d2a8cedbce357a8a54ce57083c2e4cf2af"
+  },
+  {
+   "name": "colour-auto-styles.docx",
+   "sha1": "d7594fe73a3c22ef691f39d06c9d2b0efaab8b81"
+  },
+  {
+   "name": "colour-background-f00-word365.docx",
+   "sha1": "b57b878a1b02fa13610aa4c9dc4fc077fde2b205"
+  },
+  {
+   "name": "colour-background-f00.docx",
+   "sha1": "4e3e62c26c79c9cd9c86e083c3bdc61aa51d5f4a"
+  },
+  {
+   "name": "colour-background-hex-word365.docx",
+   "sha1": "8a84bfe1d7c20b9a4e21f3af4452dab225a20a1f"
+  },
+  {
+   "name": "colour-background-hex.docx",
+   "sha1": "1cce51acc6689aaf3f6e6ab969f6bc5a2b5114ca"
+  },
+  {
+   "name": "colour-background-navy-word365.docx",
+   "sha1": "bb0c9dfd6dcea9a309d598e6008012c9b7322a2a"
+  },
+  {
+   "name": "colour-background-navy.docx",
+   "sha1": "3605da4abff9cd9a55a3e34dddd80b6d416b5667"
+  },
+  {
+   "name": "colour-background-red-word365.docx",
+   "sha1": "bf57c0fdf05e79192d76991a2649ede2a2497d17"
+  },
+  {
+   "name": "colour-background-red.docx",
+   "sha1": "6dcf7a9ee0736963648f41b9945e83452ae41769"
+  },
+  {
+   "name": "colour-case-word365.docx",
+   "sha1": "0c30c8c8cfff9f1c8d7b99766a56493e75557db3"
+  },
+  {
+   "name": "colour-case.docx",
+   "sha1": "e372163d90b474180a01bfc756e689a96642f99b"
+  },
+  {
+   "name": "colour-elsewhere-styles-word365.docx",
+   "sha1": "0880c6610c984cea6756e9ae9f1dadc1b1e896cb"
+  },
+  {
+   "name": "colour-elsewhere-styles.docx",
+   "sha1": "ea2414ec9abc5011ab3a1007bd03fee4e39d713b"
+  },
+  {
+   "name": "colour-elsewhere-word365.docx",
+   "sha1": "e20cf0471904126e4e0c2cd4384c8cd8ed276f8e"
+  },
+  {
+   "name": "colour-elsewhere.docx",
+   "sha1": "360bdc5321295348fb2e9e0d44bda85f9526a7dc"
+  },
+  {
+   "name": "colour-hex-word365.docx",
+   "sha1": "e8456d8ff64917c7028a8dc4afc81225c32dfe82"
+  },
+  {
+   "name": "colour-hex.docx",
+   "sha1": "7c9f18f31293919a929b9c904b21eec904b2a669"
+  },
+  {
+   "name": "colour-names-css-word365.docx",
+   "sha1": "4c12a90671558bdfef3e85379db22d7d7697b9e8"
+  },
+  {
+   "name": "colour-names-css.docx",
+   "sha1": "cee2adc4e3c6aefcd9e1108fc9788058f4b30c4d"
+  },
+  {
+   "name": "colour-names-highlight-word365.docx",
+   "sha1": "e2e86617865e528c060c4cdefdc706eb806bc0c7"
+  },
+  {
+   "name": "colour-names-highlight.docx",
+   "sha1": "2491353261ba8851c2d72c4df990b6b60bd89132"
+  },
+  {
+   "name": "colour-pattern-word365.docx",
+   "sha1": "461ecee6a925d1afc237eccd1760bfda27500110"
+  },
+  {
+   "name": "colour-pattern.docx",
+   "sha1": "273cf326bd88955b44afcea28d7474d83ecf7f95"
+  },
+  {
+   "name": "colour-styles-word365.docx",
+   "sha1": "e6912d2860712167f16a5f582662c306cd73cd7b"
+  },
+  {
+   "name": "colour-styles.docx",
+   "sha1": "ca4def6897f5fc6ec4d184f6676390a052a2e27b"
+  },
+  {
+   "name": "colour-table-grey-word365.docx",
+   "sha1": "e9c2a44213885a90002e46738a8c2a1bcd2656c5"
+  },
+  {
+   "name": "colour-table-grey.docx",
+   "sha1": "65978aa2e0b38b826d454725aa5f7e18f7c9587a"
+  },
+  {
+   "name": "colour-table-other-word365.docx",
+   "sha1": "d67f1557624e45597ba4becde76877a0f5313038"
+  },
+  {
+   "name": "colour-table-other.docx",
+   "sha1": "aca5e1daceb16381ab8bd170996a1089874efb28"
+  },
+  {
+   "name": "highlight-char-styles-word365.docx",
+   "sha1": "94923f257ef60222d64361d54b336890c47f5337"
+  },
+  {
+   "name": "highlight-char-styles.docx",
+   "sha1": "6297119704490d6d84cf06bbcf9bad0e46553840"
+  },
+  {
+   "name": "onoff-TRUE-word365.docx",
+   "sha1": "58d5b2e935afe2211f69c2790eadf48f2bba77df"
+  },
+  {
+   "name": "onoff-TRUE.docx",
+   "sha1": "661da9c49c2e2fa19d8e9ce7d1d373a0dc135085"
+  },
+  {
+   "name": "onoff-empty-word365.docx",
+   "sha1": "0db1a6e84df66878bffcb6454fff43dcfbac9b95"
+  },
+  {
+   "name": "onoff-empty.docx",
+   "sha1": "6e789e6b04a2d08e7669c01ef999bb39dda04abc"
+  },
+  {
+   "name": "onoff-space-word365.docx",
+   "sha1": "b52d9a75b23f9de743d5bcee67f9e63d7d61c723"
+  },
+  {
+   "name": "onoff-space.docx",
+   "sha1": "c6f6c165ca7587e791c94c65c52d6252178c477d"
+  },
+  {
+   "name": "onoff-valid-word365.docx",
+   "sha1": "43b5692586c0b4cfc0176e1eef8191eb6d68723e"
+  },
+  {
+   "name": "onoff-valid.docx",
+   "sha1": "8e174d7fca73636b8947a26af8a71b8ddece5233"
+  },
+  {
+   "name": "onoff-yes-word365.docx",
+   "sha1": "6d2fb94532205693f09091af6c9d46db27c6e931"
+  },
+  {
+   "name": "onoff-yes.docx",
+   "sha1": "80c151c4138791f1bc7a97504160cbb20459159f"
+  },
+  {
+   "name": "props-b-case-word365.docx",
+   "sha1": "6b1cdb50e17c1cf252637ccd2be524afc0b29aaf"
+  },
+  {
+   "name": "props-b-case.docx",
+   "sha1": "3bbd0b163a8407afd86f58035417fab7c75a83e7"
+  },
+  {
+   "name": "props-b-styles-word365.docx",
+   "sha1": "a361bc879ecd8bcf724b65e0246988fcb72185df"
+  },
+  {
+   "name": "props-b-styles.docx",
+   "sha1": "276fa157dd903b292175b86c1b8ed5cd85829a6b"
+  },
+  {
+   "name": "props-enum-missing-word365.docx",
+   "sha1": "020e70a4a6ad354f3d433e5d3fec689da557d27e"
+  },
+  {
+   "name": "props-enum-missing.docx",
+   "sha1": "3272a071db219943f37d4ce64d147d75b2890c2d"
+  },
+  {
+   "name": "props-enum-other-word365.docx",
+   "sha1": "a72b231728c611901a3a54ac375cbb322b5cc4b9"
+  },
+  {
+   "name": "props-enum-other.docx",
+   "sha1": "30c79b39ed46db09e27d3d06287e0de075ccdf6b"
+  },
+  {
+   "name": "props-enum-styles-word365.docx",
+   "sha1": "a2b952eb8f1ad96f6d1f6e135e1df4107cd31633"
+  },
+  {
+   "name": "props-enum-styles.docx",
+   "sha1": "2bd33833ae5c3a616fdb5353c6dde5efdf5d2bdb"
+  },
+  {
+   "name": "props-toggles-1-word365.docx",
+   "sha1": "26361f73f4bd33b7ca5c8eaaa5ce6764b3596fff"
+  },
+  {
+   "name": "props-toggles-1.docx",
+   "sha1": "2f4d51a81ddb482f32fcd2acb1c229f831b0716c"
+  },
+  {
+   "name": "props-toggles-2-word365.docx",
+   "sha1": "f51ea13ad04ea388d599eae0e0b7ebc35794ba61"
+  },
+  {
+   "name": "props-toggles-2.docx",
+   "sha1": "903d3b1040f85a20d7213e6257ff737999ef4cf7"
+  },
+  {
+   "name": "props-u-case-word365.docx",
+   "sha1": "deb116c8b3868beb3d4471735428467cf6f02748"
+  },
+  {
+   "name": "props-u-case.docx",
+   "sha1": "8f941072898265474d75d98573d7395139c18add"
+  },
+  {
+   "name": "props-u-onoff-styles-word365.docx",
+   "sha1": "54b6a14cd586f97ba04d5c9c982765b76ef6ffda"
+  },
+  {
+   "name": "props-u-onoff-styles.docx",
+   "sha1": "97b4236b25da51d64c606853ffbfd5429e0b4879"
+  },
+  {
+   "name": "props-u-other-word365.docx",
+   "sha1": "c506430aa29a324491d3d9ea0786b80b47480dcf"
+  },
+  {
+   "name": "props-u-other.docx",
+   "sha1": "2f4228da02345d34f9ff54a0652479caa94ffed1"
+  },
+  {
+   "name": "props-u-styles-word365.docx",
+   "sha1": "aaa3c2a79dd552e6ab799fc214a96f99aedcfebb"
+  },
+  {
+   "name": "props-u-styles.docx",
+   "sha1": "40641261d4cb141530fa2790b74fbc5da23793ce"
+  },
+  {
+   "name": "props-u-valid-word365.docx",
+   "sha1": "63ec049068b4612763b2a4767f1e8b86933f2ec8"
+  },
+  {
+   "name": "props-u-valid.docx",
+   "sha1": "67f0ee04edd25010cd05043d85dd160041520a9d"
+  }
+ ]
+}

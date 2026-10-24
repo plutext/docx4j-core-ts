@@ -5,8 +5,36 @@ import { Docx4JException } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import type { Part } from '../parts/Part.mjs';
+import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
 import { encodeText } from '../xml/dom.mjs';
+
+/**
+ * A value a save wrote in its normal form, or left out (CR-015 D2 and D8; the objects facade's normaliser, its
+ * CR-013 phase C, docx4j CR-061's rule): `path` from the part's root, `before` as read, `after` as written, null
+ * where the attribute or the element was left out. The code is docx4j-python CR-018's.
+ */
+export interface ValueNormalised {
+  code: 'value.normalised';
+  partName: string;
+  path: string;
+  before: string | undefined;
+  after: string | null;
+  message: string;
+}
+
+/** What the last save of a package did beyond writing it: each value it normalised (CR-015 D8). */
+export interface SaveReport {
+  normalised: ValueNormalised[];
+}
+
+function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
+  const after = n.after === null ? 'left out' : `written ${JSON.stringify(n.after)}`;
+  return {
+    code: 'value.normalised', partName, path: n.path, before: n.before, after: n.after,
+    message: `${partName}: ${n.path} ${n.before === undefined ? '(no value)' : JSON.stringify(n.before)} ${after}, as Word reads it`,
+  };
+}
 
 /**
  * Writes a package to a sink (docx4j io3.Save): `[Content_Types].xml` first, then the package
@@ -18,11 +46,14 @@ export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promis
   const saver = new Saver(pkg, sink);
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
-  return sink.finish();
+  const result = await sink.finish();
+  pkg.lastSave = { normalised: saver.normalised };
+  return result;
 }
 
 class Saver {
   private readonly handled = new Set<string>();
+  readonly normalised: ValueNormalised[] = [];
 
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
 
@@ -41,7 +72,7 @@ class Saver {
     this.handled.add(part.partName.key);
     let bytes: Uint8Array;
     try {
-      bytes = await part.getBytes();
+      bytes = await part.getBytes({ onNormalised: (n) => this.normalised.push(valueNormalised(part.partName.name, n)) });
     } catch (e) {
       throw new Docx4JException(`Problem saving part ${part.partName}`, { cause: e });
     }

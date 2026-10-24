@@ -266,6 +266,22 @@ All 62 goldens, the 62 under `xpath/` and the 96 under `revisions/` were regener
 answer moved, no XPath hit, and nothing listed, resolved or left of the comments. `text/` was added,
 from the same release (below). CR-012 section 20.
 
+## docx4j `VERSION_17_3_5` at `5163c2986` (2026-10-24)
+
+All 62 goldens, the 62 under `xpath/`, the 96 under `revisions/` and the 282 under `text/` were
+regenerated from docx4j `VERSION_17_3_5` at `5163c29862ed6c6b5f6a707fc30c98e009e3c05d` (pushed; built
+from a `git archive` into a scratch Maven repository, `docx4j-core-17.3.5-SNAPSHOT.jar`, SHA-256
+`3ccd10ffa0c17ebe…`), harness versions 4, 1, 2 and 1. It holds docx4j's CR-059 (its `wml.xsd`'s boolean
+attribute defaults) with `82c64bf14`, which reads `w:framePr/@w:anchorLock` as stated: a `w:framePr`
+is empty only with `w:anchorLock` absent too, and a merge keeps the style's where the more specific one
+omits it, where docx4j had written `isAnchorLock()`'s `true` out. Eight answers moved, each a
+paragraph's `effectivePPr` losing `w:anchorLock="true"`: five in `loadAndSave.json`, two in
+`NumberingImplicitNumId.json`, one in `NumberingIndents.json`. The catalogue's `isEmptyFramePr` and
+`mergeFramePr` follow (CR-015 section 11). It holds docx4j's CR-060 and CR-061 too (run properties read
+as Word reads them, colours written plainly on save), which moved no answer: no fixture holds a value
+whose reading they change. Header fields aside, nothing else moved, no XPath hit, nothing listed or
+resolved, and no text block.
+
 ## `text/`: the text model (CR-012 phase 6)
 
 One JSON file per WordprocessingML document under `test/fixtures/` and `test/text-extraction/`, at
@@ -297,7 +313,7 @@ metadata.
 
 | | |
 |---|---|
-| docx4j | the 17.3.4 release, `8f455ebab` |
+| docx4j | `VERSION_17_3_5` at `5163c2986` (the 17.3.4 release, `8f455ebab`, when first recorded) |
 | harness version | 1 |
 | fixtures | the 252 `.docx`, `.docm` and `.dotx` committed under `test/fixtures/` and the 30 under `test/text-extraction/` |
 
@@ -317,6 +333,6 @@ wall-clock time on both sides.
 
 | | |
 |---|---|
-| docx4j | the 17.3.4 release, `8f455ebab` (`VERSION_17_3_4` at `a8bc6cda9` when harness version 2 was first recorded, the 17.3.3 release at harness version 1) |
+| docx4j | `VERSION_17_3_5` at `5163c2986` (the 17.3.4 release, `8f455ebab`, before it; `VERSION_17_3_4` at `a8bc6cda9` when harness version 2 was first recorded, the 17.3.3 release at harness version 1) |
 | harness version | 2 |
 | fixtures | the 96 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,784 changes listed |

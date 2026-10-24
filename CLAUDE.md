@@ -51,7 +51,9 @@ change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (range
 52 and 53 run in Word 365; one `Range` with two ends, its reads and its writes held to Word's runs and saves through the
 Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54), and CR-008 phase 2 (docx4j's colour resolver,
 `org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
-as Word draws it). The editor's release requests are
+as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
+CR-061) is implemented through phase 2b, not yet released, on objects 0.5.0 (its CR-013 A to C); phase 3's check 60 waits for
+Jason's run. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -107,7 +109,8 @@ src/model/properties/ PropertyResolver, the property catalogue (one entry per sc
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColor, ThemeColors (ofTheme sync; `await ThemeColors.of(pkg or part)`,
-                  forChart; a themeless package the bundled theme pkg.fonts.defaultTheme names), WordColors (of, ofBorder, ofUnderline, fill, pattern),
+                  forChart; a themeless package the bundled theme pkg.fonts.defaultTheme names), WordColors (of, ofBorder, ofUnderline, fill, pattern;
+                  normalise and stated, docx4j CR-060's, over the objects package's wordColor: a value read as Word reads it, CR-015),
                   DrawingMLColors (transforms in document order, style references), SpreadsheetColors, StyleFill; ColorMath is docx4j's arithmetic
                   in its order (the luminance rounding depends on it); PropertyResolver.getThemeColors() and resolveColor/resolveFill/... use them
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout, spanEdits.mts its writes across paragraphs), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
@@ -144,6 +147,13 @@ Key mechanics:
   only relationships parts and `XmlPart`s that were unmarshalled (or had contents/bytes set) are
   re-marshalled, everything else is copied from the source. Do not call `getContents()` on a
   part unless the caller asked for its contents. `[Content_Types].xml` is always regenerated.
+- **Run properties are read and written as Word 365 reads them** (CR-015). The objects facade reads an attribute value
+  its type refuses by Word's rule rather than failing the part (on/off on unless exactly `false`, `off` or `0`; an
+  enumeration value outside its list dropped; `w:u`'s on/off words `none`), and each such value is a `ValueKeptWarning`
+  on the part's `warnings`. A marshal writes run properties in their normal form (objects CR-013 phase C, docx4j CR-061's
+  rule: colours upper-case `RRGGBB`, a rejected text colour left out, what Word repairs left out), unless
+  `pkg.normaliseOnSave` (else the objects package's `setNormaliseOnSave`) is false; `pkg.lastSave.normalised` lists what
+  the last save rewrote. Only an unmarshalled part is marshalled, so an untouched part is still copied byte for byte.
 - **Container is separate from package.** `PartStore` (load) and `PartSink<R>` (save) abstract
   zip (`fflate`; the central directory is parsed here, entries inflate lazily), flat OPC
   (`pkg:package`; content types are per part, so the store synthesises `[Content_Types].xml`),
@@ -177,9 +187,10 @@ Key mechanics:
   listing pairs each other branch's changes with the selected branch's as twins, resolved with them (`Listing`,
   `pairTwins`; resolve-all lists every branch's on their own, CR-013 phase 3). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
   `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
-  it (CR-010 section 14.4). The floor is objects 0.4.3, over `@docx4j/jsonix` 3.5.0, whose marshal declares the
+  it (CR-010 section 14.4). The floor is objects 0.5.0, over `@docx4j/jsonix` 3.8.0, whose marshal declares the
   prefixes a kept `mc:Choice`'s `Requires` names (0.4.2, CR-010 section 14.8), from the source where
-  only the source bound them (its CR-011, section 14.9).
+  only the source bound them (its CR-011, section 14.9), on the `mc:Choice` itself, as Word does (0.5.0, its CR-012);
+  and which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
   (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
@@ -310,6 +321,11 @@ region, the readers on Word's saves, and section 62.3's rules (a `w:fldSimple` s
 outside `fixtures/`), every probe case resolved through its host's `ThemeColors` and held to Office's reading at docx4j's bar and to
 docx4j's own tallies family by family, docx4j's `ThemeColorsTest` and `ThemeColourOutputTest`'s resolver cases, and `Font.color` on the
 probes against what Word drew,
+`runprops-word365.test.mjs` CR-015's: docx4j's run property probes (`test/runprops-word365/`, copied unedited with a SHA-1 manifest,
+outside `fixtures/`), each of the 376 markers held to Word's save of its probe through the resolver, the text model, `Font` and a round
+trip; docx4j's `RunPropertiesWord365Test`, `OnOffAttributesTest` (every `Boolean` attribute of the wml mapping), `ColourNormalFormTest`
+and `ColourNormalFormOptOutTest`; D8's warnings and save report; and check 60's file (`check60Bytes`, `test/fixtures/check60/`, built
+from 25 of the probes) and snippet, run through the shim,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
@@ -334,7 +350,7 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
 `org.docx4j.model.revisions` (its CR-043) lists of each of the 96 fixtures with revision markup, at
 any depth, and what each resolve-all leaves, with and without a filter, tracked changes and (harness
 version 2, CR-002 section 54) comments (`RevisionsHarness`, in UTC; a golden's path mirrors its
-fixture's; recorded from the docx4j 17.3.4 release, `8f455ebab`), compared by
+fixture's; recorded from docx4j `VERSION_17_3_5` at `5163c2986`), compared by
 `test/revisions-parity.test.mjs`. `test/golden/text/` is CR-012 phase 6's: what docx4j's `org.docx4j.model.text`
 (`Texts.of`, `PlainText.of`) answers for each of the 282 documents under `test/fixtures/` and `test/text-extraction/`,
 in four readings (the three views, and every story and optional item included), as the block model and the plain text
@@ -389,7 +405,8 @@ table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry 
   `VERSION_17_3_5` on 2026-10-22 when 17.3.4 was released (tag `docx4j-17.3.4`, `8f455ebab`; 17.3.4 ships
   CR-046, the text model this package's CR-012 follows). The parity workflow checks out `VERSION_17_3_5`,
   and `test/java/pom.xml` resolves the 17.3.4 release for a hand-run (the workflow reads docx4j's
-  `<revision>` instead), since CR-012's phase 6. The classes being
+  `<revision>` instead), since CR-012's phase 6; the release answers `w:framePr`'s `anchorLock` as before
+  `82c64bf14`, so a hand-run that means to reproduce the goldens builds the head. The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
@@ -400,8 +417,10 @@ table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry 
   the weekly workflow on 2026-09-28 with every answer unchanged) until CR-007, then `0349796f9`
   (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
   section 22), then `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge, CR-008 section 6), then
-  `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), and now record
-  `8f455ebab`, the 17.3.4 release (CR-012 phase 6: no answer moved), harness version 4, which needs
+  `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), then
+  `8f455ebab`, the 17.3.4 release (CR-012 phase 6: no answer moved), and now record `5163c2986`
+  (`VERSION_17_3_5`, pushed; CR-015 section 11: docx4j `82c64bf14` reads `w:framePr`'s `anchorLock` as
+  stated, which moved eight answers, ported; CR-060 and CR-061 moved none), harness version 4, which needs
   docx4j 17.3.1's table context; the project does not compile against anything before 17.3.4, whose
   `org.docx4j.model.text` `TextHarness` calls. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.

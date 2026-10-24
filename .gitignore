@@ -26,3 +26,5 @@ node_modules
 /test/fixtures/check56/*.docx
 # check 57's file, built in memory by its test (fixtures/check57/build.mjs); Word reads the share's copy
 /test/fixtures/check57/*.docx
+# check 60's file, built in memory by its test from the probes in runprops-word365/ (fixtures/check60/build.mjs); Word reads the share's copy
+/test/fixtures/check60/*.docx

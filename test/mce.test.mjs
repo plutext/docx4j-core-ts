@@ -247,7 +247,9 @@ test('an element nothing can be selected from is kept whole, and a save writes i
   assert.equal(body.paragraphs[0].text, 'Before after', 'the content API does not read a kept branch yet');
   body.paragraphs[0].insertText('!', 'End');
   const xml = new TextDecoder().decode(new ZipPartStore(await back.save()).loadSync('word/document.xml'));
-  assert.ok(xml.includes('<mc:AlternateContent><mc:Choice Requires="zz">'), 'kept');
+  // objects 0.5.0 (its CR-012, 869b725) declares a prefix only the source bound on the mc:Choice whose Requires names
+  // it, as Word does, where 0.4.3 declared it on the root
+  assert.ok(xml.includes('<mc:AlternateContent><mc:Choice xmlns:zz="urn:example:zz" Requires="zz">'), 'kept');
   assert.ok(xml.includes('Hello box'));
   assert.ok(xml.includes('after!'), 'and the edit');
 });

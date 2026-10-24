@@ -5,7 +5,7 @@ import { MemoryPartSink, type PartStore, type PartSink } from '../opc/PartStore.
 import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
-import { savePackage } from '../opc/Save.mjs';
+import { savePackage, type SaveReport } from '../opc/Save.mjs';
 import { Docx4JException } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
@@ -39,6 +39,18 @@ export class OpcPackage implements RelationshipSource {
   docPropsCorePart: DocPropsCorePart | undefined;
   docPropsExtendedPart: DocPropsExtendedPart | undefined;
   docPropsCustomPart: DocPropsCustomPart | undefined;
+  /**
+   * Whether a save writes run properties in their normal form (CR-015 D2; docx4j CR-061's
+   * `setNormaliseOnSave`): a colour Word accepts as upper-case `RRGGBB`, one it rejects left out (a text or
+   * underline colour) or `auto` (a fill's, a border's), a `w:highlight`, `w:vertAlign` or `w:em` Word repairs away
+   * left out; a revision's former properties too. Only what is written changes: the tree keeps what it read, and a
+   * part nobody unmarshalled is still copied byte for byte. Undefined defers to the objects package's process-wide
+   * `setNormaliseOnSave` (on unless set off); a package's own setting wins over it. False writes values as read.
+   * On/off values and `w:u`'s are settled when the part is read, so they are written the same either way.
+   */
+  normaliseOnSave: boolean | undefined;
+  /** What the last save did beyond writing the package: each value it normalised (CR-015 D8). Undefined until one. */
+  lastSave: SaveReport | undefined;
 
   constructor() {
     this.relationshipsPart = RelationshipsPart.createPackageRels();
@@ -149,6 +161,7 @@ export class OpcPackage implements RelationshipSource {
     if (copy.constructor !== this.constructor) {
       throw new Docx4JException(`Cloning ${this.constructor.name} produced ${copy.constructor.name}`);
     }
+    copy.normaliseOnSave = this.normaliseOnSave;
     this.copyPackageSettingsTo(copy);
     return copy as this;
   }

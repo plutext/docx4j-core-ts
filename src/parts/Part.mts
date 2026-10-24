@@ -1,8 +1,14 @@
 import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx4j_relationships';
+import type { Normalisation } from '@docx4j/generated-objects-ts';
 import { PartName } from '../opc/PartName.mjs';
 import { InvalidFormatException } from '../opc/exceptions.mjs';
 import type { RelationshipsPart, AddPartBehaviour } from './RelationshipsPart.mjs';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
+
+/** What a save asks of a part's bytes (CR-015 D8): to be told of each value the objects facade's normaliser rewrote. */
+export interface PartBytesOptions {
+  onNormalised?(normalisation: Normalisation): void;
+}
 
 /** Something that owns a relationships part: a part or the package (docx4j Base). */
 export interface RelationshipSource {
@@ -101,8 +107,11 @@ export abstract class Part implements RelationshipSource {
     return undefined;
   }
 
-  /** The bytes to write on save. Untouched parts come back from the source container unchanged. */
-  abstract getBytes(): Promise<Uint8Array>;
+  /**
+   * The bytes to write on save. Untouched parts come back from the source container unchanged. A part
+   * marshalled through the objects facade tells `options.onNormalised` of each value written in its normal form.
+   */
+  abstract getBytes(options?: PartBytesOptions): Promise<Uint8Array>;
 
   /** Whether the part carries content of its own (set or unmarshalled) rather than relying on the source container. */
   abstract get isLoaded(): boolean;

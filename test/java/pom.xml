@@ -30,7 +30,10 @@
          org.docx4j.model.text, released in 17.3.4 (Maven Central, 2026-10-22).  This is the latest
          release, for a hand-run check; to measure docx4j's head, build its development branch
          (VERSION_17_3_5, <revision> 17.3.5-SNAPSHOT) and pass -Ddocx4j.version=17.3.5-SNAPSHOT, as the
-         README says and as the workflow does after reading docx4j's pom. -->
+         README says and as the workflow does after reading docx4j's pom.  The committed goldens record
+         VERSION_17_3_5 at 5163c2986 (2026-10-24), where docx4j 82c64bf14 reads w:framePr's anchorLock as
+         stated; the 17.3.4 release gives eight framePr answers the old way, so build the head to
+         reproduce them. -->
     <docx4j.version>17.3.4</docx4j.version>
     <!-- the parity harness by default; -Dexec.mainClass=org.docx4j.parity.XPathHarness runs CR-006's
          XPath oracle instead, and org.docx4j.parity.RevisionsHarness CR-011's tracked changes (a
