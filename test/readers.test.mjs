@@ -536,6 +536,38 @@ test("check 59's file and snippet agree, and the snippet through the Word shim i
   assert.deepEqual([body.paragraphs[2].text, body.paragraphs[2].replaceText('Q', 'X', { matchWildcards: true }), body.paragraphs[2].text], ['Q', 1, 'X'], 'a hit holding no mark is replaced');
 });
 
+test("the matchers across marks are exported, for a caller's own segments (the editor's request, 2026-10-26; CR-014 section 15)", async () => {
+  const root = await import('../dist/index.mjs');
+  const model = await import('../dist/model/index.mjs');
+  for (const name of ['wildcardMatchesAcross', 'paragraphMarkPieces', 'officeMatches', 'searchPattern']) {
+    assert.equal(typeof root[name], 'function', name);
+    assert.equal(model[name], root[name], name);
+  }
+  const { wildcardMatchesAcross, paragraphMarkPieces } = root;
+  assert.deepEqual(paragraphMarkPieces('A^pB^p'), ['A', 'B', '']);
+  assert.deepEqual(paragraphMarkPieces('A^^pB'), undefined, '^^ is an escaped caret');
+  assert.deepEqual(paragraphMarkPieces('A^tB'), undefined);
+  // segments of the caller's own, in officeMatches' shape: a caller's paragraphs, each followed by its mark
+  const seg = (text, start = 0) => ({ text, start, item: { name: { localPart: 't' } } });
+  const pieces = [
+    { segments: [seg('XA'), seg('Q', 2)], from: 0, to: 3, length: 3, mark: true },
+    { segments: [seg('ZB')], from: 0, to: 2, length: 2, mark: true },
+    { segments: [seg('C')], from: 0, to: 1, length: 1, mark: false },
+  ];
+  const hits = wildcardMatchesAcross(pieces, 'Q?Z', {});
+  assert.deepEqual(hits.map(({ first, start, last, end, mark }) => ({ first, start, last, end, mark })), [{ first: 0, start: 2, last: 1, end: 1, mark: false }]);
+  assert.deepEqual(wildcardMatchesAcross(pieces, 'B^13', {}).map(({ first, start, last, end, mark }) => ({ first, start, last, end, mark })),
+    [{ first: 1, start: 1, last: 1, end: 2, mark: true }], 'a hit ending with a mark holds it');
+  // the same paragraphs searched by Body.search, whose wildcard search they are
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  for (const text of ['XAQ', 'ZB', 'C']) body.insertParagraph(text, 'End');
+  const theirs = body.search('Q?Z', { matchWildcards: true });
+  assert.deepEqual(theirs.map((r) => r.text), ['Q\rZ']);
+  const own = body.paragraphs.map((p, j, all) => ({ segments: p.segments({ objects: true }), from: 0, to: p.text.length, length: p.text.length, mark: j < all.length - 1 }));
+  assert.deepEqual(wildcardMatchesAcross(own, 'Q?Z', {}).map((m) => m.match[0]), ['Q\rZ']);
+});
+
 test('CR-012 section 19: a deleted mark reads as nothing in Word\'s default view, the paragraphs apart, a cell\'s end kept (check 58)', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = await pkg.getBody();

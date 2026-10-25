@@ -1066,3 +1066,27 @@ range isn't this shape: its paragraphs are the head and the tail, and the delete
 **Fixed:** the block is removed, or marked deleted, once. `ranges.test.mjs` deletes a two-cell table's whole range
 untracked (the paragraphs either side stay) and tracked (one change; Accept All takes the table alone). The untracked
 half fails on `906d5e3`'s build.
+
+## 15. The matchers across marks exported, for the editor (2026-10-26)
+
+**Asked by** the editor (its ED-008 section 8.8, install item 11). Its Finder is to follow Word's Find across paragraph
+marks, as `Body.search` and `Range.search` have since 0.6.0: `^p` in a plain query (section 11) and wildcards
+(CR-002 section 32, K7). The Finder searches the editor's own edit layer, not this package's tree, so it needs the
+two matchers over its own segments. 0.6.0 had them in `search.mts`, but the content index re-exported only
+`searchPattern`, `findAll`, `matchesOf`, `expandReplacement` and `officeMatches`, and the exports map allows no deep
+import. Until a release exports them, the editor carries a verbatim copy, under `UPSTREAM-24`.
+
+**Exported** from `model/content/index.mts`, and so from `.` and `./model`, unchanged, as `officeMatches` is:
+- `wildcardMatchesAcross(pieces, query, options)`. Each piece is a paragraph's `MarkedSegments`: its segments in
+  `officeMatches`' `SearchSegment` shape, the `[from, to)` of its text that is read, its text's length, and whether its
+  mark follows. Each hit is a `MarkedMatch`, from `start` in piece `first` to `end` in piece `last`. It holds the mark
+  where `mark` is set.
+- `paragraphMarkPieces(query)`: a plain query split at `^p` (`^^` stays an escaped caret), or `undefined` where the
+  query holds no `^p`.
+
+The caller still chooses which paragraphs a hit may span and which marks it may hold. That is `Range.searchWildcards`'s
+rule, which isn't exported: one cell's paragraphs or none's, and a paragraph's own mark, never a cell's or a row's end.
+
+**Tests.** `readers.test.mjs` checks that both entry points export the matchers. It runs `wildcardMatchesAcross` over
+segments built by hand in the shape a caller passes, and holds it to `Body.search` over the same paragraphs.
+`test/nodenext/consumer.mts` uses the two functions and their types through the package's name. 1,608 tests pass.

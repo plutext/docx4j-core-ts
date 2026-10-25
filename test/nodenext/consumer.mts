@@ -3,7 +3,10 @@
 // which accepts extensionless relative imports in declarations; nodenext rejects them (TS2835), and with
 // skipLibCheck they silently degrade to any (@docx4j/generated-objects-ts 0.1.0 shipped that). Run by
 // npm test after the build.
-import { Part, unwrap } from '@docx4j/core-ts';
+import {
+  Part, unwrap, wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
+  DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
+} from '@docx4j/core-ts';
 import { PartName } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
@@ -29,6 +32,19 @@ export async function consume(): Promise<string> {
   return name.extension;
 }
 
+
+/** CR-014 section 15: the matchers across marks over a caller's own segments, as the editor's Finder calls them. */
+export function findAcrossMarks(pieces: readonly MarkedSegments[], query: string): MarkedMatch[] {
+  const parts: string[] | undefined = paragraphMarkPieces(query);
+  return parts ? [] : wildcardMatchesAcross(pieces, query, { matchWildcards: true });
+}
+
+/** CR-002 section 63.28: a caller's own control given its kind's default entry, as the editor's placeholders are. */
+export function nameDefaultEntry(sdtPr: Parameters<typeof namePlaceholderEntry>[0]): DefaultEntry | undefined {
+  const entry: DefaultEntry | undefined = placeholderEntryOf(sdtPr) === undefined ? defaultEntryFor(sdtPr) : undefined;
+  if (entry) namePlaceholderEntry(sdtPr, entry.name);
+  return entry ?? DEFAULT_ENTRIES.text;
+}
 
 /**
  * CR-002 section 22.1: the shim accepts Office JS's collection members at runtime, so its types must

@@ -7452,3 +7452,23 @@ Through the shim:
 
 `placeholders.test.mjs` also holds the edges the checks don't reach: a trailing link, a proofing mark, a paragraph of
 markers, the tracked writes, line breaks, and a search hit's 'After'.
+
+### 63.28 The default entries and the reference's helpers exported, for the editor (2026-10-26)
+
+**Asked by** the editor (its ED-008 section 8.8, item 14). The editor's own placeholders now take Word's form: a
+control made at a caret, or a bound control written an empty value. As `showPlaceholder` does, each names its kind's
+default entry in `w:placeholder/w:docPart` and shows the entry's text in Placeholder Text. At save, the editor calls
+`pkg.glossaryEntries.require(name, text)` for each entry its controls name, so the save writes the glossary (D9). That
+works through the public `GlossaryEntries`. But section 63.22's entry table, the kind rule, and the reading and naming of
+the reference were in `placeholders.mts`, which the content index didn't re-export, so the editor carries copies of
+them until a release exports them.
+
+**Exported** from `model/content/index.mts`, and so from `.` and `./model`, unchanged:
+- `DEFAULT_ENTRIES` (with the `DefaultEntry` type), `DEFAULT_PLACEHOLDER_ENTRY` and `DEFAULT_PLACEHOLDER_TEXT`;
+- `defaultEntryFor(sdtPr)`: the kind's default entry, undefined for a kind Word gives none;
+- `placeholderEntryOf(sdtPr)`: the entry a control's `w:placeholder` names, undefined in the bare form;
+- `namePlaceholderEntry(sdtPr, entry)`: names the entry where Word writes it, after `w:id` and before `w:showingPlcHdr`.
+
+**Tests.** `placeholders.test.mjs` checks that both entry points export them. It holds `defaultEntryFor` and
+`placeholderEntryOf` to what a control made here reads (`defaultPlaceholderEntry`, `placeholderEntry`), and checks the
+reference's place, one reference after a rename. `test/nodenext/consumer.mts` uses them through the package's name.

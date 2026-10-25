@@ -1427,6 +1427,35 @@ test("CR-002 section 63.22: a date picker, a list and a text control each show t
   assert.match(await picture.getXml(), /<w:t>Click or tap here to enter text\.<\/w:t>/);
 });
 
+test("CR-002 section 63.28: the default entries and the reference's helpers are exported, for a caller's own controls (the editor's request, 2026-10-26)", async () => {
+  const root = await import('../dist/index.mjs');
+  const model = await import('../dist/model/index.mjs');
+  for (const name of ['DEFAULT_ENTRIES', 'DEFAULT_PLACEHOLDER_ENTRY', 'DEFAULT_PLACEHOLDER_TEXT', 'defaultEntryFor', 'placeholderEntryOf', 'namePlaceholderEntry']) {
+    assert.notEqual(root[name], undefined, name);
+    assert.equal(model[name], root[name], name);
+  }
+  const { DEFAULT_ENTRIES, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry } = root;
+  assert.deepEqual(DEFAULT_ENTRIES.text, { name: DEFAULT_PLACEHOLDER_ENTRY, text: DEFAULT_PLACEHOLDER_TEXT });
+  // the kind rule and the reference are what a control made here has
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  for (const kind of ['DatePicker', 'DropDownList', 'PlainText', 'CheckBox']) {
+    const control = body.insertParagraph('', 'End').insertContentControl(kind);
+    const { sdtPr } = control.sdt;
+    assert.deepEqual(defaultEntryFor(sdtPr), control.defaultPlaceholderEntry, kind);
+    assert.equal(placeholderEntryOf(sdtPr), control.placeholderEntry, kind);
+  }
+  // named where Word writes it, after w:id and before w:showingPlcHdr, replacing a reference already there
+  const control = body.insertParagraph('', 'End').insertContentControl('PlainText');
+  const { sdtPr } = control.sdt;
+  namePlaceholderEntry(sdtPr, 'ABC');
+  namePlaceholderEntry(sdtPr, 'DEF');
+  assert.equal(placeholderEntryOf(sdtPr), 'DEF');
+  const names = sdtPr.rPrOrAliasOrLock.map((i) => i.name.localPart);
+  assert.equal(names.filter((n) => n === 'placeholder').length, 1);
+  assert.ok(names.indexOf('id') < names.indexOf('placeholder') && names.indexOf('placeholder') < names.indexOf('showingPlcHdr'), names.join());
+});
+
 // --- check 69 (CR-002 section 63.23): where a paragraph's End is, when the paragraph ends in something with no width (a
 // run-level control showing its placeholder, in either form; a hidden run) or in a control holding text, by every route
 // to a paragraph's End (docx4j-python's CR-019 Phase C: its port wrote into the placeholder control)

@@ -18,7 +18,13 @@ export { layoutModeOf, textWidthTwips, gridWidthsOf, widthTypeOf, insertGridColu
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, addImagePart, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture, type NewImagePart } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';
-export { type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement, officeMatches, type OfficeMatch, type SearchSegment } from './search.mjs';
+export {
+  DEFAULT_ENTRIES, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
+} from './placeholders.mjs';
+export {
+  type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement, officeMatches, type OfficeMatch, type SearchSegment,
+  wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
+} from './search.mjs';
 export { segmentsOf, runsOf, runItemsOf, selectedBranchOf, isAlternateContent, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, officeItemText, hiddenRunsOf, type TextSegment, type Located, type TextView, type TextViewOptions, type SegmentOptions, type HiddenRuns, type AlternateLocation, type RevisionKind, type RevisionHolder } from './tree.mjs';
 export { mathTextOf, mathLetter } from './mathText.mjs';
 export { textBoxesOf, type AnchoredBox } from './textBoxes.mjs';
