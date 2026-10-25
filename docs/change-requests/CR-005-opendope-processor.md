@@ -624,7 +624,8 @@ form with an image of the ports' own, docx4j's. D2 and D3 weren't decided.
 
 - **The image** is docx4j's `picture-placeholder.png`, Jason's choice among docx4j-25's drafts ("frame20" on the share in
   `__tmp/cr063/placeholder-image/`). It is the pale blue of Word's own, 200 by 200 pixels, with a grey, dash-edged inner
-  square: 676 bytes, SHA-1 `e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7`. It is uncommitted in docx4j as this is written.
+  square: 676 bytes, SHA-1 `e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7`. docx4j holds it as
+  `docx4j-core/src/main/resources/org/docx4j/model/datastorage/picture-placeholder.png` (`394589c18`).
   This package holds it as base64 in `picturePlaceholder.mts` (`PICTURE_PLACEHOLDER_BASE64`).
 - **`bindPicture`** writes Word's form for a mapped picture control whose node is empty. That covers `applyBindings`,
   and `setMapping`, which binds at once. The form is the flag, and the control's content one run holding an inline drawing
@@ -657,7 +658,7 @@ it:
 
 Around a paragraph holding a picture, the control keeps the picture, with no flag. `picture-binding.test.mjs` holds it.
 
-**docx4j's D11 (a2)**, implemented by docx4j-25 the same day with the same image (its commit to follow), matches this on:
+**docx4j's D11 (a2)**, implemented by docx4j-25 the same day with the same image (`394589c18`, on `VERSION_17_3_5`), matches this on:
 - the flag;
 - the drawing, its extent, its `docPr` name and an empty `descr`;
 - one image part per source part;
@@ -668,3 +669,23 @@ On a rebind, docx4j had replaced a control already showing its placeholder over 
 drawing, reusing the part. docx4j-25 then took this package's rule, for parity: such a control is left as it is,
 whatever the drawing, and a flag over text or no drawing is rewritten. So the ports agree. docx4j has no call that makes a
 picture control, so D2 has nothing there to match.
+
+**One difference: how the image part is found again.** docx4j looks among the source part's related image parts for
+one whose bytes are the picture's (`PicturePlaceholder`), so a document saved and loaded again reuses its part. This
+package remembers the part it added for each source part in memory (`picturePlaceholderRun`), and an image part's bytes
+load asynchronously, which `setMapping` and `insertContentControl` can't wait for. So a control given the placeholder
+after a reload adds a second part holding the same 676 bytes, where docx4j would reuse the first. Nothing reads
+differently. It is left as it is unless the ports' saves need to agree part for part.
+
+**Word's reading of the form** (check 71's round 3, Jason, Word 365, 2026-10-25; docx4j-25's samples in
+`__tmp/cr063/71/d11/`, bound by each of docx4j's three binders, with Word's saves beside them):
+- **No repair.** The three files look the same.
+- **An empty node shows this picture,** with Word's picture icon drawn in the middle (the picture control's chrome).
+  Clicking the icon opens Insert Pictures. A node holding a picture shows it.
+- **Word's save keeps the form as it stands:** the flag, the 1270000 EMU extents and the image's own bytes (SHA-1
+  `e9e4ee21`), where round 1's unflagged picture was swapped for Word's stock image. It drops the empty `descr`.
+- **Word merges image parts with equal bytes on save** (two of the sample's became one) and drops an unused one. So
+  the second part this package adds after a reload doesn't outlive a save in Word.
+
+A control in the form is honoured as it is, so the rebind rule above (a control already showing its placeholder over a
+drawing left as it is) is Word's too.

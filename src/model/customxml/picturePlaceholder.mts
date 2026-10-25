@@ -6,7 +6,8 @@
 // holding an inline drawing, 1270000 by 1270000 EMU, of a placeholder picture. Word's picture is its own artwork, so this
 // package's is docx4j's: the same pale blue, 200 by 200 pixels, with a grey, dash-edged inner square (docx4j's
 // `org/docx4j/model/datastorage/picture-placeholder.png`, 676 bytes, SHA-1 e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7;
-// Jason's choice, 2026-10-25). Word replaces it with its own on opening; elsewhere it is what shows.
+// Jason's choice, 2026-10-25). Word keeps a control in this form as it stands, this picture included, and draws its own
+// picture icon over it (check 71's round 3).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type { Part } from '../../parts/Part.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
