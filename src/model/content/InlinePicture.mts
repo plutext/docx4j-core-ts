@@ -259,6 +259,15 @@ function freeImageName(pkg: { getPart(name: PartName | string): unknown }, exten
   }
 }
 
+/**
+ * The run showing an image already related from the part as `relId`, an inline picture `cx` by `cy` EMU, its drawing id
+ * the next free one in `scope` and named `Picture <id>`, as `addImage` names one.
+ */
+export function imageRunOf(relId: string, scope: object, cx: number, cy: number): Element<wml.R> {
+  const id = nextDrawingId(scope);
+  return runOf([inlinePicture(relId, { cx, cy, id, name: `Picture ${id}`, descr: '' }) as Element]);
+}
+
 /** An id no other drawing in this part uses: wp:docPr and pic:cNvPr are the same type. */
 function nextDrawingId(scope: object): number {
   let max = 0;

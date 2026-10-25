@@ -27,6 +27,7 @@ import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsEl
 import { sdt as sdtOf, nextSdtId, sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
+import { showPicturePlaceholder } from '../customxml/picturePlaceholder.mjs';
 import { contentOf } from './ooxml.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
@@ -1352,8 +1353,10 @@ export class Paragraph {
     const tracker = this.changeTracker;
     if (tracker) markHolderInserted(tracker, sdt as Element, this.container, () => {});
     const control = new ContentControl(sdt as Element<wml.SdtBlock>, this.container, this.parentBody);
-    // around an empty paragraph, a control showing Word's default placeholder, as Word's (CR-002 section 63, D8; check 64)
+    // around an empty paragraph, a control showing Word's default placeholder, as Word's (CR-002 section 63, D8; check 64);
+    // a picture control Word's form, the flag and the placeholder picture (CR-005 section 10, D2; docx4j's check 71 case 8)
     if (empty && showsPlaceholderWhenMade(kind)) control.showPlaceholder();
+    else if (empty && kind === 'Picture') showPicturePlaceholder(control);
     return control;
   }
 

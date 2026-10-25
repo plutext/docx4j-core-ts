@@ -6636,6 +6636,15 @@ Word completes the rest on save.
 
 **Decided 2026-10-25** (Jason: "D9 (a) agreed"). Not yet implemented.
 
+**Later, a caution on Word's session** (docx4j-python's CR-019 section 14, 2026-10-25). In one Word session, a file
+docx4j-python wrote in D9 (a)'s form had six of its eight placeholders moved onto new 32-hex entries on the first Save
+As. Its user had first opened that package's saves of checks 63 to 68, whose glossaries hold entries of the same names
+under other GUIDs. Then the same file, byte for byte, kept every reference in a fresh session, and so did five variants
+of it. So the reshuffle came of Word's session, not of the file. The guess, unmeasured, is that Word reconciles
+same-named building blocks across the documents open in one session. 65b's reshuffle came within one session too.
+Check 66, whose references were all kept, ran in a fresh one. A check of a glossary is to be run in a fresh Word
+session.
+
 ### 63.12 Implemented (2026-10-25)
 
 Jason: "implement section 63", with D1 to D9 decided (sections 63.6, 63.9 and 63.11). Through the Word shim, this package

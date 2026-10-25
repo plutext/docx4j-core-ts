@@ -129,7 +129,7 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler);
-                  opendope.mts (the tag's parameters, the XPaths part's entries), xhtml.mts and pictures.mts: the tag-bound passes, od:ContentType=application/xhtml+xml and od:Handler=picture (CR-005 sections 8 and 9)
+                  opendope.mts (the tag's parameters, the XPaths part's entries), xhtml.mts and pictures.mts: the tag-bound passes, od:ContentType=application/xhtml+xml and od:Handler=picture (CR-005 sections 8 and 9); picturePlaceholder.mts: Word's form for a picture control whose node is empty, the flag and docx4j's placeholder picture 1270000 EMU square (CR-005 section 10)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it);
                   pkg.getAllTrackedChanges(filter?) lists every story in docx4j's order, TrackedChange.kind/part/pieces are docx4j's, and trackedChangeFilter.mts
                   is the filter (docx4j's TrackedChangeFilter, or a function) the listing, acceptAllRevisions/rejectAllRevisions and Body.acceptAll/rejectAll take (CR-011);

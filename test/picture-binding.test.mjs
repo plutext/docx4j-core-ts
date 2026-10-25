@@ -350,3 +350,71 @@ test('(a) a picture control whose node is not an image is left, with a note nami
   assert.match(result.notes[0], /^Logo: not an image this package reads/);
   assert.ok(bytesEqual(await control.pictureContentControl.inlinePicture.imagePart().getBytes(), base64Decode(SMALL)));
 });
+
+// --- CR-005 section 10 (docx4j's check 71): a picture control whose node is empty shows Word's form, the flag and a
+// placeholder picture 1270000 EMU square; this package's picture is docx4j's (D1 (a2), Jason's choice)
+
+const sha1 = async (bytes) => (await import('node:crypto')).createHash('sha1').update(bytes).digest('hex');
+const PLACEHOLDER_SHA1 = 'e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7';
+
+test("CR-005 section 10, D1 (a2): a picture control whose node is empty shows Word's form with docx4j's placeholder picture, one part shared; a picture in the node replaces it, an emptied node brings it back", async () => {
+  const { pkg, body, data } = await document();
+  // one control holding a picture, as check 71's case 1; one holding nothing, as its case 2
+  const p1 = body.insertParagraph('', 'End');
+  p1.insertInlinePictureFromBase64(SMALL, 'End');
+  const holding = p1.insertContentControl('Picture');
+  const empty = body.insertParagraph('', 'End').insertContentControl('Picture');
+  // mapped, each takes the node's value at once, as Word's XML Mapping Pane gives its form (check 71, case 5)
+  for (const control of [holding, empty]) assert.equal(control.xmlMapping.setMapping('/data/empty', '', data), true);
+  const before = imageParts(pkg);
+  assert.equal(before.length, 2, "the held picture's part and the placeholder's");
+  for (const control of [holding, empty]) {
+    assert.equal(control.isShowingPlaceholder, true);
+    const xml = await control.getXml();
+    assert.match(xml, /<w:showingPlcHdr\/>/);
+    assert.match(xml, /<wp:inline [^>]*><wp:extent cx="1270000" cy="1270000"\/>/);
+    assert.equal(await sha1(await bytesOfBlip(pkg, control)), PLACEHOLDER_SHA1);
+  }
+  assert.equal(/r:embed="(rId\d+)"/.exec(await holding.getXml())[1], /r:embed="(rId\d+)"/.exec(await empty.getXml())[1], 'one placeholder part');
+  // bound: left as they are, nothing written and no part added; written back: the node stays empty
+  const result = await pkg.customXmlParts.applyBindings();
+  assert.deepEqual([result.bound, result.updated, result.skipped, result.notes], [2, 0, 2, undefined]);
+  assert.deepEqual(imageParts(pkg), before);
+  await pkg.customXmlParts.updateFromContentControls();
+  assert.equal(data.selectNodes('/data/empty')[0].text, '');
+  // a picture in the node: shown in the placeholder's drawing, its extent kept, the flag cleared (check 71, case 6)
+  data.selectNodes('/data/empty')[0].text = BLUE;
+  await pkg.customXmlParts.applyBindings();
+  assert.equal(empty.isShowingPlaceholder, false);
+  assert.ok(bytesEqual(await bytesOfBlip(pkg, empty), base64Decode(BLUE)));
+  assert.match(await empty.getXml(), /<wp:extent cx="1270000" cy="1270000"\/>/);
+  // emptied again: the placeholder back, the flag on (case 7)
+  data.selectNodes('/data/empty')[0].text = '';
+  await pkg.customXmlParts.applyBindings();
+  assert.equal(empty.isShowingPlaceholder, true);
+  assert.equal(await sha1(await bytesOfBlip(pkg, empty)), PLACEHOLDER_SHA1);
+  // saved and reloaded: Word's form kept
+  const reloaded = await WordprocessingMLPackage.load(await pkg.save());
+  const controls = (await reloaded.getBody()).contentControls;
+  assert.deepEqual(controls.map((c) => [c.type, c.isShowingPlaceholder]), [['Picture', true], ['Picture', true]]);
+});
+
+test("CR-005 section 10, D2: insertContentControl('Picture') on an empty paragraph or at a point makes Word's form, the flag and the placeholder picture; around a picture it keeps the picture", async () => {
+  const { pkg, body } = await document();
+  const block = body.insertParagraph('', 'End').insertContentControl('Picture');
+  const atPoint = body.insertParagraph('Logo: ', 'End').getRange('End').insertContentControl('Picture');
+  for (const control of [block, atPoint]) {
+    assert.equal(control.isShowingPlaceholder, true);
+    assert.match(await control.getXml(), /<w:showingPlcHdr\/>[\s\S]*<wp:extent cx="1270000" cy="1270000"\/>/);
+    assert.equal(await sha1(await bytesOfBlip(pkg, control)), PLACEHOLDER_SHA1);
+  }
+  assert.match(await block.getXml(), /<w:sdtContent><w:p><w:r><w:drawing>/, 'block-level, the run in a paragraph');
+  assert.match(await atPoint.getXml(), /<w:sdtContent><w:r><w:drawing>/, 'run-level, the run itself');
+  assert.equal(imageParts(pkg).length, 1, 'one placeholder part for both');
+  // around a paragraph holding a picture: the picture kept, no flag
+  const p = body.insertParagraph('', 'End');
+  p.insertInlinePictureFromBase64(SMALL, 'End');
+  const around = p.insertContentControl('Picture');
+  assert.equal(around.isShowingPlaceholder, false);
+  assert.ok(bytesEqual(await bytesOfBlip(pkg, around), base64Decode(SMALL)));
+});

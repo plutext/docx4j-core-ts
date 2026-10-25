@@ -33,6 +33,7 @@ import { enclosingCellOf } from '../properties/table.mjs';
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
 import { tagParamsOf, selectEntryNode, PICTURE_HANDLER } from './opendope.mjs';
 import type { BindingResult } from './bindings.mjs';
+import { showPicturePlaceholder } from './picturePlaceholder.mjs';
 
 const EMU_PER_TWIP = 635;
 const BLIP = 'org_docx4j_dml.CTBlip';
@@ -129,15 +130,23 @@ function maxWidthEmu(control: ContentControl, width: PictureWidth): number | und
  * fallback), a tag-bound control holding none is left and noted. Otherwise the control's content
  * becomes one run holding a new inline picture, sized as `PictureWidth` says, in the first
  * paragraph of a block-level control (its properties kept) or as a run-level control's content.
- * An empty value, a value that is not an image this package reads (PNG, JPEG, GIF, BMP; SVG where
- * the drawing is kept, since it has no pixel size to place a new picture at), and a body with no
- * part each leave the control as it was, with a note. The image part the control showed before
+ * An empty value gives a picture control Word's form, the flag and a placeholder picture (`picturePlaceholderRun`;
+ * CR-005 section 10, D1 (a2)), unless it shows one already; a tag-bound control it leaves, with a note. A value that is
+ * not an image this package reads (PNG, JPEG, GIF, BMP; SVG where the drawing is kept, since it has no pixel size to
+ * place a new picture at), and a body with no part each leave the control as it was, with a note. The image part the control showed before
  * stays in the package, as docx4j leaves it.
  */
 export function bindPicture(control: ContentControl, value: string, width: PictureWidth, label: string): PictureOutcome {
   const base64 = base64Of(value);
-  if (base64 === '') return { done: false, note: `${label}: the node is empty; the control is left as it is` };
   const source = control.parentBody.part;
+  if (base64 === '') {
+    // a picture control's empty node: Word's form, the flag and a placeholder picture (CR-005 section 10, D1 (a2));
+    // one already showing a placeholder picture is left as it is, a tag-bound control left as before
+    if (control.type !== 'Picture') return { done: false, note: `${label}: the node is empty; the control is left as it is` };
+    if (control.isShowingPlaceholder && firstBlipOf(control)) return { done: false };
+    if (!showPicturePlaceholder(control)) return { done: false, note: `${label}: the control's body has no part to hold an image` };
+    return { done: true };
+  }
   if (!source) return { done: false, note: `${label}: the control's body has no part to hold an image` };
   if (width.kind === 'keep') {
     const blip = firstBlipOf(control);
@@ -195,7 +204,8 @@ export function applyPictureHandlersTo(controls: ContentControl[], parts: Custom
  */
 export async function updateFromPictureControl(control: ContentControl): Promise<boolean> {
   const mapping = control.xmlMapping;
-  if (!mapping.isMapped || control.type !== 'Picture') return false;
+  // a control showing its placeholder picture holds no picture of its node's (CR-005 section 10)
+  if (!mapping.isMapped || control.type !== 'Picture' || control.isShowingPlaceholder) return false;
   const node = mapping.customXmlNode;
   if (!node) return false;
   const blip = firstBlipOf(control);

@@ -7,6 +7,7 @@ import { type Element, typeNameOf, linkParents, runItemsOf, runsOf, revisionKind
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 import { ContentControl, assertControlHolds, controlsOfTypes, showsPlaceholderWhenMade, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
+import { showPicturePlaceholder } from '../customxml/picturePlaceholder.mjs';
 import { sdt as sdtOf, nextSdtId, applyRunOptions, t as textElement } from '@docx4j/generated-objects-ts/builders/wml';
 import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
@@ -914,8 +915,10 @@ export class Range {
     if (this.start === this.end) {
       paragraph.insertItemsAt(this.start, [sdt as Element]);
       const control = new ContentControl(sdt, containerOf(sdt, paragraph), body);
-      // a control showing Word's default placeholder, as Word's made at a point (CR-002 section 63, D8; check 64)
+      // a control showing Word's default placeholder, as Word's made at a point (CR-002 section 63, D8; check 64); a
+      // picture control Word's form, the flag and the placeholder picture (CR-005 section 10, D2)
       if (showsPlaceholderWhenMade(kind)) control.showPlaceholder();
+      else if (kind === 'Picture') showPicturePlaceholder(control);
       return control;
     }
     // Every refusal before anything changes (CR-002 section 43): until then the runs were split first.

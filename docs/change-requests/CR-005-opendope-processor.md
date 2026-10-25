@@ -565,3 +565,106 @@ values are "not an image this package reads", since `imageInfoOf` has no header 
 (a `keep` bind needs only a content type, and could take them as it takes SVG, once asked for); a
 mapped picture control whose node holds a data URL is read, which Word presumably does not do; no
 PNG fallback is made for an SVG, there being no rasteriser here.
+
+## 10. A picture control whose node is empty: Word's form (docx4j's check 71, 2026-10-25)
+
+Jason asked docx4j for a Word check on a bound picture control whose node is empty. It found that the two ports and
+docx4j's binders write three different things there:
+- **This package** leaves the control as it is, its picture kept (section 9, item 2: `pictures.mts`, "the node is
+  empty; the control is left as it is").
+- **docx4j's XSLT binder** leaves `w:sdtContent` empty.
+- **docx4j's NonXSLT and StAX binders** write docx4j's text placeholder run.
+
+docx4j-25 built the check as docx4j's check 71 (`__tmp/cr063/71/` on the share; docx4j CR-063 section 18, `0c4a590ec`,
+local). It holds this package's additions: the placeholder reads, `insertContentControl('Picture')`, and the image parts
+after node writes. Jason ran it in Word 365 (16.0.20326.20232, PC), Design Mode off, in two rounds.
+
+**Word 365's answers**, as docx4j-25 read them:
+- **Word has a form for a bound picture control whose node is empty,** and gives it on opening to every such control,
+  whatever the file held:
+  - the flag, `w:showingPlcHdr`;
+  - one run holding an inline drawing of Word's stock placeholder picture: 1270000 × 1270000 EMU, `docPr` "Picture n",
+    `pic:cNvPr` id 0, an `a:blip` with `a14:useLocalDpi` 0, a source rectangle, stretch and fill, no fill;
+  - the image, a 1,010-byte PNG (SHA-1 `77e89b28ce48…`), the same as the picture control's in `placeholders.docx`
+    (section 63.22 of CR-002).
+
+  This package's case, an existing picture over an empty node, has its picture replaced on opening. So does docx4j's
+  empty content. Word's XML Mapping Pane makes the same form, block-level.
+- **A node holding a picture:** Word shows the node's picture. It keeps the control's drawing as written and swaps the
+  image part's bytes for the node's, with no flag. That is what this package's bind does (section 9).
+- **docx4j's text run inside a `w:picture` control makes Word repair the file** (round 1's bisect). This package never
+  writes one.
+- **Node writes through `CustomXmlPart.setXml` reach the control at once:**
+  - a picture into an empty node: shown, the flag cleared, the placeholder drawing's shape kept with its image swapped;
+  - a node emptied: the placeholder back, the flag on, a new drawing.
+- **The reads:** `type` is `Picture`; `placeholderText` is `null` with the flag on or off; `showingPlaceholderText` is
+  `undefined` in this build. This package reads `placeholderText` `null` for a picture control too (CR-002 section
+  63.22).
+- **`insertContentControl('Picture')`** on a paragraph makes Word's form, block-level, flag on. This package makes a
+  block-level control holding an empty paragraph, with no flag.
+
+**Proposed** (for Jason's word):
+- **D1: what the binding pass writes for an empty node.**
+  - **(a) Word's form**, with Word's stock PNG (a1, licensing being Jason's call) or an image of this package's own (a2).
+  - **(b) Empty content, no flag**, as docx4j's XSLT binder writes. Word opened it cleanly and gave its own form.
+  - **(c) As now:** the picture kept. Word replaces it on opening, so another reader sees a picture the node no longer
+    holds.
+
+  docx4j-25 recommends (b) for all three of docx4j's binders, awaiting Jason. **Recommended here: (b), so the ports agree.**
+  It writes nothing Word must undo, needs no image, and Word shows its form on opening. A reader other than Word sees an
+  empty control, which is what the node says.
+- **D2: what `insertContentControl('Picture')` makes.** Unchanged: a control holding an empty paragraph, no flag. That
+  is (b)'s shape unbound. What Word makes of an unbound picture control left so is unmeasured; Word's own is its form.
+- **D3: `isShowingPlaceholder` on Word's form** reads the flag, as now. Nothing changes.
+
+**Decided 2026-10-25** (Jason: "the docx4j agent has devised an image of our own for D1 decision (a)"): D1 (a2), Word's
+form with an image of the ports' own, docx4j's. D2 and D3 weren't decided.
+
+### 10.1 Implemented: Word's form for an empty node (2026-10-25)
+
+- **The image** is docx4j's `picture-placeholder.png`, Jason's choice among docx4j-25's drafts ("frame20" on the share in
+  `__tmp/cr063/placeholder-image/`). It is the pale blue of Word's own, 200 by 200 pixels, with a grey, dash-edged inner
+  square: 676 bytes, SHA-1 `e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7`. It is uncommitted in docx4j as this is written.
+  This package holds it as base64 in `picturePlaceholder.mts` (`PICTURE_PLACEHOLDER_BASE64`).
+- **`bindPicture`** writes Word's form for a mapped picture control whose node is empty. That covers `applyBindings`,
+  and `setMapping`, which binds at once. The form is the flag, and the control's content one run holding an inline drawing
+  of the image at 1270000 EMU square (`picturePlaceholderRun`; `imageRunOf` in `InlinePicture.mts`). It sits in a
+  paragraph where the control is block-level (`setBoundContent`).
+  - An existing picture is replaced, as Word replaces it on opening (check 71, case 1).
+  - The image part is added once per source part, and every control in it shares it.
+  - A control already showing its placeholder over a drawing is left as it is. So a rebind adds nothing, and Word's own
+    stock picture, or this package's, stays.
+- **A node holding a picture** then takes the placeholder's drawing, as before, with its extent kept and the flag
+  cleared (case 6). Emptied again, the node gives the placeholder back (case 7).
+- **`updateFromPictureControl`** writes nothing back from a control showing its placeholder, so its node stays empty.
+- **Unchanged:** a tag-bound control (`od:Handler=picture`) over an empty node is left, with its note. Word fills no such
+  control, and docx4j's D11 is about `w:picture` controls.
+
+`picture-binding.test.mjs` holds it: the two controls of check 71's cases 1 and 2 sharing one part, a rebind and the
+reverse leaving them, the node's picture and the node emptied, and a save and reload.
+
+**Proposed** (for Jason's word), now that there is an image:
+- **D2 revised: `insertContentControl('Picture')` makes Word's form,** the flag and the placeholder picture, as Word's
+  own call does (check 71, case 8). That is also what CR-002 section 63.22 does for the kinds that have a placeholder
+  entry. Until now this package made a control holding an empty paragraph, with no flag.
+
+**Decided 2026-10-25** (Jason: "D2: yes"). **Implemented** the same day: `showPicturePlaceholder` (`picturePlaceholder.mts`)
+gives a picture control Word's form, the flag and the placeholder drawing, one image part per source part. Three routes use
+it:
+- `Paragraph.insertContentControl('Picture')` on an empty paragraph, a block-level control with the run in a paragraph;
+- a range's at a point, a run-level control holding the run;
+- the binding pass's empty node (10.1).
+
+Around a paragraph holding a picture, the control keeps the picture, with no flag. `picture-binding.test.mjs` holds it.
+
+**docx4j's D11 (a2)**, implemented by docx4j-25 the same day with the same image (its commit to follow), matches this on:
+- the flag;
+- the drawing, its extent, its `docPr` name and an empty `descr`;
+- one image part per source part;
+- an existing picture or text replaced;
+- a tag-bound control left.
+
+On a rebind, docx4j had replaced a control already showing its placeholder over a drawing with a fresh placeholder
+drawing, reusing the part. docx4j-25 then took this package's rule, for parity: such a control is left as it is,
+whatever the drawing, and a flag over text or no drawing is rewritten. So the ports agree. docx4j has no call that makes a
+picture control, so D2 has nothing there to match.
