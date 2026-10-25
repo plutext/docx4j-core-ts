@@ -20,7 +20,7 @@ and `x14ac` as understood by their `Requires` alone. All four are on docx4j's pu
 Word 365 understands all four (measured 2026-10-20). Taken as the editor asked and rewritten to that simpler
 rule the same day (Jason: "do as the editor asks re Q1, Q2"; "yes, rewrite section 15 to the simpler
 rule"; "yes to 1, 2, and 3"). Implemented 2026-10-20 at Jason's request ("do section 15"; section
-15.6), not released. The policy is docx4j's CR-021 (done
+15.6). Sections 14.9 and 15 **released in 0.6.0** (2026-10-25). The policy is docx4j's CR-021 (done
 2026-09-19, in 17.2.0).
 
 ## 1. Why

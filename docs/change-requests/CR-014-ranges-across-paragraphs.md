@@ -32,10 +32,9 @@ going untracked and on Accept All (section 12.6). Left: three rules of Word's Ac
 (section 12.3). Committed `87bbb38`. Section 13 (2026-10-23, Jason: "the shim refuses getOoxml - fix this please"):
 the shim's `getOoxml` and `toApiScript` across paragraphs give the range's blocks, and under tracking no longer mark a
 copy's trimmed text deleted. Section 14 (2026-10-23, docx4j-python's finding): a range holding one table whole, nothing
-either side, deleted the block after it too; fixed, not committed. Section 12.3's three Accept All rules (cases 9, 13
+either side, deleted the block after it too; fixed, committed `222cc20`. Section 12.3's three Accept All rules (cases 9, 13
 and 19) followed since 2026-10-23, as docx4j's CR-043 section 17 (`29dbf5964`) adopted them, committed `222cc20`; and
-as docx4j revised them the same day from a text-left probe (`e55a83b8e`), with Word's Reject All of check 54; not
-committed.
+as docx4j revised them the same day from a text-left probe (`e55a83b8e`), with Word's Reject All of check 54, committed `4837d04`. Phases 0 to 3 and sections 12 to 14 **released in 0.6.0** (2026-10-25).
 
 ## 1. Why
 

@@ -8,7 +8,7 @@ section 7), after probe rounds 5 and 6 and a review against CR-018 (section 10).
 raised to `^0.5.0`); committed `76fb45d`. **Phase 3's check 60 run the same day** (Jason; no repair): Office JS reads
 every marker as this package does, but Word's green highlight, which it reports `#00FF00` and the objects package's
 table `#008000` (section 11.6). docx4j's `82c64bf14` (`w:framePr`'s `anchorLock` read as stated) is ported with
-it, and the parity goldens regenerated at docx4j `5163c2986`.
+it, and the parity goldens regenerated at docx4j `5163c2986`. **Released in 0.6.0** (2026-10-25).
 
 ## 1. Why
 

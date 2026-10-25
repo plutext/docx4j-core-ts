@@ -32,7 +32,7 @@ XHTML through the `html` module, and picture bindings; implemented 2026-10-08, r
 catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
 0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it.
 CR-011 (every story's tracked changes in one listing, and filters on it and the resolve-all verbs,
-docx4j CR-043's, held to its answers by 96 revisions goldens) is implemented, not yet released. So
+docx4j CR-043's, held to its answers by 96 revisions goldens) is implemented, released in 0.6.0 (2026-10-25). So
 are CR-002 section 54 (docx4j CR-043 section 15: a comment whose range a resolution empties goes
 whole wherever its markers were, and the comment parts with the last, as Word 365 does; the
 revisions goldens record each resolution's comments since) and CR-012's phases 0 to 3 (the text model's conformance suite and agreement test, copied from
@@ -52,7 +52,7 @@ change's twins resolved with it, as docx4j's), and CR-014's phases 0 to 2 (range
 Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54), and CR-008 phase 2 (docx4j's colour resolver,
 `org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
 as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
-CR-061) is implemented, not yet released, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
+CR-061) is implemented, released in 0.6.0, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
 differs only in Word's green highlight (the objects package's table, `#008000` where Office JS reads `#00FF00`). So is CR-002 section 63
 (writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
 entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63

@@ -10,14 +10,14 @@ as recommended (Jason: "D2, D3, D4 as recommended."). Addresses keep the element
 true` takes the readers' set, after the round trip measured in section 3, item 6. A view in a branch is
 read-only. The editor, asked about D4 the same day, also wanted (a), with its ED-009 rule if editing is
 ever needed, and not resolving on edit. Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-013 phases 0
-and 1"), not released: docx4j's probes in `test/mc-fun/` with every reader's answer asserted, the walker
+and 1"), released in 0.6.0: docx4j's probes in `test/mc-fun/` with every reader's answer asserted, the walker
 audit (section 7), and the text model reading row- and cell-level branches as Word 365 does, kept or
 resolved, with `mcePreprocess: true` over the readers' set (section 8). Phase 2 implemented 2026-10-21 (Jason: "do CR-012
-section 17.13 then CR-013 phase 2"), not released: the content API's readers and the tracked-change listing take the
+section 17.13 then CR-013 phase 2"), released in 0.6.0: the content API's readers and the tracked-change listing take the
 selected branch at block, row and cell level (and the listing at paragraph level), so every probe with a Word save
 reads as the save does through every Office JS reader, kept or resolved; every view in a branch refuses its writes
 (D4); a table goes only when no branch keeps a row, which closes section 7.3's two content-losing shapes (section 9).
-Phase 3 implemented 2026-10-22 (Jason: "start CR-013 phase 3"), not released: the mutators reach every branch. A
+Phase 3 implemented 2026-10-22 (Jason: "start CR-013 phase 3"), released in 0.6.0: the mutators reach every branch. A
 listed change's twins in the other branches resolve with it and resolve-all resolves every branch, held to docx4j's
 `TrackedChangesAlternateContentTest`, all 20. A table's records, cells and columns span every branch. The bulk edits,
 the binding passes, replies, the ids and `toApiScript` reach every branch too. Views in a branch stay read-only

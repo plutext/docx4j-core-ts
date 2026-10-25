@@ -2,8 +2,7 @@
 
 **Status:** Implemented 2026-10-20, all three phases (Jason: "do CR-011"; section 10): the parity on
 docx4j 17.3.3 with 90 revisions goldens at zero differences, `getAllTrackedChanges`, `kind`, `part`
-and `pieces`, and the filters; two resolution defects the goldens found are fixed (section 10.4).
-Not released. Proposed 2026-10-18, at Jason's request ("write a CR which covers listing every story in
+and `pieces`, and the filters; two resolution defects the goldens found are fixed (section 10.4). **Released in 0.6.0** (2026-10-25). Proposed 2026-10-18, at Jason's request ("write a CR which covers listing every story in
 one call, filters, and a report; a package-level getTrackedChanges over every story, plus an
 author/type/date filter on the resolve-all verbs"). Revised the same day, at Jason's word ("yes,
 revise it that way please"): trimmed to the listing and the filters, with the report left until

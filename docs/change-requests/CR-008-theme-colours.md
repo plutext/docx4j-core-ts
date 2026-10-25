@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-10-12, on docx4j CR-034's hand-off (the docx4j session, 2026-10-12).
 Phase 1 (the merge rules) implemented 2026-10-12, at Jason's request relayed by the docx4j-python
 session (section 6), **released in 0.5.0** (2026-10-19). Phase 2 (the resolver) implemented 2026-10-24 at
-Jason's request, the whole package with `Font.color` drawn (section 7; D1 and D2 decided the same day), not released.
+Jason's request, the whole package with `Font.color` drawn (section 7; D1 and D2 decided the same day), **released in 0.6.0** (2026-10-25).
 
 ## 1. Why
 

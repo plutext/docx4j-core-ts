@@ -4,21 +4,21 @@
 CR-012)"), on docx4j CR-046 phase 4's hand-off (the docx4j session, 2026-10-18). Decisions D1 to D9
 (section 6) were taken by Jason on 2026-10-21, all as recommended ("CR-012 all decisions as
 recommended"; section 6.1). Phases 0 and 1 implemented 2026-10-21 (Jason: "do CR-012 phases 0 and
-1"), not released: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
+1"), released in 0.6.0: the suite copied from docx4j `198d015a3` (WD 0.28's) with its runner and the agreement
 test's, every row pending (section 13); REQ-510's level owner in the `Emulator` (section 14). Phase 2
-implemented 2026-10-21 (Jason: "start CR-012 phase 2"), not released: the plain-text model, `Texts.of` and the
+implemented 2026-10-21 (Jason: "start CR-012 phase 2"), released in 0.6.0: the plain-text model, `Texts.of` and the
 block model in `src/model/text/`, its views a plan over the unresolved tree (`ResolvedView`), held to the
 suite's 735 rows it claims and the agreement test's 588 comparisons with no difference (section 15). Phase 3
-implemented 2026-10-21 (Jason: "start CR-012 phase 3"), not released: Markdown, `MarkdownExporter` with
+implemented 2026-10-21 (Jason: "start CR-012 phase 3"), released in 0.6.0: Markdown, `MarkdownExporter` with
 `blocks`, docx4j's `WmlToMarkdown` over the block model and a port of commonmark-java's renderer, so the
 Markdown is docx4j's byte for byte; 786 suite rows pass, and 1,320 of 1,420 exports over `test/` equal
 docx4j's, the rest differing only where phase 5 or REQ-303 does (section 16). Phase 4 implemented
-2026-10-21 (Jason: "start CR-012 phase 4"), not released: the readers, `Paragraph.text` and `search` in
+2026-10-21 (Jason: "start CR-012 phase 4"), released in 0.6.0: the readers, `Paragraph.text` and `search` in
 Office JS's characters and rules in Word's default view, equal to Word 365's answers on checks 48, 48b and 51;
 ED-009's branch content read and edited; text boxes at `textbox:` addresses, read-only; `pkg.paragraphAt`
 over notes and comments; `outline()` on the model and async (the editor asked, Jason chose); three defects
 in 0.5.0 found and fixed (section 17). Section 17.13 implemented 2026-10-21 (Jason: "do CR-012 section 17.13"),
-not released: the editor's outline per block, `Body.outline(options, context, { blocks })`, each block's
+released in 0.6.0: the editor's outline per block, `Body.outline(options, context, { blocks })`, each block's
 entries as the whole outline gives them (`joined` on an entry, the fields open where a block begins), 0.1 ms
 a block under a context; the plan's text-box walk pruned, 97 to 39 ms on `ms-docx-250`. Word
 check 48, run 2026-10-21, widens D6 (section 6.2): `Paragraph.text` and `search` follow Office JS in
@@ -31,8 +31,8 @@ its asks are in section 4.4. Section 12 (2026-10-20) takes the editor's ED-009 r
 in a kept `mc:AlternateContent`, reading and editing, as the editor asked (Jason: "do as the editor
 asks re Q1, Q2"), in phase 4. It also records a defect in 0.5.0 that the rule closes: edits over a
 paragraph-level element's text land outside it. Until then such an edit throws `NotSupportedError`
-(section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, not released; superseded by phase 4,
-which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. What each left to measure is in check 58, written and run 2026-10-23 (Jason: "one check 58 first"); both implemented the same day to its answers (section 18.1), not released. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day. Section 21.2 (2026-10-23, from docx4j-python's review): a target refused once its character references are decoded (`javascript&#58;`), in `LinkTargets.isSafe`, as docx4j fixed it the same day.
+(section 12.4, Jason: "yes to all 3 questions"), implemented 2026-10-20, released in 0.6.0; superseded by phase 4,
+which reads and edits the branch (section 17.3). Sections 18 and 19 (2026-10-22, from check 53) proposed, to schedule later: a control showing its placeholder reads as empty, and a deleted paragraph mark reads as nothing, in Word's default view. What each left to measure is in check 58, written and run 2026-10-23 (Jason: "one check 58 first"); both implemented the same day to its answers (section 18.1), released in 0.6.0. Phase 6 implemented 2026-10-23 (Jason: "move this repo's parity test setup to the 17.3.4 release and cut CR-012's block-model goldens from that release"), committed `2db03f3`: the parity on the docx4j 17.3.4 release with no answer moved, and `TextHarness`'s 282 goldens, four readings of every document under `test/fixtures/` and `test/text-extraction/`, at zero differences outside the content phase 5 and REQ-303 govern; one defect found and fixed, a picture's `descr` and `title` where the element has none (section 20). Section 21 (2026-10-23, docx4j CR-056's hand-off; Jason: "yes, do it before the next release; as a CR-012 section"): the Markdown writes a link whose target's scheme isn't allowed (`javascript:`) as its text, with no link, as docx4j's does since `84ee9741c`; implemented the same day. Section 21.1 (docx4j `30fb41024`, WD 0.33's REQ-703): a CriticMarkup marker's author and date are written as text, escaped, not raw with the braces; implemented the same day. Section 21.2 (2026-10-23, from docx4j-python's review): a target refused once its character references are decoded (`javascript&#58;`), in `LinkTargets.isSafe`, as docx4j fixed it the same day.
 
 ## 1. Why
 
