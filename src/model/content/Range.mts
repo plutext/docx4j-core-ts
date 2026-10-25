@@ -73,6 +73,21 @@ export class Range {
     this.lastMarkText = endMark;
   }
 
+  /** @internal Which of a paragraph's own ranges this is, where its writes at the end are the paragraph's End's (D12). */
+  private endOf?: 'End' | 'Content';
+
+  /** @internal Marks this range as its paragraph's End or Content range (`Paragraph.getRange`); returns it. */
+  atEndOf(kind: 'End' | 'Content'): this {
+    this.endOf = kind;
+    return this;
+  }
+
+  /** Whether text put at `location` is written at the paragraph's End: its End range's, at any location; its Content range's End and After. */
+  private writesAtParagraphEnd(location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): boolean {
+    if (!this.endOf || this.spansParagraphs || this.end !== this.paragraph.text.length) return false;
+    return this.endOf === 'End' ? this.start === this.end : location === 'End' || location === 'After';
+  }
+
   /**
    * @internal The content control whose 'Content' or 'Whole' range this is (CR-002 section 63, D4): a run-level
    * control holding no text, or showing its placeholder, has no width, so its own range is where its writes go in,
@@ -456,6 +471,17 @@ export class Range {
     // and a Replace over a whole run-level control showing its placeholder takes it (CR-002 section 63, D3 and D4)
     const through = this.ofControl?.control.writeThrough(this.ofControl.part, text, location);
     if (through) return through;
+    // a paragraph's End range, at any location, and its Content range's End and After: after everything the paragraph
+    // holds, as Word writes there (CR-002 sections 63.24 to 63.27, D12 to D14; checks 69 and 70)
+    if (this.writesAtParagraphEnd(location)) {
+      const r = this.paragraph.writeAtEnd(text, location === 'After');
+      if (location === 'Replace') this.cover(r);
+      else if (location === 'Before' || location === 'Start') {
+        this.startParagraph = this.lastParagraph = r.endParagraph;   // a line break may have made paragraphs
+        this.start = this.end = r.end;
+      }
+      return r;
+    }
     // tracked, the w:ins goes before the w:del within one paragraph too, as Word's (check 54 case 4; Jason,
     // 2026-10-23: "follow Word (insertion first)"), where CR-002 wrote the w:del first
     if (location === 'Replace' && (this.spansParagraphs || this.paragraph.changeTracker)) return this.replaceAcross(text);

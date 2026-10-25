@@ -1,0 +1,19 @@
+{
+ "check": 70,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25; Developer > Design Mode off; Review > Display for Review: All Markup)",
+ "source": "test/fixtures/check70/build.mjs (70-paragraph-endings.docx, 88 cases)",
+ "saves": {
+  "70-opened-word365.docx": "70-paragraph-endings.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "70-run-word365.docx": "the same after the Script Lab snippet's Report only and Run the check, saved with File > Save (the JSONs: test/fixtures/check70/70-paragraph-endings-word365-report.json and -run.json); Jason: NEW65 and NEW73 are not bold"
+ },
+ "files": [
+  {
+   "name": "70-opened-word365.docx",
+   "sha1": "f561e8dd762cd4bb1f399924019f14535adcd9eb"
+  },
+  {
+   "name": "70-run-word365.docx",
+   "sha1": "651a59bfeba71da1f62c76aa4eafed092c7beadb"
+  }
+ ]
+}

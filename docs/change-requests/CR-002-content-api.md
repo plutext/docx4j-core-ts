@@ -3564,6 +3564,27 @@ run by Jason in current Word and Word 2010 the same day. **Implemented 2026-10-0
    writes a placeholder. The editor would then ensure it at save when a placeholder is in the
    document.
 
+   **Word 365 does the same, on opening** (docx4j CR-063 section 17, check 65c, run by Jason 2026-10-25; docx4j-25's
+   report, docx4j `7b6b82e57`, local). docx4j's template was built in code, and its main styles part lacked
+   Placeholder Text. Opened in Word 365:
+   - Word dropped the `w:rStyle` from every placeholder run docx4j had written, and drew the runs black. Its save
+     after opening holds them with no `w:rPr`.
+   - Placeholders Word made in the same file were grey. Word added Placeholder Text to the main styles part when it wrote
+     them, with the definition above.
+   - The glossary entries kept the style, since the glossary has its own styles part.
+
+   This package already prevents it: every placeholder run it writes requires Placeholder Text, ensured on save with
+   Default Paragraph Font, its `basedOn`. The routes are `setBoundContent(…, true)`: `showPlaceholder`, the binding
+   pass's empty value, `insertContentControl` on an empty range, and an emptied Word's-form control. Probed at
+   `b12e0c5` on a styles part lacking both. docx4j's D10 (a) proposed the same for docx4j. Jason decided it there, and
+   docx4j implemented it as `72f1c489b` (local): `PlaceholderEntries.ensurePlaceholderStyle`, called by every binder
+   where a placeholder run is written, of any kind.
+
+   One difference stays, at an empty picture value:
+   - docx4j's XSLT binder writes no run (its `sdtContent` is left empty), and its NonXSLT and StAX binders write the
+     placeholder run;
+   - this package leaves the control as it is, its picture kept (CR-005 section 9), and writes no placeholder run.
+
 **Implemented 2026-10-04** (at Jason's word; `customxml.test.mjs` holds a test per item).
 
 1. `XmlMapping.setMapping` and `setMappingByNode` write `w15:dataBinding` where `usesW15` says so:
@@ -7142,8 +7163,8 @@ with the default entry's `w:docPartPr` and a `w:guid` of its own, its body one r
 - `-1854013439` is absent; the group, citation, equation, bibliography and `w:docPartObj` kinds weren't made.
 
 docx4j-25 read the file the same way, and docx4j's CR-063 took it as its D8. Jason decided it there ("D8 we go (a)",
-2026-10-25), and docx4j implemented it as its phase 4. This package follows, so the ports agree, uncommitted until Jason
-says commit.
+2026-10-25), and docx4j implemented it as its phase 4. This package follows, so the ports agree (committed as
+`b12e0c5`).
 
 **What changes:**
 - `DEFAULT_ENTRIES` and `defaultEntryFor` (`placeholders.mts`), and `ContentControl.defaultPlaceholderEntry`, give a
@@ -7165,9 +7186,246 @@ says commit.
 **One difference from docx4j left:** docx4j gives each default entry the `w:guid` from `placeholders.docx`; this package
 gives each a new one.
 
+**docx4j, later the same day** (docx4j-25): Jason decided docx4j's D9 (a) ("D9 choose (a)"), section 63.21's rule.
+docx4j's `PlaceholderEntries.contentOf` copies an entry's runs as the glossary holds them, the control's `w:sdtPr/w:rPr`
+not applied (`da086de48`), so the ports show the same entry again. CR-063's phases 1, 2 and 4 (`5f5e53921`, `a620420c8`,
+`8f23096be`, `da086de48`) are pushed on `VERSION_17_3_5`.
+
+**The `w:guid`, from Word's own files here:** Word gives the default entry a GUID of the document's own. The text kinds'
+entry, `DefaultPlaceholder_-1854013440`, has seven GUIDs across the Word-made files under `test/` that don't descend from
+one another:
+- `placeholders-word365.docx`'s `{F8BBB6E8-…}`;
+- check 65a's run's `{343D98B3-…}`, which Word added to the glossary during that run;
+- check 54's `{79174DFF-…}`;
+- `cr043-tracked.docx`'s `{0CDD09DC-…}`;
+- check 34c's `{87FA7ABE-…}` and 34a's `{7D21F9BC-…}`;
+- check 35a's (Word 15) `{C06A88E4-…}`.
+
+Where a file already holds one (34a's, carried into checks 64 to 66 and 68), Word's runs and saves keep it. Where Word adds an
+entry to a glossary, the GUID is new to the file, as 65a's is. So the new GUID here is Word's behaviour, and
+docx4j's single GUID, the same in every document it writes, isn't. Nothing measured shows the difference mattering: no
+check has copied content between two documents holding the same GUID. docx4j-25 was told, and agreed: the fixed GUIDs
+were its unmeasured choice. docx4j now gives every entry it adds a new GUID (`PlaceholderEntries.newGuid`; an entry the
+glossary holds keeps its own), recorded as its CR-063 section 16 (`adf0201e1` on `VERSION_17_3_5`, local until Jason says push). With that
+the ports agree on the entries entirely.
+
 **Tests** (`placeholders.test.mjs`):
 - the table held to Word's file, control by control;
 - a date picker, the lists, a plain-text control and a check box made, the date picker emptied after a write, and the
   glossary on save;
 - a picture showing docx4j's run;
 - a date picker naming a missing entry given its own default.
+
+### 63.23 Check 69 written: where a paragraph's End is (2026-10-25)
+
+docx4j-python's CR-019 Phase C found a defect in its own port. When a paragraph ends in a run-level control showing its
+placeholder, a write at the paragraph's End extended the last run it walked past. That was the placeholder's run, so the
+text went inside the control, after the prompt, with the flag still on. Under D4 the placeholder has no width, so no
+reader saw the text. docx4j-python proposed putting it after the control instead, and asked what this package does.
+
+**This package**, probed at `b12e0c5` through the API and the Word shim, writes the text on the end of the last run with
+width. It does so for the paragraph's `insertText('End')`, its `getRange('End')`'s `insertText` at every location, and
+`Body.insertText('End')`, in both forms. So the text lands before the control, which is left showing its placeholder.
+Every reader reads the text, but Word would draw it before the prompt. The rule isn't special to placeholders:
+- whatever has no width after the last run with width stays after the text: a placeholder control, a hidden run, an empty
+  control;
+- a trailing control holding text takes the text inside it, after its own.
+
+So the ports differ at a trailing hidden run as well: docx4j-python writes after it, this package before it. Nothing is
+measured. Jason: "yes, check 69". docx4j-python's user, there: "Leave it for check 69" and "Run 69; 0.2.0 waits"
+(docx4j-python CR-019 section 13.4, `043a4d1`). Both ports follow the answer, docx4j-python as its CR-019 Phase D.
+
+**Check 69** (`test/README.md` check 69, `fixtures/check69/`) has 49 cases:
+- **Shapes:** paragraphs ending in a placeholder control in Word's form and in the bare form, a hidden run, a control
+  holding text, and nothing more (the baseline); and a paragraph that is a placeholder control alone.
+- **Routes:** each shape is written at its End by eight routes: the paragraph's `insertText('End')`, its `getRange('End')`
+  at the five locations, its `getRange('Content')`'s `'End'`, and a one-cell table's cell body's `insertText('End')`.
+- **The document body:** the last case is the document body's `insertText('End')` on a Word's-form paragraph, the
+  document's last.
+
+Office JS's readers can't show where the text went, since a placeholder and a hidden run read as nothing, so the region's
+OOXML and Word's save say it. Through the shim every route gives this package's rule, pinned in `placeholders.test.mjs`.
+
+**To decide after the run:** where a write at a paragraph's End goes past a placeholder control, a hidden run and a
+control holding text; and whether every route agrees.
+
+### 63.24 Check 69's run (2026-10-25)
+
+Jason ran check 69 in Word 365 (16.0.20326.20232, PC), with Developer > Design Mode off and no problem opening the file.
+In case 9, `NEW9` shows after "Click or tap here to enter text.", and the prompt still shows. Office JS refused nothing.
+The JSONs are beside the build, and Word's two saves are in `test/check69/` with a SHA-1 manifest. Word's save on opening
+holds every paragraph as built.
+
+**Word 365's answers.** Every route gives the same answer, with one exception. The routes are the paragraph's
+`insertText('End')`, its `getRange('End')` at Before, After, Start, End and Replace, its `getRange('Content')`'s `'End'`,
+and a cell's or the document's body `insertText('End')`.
+- **The text goes after everything the paragraph holds.** A trailing run-level control isn't entered: `NEW<n>` is a run of
+  its own after the `w:sdt`. That holds for:
+  - a control showing its placeholder, in Word's form or the bare form (9 to 24, and 49 at the document's end). The
+    control keeps its flag and its prompt run as they were, and its text reads `''`;
+  - a control holding text (33 to 40). The control still reads `VALUE<n>`;
+  - a paragraph that is a placeholder control alone (41 to 48).
+- **After a control, the run has no properties** in every case: the placeholder's Placeholder Text isn't taken. In this
+  file the run before the control, `TEXT<n>`, has none either. So what Word takes when that run has properties isn't
+  measured.
+- **After a hidden run, the text is hidden** (25, 26 and 28 to 32). It is written after the hidden run with the run's
+  `w:vanish`, merged into it in the region's OOXML and a run of its own in the save. So Office JS's paragraph text reads
+  `TEXT<n> ` without it, and the returned range reads `''`.
+- **The exception:** the End range's `insertText(…, 'After')` after a hidden run (27) writes a run with no properties,
+  after the hidden run, read by both readers.
+
+**This package** differs in 41 of the 49 cases: every case but the plain paragraphs (`placeholders.test.mjs`).
+- Before a placeholder control in either form, Word writes after it. The readers read the same, but Word draws the text
+  after the prompt.
+- Before a hidden run, plain, Word writes after it, hidden. The readers differ in seven cases: this package reads the new
+  text, and Word's readers don't.
+- Inside a control holding text, Word writes after it, outside. The control's text differs.
+
+**docx4j-python** wrote inside a placeholder control, which no route of Word's does. It proposed after the control, which
+Word does. It writes after a trailing hidden run, as Word does, with properties not yet compared.
+
+**Proposed** (for Jason's word):
+- **D12: a write at a paragraph's End goes after everything the paragraph holds,** outside a trailing run-level control,
+  whatever the control holds. The control is left as it was, and one showing its placeholder keeps it. This applies to
+  every route above. *As Word.*
+  - What changes: the insertion point at a paragraph's End is after its last item at the paragraph's level, not the end
+    of its last run with width.
+  - Unmeasured, and kept as they are: a trailing bookmark, comment range or other marker; a tracked deletion; a field; a
+    text box; an empty control.
+- **D13: the text's run properties.** The written text takes the properties of the paragraph's last run outside a
+  control: a hidden run's `w:vanish`, a plain run's nothing.
+  - This is the simplest rule that fits every measured case. Measured, it covers runs after a hidden run, and runs after a
+    control where the run before it is plain.
+  - With a control after a run that has properties, the alternative is a run with no properties; this check can't tell
+    the two apart.
+  - Recommended: implement D13 as stated. A further check with a bold run before a control would settle it, at the cost
+    of a run in Word, and it could follow later.
+- **D14: the End range's 'After' writes a run with no properties** (case 27), as Word does. The one measured difference
+  is after a hidden run. Elsewhere 'After' does what the other routes do.
+- **Hidden text, then:** following D13, a write at End after a hidden run is hidden, and the returned `Range` reads `''`.
+  *As Word.* The alternative is a departure: write it visible, which Office JS never does here.
+
+Both ports follow the decision, docx4j-python as its CR-019 Phase D.
+
+### 63.25 Check 70 written: the endings check 69 left (2026-10-25)
+
+Jason: "write a check for endings: trailing bookmark, comment marker, tracked deletion, field or text box". Section 63.24's
+D12 leaves those endings as they are, since check 69 didn't measure them. Check 70 (`test/README.md` check 70,
+`fixtures/check70/`) asks Word the same question of each, by check 69's routes but the document body's: eight routes,
+eight cases a shape, 88 cases in all.
+- **The endings asked for:** a bookmark spanning `TEXT<n>` and an empty one after it; a comment's range end and
+  reference run; a tracked deletion; a complex and a simple QUOTE field; an inline text box in `mc:AlternateContent`.
+- **Two additions:**
+  - a tracked insertion, beside the deletion;
+  - three shapes that settle section 63.24's D13: a bold run before a placeholder control, a bold run before a control
+    holding text, and a plain run before a control holding bold text. After a control, does Word take the properties of
+    the last run outside it, give the text none, or take the control's own run's?
+
+**This package** writes on the end of the last run with width by every route (pinned in `placeholders.test.mjs`). So the
+text lands:
+- inside a spanning bookmark;
+- before a point bookmark;
+- inside the comment's range;
+- before a deletion;
+- after an insertion, outside it;
+- inside a field's result, in both forms;
+- before a text box;
+- bold after a bold run, before a control;
+- inside a control holding text.
+
+**To decide after the run:** D12's insertion point at each of these endings, and D13.
+
+### 63.26 Check 70's run (2026-10-25)
+
+Jason ran check 70 in Word 365 (16.0.20326.20232, PC), with Design Mode off, All Markup, and no problem opening the file.
+`NEW65` and `NEW73` are not bold. Office JS refused nothing. The JSONs are beside the build, and Word's two saves are in
+`test/check70/` with a SHA-1 manifest. Word's save on opening holds every paragraph as built, but it writes a `w:fldSimple`
+as a complex field.
+
+**Word 365's answers.** Every route gives the same placement at every ending: `NEW<n>` goes after everything the
+paragraph holds, as a run of its own at the paragraph's level.
+- **Bookmarks:** the text goes after a spanning bookmark's end, outside the bookmark, and after an empty bookmark.
+- **Comments:** after the comment's range end and its reference run, outside the range.
+- **Revisions:** after a tracked deletion, and after a tracked insertion, outside it and untracked.
+- **Fields:** after the field's end, outside its result. That holds for both forms, Word reading the simple one as
+  complex.
+- **Text boxes:** after the text box.
+
+With check 69 that is every ending measured: the text goes at the end of the paragraph's content.
+
+**The text's run properties:**
+- **Plain after a control,** whether the run before the control is bold (65 to 80) or the control's own text is bold
+  (81 to 88). So section 63.24's D13 as proposed, the last run outside a control, isn't Word's; its alternative is.
+- **Plain after a comment's reference run:** the Comment Reference style isn't taken.
+- **Plain after a revision, a field's end and a bookmark,** where the run before them is plain. What Word takes after
+  one of them that follows a formatted run isn't measured.
+- **After a text box,** `w:noProof`, which Word gave the drawing run on opening, by four routes: the paragraph's End,
+  the End range's Before, the Content range's End and the cell body. The End range's After, Start, End and Replace write
+  the text plain. After check 69's hidden run, Start, End and Replace took the run's properties, so the routes don't
+  split the same way at the two endings. `w:noProof` only stops spelling and grammar checks on the text.
+
+**This package** differs in 80 of the 88 cases, in where it writes (`placeholders.test.mjs`). It writes inside the
+spanning bookmark, the comment's range and the field's result. It writes before the empty bookmark, the deletion and the
+text box. After a bold run, it writes bold, before a control; it writes inside a control holding text. It agrees only at
+the tracked insertion, where it already writes after the `w:ins`.
+
+**Proposed** (for Jason's word), revising section 63.24's D12 and D13:
+- **D12, extended: a write at a paragraph's End goes at the end of the paragraph's content,** after its last item,
+  whatever that is: a run, a run-level control, a bookmark or comment marker, a revision, a field's end, a simple field,
+  a text box. It goes into none of them, and writes a run of its own where the last item isn't a plain run it can extend.
+  This covers every route. *As Word*, at every ending checks 69 and 70 measured.
+- **D13, revised: the text takes the properties of the paragraph's last item when that is a run holding text** (check
+  69's hidden run: hidden). Otherwise it takes none: after a control, a comment's reference, a field's end, a revision, a
+  marker or a text box.
+  - *As Word* in every measured case but four.
+  - **The four:** after a text box, by four routes, Word gives the text the drawing run's `w:noProof`. Leaving that out
+    is a departure that can't be seen, since the flag only turns off proofing. Recommended over copying Word's route
+    split, which goes the other way after a hidden run.
+  - **Unmeasured:** a formatted run before a marker, revision or field. The text is plain there by this rule.
+- **D14 stands:** the End range's 'After' writes a run with no properties (cases 27 and 59). *As Word.*
+- **Hidden text stands:** after a trailing hidden run the text is hidden, and its `Range` reads `''`. *As Word.*
+
+Both ports follow the decision, docx4j-python as its CR-019 Phase D.
+
+**Decided 2026-10-25** (Jason: "D12: as word; D13:ok; D14: as word"): D12 as extended, D13 as revised (with the
+`w:noProof` departure), D14, and hidden text after a hidden run, as proposed.
+
+### 63.27 Implemented: a write at a paragraph's End, as Word writes it (2026-10-25)
+
+`Paragraph.writeAtEnd` implements D12 to D14. It serves every route checks 69 and 70 measured:
+- the paragraph's `insertText('End')`;
+- its End range (`getRange('End')`), at any location;
+- its Content range's End;
+- through those, `Body.insertText('End')` and a cell body's.
+
+`Range.writesAtParagraphEnd` routes the ranges. A range is marked by `Paragraph.getRange` (`atEndOf`), and only while it
+still ends at its paragraph's end. A range that merely ends there, such as a search hit, writes as before.
+
+- **D12.** The text goes after the paragraph's last item, and into none of the items: not a run-level control, a link, a
+  revision, a field, a bookmark's or a comment's markers, or a text box. It goes in a run of its own, or extends the last
+  run where it takes that run's properties.
+- **D13.** The text takes the last item's run properties where that item is a run holding text. So after a hidden run it
+  is hidden, and the returned range reads `''`. After anything else the text has none: Word's `w:noProof` after a text
+  box is left out, the decided departure.
+- **D14.** The End range's 'After' writes a run with no properties. The Content range's 'After' is taken as its 'End'
+  is, with no properties too, since its point is the same; that case is unmeasured.
+- **Choices, unmeasured:**
+  - Word's proofing marks (`w:proofErr`) aren't items, so a bold misspelt last word still lends its bold.
+  - Under tracking, the run is a `w:ins` after everything the paragraph holds. Where this author's own insertion ends
+    the paragraph, the text joins it, in its last run's look.
+  - A line break makes paragraphs, as every other write does (section 60 E1). Text so broken after a hidden run is
+    written visible, since a hidden line would have no offsets to split at.
+  - A bound block control holding the paragraph has its node written. A trailing run-level control's node isn't, since
+    nothing went into the control.
+
+Through the shim:
+- **Check 69:** every case is Word's (it differed in 41 of 49).
+- **Check 70:** every case is written where Word wrote it (it differed in 80 of 88). Three things are left, none of them
+  placement:
+  - Word's All Markup reads a deletion's text, which `Paragraph.text` reads as Word's default view does (check 53);
+  - Word reads a `w:fldSimple` as a complex field;
+  - the four routes giving `w:noProof` after a text box.
+- **Every other check** run through the shim is as before.
+
+`placeholders.test.mjs` also holds the edges the checks don't reach: a trailing link, a proofing mark, a paragraph of
+markers, the tracked writes, line breaks, and a search hit's 'After'.

@@ -18,6 +18,8 @@ import * as check65 from './fixtures/check65/build.mjs';
 import * as check66 from './fixtures/check66/build.mjs';
 import * as check67 from './fixtures/check67/build.mjs';
 import * as check68 from './fixtures/check68/build.mjs';
+import * as check69 from './fixtures/check69/build.mjs';
+import * as check70 from './fixtures/check70/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const snippet63 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check63', 'check63-script-lab.js'), 'utf8')}\nreturn CHECK63;`)();
@@ -1423,4 +1425,411 @@ test("CR-002 section 63.22: a date picker, a list and a text control each show t
   picture.showPlaceholder();
   assert.deepEqual([picture.placeholderEntry, picture.isShowingPlaceholder], [undefined, true]);
   assert.match(await picture.getXml(), /<w:t>Click or tap here to enter text\.<\/w:t>/);
+});
+
+// --- check 69 (CR-002 section 63.23): where a paragraph's End is, when the paragraph ends in something with no width (a
+// run-level control showing its placeholder, in either form; a hidden run) or in a control holding text, by every route
+// to a paragraph's End (docx4j-python's CR-019 Phase C: its port wrote into the placeholder control)
+
+const snippet69 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check69', 'check69-script-lab.js'), 'utf8')}\nreturn CHECK69;`)();
+/**
+ * A case's paragraph after check 69, as `<n> <items> | <text>`: plain runs' text joined, a hidden run `{h:...}`, a run in
+ * Placeholder Text `{ph}` (the default text) or `{S:...}`, a control `[...]` with `P ` where it shows its placeholder; and
+ * Office JS's paragraph text.
+ */
+const look69 = (c) => {
+  if (typeof c.after === 'string') return `${c.n} ${c.after}`;
+  const ps = [...c.after.ooxml.matchAll(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g)].map((m) => m[0]).filter((p) => !/>(BEGIN|END)\d+[ <]/.test(p));
+  const items = (xml) => [...xml.matchAll(/<w:sdt>([\s\S]*?)<\/w:sdt>|<w:r(?: [^>]*)?>([\s\S]*?)<\/w:r>/g)].map(([, sdt, r]) => {
+    if (sdt !== undefined) return `[${sdt.includes('<w:showingPlcHdr/>') ? 'P ' : ''}${items(/<w:sdtContent>([\s\S]*?)<\/w:sdtContent>/.exec(sdt)?.[1] ?? '')}]`;
+    const text = [...r.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join('');
+    if (/<w:vanish\/>/.test(r)) return `{h:${text}}`;
+    if (/<w:rStyle w:val="PlaceholderText"\/>/.test(r)) return text === check69.PLACEHOLDER ? '{ph}' : `{S:${text}}`;
+    return text;
+  }).join('');
+  return `${c.n} ${items(ps[ps.length - 1] ?? '')} | ${c.after.paragraph}`;
+};
+
+test("check 69's file and snippet agree: every case parses to the case it was built as; each paragraph's shape as built, the last case's paragraph the document's last", async () => {
+  const { parseRegion } = await snippet69();
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const cases = check69.check69Cases();
+  assert.equal(cases.length, 49);
+  const bytes = await check69.check69Bytes();
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  const body = await pkg.getBody();
+  assert.deepEqual(body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null), cases);
+  for (const c of cases) assert.equal(parseRegion(check69.beginText(c)).n, c.n);
+  // a control for each case of the four shapes that have one, Word's form naming the default entry
+  const controls = body.contentControls;
+  const controlled = cases.filter((c) => ['ph-word', 'ph-bare', 'control-text', 'ph-only'].includes(c.shape));
+  assert.deepEqual(controls.map((c) => c.tag), controlled.map((c) => `c69-${c.n}`));
+  assert.deepEqual(controls.map((c) => c.placeholderEntry ?? null), controlled.map((c) => (['ph-word', 'ph-only'].includes(c.shape) ? check69.DEFAULT_ENTRY : null)));
+  assert.deepEqual(controls.map((c) => c.isShowingPlaceholder), controlled.map((c) => c.shape !== 'control-text'));
+  // each paragraph as built: the cell cases' in a one-cell table, the last case's the document's last paragraph
+  const xml = strFromU8(unzipSync(bytes)['word/document.xml']);
+  for (const c of cases) {
+    const at = xml.indexOf(`>BEGIN${c.n} `);
+    const from = xml.indexOf('</w:p>', at) + '</w:p>'.length;
+    const to = c.op === 'body-end' ? xml.indexOf('<w:sectPr>') : xml.lastIndexOf('<w:p>', xml.indexOf(`>END${c.n}<`));
+    const region = xml.slice(from, to);
+    assert.equal(region.includes('<w:tbl>'), c.op === 'cell-body-end', `case ${c.n}`);
+    assert.ok(region.includes(check69.paragraphOf(c)), `case ${c.n}`);
+  }
+  assert.ok(xml.endsWith(`${check69.paragraphOf(cases[48])}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`));
+  assert.ok(Object.keys(unzipSync(bytes)).includes('word/glossary/styles.xml'));
+});
+
+test("CR-002 section 63.27: check 69's snippet through the Word shim: a write at a paragraph's End goes after everything it holds, outside a trailing control; after a hidden run hidden, but by the End range's 'After'", async () => {
+  const { runCheck } = await snippet69();
+  const pkg = await WordprocessingMLPackage.load(await check69.check69Bytes());
+  await pkg.getBody();
+  const report = await runCheck((f) => Word.run(pkg, f), 'report');
+  assert.equal(report.caseCount, 49);
+  // before the run: a placeholder and a hidden run read as nothing, a control's value as its text
+  assert.deepEqual(report.cases.filter((c) => c.op === 'paragraph-end').map(look69), [
+    '1 TEXT1  | TEXT1 ', '9 TEXT9 [P {ph}] | TEXT9 ', '17 TEXT17 [P {ph}] | TEXT17 ', '25 TEXT25 {h:HIDDEN25} | TEXT25 ',
+    '33 TEXT33 [VALUE33] | TEXT33 VALUE33', '41 [P {ph}] | ',
+  ]);
+  const result = await runCheck((f) => Word.run(pkg, f), 'run');
+  assert.equal(result.cases.filter((c) => c.error).length, 0);
+  // Word's answer in every case (D12 to D14); until section 63.27 the text went on the end of the last run with width,
+  // before a placeholder control or a hidden run, and inside a control holding text
+  assert.deepEqual(result.cases.map(look69), check69.check69Cases().map(word69));
+  assert.deepEqual(result.cases.map((c) => c.result.returned), result.cases.map((c) => (c.shape === 'hidden' && c.op !== 'end-after' ? '' : `NEW${c.n}`)));
+  for (const c of result.cases.filter((x) => x.after.control)) {
+    assert.equal(c.after.showingPlaceholderText, c.shape !== 'control-text', `case ${c.n}`);
+  }
+});
+
+const wordRun69 = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check69', `69-paragraph-end-word365-${mode}.json`), 'utf8'));
+/** Word's answer for a check 69 case: NEW<n> after everything, outside a control; after a hidden run hidden, but by 'After'. */
+const word69 = ({ n, op, shape }) => {
+  const hidden = shape === 'hidden' && op !== 'end-after';
+  return {
+    plain: `${n} TEXT${n} NEW${n} | TEXT${n} NEW${n}`,
+    'ph-word': `${n} TEXT${n} [P {ph}]NEW${n} | TEXT${n} NEW${n}`,
+    'ph-bare': `${n} TEXT${n} [P {ph}]NEW${n} | TEXT${n} NEW${n}`,
+    hidden: hidden ? `${n} TEXT${n} {h:HIDDEN${n}NEW${n}} | TEXT${n} ` : `${n} TEXT${n} {h:HIDDEN${n}}NEW${n} | TEXT${n} NEW${n}`,
+    'control-text': `${n} TEXT${n} [VALUE${n}]NEW${n} | TEXT${n} VALUE${n}NEW${n}`,
+    'ph-only': `${n} [P {ph}]NEW${n} | NEW${n}`,
+  }[shape];
+};
+/** A case's region in a save's document part, revision and paragraph ids left out: BEGIN's paragraph to END's, or to the end. */
+const region69 = (xml, n) => {
+  const tidy = xml.replace(/ w:rsid\w*="[^"]*"| w14:(?:paraId|textId)="[^"]*"/g, '');
+  const from = tidy.indexOf('</w:p>', tidy.indexOf(`>BEGIN${n} `)) + '</w:p>'.length;
+  const end = tidy.indexOf(`>END${n}<`);
+  return tidy.slice(from, end < 0 ? tidy.indexOf('<w:sectPr') : tidy.lastIndexOf('<w:p>', end));
+};
+
+test("check 69's run: Word's JSONs are of this file's cases, run with Design Mode off, and its saves are Word's, as copied", async () => {
+  for (const mode of ['report', 'run']) {
+    const word = await wordRun69(mode);
+    assert.deepEqual([word.check, word.mode, word.host.version, word.caseCount], [69, mode, '16.0.20326.20232', 49]);
+    assert.deepEqual(word.cases.map(({ n, op, shape }) => ({ n, op, shape })), check69.check69Cases());
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check69', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.files.length, 2);
+  const { unzipSync, strFromU8 } = await import('fflate');
+  for (const { name, sha1 } of manifest.files) {
+    const bytes = await readFile(join(here, 'check69', name));
+    assert.equal(createHash('sha1').update(bytes).digest('hex'), sha1, name);
+    assert.doesNotMatch(strFromU8(unzipSync(bytes)['word/settings.xml']), /formsDesign/, `${name}: Design Mode off`);
+  }
+  // Word's save on opening holds every paragraph as built
+  const opened = strFromU8(unzipSync(await readFile(join(here, 'check69', '69-opened-word365.docx')))['word/document.xml']);
+  for (const c of check69.check69Cases()) {
+    assert.equal(look69({ n: c.n, after: { ooxml: region69(opened, c.n), paragraph: '' } }), look69({ n: c.n, after: { ooxml: check69.paragraphOf(c), paragraph: '' } }), `case ${c.n}`);
+  }
+});
+
+test("CR-002 section 63.24: Word 365's answers (check 69): a write at a paragraph's End goes after everything it holds, outside a trailing control, which keeps its placeholder; after a hidden run it is hidden, but by the End range's 'After'", async () => {
+  const report = await wordRun69('report');
+  assert.equal(report.cases.filter((c) => c.error).length, 0);
+  const run = await wordRun69('run');
+  assert.equal(run.cases.filter((c) => c.error).length, 0, 'Office JS refused nothing');
+  // every route alike, but the End range's 'After' after a hidden run (case 27)
+  assert.deepEqual(run.cases.map(look69), check69.check69Cases().map(word69));
+  // the returned range reads the text, but where it was written hidden
+  assert.deepEqual(run.cases.map((c) => c.result.returned), run.cases.map((c) => (c.shape === 'hidden' && c.op !== 'end-after' ? '' : `NEW${c.n}`)));
+  // Word's save: NEW<n> a run of its own, with no properties but a hidden run's w:vanish; each control as it was
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const saved = strFromU8(unzipSync(await readFile(join(here, 'check69', '69-run-word365.docx')))['word/document.xml']);
+  for (const c of run.cases) {
+    const region = region69(saved, c.n);
+    const hidden = c.shape === 'hidden' && c.op !== 'end-after';
+    assert.match(region, new RegExp(`<w:r>${hidden ? '<w:rPr><w:vanish/></w:rPr>' : ''}<w:t>NEW${c.n}</w:t></w:r></w:p>`), `case ${c.n}`);
+    if (c.shape.startsWith('ph')) assert.match(region, /<w:showingPlcHdr\/><\/w:sdtPr><w:sdtEndPr\/><w:sdtContent><w:r><w:rPr><w:rStyle w:val="PlaceholderText"\/><\/w:rPr><w:t>Click or tap here to enter text\.<\/w:t><\/w:r><\/w:sdtContent><\/w:sdt><w:r>/, `case ${c.n}`);
+  }
+});
+
+test("CR-002 section 63.27: the shim gives check 69's answers in every case (until then it differed in 41 of 49)", async () => {
+  const { runCheck } = await snippet69();
+  const pkg = await WordprocessingMLPackage.load(await check69.check69Bytes());
+  await pkg.getBody();
+  await runCheck((f) => Word.run(pkg, f), 'report');
+  const ours = await runCheck((f) => Word.run(pkg, f), 'run');
+  const word = await wordRun69('run');
+  assert.deepEqual(word.cases.filter((c, i) => look69(c) !== look69(ours.cases[i]) || c.result.returned !== ours.cases[i].result.returned).map((c) => c.n), []);
+  // the saved markup: NEW<n> a run of its own after the control, its flag kept; hidden after a hidden run, but by 'After'
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
+  for (const c of ours.cases) {
+    const region = region69(saved, c.n);
+    const hidden = c.shape === 'hidden' && c.op !== 'end-after';
+    // the last run extended, but by 'After', which writes a run of its own with no properties (D14)
+    if (c.shape === 'plain' && c.op !== 'end-after') assert.match(region, new RegExp(`<w:r><w:t>TEXT${c.n} NEW${c.n}</w:t></w:r></w:p>`), `case ${c.n}`);
+    else if (hidden) assert.match(region, new RegExp(`<w:r><w:rPr><w:vanish/></w:rPr><w:t>HIDDEN${c.n}NEW${c.n}</w:t></w:r></w:p>`), `case ${c.n}`);
+    else assert.match(region, new RegExp(`</w:(sdt|r)><w:r><w:t>NEW${c.n}</w:t></w:r></w:p>`), `case ${c.n}`);
+  }
+});
+
+// --- check 70 (CR-002 section 63.25): where a paragraph's End is, when the paragraph ends in a bookmark, a comment's
+// markers, a tracked deletion or insertion, a field or a text box; and which run's properties the text takes after a
+// control (section 63.24's D13)
+
+const snippet70 = async () => new Function(`${await readFile(join(here, 'fixtures', 'check70', 'check70-script-lab.js'), 'utf8')}\nreturn CHECK70;`)();
+/**
+ * A paragraph's items as tokens: a bookmark `<name>` ... `</b>`, a comment range `<c>` ... `</c>` and its reference
+ * `{cref}`, a revision `[del:...]` or `[ins:...]`, a complex field `{f` instruction `i`, `|`, result, `}`, a simple field
+ * `{fs:...}`, a text box `{box}`, a control `[...]` (`P ` showing its placeholder, `{ph}` the default text), a bold run
+ * `*...*`, other run properties `{<rPr>:...}`.
+ */
+const items70 = (xml) => [...xml.matchAll(/<w:sdt>([\s\S]*?)<\/w:sdt>|<w:(del|ins) [^>]*>([\s\S]*?)<\/w:\2>|<w:fldSimple [^>]*>([\s\S]*?)<\/w:fldSimple>|<w:bookmarkStart [^>]*w:name="([^"]*)"[^>]*\/>|<w:bookmarkEnd [^>]*\/>|<w:commentRangeStart [^>]*\/>|<w:commentRangeEnd [^>]*\/>|<w:r(?: [^>]*)?>([\s\S]*?)<\/w:r>/g)]
+  .map(([all, sdt, kind, revision, simple, bookmark, r]) => {
+    if (sdt !== undefined) return `[${sdt.includes('<w:showingPlcHdr/>') ? 'P ' : ''}${items70(/<w:sdtContent>([\s\S]*?)<\/w:sdtContent>/.exec(sdt)?.[1] ?? '')}]`;
+    if (kind !== undefined) return `[${kind}:${items70(revision)}]`;
+    if (simple !== undefined) return `{fs:${items70(simple)}}`;
+    if (bookmark !== undefined) return `<${bookmark}>`;
+    if (all.startsWith('<w:bookmarkEnd')) return '</b>';
+    if (all.startsWith('<w:commentRange')) return all.startsWith('<w:commentRangeStart') ? '<c>' : '</c>';
+    const field = /<w:fldChar w:fldCharType="(begin|separate|end)"\/>/.exec(r)?.[1];
+    if (field) return { begin: '{f', separate: '|', end: '}' }[field];
+    if (/<w:instrText/.test(r)) return 'i';
+    if (/<w:commentReference /.test(r)) return '{cref}';
+    if (/<w:drawing>|<mc:AlternateContent>/.test(r)) return '{box}';
+    const text = [...r.matchAll(/<w:(?:t|delText)(?: [^>]*)?>([^<]*)<\/w:(?:t|delText)>/g)].map((x) => x[1]).join('');
+    const rPr = /<w:rPr>([\s\S]*?)<\/w:rPr>/.exec(r)?.[1] ?? '';
+    if (/PlaceholderText/.test(rPr)) return text === check70.PLACEHOLDER ? '{ph}' : `{S:${text}}`;
+    if (rPr === '<w:b/>') return `*${text}*`;
+    return rPr === '' ? text : `{${rPr}:${text}}`;
+  }).join('');
+/** A case after check 70: its paragraph (the one holding `TEXT<n> `, a text box's own left out) as tokens, and Office JS's text. */
+const look70 = (c) => {
+  if (typeof c.after === 'string') return `${c.n} ${c.after}`;
+  const ps = [...c.after.ooxml.replace(/<w:txbxContent>[\s\S]*?<\/w:txbxContent>/g, '<w:txbxContent/>').matchAll(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g)].map((m) => m[0]);
+  return `${c.n} ${items70(ps.find((p) => p.includes(`>TEXT${c.n} `)) ?? '')} | ${c.after.paragraph}`;
+};
+
+test("check 70's file and snippet agree: every case parses to the case it was built as; each paragraph's ending as built, with its comment, revision, field, text box or control", async () => {
+  const { parseRegion } = await snippet70();
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const cases = check70.check70Cases();
+  assert.equal(cases.length, 88);
+  const bytes = await check70.check70Bytes();
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  const body = await pkg.getBody();
+  assert.deepEqual(body.paragraphs.map((p) => parseRegion(p.text)).filter((r) => r !== null), cases);
+  for (const c of cases) assert.equal(parseRegion(check70.beginText(c)).n, c.n);
+  // the controls of the D13 shapes, the placeholder in Word's form
+  const controlled = cases.filter((c) => ['bold-ph', 'bold-control-text', 'control-bold-text'].includes(c.shape));
+  assert.deepEqual(body.contentControls.map((c) => [c.tag, c.isShowingPlaceholder, c.placeholderEntry ?? null]),
+    controlled.map((c) => [`c70-${c.n}`, c.shape === 'bold-ph', c.shape === 'bold-ph' ? check70.DEFAULT_ENTRY : null]));
+  // each paragraph as built, the cell cases' in a one-cell table
+  const files = unzipSync(bytes);
+  const xml = strFromU8(files['word/document.xml']);
+  for (const c of cases) {
+    const from = xml.indexOf('</w:p>', xml.indexOf(`>BEGIN${c.n} `)) + '</w:p>'.length;
+    const region = xml.slice(from, xml.lastIndexOf('<w:p>', xml.indexOf(`>END${c.n}<`)));
+    assert.equal(region.includes('<w:tbl>'), c.op === 'cell-body-end', `case ${c.n}`);
+    assert.ok(region.includes(check70.paragraphOf(c)), `case ${c.n}`);
+  }
+  assert.deepEqual(cases.map((c) => look70({ n: c.n, after: { ooxml: check70.paragraphOf(c), paragraph: '' } }).replace(/\d+/g, '#')).filter((s, i, all) => all.indexOf(s) === i), [
+    '# <BM#>TEXT# </b> | ', '# TEXT# <PT#></b> | ', '# <c>TEXT# </c>{cref} | ', '# TEXT# [del:DELETED#] | ', '# TEXT# [ins:INSERTED#] | ',
+    '# TEXT# {fi|FIELD#} | ', '# TEXT# {fs:FIELD#} | ', '# TEXT# {box} | ', '# *TEXT# *[P {ph}] | ', '# *TEXT# *[VALUE#] | ', '# TEXT# [*VALUE#*] | ',
+  ]);
+  // a comment for each comment case, and the revisions in the tracked cases, as the listing reads them
+  assert.deepEqual([...strFromU8(files['word/comments.xml']).matchAll(/<w:comment w:id="(\d+)"/g)].map((m) => Number(m[1])), cases.filter((c) => c.shape === 'comment').map((c) => c.n));
+  const changes = await pkg.getAllTrackedChanges();
+  assert.deepEqual(changes.map((c) => [c.type, c.text, c.author]), cases.filter((c) => c.shape.startsWith('tracked'))
+    .map((c) => (c.shape === 'tracked-del' ? ['Deleted', `DELETED${c.n}`, check70.AUTHOR] : ['Added', `INSERTED${c.n}`, check70.AUTHOR])));
+});
+
+test("CR-002 section 63.27: check 70's snippet through the Word shim: a write at a paragraph's End goes after everything it holds, plain, whatever the ending", async () => {
+  const { runCheck } = await snippet70();
+  const pkg = await WordprocessingMLPackage.load(await check70.check70Bytes());
+  await pkg.getBody();
+  const report = await runCheck((f) => Word.run(pkg, f), 'report');
+  assert.equal(report.caseCount, 88);
+  const result = await runCheck((f) => Word.run(pkg, f), 'run');
+  assert.equal(result.cases.filter((c) => c.error).length, 0);
+  // after every ending, by every route, plain (D12, D13); until section 63.27 the text went on the end of the last run
+  // with width: inside a spanning bookmark, a comment's range and a field's result, before a point bookmark, a deletion
+  // and a text box, bold after a bold run before a control, inside a control holding text
+  const shapeOf = {
+    'bookmark-span': (n) => `<BM${n}>TEXT${n} </b>NEW${n} | TEXT${n} NEW${n}`,
+    'bookmark-point': (n) => `TEXT${n} <PT${n}></b>NEW${n} | TEXT${n} NEW${n}`,
+    comment: (n) => `<c>TEXT${n} </c>{cref}NEW${n} | TEXT${n} NEW${n}`,
+    'tracked-del': (n) => `TEXT${n} [del:DELETED${n}]NEW${n} | TEXT${n} NEW${n}`,
+    'tracked-ins': (n) => `TEXT${n} [ins:INSERTED${n}]NEW${n} | TEXT${n} INSERTED${n}NEW${n}`,
+    'field-complex': (n) => `TEXT${n} {fi|FIELD${n}}NEW${n} | TEXT${n} FIELD${n}NEW${n}`,
+    'field-simple': (n) => `TEXT${n} {fs:FIELD${n}}NEW${n} | TEXT${n} FIELD${n}NEW${n}`,
+    textbox: (n) => `TEXT${n} {box}NEW${n} | TEXT${n} NEW${n}`,
+    'bold-ph': (n) => `*TEXT${n} *[P {ph}]NEW${n} | TEXT${n} NEW${n}`,
+    'bold-control-text': (n) => `*TEXT${n} *[VALUE${n}]NEW${n} | TEXT${n} VALUE${n}NEW${n}`,
+    'control-bold-text': (n) => `TEXT${n} [*VALUE${n}*]NEW${n} | TEXT${n} VALUE${n}NEW${n}`,
+  };
+  assert.deepEqual(result.cases.map(look70), check70.check70Cases().map((c) => `${c.n} ${shapeOf[c.shape](c.n)}`));
+  assert.deepEqual(result.cases.map((c) => c.result.returned), result.cases.map((c) => `NEW${c.n}`));
+  // the tracked insertion stays as it was, and the new text is outside it, untracked
+  assert.equal((await pkg.getAllTrackedChanges()).filter((c) => /NEW/.test(c.text)).length, 0);
+});
+
+const wordRun70 = async (mode) => JSON.parse(await readFile(join(here, 'fixtures', 'check70', `70-paragraph-endings-word365-${mode}.json`), 'utf8'));
+/** Word's answer for a check 70 case: NEW<n> after everything the paragraph holds; after a text box w:noProof by four routes. */
+const word70 = ({ n, op, shape }) => {
+  const after = (ending, text = '') => `${n} ${ending}NEW${n} | TEXT${n} ${text}NEW${n}`;
+  const noProof = ['paragraph-end', 'end-before', 'content-end', 'cell-body-end'].includes(op);
+  return {
+    'bookmark-span': after(`<BM${n}>TEXT${n} </b>`),
+    'bookmark-point': after(`TEXT${n} <PT${n}></b>`),
+    comment: after(`<c>TEXT${n} </c>{cref}`),
+    'tracked-del': after(`TEXT${n} [del:DELETED${n}]`, `DELETED${n}`),
+    'tracked-ins': after(`TEXT${n} [ins:INSERTED${n}]`, `INSERTED${n}`),
+    'field-complex': after(`TEXT${n} {fi|FIELD${n}}`, `FIELD${n}`),
+    // Word reads a w:fldSimple as a complex field, and writes it so (its save on opening)
+    'field-simple': after(`TEXT${n} {fi|FIELD${n}}`, `FIELD${n}`),
+    textbox: noProof ? `${n} TEXT${n} {box}{<w:noProof/>:NEW${n}} | TEXT${n} NEW${n}` : after(`TEXT${n} {box}`),
+    'bold-ph': after(`*TEXT${n} *[P {ph}]`),
+    'bold-control-text': after(`*TEXT${n} *[VALUE${n}]`, `VALUE${n}`),
+    'control-bold-text': after(`TEXT${n} [*VALUE${n}*]`, `VALUE${n}`),
+  }[shape];
+};
+/** A case's region in a save of check 70, revision and paragraph ids left out. */
+const region70 = (xml, n) => {
+  const tidy = xml.replace(/ w:rsid\w*="[^"]*"| w14:(?:paraId|textId)="[^"]*"/g, '');
+  const from = tidy.indexOf('</w:p>', tidy.indexOf(`>BEGIN${n} `)) + '</w:p>'.length;
+  return tidy.slice(from, tidy.lastIndexOf('<w:p>', tidy.indexOf(`>END${n}<`)));
+};
+const items70Of = (c) => look70(c).split(' | ')[0];
+
+test("check 70's run: Word's JSONs are of this file's cases, run with Design Mode off, and its saves are Word's, as copied", async () => {
+  for (const mode of ['report', 'run']) {
+    const word = await wordRun70(mode);
+    assert.deepEqual([word.check, word.mode, word.host.version, word.caseCount], [70, mode, '16.0.20326.20232', 88]);
+    assert.deepEqual(word.cases.map(({ n, op, shape }) => ({ n, op, shape })), check70.check70Cases());
+  }
+  const manifest = JSON.parse(await readFile(join(here, 'check70', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.files.length, 2);
+  const { unzipSync, strFromU8 } = await import('fflate');
+  for (const { name, sha1 } of manifest.files) {
+    const bytes = await readFile(join(here, 'check70', name));
+    assert.equal(createHash('sha1').update(bytes).digest('hex'), sha1, name);
+    assert.doesNotMatch(strFromU8(unzipSync(bytes)['word/settings.xml']), /formsDesign/, `${name}: Design Mode off`);
+  }
+  // Word's save on opening holds every paragraph as built, but a w:fldSimple written as a complex field
+  const opened = strFromU8(unzipSync(await readFile(join(here, 'check70', '70-opened-word365.docx')))['word/document.xml']);
+  for (const c of check70.check70Cases()) {
+    const built = items70Of({ n: c.n, after: { ooxml: check70.paragraphOf(c), paragraph: '' } });
+    assert.equal(items70Of({ n: c.n, after: { ooxml: region70(opened, c.n), paragraph: '' } }), built.replace(/\{fs:(FIELD\d+)\}/, '{fi|$1}'), `case ${c.n}`);
+  }
+});
+
+test("CR-002 section 63.26: Word 365's answers (check 70): a write at a paragraph's End goes after everything it holds, outside a bookmark, a comment's range and reference, a revision, a field and a text box; after a control, plain, whatever runs are about it", async () => {
+  const run = await wordRun70('run');
+  assert.equal(run.cases.filter((c) => c.error).length, 0, 'Office JS refused nothing');
+  assert.deepEqual(run.cases.map(look70), check70.check70Cases().map(word70));
+  assert.deepEqual(run.cases.map((c) => c.result.returned), run.cases.map((c) => `NEW${c.n}`));
+  // Word's save holds the same; NEW<n> a run of its own, plain but after a text box (w:noProof, by four routes): not the
+  // bold of the run before a control (Jason: "NEW65 is not bold; NEW73 is not bold"), nor a comment reference's style
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const saved = strFromU8(unzipSync(await readFile(join(here, 'check70', '70-run-word365.docx')))['word/document.xml']);
+  for (const c of run.cases) {
+    const region = region70(saved, c.n);
+    assert.equal(items70Of({ n: c.n, after: { ooxml: region, paragraph: '' } }), items70Of(c), `case ${c.n}`);
+    assert.match(region, new RegExp(`<w:r>${/\{<w:noProof\/>:NEW/.test(look70(c)) ? '<w:rPr><w:noProof/></w:rPr>' : ''}<w:t>NEW${c.n}</w:t></w:r></w:p>`), `case ${c.n}`);
+  }
+});
+
+test("CR-002 section 63.27: the shim writes where check 70's run wrote in every case (until then it differed in 80 of 88); what differs is a deletion's text read in All Markup, a simple field's form and w:noProof after a text box", async () => {
+  const { runCheck } = await snippet70();
+  const pkg = await WordprocessingMLPackage.load(await check70.check70Bytes());
+  await pkg.getBody();
+  await runCheck((f) => Word.run(pkg, f), 'report');
+  const ours = await runCheck((f) => Word.run(pkg, f), 'run');
+  const word = await wordRun70('run');
+  // where NEW<n> went: a simple field read as Word reads it, and Word's w:noProof after a text box left out (D13's departure)
+  const placed = (c) => items70Of(c).replace(/\{fs:(FIELD\d+)\}/, '{fi|$1}').replace(/\{<w:noProof\/>:(NEW\d+)\}/, '$1');
+  assert.deepEqual(word.cases.filter((c, i) => placed(c) !== placed(ours.cases[i])).map((c) => c.n), []);
+  // what is left: Word's All Markup reads a deletion's text (check 53: paragraph.text follows Display for Review), a
+  // w:fldSimple Word reads as a complex field, and the four routes giving w:noProof after a text box
+  const differ = word.cases.filter((c, i) => look70(c) !== look70(ours.cases[i]));
+  assert.deepEqual([...new Set(differ.map((c) => c.shape))], ['tracked-del', 'field-simple', 'textbox']);
+  assert.deepEqual(differ.filter((c) => c.shape === 'textbox').map((c) => c.op), ['paragraph-end', 'end-before', 'content-end', 'cell-body-end']);
+});
+
+/** A package whose body is `body` (WordprocessingML, the w and r prefixes bound), its parts otherwise a created package's. */
+async function withBody(body) {
+  const { unzipSync, zipSync, strToU8, strFromU8 } = await import('fflate');
+  const entries = unzipSync(await (await WordprocessingMLPackage.createPackage()).save());
+  const xml = strFromU8(entries['word/document.xml']);
+  const root = /<w:document[^>]*>/.exec(xml)[0];
+  entries['word/document.xml'] = strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${root}<w:body>${body}<w:sectPr/></w:body></w:document>`);
+  const pkg = await WordprocessingMLPackage.load(zipSync(entries));
+  await pkg.getBody();
+  return pkg;
+}
+const firstParagraphXml = async (pkg) => {
+  const { unzipSync, strFromU8 } = await import('fflate');
+  const xml = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
+  return /<w:body>(<w:p>[\s\S]*?<\/w:p>)/.exec(xml)[1].replace(/ xml:space="preserve"| w:(date|id)="[^"]*"/g, '');
+};
+
+test("CR-002 section 63.27: a write at a paragraph's End past a link, a smart tag's like, goes after it, plain; a proofing mark is no item, so the misspelt bold word before it lends its bold", async () => {
+  const W_REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const link = await withBody(`<w:p><w:r><w:t xml:space="preserve">See </w:t></w:r><w:hyperlink w:anchor="x" xmlns:r="${W_REL}"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t>here</w:t></w:r></w:hyperlink></w:p>`);
+  link.body.paragraphs[0].insertText('.', 'End');
+  assert.match(await firstParagraphXml(link), /<\/w:hyperlink><w:r><w:t>\.<\/w:t><\/w:r><\/w:p>$/);
+  const proof = await withBody('<w:p><w:proofErr w:type="spellStart"/><w:r><w:rPr><w:b/></w:rPr><w:t>Teh</w:t></w:r><w:proofErr w:type="spellEnd"/></w:p>');
+  proof.body.paragraphs[0].insertText(' cat', 'End');
+  assert.match(await firstParagraphXml(proof), /<w:r><w:rPr><w:b\/><\/w:rPr><w:t>Teh cat<\/w:t><\/w:r><w:proofErr w:type="spellEnd"\/><\/w:p>$/);
+  // a paragraph with no runs: a run of its own, after a bookmark it holds
+  const marks = await withBody('<w:p><w:bookmarkStart w:id="1" w:name="B"/><w:bookmarkEnd w:id="1"/></w:p>');
+  assert.equal(marks.body.paragraphs[0].insertText('X', 'End').text, 'X');
+  assert.match(await firstParagraphXml(marks), /<w:bookmarkEnd\/><w:r><w:t>X<\/w:t><\/w:r><\/w:p>$/);
+});
+
+test("CR-002 section 63.27: tracked, a write at a paragraph's End is a w:ins after everything the paragraph holds, or joins this author's own insertion that ends it", async () => {
+  const pkg = await withBody('<w:p><w:r><w:t xml:space="preserve">TEXT </w:t></w:r><w:sdt><w:sdtPr><w:id w:val="9"/><w:showingPlcHdr/></w:sdtPr><w:sdtContent><w:r><w:rPr><w:rStyle w:val="PlaceholderText"/></w:rPr><w:t>Click or tap here to enter text.</w:t></w:r></w:sdtContent></w:sdt></w:p>');
+  pkg.changeTrackingMode = 'TrackAll';
+  const p = pkg.body.paragraphs[0];
+  assert.equal(p.insertText('NEW', 'End').text, 'NEW');
+  assert.match(await firstParagraphXml(pkg), /<\/w:sdt><w:ins [^>]*><w:r><w:t>NEW<\/w:t><\/w:r><\/w:ins><\/w:p>$/);
+  // the same author again: the insertion grows, in its run's look
+  p.getRange('End').insertText('ER', 'Before');
+  assert.match(await firstParagraphXml(pkg), /<\/w:sdt><w:ins [^>]*><w:r><w:t>NEWER<\/w:t><\/w:r><\/w:ins><\/w:p>$/);
+  assert.deepEqual((await pkg.getAllTrackedChanges()).map((c) => [c.type, c.text]), [['Added', 'NEWER']]);
+});
+
+test("CR-002 section 63.27: a write at a paragraph's End holding a line break makes paragraphs after everything the paragraph holds, and the range runs across them; after a hidden run such text is visible", async () => {
+  const pkg = await withBody('<w:p><w:r><w:t xml:space="preserve">TEXT </w:t></w:r><w:sdt><w:sdtPr><w:id w:val="9"/></w:sdtPr><w:sdtContent><w:r><w:t>VALUE</w:t></w:r></w:sdtContent></w:sdt></w:p>');
+  const range = pkg.body.paragraphs[0].insertText('A\nB', 'End');
+  assert.deepEqual(pkg.body.paragraphs.map((p) => p.text), ['TEXT VALUEA', 'B']);
+  assert.equal(range.text, 'A\rB');
+  assert.equal(pkg.body.contentControls[0].text, 'VALUE');
+  const hidden = await withBody('<w:p><w:r><w:t xml:space="preserve">TEXT </w:t></w:r><w:r><w:rPr><w:vanish/></w:rPr><w:t>HIDDEN</w:t></w:r></w:p>');
+  hidden.body.paragraphs[0].insertText('A\nB', 'End');
+  assert.deepEqual(hidden.body.paragraphs.map((p) => p.text), ['TEXT A', 'B']);
+  // without a break, after the hidden run, hidden (D13): the range reads nothing, as Word's
+  const one = await withBody('<w:p><w:r><w:t xml:space="preserve">TEXT </w:t></w:r><w:r><w:rPr><w:vanish/></w:rPr><w:t>HIDDEN</w:t></w:r></w:p>');
+  assert.equal(one.body.paragraphs[0].insertText('A', 'End').text, '');
+  assert.equal(one.body.paragraphs[0].text, 'TEXT ');
+});
+
+test("CR-002 section 63.27: a search hit that ends at a paragraph's end is no End route: text put after it goes where it went before, inside a trailing control's text", async () => {
+  const pkg = await withBody('<w:p><w:r><w:t xml:space="preserve">TEXT </w:t></w:r><w:sdt><w:sdtPr><w:id w:val="9"/></w:sdtPr><w:sdtContent><w:r><w:t>VALUE</w:t></w:r></w:sdtContent></w:sdt></w:p>');
+  const [hit] = pkg.body.search('VALUE');
+  hit.insertText('!', 'After');
+  assert.equal(pkg.body.contentControls[0].text, 'VALUE!');
 });

@@ -44,3 +44,7 @@ node_modules
 /test/fixtures/check67/*.docx
 # check 68's file, built in memory by its test (fixtures/check68/build.mjs); Word reads the share's copy
 /test/fixtures/check68/*.docx
+# check 69's file, built in memory by its test (fixtures/check69/build.mjs); Word reads the share's copy
+/test/fixtures/check69/*.docx
+# check 70's file, built in memory by its test (fixtures/check70/build.mjs); it holds tracked changes, and Word reads the share's copy
+/test/fixtures/check70/*.docx

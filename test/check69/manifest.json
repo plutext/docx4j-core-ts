@@ -1,0 +1,19 @@
+{
+ "check": 69,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-25; Developer > Design Mode off)",
+ "source": "test/fixtures/check69/build.mjs (69-paragraph-end.docx, 49 cases)",
+ "saves": {
+  "69-opened-word365.docx": "69-paragraph-end.docx as Word opened it, before anything was written, saved with File > Save As (no problem on open)",
+  "69-run-word365.docx": "the same after the Script Lab snippet's Report only and Run the check, saved with File > Save (the JSONs: test/fixtures/check69/69-paragraph-end-word365-report.json and -run.json); Jason: in case 9 NEW9 shows after the prompt, which still shows"
+ },
+ "files": [
+  {
+   "name": "69-opened-word365.docx",
+   "sha1": "8230ae767568bcb3d924c07b4492efac0ca7b8a6"
+  },
+  {
+   "name": "69-run-word365.docx",
+   "sha1": "b55905f67f58fe512d29d373ebcebd08b462d305"
+  }
+ ]
+}

@@ -251,7 +251,7 @@ Key mechanics:
   (F4), and inside a field's result splitting it, a `w:fldSimple` made a complex field first, as Word does (section 62.3,
   `unfoldSimpleFieldsAround`); `insertParagraph` and `Paragraph.text =` keep one paragraph (E2: `\n` a `w:br`, `\r` a `w:cr`); a
   plain-text control takes a break as its kind does (F3); the characters XML 1.0 excludes are dropped (E3), and
-  `XmlPart.getBytes` refuses a part still holding one (D3). A block-level control bound by `w:dataBinding` (untyped,
+  `XmlPart.getBytes` refuses a part still holding one (D3). **A write at a paragraph's End** (`insertText('End')`, its End range at any location, its Content range's End and After, so a body's or a cell's End) goes through `Paragraph.writeAtEnd`, after everything the paragraph holds and into none of it (a run-level control, a link, a revision, a field, markers, a text box), in the last item's run properties only where that item is a run holding text, the End range's After in none (CR-002 sections 63.24 to 63.27, checks 69 and 70); a range that merely ends there writes as `splice` does. A block-level control bound by `w:dataBinding` (untyped,
   `w:text`, `w:richText`; not a flat OPC node) holds one paragraph: every write that would give it another block is
   refused (CR-002 section 61, `assertControlHolds`), it reads as `PlainText`, and `getContentControls({ types })` finds a
   kind as Word's does. `Font` and `Paragraph` reads report **effective**
@@ -345,7 +345,9 @@ and section 63.12's: a tracked Replace over a control's markup, accepted and rej
 placeholders in Word's form (D8) and the glossary written on save (D9); and check 67's three files (`test/fixtures/check67/`: check 58's writes into
 the bare form in four phases, the view and the tracking mode, through two lookups, for why checks 58 and 63 disagree) and snippet held to each other and run through the shim,
 and Word's run (its saves in `test/check67/`) pinned and the shim held to it: every write a plain run, as check 58's, check 58's save pinned too, and only check 63's run 1 saves holding `w:formsDesign`;
-and check 68's (`test/fixtures/check68/`: the run properties a write into a placeholder takes, and an entry under a control's own) file and snippet held to each other, and Word's run (its saves in `test/check68/`) pinned and the shim held to it,
+and check 68's (`test/fixtures/check68/`: the run properties a write into a placeholder takes, and an entry under a control's own) file and snippet held to each other, and Word's run (its saves in `test/check68/`) pinned and the shim held to it;
+and check 69's (`test/fixtures/check69/`: a write at a paragraph's End past a placeholder control, a hidden run or a control holding text, by every route) file and snippet held to each other and run through the shim, and Word's run (its saves in `test/check69/`) pinned and the shim held to it (section 63.27);
+and check 70's (`test/fixtures/check70/`: the same at the endings check 69 left, a bookmark, comment markers, a tracked deletion or insertion, a field, a text box, and D13's runs before a control) file and snippet held to each other and run through the shim, and Word's run (its saves in `test/check70/`) pinned and the shim held to it, its three non-placement differences listed (section 63.27),
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

@@ -5257,3 +5257,140 @@ async function check() {
        control's bold (21 to 24).
 
      This package differed in 5 to 24, and agrees in every case since CR-002 section 63.21.
+
+69. Where a paragraph's End is, when the paragraph ends in something with no width (CR-002 section 63.23, 2026-10-25;
+   Jason: "yes, check 69", on docx4j-python's finding).
+   - **Why:** a write at a paragraph's End, where the paragraph ends in a run-level control showing its placeholder. The
+     two ports put it in different places:
+     - this package writes the text on the end of the last run with width, so it lands before the control;
+     - docx4j-python wrote it inside the control, after the prompt, with the flag still on, where no reader sees it. It
+       proposes after the control.
+
+     The same choice decides a trailing hidden run: this package writes before it, docx4j-python after it. It also
+     decides a trailing control holding text, where this package writes inside the control. None of it is measured. Office
+     JS's readers can't tell the places apart, since a placeholder and a hidden run read as nothing, so the save says where
+     the text went.
+   - **The file** is `__tmp/69/69-paragraph-end.docx` on the share, as `fixtures/check69/build.mjs` writes it (git ignores
+     the `.docx`). The snippet is beside it, `check69-script-lab.html` and `check69-script-lab.js`.
+     - **Each case is a region:** `BEGIN<n> <op> <shape>`, one paragraph, `END<n>`. The paragraph starts `TEXT<n> ` and
+       ends in one of six shapes:
+       - `plain`: nothing more, the baseline (cases 1 to 8);
+       - `ph-word`: a run-level control showing its placeholder in Word's form, naming the default entry (9 to 16);
+       - `ph-bare`: the same control in the bare form, no `w:placeholder` (17 to 24);
+       - `hidden`: a hidden run, `HIDDEN<n>` (25 to 32);
+       - `control-text`: a run-level control holding `VALUE<n>`, not showing a placeholder (33 to 40);
+       - `ph-only`: the paragraph is the Word's-form control alone, with no `TEXT<n>` (41 to 48).
+     - **The writes:** each case writes `NEW<n>` at the paragraph's End, by one of eight routes:
+       - the paragraph's `insertText('End')`;
+       - its `getRange('End')`'s `insertText` at Before, After, Start, End and Replace;
+       - its `getRange('Content')`'s `insertText('End')`;
+       - a cell body's `insertText('End')`. For this route the paragraph is a one-cell table's only paragraph.
+     - **Case 49** is the document body's `insertText('End')`, on a `ph-word` paragraph. Its region has no `END49`: the
+       paragraph is the document's last.
+     - The snippet turns change tracking off, so every write is untracked.
+   - **Steps, in Word 365 only:**
+     1. On the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted. If the Developer tab isn't
+        shown, Design Mode is off. Leave it off throughout.
+     2. Open `__tmp/69/69-paragraph-end.docx`. Say whether Word reports a problem or offers a repair.
+     3. File > Save As `69-opened-word365.docx`, in the same folder `__tmp/69`.
+     4. File > Save As again, `69-run-word365.docx` in `__tmp/69`. This is the copy the run changes.
+     5. In Script Lab, replace check 68's snippet, or start a new one: paste `__tmp/69/check69-script-lab.html` over the HTML
+        tab and `__tmp/69/check69-script-lab.js` over the Script tab.
+     6. Click **Report only**. When it says Done, copy the box into a new file `__tmp/69/result-report.txt`.
+     7. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/69/result-run.txt`.
+     8. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Look at
+        case 9 and say whether `NEW9` shows before or after "Click or tap here to enter text.", and whether the prompt
+        still shows. Then File > Close.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim and pins each case). Every
+     route does the same:
+     - `NEW<n>` goes on the end of `TEXT<n>`'s run, before a placeholder control in either form, which still shows its
+       placeholder;
+     - it goes before a hidden run;
+     - it goes inside a control holding text, after `VALUE<n>`;
+     - in a paragraph that is a placeholder control alone, it goes in a new run before the control.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Design Mode off).** No problem opening the file. Jason: in
+     case 9, `NEW9` shows after "Click or tap here to enter text.", and the prompt still shows. The JSONs are
+     `fixtures/check69/69-paragraph-end-word365-report.json` and `-run.json`. Word's two saves are in `check69/` with a
+     SHA-1 manifest. CR-002 section 63.24 has it all. In short, every route does the same, but one:
+     - `NEW<n>` goes after everything the paragraph holds, in a run of its own outside a trailing control. That holds for
+       a placeholder control in either form, which keeps its prompt and flag; for a control holding text; and for a
+       paragraph that is a control alone.
+     - After a hidden run, `NEW<n>` takes the run's `w:vanish`, so Office JS reads neither the paragraph's new text nor
+       the returned range's. The exception is the End range's `insertText(…, 'After')` (case 27), which writes it plain.
+     - No route was refused.
+
+     This package differed in 41 of the 49 cases, every one but the plain paragraphs: it wrote before a control or a
+     hidden run, and inside a control holding text. Since CR-002 section 63.27 it gives Word's answer in every case.
+
+70. Where a paragraph's End is, when the paragraph ends in a marker, a revision, a field or a text box (CR-002 section
+   63.25, 2026-10-25; Jason: "write a check for endings: trailing bookmark, comment marker, tracked deletion, field or text
+   box").
+   - **Why:** check 69 found that Word writes at a paragraph's End after everything the paragraph holds, outside a
+     trailing control, and that the text takes a trailing hidden run's properties. Section 63.24's D12 leaves the endings
+     check 69 didn't measure as they are: a bookmark, a comment's markers, a tracked deletion, a field, a text box. This
+     check measures them. It adds a tracked insertion beside the deletion, and three shapes that settle D13: which run's
+     properties the text takes after a control.
+   - **The file** is `__tmp/70/70-paragraph-endings.docx` on the share, as `fixtures/check70/build.mjs` writes it (git
+     ignores the `.docx`). The snippet is beside it, `check70-script-lab.html` and `check70-script-lab.js`.
+     - **Each case is a region:** `BEGIN<n> <op> <shape>`, one paragraph, `END<n>`. The paragraph starts `TEXT<n> ` and
+       ends in one of eleven shapes, eight cases each:
+       - `bookmark-span`: a bookmark `BM<n>` around `TEXT<n>`, its end last (cases 1 to 8);
+       - `bookmark-point`: an empty bookmark `PT<n>` after `TEXT<n>` (9 to 16);
+       - `comment`: a comment around `TEXT<n>`, its range end and then its reference last (17 to 24);
+       - `tracked-del`: a tracked deletion, `DELETED<n>`, by Check 70 (25 to 32);
+       - `tracked-ins`: a tracked insertion, `INSERTED<n>`, by Check 70 (33 to 40);
+       - `field-complex`: a QUOTE field whose result is `FIELD<n>` (41 to 48);
+       - `field-simple`: the same field as a `w:fldSimple` (49 to 56);
+       - `textbox`: an inline text box holding `BOX<n>` (57 to 64);
+       - `bold-ph`: `TEXT<n>` bold, then a control showing its placeholder (65 to 72);
+       - `bold-control-text`: `TEXT<n>` bold, then a control holding `VALUE<n>` (73 to 80);
+       - `control-bold-text`: `TEXT<n>` plain, then a control holding `VALUE<n>` bold (81 to 88).
+     - **The writes:** each case writes `NEW<n>` at the paragraph's End, by check 69's routes, the document body's left
+       out:
+       - the paragraph's `insertText('End')`;
+       - its `getRange('End')`'s `insertText` at Before, After, Start, End and Replace;
+       - its `getRange('Content')`'s `insertText('End')`;
+       - a cell body's `insertText('End')`. For this route the paragraph is a one-cell table's only paragraph.
+     - The snippet turns change tracking off, so every write is untracked.
+   - **Steps, in Word 365 only:**
+     1. On the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted. If the Developer tab isn't
+        shown, Design Mode is off. Leave it off throughout.
+     2. On the **Review** tab, in the Tracking group, set **Display for Review** to **All Markup**. Leave it so throughout.
+     3. Open `__tmp/70/70-paragraph-endings.docx`. Say whether Word reports a problem or offers a repair.
+     4. File > Save As `70-opened-word365.docx`, in the same folder `__tmp/70`.
+     5. File > Save As again, `70-run-word365.docx` in `__tmp/70`. This is the copy the run changes.
+     6. In Script Lab, replace check 69's snippet, or start a new one: paste `__tmp/70/check70-script-lab.html` over the HTML
+        tab and `__tmp/70/check70-script-lab.js` over the Script tab.
+     7. Click **Report only**. When it says Done, copy the box into a new file `__tmp/70/result-report.txt`.
+     8. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/70/result-run.txt`.
+     9. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Look at
+        cases 65 and 73, and say whether `NEW65` and `NEW73` show bold. Then File > Close.
+   - **What this package gives** (`placeholders.test.mjs` runs the snippet through the Word shim and pins each case).
+     Every route does the same: `NEW<n>` goes on the end of the paragraph's last run with width. So it lands:
+     - inside a bookmark spanning the text, before the bookmark's end;
+     - before an empty bookmark;
+     - inside the comment's range, before its end and the reference;
+     - before a tracked deletion;
+     - after a tracked insertion, outside it;
+     - inside a field's result, before the field's end, in both forms;
+     - before a text box;
+     - after a bold run, bold, before a placeholder control;
+     - inside a control holding text, in that text's properties.
+   - **Run 2026-10-25 (Jason; Word 365, 16.0.20326.20232, PC; Design Mode off, All Markup).** No problem opening the
+     file. Jason: `NEW65` and `NEW73` are not bold. The JSONs are `fixtures/check70/70-paragraph-endings-word365-report.json`
+     and `-run.json`. Word's two saves are in `check70/` with a SHA-1 manifest. CR-002 section 63.26 has it all. In short:
+     - **Every ending, every route:** `NEW<n>` goes after everything the paragraph holds, in a run of its own: after a
+       spanning bookmark's end, after an empty bookmark, after the comment's range end and its reference, after a tracked
+       deletion, after a tracked insertion (outside it, untracked), after a field's end, and after a text box.
+     - **Plain after a control,** even after a bold run before it (65 to 80), and after a control holding bold text (81 to
+       88). The text didn't take a comment reference's style either.
+     - **After a text box,** `NEW<n>` takes the drawing run's `w:noProof` by four routes: the paragraph's End, the End
+       range's Before, the Content range and the cell body. The End range's After, Start, End and Replace write it plain.
+     - **Word reads a `w:fldSimple` as a complex field,** and its save on opening writes it as one.
+     - No route was refused.
+
+     This package differed in 80 of the 88 cases, every one but the tracked insertion: it wrote inside the bookmark, the
+     comment's range and the field's result, before the point bookmark, the deletion and the text box, bold before a
+     control after a bold run, and inside a control holding text. Since CR-002 section 63.27 it writes where Word wrote
+     in every case. It differs only in reading a deletion's text as Word's default view does, in keeping a simple field
+     simple, and in leaving out `w:noProof` after a text box (D13's departure).

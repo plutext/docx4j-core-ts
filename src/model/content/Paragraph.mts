@@ -386,7 +386,7 @@ export class Paragraph {
     if (placeholder) return placeholder.writePlaceholder(text);
     const length = this.text.length;
     if (location === 'Start') return this.splice(0, 0, text);
-    if (location === 'End') return this.splice(length, length, text);
+    if (location === 'End') return this.writeAtEnd(text);
     // tracked, the insertion goes first, before the deletion, as a range's Replace writes it and Word wrote this one
     // (check 63 cases 45 and 52; CR-002 section 63 D3)
     if (this.changeTracker && length > 0) return this.getRange('Content').insertText(text, 'Replace');
@@ -537,8 +537,9 @@ export class Paragraph {
   getRange(location: 'Whole' | 'Start' | 'End' | 'Content' = 'Whole'): Range {
     const length = this.text.length;
     if (location === 'Start') return new Range(this, 0, 0);
-    if (location === 'End') return new Range(this, length, length);
-    return new Range(this, 0, length, true, location === 'Whole');
+    if (location === 'End') return new Range(this, length, length).atEndOf('End');
+    const range = new Range(this, 0, length, true, location === 'Whole');
+    return location === 'Content' ? range.atEndOf('Content') : range;
   }
 
   /**
@@ -810,7 +811,7 @@ export class Paragraph {
    * The controls bound by `w:dataBinding` that [start, end) is in: those holding the paragraph, and the run-level ones
    * holding text there.
    */
-  private boundControlsAt(start: number, end: number): ContentControl[] {
+  private boundControlsAt(start: number, end: number, ancestorsOnly = false): ContentControl[] {
     const out: ContentControl[] = [];
     const seen = new Set<object>();
     const add = (o: object): void => {
@@ -825,12 +826,106 @@ export class Paragraph {
       }
     };
     for (let o = (this.p as { PARENT?: object }).PARENT; o; o = (o as { PARENT?: object }).PARENT) add(o);
-    if (!holdsBoundRunControl(this.p)) return out;
+    if (ancestorsOnly || !holdsBoundRunControl(this.p)) return out;
     for (const seg of this.segments({ objects: true })) {
       if (seg.end < start || seg.start > end) continue;
       for (let o = (seg.run as { PARENT?: object }).PARENT; o && o !== this.p; o = (o as { PARENT?: object }).PARENT) add(o);
     }
     return out;
+  }
+
+  /**
+   * @internal Text written at the paragraph's End by Office JS's routes to it: `insertText('End')`, its End range at any
+   * location, its Content range's End and After, and so a body's or a cell's `insertText('End')` (CR-002 sections 63.24
+   * to 63.27; checks 69 and 70). As Word writes it (D12): after everything the paragraph holds, into none of it - a
+   * run-level control, a link, a revision, a field, a bookmark's or a comment's markers, a text box - in a run of its
+   * own, or the last run extended. The text takes the last item's run properties where that item is a run holding text,
+   * so after a hidden run it is hidden and its range reads nothing (D13); otherwise it has none, and with `plain` (the End
+   * range's After, D14) none either. Word's proofing marks, `w:proofErr`, are no item (a choice: Word redoes them).
+   * Tracked, the run is a `w:ins`, or joins this author's own `w:ins` where one ends the paragraph. A line break makes
+   * paragraphs, as `splice` does (CR-002 section 60 E1); text so broken after a hidden run is written visible (a choice,
+   * unmeasured).
+   */
+  writeAtEnd(text: string, plain = false): Range {
+    this.assertWritable();
+    const placeholder = this.placeholderControl;
+    if (placeholder) return placeholder.writePlaceholder(text);
+    const length = this.text.length;
+    text = dropExcluded(text);
+    if (text === '') return new Range(this, length, length);
+    let mode: LineBreaks = 'paragraphs';
+    const lines = this.blockControl ? plainTextLinesOf(this.blockControl) : undefined;
+    if (lines) mode = lines === 'multi' ? 'multi-line' : 'single-line';   // section 61 item 3, F3
+    text = forWriter(text, mode);
+    const broken = mode === 'paragraphs' && /[\r\n]/.test(text) ? linesOf(text) : undefined;
+    const joined = broken ? broken.join('') : text;
+    if (joined === '' && !broken) return new Range(this, length, length);
+    const bound = this.boundControlsAt(length, length, true);
+    const content = (this.p.content ??= []) as Element[];
+    let at = content.length;
+    while (at > 0 && typeNameOf(content[at - 1]!) === 'org_docx4j_wml.ProofErr') at--;
+    const last = at > 0 ? content[at - 1] : undefined;
+    const textRun = (item: Element | undefined): wml.R | undefined => {
+      if (!item || typeNameOf(item) !== 'org_docx4j_wml.R') return undefined;
+      const run = item.value as wml.R;
+      return ((run.content ?? []) as Element[]).some((c) => c.name?.localPart === 't') ? run : undefined;
+    };
+    const hidden = this.hiddenRuns();
+    // the run whose properties the text takes, and which it may extend: a run holding text, unless `plain`
+    let source = plain ? undefined : textRun(last);
+    if (source && broken && hidden(source)) source = undefined;
+    const items = officeItems(joined);
+    const tracker = this.changeTracker;
+    let written: wml.R | undefined;
+    const own = tracker && last && typeNameOf(last) === 'org_docx4j_wml.RunIns' && tracker.ownInsertion({ kind: 'ins', value: last.value } as RevisionHolder);
+    if (items.length === 0) {
+      // nothing but line breaks: only the paragraphs they make
+    } else if (own) {
+      // this author's own insertion ends the paragraph: the text joins it, after its last run, in that run's look
+      const value = last!.value as { customXmlOrSmartTagOrSdt?: Element[] };
+      const holder = (runItemsOf(value) as Element[] | undefined) ?? (value.customXmlOrSmartTagOrSdt = []);
+      const inner = plain ? undefined : textRun(holder[holder.length - 1]);
+      written = this.appendTo(holder, inner, items, value);
+    } else if (tracker) {
+      const ins = tracker.ins([runOf(items, copyRPr(source?.rPr))]);
+      content.splice(at, 0, ins as Element);
+      linkParents(ins, this.p);
+      written = runsOf(ins.value as object)[0]!.value;
+    } else {
+      written = this.appendTo(content, source, items, this.p, at);
+    }
+    for (const control of bound) control.syncBoundNode();
+    if (broken) {
+      const offsets: number[] = [];
+      let end = length;
+      for (const line of broken.slice(0, -1)) offsets.push(end += line.length);
+      const { first, last: tail } = breakParagraphAt(this, offsets);
+      return new Range(first, length, broken[broken.length - 1]!.length, false, false, tail);
+    }
+    return written && hidden(written) ? new Range(this, length, length) : new Range(this, length, length + joined.length);
+  }
+
+  /**
+   * `items` put at `at` in `list` (its end by default): onto the end of `run`, which is in `list` right before `at`,
+   * merging into its last `w:t`, or as a new run in its properties where `run` is undefined. Returns the run written.
+   */
+  private appendTo(list: Element[], run: wml.R | undefined, items: Element[], parent: object, at = list.length): wml.R {
+    if (run) {
+      const own = (run.content ??= []) as Element[];
+      const tail = own[own.length - 1];
+      const head = items[0];
+      if (tail?.name?.localPart === 't' && head?.name?.localPart === 't') {
+        setText(tail.value as wml.Text, ((tail.value as wml.Text).value ?? '') + ((head.value as wml.Text).value ?? ''));
+        items = items.slice(1);
+      }
+      own.push(...items);
+      linkParents(items, run);
+      return run;
+    }
+    const added = runOf(items);
+    list.splice(at, 0, added as Element);
+    linkParents(added, parent);
+    return added.value;
   }
 
   /** `splice`'s write. */
