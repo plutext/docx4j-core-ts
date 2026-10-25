@@ -7,6 +7,7 @@ import { NotSupportedError } from '../../office-js/errors.mjs';
 import { t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/builders/wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { type Element, segmentsOf, runsOf, runItemsOf, inShowingPlaceholder, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
+import { shownInDefaultView } from './story.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
@@ -546,11 +547,12 @@ export class Paragraph {
   /**
    * The character Office JS gives for this paragraph's mark at the end of its 'Whole' range (check 48):
    * `\t` for the last paragraph of a table cell, the cell's end; nothing for a mark tracked as deleted, which
-   * Word's default view doesn't show (CR-012 section 19, check 58); and `\r` for any other.
+   * Word's default view doesn't show (CR-012 section 19, check 58), or as moved from, as the paragraph's runs read
+   * (CR-002 section 64); and `\r` for any other.
    */
   get markText(): string {
     if (lastInCell(this.p)) return '\t';
-    return this.p.pPr?.rPr?.del !== undefined ? '' : '\r';
+    return shownInDefaultView(this.p) ? '\r' : '';
   }
 
   /**

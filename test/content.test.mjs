@@ -896,6 +896,40 @@ test('a search never returns a hit that splits a character', async () => {
   assert.deepEqual(findAll('cat hat', searchPattern('?at', { matchWildcards: true })), [[0, 3], [4, 7]]);
 });
 
+// CR-002 section 64, the editor's finding (2026-10-26): the clusters were found by segmenting the whole text, which V8's
+// segmenter does in time quadratic in its length, so a wildcard search across a long body never came back. Each stretch
+// between control characters is segmented on its own now, as the whole text's segmentation has it.
+test("a search's character boundaries are the whole text's, found a stretch between controls at a time, and a long body's search is quick", async () => {
+  const { matchesOf, wildcardMatchesAcross } = await import('../dist/index.mjs');
+  const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+  const texts = [
+    'e\u0301\re\u0301x', 'a\u0301\r\nb', '\u{1F1E6}\u{1F1FA}\u{1F1E6}\r\u{1F1FA}\u{1F1E6}', '\u{1F469}\u200D\u{1F4BB}x\t\u{1F44D}\u{1F3FD}',
+    'ab\u0300\u000Bc\u0301d', '\u0915\u094D\u0937\u093F\u0002x\u0301', 'x\u0085\u0301y', '\u{1F600}\u0000\u{1F600}\u2019',
+  ];
+  for (const text of texts) {
+    const starts = new Set([...segmenter.segment(text)].map((segment) => segment.index)).add(text.length);
+    for (const length of [1, 2, 3]) {
+      const expected = [];
+      for (let i = 0; i + length <= text.length; i++) if (starts.has(i) && starts.has(i + length)) expected.push(i);
+      // the span of the length at each offset, matched alone: matchesOf keeps it where both its ends are boundaries
+      const kept = [];
+      for (let i = 0; i + length <= text.length; i++) {
+        if (matchesOf(text, new RegExp(`(?<=^[\\s\\S]{${i}})[\\s\\S]{${length}}`, 'g')).length > 0) kept.push(i);
+      }
+      assert.deepEqual(kept, expected, `${JSON.stringify(text)}, length ${length}`);
+    }
+  }
+  // the editor's shape: 9,178 paragraphs, each with a curly apostrophe, joined by their marks (510,000 characters)
+  const paragraph = 'The quick brown fox\u2019s jumps over the lazy dog, twice.';
+  const body = Array(9178).fill(paragraph).join('\r');
+  const started = performance.now();
+  assert.equal(matchesOf(body, /f.x/g).length, 9178);
+  const segment = { text: paragraph, start: 0, item: { name: { localPart: 't' } } };
+  const pieces = Array(9178).fill(0).map(() => ({ segments: [segment], from: 0, to: paragraph.length, length: paragraph.length, mark: true }));
+  assert.equal(wildcardMatchesAcross(pieces, '.^13T', {}).length, 9177);
+  assert.ok(performance.now() - started < 10_000, `${Math.round(performance.now() - started)} ms; the whole text segmented at once took minutes`);
+});
+
 test('Word wildcards keep their own \\1 replacement syntax', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   pkg.body.insertParagraph('the quick fox', 'End');

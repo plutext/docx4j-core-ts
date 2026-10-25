@@ -968,10 +968,10 @@ export class ContentControl {
     assertOutsideBranch(this.element.value as object, 'ContentControl');
   }
 
-  /** The table a row-level or cell-level control belongs to. */
+  /** The table a row-level or cell-level control belongs to, through the row-level controls around it, nested to any depth. */
   private ancestorTable(): Table | undefined {
     let current: object | undefined = (this.element.value as { PARENT?: object }).PARENT;
-    for (let guard = 0; current && guard < 8; guard++) {
+    for (let guard = 0; current && guard < 256; guard++) {
       if (typeNameOf(current) === 'org_docx4j_wml.Tbl') {
         const tbl = current as wml.Tbl;
         const container = childrenOf(((tbl as { PARENT?: object }).PARENT ?? {}) as object);

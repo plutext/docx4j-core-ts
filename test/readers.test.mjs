@@ -568,6 +568,44 @@ test("the matchers across marks are exported, for a caller's own segments (the e
   assert.deepEqual(wildcardMatchesAcross(own, 'Q?Z', {}).map((m) => m.match[0]), ['Q\rZ']);
 });
 
+test("CR-002 section 64: a moved-from mark reads as nothing in Word's default view, as its runs do, and a moved-to mark is no mark in the original view (the editor's finding)", async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('revisions/revisions-word15.docx'));
+  const body = await pkg.getBody();
+  const [moveTo, moveFrom] = [body.paragraphs[14], body.paragraphs[16]];
+  assert.ok(moveTo.element.value.pPr.rPr.moveTo && moveFrom.element.value.pPr.rPr.moveFrom, 'the fixture still holds the move');
+  assert.deepEqual([moveFrom.text, moveFrom.markText, moveFrom.getRange('Whole').text], ['', '', '']);
+  assert.equal(moveTo.markText, '\r');
+  assert.match(body.text, /where it is\.\rThe third paragraph of the move/, 'no second mark where the paragraph moved from');
+  assert.deepEqual(body.search('^p^p').map((r) => r.text), [], "until now the moved-from mark and the one before it read as ^p^p");
+  assert.deepEqual(body.search('.^13T', { matchWildcards: true }).filter((r) => r.text.includes('\r\r')).map((r) => r.text), []);
+  // the original view, Reject All's: the moved-from paragraph with its mark, the moved-to one without
+  const original = body.getText({ view: 'original' });
+  assert.equal(original.split('\r').length, body.text.split('\r').length, 'one mark for one, the move undone');
+  assert.ok(original.includes(moveFrom.getText({ view: 'original' }) + '\r'));
+  assert.equal(moveTo.getText({ view: 'original' }), '');
+});
+
+test("CR-002 section 64: a cell's paragraph finds its cell through nested row-level controls (a repeating section's items), and a wildcard search stays in the cell (the editor's finding)", async () => {
+  const pkg = await WordprocessingMLPackage.load(await fixture('invoice2013.docx'));
+  const body = await pkg.getBody();
+  const tables = [];
+  const walk = (b) => { for (const t of b.tables) { tables.push(t); for (const row of t.rows) for (const cell of row.cells) walk(cell.body); } };
+  walk(body);
+  let checked = 0;
+  for (const table of tables) for (const row of table.rows) for (const cell of row.cells) for (const p of cell.body.paragraphs) {
+    assert.equal(p.parentTableCell?.element.value, cell.element.value, JSON.stringify(p.text));
+    checked++;
+  }
+  const item = body.paragraphs.find((p) => p.text === '   $120   ');
+  assert.equal(item.markText, '\t');
+  assert.ok(item.parentTableCell, 'the cell is found, four holders up: a repeating section item in its section');
+  assert.equal(checked, 17, "every cell paragraph, those under the repeating section among them");
+  // a hit never crosses a cell's end, nor a table's edge; until now one ran from that cell past the table, "\u0020\r\n\r\u2612"
+  const hits = body.search('?^13?', { matchWildcards: true }).map((r) => r.text);
+  assert.equal(hits.length, 9);
+  assert.deepEqual(hits.filter((text) => text.includes('\n') || text.includes('\t')), []);
+});
+
 test('CR-012 section 19: a deleted mark reads as nothing in Word\'s default view, the paragraphs apart, a cell\'s end kept (check 58)', async () => {
   const pkg = await WordprocessingMLPackage.createPackage();
   const body = await pkg.getBody();

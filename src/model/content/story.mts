@@ -31,10 +31,14 @@ export interface StoryLayout {
 
 /**
  * Whether a paragraph's mark is written in Word's default view: not where it is tracked as deleted, which reads as
- * nothing there, the paragraphs staying apart (check 58 cases 6 to 8, CR-012 section 19). A cell's last paragraph is
- * ended by the cell's `\t` whatever its mark (cases 9 and 10).
+ * nothing there, the paragraphs staying apart (check 58 cases 6 to 8, CR-012 section 19), nor where it is tracked as
+ * moved from, as the paragraph's runs are (CR-002 section 64). A cell's last paragraph is ended by the cell's `\t`
+ * whatever its mark (cases 9 and 10).
  */
-export const shownInDefaultView = (p: wml.P): boolean => p.pPr?.rPr?.del === undefined;
+export const shownInDefaultView = (p: wml.P): boolean => p.pPr?.rPr?.del === undefined && p.pPr?.rPr?.moveFrom === undefined;
+
+/** Whether a paragraph's mark is written in the original view, the marks Reject All keeps: not one tracked as inserted, nor as moved to. */
+export const shownInOriginalView = (p: wml.P): boolean => p.pPr?.rPr?.ins === undefined && p.pPr?.rPr?.moveTo === undefined;
 
 /**
  * Lays out the blocks `items`, each paragraph's text read by `textOf` (its `Paragraph.text`, or another view's), its

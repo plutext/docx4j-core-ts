@@ -517,8 +517,8 @@ export function cellOf(value: object, parentBody: Body): TableCell | undefined {
     current = (current as { PARENT?: object }).PARENT;
   }
   if (!tc) return undefined;
-  // a cell-level content control sits between the cell and the row
-  const tr = ancestorOf(tc, 'org_docx4j_wml.Tr', 4);
+  // cell-level content controls sit between the cell and the row, nested to any depth
+  const tr = ancestorOf(tc, 'org_docx4j_wml.Tr');
   if (!tr) return undefined;
   const tbl = ancestorTable(tr);
   if (!tbl) return undefined;
@@ -533,15 +533,21 @@ export function cellOf(value: object, parentBody: Body): TableCell | undefined {
   return cell ? new TableCell(cell.element, cell.container, rowView) : undefined;
 }
 
-/** The w:tbl a row is in, through a row-level content control if there is one. */
+/**
+ * The w:tbl a row is in, through the row-level content controls around it, nested to any depth: a repeating section's
+ * item inside the section puts four holders between the row and its table (the editor's finding on `invoice2013.docx`, 2026-10-26; CR-002 section 64).
+ */
 function ancestorTable(tr: object): wml.Tbl | undefined {
-  return ancestorOf(tr, 'org_docx4j_wml.Tbl', 4) as wml.Tbl | undefined;
+  return ancestorOf(tr, 'org_docx4j_wml.Tbl') as wml.Tbl | undefined;
 }
 
-/** The nearest ancestor of a type, at most `depth` PARENT steps up (the sdt wrappers are steps). */
-function ancestorOf(value: object, typeName: string, depth: number): object | undefined {
+/**
+ * The nearest ancestor of a type. Only holders stand between a cell and its row, or a row and its table (content
+ * controls, custom XML, a kept `mc:AlternateContent`'s branch), so the nearest is the one; the guard only stops a cycle.
+ */
+function ancestorOf(value: object, typeName: string): object | undefined {
   let current: object | undefined = (value as { PARENT?: object }).PARENT;
-  for (let guard = 0; current && guard < depth; guard++) {
+  for (let guard = 0; current && guard < 256; guard++) {
     if (typeNameOf(current) === typeName) return current;
     current = (current as { PARENT?: object }).PARENT;
   }

@@ -107,6 +107,8 @@ export function findAll(text: string, pattern: RegExp): [number, number][] {
  * section 32 item 1, found by the editor's agreement suite). The clusters are `Intl.Segmenter`'s,
  * computed only for a text with a code unit at or above U+0300, below which every code unit is a
  * cluster of its own, so Latin text pays nothing; a runtime without `Intl.Segmenter` keeps every match.
+ * Only the stretches between control characters that a match's ends fall in are segmented, each once
+ * (`graphemeBoundaries`), so a search across a long body's paragraphs costs what each paragraph's does.
  */
 export function matchesOf(text: string, pattern: RegExp): RegExpExecArray[] {
   const out: RegExpExecArray[] = [];
@@ -115,18 +117,51 @@ export function matchesOf(text: string, pattern: RegExp): RegExpExecArray[] {
     if (m[0].length === 0) { pattern.lastIndex++; continue; }
     out.push(m);
   }
-  const boundaries = out.length > 0 ? graphemeBoundaries(text) : undefined;
-  return boundaries === undefined ? out : out.filter((m) => boundaries.has(m.index) && boundaries.has(m.index + m[0].length));
+  const isBoundary = out.length > 0 ? graphemeBoundaries(text) : undefined;
+  return isBoundary === undefined ? out : out.filter((m) => isBoundary(m.index) && isBoundary(m.index + m[0].length));
 }
 
-/** The code-unit offsets where a grapheme cluster starts, and the text's end; undefined where every unit is its own cluster. */
-function graphemeBoundaries(text: string): Set<number> | undefined {
+/** A C0 or C1 control character: a grapheme cluster of its own, always a break before and after it but between CR and LF (UAX #29, GB3 to GB5). */
+const isControl = (code: number): boolean => code < 0x20 || (code >= 0x7F && code < 0xA0);
+
+/**
+ * Whether a grapheme cluster starts at a code-unit offset (the text's end counts); undefined where every unit is its own
+ * cluster. A control character always has a break before and after it, and no rule looks back past one, so each stretch
+ * between controls (a paragraph's, in a search across marks) is segmented on its own, as it would be within the whole
+ * text, and only the stretches asked about, each once. V8's segmenter is quadratic in its input's length: the whole of a
+ * 510,000-character body didn't come back in 100 s (the editor's finding, 2026-10-26; CR-002 section 64).
+ */
+function graphemeBoundaries(text: string): ((at: number) => boolean) | undefined {
   if (!/[\u0300-\uffff]/.test(text)) return undefined;
   const Segmenter = (Intl as { Segmenter?: new (locale?: string, options?: { granularity: 'grapheme' }) => { segment(input: string): Iterable<{ index: number }> } }).Segmenter;
   if (Segmenter === undefined) return undefined;
-  const boundaries = new Set<number>([text.length]);
-  for (const segment of new Segmenter(undefined, { granularity: 'grapheme' }).segment(text)) boundaries.add(segment.index);
-  return boundaries;
+  const segmenter = new Segmenter(undefined, { granularity: 'grapheme' });
+  const controls: number[] = [];
+  for (let i = 0; i < text.length; i++) if (isControl(text.charCodeAt(i))) controls.push(i);
+  // each stretch's cluster starts, by the stretch's start; undefined where every unit of it is its own cluster
+  const stretches = new Map<number, Set<number> | undefined>();
+  return (at) => {
+    if (at <= 0 || at >= text.length) return true;
+    const before = text.charCodeAt(at - 1);
+    const after = text.charCodeAt(at);
+    if (isControl(before) || isControl(after)) return before !== 0x0D || after !== 0x0A;
+    // the stretch holding `at`: from just after the last control before it to the first control after it
+    let lo = 0;
+    let hi = controls.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (controls[mid]! < at) lo = mid + 1; else hi = mid; }
+    const start = lo > 0 ? controls[lo - 1]! + 1 : 0;
+    if (!stretches.has(start)) {
+      const stretch = text.slice(start, lo < controls.length ? controls[lo]! : text.length);
+      let starts: Set<number> | undefined;
+      if (/[\u0300-\uffff]/.test(stretch)) {
+        starts = new Set<number>();
+        for (const segment of segmenter.segment(stretch)) starts.add(start + segment.index);
+      }
+      stretches.set(start, starts);
+    }
+    const starts = stretches.get(start);
+    return starts === undefined || starts.has(at);
+  };
 }
 
 /**

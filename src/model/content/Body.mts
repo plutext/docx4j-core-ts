@@ -31,7 +31,7 @@ import type { Bound } from './binder.mjs';
  */
 export type SelectResult = Paragraph | Table | TableRow | TableCell | ContentControl | Range | Bound;
 import { commentApi } from './comments.mjs';
-import { storyLayout } from './story.mjs';
+import { storyLayout, shownInOriginalView } from './story.mjs';
 import type { Comment } from './Comment.mjs';
 import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted } from './tracking.mjs';
 import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderChangeAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
@@ -347,7 +347,7 @@ export class Body {
     const { text } = storyLayout(this.content, (el, items) => {
       const p = new Paragraph(el, items, this);
       return view === 'original' ? p.getText({ view }) : p.text;
-    }, view === 'original' ? (p) => p.pPr?.rPr?.ins === undefined : undefined);
+    }, view === 'original' ? shownInOriginalView : undefined);
     // the last paragraph's mark is not written
     return text.endsWith('\r') ? text.slice(0, -1) : text;
   }
