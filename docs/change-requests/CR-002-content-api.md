@@ -2774,6 +2774,20 @@ release at the end; the move fix (section 29) is out. What landed, in order:
 | 9 | The located wrong-type error | 27 | `7c90cbd` | `PartUnmarshalException` |
 | - | XPath over the tree | CR-006 | `7368f8c` | CR-006 section 5's docx4j oracle followed after the review: 46 XPath goldens, zero differences (CR-006 section 9.1) |
 
+**0.6.0 was released on 2026-10-25** (tag `0.6.0` at `92083f2`, published by `push-to-npm.yml`
+from the GitHub release, with provenance; the tarball, shasum `136fbd93`, checked identical, file for file, to a pack
+of the built tag, and a clean consumer install smoke-tested: a write into a content control at a paragraph's end, the
+Word shim, a save and reload, `Texts.of`, Markdown and the async `outline()`) with sections 53 to 63 (a resolved view
+doing nothing; comments as Word resolves them; a cell's last paragraph kept; a bound date's zone; `Font` over every
+run; Office JS's characters written back; a bound block control holding one paragraph; fields split; writes into a
+placeholder, placeholders in Word's form with a glossary, a write at a paragraph's End as Word's; checks 52 to 70),
+CR-005 section 10, CR-008 phase 2, CR-010 sections 14.9 and 15, CR-011, CR-012 phases 0 to 4 and 6, CR-013, CR-014
+phases 0 to 3 and CR-015, over `@docx4j/generated-objects-ts` 0.5.0 and `@docx4j/jsonix` 3.8.0 (Jason: "Release
+core-ts 0.6.0 now on objects 0.5.0", leaving the objects package's CR-014, its highlight palette, to its next
+release). The editor was asked before the release (nothing further wanted; the release notes state the objects
+requirement and that `pkg.normaliseOnSave` can be switched off, as it asked) and ran its suites against `10cfe9b`
+first: no finding, every difference one its install checklist predicts (its ED-008 section 8.8).
+
 **0.5.0 was released on 2026-10-19** (tag `0.5.0` at `05e1370`, published by `push-to-npm.yml`
 from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag, and a
 clean consumer install smoke-tested with the jsonix factory compiled strict) with sections 43 to 52
