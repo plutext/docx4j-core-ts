@@ -27,6 +27,7 @@ import { LEVELS } from '../listnumbering/definitions.mjs';
 import type { Emulator, NumRef } from '../listnumbering/Emulator.mjs';
 import { isElement, linkParents, selectedBranchOf, ALTERNATE_CONTENT, type Element } from './tree.mjs';
 import { Font, type RPrHolder } from './Font.mjs';
+import { withinWord, WORD_STORAGE } from './wordRange.mjs';
 import type { Body } from './Body.mjs';
 import type { Paragraph } from './Paragraph.mjs';
 import type { AlignmentOrUnknown } from './Paragraph.mjs';
@@ -437,19 +438,24 @@ export class List {
   }
 
   /**
-   * Office JS `list.setLevelIndents(level, textIndent, bulletNumberPictureIndent)`, both in
-   * points: the level's `w:ind/@w:left` is where the text sits and the label's position is the
-   * hanging indent from it (or `w:firstLine` where the label sits to the right of the text).
+   * Office JS `list.setLevelIndents(level, textIndent, bulletNumberPictureIndent)`, both in points: the level's
+   * `w:ind/@w:left` is the text indent, and the label's indent is relative to it, "the same as paragraph first line
+   * indent": a first-line indent, or a hanging indent for a negative (check 71 case 86: Word wrote (-1, 0) as
+   * `w:left="-20" w:firstLine="0"`; until CR-002 section 65.5 it was taken as the label's absolute position).
+   * Each is held to the range Word stores it in (section 65).
    */
   setLevelIndents(level: number, textIndent: number, bulletNumberPictureIndent: number): void {
+    // within the ranges Word 365 stores the level's w:ind in (CR-002 section 65), before anything changes
+    const left = withinWord('List.setLevelIndents (textIndent)', textIndent, WORD_STORAGE.indLeft);
+    const label = bulletNumberPictureIndent < 0
+      ? withinWord('List.setLevelIndents (a hanging bulletNumberPictureIndent)', -bulletNumberPictureIndent, WORD_STORAGE.indHanging)
+      : withinWord('List.setLevelIndents (bulletNumberPictureIndent)', bulletNumberPictureIndent, WORD_STORAGE.indFirstLine);
     const lvl = this.writableLvl(level);
     const pPr = (lvl.pPr ??= { TYPE_NAME: 'org_docx4j_wml.PPr' });
     const ind = (pPr.ind ??= f.createPPrBaseInd({}));
-    const left = Math.round(textIndent * TWIPS_PER_POINT);
-    const label = Math.round(bulletNumberPictureIndent * TWIPS_PER_POINT);
     ind.left = left;
-    if (label <= left) { ind.hanging = left - label; delete ind.firstLine; }
-    else { ind.firstLine = label - left; delete ind.hanging; }
+    if (bulletNumberPictureIndent < 0) { ind.hanging = label; delete ind.firstLine; }
+    else { ind.firstLine = label; delete ind.hanging; }
     linkParents(pPr, lvl);
     this.written();
   }

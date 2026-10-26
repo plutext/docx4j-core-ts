@@ -5394,3 +5394,64 @@ async function check() {
      control after a bold run, and inside a control holding text. Since CR-002 section 63.27 it writes where Word wrote
      in every case. It differs only in reading a deletion's text as Word's default view does, in keeping a simple field
      simple, and in leaving out `w:noProof` after a text box (D13's departure).
+
+71. What Office JS's measurement setters do with a value past the range Word stores its attribute in (CR-002 section
+   65, 2026-10-26; Jason: "write check 71; yes, Guard the setters").
+   - **Why:** docx4j CR-066's round 5 measured how Word reads such a value from a file. Each attribute is kept in 16
+     bits, signed or unsigned, and a value past that reads wrapped, with no error. So a left indent of 400,000 pt
+     (8,000,000 twips) opens as 4,608 twips. That doesn't say what an add-in sees when it sets the value: whether
+     Office JS refuses it, clamps it, wraps it or keeps it, and what Word's save then holds. Since section 65 this
+     package's setters refuse such a value with `InvalidArgument`; this check measures what Word's own setters do.
+   - **The file** is `__tmp/71/71-measurement-setters.docx` on the share, as `fixtures/check71/build.mjs` writes it (git
+     ignores the `.docx`). The snippet is beside it, `check71-script-lab.html` and `check71-script-lab.js`.
+     - **Each case is a region:** `BEGIN<n> <setter> <value>`, the target paragraph `TARGET<n>`, `END<n>`. For
+       `columnWidth` the target is a one-cell table's only paragraph, the cell 2880 twips wide.
+     - **The setters,** each at 1638, 1638.35, 1638.4, 1639, 3276.7, 3276.75, 3276.8, 400000, -1, -1638.4 and -1638.45 pt
+       (signed 16 bits end at 32767 twips, 1638.35 pt; unsigned at 65535, 3276.75 pt):
+       - the paragraph's `leftIndent`, `rightIndent`, `firstLineIndent`, `spaceBefore`, `spaceAfter` and `lineSpacing`
+         (cases 1 to 66, eleven each);
+       - the cell's `columnWidth` (67 to 77);
+       - `startNewList()` on the paragraph, then the list's `setLevelIndents(0, value, 0)` (78 to 88).
+     - **And `font.size`** at 1638, 1638.5, 1639, 32767.5, 32768, 400000, 0 and -1 pt (89 to 96): Word's UI stops at
+       1638 pt, and `w:sz` holds 65535 half-points, 32767.5 pt.
+     - Each case sets its value in a Word.run of its own, so a refusal fails alone. The snippet reports the error, or
+       what the setter reads back, and the region's `w:ind`, `w:spacing`, `w:tcW` and `w:sz` from its OOXML, with the
+       list's level 0 `w:ind` from the numbering part.
+   - **Steps, in Word 365 only:**
+     1. On the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted. If the Developer tab isn't
+        shown, Design Mode is off.
+     2. Open `__tmp/71/71-measurement-setters.docx`. Say whether Word reports a problem or offers a repair.
+     3. File > Save As `71-run-word365.docx`, in the same folder `__tmp/71`. This is the copy the run changes.
+     4. In Script Lab, start a new snippet: paste `__tmp/71/check71-script-lab.html` over the HTML tab and
+        `__tmp/71/check71-script-lab.js` over the Script tab.
+     5. Click **Report only**. When it says Done, copy the box into a new file `__tmp/71/result-report.txt`.
+     6. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/71/result-run.txt`.
+     7. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Then
+        File > Close.
+   - **What this package gives** (`measurements.test.mjs` runs the snippet through the Word shim). Each setter writes its
+     value where its attribute holds it as written and refuses the rest with `InvalidArgument`, before anything changes,
+     60 of the 96. The limits:
+     - `leftIndent`, `rightIndent`: -1638.4 to 1638.35 pt (`w:ind` left and right, signed);
+     - `firstLineIndent`: -1638.4 to 1638.35 pt (`w:firstLine`, or `w:hanging` for a negative: one signed field, as this
+       run measured);
+     - `spaceBefore`, `spaceAfter`: 0 to 3276.7 pt (unsigned; 0xFFFF is written back as -1);
+     - `lineSpacing`: 0.05 to 1638.4 pt (an exact line, stored negated);
+     - `columnWidth`: 0 to 1638.35 pt (`w:tcW`, signed, never negative);
+     - `setLevelIndents`: the text's indent as `leftIndent`, and the label's indent, relative to it, as `firstLineIndent`'s;
+     - `font.size`: 0 to 32767.5 pt.
+   - **Run 2026-10-26 (Jason; Word 365, 16.0.20326.20232, PC; Design Mode off).** No problem opening the file. The run's
+     JSON is `fixtures/check71/71-measurement-setters-word365-run.json`, and Word's save after it is in `check71/` with a
+     SHA-1 manifest. The report-only box wasn't kept: `result-report.txt` held the snippet's script. CR-002 section 65.5
+     has it all. In short:
+     - **The indent setters and a cell's width wrap,** with no error, in 16 bits, as Word reads a file. `leftIndent`
+       400000 was written as 4608 and reads back 230.4; 1638.4 was written as -32768.
+     - **A first-line indent and a hanging one share one signed field:** `firstLineIndent` 1638.4 was stored as a
+       hanging indent of 32768.
+     - **The spacing, line, list and font setters refuse** with `InvalidArgument` at Word's own limits, below storage.
+       `spaceBefore`, `spaceAfter` and `lineSpacing` refused every value here (1638 pt and up, and negatives).
+       `setLevelIndents` refused a text indent of 1638 pt and up. `font.size` took 1638 and refused 1638.5 and up, and 0.
+     - **`setLevelIndents(0, -1, 0)` wrote `w:left="-20" w:firstLine="0"`:** the label's indent is relative to the
+       text's, as a paragraph's first-line indent. This package had read it as the label's position; fixed.
+
+     Where this package differs: it refuses the 27 values Word's indent and width setters wrap (D1), and writes the 20
+     Word's spacing, line, list and font setters refuse below storage (D2, pending a check 71b of Word's limits).

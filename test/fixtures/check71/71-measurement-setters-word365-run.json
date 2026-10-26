@@ -1,0 +1,1324 @@
+{
+ "check": 71,
+ "mode": "run",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "title": "Check 71: what Office JS's measurement setters do with a value past the range Word stores its attribute in.",
+ "cases": [
+  {
+   "n": 1,
+   "setter": "leftIndent",
+   "value": 1638,
+   "result": "set",
+   "after": {
+    "read": 1638,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"32760\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 2,
+   "setter": "leftIndent",
+   "value": 1638.35,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 3,
+   "setter": "leftIndent",
+   "value": 1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 4,
+   "setter": "leftIndent",
+   "value": 1639,
+   "result": "set",
+   "after": {
+    "read": -1637.80004882812,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-32756\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 5,
+   "setter": "leftIndent",
+   "value": 3276.7,
+   "result": "set",
+   "after": {
+    "read": -0.100000001490116,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-2\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 6,
+   "setter": "leftIndent",
+   "value": 3276.75,
+   "result": "set",
+   "after": {
+    "read": -0.0500000007450581,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-1\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 7,
+   "setter": "leftIndent",
+   "value": 3276.8,
+   "result": "set",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 8,
+   "setter": "leftIndent",
+   "value": 400000,
+   "result": "set",
+   "after": {
+    "read": 230.399993896484,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"4608\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 9,
+   "setter": "leftIndent",
+   "value": -1,
+   "result": "set",
+   "after": {
+    "read": -1,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-20\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 10,
+   "setter": "leftIndent",
+   "value": -1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"-32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 11,
+   "setter": "leftIndent",
+   "value": -1638.45,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:left=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 12,
+   "setter": "rightIndent",
+   "value": 1638,
+   "result": "set",
+   "after": {
+    "read": 1638,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"32760\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 13,
+   "setter": "rightIndent",
+   "value": 1638.35,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 14,
+   "setter": "rightIndent",
+   "value": 1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 15,
+   "setter": "rightIndent",
+   "value": 1639,
+   "result": "set",
+   "after": {
+    "read": -1637.80004882812,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-32756\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 16,
+   "setter": "rightIndent",
+   "value": 3276.7,
+   "result": "set",
+   "after": {
+    "read": -0.100000001490116,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-2\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 17,
+   "setter": "rightIndent",
+   "value": 3276.75,
+   "result": "set",
+   "after": {
+    "read": -0.0500000007450581,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-1\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 18,
+   "setter": "rightIndent",
+   "value": 3276.8,
+   "result": "set",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 19,
+   "setter": "rightIndent",
+   "value": 400000,
+   "result": "set",
+   "after": {
+    "read": 230.399993896484,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"4608\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 20,
+   "setter": "rightIndent",
+   "value": -1,
+   "result": "set",
+   "after": {
+    "read": -1,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-20\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 21,
+   "setter": "rightIndent",
+   "value": -1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"-32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 22,
+   "setter": "rightIndent",
+   "value": -1638.45,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:right=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 23,
+   "setter": "firstLineIndent",
+   "value": 1638,
+   "result": "set",
+   "after": {
+    "read": 1638,
+    "ooxml": {
+     "document": [
+      "<w:ind w:firstLine=\"32760\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 24,
+   "setter": "firstLineIndent",
+   "value": 1638.35,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:firstLine=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 25,
+   "setter": "firstLineIndent",
+   "value": 1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 26,
+   "setter": "firstLineIndent",
+   "value": 1639,
+   "result": "set",
+   "after": {
+    "read": -1637.80004882812,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"32756\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 27,
+   "setter": "firstLineIndent",
+   "value": 3276.7,
+   "result": "set",
+   "after": {
+    "read": -0.100000001490116,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"2\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 28,
+   "setter": "firstLineIndent",
+   "value": 3276.75,
+   "result": "set",
+   "after": {
+    "read": -0.0500000007450581,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"1\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 29,
+   "setter": "firstLineIndent",
+   "value": 3276.8,
+   "result": "set",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 30,
+   "setter": "firstLineIndent",
+   "value": 400000,
+   "result": "set",
+   "after": {
+    "read": 230.399993896484,
+    "ooxml": {
+     "document": [
+      "<w:ind w:firstLine=\"4608\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 31,
+   "setter": "firstLineIndent",
+   "value": -1,
+   "result": "set",
+   "after": {
+    "read": -1,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"20\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 32,
+   "setter": "firstLineIndent",
+   "value": -1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:ind w:hanging=\"32768\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 33,
+   "setter": "firstLineIndent",
+   "value": -1638.45,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:ind w:firstLine=\"32767\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 34,
+   "setter": "spaceBefore",
+   "value": 1638,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 35,
+   "setter": "spaceBefore",
+   "value": 1638.35,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 36,
+   "setter": "spaceBefore",
+   "value": 1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 37,
+   "setter": "spaceBefore",
+   "value": 1639,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 38,
+   "setter": "spaceBefore",
+   "value": 3276.7,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 39,
+   "setter": "spaceBefore",
+   "value": 3276.75,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 40,
+   "setter": "spaceBefore",
+   "value": 3276.8,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 41,
+   "setter": "spaceBefore",
+   "value": 400000,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 42,
+   "setter": "spaceBefore",
+   "value": -1,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 43,
+   "setter": "spaceBefore",
+   "value": -1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 44,
+   "setter": "spaceBefore",
+   "value": -1638.45,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 45,
+   "setter": "spaceAfter",
+   "value": 1638,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 46,
+   "setter": "spaceAfter",
+   "value": 1638.35,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 47,
+   "setter": "spaceAfter",
+   "value": 1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 48,
+   "setter": "spaceAfter",
+   "value": 1639,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 49,
+   "setter": "spaceAfter",
+   "value": 3276.7,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 50,
+   "setter": "spaceAfter",
+   "value": 3276.75,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 51,
+   "setter": "spaceAfter",
+   "value": 3276.8,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 52,
+   "setter": "spaceAfter",
+   "value": 400000,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 53,
+   "setter": "spaceAfter",
+   "value": -1,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 54,
+   "setter": "spaceAfter",
+   "value": -1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 55,
+   "setter": "spaceAfter",
+   "value": -1638.45,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 56,
+   "setter": "lineSpacing",
+   "value": 1638,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 57,
+   "setter": "lineSpacing",
+   "value": 1638.35,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 58,
+   "setter": "lineSpacing",
+   "value": 1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 59,
+   "setter": "lineSpacing",
+   "value": 1639,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 60,
+   "setter": "lineSpacing",
+   "value": 3276.7,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 61,
+   "setter": "lineSpacing",
+   "value": 3276.75,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 62,
+   "setter": "lineSpacing",
+   "value": 3276.8,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 63,
+   "setter": "lineSpacing",
+   "value": 400000,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 64,
+   "setter": "lineSpacing",
+   "value": -1,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 65,
+   "setter": "lineSpacing",
+   "value": -1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 66,
+   "setter": "lineSpacing",
+   "value": -1638.45,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 67,
+   "setter": "columnWidth",
+   "value": 1638,
+   "result": "set",
+   "after": {
+    "read": 1638,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"32760\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 68,
+   "setter": "columnWidth",
+   "value": 1638.35,
+   "result": "set",
+   "after": {
+    "read": 1638.34997558594,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"32767\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 69,
+   "setter": "columnWidth",
+   "value": 1638.4,
+   "result": "set",
+   "after": {
+    "read": -1638.40002441406,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"-32768\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 70,
+   "setter": "columnWidth",
+   "value": 1639,
+   "result": "set",
+   "after": {
+    "read": -1637.80004882812,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"-32756\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 71,
+   "setter": "columnWidth",
+   "value": 3276.7,
+   "result": "set",
+   "after": {
+    "read": -0.100000001490116,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"-2\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 72,
+   "setter": "columnWidth",
+   "value": 3276.75,
+   "result": "set",
+   "after": {
+    "read": -0.0500000007450581,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"-1\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 73,
+   "setter": "columnWidth",
+   "value": 3276.8,
+   "result": "set",
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"0\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 74,
+   "setter": "columnWidth",
+   "value": 400000,
+   "result": "set",
+   "after": {
+    "read": 230.399993896484,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"4608\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 75,
+   "setter": "columnWidth",
+   "value": -1,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 144,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"2880\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 76,
+   "setter": "columnWidth",
+   "value": -1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 144,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"2880\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 77,
+   "setter": "columnWidth",
+   "value": -1638.45,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 144,
+    "ooxml": {
+     "document": [
+      "<w:tcW w:w=\"2880\" w:type=\"dxa\"/>"
+     ]
+    }
+   }
+  },
+  {
+   "n": 78,
+   "setter": "listIndent",
+   "value": 1638,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"1\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 79,
+   "setter": "listIndent",
+   "value": 1638.35,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"2\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 80,
+   "setter": "listIndent",
+   "value": 1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"3\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 81,
+   "setter": "listIndent",
+   "value": 1639,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"4\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 82,
+   "setter": "listIndent",
+   "value": 3276.7,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"5\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 83,
+   "setter": "listIndent",
+   "value": 3276.75,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"6\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 84,
+   "setter": "listIndent",
+   "value": 3276.8,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"7\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 85,
+   "setter": "listIndent",
+   "value": 400000,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"8\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 86,
+   "setter": "listIndent",
+   "value": -1,
+   "result": "set",
+   "after": {
+    "read": {
+     "leftIndent": -1,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"9\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 87,
+   "setter": "listIndent",
+   "value": -1638.4,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"10\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 88,
+   "setter": "listIndent",
+   "value": -1638.45,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": {
+     "leftIndent": 36,
+     "firstLineIndent": -18
+    },
+    "ooxml": {
+     "document": [
+      "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"11\"/></w:numPr>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 89,
+   "setter": "fontSize",
+   "value": 1638,
+   "result": "set",
+   "after": {
+    "read": 1638,
+    "ooxml": {
+     "document": [
+      "<w:sz w:val=\"3276\"/>",
+      "<w:sz w:val=\"3276\"/>"
+     ],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 90,
+   "setter": "fontSize",
+   "value": 1638.5,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 91,
+   "setter": "fontSize",
+   "value": 1639,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 92,
+   "setter": "fontSize",
+   "value": 32767.5,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 93,
+   "setter": "fontSize",
+   "value": 32768,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 94,
+   "setter": "fontSize",
+   "value": 400000,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 95,
+   "setter": "fontSize",
+   "value": 0,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  },
+  {
+   "n": 96,
+   "setter": "fontSize",
+   "value": -1,
+   "error": "error: InvalidArgument: InvalidArgument",
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": [],
+     "numbering": []
+    }
+   }
+  }
+ ],
+ "caseCount": 96
+}

@@ -1,6 +1,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { applyRunOptions, readRunOptions, type RunOptions, type RunFormatting, type UnderlineType } from '@docx4j/generated-objects-ts/builders/wml';
 import type { ChangeTracker } from './tracking.mjs';
+import { withinWord, WORD_STORAGE } from './wordRange.mjs';
 import { WordColors } from '../color/WordColors.mjs';
 import type { ThemeColors } from '../color/ThemeColors.mjs';
 
@@ -146,9 +147,12 @@ export class Font {
     return all.length > 0 && all.every((n) => n === all[0]) ? all[0]! : '';
   }
   set name(v: string) { this.apply({ name: v }); }
-  /** Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz; `null` where the runs differ. */
+  /**
+   * Size in points (w:sz is half-points); 0 only in a direct-formatting view with no w:sz; `null` where the runs differ. A
+   * size written is held to the range Word 365 stores w:sz in, 0 to 32767.5 pt (CR-002 section 65): outside it, `InvalidArgument`.
+   */
   get size(): number { return this.value('size') as number; }
-  set size(v: number) { this.apply({ size: v }); }
+  set size(v: number) { withinWord('Font.size', v, WORD_STORAGE.sz); this.apply({ size: v }); }
   /**
    * '#RRGGBB': in the effective view the colour Word draws, so a theme colour (`w:themeColor`, with its tint or shade)
    * through the document's theme, as Office JS reads it (check 53; CR-008 phase 2), and `#000000` for automatic; in

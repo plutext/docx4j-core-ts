@@ -1,0 +1,14 @@
+{
+ "check": 71,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-26; Developer > Design Mode off)",
+ "source": "test/fixtures/check71/build.mjs (71-measurement-setters.docx, 96 cases)",
+ "saves": {
+  "71-run-word365.docx": "71-measurement-setters.docx saved as 71-run-word365.docx, then the Script Lab snippet's Run the check, saved with File > Save (the JSON: test/fixtures/check71/71-measurement-setters-word365-run.json; the report-only box wasn't kept: result-report.txt held the snippet's script)"
+ },
+ "files": [
+  {
+   "name": "71-run-word365.docx",
+   "sha1": "99783d4d78e9b9b276a2b44b966161139394e49c"
+  }
+ ]
+}

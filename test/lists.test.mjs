@@ -138,10 +138,15 @@ test('setLevelNumbering, setLevelIndents, setLevelAlignment and setLevelStarting
   list.setLevelStartingNumber(0, 5);
   assert.deepEqual(labels(body), ['(V)', '(VI)']);
 
-  list.setLevelIndents(0, 36, 18);
+  // the second indent is the label's, relative to the text's, as a paragraph's first-line indent (check 71 case 86;
+  // CR-002 section 65.5): negative a hanging indent, the usual list's
+  list.setLevelIndents(0, 36, -18);
   const ind = list.abstractElement.lvl[0].pPr.ind;
-  assert.equal(ind.left, 720);
-  assert.equal(ind.hanging, 360);
+  assert.deepEqual([ind.left, ind.hanging, ind.firstLine], [720, 360, undefined]);
+  list.setLevelIndents(0, 36, 18);
+  assert.deepEqual([ind.left, ind.hanging, ind.firstLine], [720, undefined, 360]);
+  list.setLevelIndents(0, -1, 0);
+  assert.deepEqual([ind.left, ind.hanging, ind.firstLine], [-20, undefined, 0], "check 71 case 86: Word's w:left=\"-20\" w:firstLine=\"0\"");
 
   list.setLevelAlignment(0, 'Right');
   assert.equal(list.abstractElement.lvl[0].lvlJc.val, 'right');

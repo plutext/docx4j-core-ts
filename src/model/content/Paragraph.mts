@@ -8,6 +8,7 @@ import { t as textItem, br as breakItem } from '@docx4j/generated-objects-ts/bui
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { type Element, segmentsOf, runsOf, runItemsOf, inShowingPlaceholder, linkParents, typeNameOf, W_NS, runOf, paragraphOf, revisionKindOf, objectInSpan, WHOLE, isAlternateContent, selectedBranchOf, inBranch, assertOutsideBranch, type HiddenRuns, type AlternateLocation, type SpanEdges, type SegmentOptions, type TextSegment, type TextViewOptions, type RevisionHolder } from './tree.mjs';
 import { shownInDefaultView } from './story.mjs';
+import { withinWord, WORD_STORAGE } from './wordRange.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 
 function withRPr(run: Element<wml.R>, rPr: wml.RPr | undefined): Element<wml.R> {
@@ -276,29 +277,42 @@ export class Paragraph {
     return alignmentOf(resolver.getEffectivePPr(rest as wml.PPr, resolver.cellContextOf(this.p)), true) as Alignment;
   }
 
-  /** Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). */
+  /**
+   * Indents and spacing in points, as Office JS; the effective values (CR-001 Phase B step 2). A value written is held to
+   * the range Word 365 stores its attribute in (`withinWord`, CR-002 section 65): outside it, `InvalidArgument`, before
+   * anything changes.
+   */
   get leftIndent(): number { return (this.effectivePPr.ind?.left ?? 0) / TWIPS_PER_POINT; }
-  set leftIndent(pt: number) { this.ind().left = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
+  set leftIndent(pt: number) { const v = withinWord('Paragraph.leftIndent', pt, WORD_STORAGE.indLeft); this.ind().left = v; this.settleFormatting(); }
   get rightIndent(): number { return (this.effectivePPr.ind?.right ?? 0) / TWIPS_PER_POINT; }
-  set rightIndent(pt: number) { this.ind().right = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
+  set rightIndent(pt: number) { const v = withinWord('Paragraph.rightIndent', pt, WORD_STORAGE.indRight); this.ind().right = v; this.settleFormatting(); }
   /** First-line indent; negative for a hanging indent, as Office JS. */
   get firstLineIndent(): number {
     return firstLineIndentOf(this.effectivePPr);
   }
   set firstLineIndent(pt: number) {
+    const v = pt < 0
+      ? withinWord('Paragraph.firstLineIndent (a hanging indent)', -pt, WORD_STORAGE.indHanging)
+      : withinWord('Paragraph.firstLineIndent', pt, WORD_STORAGE.indFirstLine);
     const ind = this.ind();
-    if (pt < 0) { ind.hanging = Math.round(-pt * TWIPS_PER_POINT); delete ind.firstLine; } else { ind.firstLine = Math.round(pt * TWIPS_PER_POINT); delete ind.hanging; }
+    if (pt < 0) { ind.hanging = v; delete ind.firstLine; } else { ind.firstLine = v; delete ind.hanging; }
     this.settleFormatting();
   }
   get spaceBefore(): number { return (this.effectivePPr.spacing?.before ?? 0) / TWIPS_PER_POINT; }
-  set spaceBefore(pt: number) { this.spacing().before = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
+  set spaceBefore(pt: number) { const v = withinWord('Paragraph.spaceBefore', pt, WORD_STORAGE.spacingBefore); this.spacing().before = v; this.settleFormatting(); }
   get spaceAfter(): number { return (this.effectivePPr.spacing?.after ?? 0) / TWIPS_PER_POINT; }
-  set spaceAfter(pt: number) { this.spacing().after = Math.round(pt * TWIPS_PER_POINT); this.settleFormatting(); }
+  set spaceAfter(pt: number) { const v = withinWord('Paragraph.spaceAfter', pt, WORD_STORAGE.spacingAfter); this.spacing().after = v; this.settleFormatting(); }
   /** Line spacing in points: w:line/240 lines of 12pt when the rule is auto, else w:line twips; 0 when not set. */
   get lineSpacing(): number {
     return lineSpacingOf(this.effectivePPr);
   }
-  set lineSpacing(pt: number) { const s = this.spacing(); s.line = Math.round(pt * TWIPS_PER_POINT); s.lineRule = 'exact'; this.settleFormatting(); }
+  set lineSpacing(pt: number) {
+    const v = withinWord('Paragraph.lineSpacing', pt, WORD_STORAGE.spacingLineExact);
+    const s = this.spacing();
+    s.line = v;
+    s.lineRule = 'exact';
+    this.settleFormatting();
+  }
   /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. A heading style supplies it. */
   get outlineLevel(): number { return outlineLevelOf(this.effectivePPr); }
   set outlineLevel(level: number) { const pPr = this.pPr(); if (level >= 10 || level < 1) delete pPr.outlineLvl; else pPr.outlineLvl = { val: level - 1 }; this.settleFormatting(); }

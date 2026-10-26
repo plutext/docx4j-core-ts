@@ -125,6 +125,8 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
                   textBoxes.mts numbers a paragraph's text boxes as the text model does (`textbox:N`); outline.mts is the registry the text model's outline reader joins (model/text/outline.mts; Body can't import the text model);
                   placeholders.mts is a placeholder's form (`w:placeholder`) and the glossary's entries, `pkg.glossaryEntries`, read privately and written on save
                   (CR-002 section 63, D8 and D9); a text write into a control showing its placeholder, by any route, goes through `ContentControl.writePlaceholder`;
+                  wordRange.mts holds every measurement setter to the range Word 365 stores its attribute in (`withinWord`, `WORD_STORAGE`:
+                  16 bits, signed or unsigned per attribute, from docx4j CR-066's round 5; past it `InvalidArgument`, CR-002 section 65);
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
@@ -348,6 +350,9 @@ and Word's run (its saves in `test/check67/`) pinned and the shim held to it: ev
 and check 68's (`test/fixtures/check68/`: the run properties a write into a placeholder takes, and an entry under a control's own) file and snippet held to each other, and Word's run (its saves in `test/check68/`) pinned and the shim held to it;
 and check 69's (`test/fixtures/check69/`: a write at a paragraph's End past a placeholder control, a hidden run or a control holding text, by every route) file and snippet held to each other and run through the shim, and Word's run (its saves in `test/check69/`) pinned and the shim held to it (section 63.27);
 and check 70's (`test/fixtures/check70/`: the same at the endings check 69 left, a bookmark, comment markers, a tracked deletion or insertion, a field, a text box, and D13's runs before a control) file and snippet held to each other and run through the shim, and Word's run (its saves in `test/check70/`) pinned and the shim held to it, its three non-placement differences listed (section 63.27),
+`measurements.test.mjs` CR-002 section 65's: check 71's file (`check71Bytes`, `test/fixtures/check71/`: Office JS's measurement setters past
+Word's 16-bit ranges) and snippet held to each other and run through the Word shim; Word 365's run (its JSON beside the build, its save in `test/check71/`,
+with a SHA-1 manifest) pinned, and every case where the shim differs listed (section 65.5's D1 and D2); and each setter's limits, message and refusal before any change,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

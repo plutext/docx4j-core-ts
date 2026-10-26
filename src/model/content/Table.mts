@@ -12,6 +12,7 @@ import type { Paragraph } from './Paragraph.mjs';
 import type { Range } from './Range.mjs';
 import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
 import { insertGridColumns, deleteGridColumns, gridRangeOf, textWidthTwips, widthTypeOf, layoutModeOf, type TableLayoutMode } from './tableColumns.mjs';
+import { withinWord, WORD_STORAGE } from './wordRange.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -436,15 +437,14 @@ export class TableCell {
    */
   set width(points: number) {
     this.assertWritable();
-    const twips = Math.round(points * TWIPS_PER_POINT);
+    // within the range Word 365 stores w:tcW/@w:w in, a percentage's fiftieths too (CR-002 section 65), before anything changes
+    const pct = widthTypeOf(this.tc, this.parentTable.tbl) === 'pct';
+    const w = pct
+      ? withinWord('TableCell.width', points, WORD_STORAGE.tcWPct, Math.round((Math.round(points * TWIPS_PER_POINT) * 5000) / this.parentTable.textWidth()))
+      : withinWord('TableCell.width', points, WORD_STORAGE.tcWDxa);
     const tcW = ((this.tc.tcPr ??= {}).tcW ??= {});
-    if (widthTypeOf(this.tc, this.parentTable.tbl) === 'pct') {
-      tcW.w = Math.round((twips * 5000) / this.parentTable.textWidth());
-      tcW.type = 'pct';
-    } else {
-      tcW.w = twips;
-      tcW.type = 'dxa';
-    }
+    tcW.w = w;
+    tcW.type = pct ? 'pct' : 'dxa';
   }
 
   /**
