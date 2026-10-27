@@ -62,7 +62,7 @@ unreadable content, then a repair that drops content.
 
 | # | Question | Options | Recommendation |
 |---|---|---|---|
-| D1 | Where the rules and the walk live | (a) the objects package (its own CR: a function over an object tree giving the findings, with the rules as data), called here at save and by this package's check; (b) here | (a), by the dividing rule: the check needs only an object tree, and the editor, docx4j-python's users of the facade and the marshal itself can call it there. This package wires it in. |
+| D1 | Where the rules and the walk live | (a) the objects package (its own CR, since proposed as objects CR-017, `f2be032`: its builders refuse a misplaced child, and `onMisplaced` reports each one on read and on save, changing nothing), called here at save and by this package's check; (b) here | (a), by the dividing rule: the check needs only an object tree, and the editor, docx4j-python's users of the facade and the marshal itself can call it there. This package wires it in. |
 | D2 | What a save does with a finding | (a) refuse the save, naming the part, the path, the rule and the fix, with an option that turns it off (`pkg.checkContentOnSave = false`) and reports instead; (b) report on `pkg.lastSave`, and write; (c) nothing at save, the check API only | (a). Word's repair drops content, silently, at the reader's end, so a file holding a misplaced child loses data either way; a refused save loses nothing and names the line to fix. The opt-out is for a document another producer wrote that way, whose part the caller then touched (D6). |
 | D3 | The rules | (a) CR-064 section 8's five sets, by `TYPE_NAME`: each refuses only elements the schema never allows under that parent (run-level containers: a table, a paragraph, bare text, a drawing, a break, a `w:pPr`, a string; a run: a run, a paragraph, a table, a `w:rPr`, a string; block-level containers: a run, bare text, a drawing, a break, a cell, a row, a `w:sectPr` in the body, a `w:tcPr` in a cell, a string; a table: a cell, a paragraph, a run, a table, a `w:tblPr`, a string; a row: a paragraph, a run, a table, a `w:trPr`, a string), and a name and value that disagree; (b) an allow-list per parent, derived from the schema | (a). Never an allow-list: a content list legally holds range markup, `mc:AlternateContent`, `w:customXml` and `w:sdt` wrappers, revisions and DOM for what nothing binds, and a wrong refusal of a legal document is the worst outcome (CR-064 D8). `mc:AlternateContent`'s branches are checked by their host's set. |
 | D4 | The messages | (a) docx4j's ("You can't add a table (Tbl) directly to a paragraph; it should be a sibling of the paragraph"), with the part and the path | (a): one wording across the ports, the kind a person or an LLM fixes code from. |
@@ -74,8 +74,8 @@ unreadable content, then a repair that drops content.
 | Phase | Work | Status |
 |---|---|---|
 | 0 | This CR; today's behaviour measured (section 2) | done 2026-10-26 |
-| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | not started; to be proposed there |
-| 2 | Here: the check at save and on request (D2, D6), the fixture gate over `test/fixtures/` and the Office-made corpus, tests per row of section 2's table | after phase 1 |
+| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | proposed there as objects CR-017 (`f2be032`, 2026-10-26; its M1 to M6 for Jason) |
+| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table | after phase 1 |
 | 3 | Check 72 (D5), Word's repairs, if wanted | optional |
 
 ## 6. Risks

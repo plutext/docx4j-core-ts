@@ -12,7 +12,8 @@ import { encodeText } from '../xml/dom.mjs';
 /**
  * A value a save wrote in its normal form, or left out (CR-015 D2 and D8; the objects facade's normaliser, its
  * CR-013 phase C, docx4j CR-061's rule): `path` from the part's root, `before` as read, `after` as written, null
- * where the attribute or the element was left out. The code is docx4j-python CR-018's.
+ * where the attribute or the element was left out. The code is this package's (CR-015 D8); docx4j-python CR-018 reports
+ * the same as `package.last_save.normalised`.
  */
 export interface ValueNormalised {
   code: 'value.normalised';
