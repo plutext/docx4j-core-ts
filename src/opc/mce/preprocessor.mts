@@ -68,10 +68,14 @@ export interface McBranchesDifferWarning {
  * An attribute value of Word's own WordprocessingML that its type refuses, read as Word 365 reads it
  * rather than failing the part (CR-015 D8; the objects facade's `wordInvalidValue`, its CR-013):
  * `value.kept.exact` where the text, trimmed of XML whitespace, is a form its type reads (`" false"`),
- * else `value.kept.invalid` (`"yes"`, `"Single"`). The names are docx4j-python CR-018's.
+ * else `value.kept.invalid` (`"yes"`, `"Single"`). The codes are this package's (CR-015 D8); the reasons, exact and invalid,
+ * are docx4j-python CR-018's (its `KeptValue.reason`). An integer attribute's value Word reads by its own rule (the objects
+ * package's CR-015, CR-017 P1): `value.truncated` for a decimal, cut toward zero as Word cuts it (`"720.5"` reads 720);
+ * `value.refused` for a form Word refuses a document for (`" 240 "`, `"0x10"`), dropped; `""` and the forms with no
+ * digit (`"."`, `"+"`) read as 0, `value.kept.invalid`.
  */
 export interface ValueKeptWarning {
-  code: 'value.kept.exact' | 'value.kept.invalid';
+  code: 'value.kept.exact' | 'value.kept.invalid' | 'value.truncated' | 'value.refused';
   partName: string | undefined;
   /** Where the element starts in the part, where the DOM records it (xmldom does; a browser's DOMParser does not). */
   line?: number;
@@ -83,10 +87,10 @@ export interface ValueKeptWarning {
   text: string;
   /**
    * What the tree holds instead: `true` for an on/off value (Word reads only exactly `false`, `off` and
-   * `0` as off), `'none'` for `w:u`'s on/off words, and undefined where the value was dropped, so the
-   * attribute reads as absent (a style's value beneath shows).
+   * `0` as off), `'none'` for `w:u`'s on/off words, an integer Word's reading of a decimal or of `""`, and
+   * undefined where the value was dropped, so the attribute reads as absent (a style's value beneath shows).
    */
-  value: boolean | string | undefined;
+  value: boolean | string | number | undefined;
   message: string;
 }
 

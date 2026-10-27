@@ -206,11 +206,11 @@ function fontReading(para, text, direct = false) {
 
 /**
  * Word's Font reading of a marker: the save's, with what its PDF shows where the save changes it (a green highlight,
- * in the objects package's `highlightHexValue`; Office JS itself reports it #00FF00, check 60's one difference).
+ * #00FF00 as Office JS reports it, and since objects 0.6.0, its CR-014, as the objects package's palette gives it).
  */
 const FONT_DREW = new Map([
-  ['props-enum-styles M6_HIGHLIGHT_GREEN', { highlightColor: '#008000' }],
-  ['highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN', { highlightColor: '#008000' }],
+  ['props-enum-styles M6_HIGHLIGHT_GREEN', { highlightColor: '#00FF00' }],
+  ['highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN', { highlightColor: '#00FF00' }],
 ]);
 
 test('Office JS\'s Font (effective) of every marker, as Word reads it', async () => {
@@ -230,8 +230,8 @@ test('Office JS\'s Font (effective) of every marker, as Word reads it', async ()
 // w:u single that repeats the style's (the objects package's three known, CR-015 section 6).
 const DIRECT_DIFFERS = [
   'colour-case K1_auto direct Font color: core-ts auto, Word ',
-  'props-enum-styles M6_HIGHLIGHT_GREEN direct Font highlightColor: core-ts #008000, Word null',
-  'highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN direct Font highlightColor: core-ts #008000, Word null',
+  'props-enum-styles M6_HIGHLIGHT_GREEN direct Font highlightColor: core-ts #00FF00, Word null',
+  'highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN direct Font highlightColor: core-ts #00FF00, Word null',
   'colour-elsewhere-styles U2_UNDERLINE_F00 direct Font underline: core-ts Single, Word None',
   'colour-elsewhere-styles U3_UNDERLINE_NAVY direct Font underline: core-ts Single, Word None',
   'colour-elsewhere-styles U4_UNDERLINE_AUTO direct Font underline: core-ts Single, Word None',
@@ -261,7 +261,7 @@ test('the markers whose save changes what Word drew (H7, M6, U4), as its PDF sho
     const pr = await probe(file);
     const mk = pr.marker(text);
     assert.equal(reading(pr.resolver, mk.p, mk.run).highlight, 'green', mk.key);
-    assert.equal(mk.para.search(text)[0].font.highlightColor, '#008000', mk.key);
+    assert.equal(mk.para.search(text)[0].font.highlightColor, '#00FF00', mk.key);
   }
   const pr = await probe('colour-elsewhere-styles');
   const u4 = pr.marker('U4_UNDERLINE_AUTO');
@@ -723,12 +723,11 @@ test('check 60 through the Word shim reads each marker as the probe\'s Font does
 /** Word 365's run of check 60 (Jason, 2026-10-24; Word 16.0.20326.20232, PC; no repair). */
 const CHECK60_WORD = JSON.parse(readFileSync(new URL('./fixtures/check60/60-runprops-word365.json', import.meta.url), 'utf8'));
 
-// Office JS reads Word's green highlight #00FF00; the objects package's highlightHexValue gives docx4j's #008000
-// (Highlight.getHexVal's table, which differs from Word's for green and, unmeasured, the dark names). The difference is
-// the dependency's, asserted as it stands so that a fix announces itself (CLAUDE.md's rule; CR-015 section 11.6).
-const CHECK60_DIFFERS = ['highlight-char-styles H7_CHAR_STYLE_DIRECT_GREEN highlightColor: core-ts "#008000", Word "#00FF00"'];
+// Until objects 0.6.0 the green highlight read docx4j's #008000 (Highlight.getHexVal's table) where Office JS reads
+// Word's #00FF00, check 60's one difference (CR-015 section 11.6); the objects package's CR-014 took Word's palette.
+const CHECK60_DIFFERS = [];
 
-test('check 60 (Word 365): the snippet through the Word shim reads every marker as Office JS does, but for the green highlight', async () => {
+test('check 60 (Word 365): the snippet through the Word shim reads every marker as Office JS does', async () => {
   const { runCheck } = await check60();
   const pkg = await WordprocessingMLPackage.load(check60Bytes());
   await pkg.getBody();
@@ -795,24 +794,14 @@ test('check 61: its file holds a paragraph for every case of its snippet, each m
 const CHECK61_WORD = JSON.parse(readFileSync(new URL('./fixtures/check61/61-highlights-word365.json', import.meta.url), 'utf8'));
 
 /**
- * Where the Word shim reads or writes otherwise than Office JS, every one the objects package's (CR-015 section 12): it
- * reads docx4j's Highlight.getHexVal() table where Office JS reads Word's palette (nine names), writes a w:highlight name
- * as itself where Office JS takes a CSS colour name (`green` is CSS's #008000, so darkGreen; `darkYellow` none), and
- * refuses a hex outside its table where Office JS stores the nearest highlight. Asserted as it stands, so that the
- * objects fix announces itself.
+ * Where the Word shim reads or writes otherwise than Office JS: nowhere since objects 0.6.0 (its CR-014). Until then it
+ * read docx4j's Highlight.getHexVal() table where Office JS reads Word's palette (nine names), wrote a w:highlight name as
+ * itself where Office JS takes a CSS colour name, and refused a hex outside its table where Office JS stores the nearest
+ * highlight: 38 differences (CR-015 section 12).
  */
-const CHECK61_DIFFERS = [
-  'read green', 'read darkBlue', 'read darkCyan', 'read darkGreen', 'read darkMagenta', 'read darkRed', 'read darkYellow',
-  'read darkGray', 'read lightGray',
-  'write "green"', 'write "darkBlue"', 'write "darkCyan"', 'write "darkGreen"', 'write "darkMagenta"', 'write "darkRed"',
-  'write "darkYellow"', 'write "darkGray"', 'write "lightGray"',
-  'write "#00FF00"', 'write "#000080"', 'write "#008080"', 'write "#008000"', 'write "#800080"', 'write "#800000"',
-  'write "#808000"', 'write "#808080"', 'write "#C0C0C0"',
-  'write "#00008B"', 'write "#008B8B"', 'write "#006400"', 'write "#8B008B"', 'write "#8B0000"', 'write "#FFD700"',
-  'write "#A9A9A9"', 'write "#D3D3D3"', 'write "#00ff00"', 'write "Yellow"', 'write "#123456"', 'write "#FF8000"',
-];
+const CHECK61_DIFFERS = [];
 
-test('check 61 (Word 365): the Word shim reads and writes highlights as Office JS does, but where the objects package\'s table differs', async () => {
+test('check 61 (Word 365): the Word shim reads and writes highlights as Office JS does', async () => {
   const ours = await check61Run();
   assert.deepEqual(CHECK61_WORD.host, { host: 'Word', version: '16.0.20326.20232', platform: 'PC' });
   assert.deepEqual([CHECK61_WORD.reads.length, CHECK61_WORD.writes.length], [ours.reads.length, ours.writes.length]);
@@ -835,26 +824,18 @@ test('check 61 (Word 365): the Word shim reads and writes highlights as Office J
   assert.deepEqual(differs, CHECK61_DIFFERS);
 });
 
-// What the Word shim gives (the objects package's table, which is docx4j's Highlight.getHexVal()): a name reads its
-// value there, a value of the table writes its name, and any other value is refused.
-test('check 61 through the Word shim: the objects package\'s highlight table, read and written', async () => {
+// What the Word shim gives since objects 0.6.0: a name reads Word's palette, and a write takes what Office JS's
+// font.highlightColor takes, refusing only what Word refuses (`darkYellow`, no CSS colour).
+test('check 61 through the Word shim: Word\'s palette, read, and only what Word refuses refused', async () => {
   const ours = await check61Run();
-  const table = { black: '#000000', blue: '#0000FF', cyan: '#00FFFF', green: '#008000', magenta: '#FF00FF', red: '#FF0000', yellow: '#FFFF00',
-    white: '#FFFFFF', darkBlue: '#00008B', darkCyan: '#008B8B', darkGreen: '#006400', darkMagenta: '#8B008B', darkRed: '#8B0000',
-    darkYellow: '#FFD700', darkGray: '#A9A9A9', lightGray: '#D3D3D3' };
-  assert.deepEqual(Object.fromEntries(ours.reads.map((r) => [r.name, r.highlightColor])), { ...table, none: null, shd: null });
-  const byHex = Object.fromEntries(Object.entries(table).map(([name, hex]) => [hex, name]));
-  for (const w of ours.writes) {
-    const name = w.value === null ? null : table[w.value] !== undefined ? w.value : byHex[w.value];
-    if (w.value !== null && name === undefined) {
-      assert.match(w.set, /Not a highlight colour/, `${w.value} is refused`);
-      assert.deepEqual([w.highlightColor, w.stored], [null, { highlight: null, shd: null }], `${w.value}: the run unchanged`);
-    } else {
-      assert.equal(w.set, undefined, String(w.value));
-      assert.deepEqual([w.highlightColor, w.stored], [name === null ? null : table[name], { highlight: name, shd: null }], String(w.value));
-    }
+  assert.deepEqual(Object.fromEntries(ours.reads.map((r) => [r.name, r.highlightColor ?? null])),
+    Object.fromEntries(CHECK61_WORD.reads.map((r) => [r.name, r.highlightColor ?? null])));
+  assert.deepEqual(ours.writes.filter((w) => w.set !== undefined).map((w) => w.value), ['darkYellow']);
+  assert.deepEqual(CHECK61_WORD.writes.filter((w) => w.set !== undefined).map((w) => w.value), ['darkYellow']);
+  for (const w of ours.writes.filter((x) => x.set !== undefined)) {
+    assert.match(w.set, /Not a highlight colour/, `${w.value} is refused`);
+    assert.deepEqual([w.highlightColor, w.stored], [null, { highlight: null, shd: null }], `${w.value}: the run unchanged`);
   }
-  assert.equal(ours.writes.filter((w) => w.set !== undefined).length, 12);
 });
 
 // ---------------------------------------------------------------- check 62 (CR-015 section 12.2): Word's snap to the palette
@@ -876,26 +857,6 @@ test('check 62: its file holds each colour once, a paragraph each, as the snippe
   const texts = (await pkg.getBody()).paragraphs.map((p) => p.text);
   assert.equal(parse(texts[0]), null, 'the title');
   assert.deepEqual(texts.slice(1).map(parse), CHECK62_POINTS.map((c) => `#${c}`));
-});
-
-// What the Word shim gives (the objects package's table): a colour of the table is stored as its name and read back as
-// itself; any other is refused. objects CR-014's H4 decides what it should do, from Word's run.
-test('check 62 through the Word shim: the objects package\'s table, exact values only', async () => {
-  const { runCheck, SPOT } = await check62();
-  const pkg = await WordprocessingMLPackage.load(check62Bytes());
-  await pkg.getBody();
-  const ours = await runCheck((f) => Word.run(pkg, f), 'core-ts');
-  assert.equal(ours.points.length, CHECK62_POINTS.length);
-  const table = ['000000', '0000FF', '00FFFF', '008000', 'FF00FF', 'FF0000', 'FFFF00', 'FFFFFF', '00008B', '008B8B', '006400', '8B008B',
-    '8B0000', 'FFD700', 'A9A9A9', 'D3D3D3'];
-  const accepted = ours.points.filter((p) => typeof p[2] !== 'string');
-  assert.deepEqual(accepted.map((p) => p[0]).sort(), table.filter((c) => CHECK62_POINTS.includes(c)).sort());
-  for (const p of accepted) assert.equal(p[1], p[0], `${p[0]} reads back as itself`);
-  for (const p of ours.points.filter((q) => typeof q[2] === 'string')) {
-    assert.match(p[2], /Not a highlight colour/, p[0]);
-    assert.equal(p[1], null, `${p[0]}: no highlight`);
-  }
-  assert.deepEqual(ours.points[0], ['000000', '000000', { stored: 'black' }], `every ${SPOT}th point also gives the name stored`);
 });
 
 /** Word 365's run of check 62 (Jason, 2026-10-24; Word 16.0.20326.20232, PC; no repair, closed without saving). */
@@ -938,4 +899,17 @@ test('check 62 (Word 365): every colour is stored as one of the sixteen, the gre
   const distance = (a, b) => rgb(a).reduce((s, v, i) => s + (v - rgb(b)[i]) ** 2, 0);
   const amongNearest = ([colour, answer]) => distance(colour, answer) === Math.min(...Object.keys(PALETTE).map((p) => distance(colour, p)));
   assert.equal(CHECK62_WORD.points.filter(amongNearest).length, 4393);
+});
+
+// What the Word shim gives since objects 0.6.0 (its CR-014's snap, from this run): every colour stored as the highlight
+// Word stores it as, none refused; until then a colour outside docx4j's table was refused (CR-015 section 12.2).
+test('check 62 through the Word shim: every colour snapped as Word 365 snaps it', async () => {
+  const { runCheck, SPOT } = await check62();
+  const pkg = await WordprocessingMLPackage.load(check62Bytes());
+  await pkg.getBody();
+  const ours = await runCheck((f) => Word.run(pkg, f), 'core-ts');
+  assert.equal(ours.points.length, CHECK62_WORD.points.length);
+  assert.deepEqual(ours.points.filter((p) => typeof p[2] === 'string').map((p) => p[0]), [], 'none refused');
+  assert.deepEqual(ours.points.filter((p, i) => p[1] !== CHECK62_WORD.points[i][1]).map((p) => p[0]), [], "each read back as Word's");
+  assert.deepEqual(ours.points.filter((p) => p.length === 3), CHECK62_WORD.points.filter((p) => p.length === 3), `every ${SPOT}th point's name stored, as Word's`);
 });

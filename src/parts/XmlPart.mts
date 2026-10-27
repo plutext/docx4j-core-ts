@@ -33,12 +33,14 @@ function valueKept(reading: WordReading, partName: string): ValueKeptWarning {
   const attribute = node.getAttributeNodeNS?.(name.namespaceURI || null, name.localPart)?.name ?? name.localPart;
   const value = reading.value;
   const read = value === true ? 'on' : value === undefined ? 'absent' : JSON.stringify(value);
+  // a form Word refuses a document for is dropped (the objects package's CR-015; CR-017 P1)
+  const outcome = reading.kind === 'value.refused' ? 'dropped: Word 365 refuses a document with this value' : `read as ${read}, as Word 365 reads it`;
   return {
     code: reading.kind, partName,
     ...(typeof node.lineNumber === 'number' ? { line: node.lineNumber } : {}),
     ...(typeof node.columnNumber === 'number' ? { column: node.columnNumber } : {}),
     element: node.nodeName, attribute, text: reading.text, value,
-    message: `${partName}: ${node.nodeName}/@${attribute}=${JSON.stringify(reading.text)}${positionOf(node.lineNumber, node.columnNumber)} is not a value its type allows; read as ${read}, as Word 365 reads it`,
+    message: `${partName}: ${node.nodeName}/@${attribute}=${JSON.stringify(reading.text)}${positionOf(node.lineNumber, node.columnNumber)} is not a value its type allows; ${outcome}`,
   };
 }
 

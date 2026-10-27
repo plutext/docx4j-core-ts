@@ -270,7 +270,11 @@ test('run mapping: applyRunOptions / readRunOptions round trip, underline true, 
   assert.equal(readRunOptions(applyRunOptions({}, { color: 'auto' })).color, 'auto');
   assert.equal(readRunOptions(applyRunOptions(rPr, { bold: false, name: '', color: '', highlightColor: null, style: '' })).bold, false);
   assert.deepEqual(Object.keys(rPr).filter((k) => ['b', 'bCs', 'rFonts', 'color', 'highlight', 'rStyle'].includes(k)), []);
-  assert.throws(() => applyRunOptions({}, { highlightColor: '#123456' }), /Not a highlight colour/);
+  // since objects 0.6.0 (its CR-014) a highlight takes what Office JS's font.highlightColor takes: any #RRGGBB, snapped to
+  // the highlight Word snaps it to, and a CSS name ('green' is CSS's #008000, so darkGreen); a name that is neither refused
+  assert.equal(applyRunOptions({}, { highlightColor: '#123456' }).highlight.val, 'darkCyan');
+  assert.equal(applyRunOptions({}, { highlightColor: 'green' }).highlight.val, 'darkGreen');
+  assert.throws(() => applyRunOptions({}, { highlightColor: 'darkYellow' }), /Not a highlight colour/);
   assert.deepEqual(readRunOptions(undefined), { bold: false, italic: false, underline: 'None', strikeThrough: false, doubleStrikeThrough: false, subscript: false, superscript: false, name: '', size: 0, color: '', highlightColor: null, style: '' });
 });
 

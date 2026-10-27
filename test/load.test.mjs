@@ -117,27 +117,37 @@ test('load: the wrong package class throws', async () => {
 // editor's parts panel shows a person what its save would refuse; "which part" is the first thing
 // they need and the runtime cannot know it.
 test('an unmarshal failure names the part, with the location and line', async () => {
-  const pkg = await WordprocessingMLPackage.createPackage();
-  const styles = pkg.getMainDocumentPart().styleDefinitionsPart;
+  // a value of Word's own WordprocessingML that its type refuses is read by Word's rule since objects 0.6.0, so a
+  // Word part no longer fails on one: w:sz w:val="big", a form Word refuses a document for, is dropped and reported
+  const made = await WordprocessingMLPackage.createPackage();
+  const styles = made.getMainDocumentPart().styleDefinitionsPart;
   styles.setXml((await styles.getXml()).replace('<w:sz w:val="22" />', '<w:sz w:val="big" />'));
+  await styles.getContents();
+  assert.deepEqual(styles.warnings.map((w) => [w.code, w.element, w.attribute, w.text, w.value]), [['value.refused', 'w:sz', 'w:val', 'big', undefined]]);
+  assert.match(styles.warnings[0].message, /^\/word\/styles\.xml: w:sz\/@w:val="big" \(line \d+, column \d+\) is not a value its type allows; dropped: Word 365 refuses a document with this value$/);
 
-  const error = await styles.getContents().then(() => undefined, (e) => e);
+  // a part outside those mappings still fails: DrawingML's a:ln/@w in the theme
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const theme = pkg.getMainDocumentPart().themePart;
+  theme.setXml((await theme.getXml()).replace(/<a:ln w="\d+"/, '<a:ln w="big"'));
+
+  const error = await theme.getContents().then(() => undefined, (e) => e);
   assert.ok(error instanceof PartUnmarshalException, `expected PartUnmarshalException, got ${error?.constructor?.name}`);
-  assert.equal(error.partName, '/word/styles.xml');
-  assert.match(error.message, /^\/word\/styles\.xml: /, 'the part comes first in the message');
+  assert.equal(error.partName, '/word/theme/theme1.xml');
+  assert.match(error.message, /^\/word\/theme\/theme1\.xml: /, 'the part comes first in the message');
   assert.match(error.message, /Argument \[NaN\] must be an integer/, 'and the runtime\'s own message follows');
-  assert.equal(error.location, 'w:sz/@w:val', 'the attribute, not cut at its own prefix separator');
+  assert.equal(error.location, 'a:ln/@w', 'the attribute, not cut at its own prefix separator');
   assert.equal(typeof error.line, 'number');
   assert.ok(error.line > 0);
   assert.equal(typeof error.column, 'number');
   // the value as written, and where: the runtime's own message says NaN
-  assert.ok(error.message.startsWith(`/word/styles.xml: w:sz/@w:val="big" (line ${error.line}, column ${error.column}): `), error.message);
+  assert.ok(error.message.startsWith(`/word/theme/theme1.xml: a:ln/@w="big" (line ${error.line}, column ${error.column}): `), error.message);
   assert.ok(error.cause, 'the runtime error is the cause');
 
   // readContents reports the same way, since a private read fails for the same reasons
-  const second = await styles.readContents().then(() => undefined, (e) => e);
+  const second = await theme.readContents().then(() => undefined, (e) => e);
   assert.ok(second instanceof PartUnmarshalException);
-  assert.equal(second.partName, '/word/styles.xml');
+  assert.equal(second.partName, '/word/theme/theme1.xml');
 });
 
 // ECMA-376 Transitional's ST_OnOff admits "on" and "off" beside true, false, 1 and 0, and pandoc writes
@@ -184,16 +194,16 @@ test('a part that is not well-formed names itself, with the line and column', as
 // Jason, 2026-10-17: a styles part that cannot be read refuses the document, since nothing in it can be
 // given its formatting, and the error says that first, then what was wrong where. Put right, it opens.
 test('a document whose styles part cannot be read is refused, saying why; put right, it opens', async () => {
+  // malformed XML: a value of Word's own mappings no longer fails a Word part, since objects 0.6.0 (the test above)
   const made = await WordprocessingMLPackage.createPackage();
   const good = await made.getMainDocumentPart().styleDefinitionsPart.getXml();
-  made.getMainDocumentPart().styleDefinitionsPart.setXml(good.replace('<w:sz w:val="22" />', '<w:sz w:val="big" />'));
+  made.getMainDocumentPart().styleDefinitionsPart.setXml(good.replace('<w:sz w:val="22" />', '<w:sz w:val="22" w:val="24" />'));
   const pkg = await WordprocessingMLPackage.load(await made.save());
 
   const error = await pkg.getBody().then(() => undefined, (e) => e);
   assert.ok(error instanceof PartUnmarshalException, `expected PartUnmarshalException, got ${error?.constructor?.name}`);
-  assert.match(error.message, /^The document cannot be opened: its styles part could not be read, and every paragraph's formatting depends on it\. \/word\/styles\.xml: w:sz\/@w:val="big" \(line \d+, column \d+\): Argument \[NaN\] must be an integer/);
+  assert.match(error.message, /^The document cannot be opened: its styles part could not be read, and every paragraph's formatting depends on it\. \/word\/styles\.xml: Malformed XML \(line \d+, column \d+\): Attribute w:val redefined/);
   assert.equal(error.partName, '/word/styles.xml');
-  assert.equal(error.location, 'w:sz/@w:val');
   assert.equal(typeof error.line, 'number');
   assert.ok(error.cause instanceof PartUnmarshalException, "the part's own error is the cause");
   await assert.rejects(() => pkg.getPropertyResolver(), (e) => e.message === error.message, 'the resolver says the same');

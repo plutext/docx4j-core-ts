@@ -53,7 +53,7 @@ Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54),
 `org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
 as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
 CR-061) is implemented, released in 0.6.0, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
-differs only in Word's green highlight (the objects package's table, `#008000` where Office JS reads `#00FF00`). So is CR-002 section 63
+differed only in Word's green highlight until objects 0.6.0 took Word's palette (its CR-014: checks 60 to 62 now Office JS's throughout). So is CR-002 section 63
 (writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
 entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63
 run again with Design Mode off, since Design Mode changes what a write into a placeholder does). The editor's release requests are
@@ -194,10 +194,12 @@ Key mechanics:
   listing pairs each other branch's changes with the selected branch's as twins, resolved with them (`Listing`,
   `pairTwins`; resolve-all lists every branch's on their own, CR-013 phase 3). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
   `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
-  it (CR-010 section 14.4). The floor is objects 0.5.0, over `@docx4j/jsonix` 3.8.0, whose marshal declares the
+  it (CR-010 section 14.4). The floor is objects 0.6.0, over `@docx4j/jsonix` 3.9.0, whose marshal declares the
   prefixes a kept `mc:Choice`'s `Requires` names (0.4.2, CR-010 section 14.8), from the source where
   only the source bound them (its CR-011, section 14.9), on the `mc:Choice` itself, as Word does (0.5.0, its CR-012);
-  and which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015).
+  which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015); and which reads a highlight in
+  Word's palette (0.6.0, its CR-014) and an integer attribute's decimal as Word does, `value.truncated` or
+  `value.refused` on a part's `ValueKeptWarning`s (0.6.0, its CR-015; CR-017 P1).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
   (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
