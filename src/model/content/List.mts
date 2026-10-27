@@ -442,11 +442,12 @@ export class List {
    * `w:ind/@w:left` is the text indent, and the label's indent is relative to it, "the same as paragraph first line
    * indent": a first-line indent, or a hanging indent for a negative (check 71 case 86: Word wrote (-1, 0) as
    * `w:left="-20" w:firstLine="0"`; until CR-002 section 65.5 it was taken as the label's absolute position).
-   * Each is held to the range Word stores it in (section 65).
+   * Each is held to the range Word stores it in (section 65); the text indent to Word's own setter's limit, short of
+   * 1584 pt either way (check 71b, section 65.9), the label's indent to its storage, unmeasured by Word's setter.
    */
   setLevelIndents(level: number, textIndent: number, bulletNumberPictureIndent: number): void {
     // within the ranges Word 365 stores the level's w:ind in (CR-002 section 65), before anything changes
-    const left = withinWord('List.setLevelIndents (textIndent)', textIndent, WORD_STORAGE.indLeft);
+    const left = withinWord('List.setLevelIndents (textIndent)', textIndent, WORD_STORAGE.lvlIndLeft);
     const label = bulletNumberPictureIndent < 0
       ? withinWord('List.setLevelIndents (a hanging bulletNumberPictureIndent)', -bulletNumberPictureIndent, WORD_STORAGE.indHanging)
       : withinWord('List.setLevelIndents (bulletNumberPictureIndent)', bulletNumberPictureIndent, WORD_STORAGE.indFirstLine);

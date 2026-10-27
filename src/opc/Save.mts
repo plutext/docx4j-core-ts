@@ -5,6 +5,8 @@ import { Docx4JException } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import type { Part } from '../parts/Part.mjs';
+import { valueOutOfRange } from '../parts/XmlPart.mjs';
+import type { ValueOutOfRangeWarning } from './mce/preprocessor.mjs';
 import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
 import { encodeText } from '../xml/dom.mjs';
@@ -24,9 +26,13 @@ export interface ValueNormalised {
   message: string;
 }
 
-/** What the last save of a package did beyond writing it: each value it normalised (CR-015 D8). */
+/**
+ * What the last save of a package did beyond writing it: each value it normalised (CR-015 D8), and each integer
+ * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), each with its path.
+ */
 export interface SaveReport {
   normalised: ValueNormalised[];
+  outOfRange: ValueOutOfRangeWarning[];
 }
 
 function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
@@ -48,13 +54,14 @@ export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promis
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
-  pkg.lastSave = { normalised: saver.normalised };
+  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange };
   return result;
 }
 
 class Saver {
   private readonly handled = new Set<string>();
   readonly normalised: ValueNormalised[] = [];
+  readonly outOfRange: ValueOutOfRangeWarning[] = [];
 
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
 
@@ -73,7 +80,10 @@ class Saver {
     this.handled.add(part.partName.key);
     let bytes: Uint8Array;
     try {
-      bytes = await part.getBytes({ onNormalised: (n) => this.normalised.push(valueNormalised(part.partName.name, n)) });
+      bytes = await part.getBytes({
+        onNormalised: (n) => this.normalised.push(valueNormalised(part.partName.name, n)),
+        onOutOfRange: (r) => this.outOfRange.push(valueOutOfRange(r, part.partName.name)),
+      });
     } catch (e) {
       throw new Docx4JException(`Problem saving part ${part.partName}`, { cause: e });
     }

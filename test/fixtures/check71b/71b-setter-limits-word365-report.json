@@ -1,0 +1,604 @@
+{
+ "check": 71,
+ "mode": "report",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "title": "Check 71b: where Word 365's own spacing, line, list and font setters refuse, below what Word stores.",
+ "cases": [
+  {
+   "n": 1,
+   "setter": "spaceBefore",
+   "value": 0,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 2,
+   "setter": "spaceBefore",
+   "value": 0.05,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 3,
+   "setter": "spaceBefore",
+   "value": 1583.95,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 4,
+   "setter": "spaceBefore",
+   "value": 1584,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 5,
+   "setter": "spaceBefore",
+   "value": 1584.05,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 6,
+   "setter": "spaceBefore",
+   "value": 1584.1,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 7,
+   "setter": "spaceBefore",
+   "value": 1585,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 8,
+   "setter": "spaceBefore",
+   "value": 1600,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 9,
+   "setter": "spaceBefore",
+   "value": 1637.95,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 10,
+   "setter": "spaceBefore",
+   "value": -0.05,
+   "after": {
+    "read": 0,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 11,
+   "setter": "spaceAfter",
+   "value": 0,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 12,
+   "setter": "spaceAfter",
+   "value": 0.05,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 13,
+   "setter": "spaceAfter",
+   "value": 1583.95,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 14,
+   "setter": "spaceAfter",
+   "value": 1584,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 15,
+   "setter": "spaceAfter",
+   "value": 1584.05,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 16,
+   "setter": "spaceAfter",
+   "value": 1584.1,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 17,
+   "setter": "spaceAfter",
+   "value": 1585,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 18,
+   "setter": "spaceAfter",
+   "value": 1600,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 19,
+   "setter": "spaceAfter",
+   "value": 1637.95,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 20,
+   "setter": "spaceAfter",
+   "value": -0.05,
+   "after": {
+    "read": 10,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 21,
+   "setter": "lineSpacing",
+   "value": 0,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 22,
+   "setter": "lineSpacing",
+   "value": 0.05,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 23,
+   "setter": "lineSpacing",
+   "value": 0.5,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 24,
+   "setter": "lineSpacing",
+   "value": 0.65,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 25,
+   "setter": "lineSpacing",
+   "value": 0.7,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 26,
+   "setter": "lineSpacing",
+   "value": 0.75,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 27,
+   "setter": "lineSpacing",
+   "value": 1,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 28,
+   "setter": "lineSpacing",
+   "value": 1583.95,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 29,
+   "setter": "lineSpacing",
+   "value": 1584,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 30,
+   "setter": "lineSpacing",
+   "value": 1584.05,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 31,
+   "setter": "lineSpacing",
+   "value": 1585,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 32,
+   "setter": "lineSpacing",
+   "value": 1637.95,
+   "after": {
+    "read": 13.8000001907349,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 33,
+   "setter": "listIndent",
+   "value": 1583.95,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 34,
+   "setter": "listIndent",
+   "value": 1584,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 35,
+   "setter": "listIndent",
+   "value": 1584.05,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 36,
+   "setter": "listIndent",
+   "value": 1585,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 37,
+   "setter": "listIndent",
+   "value": 1637.95,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 38,
+   "setter": "listIndent",
+   "value": -1583.95,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 39,
+   "setter": "listIndent",
+   "value": -1584,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 40,
+   "setter": "listIndent",
+   "value": -1584.05,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 41,
+   "setter": "listIndent",
+   "value": -1585,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 42,
+   "setter": "listIndent",
+   "value": -1638.35,
+   "after": {
+    "read": {
+     "leftIndent": 0,
+     "firstLineIndent": 0
+    },
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 43,
+   "setter": "fontSize",
+   "value": 0.5,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 44,
+   "setter": "fontSize",
+   "value": 0.9,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 45,
+   "setter": "fontSize",
+   "value": 1,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 46,
+   "setter": "fontSize",
+   "value": 1.5,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 47,
+   "setter": "fontSize",
+   "value": 1637.5,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 48,
+   "setter": "fontSize",
+   "value": 1638,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 49,
+   "setter": "fontSize",
+   "value": 1638.05,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 50,
+   "setter": "fontSize",
+   "value": 1638.4,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  },
+  {
+   "n": 51,
+   "setter": "fontSize",
+   "value": 1638.45,
+   "after": {
+    "read": 11,
+    "ooxml": {
+     "document": []
+    }
+   }
+  }
+ ],
+ "caseCount": 51
+}

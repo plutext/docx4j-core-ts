@@ -233,8 +233,9 @@ class Emitter {
       if (spacing.before !== undefined) out.push(['spaceBefore', num(spacing.before / TWIPS_PER_POINT)]);
       if (spacing.after !== undefined) out.push(['spaceAfter', num(spacing.after / TWIPS_PER_POINT)]);
       if (spacing.line !== undefined) {
-        // Paragraph.lineSpacing writes w:lineRule="exact", so only an exact rule round-trips.
-        if (spacing.lineRule !== 'exact') throw new Unexpressible(`w:spacing w:lineRule="${spacing.lineRule ?? 'auto'}"`);
+        // Paragraph.lineSpacing writes w:lineRule="auto", as Word's setter does (CR-002 section 65.9), so only an auto rule,
+        // stated or the default, round-trips.
+        if (spacing.lineRule !== undefined && spacing.lineRule !== 'auto') throw new Unexpressible(`w:spacing w:lineRule="${spacing.lineRule}"`);
         out.push(['lineSpacing', num(spacing.line / TWIPS_PER_POINT)]);
       }
     }

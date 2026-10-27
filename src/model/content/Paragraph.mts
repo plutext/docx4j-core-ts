@@ -306,11 +306,16 @@ export class Paragraph {
   get lineSpacing(): number {
     return lineSpacingOf(this.effectivePPr);
   }
+  /**
+   * Writes `w:line` as 20 × points under `w:lineRule="auto"`, as Word 365's own setter does (check 71b: 0.75 pt as
+   * `w:line="15" w:lineRule="auto"`; Office JS: "in the Word UI, this value is divided by 12", so 12 pt is single spacing),
+   * within Word's own limits, 0.75 to 1584 pt (CR-002 section 65.9). Until check 71b it wrote an exact rule.
+   */
   set lineSpacing(pt: number) {
-    const v = withinWord('Paragraph.lineSpacing', pt, WORD_STORAGE.spacingLineExact);
+    const v = withinWord('Paragraph.lineSpacing', pt, WORD_STORAGE.spacingLineAuto);
     const s = this.spacing();
     s.line = v;
-    s.lineRule = 'exact';
+    s.lineRule = 'auto';
     this.settleFormatting();
   }
   /** w:outlineLvl + 1 (1 to 9); 10 for body text, as Office JS. A heading style supplies it. */

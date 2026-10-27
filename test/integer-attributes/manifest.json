@@ -1,0 +1,474 @@
+{
+ "source": {
+  "share": "Office 2016/__tmp/cr065/ (whole), __tmp/cr066/ (cases, families list, README and groups/) and __tmp/cr066/round6/ (the same, and singles/ D1 and D2); the family and single files Word was never given are left on the share",
+  "built_by": "docx4j-25 (docx4j CR-065 phase 0 and CR-066 phase 0, 2026-10-26)",
+  "run_by": "Jason Harrop, Word 365, 2026-10-26",
+  "docx4j": {
+   "commit": "109a8d47b5ad916b75375643fed8911be917855d",
+   "branch": "VERSION_17_3_5",
+   "records": [
+    "docs/developer/change-requests/CR-065-integer-attributes-read-as-word-reads-them.md section 3",
+    "docs/developer/change-requests/CR-066-integer-attributes-within-words-range.md sections 3.1 and 3.4"
+   ]
+  },
+  "licence": "Apache-2.0"
+ },
+ "files": [
+  {
+   "name": "cr065/README.txt",
+   "sha1": "1a530e6a2a45feb7cb96a79562a0bd61c1a6d8ac"
+  },
+  {
+   "name": "cr065/cases.txt",
+   "sha1": "e40077a12e43e91dbf6645adee2fbcbc25e26953"
+  },
+  {
+   "name": "cr065/cr065-decimals-probe.docx",
+   "sha1": "ce748c39ab91a111ffcbb65ddba976489dcb1538"
+  },
+  {
+   "name": "cr065/cr065-structure-control.docx",
+   "sha1": "42776225dfea2cf65e4e1ea33b14bc250a6380dd"
+  },
+  {
+   "name": "cr065/families/cr065-A.docx",
+   "sha1": "1da259d9abcabb75529d69c1d33d52274518bb64"
+  },
+  {
+   "name": "cr065/families/cr065-A1-decimals-word365.docx",
+   "sha1": "e5103e797d7b4544cfeb1488132cbe10d293c612"
+  },
+  {
+   "name": "cr065/families/cr065-A1-decimals.docx",
+   "sha1": "d4d3b6e9a5c6d0acdf69503c70920e92dc57bfe9"
+  },
+  {
+   "name": "cr065/families/cr065-A2-forms.docx",
+   "sha1": "1bb025a0c2f8294cac2fee1e811ed752ca575a6e"
+  },
+  {
+   "name": "cr065/families/cr065-A2a-trailing-dot-word365.docx",
+   "sha1": "9f74e80762715fb5f2c80a5a17d369798d2f24e1"
+  },
+  {
+   "name": "cr065/families/cr065-A2a-trailing-dot.docx",
+   "sha1": "fb078c8ef0e4588bf0ee89dda2544089fdc91712"
+  },
+  {
+   "name": "cr065/families/cr065-A2b-leading-dot-word365.docx",
+   "sha1": "953afc66d48d9193de06d7b695b36ad516200f35"
+  },
+  {
+   "name": "cr065/families/cr065-A2b-leading-dot.docx",
+   "sha1": "6538147548a8b10319e8d360d28b85de4802ed5e"
+  },
+  {
+   "name": "cr065/families/cr065-A2c-plus-word365.docx",
+   "sha1": "c4cfa1b009cb1dcd7b268d92ee9c29216607bfd1"
+  },
+  {
+   "name": "cr065/families/cr065-A2c-plus.docx",
+   "sha1": "71fe2d8fdc9b5558e87ecdf15e2826c0c1b866c3"
+  },
+  {
+   "name": "cr065/families/cr065-A2d-plus-decimal-word365.docx",
+   "sha1": "009186205f18ee184b63834f127b51a24b631a44"
+  },
+  {
+   "name": "cr065/families/cr065-A2d-plus-decimal.docx",
+   "sha1": "632d46bfe5797d8fe2649046196412ca8b6da591"
+  },
+  {
+   "name": "cr065/families/cr065-A2e-spaced-decimal.docx",
+   "sha1": "d26fad6fc5e9ce2a9b3bda6435dfc016e077bd13"
+  },
+  {
+   "name": "cr065/families/cr065-A2f-spaced-integer.docx",
+   "sha1": "44d79d6e5d6860210bf3dc89ded0371dcff49b9e"
+  },
+  {
+   "name": "cr065/families/cr065-A3-comma.docx",
+   "sha1": "5429bd1aea62aea7488b176891fc67455c5f11b6"
+  },
+  {
+   "name": "cr065/families/cr065-A4-hex.docx",
+   "sha1": "7ec864df41f09282be12ea9c664d9870f64a903a"
+  },
+  {
+   "name": "cr065/families/cr065-A5-exponents.docx",
+   "sha1": "cb5fcb37c0e931bc422ff21da9762c9d9c82599b"
+  },
+  {
+   "name": "cr065/families/cr065-A6-empty-word365.docx",
+   "sha1": "96ffe99f7e115edc792e74947d0828f96eaab34d"
+  },
+  {
+   "name": "cr065/families/cr065-A6-empty.docx",
+   "sha1": "398cdce61a153f10e70e331f98d45098afabeeef"
+  },
+  {
+   "name": "cr065/families/cr065-A7-abc.docx",
+   "sha1": "cbbcb5d37935308e270c13371917fa2e452cab9e"
+  },
+  {
+   "name": "cr065/families/cr065-B-word365.docx",
+   "sha1": "b1899d8a86c88c08dee026d505b38ab620be6c70"
+  },
+  {
+   "name": "cr065/families/cr065-B.docx",
+   "sha1": "90050e19aab79393f48e3aa88b4831566f6d57d2"
+  },
+  {
+   "name": "cr065/families/cr065-C-word365.docx",
+   "sha1": "1f01ebe86ebe5de134547a5b59fbb13a45bf1441"
+  },
+  {
+   "name": "cr065/families/cr065-C.docx",
+   "sha1": "1865d2d0c82f66db34ad9d2c358e4ecc1ce4d861"
+  },
+  {
+   "name": "cr065/families/cr065-D-word365.docx",
+   "sha1": "0a12913c19a9765b34943ea287c42b4e9f170b15"
+  },
+  {
+   "name": "cr065/families/cr065-D.docx",
+   "sha1": "c56efa3d2d2da6075fc855ac07b20d0579835b01"
+  },
+  {
+   "name": "cr065/families/cr065-E-word365.docx",
+   "sha1": "d9326aba70e4aa3c95f96ac9c06239fdaa291ac4"
+  },
+  {
+   "name": "cr065/families/cr065-E.docx",
+   "sha1": "0b4364e10f95d05be22cfbcdc83776132f7d75d4"
+  },
+  {
+   "name": "cr065/families/cr065-F-word365.docx",
+   "sha1": "7e1c73f98e827f4e55a3f6c1c3533dff983424e2"
+  },
+  {
+   "name": "cr065/families/cr065-F.docx",
+   "sha1": "a4e18d57138f92f53fa5ea39f7efe50f5b39514a"
+  },
+  {
+   "name": "cr065/families/cr065-G-word365.docx",
+   "sha1": "339c7a782238b67b1e63c52dbc0cb8ef93ef7999"
+  },
+  {
+   "name": "cr065/families/cr065-G.docx",
+   "sha1": "5bb5035033a224ebf502113c9c1ffdc6bdca162f"
+  },
+  {
+   "name": "cr065/families/cr065-H-word365.docx",
+   "sha1": "2a8bea2bf59ba086b1fb20a45597aa6eb78252f5"
+  },
+  {
+   "name": "cr065/families/cr065-H.docx",
+   "sha1": "9a1a55aac1a023ce7ffe8015276f296edcc05ed2"
+  },
+  {
+   "name": "cr065/families/cr065-I-word365.docx",
+   "sha1": "930344c7f3216e59ce510b20da55b354def8ebba"
+  },
+  {
+   "name": "cr065/families/cr065-I.docx",
+   "sha1": "6d3bf5925be3f1a38c7bda63d0dfefa7e2643c89"
+  },
+  {
+   "name": "cr066/README.txt",
+   "sha1": "e294e2fd0da742bd3ca8ca051a8a04b812408a99"
+  },
+  {
+   "name": "cr066/cases.txt",
+   "sha1": "c4db876b34aa3f1b242d78a02063245fed23b670"
+  },
+  {
+   "name": "cr066/families.txt",
+   "sha1": "4b54623a4f6734299f27b74813db6cbd7fd3384e"
+  },
+  {
+   "name": "cr066/groups/cr066-B-word365.docx",
+   "sha1": "b36e67ee1aca3341774742f73381b89138d57791"
+  },
+  {
+   "name": "cr066/groups/cr066-B.docx",
+   "sha1": "f6e4ae08549d3672927040b9d2f567b23b679027"
+  },
+  {
+   "name": "cr066/groups/cr066-N-word365.docx",
+   "sha1": "1f09851a48cf8436608a5365e7ba3501aab369fb"
+  },
+  {
+   "name": "cr066/groups/cr066-N.docx",
+   "sha1": "bc850d5d6ea368e9c9861ac79c8b6218ae3757fd"
+  },
+  {
+   "name": "cr066/groups/cr066-P-word365.docx",
+   "sha1": "be47a2cab34219071f0a2f1cba35f3627bb47a9e"
+  },
+  {
+   "name": "cr066/groups/cr066-P.docx",
+   "sha1": "8cd21564548b8e21e5e474983289864bdcdebe00"
+  },
+  {
+   "name": "cr066/groups/cr066-R-word365.docx",
+   "sha1": "3f48e5881848e66509a9abdce9c9a14c4d14ca4b"
+  },
+  {
+   "name": "cr066/groups/cr066-R.docx",
+   "sha1": "453cac49a0e351d296b5c7715cf8c3df746cf7d6"
+  },
+  {
+   "name": "cr066/groups/cr066-S-word365.docx",
+   "sha1": "2ceee3e756388b19c246e25674c3c8ac1801bc0c"
+  },
+  {
+   "name": "cr066/groups/cr066-S.docx",
+   "sha1": "4690fae506d17acd4c8c9a0532c5e85030ecadc8"
+  },
+  {
+   "name": "cr066/groups/cr066-T-word365.docx",
+   "sha1": "b5b2d3115bbbf11e9387ec20e07e9df46e59b309"
+  },
+  {
+   "name": "cr066/groups/cr066-T.docx",
+   "sha1": "26ae409b92fdbe8e0b0f8f632b2e7cbe9fa294ae"
+  },
+  {
+   "name": "cr066/round6/README.txt",
+   "sha1": "3cbc88da3381b379445871b669c205bd908620b3"
+  },
+  {
+   "name": "cr066/round6/cases.txt",
+   "sha1": "191686c04a4b4593ab864ac4742995ce77343969"
+  },
+  {
+   "name": "cr066/round6/families.txt",
+   "sha1": "fb106f01b890a65766f9c4d1cf13c8bd277975db"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-A-word365.docx",
+   "sha1": "57fa0b93cc4fb985501849fde6493f7c430e31b5"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-A.docx",
+   "sha1": "2318ff08733b6177cb047426301972a1c5faa789"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-E-word365.docx",
+   "sha1": "98989986635daa23714e21f4c768635a3dabb854"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-E.docx",
+   "sha1": "0a74ed7550940bc0d160f6989cf4d7594af215b1"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-F-word365.docx",
+   "sha1": "cc063c51ad664c7a2c1b6a67afe1bddb761e9ddd"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-F.docx",
+   "sha1": "d4881fde05e9389c1a6daee74edf4a3538e80b8f"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-N-word365.docx",
+   "sha1": "2d5c371ee0df1d4ede5cd86241a017206f8b460a"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-N.docx",
+   "sha1": "68a0aea259337f9bac2ec3710af0f176d7304da2"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-P-word365.docx",
+   "sha1": "1b5f7539d0c8b33ae507f8529cfa06efe390a87a"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-P.docx",
+   "sha1": "14ff08ffd9c2f1b3a9c0f95ba9e4ffff1543485b"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-R-word365.docx",
+   "sha1": "91742ce4cae34106544b7df9fec2d14b4c6c9dc0"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-R.docx",
+   "sha1": "48067a92cda6d2056e24a74093db3cf552879f1e"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-S-word365.docx",
+   "sha1": "de53d339625a10729cc88fde26c10f0aa209ff28"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-S.docx",
+   "sha1": "5d41edd4f9ac1d461fc8a11dc6c5a77502804313"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-T-word365.docx",
+   "sha1": "06fb5f24f81dda33058f0d35ed72e2adf34b6b79"
+  },
+  {
+   "name": "cr066/round6/groups/cr066-r6-T.docx",
+   "sha1": "67b602b2ecbc7966b638a8aee3a1282b8d0c4d25"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-1-word365.docx",
+   "sha1": "dded06330650fa203c0d2d8e9894aa3ff6646662"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-1.docx",
+   "sha1": "c768e60591dfe0febf88cc162343b6fa6b96e3d7"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-10-word365.docx",
+   "sha1": "a1c46d0c798fe018119d62c31c80dd7ac526330c"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-10.docx",
+   "sha1": "b05e1d55551d8361c20a67a1af89b2916023b351"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-2-word365.docx",
+   "sha1": "4bca2b36b65f295c1da0b3666875ccf971e5907a"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-2.docx",
+   "sha1": "5cb4e1fc694d6c3817c0e57d3a17c82d8515195e"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-3-word365.docx",
+   "sha1": "f73a0b7b280fc9eb61996017c33521bddbcd8ff3"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-3.docx",
+   "sha1": "7bb9f1d7972a723abc421998947561c143bcafd8"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-4-word365.docx",
+   "sha1": "0458b1e8d30775434367245e14df834b1d47900e"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-4.docx",
+   "sha1": "5df6556e85b543aa2bbf06d71bc119015e6f20e5"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-5-word365.docx",
+   "sha1": "316dd50f028ae01348f2ca7d2cc474fb50fd076b"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-5.docx",
+   "sha1": "b32ffef4fb187bfb2f2f02e1fb7fda9897f69766"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-6-word365.docx",
+   "sha1": "ac18c30ed49e7e19d48ab3658cbd1cefad20e1c2"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-6.docx",
+   "sha1": "f1bb99ec47de9c8421ab9ce77d8d17b38d69e372"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-7-word365.docx",
+   "sha1": "93ce06a91cb5cc5e7229fd0fa1351202bda6de66"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-7.docx",
+   "sha1": "c742602cbbbda9a92d1d3572280ff5adbfb4f19d"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-8-word365.docx",
+   "sha1": "58c6423237f2feecdd8aa03d4e8ff41eb69c9f5d"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-8.docx",
+   "sha1": "44062263d4100640e098d565ca6b9d1762d5d41e"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-9-word365.docx",
+   "sha1": "97060238af8431927c0a07f878b6ef1a6f33565f"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D1-9.docx",
+   "sha1": "0947d985606e48fb25c0a7d5e11ef30fc675a62f"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-1-word365.docx",
+   "sha1": "fc03c2406914a8bfca32189b8dfd873ae668337d"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-1.docx",
+   "sha1": "83fca5d71de33fa3d25d46b1c664296536af13ab"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-10-word365.docx",
+   "sha1": "a0c0d1368b0e9e51afcc86581327a50c7955ae69"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-10.docx",
+   "sha1": "51b8c9bdb925a06a73dbf3c3caf480f2e28e895c"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-2-word365.docx",
+   "sha1": "31ad14e585dcd9fd68dea286c9305634fa5f0da2"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-2.docx",
+   "sha1": "eae9ff0e969c0d31f398fa17db8794786e0c0f59"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-3-word365.docx",
+   "sha1": "c2336bede1901f606abafadca75ba5fb786cab54"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-3.docx",
+   "sha1": "f70fb43ba877fd4b03aad8b2495e8625d48dbe38"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-4-word365.docx",
+   "sha1": "97561f607900250aba61c6bf343e4401888d8f53"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-4.docx",
+   "sha1": "0e41748ad60b6d07d3894f31075fb0ec3eb4b3bd"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-5-word365.docx",
+   "sha1": "07788f538e69706439c4e356a69eca24432ce817"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-5.docx",
+   "sha1": "c937dc0630b625fd65cb87e26cdd669f85721a0d"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-6-word365.docx",
+   "sha1": "ae1a3df8575c2d6de572e92245184b5fa74ebaca"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-6.docx",
+   "sha1": "9b424940b311160b3b7c62fbb111fff6b33846c6"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-7-word365.docx",
+   "sha1": "1db0a67cba93f58d3d618b17409a799ce573accb"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-7.docx",
+   "sha1": "3e8acf5d81e98a7b89cb059ca95fc2224da16363"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-8-word365.docx",
+   "sha1": "cd45bee567dda5cc93c7961b03b412f4635bd3b8"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-8.docx",
+   "sha1": "6c678b066097391261af4a288bef784d4c75764b"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-9-word365.docx",
+   "sha1": "5f87348555250c78eda48dbeb0f8e5fbfff56369"
+  },
+  {
+   "name": "cr066/round6/singles/cr066-r6-D2-9.docx",
+   "sha1": "ae76df2cc706511afa7880428ed0c81c81c419eb"
+  }
+ ]
+}

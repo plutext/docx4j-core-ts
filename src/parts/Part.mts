@@ -1,5 +1,5 @@
 import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx4j_relationships';
-import type { Normalisation } from '@docx4j/generated-objects-ts';
+import type { Normalisation, OutOfRange } from '@docx4j/generated-objects-ts';
 import { PartName } from '../opc/PartName.mjs';
 import { InvalidFormatException } from '../opc/exceptions.mjs';
 import type { RelationshipsPart, AddPartBehaviour } from './RelationshipsPart.mjs';
@@ -8,6 +8,8 @@ import type { OpcPackage } from '../packages/OpcPackage.mjs';
 /** What a save asks of a part's bytes (CR-015 D8): to be told of each value the objects facade's normaliser rewrote. */
 export interface PartBytesOptions {
   onNormalised?(normalisation: Normalisation): void;
+  /** Called for each integer attribute value written that Word 365 reads differently (CR-017 P3); the value is written as held. */
+  onOutOfRange?(report: OutOfRange): void;
 }
 
 /** Something that owns a relationships part: a part or the package (docx4j Base). */

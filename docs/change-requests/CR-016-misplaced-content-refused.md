@@ -60,6 +60,8 @@ unreadable content, then a repair that drops content.
 
 ## 4. Decisions
 
+**Decided 2026-10-27 as recommended** (Jason: "CR-016 D1 to D6 as recommended, but D5 do check 72"): D5 (a) is not optional; check 72 is written (section 7) and run the same day (section 7.1).
+
 | # | Question | Options | Recommendation |
 |---|---|---|---|
 | D1 | Where the rules and the walk live | (a) the objects package (its own CR, since proposed as objects CR-017, `f2be032`: its builders refuse a misplaced child, and `onMisplaced` reports each one on read and on save, changing nothing), called here at save and by this package's check; (b) here | (a), by the dividing rule: the check needs only an object tree, and the editor, docx4j-python's users of the facade and the marshal itself can call it there. This package wires it in. |
@@ -76,7 +78,7 @@ unreadable content, then a repair that drops content.
 | 0 | This CR; today's behaviour measured (section 2) | done 2026-10-26 |
 | 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | proposed there as objects CR-017 (`f2be032`, 2026-10-26; its M1 to M6 for Jason) |
 | 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table | after phase 1 |
-| 3 | Check 72 (D5), Word's repairs, if wanted | optional |
+| 3 | Check 72 (D5), Word's repairs | done: written and run 2026-10-27 (section 7.1): 11 of the 18 don't open ("Word experienced an error trying to open the file", no repair offered), 7 open with no message and are repaired silently, one losing its content |
 
 ## 6. Risks
 
@@ -86,3 +88,57 @@ unreadable content, then a repair that drops content.
   marshal itself visits each element already, so the walk adds a fraction to it; this is measured in phase 2.
 - **TypeScript users see nothing new** for what their compiler already refused. The gain is for JavaScript callers,
   for values typed loosely, and for the string in a run, whose save fails today with no cause given.
+
+## 7. Check 72 written, and what this package does with its files today (2026-10-27)
+
+Jason: "CR-016 D1 to D6 as recommended, but D5 do check 72". D1 to D6 are decided as section 4 recommends. Check 72
+(`test/README.md` check 72) is 18 files on the share at `__tmp/72/`, as `fixtures/check72/build.mjs` writes them, one
+misplaced child each between a paragraph BEFORE and a paragraph AFTER, so what Word drops or keeps shows against them, and
+one form per file, since Word refuses a whole document for some faults (docx4j CR-065 round 1) and a refusal of a file
+holding several would say nothing about each. The forms cover each rule of CR-064 section 8's five sets at least once, and
+the string in a run: in the body a run (72a), bare text (72b), a cell (72c), a row (72d) and a break (72e); a run beside a
+cell's paragraph (72f); in a paragraph a table (72g), a paragraph (72h), bare text (72i) and a bare break (72j); in a run a
+run (72k), a paragraph (72l) and a string (72m); in a table beside its row a cell (72n), a paragraph (72o) and a table (72p);
+in a row beside its cells a paragraph (72q) and a run (72r). Jason opens each, says whether it opens clean, offers a repair
+or is refused, and saves each that opens as `<name>-word365.docx`; the saves then say what Word keeps.
+
+**What this package does with each file today** (`test/check72.test.mjs`, measured 2026-10-27, before phase 2). Every file
+loads with no warning: the facade's unmarshal does not refuse a child its content model has no place for. The readers see
+the misplaced content in two files only, a cell and a row straight in the body (72c, 72d), whose paragraphs `Body` walks
+as it walks any cell's; in the sixteen others `Body.text` holds BEFORE and AFTER and nothing of the child. Yet a save writes
+the child back as it was in fifteen of the eighteen: the tree keeps it (as content the model does not type), invisible to
+the readers and faithful on save. Three are lost on the way: a bare break in the body (72e) or in a paragraph (72j), and a
+string straight in a run (72m). So a document holding a misplaced child round-trips here unseen, and reaches Word with the
+fault intact, which is D6's case: the check at save (phase 2) is what will report it, and the opt-out what lets a caller
+write such a file knowingly. None of this is what Word does; that is the check.
+
+### 7.1 Check 72's run (2026-10-27)
+
+Jason opened the 18 files in Word 365 (16.0.20326.20232, PC, each in its own session; "for the cases which did not give
+an error on opening, i have saved a screenshot and -word365.docx"). Eleven gave an error on opening and have no save: a
+run, bare text, a cell or a row straight in the body (72a to 72d); a run beside a cell's paragraph (72f); a table, a
+paragraph or bare text inside a paragraph (72g, 72h, 72i); a run in a run (72k); a cell beside a table's row (72n); a run
+beside a row's cells (72r). For each of the eleven Word said "Word experienced an error trying to open the file" and
+offered no repair (Jason, the same day), so the file does not open at all. Seven opened with no message at all, and Word's save of each (`test/check72/`, with its screenshot and a
+SHA-1 manifest) shows a silent repair:
+
+| File | The child | What Word's save holds |
+|---|---|---|
+| 72e | `w:br` in the body | the break is the first run of the next paragraph: `<w:p><w:r><w:br/></w:r><w:r><w:t>AFTER</w:t></w:r></w:p>` |
+| 72j | `w:br` in a paragraph, outside any run | the break goes into the run that follows: `<w:r><w:br/><w:t>then a run</w:t></w:r>` |
+| 72l | `w:p` inside `w:r` | the inner paragraph's run joins the outer paragraph (`outer text MISPLACED paragraph in a run`), and an empty paragraph follows it |
+| 72m | character data in `w:r`, outside `w:t` | **dropped**: the paragraph is `<w:p/>`, the text gone, with no message |
+| 72o | `w:p` beside a table's row | the paragraph stands before the table, in the body |
+| 72p | `w:tbl` beside a table's row | the nested table is the outer table's first row: its one cell in the first column, `w:gridAfter` 1 |
+| 72q | `w:p` beside a row's cells | the paragraph is the first in the row's first cell, before `CELL A1` |
+
+So Word's reading of a misplaced child is, where it reads it at all, "the nearest place it fits": a break into the next
+run, a paragraph into the next cell or before the table, a table as a row. Content is lost in one of the seven, and
+silently (72m), and the other eleven don't open at all, with no repair offered, which is more than the forum reports
+("unreadable content", then a repair) suggested. D2's premise
+holds twice over: a file this package writes with a misplaced child either fails to open in Word or is changed on
+opening with no word to the user, and in one form loses its content. Phase 2's refusal at save stands as decided.
+
+This package reads each of Word's saves as any file: BEFORE, AFTER and the moved text where Word put it, the string gone,
+no warning (`check72.test.mjs`, under the manifest). What this package does with the original files is unchanged from
+section 7: the eleven Word can't open are among the fifteen it saves back as they were.

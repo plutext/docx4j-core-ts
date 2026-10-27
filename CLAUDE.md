@@ -53,7 +53,10 @@ Word shim; phase 3's comments, `^p` and controls too, held to checks 52 and 54),
 `org.docx4j.model.color`, in `src/model/color/`: every probe held to docx4j's own tallies; `Font.color` reads a theme colour
 as Word draws it). CR-015 (run properties read as Word 365 reads them: on/off, enumerations, colours; docx4j CR-060 and
 CR-061) is implemented, released in 0.6.0, on objects 0.5.0 (its CR-013 A to C), and held to Word 365's check 60, where Office JS
-differed only in Word's green highlight until objects 0.6.0 took Word's palette (its CR-014: checks 60 to 62 now Office JS's throughout). So is CR-002 section 63
+differed only in Word's green highlight until objects 0.6.0 took Word's palette (its CR-014: checks 60 to 62 now Office JS's throughout). CR-017 (an integer
+attribute value Word 365 reads differently reported on load and on save, never rewritten; docx4j CR-065 and CR-066, the objects package's CR-015 and CR-016) is
+implemented, P1 to P3, unreleased, with CR-002 section 65 (the measurement setters refusing past Word's storage, check 71; the spacing, line, list and font setters at Word's own
+limits below it, and `lineSpacing` writing Word's auto rule, check 71b, section 65.9) and its section 65.3 (the setters' table the objects package's). So is CR-002 section 63
 (writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
 entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63
 run again with Design Mode off, since Design Mode changes what a write into a placeholder does). The editor's release requests are
@@ -111,6 +114,8 @@ src/model/properties/ PropertyResolver, the property catalogue (one entry per sc
                   tableStyleConditions.mts (namespace TableStyleConditions) and table.mts (TableContext, CellContext, TableContextTracker): a table style reaches a paragraph only through its CellContext (CR-007)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
+src/model/wordIntegers.mts  the range Word 365 keeps as written in an integer attribute, from the objects table (keptRange; rangeOfReading finds it back from a report's
+                  storage string, since the report names no entry): one source for the setters' guards and the value.out_of_range warnings (CR-017, CR-002 section 65.3)
 src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColor, ThemeColors (ofTheme sync; `await ThemeColors.of(pkg or part)`,
                   forChart; a themeless package the bundled theme pkg.fonts.defaultTheme names), WordColors (of, ofBorder, ofUnderline, fill, pattern;
                   normalise and stated, docx4j CR-060's, over the objects package's wordColor: a value read as Word reads it, CR-015),
@@ -126,7 +131,9 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
                   placeholders.mts is a placeholder's form (`w:placeholder`) and the glossary's entries, `pkg.glossaryEntries`, read privately and written on save
                   (CR-002 section 63, D8 and D9); a text write into a control showing its placeholder, by any route, goes through `ContentControl.writePlaceholder`;
                   wordRange.mts holds every measurement setter to the range Word 365 stores its attribute in (`withinWord`, `WORD_STORAGE`:
-                  16 bits, signed or unsigned per attribute, from docx4j CR-066's round 5; past it `InvalidArgument`, CR-002 section 65);
+                  16 bits, signed or unsigned per attribute, each row the objects package's `WORD_INTEGER_STORAGE` entry through model/wordIntegers.mts's
+                  `keptRange`, narrowed only by the setter's stated policy, CR-002 section 65.3: Word's own limits for spacing, line, list indent and
+                  font size, check 71b, section 65.9; past it `InvalidArgument`, CR-002 section 65);
                   binder.mts records which object each element of a marshalled snapshot came from (CR-006: XmlPart.selectObjects, pkg.selectObjects, Body.select); stylesFacade.mts is pkg.styles
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
@@ -161,6 +168,15 @@ Key mechanics:
   rule: colours upper-case `RRGGBB`, a rejected text colour left out, what Word repairs left out), unless
   `pkg.normaliseOnSave` (else the objects package's `setNormaliseOnSave`) is false; `pkg.lastSave.normalised` lists what
   the last save rewrote. Only an unmarshalled part is marshalled, so an untouched part is still copied byte for byte.
+- **An integer attribute value past what Word 365 stores is reported, never rewritten** (CR-017; the objects package's
+  `onOutOfRange`, its CR-016, over docx4j CR-066's rounds 5 and 6). Word keeps each such attribute in a field of its binary
+  format's width, 16 bits for most, and reads a value past it wrapped, sometimes then clamped, with no error: `w:ind
+  w:left="7205001"` opens as -3959. On load each one is a `ValueOutOfRangeWarning` on the part (`value.out_of_range`, the
+  code and fields shared with docx4j-python: `element`, `attribute`, `value`, `wordReads`, `storage`, `range`, and `readAs`
+  or `rule` where the shared field's sign or a line rule moved it) and on save on `pkg.lastSave.outOfRange`, with its path;
+  the tree, the readers and the save keep the value as written (E2), and a decimal reads truncated as Word reads it
+  (`value.truncated`) or, in a form Word refuses a document for, dropped (`value.refused`; P1, the objects package's CR-015).
+  The setters refuse such a value before it is written (CR-002 section 65), from the same table (`keptRange`).
 - **Container is separate from package.** `PartStore` (load) and `PartSink<R>` (save) abstract
   zip (`fflate`; the central directory is parsed here, entries inflate lazily), flat OPC
   (`pkg:package`; content types are per part, so the store synthesises `[Content_Types].xml`),
@@ -199,7 +215,8 @@ Key mechanics:
   only the source bound them (its CR-011, section 14.9), on the `mc:Choice` itself, as Word does (0.5.0, its CR-012);
   which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015); and which reads a highlight in
   Word's palette (0.6.0, its CR-014) and an integer attribute's decimal as Word does, `value.truncated` or
-  `value.refused` on a part's `ValueKeptWarning`s (0.6.0, its CR-015; CR-017 P1).
+  `value.refused` on a part's `ValueKeptWarning`s (0.6.0, its CR-015; CR-017 P1), and reports a value past what Word stores
+  (its CR-016, `onOutOfRange`; CR-017 P2 and P3).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
   (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
@@ -354,7 +371,19 @@ and check 69's (`test/fixtures/check69/`: a write at a paragraph's End past a pl
 and check 70's (`test/fixtures/check70/`: the same at the endings check 69 left, a bookmark, comment markers, a tracked deletion or insertion, a field, a text box, and D13's runs before a control) file and snippet held to each other and run through the shim, and Word's run (its saves in `test/check70/`) pinned and the shim held to it, its three non-placement differences listed (section 63.27),
 `measurements.test.mjs` CR-002 section 65's: check 71's file (`check71Bytes`, `test/fixtures/check71/`: Office JS's measurement setters past
 Word's 16-bit ranges) and snippet held to each other and run through the Word shim; Word 365's run (its JSON beside the build, its save in `test/check71/`,
-with a SHA-1 manifest) pinned, and every case where the shim differs listed (section 65.5's D1 and D2); and each setter's limits, message and refusal before any change,
+with a SHA-1 manifest) pinned, and every case where the shim differs listed (section 65.5's D1 and D2); and each setter's limits, message and refusal before any change;
+and check 71b's file (`check71bBytes`, `test/fixtures/check71b/`: the same setters at and either side of Word's own limits, below storage, for D2) and check 71's
+snippet, a copy held equal; Word 365's run (its JSONs beside the build, its save in `test/check71b/`, with a SHA-1 manifest) pinned, and the shim's run held to
+it case for case, its one difference listed (section 65.9),
+`check72.test.mjs` CR-016 D5's: check 72's 18 files (`check72Files`, `test/fixtures/check72/`: one misplaced child each, per rule of docx4j CR-064's five sets, for
+Word's repairs), and what this package does with each today (loads clean, the readers see two, a save writes fifteen back; CR-016 section 7), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
+`integer-attributes.test.mjs` CR-017's and CR-002 section 65.3's: docx4j CR-065's and CR-066's probes and Word 365's saves (`test/integer-attributes/`, copied
+unedited from the share with a SHA-1 manifest, outside `fixtures/`): rounds 5 and 6's 660 integer cases, a `value.out_of_range` warning on load and on
+`pkg.lastSave` exactly where Word's save changed the value, its rule or its attribute (432, the objects package's own count), `wordReads` what Word wrote,
+every value written as held, Word's saves reporting nothing; round 2's 64 decimals and odd forms read as Word's saves have them (the six known
+differences stated, strict both ways; the refused forms dropped and reported); `keptRange` held to the objects package's `wordIntegerReading` at every
+boundary of its 51 entries; `WORD_STORAGE`'s rows the objects table's, narrowed only where a row says why; a value set by code reported on save with its
+path; no fixture holding one,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

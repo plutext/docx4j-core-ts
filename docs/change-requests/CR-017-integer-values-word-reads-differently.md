@@ -3,7 +3,8 @@
 **Status:** Proposed 2026-10-26, at Jason's request ("open the read-side CR"): the read side of Word's integer ranges,
 whose write side is CR-002 section 65. Objects 0.6.0, which brings its CR-015 and CR-016, was released 2026-10-26 and is the
 floor since `b19d935` (2026-10-27), which did P1: `ValueKeptWarning`'s two new kinds, a decimal loading as Word reads it.
-P2 and P3, and section 65.3's table move, not started. E1 to E5 open (section 5).
+**P2 and P3 implemented 2026-10-27** (Jason: "start CR-002 section 65.3 then CR-017 P2 and P3"), with section 65.3's table
+move, E1 to E5 taken as recommended (section 7); unreleased.
 
 ## 1. Why
 
@@ -80,5 +81,82 @@ kind. And it can then tell a caller, on the part and on the save, what Word woul
 | Phase | Work | Status |
 |---|---|---|
 | 0 | This CR | done 2026-10-26 |
-| 1 | At the objects range raise: P1, the decimals probes (round 2) loading, each truncated or refused value reported; `WORD_STORAGE` onto objects' table (CR-002 section 65.3) | P1 done at the raise, `b19d935` (2026-10-27; objects 0.6.0 released 2026-10-26); the table move not started |
-| 2 | P2 and P3: the out-of-range warnings on load and the save's report; rounds 5 and 6's probes held to Word's saves | with phase 1, in the same release |
+| 1 | At the objects range raise: P1, the decimals probes (round 2) loading, each truncated or refused value reported; `WORD_STORAGE` onto objects' table (CR-002 section 65.3) | P1 done at the raise, `b19d935` (2026-10-27; objects 0.6.0 released 2026-10-26); the table move done 2026-10-27 (section 7, CR-002 section 65.7); round 2's probes held to Word's saves (section 7) |
+| 2 | P2 and P3: the out-of-range warnings on load and the save's report; rounds 5 and 6's probes held to Word's saves | done 2026-10-27 (section 7) |
+
+## 7. Implemented (2026-10-27)
+
+Jason: "start CR-002 section 65.3 then CR-017 P2 and P3". E1 to E5 were open; the instruction was taken as going with the
+recommendations, and each is implemented as recommended: E1 (a) the shared code and fields, E2 (a) the readers on the value
+held, E3 (a) `pkg.lastSave.outOfRange`, E4 (a) one warning per value, E5 (a) the probes and Word's saves as the tests.
+
+**P2, on load.** `XmlPart.unmarshal` passes `onOutOfRange` beside `onWordReading`, and each report becomes a
+`ValueOutOfRangeWarning` on the part's `warnings` (so on `OpcPackage.warnings`): `code` `'value.out_of_range'`, `partName`,
+`line` and `column` where the DOM has them, `element` and `attribute` as the part writes them (`w:ind`, `w:left`), `value`
+as held, `wordReads` (null for an unmeasured attribute, and for a column width Word computes), `readAs` where the shared
+field's sign moved the value to the other attribute (`w:hanging` for a `w:firstLine` of 32768), `rule` where a line's or a
+height's sign carries one, `storage` (the objects package's wording) and `range`, the `[min, max]` Word keeps as written,
+in the attribute's unit. The message: `/word/document.xml: w:ind/@w:left=7205001 (line 3, column 1245) is past what Word
+365 stores there (int16, -32768 to 32767); Word reads it as -3959`; for the shared field `Word reads it as 32768 in
+w:hanging`; for a rule `Word reads it as atLeast 1`; for an unmeasured attribute `is outside -32768 to 65535, where Word
+365 changes every measured value of its kind (w:gridCol/@w:w is unmeasured); what Word reads is not known`.
+
+**P3, on save.** `PartBytesOptions` gains `onOutOfRange`; `XmlPart.marshalToNode` passes it to the marshal, and `Save`'s
+`Saver` collects each report as the same warning, with `path` from the part's root in place of the line, onto
+`pkg.lastSave.outOfRange` beside `normalised`. Nothing is refused or rewritten, under `normaliseOnSave` or not. One thing
+the facade's contract made necessary: the marshal reports a value as its attribute is written, before the element's other
+attributes are, and the warning's range depends on the `lineRule` or `hRule` beside a line or a height; so `marshalToNode`
+holds the reports until the element is whole, then builds the warnings.
+
+**The range (E1's `range`, and section 65.3's bounds), one source.** `src/model/wordIntegers.mts`: `keptRange(typeName,
+property, rule?)` derives from the objects table's entry (`bits`, `signed`, `pair`, `signRule`, `heightFlag`, `min`, `max`,
+`negative`) the range Word keeps as written: a signed field `-2^(bits-1)` to `2^(bits-1) - 1`, unsigned `0` to `2^bits - 1`;
+`firstLine` `0` to `32767` and `hanging` `0` to `32768`; a line or a row height under `exact` `1` to `32768`, under `atLeast`
+`0` to `32767`, a line under `auto` the plain signed field, a row height under `hRule="auto"` null (ignored); a frame's height
+`0` to `32767`; then the clamps, and a column's width or space `0` and up (Word replaces a negative). 65535 where Word writes
+it back as -1 is in the range; -1 there, and a column space's -1, Word keeps too, its own spellings, and the objects
+package's `kept` says so; the test states both. `WORD_STORAGE`'s ten rows are now `row(attribute, unit, typeName,
+property, policy)`: `keptRange`'s bounds, narrowed only where the policy says why (`spacingBefore` and `spacingAfter` stop
+at 65534, "Word's save writes 65535 back as -1"; a width's `min` 0), and `reads` is `wordIntegerReading`'s answer in the
+setters' words (`a hanging indent of 32768`, `atLeast 1`). A row whose entry the table lacks fails at load, so a table change
+announces itself. `measurements.test.mjs`'s pins hold, one message changed (`spaceBefore` 3276.75 now says why).
+
+**The report names no entry.** The facade's `OutOfRange` carries the element, the attribute and the reading, not the
+table's `TYPE_NAME` and property, and an element's class is not recoverable from its name (`CTBorder` is `w:top`, `w:bdr`,
+...; `TblWidth` is `w:tblW`, `w:tcW`, ...). So `rangeOfReading` finds the range back from the reading's `storage` string,
+with the attribute's local name for the shared field and the rule written beside a line or a height, from a map of every
+string the table gives (21 keys, each one range; a key two ranges shared would be dropped, none is). It holds because the
+strings are the table's own, generated from the same fields; `integer-attributes.test.mjs` asserts the lookup agrees with
+`keptRange` for every entry and rule. An entry reference on the report would make the lookup unnecessary: asked of the
+objects package as a small addition to its CR-016, not blocking.
+
+**Tests** (`test/integer-attributes.test.mjs`, 9 tests; 1,626 pass): the corpus `test/integer-attributes/` (114 files,
+1.9 MB: CR-065's round 2 to 4 files whole, CR-066's round 5 groups, round 6 groups and the settings singles, with Word's
+saves; the family and single files Word was never given left on the share), its SHA-1 manifest; `keptRange` against
+`wordIntegerReading` at every boundary and 40 samples for each of the table's 51 entries under every rule, and
+`rangeOfReading` agreeing; `WORD_STORAGE`'s rows within Word's range and narrowed only with a reason; rounds 5 and 6 as the
+objects package's `word365-ranges.mjs` holds them, through this package's loads and saves: 660 integer cases, 614 compared
+to Word's save, 16 left out by Word as a 0, 30 stated (`w:gridCol` recomputed, `w:wBefore` and `w:wAfter` dropped), a
+warning on load and on save for exactly the 432 cases Word's save changed (the objects package's own count), with
+`wordReads`, `readAs` and `rule` what Word wrote, every value written as held, and Word's own saves reporting nothing; group
+E's no-digit forms; the message and fields of each kind; a value set by code reported on save with its path, under the
+normaliser or not, a clean package and an untouched one reporting `[]`; round 2's 64 cases read as Word's saves have them,
+50 equal, the six known differences stated strict both ways (a value truncated to the default Word leaves out; the grid
+Word recomputes), the eight refused forms dropped and reported, the all-cases file loading every part (55 truncated, 5 read
+as 0, 8 refused), and Word's saves needing no reading of Word's; and every fixture's main part holding nothing out of range
+(E4). `test/nodenext/consumer.mts` uses `ValueOutOfRangeWarning` and `keptRange` by the package's name.
+
+**Not done.** P4 is nothing to do (E2). Check 71b (CR-002 section 65.5 D2) is still Jason's. The editor and docx4j-python are to
+be told the field names as implemented (`readAs` and `rule` are this package's additions beside the agreed six).
+
+**docx4j's side (hand-off from docx4j-12, 2026-10-27).** docx4j CR-066 D6 is built in its inspector (docx4j `338beec18`, CR-066
+section 10): a `value.out_of_range` finding per attribute occurrence, over every WordprocessingML part, unselected `mc` branches and
+an embedded docx one level deep, with `attribute`, `type`, `value`, `storage`, `range` and `word_reads`. Its widths are one resource,
+`docx4j-core/src/main/resources/org/docx4j/model/text/word-integer-storage.tsv` (101 rows, CR-066 sections 3.1 and 3.4 row for row,
+with a context column: `type=auto|nil`, `lineRule=exact`, `hRule=exact`), which docx4j's inspector and docx4j-python's oracle read;
+the objects package's `WORD_INTEGER_STORAGE` is the third copy, and the one this package reads. Where the shapes differ: docx4j's
+`word_reads` is a string in the attribute's own terms (`hanging 3959`, `atLeast 1`, `dropped`, `computed`, `changed`), this package's
+`wordReads` a number with `readAs` and `rule` beside it (and `describeReading` gives the string for the message); docx4j does not check
+`w:fitText`, a row height under `auto`, a table width under `auto` or `nil`, or `w:legacy`, and merges a run property's finding into the
+adjacent run's as its other run findings merge. Nothing here changes for it: the code and the six fields agree. If this package ever
+reads a table rather than the objects package's, it is to be that TSV, row for row, not a fourth encoding of the sections.

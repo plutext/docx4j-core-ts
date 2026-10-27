@@ -1,0 +1,14 @@
+{
+ "check": "71b",
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-27; Developer > Design Mode off)",
+ "source": "test/fixtures/check71b/build.mjs (71b-setter-limits.docx, 51 cases; the snippet check 71's, test/fixtures/check71b/check71b-script-lab.js)",
+ "saves": {
+  "71b-run-word365.docx": "71b-setter-limits.docx opened with no problem, saved as 71b-run-word365.docx, then the Script Lab snippet's Report only (the JSON: test/fixtures/check71b/71b-setter-limits-word365-report.json) and Run the check (test/fixtures/check71b/71b-setter-limits-word365-run.json), saved with File > Save"
+ },
+ "files": [
+  {
+   "name": "71b-run-word365.docx",
+   "sha1": "1b0546f0c5cbcb7a14b586a6acc01d142510629a"
+  }
+ ]
+}

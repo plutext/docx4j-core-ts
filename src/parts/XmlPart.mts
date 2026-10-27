@@ -1,10 +1,11 @@
-import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading } from '@docx4j/generated-objects-ts';
+import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading, type OutOfRange } from '@docx4j/generated-objects-ts';
 import { Part, type PartBytesOptions } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
-import type { PartWarning, ValueKeptWarning } from '../opc/mce/preprocessor.mjs';
+import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning } from '../opc/mce/preprocessor.mjs';
+import { rangeOfReading, describeReading, isUnmeasured, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
 /**
  * The element or attribute a located runtime error names, out of its message: jsonix writes
@@ -41,6 +42,40 @@ function valueKept(reading: WordReading, partName: string): ValueKeptWarning {
     ...(typeof node.columnNumber === 'number' ? { column: node.columnNumber } : {}),
     element: node.nodeName, attribute, text: reading.text, value,
     message: `${partName}: ${node.nodeName}/@${attribute}=${JSON.stringify(reading.text)}${positionOf(node.lineNumber, node.columnNumber)} is not a value its type allows; ${outcome}`,
+  };
+}
+
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+/**
+ * An integer attribute value Word 365 reads differently, as the objects facade reports it on read or on save, as a
+ * warning (CR-017 P2 and P3). The value stays as written; the message says what Word would read, the storage and the
+ * range Word keeps as written, found back from the reading (`rangeOfReading`).
+ */
+export function valueOutOfRange(report: OutOfRange, partName: string | undefined): ValueOutOfRangeWarning {
+  const node = report.element as Element & { lineNumber?: number; columnNumber?: number };
+  const name = report.attribute;
+  const attribute = node.getAttributeNodeNS?.(name.namespaceURI || null, name.localPart)?.name ?? `w:${name.localPart}`;
+  const reading = report.wordReads;
+  // the rule written beside a line or a height decides what Word keeps there
+  const written = node.getAttributeNS?.(W_NS, 'lineRule') || node.getAttributeNS?.(W_NS, 'hRule') || undefined;
+  const unmeasured = isUnmeasured(reading);
+  const range = unmeasured ? UNMEASURED_RANGE : rangeOfReading(reading, name.localPart, written) ?? null;
+  const at = report.path !== undefined ? `${report.path}=${report.value}` : `${node.nodeName}/@${attribute}=${report.value}${positionOf(node.lineNumber, node.columnNumber)}`;
+  const where = unmeasured
+    ? `is outside ${UNMEASURED_RANGE[0]} to ${UNMEASURED_RANGE[1]}, where Word 365 changes every measured value of its kind (${node.nodeName}/@${attribute} is unmeasured); what Word reads is not known`
+    : `is past what Word 365 stores there (${reading.storage}${range ? `, ${range[0]} to ${range[1]}` : ''}); Word reads it as ${describeReading(reading, name.localPart)}`;
+  const prefix = partName === undefined ? '' : `${partName}: `;
+  return {
+    code: 'value.out_of_range', partName,
+    ...(report.path === undefined && typeof node.lineNumber === 'number' ? { line: node.lineNumber } : {}),
+    ...(report.path === undefined && typeof node.columnNumber === 'number' ? { column: node.columnNumber } : {}),
+    ...(report.path !== undefined ? { path: report.path } : {}),
+    element: node.nodeName, attribute, value: report.value, wordReads: reading.value,
+    ...(reading.attribute !== undefined && reading.attribute !== name.localPart ? { readAs: `w:${reading.attribute}` } : {}),
+    ...(reading.rule !== undefined ? { rule: reading.rule } : {}),
+    storage: reading.storage, range,
+    message: `${prefix}${at} ${where}`,
   };
 }
 
@@ -114,9 +149,11 @@ export class XmlPart<T = unknown> extends Part {
 
   /**
    * What the last parse of this part reported: an mc:AlternateContent whose branches' text differs
-   * (`mce.branches_differ`, CR-010 phase 1), and each attribute value its type refuses that was read as
-   * Word 365 reads it (`value.kept.exact`, `value.kept.invalid`: CR-015 D8). Empty until the part is
-   * parsed, by `getContents()` or a private read, and again once its contents are set.
+   * (`mce.branches_differ`, CR-010 phase 1), each attribute value its type refuses that was read as
+   * Word 365 reads it (`value.kept.exact`, `value.kept.invalid`, `value.truncated`, `value.refused`: CR-015 D8,
+   * CR-017 P1), and each integer attribute value past what Word stores, kept as written (`value.out_of_range`,
+   * CR-017 P2). Empty until the part is parsed, by `getContents()` or a private read, and again once its contents
+   * are set.
    */
   get warnings(): readonly PartWarning[] {
     return this.parseWarnings;
@@ -243,7 +280,13 @@ export class XmlPart<T = unknown> extends Part {
     const normalise = this.package?.normaliseOnSave;
     if (normalise !== undefined) marshal.normaliseOnSave = normalise;
     if (options?.onNormalised !== undefined) marshal.onNormalised = options.onNormalised;
-    return marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
+    // the facade reports a value as its attribute is written, before the element's other attributes are (the lineRule
+    // beside a line, which the warning's range depends on): so the reports wait for the element to be whole
+    const outOfRange: OutOfRange[] = [];
+    if (options?.onOutOfRange !== undefined) marshal.onOutOfRange = (report) => outOfRange.push(report);
+    const node = await marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
+    for (const report of outOfRange) options?.onOutOfRange?.(report);
+    return node;
   }
 
   /**
@@ -275,10 +318,11 @@ export class XmlPart<T = unknown> extends Part {
    * locator).
    */
   private async unmarshal(doc: Document): Promise<Jsonix.TypedNamedValue<T>> {
-    const kept: ValueKeptWarning[] = [];
+    const kept: PartWarning[] = [];
     try {
       const element = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {
         onWordReading: (reading) => kept.push(valueKept(reading, this.partName.name)),
+        onOutOfRange: (report) => kept.push(valueOutOfRange(report, this.partName.name)),
       });
       if (kept.length > 0) this.parseWarnings = [...this.parseWarnings, ...kept];
       return element;

@@ -189,6 +189,19 @@ round tests. Each probe paragraph after the first is `label: MARKER (end)`, and 
 tested. `manifest.json` gives each file's SHA-1, which `runprops-word365.test.mjs` checks. Kept outside `fixtures/` so that no
 fixture-wide test or harness counts the probes; check 60's file (`fixtures/check60/build.mjs`) is built from 25 of them.
 
+## The integer attribute probes (`integer-attributes/`, CR-017)
+
+docx4j CR-065's and CR-066's Word probes for integer attributes, copied unedited from the share (`Office 2016/__tmp/cr065/` and
+`__tmp/cr066/`), built by docx4j-25 and opened and saved in Word 365 by Jason Harrop on 26 October 2026; docx4j records the
+results in those CRs' sections 3 (at `109a8d47b`, `VERSION_17_3_5`). `cr065/` is round 2 to 4, decimals and odd forms: the
+all-cases probe Word refused, the structure control, and `families/` with each family split as Word's refusals needed and Word's
+save of each one it opened (`<name>-word365.docx`). `cr066/groups/` is round 5, integers at and beyond each attribute's storage
+width, six group files and Word's saves; `cr066/round6/groups/` and `singles/` round 6, the attributes round 5 left unmeasured,
+seven groups and the twenty settings singles. `cases.txt` lists each round's cases; the family and single files Word was never
+given stay on the share. `manifest.json` gives each file's SHA-1, which `integer-attributes.test.mjs` checks. Kept outside
+`fixtures/` so that no fixture-wide test or harness counts the probes; the same files are the objects package's
+`test/fixtures/cr065-probe/` and `cr066-probe/`, as extracted parts.
+
 ## Check 52's Word saves (`check52/`, CR-014 phase 0)
 
 Word 365's two saves of check 52's file after its Script Lab run (2026-10-22): `52-ranges-word365.docx` as the run left
@@ -5455,3 +5468,82 @@ async function check() {
 
      Where this package differs: it refuses the 27 values Word's indent and width setters wrap (D1), and writes the 20
      Word's spacing, line, list and font setters refuse below storage (D2, pending a check 71b of Word's limits).
+   - **D1 and D2 decided 2026-10-27 as recommended** (Jason): the 27 refusals stay; the 20 move to Word's own limits once
+     check 71b has them.
+
+71b. Where exactly Word 365's own spacing, line, list and font setters refuse, below what Word stores (CR-002 section
+   65.8, 2026-10-27; Jason: "CR-002 section 65.5 D1 and D2 as recommended").
+   - **Why:** check 71 showed those setters refusing with `InvalidArgument` at Word's own limits, between its values:
+     `spaceBefore`, `spaceAfter` and `lineSpacing` refused 1638 pt and up and -1, `setLevelIndents` refused a text indent of
+     1638 and -1638.4 but took -1, and `font.size` took 1638 and refused 1638.5 and 0. D2 has this package refuse where Word
+     does, so the exact boundaries are needed: Word's dialogs stop at 22 inches (1584 pt) for spacing and indents, at 1 to
+     1638 pt for a font, and at 0.7 pt for an exact line.
+   - **The file** is `__tmp/71b/71b-setter-limits.docx` on the share, as `fixtures/check71b/build.mjs` writes it (git
+     ignores the `.docx`). The snippet beside it, `check71b-script-lab.html` and `check71b-script-lab.js`, is check 71's
+     script unchanged (a copy, held equal by `measurements.test.mjs`): only the file differs.
+     - **Each case is a region,** as check 71's: `BEGIN<n> <setter> <value>`, the target paragraph `TARGET<n>`, `END<n>`.
+     - **The cases,** 51: `spaceBefore` and `spaceAfter` at 0, 0.05, 1583.95, 1584, 1584.05, 1584.1, 1585, 1600, 1637.95
+       and -0.05 pt (1 to 20); `lineSpacing` at 0, 0.05, 0.5, 0.65, 0.7, 0.75, 1, 1583.95, 1584, 1584.05, 1585 and
+       1637.95 (21 to 32); `startNewList()` then `setLevelIndents(0, value, 0)` at 1583.95, 1584, 1584.05, 1585, 1637.95,
+       -1583.95, -1584, -1584.05, -1585 and -1638.35 (33 to 42); `font.size` at 0.5, 0.9, 1, 1.5, 1637.5, 1638, 1638.05,
+       1638.4 and 1638.45 (43 to 51).
+   - **Steps, in Word 365 only** (check 71's, on the new file):
+     1. On the **Developer** tab, make sure **Design Mode** is off: its button isn't highlighted.
+     2. Open `__tmp/71b/71b-setter-limits.docx`. Say whether Word reports a problem or offers a repair.
+     3. File > Save As `71b-run-word365.docx`, in the same folder `__tmp/71b`. This is the copy the run changes.
+     4. In Script Lab, start a new snippet: paste `__tmp/71b/check71b-script-lab.html` over the HTML tab and
+        `__tmp/71b/check71b-script-lab.js` over the Script tab.
+     5. Click **Report only**. When it says Done, copy the box into a new file `__tmp/71b/result-report.txt`.
+     6. Click **Run the check**, once. When it says Done, copy the box into a new file `__tmp/71b/result-run.txt`.
+     7. Click into the document's text, then File > Save. (Ctrl+S right after the run goes to Script Lab's pane.) Then
+        File > Close.
+   - **Result** (Jason, 2026-10-27; CR-002 section 65.9): opened with no problem; Word refused 25 of the 51 with `InvalidArgument` and
+     wrote 26. `spaceBefore` and `spaceAfter` take 0 to 1584 pt (31680 twips; 1584.05 and -0.05 refused); `lineSpacing` 0.75 to 1584 pt,
+     written as `w:line` 20 × the points under `w:lineRule="auto"` (0.7 and 1584.05 refused); `setLevelIndents` a text indent short of
+     1584 pt either way (1583.95 and -1583.95 written, 1584 and -1584 refused, the list left started with Word's default level);
+     `font.size` 1 to 1638 pt after rounding to a half-point (0.9 written as `w:sz w:val="2"`, 1638.05 as 3276; 0.5 and 1638.4
+     refused). The JSONs are beside the build (`71b-setter-limits-word365-report.json`, `-run.json`), Word's save in `test/check71b/`
+     with a SHA-1 manifest.
+   - **What this package gives** (`measurements.test.mjs`): the five setters take Word's limits as their policy, and `lineSpacing` writes
+     Word's auto rule (it had written exact). The snippet through the Word shim is held to Word's run case for case: the same 25
+     refused, the same values read back, the same elements written, but `spaceBefore` 0, which Word writes as nothing where the
+     style already gives 0.
+
+72. What Word 365 does with a misplaced child, one form per file (CR-016 D5, 2026-10-27; Jason: "CR-016 D1 to D6 as
+   recommended, but D5 do check 72").
+   - **Why:** docx4j CR-064 refuses, as it is added, a child the schema never allows under its parent (a run in the body, a
+     table in a paragraph, a cell straight in a table); CR-016 is to refuse the same at save here. What Word does with such
+     a file is known from forum threads only ("unreadable content", then a repair that drops content). This check measures
+     it, form by form, and settles D2's premise that the repair loses content.
+   - **The files** are on the share in `__tmp/72/`, 18 of them, as `fixtures/check72/build.mjs` writes them (git ignores
+     the `.docx`; `check72Files` gives a test the same parts). Each holds a title paragraph naming its form, a paragraph
+     `BEFORE`, the misplaced child, and a paragraph `AFTER`, so what Word drops or keeps shows against them. The child's text
+     says `MISPLACED` where it has text. One form per file, since Word refuses a whole document for some faults, and a
+     refusal of a file holding several would say nothing about each:
+     - in the body: `72a-run-in-body` (a `w:r`), `72b-text-in-body` (a `w:t`), `72c-cell-in-body` (a `w:tc`),
+       `72d-row-in-body` (a `w:tr`), `72e-break-in-body` (a `w:br`);
+     - in a cell, beside its paragraph: `72f-run-in-cell`;
+     - in a paragraph: `72g-table-in-paragraph` (a two-cell table between two runs), `72h-paragraph-in-paragraph`,
+       `72i-text-in-paragraph` (a `w:t` outside any run), `72j-break-in-paragraph` (a `w:br` outside any run);
+     - in a run: `72k-run-in-run`, `72l-paragraph-in-run`, `72m-string-in-run` (character data directly in the `w:r`);
+     - in a table, beside its row: `72n-cell-in-table`, `72o-paragraph-in-table`, `72p-table-in-table`;
+     - in a row, beside its cells: `72q-paragraph-in-row`, `72r-run-in-row`.
+   - **Steps, in Word 365 only.** No Script Lab; each file is only opened and, if it opens, saved. Close Word first so
+     that each file opens in a fresh session.
+     1. Open `__tmp/72/72a-run-in-body.docx`. Say which of these happens: it opens with no message; Word says it found
+        unreadable content and offers to recover it (click Yes, and say what it then says); or Word says it can't open the
+        file (say the message's words). If it opens, say in a line what you see between BEFORE and AFTER: the misplaced text
+        (`MISPLACED ...`), a table, an empty paragraph, or nothing.
+     2. If it opened (repaired or not), File > Save As `72a-run-in-body-word365.docx` in `__tmp/72`. Then File > Close.
+     3. The same for each of the other 17 files, `72b` to `72r`, each saved as its name with `-word365` before `.docx`.
+   - **Result** (Jason, 2026-10-27; CR-016 section 7.1): 11 of the 18 don't open (`72a` to `72d`, `72f` to `72i`, `72k`, `72n`,
+     `72r`: "Word experienced an error trying to open the file", no repair offered). The other 7 opened with no message, repaired
+     silently; their saves and screenshots are in `test/check72/` with a SHA-1 manifest: `72e` and `72j` move the break into the next
+     run; `72l` joins the inner paragraph's run to the outer paragraph and leaves an empty paragraph after; `72m` drops the string, the
+     paragraph left empty; `72o` puts the paragraph before the table; `72p` makes the nested table the outer table's first row; `72q`
+     puts the paragraph into the row's first cell.
+   - **What this package gives** (`check72.test.mjs`, measured 2026-10-27): every file loads here with no warning; the
+     readers see the misplaced content only in `72c` and `72d` (a cell's or a row's paragraphs); a save writes the child back
+     as it was in every file but `72e`, `72j` (a bare break) and `72m` (a string in a run). CR-016 section 7 has it. Word's
+     saves read back here as any file, the moved text where Word put it.
+

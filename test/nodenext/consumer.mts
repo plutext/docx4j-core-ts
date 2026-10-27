@@ -7,7 +7,7 @@ import {
   Part, unwrap, wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
   DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
 } from '@docx4j/core-ts';
-import { PartName } from '@docx4j/core-ts/opc';
+import { PartName, type ValueOutOfRangeWarning } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
 import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
@@ -20,6 +20,10 @@ export async function consume(): Promise<string> {
   const pkg: WordprocessingMLPackage = await WordprocessingMLPackage.createPackage();
   const name: PartName = PartName.of('/word/document.xml');
   void [Part, unwrap, defaultPartRegistry, model, pkg, DirectoryPartSink, convertHtml, blocksToXml, needsOf, styleLookupOf];
+  // CR-017: the out-of-range warning's shape and the range it was held to, by the package's name
+  const outOfRange: ValueOutOfRangeWarning['code'] = 'value.out_of_range';
+  const range: model.KeptRange | null | undefined = model.keptRange('org_docx4j_wml.PPrBase.Ind', 'left');
+  void [outOfRange, range];
   pkg.xpathEngine = new FontoXPathEngine();
   // the browser form: the application imports fontoxpath itself and hands it over
   pkg.xpathEngine = new FontoXPathEngine(await import('fontoxpath'));

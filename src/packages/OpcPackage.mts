@@ -49,7 +49,7 @@ export class OpcPackage implements RelationshipSource {
    * On/off values and `w:u`'s are settled when the part is read, so they are written the same either way.
    */
   normaliseOnSave: boolean | undefined;
-  /** What the last save did beyond writing the package: each value it normalised (CR-015 D8). Undefined until one. */
+  /** What the last save did beyond writing the package: each value it normalised (CR-015 D8), each it wrote past what Word stores (CR-017 P3). Undefined until one. */
   lastSave: SaveReport | undefined;
 
   constructor() {

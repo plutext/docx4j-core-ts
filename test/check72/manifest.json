@@ -1,0 +1,22 @@
+{
+ "check": 72,
+ "word": "Word 365, 16.0.20326.20232, PC (Jason, 2026-10-27; each file opened in its own session, no Script Lab)",
+ "source": "test/fixtures/check72/build.mjs (18 files, one misplaced child each; copied to the share's __tmp/72/)",
+ "opened": "7 of the 18 opened with no error, each saved with File > Save As <name>-word365.docx and its page captured as <letter>-word365.png: 72e, 72j, 72l, 72m, 72o, 72p, 72q. The other 11 (72a, 72b, 72c, 72d, 72f, 72g, 72h, 72i, 72k, 72n, 72r) don't open: 'Word experienced an error trying to open the file', no repair offered, so no save (Jason: 'for the cases which did not give an error on opening, i have saved a screenshot and -word365.docx'; 'no offer to repair').",
+ "files": [
+  { "name": "72e-break-in-body-word365.docx", "sha1": "01bb02db17ed942775165b3f4ce81aaa13953dfb" },
+  { "name": "72e-word365.png", "sha1": "5d6fbfdb34314c90a644203e0c726df8100f7a87" },
+  { "name": "72j-break-in-paragraph-word365.docx", "sha1": "8f4412f2b47489caea5b06410a3ab61584167988" },
+  { "name": "72j-word365.png", "sha1": "a71e5a5cca951a9c4716254882ca617c0a0a0acc" },
+  { "name": "72l-paragraph-in-run-word365.docx", "sha1": "d8edce6d6a382914ea3926374f89db0ef988c29b" },
+  { "name": "72l-word365.png", "sha1": "3411e2697bf218b40e677df0e48c2ba5802ba5f1" },
+  { "name": "72m-string-in-run-word365.docx", "sha1": "9b4be712b5e9df48658a13b3e5ac7c8f70573305" },
+  { "name": "72m-word365.png", "sha1": "1828a03b5005f9ec82fde4633a21500d7c82678d" },
+  { "name": "72o-paragraph-in-table-word365.docx", "sha1": "cc4ca65e936f002d48ee54e48bc4c630b2e602ab" },
+  { "name": "72o-word365.png", "sha1": "379b96d217032216374112be1c416365e77b6eda" },
+  { "name": "72p-table-in-table-word365.docx", "sha1": "038afb2ca98b174da5ebd4bb8e16670dd47f077f" },
+  { "name": "72p-word365.png", "sha1": "5eae4a098bf781209887fd632676cf75d58d0414" },
+  { "name": "72q-paragraph-in-row-word365.docx", "sha1": "066706f9a38a205e296269b7927d7811cf02970d" },
+  { "name": "72q-word365.png", "sha1": "0245e064ea9b11a93bae3ac8f253b5bab654a011" }
+ ]
+}

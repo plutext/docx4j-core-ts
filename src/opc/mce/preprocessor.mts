@@ -94,8 +94,43 @@ export interface ValueKeptWarning {
   message: string;
 }
 
+/**
+ * An integer attribute value Word 365 reads differently from the tree (CR-017 P2 and P3; the objects facade's
+ * `onOutOfRange`, its CR-016, docx4j CR-066's rounds 5 and 6): outside the width Word stores the attribute in, 16 bits
+ * for most, where Word reads it wrapped, sometimes then clamped, with no error or repair. The tree keeps the value as
+ * written, and a save writes it as held: the warning says what Word would show. The code and the fields are shared
+ * with docx4j-python (its CR-020 section 4.7, `word_reads` there), one name across the ports for the one condition
+ * (CR-017 E1). On load the warning is on the part, with the line and column where the DOM records them; on save it is
+ * on `pkg.lastSave.outOfRange`, with the `path` from the part's root.
+ */
+export interface ValueOutOfRangeWarning {
+  code: 'value.out_of_range';
+  partName: string | undefined;
+  /** Where the element starts in the part, where the DOM records it (xmldom does; a browser's DOMParser does not). */
+  line?: number;
+  column?: number;
+  /** On save, the attribute's path from the part's root: `/w:document/w:body[1]/w:p[3]/w:pPr[1]/w:ind[1]/@w:left`. */
+  path?: string;
+  /** The element and the attribute as the part writes them (`w:ind`, `w:left`). */
+  element: string;
+  attribute: string;
+  /** The value the tree holds, and a save writes. */
+  value: number;
+  /** What Word reads for it, after the wrap and any clamp; null for an attribute no round measured. */
+  wordReads: number | null;
+  /** The attribute Word reads the value in, where the shared field's sign moved it: `w:hanging` for a `w:firstLine` of 32768. */
+  readAs?: string;
+  /** For a line, a row height or a frame's height, the rule Word reads with the value (`exact`, `atLeast`, `auto`). */
+  rule?: 'auto' | 'exact' | 'atLeast';
+  /** How Word stores the attribute, the objects package's wording: `int16`, `uint16, then 144..31681`, `int16, the sign the rule`, ... */
+  storage: string;
+  /** The values Word keeps as written there, `[min, max]` in the attribute's own unit (`keptRange`); null where none is known. */
+  range: readonly [number, number] | null;
+  message: string;
+}
+
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | ValueKeptWarning;
+export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a
