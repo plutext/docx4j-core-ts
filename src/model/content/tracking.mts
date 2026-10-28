@@ -17,6 +17,8 @@ import { type Element, type RevisionHolder, W_NS, linkParents, walk, typeNameOf,
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Author } from './comments.mjs';
 
+import { wallClockIn, instantOf } from '../dateZone.mjs';
+
 /** Office JS `Word.ChangeTrackingMode`. */
 export type ChangeTrackingMode = 'Off' | 'TrackAll' | 'TrackMineOnly';
 
@@ -62,6 +64,11 @@ export interface TrackingHost {
   readonly author: Author;
   /** A fixed date for new revisions; `undefined` means now, read once per revision. */
   readonly trackedChangeDate?: Date | undefined;
+  /**
+   * The zone a stamp's `w:date` wall-clock fields are written in, and a `w:date` without `dateUtc` read in: the
+   * package's `dateTimeZone`, an IANA id; undefined is the runtime's zone (CR-018, the portfolio's date rule).
+   */
+  readonly dateTimeZone?: string | undefined;
   /** The trees to scan for the highest annotation id in use: the parts already unmarshalled. */
   markupRoots(): object[];
   /**
@@ -130,27 +137,26 @@ export function dateOf(cal: wml.XmlCalendar | undefined): Date | undefined {
 /**
  * A revision's `w:date` as Word writes it: the local wall-clock time, with a `Z` that does not mean
  * UTC (CR-002 section 29, check 23: Office JS read `01:00:00Z` as 15:00 UTC the day before, at
- * UTC+10; Word's own files carry the true UTC beside it in `w16du:dateUtc`). "Local" is this
- * process's time zone, as it is the add-in's for Office JS.
+ * UTC+10; Word's own files carry the true UTC beside it in `w16du:dateUtc`). "Local" is `zone`, the
+ * package's `dateTimeZone` (CR-018), else this process's time zone, which is the add-in's for Office JS.
  */
-export function wordCalendarOf(date: Date): wml.XmlCalendar {
-  return {
-    year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate(),
-    hour: date.getHours(), minute: date.getMinutes(), second: date.getSeconds(), timezone: 0,
-  };
+export function wordCalendarOf(date: Date, zone?: string): wml.XmlCalendar {
+  const clock = wallClockIn(date, zone);
+  return { year: clock.year, month: clock.month, day: clock.day, hour: clock.hour, minute: clock.minute, second: clock.second, timezone: 0 };
 }
 
 /**
  * A revision's date as Word means it: `w16du:dateUtc` when there is one, which is UTC; else
- * `w:date` read as local wall-clock time, its `Z` notwithstanding, as Office JS reads it (check 23).
+ * `w:date` read as local wall-clock time, its `Z` notwithstanding, as Office JS reads it (check 23),
+ * in `zone` (the package's `dateTimeZone`, CR-018), else the runtime's zone.
  * A `w:date` with a non-zero offset, which Word does not write, is read as it says.
  */
-export function revisionDateOf(value: { date?: wml.XmlCalendar; dateUtc?: wml.XmlCalendar }): Date | undefined {
+export function revisionDateOf(value: { date?: wml.XmlCalendar; dateUtc?: wml.XmlCalendar }, zone?: string): Date | undefined {
   if (value.dateUtc?.year !== undefined) return dateOf(value.dateUtc);
   const cal = value.date;
   if (!cal || cal.year === undefined) return undefined;
   if (cal.timezone !== undefined && cal.timezone !== 0) return dateOf(cal);
-  return new Date(cal.year, (cal.month ?? 1) - 1, cal.day ?? 1, cal.hour ?? 0, cal.minute ?? 0, cal.second ?? 0);
+  return instantOf({ year: cal.year, month: cal.month ?? 1, day: cal.day ?? 1, hour: cal.hour ?? 0, minute: cal.minute ?? 0, second: cal.second ?? 0 }, zone);
 }
 
 /** Properties compared as values: keys sorted, `PARENT`, `TYPE_NAME` and absent values left out. */
@@ -256,14 +262,14 @@ export class ChangeTracker {
 
   /**
    * The `w:id`, `w:author` and `w:date` a new revision carries, `w:date` in Word's local wall-clock
-   * convention (`wordCalendarOf`), and `w16du:dateUtc`, the true UTC, as Word writes them both. The
+   * convention (`wordCalendarOf`, in the host's `dateTimeZone`), and `w16du:dateUtc`, the true UTC, as Word writes them both. The
    * part's root is made to list `w16du` in `mc:Ignorable` first (`declareDateUtc`): a consumer that
    * does not know `w16du` must reject it unless it is declared ignorable. A tracker bound to no part -
    * the package's own - writes `w:date` alone (CR-002 section 29).
    */
   markup(): { id: number; author: string; date: wml.XmlCalendar; dateUtc?: wml.XmlCalendar } {
     const when = this.host.trackedChangeDate ?? nowToTheMinute();
-    const markup: { id: number; author: string; date: wml.XmlCalendar; dateUtc?: wml.XmlCalendar } = { id: this.nextId(), author: this.author, date: wordCalendarOf(when) };
+    const markup: { id: number; author: string; date: wml.XmlCalendar; dateUtc?: wml.XmlCalendar } = { id: this.nextId(), author: this.author, date: wordCalendarOf(when, this.host.dateTimeZone) };
     if (declareDateUtc(this.part)) markup.dateUtc = calendarOf(when);
     return markup;
   }

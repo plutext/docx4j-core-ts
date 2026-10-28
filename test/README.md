@@ -5544,6 +5544,7 @@ async function check() {
      puts the paragraph into the row's first cell.
    - **What this package gives** (`check72.test.mjs`, measured 2026-10-27): every file loads here with no warning; the
      readers see the misplaced content only in `72c` and `72d` (a cell's or a row's paragraphs); a save writes the child back
-     as it was in every file but `72e`, `72j` (a bare break) and `72m` (a string in a run). CR-016 section 7 has it. Word's
+     as it was in every file but `72m` (a string in a run); a bare break (`72e`, `72j`) is read typed and written back where it
+     was (counted as lost until 2026-10-28, when the objects session caught the test's check missing it). CR-016 section 7 has it. Word's
      saves read back here as any file, the moved text where Word put it.
 

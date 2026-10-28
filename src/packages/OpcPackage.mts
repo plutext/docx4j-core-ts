@@ -14,6 +14,7 @@ import { XmlPart } from '../parts/XmlPart.mjs';
 import { RelationshipsPart, type AddPartBehaviour } from '../parts/RelationshipsPart.mjs';
 import type { CustomXmlDataStoragePart } from '../parts/DefaultXmlPart.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart, DocPropsCustomPart } from '../parts/docProps/index.mjs';
+import { assertTimeZone, runtimeTimeZone } from '../model/dateZone.mjs';
 import { mceKeep, mcePreprocess, type PartWarning } from '../opc/mce/preprocessor.mjs';
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
@@ -51,6 +52,43 @@ export class OpcPackage implements RelationshipSource {
   normaliseOnSave: boolean | undefined;
   /** What the last save did beyond writing the package: each value it normalised (CR-015 D8), each it wrote past what Word stores (CR-017 P3). Undefined until one. */
   lastSave: SaveReport | undefined;
+  private dateTimeZone_: string | undefined;
+  /**
+   * The client's time zone for this package, an IANA id (`Australia/Sydney`), or undefined for the runtime's (CR-018; the
+   * portfolio's date rule of 2026-10-28, docx4j's `OpcPackage.setDateTimeZone`). Every instant the package holds is shown
+   * in it, and a `w:date` without `dateUtc` read in it: a new revision's or comment's stamp (Word's local wall-clock
+   * `w:date`), `TrackedChange.date` and `Comment.creationDate`, and date fields when they are evaluated (CR-012 phase 5).
+   * It is the client's for this package, not the document's, and reaches no saved file as such: a server reusing a
+   * loaded package sets it per request. Under Office JS the runtime's zone is already the client's. A bound date has no
+   * zone (CR-002 section 56) unless `boundDatesConvertedAsWord` asks for Word's conversion in this one. A zone the
+   * runtime does not know is refused with a `RangeError` at the set.
+   */
+  get dateTimeZone(): string | undefined {
+    return this.dateTimeZone_;
+  }
+  set dateTimeZone(id: string | undefined) {
+    this.dateTimeZone_ = id === undefined ? undefined : assertTimeZone(id);
+  }
+  /** The zone in force: `dateTimeZone`, else the runtime's. */
+  effectiveDateTimeZone(): string {
+    return this.dateTimeZone_ ?? runtimeTimeZone();
+  }
+  /**
+   * Show bound dates as Word displays them in the package's zone (CR-018, the date rule's point 3; docx4j's
+   * `setBoundDatesConvertedAsWord`): off by default, a bound date being the day its fields say wherever it is read
+   * (CR-002 section 56). On, a bound value carrying a `Z` or an offset is read as an instant and shown in
+   * `effectiveDateTimeZone()`, as Word reads the `Z` as UTC and shows the machine's local time (a day early west of
+   * UTC); a value with no marker, or a date alone, stays nominal. Setting `dateTimeZone` does not turn this on.
+   */
+  boundDatesConvertedAsWord = false;
+  /**
+   * Write the save's time into the core properties (CR-018, the date rule's point 6; docx4j's `docx4j.dcterms.write`):
+   * off by default, a save leaving `dcterms:created` and `dcterms:modified` as they are. On, each save sets
+   * `dcterms:modified` to now, UTC to the second (`2026-10-28T03:04:05Z`, the W3CDTF form Office writes), and
+   * `dcterms:created` too for a package created here that has none; a loaded package with no core properties part is
+   * left without one, as docx4j leaves it.
+   */
+  writeTimesOnSave = false;
 
   constructor() {
     this.relationshipsPart = RelationshipsPart.createPackageRels();
@@ -162,6 +200,9 @@ export class OpcPackage implements RelationshipSource {
       throw new Docx4JException(`Cloning ${this.constructor.name} produced ${copy.constructor.name}`);
     }
     copy.normaliseOnSave = this.normaliseOnSave;
+    copy.dateTimeZone = this.dateTimeZone;
+    copy.boundDatesConvertedAsWord = this.boundDatesConvertedAsWord;
+    copy.writeTimesOnSave = this.writeTimesOnSave;
     this.copyPackageSettingsTo(copy);
     return copy as this;
   }

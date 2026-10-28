@@ -15,7 +15,7 @@ import { Range } from './Range.mjs';
 import { runOf, paragraphOf, typeNameOf, selectedBranchOf, BRANCH_TYPES, type Element, type TextSegment } from './tree.mjs';
 import { storyLayout } from './story.mjs';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { revisionDateOf, wordCalendarOf, copyRPr } from './tracking.mjs';
+import { revisionDateOf, wordCalendarOf, nowToTheMinute, copyRPr } from './tracking.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import {
   COMMENT_REFERENCE_STYLE, COMMENT_TEXT_STYLE, type CommentContent, type CommentOptions, type CommentEntry,
@@ -69,8 +69,8 @@ export class Comment {
   /**
    * When the comment was made, as Word means it (CR-002 section 29, the revision dates' rule): its
    * `w16cex:dateUtc` when the document has one for it, which is UTC; else `w:date`, which Word writes
-   * on the author's local wall clock whatever its `Z` says, read as local time. Undefined when the
-   * comment carries neither.
+   * on the author's local wall clock whatever its `Z` says, read as local time in the package's
+   * `dateTimeZone` (CR-018), else the runtime's. Undefined when the comment carries neither.
    */
   get creationDate(): Date | undefined {
     for (const el of [...(this.element.content ?? [])].reverse()) {
@@ -78,7 +78,7 @@ export class Comment {
       const utc = paraId ? this.parts.datesUtc.get(paraId.toUpperCase()) : undefined;
       if (utc) return utc;
     }
-    return revisionDateOf({ date: this.element.date });
+    return revisionDateOf({ date: this.element.date }, zoneOf(this.body.package_));
   }
 
   /** The comment's paragraphs as a `Body` (extension: the same content API as the document's). */
@@ -528,13 +528,14 @@ function placeAfterIn(markers: CommentMarker[], id: number): void {
  */
 function addComment(parts: CommentParts, body: Body, id: number, paragraphs: Element<wml.P>[], parent: Comment | undefined, options?: CommentOptions): Comment {
   const author = options?.author ?? parts.author;
-  // one instant for w:date (the local wall clock, as Word writes it) and w16cex:dateUtc (UTC)
-  const made = options?.date ?? new Date();
+  // one instant for w:date (the local wall clock in the package's zone, as Word writes it) and w16cex:dateUtc (UTC);
+  // a new comment is stamped to the minute, as a revision is and as Word stamps (CR-018, the date rule's point 5)
+  const made = options?.date ?? nowToTheMinute();
   const paraId = randomHexId((candidate) => paraIdTaken(parts, body.container, candidate));
   paragraphs[0]!.value.paraId = paraId;
   const comment = wmlFactory.createCommentsComment({
     id, author: author.name, initials: options?.initials ?? initialsOf(author),
-    date: wordCalendarOf(made),
+    date: wordCalendarOf(made, zoneOf(body.package_)),
     content: paragraphs as wml.Comments.Comment['content'],
   });
   const comments = (parts.comments.comment ??= []);
@@ -753,3 +754,8 @@ function unique(ids: number[]): number[] {
 setCommentApi({ commentsOf, insertComment });
 
 export type { CommentParts, Author } from './comments.mjs';
+
+/** The package's `dateTimeZone` (CR-018), read duck-typed since the package module cannot be imported here. */
+function zoneOf(pkg: unknown): string | undefined {
+  return (pkg as { dateTimeZone?: string } | undefined)?.dateTimeZone;
+}

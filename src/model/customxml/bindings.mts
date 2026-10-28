@@ -9,6 +9,7 @@
 // value is trimmed, an empty value gives Word's placeholder run and w:showingPlcHdr, a multiline
 // text control turns newlines into w:br); the departures are recorded in CR-002 section 12.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
+import { wallClockIn } from '../dateZone.mjs';
 import { deepCopy } from '@docx4j/generated-objects-ts';
 import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { sdtProperty, textOf } from '@docx4j/generated-objects-ts/builders/wml';
@@ -163,14 +164,41 @@ function isoOf(date: Date): string {
  * rule, as Word shows them; CR-002 section 56). A date that doesn't exist (`2026-02-30`) is not one.
  */
 function dateOf(value: string): Date | undefined {
-  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(?:Z|[+-]\d{2}:?\d{2})?$/.exec(value);
+  return parsedDateOf(value)?.nominal;
+}
+
+const BOUND_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(Z|[+-]\d{2}:?\d{2})?$/;
+
+/** A bound value's date as its nominal fields (UTC fields of `nominal`), and its zone marker's offset in minutes, where it has one. */
+function parsedDateOf(value: string): { nominal: Date; offset: number | undefined } | undefined {
+  const m = BOUND_DATE.exec(value);
   if (!m) return undefined;
-  const [year, month, day, hour, minute, second] = m.slice(1).map((f) => Number(f ?? 0)) as [number, number, number, number, number, number];
+  const [year, month, day, hour, minute, second] = m.slice(1, 7).map((f) => Number(f ?? 0)) as [number, number, number, number, number, number];
   const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   // Date.UTC rolls an impossible field over (30 February is 2 March): such a value is not a date
   const exists = date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
     && date.getUTCHours() === hour && date.getUTCMinutes() === minute && date.getUTCSeconds() === second;
-  return exists ? date : undefined;
+  if (!exists) return undefined;
+  const marker = m[7];
+  const offset = marker === undefined ? undefined : marker === 'Z' ? 0
+    : (marker.startsWith('-') ? -1 : 1) * (Number(marker.slice(1, 3)) * 60 + Number(marker.slice(-2)));
+  return { nominal: date, offset };
+}
+
+/**
+ * A bound value's date as Word shows it to a reader in `zone` (`pkg.boundDatesConvertedAsWord`, CR-018): a value carrying
+ * a `Z` or an offset is the instant it names, shown on `zone`'s wall clock (Word reads the picker's `Z` as UTC and shows
+ * the machine's local time: on a machine at UTC+11, `2026-10-22T15:05:00Z` shows 2:05 AM the next day; docx4j CR-058 D6's
+ * probe); a value with no marker, or a date alone, is nominal, as `dateOf` reads it (unmeasured in Word, the date
+ * rule's point 4). The result is a nominal date in UTC fields, as every bound date here is, so `formatDate` and
+ * `w:fullDate` take it unchanged.
+ */
+function dateAsWordShows(value: string, zone: string): Date | undefined {
+  const parsed = parsedDateOf(value);
+  if (!parsed || parsed.offset === undefined) return parsed?.nominal;
+  const instant = new Date(parsed.nominal.getTime() - parsed.offset * 60_000);
+  const clock = wallClockIn(instant, zone);
+  return new Date(Date.UTC(clock.year, clock.month - 1, clock.day, clock.hour, clock.minute, clock.second));
 }
 
 /**
@@ -217,7 +245,8 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
     }
   } else if (control.type === 'DatePicker') {
     const date = control.datePickerContentControl;
-    const parsed = dateOf(value);
+    const pkg = control.parentBody.package_ as { boundDatesConvertedAsWord?: boolean; effectiveDateTimeZone?(): string } | undefined;
+    const parsed = pkg?.boundDatesConvertedAsWord && pkg.effectiveDateTimeZone ? dateAsWordShows(value, pkg.effectiveDateTimeZone()) : dateOf(value);
     if (date && parsed) {
       date.fullDate = parsed;
       // Word shows the date in w:dateFormat, not the stored form (docx4j formats it the same way)

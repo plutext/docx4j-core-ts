@@ -31,28 +31,34 @@ test("check 72's files: one misplaced child each, between BEFORE and AFTER, one 
 /**
  * What this package does with each file today (measured 2026-10-27, before CR-016 phase 2): whether the readers see the
  * misplaced content (`read`), and whether a save writes it back (`saved`). Not what Word does: that is the check.
+ *
+ * A bare break (72e, 72j) carries no MISPLACED marker, so its `saved` is the `w:br` itself, kept where it was: both are (the facade
+ * reads each typed, `Br`, and writes it as held; objects CR-017's finding of 2026-10-28, which corrected an earlier reading here).
  */
 const TODAY = {
   '72a-run-in-body': { read: false, saved: true }, '72b-text-in-body': { read: false, saved: true },
   '72c-cell-in-body': { read: true, saved: true }, '72d-row-in-body': { read: true, saved: true },
-  '72e-break-in-body': { read: false, saved: false }, '72f-run-in-cell': { read: false, saved: true },
+  '72e-break-in-body': { read: false, saved: true }, '72f-run-in-cell': { read: false, saved: true },
   '72g-table-in-paragraph': { read: false, saved: true }, '72h-paragraph-in-paragraph': { read: false, saved: true },
-  '72i-text-in-paragraph': { read: false, saved: true }, '72j-break-in-paragraph': { read: false, saved: false },
+  '72i-text-in-paragraph': { read: false, saved: true }, '72j-break-in-paragraph': { read: false, saved: true },
   '72k-run-in-run': { read: false, saved: true }, '72l-paragraph-in-run': { read: false, saved: true },
   '72m-string-in-run': { read: false, saved: false }, '72n-cell-in-table': { read: false, saved: true },
   '72o-paragraph-in-table': { read: false, saved: true }, '72p-table-in-table': { read: false, saved: true },
   '72q-paragraph-in-row': { read: false, saved: true }, '72r-run-in-row': { read: false, saved: true },
 };
 
-test("today: every check 72 file loads without a warning, the readers see a misplaced child only in a cell or a row in the body, and a save writes every one back but a bare break and a string in a run (CR-016 section 7)", async () => {
+test("today: every check 72 file loads without a warning, the readers see a misplaced child only in a cell or a row in the body, and a save writes every one back but a string in a run (CR-016 section 7)", async () => {
   for (const f of await check72Files()) {
     const pkg = await WordprocessingMLPackage.load(f.bytes);
     const body = await pkg.getBody();
     assert.deepEqual(pkg.getMainDocumentPart().warnings, [], `${f.name}: no warning says anything is wrong`);
     const isTable = f.name === '72g-table-in-paragraph';
-    const read = isTable ? body.tables.length > 0 : body.text.includes('MISPLACED');
+    const isBreak = f.name.includes('break');
+    const read = isTable ? body.tables.length > 0 : isBreak ? body.text.includes('\u000b') : body.text.includes('MISPLACED');
     const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
-    const kept = isTable ? saved.includes('<w:tbl>') : saved.includes('MISPLACED');
+    const kept = isTable ? saved.includes('<w:tbl>')
+      : isBreak ? saved.includes(f.name === '72e-break-in-body' ? '</w:p><w:br/><w:p>' : '</w:r><w:br/><w:r>')
+      : saved.includes('MISPLACED');
     assert.deepEqual({ read, saved: kept }, TODAY[f.name], f.name);
     assert.ok(body.paragraphs.some((p) => p.text === 'BEFORE') && body.paragraphs.some((p) => p.text === 'AFTER'), `${f.name}: BEFORE and AFTER read`);
   }

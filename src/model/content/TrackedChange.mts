@@ -157,11 +157,11 @@ export class TrackedChange {
 
   /**
    * When the change was made: `w16du:dateUtc` if the markup has it, else `w:date` read as Word writes
-   * it, local wall-clock time (`revisionDateOf`, CR-002 section 29); a group's is its first piece's,
-   * as Office JS reports it.
+   * it, local wall-clock time in the package's `dateTimeZone`, else the runtime's (`revisionDateOf`,
+   * CR-002 section 29, CR-018); a group's is its first piece's, as Office JS reports it.
    */
   get date(): Date | undefined {
-    return revisionDateOf(this.target.value);
+    return revisionDateOf(this.target.value, (this.package_ as { dateTimeZone?: string } | undefined)?.dateTimeZone);
   }
 
   /** The annotation id (`w:id`; an extension). */

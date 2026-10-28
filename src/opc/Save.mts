@@ -44,12 +44,35 @@ function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
 }
 
 /**
+ * `pkg.writeTimesOnSave` (CR-018; docx4j `DocPropsCorePart.writeTimes` under `docx4j.dcterms.write`): `dcterms:modified`
+ * now, UTC to the second in the W3CDTF form Office writes, and `dcterms:created` too for a package created here (one with
+ * no source container) that has none, its core properties part made for it. A loaded package without the part is left
+ * without one, as docx4j leaves it. The part is unmarshalled for the write, so it is marshalled by this save.
+ */
+async function writeTimes(pkg: OpcPackage): Promise<void> {
+  const isNew = pkg.sourcePartStore === undefined;
+  let part = pkg.docPropsCorePart;
+  if (!part) {
+    if (!isNew) return;
+    part = pkg.addDocPropsCorePart();
+  }
+  await part.getContents();
+  const props = part.contents as { created?: unknown; modified?: unknown };
+  const now = (): { TYPE_NAME: string; content: string[] } => ({
+    TYPE_NAME: 'org_docx4j_docProps_core_dc_terms.W3CDTF', content: [new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')],
+  });
+  if (props.created === undefined && isNew) props.created = now();
+  props.modified = now();
+}
+
+/**
  * Writes a package to a sink (docx4j io3.Save): `[Content_Types].xml` first, then the package
  * relationships, then every part reachable through relationships, each once. Relationship parts
  * and unmarshalled XML parts are marshalled; every other part's bytes come from its source
  * container unchanged.
  */
 export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promise<R> {
+  if (pkg.writeTimesOnSave) await writeTimes(pkg);
   const saver = new Saver(pkg, sink);
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);

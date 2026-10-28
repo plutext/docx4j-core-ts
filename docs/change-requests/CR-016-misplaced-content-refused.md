@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-10-26, at Jason's request ("yes, open a CR for refusing misplaced content"), on docx4j
 CR-064's hand-off (its section 7: whether the ports refuse misplaced children is theirs to decide, with its table of
-mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 open (section 4).
+mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 decided 2026-10-27 as recommended (section 4); check 72 (D5) written and run the same day (sections 7 and 7.1: 11 of the 18 files don't open in Word 365, no repair offered, 7 are repaired silently, one losing its content). Phase 1 is the objects package's CR-017; phase 2 waits on it.
 
 ## 1. Why
 
@@ -70,14 +70,32 @@ unreadable content, then a repair that drops content.
 | D4 | The messages | (a) docx4j's ("You can't add a table (Tbl) directly to a paragraph; it should be a sibling of the paragraph"), with the part and the path | (a): one wording across the ports, the kind a person or an LLM fixes code from. |
 | D5 | Word's answer for each row | (a) a check 72: a file per row of section 2's table, opened in Word 365 and saved, recording the repair and what it drops; (b) take CR-064's reading | (a), cheaply. It turns "Word repairs it" into a measurement, and settles D2's premise. |
 | D6 | A document that already holds a misplaced child | (a) the check runs at save on any re-marshalled part; a finding in content the caller didn't add still refuses, and the message says the opt-out; (b) the load records each misplaced child it meets, and the save refuses only new ones | (a), with the fixture gate (CR-064 D9): if the corpus of fixtures and Office-made files trips a rule, that rule reports instead of refusing. (b) needs the load to walk every part, which it doesn't do today, and identity to survive edits. |
+| D7 (2026-10-28) | A misplaced child in a part this package reads | (a) a part warning per misplaced child the objects read report gives (`onMisplaced` on unmarshal, its CR-017 and CR-017.text), code `content.misplaced`, on `XmlPart.warnings` beside `value.out_of_range`, with the container's type, the child, its index, the rule, docx4j's message and, for a string, the text; the part's tree unchanged; (b) D6 (a) alone, the save the only check | (a). D6 (b) was set aside because the load would have had to walk every part; the facade's read report now costs nothing on a part this package unmarshals anyway, as the out-of-range warning does. It is the only place a reader learns of a string in a run (72m), which the runtime drops before the tree holds it and the save can never see. Only a part read is warned on, as for every part warning. |
+
+**D7 decided 2026-10-28** (Jason: "add the part warning per misplaced child read"), as recommended; in phase 2.
+
+**D7's code and fields are docx4j-python's** (its CR-020 section 11.12 and `docx4j_py/validator.py`'s `MisplacedContent`,
+85c3261; one code across the ports, as `value.out_of_range`): code `target.misplaced`, not `content.misplaced`, for the load
+warning, the save report's rows and the refused save's error alike. Field for field, a field with no value left out:
+`partName` (`/word/document.xml`); `path`, on save, the child's own element the last step (`/w:document/w:body[1]/w:p[1]/w:r[1]/w:tbl[1]`),
+the container's for a string (python's departure 5, a single-valued field's item, has no case here: the facade tests lists);
+`address` absent (python's content API address; agreed absent for `out_of_range` too); `holder`, the container's class as
+docx4j's Java name (`R`, `P`, `Tbl`, `CTSdtContentRun`): the objects `TYPE_NAME`'s last segment, which is that name;
+`field` absent (the container's list property; the objects report doesn't name it; python's is snake_case);
+`index`; `item`, the child's class the same way (`Tbl`, `R`), absent for a string (python writes its type name `str`; this
+package's `text` carries the string instead); `element`, the child's prefixed name, absent for a string; `message`,
+docx4j's wording here where python writes its own sentence in `checkParent`'s style; `hint` absent (python's "where the item
+goes"; docx4j's message holds the fix in its second clause). This package's own, with no counterpart there: `rule`
+(`misplaced` or `name-value`), `text` (a string's content) and, on load, `line` where the parser gives one. Python's
+rule is an allow rule from its model (its D2), a superset of CR-064's refuse sets; every CR-064 case is one of its.
 
 ## 5. Phases
 
 | Phase | Work | Status |
 |---|---|---|
 | 0 | This CR; today's behaviour measured (section 2) | done 2026-10-26 |
-| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | proposed there as objects CR-017 (`f2be032`, 2026-10-26; its M1 to M6 for Jason) |
-| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table | after phase 1 |
+| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | done there as objects CR-017 (proposed `f2be032` 2026-10-26; M1 to M7 decided and implemented 2026-10-28, bb18596, the `'#text'` read report 9ac19ae and 2b87bdf; unreleased, 0.7.0) |
+| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the part warning per misplaced child read (D7, `content.misplaced`); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table and check 72's files | after phase 1: the objects package's CR-017 implemented 2b87bdf (2026-10-28), unreleased; starts at the 0.7.0 raise |
 | 3 | Check 72 (D5), Word's repairs | done: written and run 2026-10-27 (section 7.1): 11 of the 18 don't open ("Word experienced an error trying to open the file", no repair offered), 7 open with no message and are repaired silently, one losing its content |
 
 ## 6. Risks
@@ -106,11 +124,100 @@ or is refused, and saves each that opens as `<name>-word365.docx`; the saves the
 loads with no warning: the facade's unmarshal does not refuse a child its content model has no place for. The readers see
 the misplaced content in two files only, a cell and a row straight in the body (72c, 72d), whose paragraphs `Body` walks
 as it walks any cell's; in the sixteen others `Body.text` holds BEFORE and AFTER and nothing of the child. Yet a save writes
-the child back as it was in fifteen of the eighteen: the tree keeps it (as content the model does not type), invisible to
-the readers and faithful on save. Three are lost on the way: a bare break in the body (72e) or in a paragraph (72j), and a
-string straight in a run (72m). So a document holding a misplaced child round-trips here unseen, and reaches Word with the
+the child back as it was in seventeen of the eighteen: the tree keeps it (a bare break in the body or in a paragraph, 72e
+and 72j, read typed as `Br`; the rest as content the model does not type), invisible to the readers and faithful on save.
+One is lost on the way: a string straight in a run (72m). (Until 2026-10-28 this section counted the two bare breaks as
+lost too; the test's check looked for a MISPLACED marker the break files don't carry. The objects package's session saw it
+while revising its CR-017; measured again, both breaks are written back where they were.) So a document holding a misplaced
+child round-trips here unseen, and reaches Word with the
 fault intact, which is D6's case: the check at save (phase 2) is what will report it, and the opt-out what lets a caller
 write such a file knowingly. None of this is what Word does; that is the check.
+
+Not every misplaced element reads at all. The objects session reports (2026-10-28, its CR-017 M7) that a child the objects
+context declares only locally fails the part's unmarshal outright, with the runtime's "could not be unmarshalled as is not
+known in this context and the property does not allow DOM content": a run's `w:instrText`, `w:delInstrText`, `w:object`,
+`w:ruby`, `w:footnoteReference` or `w:endnoteReference` straight in a paragraph or the body, and `w:dir`, `w:bdo` or `w:subDoc`
+in the body: nine elements its CR-009 mapping declares globally beyond docx4j's roots. Pushed from code, such a child saves
+today with `xsi:type="w:CT_Text"`, which the facade then can't read back. Its M7 first left that as it is; later the same day
+it recommends, deliberately diverging from docx4j's roots (docx4j-12's suggestion, docx4j calling it harmless since its own
+inspector reads marshalled XML and neither the MCP server nor docx4j-python consults roots), making the nine roots, so a
+misplaced one reads typed, is reported by `onMisplaced` where CR-064's rules refuse it (the two field-instruction elements,
+as Text), saves as held, and is written from code without the `xsi:type`. Measured there on a prototype: the 342 fidelity
+parts marshal byte-identical. For this package, if Jason takes it: such a part loads instead of failing (the bytes were kept
+either way), D6 sees it on load, and phase 2's refused save applies to it as to any other. Fifteen elements still fail the
+read when misplaced inside a `w:r` only: `w:customXml`, `w:moveFrom`, `w:moveTo` and twelve range markers. The choice is the
+objects package's, for Jason; this package takes whichever lands, through the raise. Check 72 has no file of that kind: its
+eighteen all read.
+
+**The objects package's CR-017 gate, run here (2026-10-28, at bb18596 through a `--no-save` install, the locked 0.6.0
+restored after).** Every XML part of the corpus the objects 0.6.0 raise was byte-checked over (`test/fixtures` and docx4j's
+charts corpus: 542 files on disk, 9,075 XML parts, 8,454 with a typed root) read through the facade's `unmarshalString` and
+written back through `marshalString`, `onMisplaced` on both: no read or save failed, and outside check 72's own files (on
+disk, git-ignored) nothing is reported. Check 72's files give 34 reports: each of 17 children once on read (rule
+`misplaced`, docx4j's message, the container's type and the child's) and once on save with its path
+(`/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:r[1]` for 72r). The one not reported is 72m, the string in a run: the runtime
+drops character data in a non-mixed element on read, before the rule sees it, and so the tree holds nothing to report on
+save; only a string pushed from code reaches the save-side report. Raised with the objects session: unreported by design
+for now (its CR-017 section 4.2; the gate run in its section 10). The runtime has no hook for it: `@docx4j/jsonix`'s
+`ClassInfo` unmarshal skips character data in a class with no mixed property silently, and its only callbacks are
+`onUnexpectedAttribute` and `onUnexpectedElement`. Word's repair drops the string too (72m), and so does docx4j's JAXB.
+Closing it would take a jsonix CR, an `onUnexpectedText` for non-whitespace character data in content that isn't mixed,
+which the facade would turn into a `'#text'` read report and D6 into a load warning. Not proposed; Jason's call. This CR's
+view: worth proposing, at low priority, since 72m is the one of the eighteen forms in which content is lost with no trace,
+here and in Word alike, and a load warning is the only place a reader could learn of it; phase 2 does not wait on it. Jason asked for
+it the same day ("do you recommend the jsonix CR?"; yes); proposed to the jsonix session, which designs it; the facade's
+`'#text'` read report and D6's warning follow through the ranges.
+Proposed there the same day as jsonix CR-013 (`docs/change-requests/jsonix-CR-013-report-dropped-character-data.md`,
+e859805 on its master, unpushed; planned as 3.10.0; registered as `jsonix/CR-013`, proposed): a per-call unmarshaller option
+`onUnexpectedText(text, node, classInfo)`, called once per text or CDATA node `ClassInfo.unmarshal` drops that holds a
+character outside XML whitespace, in document order, before the container's `onElement`, the data still dropped and the
+return value ignored. Its measurement found two more silent drops beside the non-mixed class: text in a class with no
+content at all (`<w:b>x</w:b>`, 852 classes), which the hook covers, and text the runtime's own `isEmpty` counts as space,
+26 characters including the no-break space, so `<w:r>&#xA0;<w:t/></w:r>` is dropped as whitespace today. Its T1 to T3 are
+for Jason (XML's four whitespace characters rather than the runtime's 26; reporting in mixed classes too; the name and the
+node argument). The objects facade would collect the calls by `parentNode` and report them in its composed `onElement`.
+Jason decided T1 to T3 as recommended and the hook is implemented, jsonix master c259464 (local, unreleased; 3.10.0 on his
+word after the objects package runs it over its fidelity parts), and released as 3.10.0 the same day (tag 5f9db0b; 0 reports
+over the objects package's 359 corpus checks, and with the option unset every part re-marshals byte-identical to 3.9.0's).
+The objects facade's `'#text'` read report landed the same day (its CR-017.text, 9ac19ae, over a jsonix ^3.10.0 floor,
+unreleased, in 0.7.0): a file's string straight in a CR-017 container reported on read as child `'#text'`, rule `misplaced`,
+with `text` the string and `index` where it stood among the list's items; nothing on save, the string being gone from the
+tree; text inside a class that is no container (`<w:b>x</w:b>`) and whitespace not reported. The gate rerun here at 9ac19ae
+(the same 542 files and 9,075 parts, 0 failures, the 34 element reports as before) gave no text report, 72m's included.
+Cause, found in the facade and sent to the objects session: a string that is its container's only child goes unreported,
+the read-side reporter returning where the container's list is undefined, which the runtime leaves it when no element
+child was read; a string between two `w:t` (the facade's own test) is reported, at index 1, and one first or last beside a
+`w:t` at 0 or 1. 72m's form is the only-child one. Fixed there the same day (2b87bdf: an unset list taken as empty for the
+dropped-text pass; its smoke test now 72m's own form and the five probes; its CR-017 section 10 records the miss and the
+reruns). Rerun here at 2b87bdf: 35 reports, the 34 as before and 72m's one on read, `'#text'` at index 0 in the run with
+the string message, nothing on save; no real file in the corpus holds such a string; 0 failures. The locked 0.6.0 and jsonix
+3.9.0 restored after each run. D6's load warning for it follows at the 0.7.0 raise.
+
+Later the same day the objects package mirrored docx4j CR-064's addendum (ce87ec6d7, Jason's yes) at 202b58d: `w:delText`
+refused where text is and `w:tab` where a break is, in both sets; a content control at the wrong level a class rule
+(`misplaced`, docx4j's message) in every set rather than the name rule (run content refuses block, row and cell controls,
+block content run, row and cell controls, a run any, a table any but a row control, a row any but a cell control); the
+`w:tcPr` message naming its container. The same commit fixed a false positive on a legal document, present since bb18596: a
+kept `mc:Choice` types its children by their global declarations, and the global `w:sdt` is `SdtBlock`, so a legal run-level
+control in a paragraph's Choice was reported, and its runs with it; now a branch's children are tested leniently, legal if
+the host's list names them, and sdt content and custom XML below a branch at the level the branch's host gives. That is
+the kind of wrong refusal D6's fixture gate exists for; phase 2's gate runs over the kept-branch fixtures too. Rerun here
+at 202b58d: the same 35 reports, report for report, 0 failures. Nothing in this package matched on `name-value`, phase 2
+not having started.
+
+**Codes shared with docx4j-python** (its CR-020 section 11.12, 85c3261, 2026-10-28, for phase 2's warnings): its validator
+reports a misplaced child as `target.misplaced` beside `value.out_of_range` (this package's CR-017 fields and storage strings),
+and a table cell that doesn't end with a paragraph as Word reads it as `cell.no_end_paragraph`, with `part_name`, `path`
+(`/w:document/w:body[1]/w:tbl[1]/w:tr[1]/w:tc[1]`), `address` (`body/0/0/0`), `ends_with` (`w:tbl`), `message` and `hint`;
+the rule is CR-002 section 55's `TableRules.endsWithParagraph`, ported there, looking past range markup, through block-level
+controls and custom XML, and through the branch of a kept `mc:AlternateContent` that Word reads. Its checked save (off by
+default) refuses a broken cell only when the session made it; one the source held is saved and listed. If this package
+reports either condition it uses the same codes: D7's warning is `content.misplaced` here only until phase 2 settles the
+name with docx4j-python (one code across the ports, as `value.out_of_range` is). Its out-of-range check flags 413 of the 660
+integer cases to this package's 432: the 19 are `w:gridCol`, `w:wBefore` and `w:wAfter`, which its limits table lists as
+unmeasured and so doesn't report (Jason, the same day); this package reports them from the objects table, held to Word's
+saves (CR-017 E5).
+Phase 2 can build on bb18596 through a file dependency; whether it waits for the 0.7.0 release is Jason's call.
 
 ### 7.1 Check 72's run (2026-10-27)
 
@@ -141,4 +248,4 @@ opening with no word to the user, and in one form loses its content. Phase 2's r
 
 This package reads each of Word's saves as any file: BEFORE, AFTER and the moved text where Word put it, the string gone,
 no warning (`check72.test.mjs`, under the manifest). What this package does with the original files is unchanged from
-section 7: the eleven Word can't open are among the fifteen it saves back as they were.
+section 7: the eleven Word can't open are among the seventeen it saves back as they were.

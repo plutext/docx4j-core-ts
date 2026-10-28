@@ -59,7 +59,9 @@ implemented, P1 to P3, unreleased, with CR-002 section 65 (the measurement sette
 limits below it, and `lineSpacing` writing Word's auto rule, check 71b, section 65.9) and its section 65.3 (the setters' table the objects package's). So is CR-002 section 63
 (writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
 entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63
-run again with Design Mode off, since Design Mode changes what a write into a placeholder does). The editor's release requests are
+run again with Design Mode off, since Design Mode changes what a write into a placeholder does). CR-018 (dates in the package's zone, the portfolio's
+date rule of 2026-10-28: `pkg.dateTimeZone` for every instant's wall clock, a comment stamped to the minute, Word's bound-date conversion and the
+save's `dcterms` times as opt-ins) is implemented, unreleased. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -114,6 +116,8 @@ src/model/properties/ PropertyResolver, the property catalogue (one entry per sc
                   tableStyleConditions.mts (namespace TableStyleConditions) and table.mts (TableContext, CellContext, TableContextTracker): a table style reaches a paragraph only through its CellContext (CR-007)
 src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, NumberingDefinitions), state.mts (Counter, NumberingState, NumberingStates: one per story), formats.mts (the label formatters), Emulator.mts
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
+src/model/dateZone.mts  the package's time zone (CR-018): wallClockIn and instantOf over Intl, for a revision's or comment's w:date (Word's local wall clock labelled Z)
+                  written and read in pkg.dateTimeZone, else the runtime's zone; assertTimeZone refuses a zone Intl doesn't know
 src/model/wordIntegers.mts  the range Word 365 keeps as written in an integer attribute, from the objects table (keptRange; rangeOfReading finds it back from a report's
                   storage string, since the report names no entry): one source for the setters' guards and the value.out_of_range warnings (CR-017, CR-002 section 65.3)
 src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColor, ThemeColors (ofTheme sync; `await ThemeColors.of(pkg or part)`,
@@ -177,6 +181,13 @@ Key mechanics:
   the tree, the readers and the save keep the value as written (E2), and a decimal reads truncated as Word reads it
   (`value.truncated`) or, in a form Word refuses a document for, dropped (`value.refused`; P1, the objects package's CR-015).
   The setters refuse such a value before it is written (CR-002 section 65), from the same table (`keptRange`).
+- **Dates are in the package's zone** (CR-018, the portfolio's date rule, docx4j CR-067 D12). A revision's or a comment's `w:date`
+  is Word's local wall-clock time labelled `Z`, the true UTC beside it in `dateUtc` (CR-002 section 29); "local" is
+  `pkg.dateTimeZone` (an IANA id, the client's for this package, never saved; copied by `clone()`), else the runtime's zone,
+  for every stamp written and every `w:date` without `dateUtc` read (`TrackedChange.date`, `Comment.creationDate`). Stamps
+  are to the minute. A bound date is nominal (section 56) unless `pkg.boundDatesConvertedAsWord` asks for Word's conversion
+  in that zone. A save leaves `dcterms` alone unless `pkg.writeTimesOnSave` (docx4j's `docx4j.dcterms.write`). The shim's
+  reading of date-only or offset-free core properties waits on docx4j's Word probe.
 - **Container is separate from package.** `PartStore` (load) and `PartSink<R>` (save) abstract
   zip (`fflate`; the central directory is parsed here, entries inflate lazily), flat OPC
   (`pkg:package`; content types are per part, so the store synthesises `[Content_Types].xml`),
@@ -376,7 +387,7 @@ and check 71b's file (`check71bBytes`, `test/fixtures/check71b/`: the same sette
 snippet, a copy held equal; Word 365's run (its JSONs beside the build, its save in `test/check71b/`, with a SHA-1 manifest) pinned, and the shim's run held to
 it case for case, its one difference listed (section 65.9),
 `check72.test.mjs` CR-016 D5's: check 72's 18 files (`check72Files`, `test/fixtures/check72/`: one misplaced child each, per rule of docx4j CR-064's five sets, for
-Word's repairs), and what this package does with each today (loads clean, the readers see two, a save writes fifteen back; CR-016 section 7), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
+Word's repairs), and what this package does with each today (loads clean, the readers see two, a save writes seventeen back, a string in a run the one lost; CR-016 section 7), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
 `integer-attributes.test.mjs` CR-017's and CR-002 section 65.3's: docx4j CR-065's and CR-066's probes and Word 365's saves (`test/integer-attributes/`, copied
 unedited from the share with a SHA-1 manifest, outside `fixtures/`): rounds 5 and 6's 660 integer cases, a `value.out_of_range` warning on load and on
 `pkg.lastSave` exactly where Word's save changed the value, its rule or its attribute (432, the objects package's own count), `wordReads` what Word wrote,
@@ -384,6 +395,8 @@ every value written as held, Word's saves reporting nothing; round 2's 64 decima
 differences stated, strict both ways; the refused forms dropped and reported); `keptRange` held to the objects package's `wordIntegerReading` at every
 boundary of its 51 entries; `WORD_STORAGE`'s rows the objects table's, narrowed only where a row says why; a value set by code reported on save with its
 path; no fixture holding one,
+`dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
+mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its
