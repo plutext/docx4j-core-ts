@@ -118,8 +118,8 @@ src/model/listnumbering/ definitions.mts (LevelDefinition, ListDefinition, Numbe
 src/model/fonts/  RunFontSelector (the document font per code point), ThemeFonts, Mapper/IdentityPlusMapper/PhysicalFont/FontRegistry, FontFallback, fontsInUse; *.generated.mts from npm run generate:fonts
 src/model/dateZone.mts  the package's time zone (CR-018): wallClockIn and instantOf over Intl, for a revision's or comment's w:date (Word's local wall clock labelled Z)
                   written and read in pkg.dateTimeZone, else the runtime's zone; assertTimeZone refuses a zone Intl doesn't know
-src/model/wordIntegers.mts  the range Word 365 keeps as written in an integer attribute, from the objects table (keptRange; rangeOfReading finds it back from a report's
-                  storage string, since the report names no entry): one source for the setters' guards and the value.out_of_range warnings (CR-017, CR-002 section 65.3)
+src/model/wordIntegers.mts  the range Word 365 keeps as written in an integer attribute, from the objects table (keptRange; rangeOf from the entry a report names,
+                  since objects 0.7.0): one source for the setters' guards and the value.out_of_range warnings (CR-017, CR-002 section 65.3)
 src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColor, ThemeColors (ofTheme sync; `await ThemeColors.of(pkg or part)`,
                   forChart; a themeless package the bundled theme pkg.fonts.defaultTheme names), WordColors (of, ofBorder, ofUnderline, fill, pattern;
                   normalise and stated, docx4j CR-060's, over the objects package's wordColor: a value read as Word reads it, CR-015),
@@ -186,8 +186,8 @@ Key mechanics:
   `pkg.dateTimeZone` (an IANA id, the client's for this package, never saved; copied by `clone()`), else the runtime's zone,
   for every stamp written and every `w:date` without `dateUtc` read (`TrackedChange.date`, `Comment.creationDate`). Stamps
   are to the minute. A bound date is nominal (section 56) unless `pkg.boundDatesConvertedAsWord` asks for Word's conversion
-  in that zone. A save leaves `dcterms` alone unless `pkg.writeTimesOnSave` (docx4j's `docx4j.dcterms.write`). The shim's
-  reading of date-only or offset-free core properties waits on docx4j's Word probe.
+  in that zone. A save leaves `dcterms` alone unless `pkg.writeTimesOnSave` (docx4j's `docx4j.dcterms.write`). The shim
+  reads a date-only or offset-free `dcterms` value as UTC, as Word does (docx4j CR-067 section 12.2's probe).
 - **Container is separate from package.** `PartStore` (load) and `PartSink<R>` (save) abstract
   zip (`fflate`; the central directory is parsed here, entries inflate lazily), flat OPC
   (`pkg:package`; content types are per part, so the store synthesises `[Content_Types].xml`),
@@ -221,13 +221,15 @@ Key mechanics:
   listing pairs each other branch's changes with the selected branch's as twins, resolved with them (`Listing`,
   `pairTwins`; resolve-all lists every branch's on their own, CR-013 phase 3). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
   `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
-  it (CR-010 section 14.4). The floor is objects 0.6.0, over `@docx4j/jsonix` 3.9.0, whose marshal declares the
+  it (CR-010 section 14.4). The floor is objects 0.7.0, over `@docx4j/jsonix` 3.11.0, whose marshal declares the
   prefixes a kept `mc:Choice`'s `Requires` names (0.4.2, CR-010 section 14.8), from the source where
   only the source bound them (its CR-011, section 14.9), on the `mc:Choice` itself, as Word does (0.5.0, its CR-012);
   which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015); and which reads a highlight in
   Word's palette (0.6.0, its CR-014) and an integer attribute's decimal as Word does, `value.truncated` or
   `value.refused` on a part's `ValueKeptWarning`s (0.6.0, its CR-015; CR-017 P1), and reports a value past what Word stores
-  (its CR-016, `onOutOfRange`; CR-017 P2 and P3).
+  (its CR-016, `onOutOfRange`, each report naming its table entry since 0.7.0; CR-017 P2 and P3); and which reports a child its
+  container never admits on read and on save (0.7.0, its CR-017, `onMisplaced`; CR-016 here), types a kept branch's `w:sdt` at its
+  host's level (0.7.0, its CR-018), and keeps `w:legacy` out of its integer table (0.7.0, its CR-016 addendum: 49 entries).
   `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
   plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
   (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
@@ -393,7 +395,7 @@ unedited from the share with a SHA-1 manifest, outside `fixtures/`): rounds 5 an
 `pkg.lastSave` exactly where Word's save changed the value, its rule or its attribute (432, the objects package's own count), `wordReads` what Word wrote,
 every value written as held, Word's saves reporting nothing; round 2's 64 decimals and odd forms read as Word's saves have them (the six known
 differences stated, strict both ways; the refused forms dropped and reported); `keptRange` held to the objects package's `wordIntegerReading` at every
-boundary of its 51 entries; `WORD_STORAGE`'s rows the objects table's, narrowed only where a row says why; a value set by code reported on save with its
+boundary of its 49 entries; `WORD_STORAGE`'s rows the objects table's, narrowed only where a row says why; a value set by code reported on save with its
 path; no fixture holding one,
 `dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
 mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,

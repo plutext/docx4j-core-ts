@@ -19,7 +19,7 @@ import { unzipSync, strFromU8 } from 'fflate';
 import { WORD_INTEGER_STORAGE, wordIntegerReading } from '@docx4j/generated-objects-ts/helpers/wml';
 import { WordprocessingMLPackage } from '../dist/index.mjs';
 import { parseXml } from '../dist/xml/dom.mjs';
-import { keptRange, rangeOf, rangeOfReading, knownStorageKeys, UNMEASURED_RANGE } from '../dist/model/wordIntegers.mjs';
+import { keptRange, rangeOf, UNMEASURED_RANGE } from '../dist/model/wordIntegers.mjs';
 import { WORD_STORAGE } from '../dist/model/content/wordRange.mjs';
 
 const DIR = new URL('./integer-attributes/', import.meta.url);
@@ -71,15 +71,12 @@ test('keptRange: every value in the range is kept by wordIntegerReading and none
           assert.equal(reading.kept, inRange, `${typeName}.${property}[${rule}] ${v}: kept ${reading.kept}, range ${min}..${max}`);
         }
         if (!entry.measured) assert.deepEqual(range, UNMEASURED_RANGE);
-        // the reading's storage string finds the same range back, as the warnings do (rangeOfReading)
-        const reading = wordIntegerReading(typeName, property, 0, rule);
-        assert.deepEqual(rangeOfReading(reading, property, rule), range, `${typeName}.${property}[${rule}]: found back from "${reading.storage}"`);
       }
     }
   }
-  assert.equal(entries, 51, "the objects table's entries (its CR-016)");
+  assert.equal(entries, 49, "the objects table's entries (its CR-016; w:legacy left out since objects 0.7.0, 5fa30a6)");
   assert.equal(keptRange('org_docx4j_wml.Nope', 'x'), undefined);
-  assert.equal(knownStorageKeys().length, 21, 'every storage string the table gives, none dropped for naming two ranges');
+  assert.ok(Object.values(WORD_INTEGER_STORAGE).every((properties) => !('legacy' in properties) && !('legacyIndent' in properties) && !('legacySpace' in properties)), 'w:legacy is not in the table');
 });
 
 test("CR-002 section 65.3: the setters' table reads the objects table, each row Word's range narrowed only by the setter's stated policy", () => {

@@ -3,7 +3,8 @@
 // for most, and reads a value past it wrapped, sometimes then clamped, with no error or repair. The table gives the
 // width, the sign and the rules per attribute; this module turns an entry into the range of values Word keeps as
 // written, which the setters' guards (CR-002 section 65.3, `wordRange.mts`) and the out-of-range warnings (CR-017 P2
-// and P3, `XmlPart.valueOutOfRange`) both read, so there is one source for both.
+// and P3, `XmlPart.valueOutOfRange`) both read, so there is one source for both. A report names its entry (`typeName`,
+// `property`, `storage` and the `rule` beside the value, objects 0.7.0), so `rangeOf` takes it straight.
 import { WORD_INTEGER_STORAGE, wordIntegerReading, type WordIntegerReading, type WordIntegerStorage } from '@docx4j/generated-objects-ts/helpers/wml';
 
 /** `[min, max]` in the attribute's own unit: every value in it Word reads as written, and none outside. */
@@ -55,54 +56,8 @@ export function rangeOf(entry: WordIntegerStorage, property: string, rule?: stri
   return [min, max];
 }
 
-/**
- * The rules a `lineRule` or `hRule` names, and the strings `wordIntegerReading`'s `storage` takes for an entry whose
- * range depends on one: the key a reading is looked up by (`rangeOfReading`).
- */
-const RULES = [undefined, 'auto', 'exact', 'atLeast'] as const;
+/** Whether a reading's storage string names a rule beside the value (a line's `lineRule`, a height's `hRule`). */
 const dependsOnRule = (storage: string): boolean => /\brule\b|clearing exact/.test(storage);
-const dependsOnProperty = (storage: string): boolean => storage.includes('shared by');
-const keyOf = (storage: string, property: string, rule: string | undefined): string =>
-  `${storage}|${dependsOnProperty(storage) ? property : ''}|${dependsOnRule(storage) ? rule ?? '' : ''}`;
-
-/** Every storage string the table's readings give, to the one range it means; built once, on first use. */
-let BY_STORAGE: Map<string, KeptRange | null> | undefined;
-function byStorage(): Map<string, KeptRange | null> {
-  if (BY_STORAGE !== undefined) return BY_STORAGE;
-  const out = new Map<string, KeptRange | null>();
-  const conflicting = new Set<string>();
-  for (const [typeName, properties] of Object.entries(WORD_INTEGER_STORAGE)) {
-    for (const [property, entry] of Object.entries(properties)) {
-      for (const rule of RULES) {
-        const reading = wordIntegerReading(typeName, property, 0, rule);
-        if (reading === undefined) continue;
-        const key = keyOf(reading.storage, property, rule);
-        const range = rangeOf(entry, property, rule);
-        const seen = out.get(key);
-        if (out.has(key) && JSON.stringify(seen) !== JSON.stringify(range)) conflicting.add(key);
-        out.set(key, range);
-      }
-    }
-  }
-  for (const key of conflicting) out.delete(key);
-  BY_STORAGE = out;
-  return out;
-}
-
-/**
- * The range a reported reading was held to (CR-017 P2 and P3). The report names the element and the attribute, not
- * the table's entry, so the entry is found back from the reading's `storage` string, with the attribute's local name
- * for the shared field and the `lineRule` or `hRule` written beside it for a line or a height. Undefined where the
- * string is one the table does not give, or gives for two ranges.
- */
-export function rangeOfReading(reading: WordIntegerReading, attribute: string, rule: string | undefined): KeptRange | null | undefined {
-  return byStorage().get(keyOf(reading.storage, attribute, rule));
-}
-
-/** The keys `rangeOfReading` knows, for the tests: every distinct storage string with what it depends on. */
-export function knownStorageKeys(): string[] {
-  return [...byStorage().keys()].sort();
-}
 
 /**
  * Word's reading, for a message: the value, in the shared field's other attribute where the sign moved it (`25536 in

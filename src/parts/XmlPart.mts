@@ -5,7 +5,7 @@ import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning } from '../opc/mce/preprocessor.mjs';
-import { rangeOfReading, describeReading, isUnmeasured, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
+import { rangeOf, describeReading, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
 /**
  * The element or attribute a located runtime error names, out of its message: jsonix writes
@@ -45,22 +45,19 @@ function valueKept(reading: WordReading, partName: string): ValueKeptWarning {
   };
 }
 
-const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-
 /**
  * An integer attribute value Word 365 reads differently, as the objects facade reports it on read or on save, as a
  * warning (CR-017 P2 and P3). The value stays as written; the message says what Word would read, the storage and the
- * range Word keeps as written, found back from the reading (`rangeOfReading`).
+ * range Word keeps as written, from the table entry the report names (`storage`, `property` and `rule`, objects 0.7.0).
  */
 export function valueOutOfRange(report: OutOfRange, partName: string | undefined): ValueOutOfRangeWarning {
   const node = report.element as Element & { lineNumber?: number; columnNumber?: number };
   const name = report.attribute;
   const attribute = node.getAttributeNodeNS?.(name.namespaceURI || null, name.localPart)?.name ?? `w:${name.localPart}`;
   const reading = report.wordReads;
-  // the rule written beside a line or a height decides what Word keeps there
-  const written = node.getAttributeNS?.(W_NS, 'lineRule') || node.getAttributeNS?.(W_NS, 'hRule') || undefined;
-  const unmeasured = isUnmeasured(reading);
-  const range = unmeasured ? UNMEASURED_RANGE : rangeOfReading(reading, name.localPart, written) ?? null;
+  const unmeasured = !report.storage.measured;
+  // the rule beside a line or a height (`report.rule`, from the tree) decides what Word keeps there
+  const range = rangeOf(report.storage, report.property, report.rule);
   const at = report.path !== undefined ? `${report.path}=${report.value}` : `${node.nodeName}/@${attribute}=${report.value}${positionOf(node.lineNumber, node.columnNumber)}`;
   const where = unmeasured
     ? `is outside ${UNMEASURED_RANGE[0]} to ${UNMEASURED_RANGE[1]}, where Word 365 changes every measured value of its kind (${node.nodeName}/@${attribute} is unmeasured); what Word reads is not known`
@@ -280,13 +277,8 @@ export class XmlPart<T = unknown> extends Part {
     const normalise = this.package?.normaliseOnSave;
     if (normalise !== undefined) marshal.normaliseOnSave = normalise;
     if (options?.onNormalised !== undefined) marshal.onNormalised = options.onNormalised;
-    // the facade reports a value as its attribute is written, before the element's other attributes are (the lineRule
-    // beside a line, which the warning's range depends on): so the reports wait for the element to be whole
-    const outOfRange: OutOfRange[] = [];
-    if (options?.onOutOfRange !== undefined) marshal.onOutOfRange = (report) => outOfRange.push(report);
-    const node = await marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
-    for (const report of outOfRange) options?.onOutOfRange?.(report);
-    return node;
+    if (options?.onOutOfRange !== undefined) marshal.onOutOfRange = options.onOutOfRange; // the report carries its rule (objects 0.7.0)
+    return marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
   }
 
   /**

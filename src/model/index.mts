@@ -16,4 +16,4 @@ export * from './text/index.mjs';
 // The source generator of CR-002 phase I: the content-API calls that reproduce a paragraph, a
 // range or a table. The `Word` shim it lives next to stays on the ./office-js subpath.
 export { toApiScript, type ApiScriptOptions, type ApiScriptTarget } from '../office-js/toApiScript.mjs';
-export { keptRange, rangeOf, rangeOfReading, describeReading, knownStorageKeys, isUnmeasured, UNMEASURED_RANGE, type KeptRange } from './wordIntegers.mjs';
+export { keptRange, rangeOf, describeReading, isUnmeasured, UNMEASURED_RANGE, type KeptRange } from './wordIntegers.mjs';

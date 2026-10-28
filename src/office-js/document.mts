@@ -40,9 +40,23 @@ function w3cdtf(date: Date): dc.SimpleLiteral {
   return { TYPE_NAME: 'org_docx4j_docProps_core_dc_terms.W3CDTF', content: [date.toISOString().replace(/\.\d{3}Z$/, 'Z')] };
 }
 
+/**
+ * A `dcterms:created` or `dcterms:modified` value as Word 365 reads it (docx4j CR-067 section 12.2, Jason's probe of
+ * 2026-10-28; CR-018 D6): a date alone (`2024-02-03`) and a time with no offset (`2025-06-07T08:09:10`) are UTC, as a `Z`
+ * value is (Word showed 11:00 and 18:09 at UTC+11 and UTC+10), so they are read here as UTC fields, where ECMAScript's
+ * `Date` would read the offset-free time as local. A `Z` or an offset is honoured as before. The seconds are kept: Word
+ * shows the value to the minute, but this reads the stored instant.
+ */
 function dateOf(value: dc.SimpleLiteral | undefined): Date | undefined {
-  const text = literalText(value);
+  const text = literalText(value).trim();
   if (text === '') return undefined;
+  const bare = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/.exec(text);
+  if (bare) {
+    const [year, month, day, hour, minute, second, fraction] = bare.slice(1);
+    const ms = fraction === undefined ? 0 : Math.round(Number(`0.${fraction}`) * 1000);
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour ?? 0), Number(minute ?? 0), Number(second ?? 0), ms));
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
   const date = new Date(text);
   return Number.isNaN(date.getTime()) ? undefined : date;
 }

@@ -5,6 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { WordprocessingMLPackage, ZipPartStore } from '../dist/index.mjs';
+import { Word } from '../dist/office-js/index.mjs';
 import { fixture } from './helpers.mjs';
 import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
 
@@ -192,4 +193,30 @@ test('CR-018: clone() carries the zone and the two opt-ins', async () => {
   assert.equal(copy.dateTimeZone, 'Asia/Tokyo');
   assert.equal(copy.boundDatesConvertedAsWord, true);
   assert.equal(copy.writeTimesOnSave, true);
+});
+
+// D6, measured by docx4j CR-067 section 12.2 (Jason, Word 365, Sydney, 2026-10-28): in a core property a date alone and a time
+// with no offset are UTC, as a Z value is (2024-02-03 showed 11:00 at UTC+11; 2025-06-07T08:09:10 showed 18:09 at UTC+10).
+test("CR-018 D6: the shim reads a date-only or offset-free dcterms value as UTC, as Word does; a Z or an offset as it says", async () => {
+  const W3CDTF = (text) => ({ TYPE_NAME: 'org_docx4j_docProps_core_dc_terms.W3CDTF', content: [text] });
+  const read = async (created, modified, lastPrinted) => {
+    const pkg = await WordprocessingMLPackage.createPackage();
+    const props = pkg.addDocPropsCorePart().contents;
+    props.created = W3CDTF(created);
+    props.modified = W3CDTF(modified);
+    if (lastPrinted) props.lastPrinted = lastPrinted;
+    let out;
+    await Word.run(pkg, async (context) => {
+      const p = context.document.properties;
+      out = [p.creationDate?.toISOString(), p.lastSaveTime?.toISOString(), p.lastPrintDate?.toISOString()];
+    });
+    return out;
+  };
+  assert.deepEqual(await read('2024-02-03', '2025-06-07T08:09:10', { year: 2025, month: 1, day: 2, hour: 3, minute: 4, second: 5 }),
+    ['2024-02-03T00:00:00.000Z', '2025-06-07T08:09:10.000Z', '2025-01-02T03:04:05.000Z'], 'UTC, whatever the runtime zone');
+  assert.deepEqual(await read('2024-02-03T04:05:06Z', '2025-06-07T08:09:10+10:00', { year: 2025, month: 1, day: 2, hour: 3, minute: 4, second: 5, timezone: 600 }),
+    ['2024-02-03T04:05:06.000Z', '2025-06-06T22:09:10.000Z', '2025-01-01T17:04:05.000Z'], 'a Z or an offset as it says');
+  assert.deepEqual(await read('2024-02-03T04:05:06.250Z', '2025-06-07T08:09:10.5', undefined),
+    ['2024-02-03T04:05:06.250Z', '2025-06-07T08:09:10.500Z', undefined], 'fractions kept');
+  assert.deepEqual(await read('not a date', '', undefined), [undefined, undefined, undefined]);
 });

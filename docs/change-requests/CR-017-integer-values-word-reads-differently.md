@@ -4,7 +4,8 @@
 whose write side is CR-002 section 65. Objects 0.6.0, which brings its CR-015 and CR-016, was released 2026-10-26 and is the
 floor since `b19d935` (2026-10-27), which did P1: `ValueKeptWarning`'s two new kinds, a decimal loading as Word reads it.
 **P2 and P3 implemented 2026-10-27** (Jason: "start CR-002 section 65.3 then CR-017 P2 and P3"), with section 65.3's table
-move, E1 to E5 taken as recommended (section 7); unreleased.
+move, E1 to E5 taken as recommended (section 7); unreleased. **Objects 0.7.0 the floor since 2026-10-28** (the raise, section
+7.1): a report names its table entry, so the storage-string lookup and the save-side deferral went.
 
 ## 1. Why
 
@@ -148,6 +149,24 @@ as 0, 8 refused), and Word's saves needing no reading of Word's; and every fixtu
 
 **Not done.** P4 is nothing to do (E2). Check 71b (CR-002 section 65.5 D2) is still Jason's. The editor and docx4j-python are to
 be told the field names as implemented (`readAs` and `rule` are this package's additions beside the agreed six).
+
+### 7.1 The objects 0.7.0 raise (2026-10-28)
+
+Objects 0.7.0 (tag 5985887, released 2026-10-28, over `@docx4j/jsonix` ^3.11.0; integrity
+`sha512-kE9K39k+KVn5/tzRZI9W2IqwKu5rJ1/VkHADXI7BilTtxn9mcbHXDbIYSLzFdx9+Z/aL5eIaoJpdHBfLhRDEXw==`) is the floor. The
+byte check against the published tarball: load, `unmarshalAll` and save of 523 files (`test/fixtures` and docx4j's charts
+corpus; 542 with the fixtures added since the 0.6.0 hashes), 9,071 parts, every part's bytes identical under 0.7.0 and
+0.6.0, as the candidate 722f2f3 was, twice. The misplaced-child survey (CR-016 section 7) against the installed 0.7.0: the
+same 35 reports, all check 72's, over 9,075 parts, 0 failures. Typecheck clean; 1,640 tests pass.
+
+What the raise changed here, the "small addition" asked above: 0.7.0's `OutOfRange` carries `typeName`, `property`,
+`storage` (the table entry) and `rule` (the `lineRule` or `hRule` the tree holds beside the value), so
+`XmlPart.valueOutOfRange` takes the range straight from the entry (`rangeOf(report.storage, report.property, report.rule)`)
+and reads unmeasured from `storage.measured`; `rangeOfReading`, `knownStorageKeys` and the storage-string map went from
+`wordIntegers.mts` and the `./model` exports (never released), and `marshalToNode` passes `onOutOfRange` to the marshal as
+it is, the report's rule making the wait for the whole element unnecessary. Its CR-016 addendum (5fa30a6) took `w:legacy`
+out of `WORD_INTEGER_STORAGE`, Word 365 dropping the element whole: 49 entries, the test's pin moved from 51 and asserting
+the three `legacy` properties absent. Every count above holds (660 cases, 432 reported on load and on save).
 
 **docx4j's side (hand-off from docx4j-12, 2026-10-27).** docx4j CR-066 D6 is built in its inspector (docx4j `338beec18`, CR-066
 section 10): a `value.out_of_range` finding per attribute occurrence, over every WordprocessingML part, unselected `mc` branches and

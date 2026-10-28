@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-10-26, at Jason's request ("yes, open a CR for refusing misplaced content"), on docx4j
 CR-064's hand-off (its section 7: whether the ports refuse misplaced children is theirs to decide, with its table of
-mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 decided 2026-10-27 as recommended (section 4); check 72 (D5) written and run the same day (sections 7 and 7.1: 11 of the 18 files don't open in Word 365, no repair offered, 7 are repaired silently, one losing its content). Phase 1 is the objects package's CR-017; phase 2 waits on it.
+mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 decided 2026-10-27 as recommended (section 4); check 72 (D5) written and run the same day (sections 7 and 7.1: 11 of the 18 files don't open in Word 365, no repair offered, 7 are repaired silently, one losing its content). Phase 1 is the objects package's CR-017, released in objects 0.7.0 (2026-10-28), the floor since the raise the same day (CR-017 section 7.1); D7 decided (section 4); phase 2 next.
 
 ## 1. Why
 
@@ -94,8 +94,8 @@ rule is an allow rule from its model (its D2), a superset of CR-064's refuse set
 | Phase | Work | Status |
 |---|---|---|
 | 0 | This CR; today's behaviour measured (section 2) | done 2026-10-26 |
-| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | done there as objects CR-017 (proposed `f2be032` 2026-10-26; M1 to M7 decided and implemented 2026-10-28, bb18596, the `'#text'` read report 9ac19ae and 2b87bdf; unreleased, 0.7.0) |
-| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the part warning per misplaced child read (D7, `content.misplaced`); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table and check 72's files | after phase 1: the objects package's CR-017 implemented 2b87bdf (2026-10-28), unreleased; starts at the 0.7.0 raise |
+| 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | done there as objects CR-017 (proposed `f2be032` 2026-10-26; M1 to M7 decided and implemented 2026-10-28, bb18596, the `'#text'` read report 9ac19ae and 2b87bdf, CR-064's addendum 202b58d; released in objects 0.7.0 the same day, tag 5985887, the floor here since the raise) |
+| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the part warning per misplaced child read (D7, `content.misplaced`); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table and check 72's files | next: objects 0.7.0 raised 2026-10-28 (the survey against the installed package the same 35 reports, all check 72's) |
 | 3 | Check 72 (D5), Word's repairs | done: written and run 2026-10-27 (section 7.1): 11 of the 18 don't open ("Word experienced an error trying to open the file", no repair offered), 7 open with no message and are repaired silently, one losing its content |
 
 ## 6. Risks
@@ -191,7 +191,7 @@ child was read; a string between two `w:t` (the facade's own test) is reported, 
 dropped-text pass; its smoke test now 72m's own form and the five probes; its CR-017 section 10 records the miss and the
 reruns). Rerun here at 2b87bdf: 35 reports, the 34 as before and 72m's one on read, `'#text'` at index 0 in the run with
 the string message, nothing on save; no real file in the corpus holds such a string; 0 failures. The locked 0.6.0 and jsonix
-3.9.0 restored after each run. D6's load warning for it follows at the 0.7.0 raise.
+3.9.0 restored after each run. D7's load warning for it is phase 2's.
 
 Later the same day the objects package mirrored docx4j CR-064's addendum (ce87ec6d7, Jason's yes) at 202b58d: `w:delText`
 refused where text is and `w:tab` where a break is, in both sets; a content control at the wrong level a class rule
@@ -217,7 +217,8 @@ name with docx4j-python (one code across the ports, as `value.out_of_range` is).
 integer cases to this package's 432: the 19 are `w:gridCol`, `w:wBefore` and `w:wAfter`, which its limits table lists as
 unmeasured and so doesn't report (Jason, the same day); this package reports them from the objects table, held to Word's
 saves (CR-017 E5).
-Phase 2 can build on bb18596 through a file dependency; whether it waits for the 0.7.0 release is Jason's call.
+Objects 0.7.0 was released 2026-10-28 (tag 5985887) and is the floor here since the raise the same day (CR-017 section 7.1:
+the byte check and the survey against the published package); phase 2 builds on it.
 
 ### 7.1 Check 72's run (2026-10-27)
 
