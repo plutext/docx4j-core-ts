@@ -1,5 +1,5 @@
 import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx4j_relationships';
-import type { Normalisation, OutOfRange } from '@docx4j/generated-objects-ts';
+import type { Normalisation, OutOfRange, MisplacedChild } from '@docx4j/generated-objects-ts';
 import { PartName } from '../opc/PartName.mjs';
 import { InvalidFormatException } from '../opc/exceptions.mjs';
 import type { RelationshipsPart, AddPartBehaviour } from './RelationshipsPart.mjs';
@@ -10,6 +10,8 @@ export interface PartBytesOptions {
   onNormalised?(normalisation: Normalisation): void;
   /** Called for each integer attribute value written that Word 365 reads differently (CR-017 P3); the value is written as held. */
   onOutOfRange?(report: OutOfRange): void;
+  /** Called for each child its container never admits, as the container is written (CR-016 D2); written as held unless the callback throws. */
+  onMisplaced?(report: MisplacedChild): void;
 }
 
 /** Something that owns a relationships part: a part or the package (docx4j Base). */

@@ -5542,9 +5542,12 @@ async function check() {
      run; `72l` joins the inner paragraph's run to the outer paragraph and leaves an empty paragraph after; `72m` drops the string, the
      paragraph left empty; `72o` puts the paragraph before the table; `72p` makes the nested table the outer table's first row; `72q`
      puts the paragraph into the row's first cell.
-   - **What this package gives** (`check72.test.mjs`, measured 2026-10-27): every file loads here with no warning; the
-     readers see the misplaced content only in `72c` and `72d` (a cell's or a row's paragraphs); a save writes the child back
-     as it was in every file but `72m` (a string in a run); a bare break (`72e`, `72j`) is read typed and written back where it
-     was (counted as lost until 2026-10-28, when the objects session caught the test's check missing it). CR-016 section 7 has it. Word's
+   - **What this package gives** (`check72.test.mjs`): before CR-016 phase 2 (measured 2026-10-27) every file loaded here
+     with no warning, the readers saw the misplaced content only in `72c` and `72d` (a cell's or a row's paragraphs), and a
+     save wrote the child back as it was in every file but `72m` (a string in a run; a bare break, `72e` and `72j`, is read
+     typed and written back where it was, counted as lost until 2026-10-28, when the objects session caught the test's check
+     missing it). Since phase 2 (2026-10-28, on objects 0.7.0) each file loads with one `target.misplaced` warning on the main
+     part, the save of its main part is refused (`MisplacedContentException`) but `72m`'s, whose string the runtime dropped at
+     the read, and under `pkg.checkContentOnSave = false` the save writes as before. CR-016 sections 7 and 8 have it. Word's
      saves read back here as any file, the moved text where Word put it.
 

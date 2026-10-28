@@ -1,12 +1,12 @@
 import type { PartSink } from './PartStore.mjs';
 import { CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypes } from './ContentTypes.mjs';
-import { Docx4JException } from './exceptions.mjs';
+import { Docx4JException, MisplacedContentException } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import type { Part } from '../parts/Part.mjs';
-import { valueOutOfRange } from '../parts/XmlPart.mjs';
-import type { ValueOutOfRangeWarning } from './mce/preprocessor.mjs';
+import { valueOutOfRange, misplacedContent } from '../parts/XmlPart.mjs';
+import type { ValueOutOfRangeWarning, MisplacedContentWarning } from './mce/preprocessor.mjs';
 import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
 import { encodeText } from '../xml/dom.mjs';
@@ -27,12 +27,14 @@ export interface ValueNormalised {
 }
 
 /**
- * What the last save of a package did beyond writing it: each value it normalised (CR-015 D8), and each integer
- * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), each with its path.
+ * What the last save of a package did beyond writing it: each value it normalised (CR-015 D8), each integer
+ * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), and, with
+ * `checkContentOnSave` off, each child it wrote where its container never admits one (CR-016 D2), each with its path.
  */
 export interface SaveReport {
   normalised: ValueNormalised[];
   outOfRange: ValueOutOfRangeWarning[];
+  misplaced: MisplacedContentWarning[];
 }
 
 function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
@@ -77,7 +79,7 @@ export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promis
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
-  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange };
+  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced };
   return result;
 }
 
@@ -85,6 +87,7 @@ class Saver {
   private readonly handled = new Set<string>();
   readonly normalised: ValueNormalised[] = [];
   readonly outOfRange: ValueOutOfRangeWarning[] = [];
+  readonly misplaced: MisplacedContentWarning[] = [];
 
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
 
@@ -102,13 +105,24 @@ class Saver {
     if (this.handled.has(part.partName.key)) return;
     this.handled.add(part.partName.key);
     let bytes: Uint8Array;
+    // CR-016 D2: a child its container never admits refuses the save, every one in the part listed, unless
+    // pkg.checkContentOnSave is off, when each is written as held and reported; the runtime's own refusal (a string in a
+    // run) names what the walk reported either way, where before it said nothing of the cause
+    const misplaced: MisplacedContentWarning[] = [];
     try {
       bytes = await part.getBytes({
         onNormalised: (n) => this.normalised.push(valueNormalised(part.partName.name, n)),
         onOutOfRange: (r) => this.outOfRange.push(valueOutOfRange(r, part.partName.name)),
+        onMisplaced: (r) => misplaced.push(misplacedContent(r, part.partName.name)),
       });
     } catch (e) {
-      throw new Docx4JException(`Problem saving part ${part.partName}`, { cause: e });
+      if (misplaced.length > 0 && this.pkg.checkContentOnSave) throw new MisplacedContentException(part.partName.name, misplaced, { cause: e });
+      const because = misplaced.length > 0 ? `: ${misplaced.map((f) => f.message).join('; ')}` : '';
+      throw new Docx4JException(`Problem saving part ${part.partName}${because}`, { cause: e });
+    }
+    if (misplaced.length > 0) {
+      if (this.pkg.checkContentOnSave) throw new MisplacedContentException(part.partName.name, misplaced);
+      this.misplaced.push(...misplaced);
     }
     this.sink.put(part.partName.storeName, bytes, { compress: part.compress, contentType: part.contentType });
     const rrp = part.relationshipsPart;

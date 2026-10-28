@@ -1,10 +1,10 @@
-import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading, type OutOfRange } from '@docx4j/generated-objects-ts';
+import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading, type OutOfRange, type MisplacedChild } from '@docx4j/generated-objects-ts';
 import { Part, type PartBytesOptions } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
-import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning } from '../opc/mce/preprocessor.mjs';
+import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning, MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
 import { rangeOf, describeReading, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
 /**
@@ -87,6 +87,49 @@ export interface SelectOptions {
   namespaces?: Record<string, string> | undefined;
 }
 
+/** The last segment of an objects `TYPE_NAME`, docx4j's class name: `org_docx4j_wml.R` is `R`. */
+const className = (typeName: string): string => typeName.slice(typeName.lastIndexOf('.') + 1);
+
+/**
+ * A child its container never admits, as the objects facade reports it on read or on save (its CR-017's
+ * `onMisplaced`), as a warning (CR-016 D7, D2): docx4j-python's code and fields (`target.misplaced`; `holder` and `item`
+ * docx4j's class names), docx4j's message after the part and the place (the path on save; the container, the child's
+ * place in its list and the line on read).
+ */
+export function misplacedContent(report: MisplacedChild, partName: string | undefined): MisplacedContentWarning {
+  type Located = Element & { lineNumber?: number; columnNumber?: number };
+  const container = report.element as Located;
+  const located = (report.childElement as Located | undefined) ?? container;
+  const isText = report.child === '#text';
+  const element = isText ? undefined : qualifiedName(report.child as Exclude<MisplacedChild['child'], '#text'>);
+  const onRead = report.path === undefined;
+  const line = onRead && typeof located.lineNumber === 'number' ? located.lineNumber : undefined;
+  const column = onRead && typeof located.columnNumber === 'number' ? located.columnNumber : undefined;
+  const shown = report.text === undefined ? '' : ` ${JSON.stringify(report.text.length > 80 ? `${report.text.slice(0, 80)}...` : report.text)}`;
+  const at = onRead
+    ? `${container.nodeName}${report.via === undefined ? '' : `/${report.via}`}, child ${report.index} (${element ?? 'a string'}${shown})${positionOf(line, column)}`
+    : report.path;
+  const prefix = partName === undefined ? '' : `${partName}: `;
+  return {
+    code: 'target.misplaced', partName,
+    ...(line !== undefined ? { line } : {}),
+    ...(column !== undefined ? { column } : {}),
+    ...(onRead ? {} : { path: report.path }),
+    holder: className(report.container), index: report.index,
+    ...(report.childType !== undefined ? { item: className(report.childType) } : {}),
+    ...(element !== undefined ? { element } : {}),
+    rule: report.rule,
+    ...(report.text !== undefined ? { text: report.text } : {}),
+    message: `${prefix}${at}: ${report.message}`,
+  };
+}
+
+/** `w:tbl` for a child's name: its prefix as the report has it, else the objects package's for the namespace. */
+function qualifiedName(name: { namespaceURI: string; localPart: string; prefix?: string }): string {
+  const prefix = name.prefix ?? NAMESPACE_PREFIXES[name.namespaceURI];
+  return prefix ? `${prefix}:${name.localPart}` : name.localPart;
+}
+
 /** The objects package's prefix table as XPath wants it, prefix to URI; built once. */
 const NAMESPACE_PREFIXES_BY_PREFIX: Record<string, string> = (() => {
   const out: Record<string, string> = {};
@@ -148,9 +191,10 @@ export class XmlPart<T = unknown> extends Part {
    * What the last parse of this part reported: an mc:AlternateContent whose branches' text differs
    * (`mce.branches_differ`, CR-010 phase 1), each attribute value its type refuses that was read as
    * Word 365 reads it (`value.kept.exact`, `value.kept.invalid`, `value.truncated`, `value.refused`: CR-015 D8,
-   * CR-017 P1), and each integer attribute value past what Word stores, kept as written (`value.out_of_range`,
-   * CR-017 P2). Empty until the part is parsed, by `getContents()` or a private read, and again once its contents
-   * are set.
+   * CR-017 P1), each integer attribute value past what Word stores, kept as written (`value.out_of_range`,
+   * CR-017 P2), and each child its container never admits, kept as read but a string the runtime drops
+   * (`target.misplaced`, CR-016 D7). Empty until the part is parsed, by `getContents()` or a private read, and again
+   * once its contents are set.
    */
   get warnings(): readonly PartWarning[] {
     return this.parseWarnings;
@@ -191,12 +235,35 @@ export class XmlPart<T = unknown> extends Part {
    * reads the styles and numbering parts of a document nobody has otherwise touched.
    */
   async readContents(): Promise<T> {
-    if (this.element !== undefined) return this.element.value;
+    return (await this.readElement()).value;
+  }
+
+  /** `readContents`'s typed element: the live one, else a private tree from the part's bytes. */
+  private async readElement(): Promise<Jsonix.TypedNamedValue<T>> {
+    if (this.element !== undefined) return this.element;
     const bytes = this.bytes ?? (await this.loadSourceBytes());
     if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
     const doc = this.parse(bytes);
     this.preprocess(doc);
-    return (await this.unmarshal(doc)).value;
+    return this.unmarshal(doc);
+  }
+
+  /**
+   * Every child the part holds that its container never admits (CR-016 D6, the check on request): what a save would
+   * refuse the part for, each with its path, the rule and docx4j's message naming the fix, found by the objects
+   * facade's walk over the tree (a marshal to nothing); the part is not changed, and one never unmarshalled stays
+   * untouched, read privately. `[]` for a part whose content is all in its place.
+   */
+  async checkContent(): Promise<MisplacedContentWarning[]> {
+    const element = await this.readElement();
+    const out: MisplacedContentWarning[] = [];
+    try {
+      await marshalNode(element as Jsonix.TypedNamedValue, { onMisplaced: (report) => out.push(misplacedContent(report, this.partName.name)) });
+    } catch (cause) {
+      // the runtime refuses to write what the walk reported (a string in a run); with nothing reported, the fault is another
+      if (out.length === 0) throw new Docx4JException(`Part ${this.partName}: its content cannot be written`, { cause });
+    }
+    return out;
   }
 
   private preprocess(doc: Document): void {
@@ -278,6 +345,7 @@ export class XmlPart<T = unknown> extends Part {
     if (normalise !== undefined) marshal.normaliseOnSave = normalise;
     if (options?.onNormalised !== undefined) marshal.onNormalised = options.onNormalised;
     if (options?.onOutOfRange !== undefined) marshal.onOutOfRange = options.onOutOfRange; // the report carries its rule (objects 0.7.0)
+    if (options?.onMisplaced !== undefined) marshal.onMisplaced = options.onMisplaced;
     return marshalNode(this.element as Jsonix.TypedNamedValue, marshal);
   }
 
@@ -315,6 +383,7 @@ export class XmlPart<T = unknown> extends Part {
       const element = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {
         onWordReading: (reading) => kept.push(valueKept(reading, this.partName.name)),
         onOutOfRange: (report) => kept.push(valueOutOfRange(report, this.partName.name)),
+        onMisplaced: (report) => kept.push(misplacedContent(report, this.partName.name)),
       });
       if (kept.length > 0) this.parseWarnings = [...this.parseWarnings, ...kept];
       return element;

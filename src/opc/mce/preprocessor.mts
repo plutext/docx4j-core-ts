@@ -129,8 +129,41 @@ export interface ValueOutOfRangeWarning {
   message: string;
 }
 
+/**
+ * A child its container never admits (CR-016 D7, the objects facade's `onMisplaced`, its CR-017; docx4j CR-064's rules):
+ * a run straight in the body, a table in a paragraph, a cell beside a table's rows, a string in a run, or a name and
+ * value that disagree. On load, one per child the facade reports as it reads the part, the tree keeping what it read
+ * (a string in a run excepted, which the runtime drops: `text` carries it); on a save with `checkContentOnSave` off,
+ * one per child written as held, on `pkg.lastSave.misplaced`; with it on, the save is refused with them
+ * (`MisplacedContentException`). The code and the fields are docx4j-python's (its CR-020 section 11.12), one code across
+ * the ports; `rule`, `text` and `line` are this package's own.
+ */
+export interface MisplacedContentWarning {
+  code: 'target.misplaced';
+  partName: string | undefined;
+  /** Where the child (else its container) starts in the part, where the DOM records it (xmldom does). */
+  line?: number;
+  column?: number;
+  /** On save, the child's path from the part's root (`/w:document/w:body[1]/w:p[1]/w:r[1]/w:tbl[1]`); the container's for a string. */
+  path?: string;
+  /** The container's class, docx4j's name (`P`, `R`, `Tbl`, `CTSdtContentRun`): the objects `TYPE_NAME`'s last segment. */
+  holder: string;
+  /** The child's position in the list holding it. */
+  index: number;
+  /** The child's class the same way (`Tbl`, `R`), where it has one; absent for a string. */
+  item?: string;
+  /** The child's element as the part writes it (`w:tbl`); absent for a string. */
+  element?: string;
+  /** `misplaced`, a class the container refuses; `name-value`, a value whose class isn't the one its name declares there. */
+  rule: 'misplaced' | 'name-value';
+  /** For a string in a container that admits none, the string (on load; a save never sees it). */
+  text?: string;
+  /** docx4j's wording, with the fix: "You can't add a run (w:r) directly to the body (w:body); ...", after the part and the place. */
+  message: string;
+}
+
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning;
+export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a

@@ -1,6 +1,6 @@
 # CR-018: Dates in the package's zone
 
-**Status:** Proposed and implemented 2026-10-28 (`d9c0cef`; D6's shim reading the same day, after docx4j's probe, uncommitted), at Jason's word through the portfolio ("commit, then have the
+**Status:** Proposed and implemented 2026-10-28 (`d9c0cef`; D6's shim reading the same day, after docx4j's probe, `4275c36`), at Jason's word through the portfolio ("commit, then have the
 ports do their work"): the portfolio's date rule (`../docx4j-portfolio/docs/date_handling_across_ports.md` section 3.6,
 `4ac305b`), ruled the same day, applied here. Mirrors docx4j CR-067 D12 (`c3e9920e5`: `OpcPackage.setDateTimeZone`,
 `setBoundDatesConvertedAsWord`, its `PackageDateTimeZoneTest`) and docx4j's `docx4j.dcterms.write`. Unreleased.

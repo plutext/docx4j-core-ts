@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-10-26, at Jason's request ("yes, open a CR for refusing misplaced content"), on docx4j
 CR-064's hand-off (its section 7: whether the ports refuse misplaced children is theirs to decide, with its table of
-mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 decided 2026-10-27 as recommended (section 4); check 72 (D5) written and run the same day (sections 7 and 7.1: 11 of the 18 files don't open in Word 365, no repair offered, 7 are repaired silently, one losing its content). Phase 1 is the objects package's CR-017, released in objects 0.7.0 (2026-10-28), the floor since the raise the same day (CR-017 section 7.1); D7 decided (section 4); phase 2 next.
+mistakes as the list worth catching). Today's behaviour measured the same day (section 2). D1 to D6 decided 2026-10-27 as recommended (section 4); check 72 (D5) written and run the same day (sections 7 and 7.1: 11 of the 18 files don't open in Word 365, no repair offered, 7 are repaired silently, one losing its content). Phase 1 is the objects package's CR-017, released in objects 0.7.0 (2026-10-28), the floor since the raise the same day (CR-017 section 7.1); D7 decided (section 4). **Phase 2 implemented 2026-10-28** (section 8): a save refused for a misplaced child unless `pkg.checkContentOnSave` is off, `checkContent()` on request, a `target.misplaced` part warning per child read, the gate over 806 files. Unreleased.
 
 ## 1. Why
 
@@ -95,7 +95,7 @@ rule is an allow rule from its model (its D2), a superset of CR-064's refuse set
 |---|---|---|
 | 0 | This CR; today's behaviour measured (section 2) | done 2026-10-26 |
 | 1 | The objects package's CR (D1 (a)): the rules (D3) and the walk over a tree, with the messages (D4); its tests per rule and per container, legal children accepted | done there as objects CR-017 (proposed `f2be032` 2026-10-26; M1 to M7 decided and implemented 2026-10-28, bb18596, the `'#text'` read report 9ac19ae and 2b87bdf, CR-064's addendum 202b58d; released in objects 0.7.0 the same day, tag 5985887, the floor here since the raise) |
-| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the part warning per misplaced child read (D7, `content.misplaced`); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table and check 72's files | next: objects 0.7.0 raised 2026-10-28 (the survey against the installed package the same 35 reports, all check 72's) |
+| 2 | Here: the check at save, through `onMisplaced`'s save-side report (D2, refusing where a report arrives unless turned off), and on request (D6); the part warning per misplaced child read (D7, `content.misplaced`); the fixture gate over `test/fixtures/` and the Office-made corpus; tests per row of section 2's table and check 72's files | done 2026-10-28 (section 8), on objects 0.7.0 raised the same day (the survey against the installed package the same 35 reports, all check 72's); the warning's code `target.misplaced` (D7's paragraph), not `content.misplaced` |
 | 3 | Check 72 (D5), Word's repairs | done: written and run 2026-10-27 (section 7.1): 11 of the 18 don't open ("Word experienced an error trying to open the file", no repair offered), 7 open with no message and are repaired silently, one losing its content |
 
 ## 6. Risks
@@ -250,3 +250,82 @@ opening with no word to the user, and in one form loses its content. Phase 2's r
 This package reads each of Word's saves as any file: BEFORE, AFTER and the moved text where Word put it, the string gone,
 no warning (`check72.test.mjs`, under the manifest). What this package does with the original files is unchanged from
 section 7: the eleven Word can't open are among the seventeen it saves back as they were.
+
+## 8. Implemented (2026-10-28, phase 2)
+
+On objects 0.7.0 (its CR-017's `onMisplaced` on read and on save), raised here the same day (`4275c36`), at Jason's
+sequence (release the objects package, raise, then phase 2; "can we start CR-016 phase 2 or do i have decisions to make?":
+none).
+
+- **D2, the save.** `Saver.savePart` passes `onMisplaced` through `PartBytesOptions` to `XmlPart.marshalToNode`, which
+  hands it to the marshal; each report is a `MisplacedContentWarning` (`misplacedContent` in `XmlPart.mts`, beside
+  `valueOutOfRange`). With `pkg.checkContentOnSave` (new, on by default; `clone()` copies it) the save throws
+  `MisplacedContentException` (`opc/exceptions.mts`: `partName`, `findings`, the message naming the part, the count, Word's
+  fate for such a file from check 72, the opt-out, and every finding on its own line) once the part's bytes are made, so
+  every misplaced child in the part is listed, not the first; nothing is written (the sink's result is never finished), and
+  `pkg.lastSave` is left as it was. Off, the part is written as held and the findings go to `pkg.lastSave.misplaced`,
+  beside `normalised` and `outOfRange`. The runtime's own refusal of a string in a run comes after the walk's report, so the
+  `Docx4JException` a save threw for it with no cause given (section 2) now says the cause: "Problem saving part
+  /word/document.xml: /word/document.xml: /w:document/w:body[1]/w:p[1]/w:r[1]: You can't add a string to a run (w:r); ...",
+  and under the check it is the `MisplacedContentException`, the runtime's error its `cause`. Only a part being marshalled
+  is checked (D6 (a)): a part copied from the source is never refused, so a document read and saved untouched never is,
+  even one of check 72's.
+- **D6, on request.** `XmlPart.checkContent()` and `OpcPackage.checkContent()` (every typed XML part): the facade's walk
+  over the tree, a marshal to nothing with `onMisplaced` collecting; nothing changes, and a part never unmarshalled is read
+  privately (`readElement`, `readContents`'s typed element) and stays untouched. The runtime's refusal during that marshal
+  (a string in a run) is swallowed where the walk reported, thrown as "its content cannot be written" where it reported
+  nothing. A story-level check is its part's (CR-002's stories are parts); not added.
+- **D7, the load.** `XmlPart.unmarshal` passes `onMisplaced` beside `onOutOfRange`; each report is a `target.misplaced`
+  warning on `warnings`, `OpcPackage.warnings` gathering them. For a string in a run (72m) it is the only notice there will
+  ever be: the runtime drops the string before the tree holds it, so a save and `checkContent()` see nothing, and the file
+  saves clean (a documented fate, `check72.test.mjs`).
+- **The warning** (`MisplacedContentWarning`, `opc/mce/preprocessor.mts`, in `PartWarning`): the fields of section 4's D7
+  paragraph. `holder` and `item` are the objects `TYPE_NAME`'s last segment (`Body`, `P`, `R`, `Tbl`, `Tr`, `Tc`, `Text`,
+  `Br`, `CTSdtContentRun`); `element` the child's prefixed name, the report's prefix else the objects prefix table's;
+  `path` on save, the facade's; `line` and `column` on read, the child's element where the parser placed it, else its
+  container's. The message is the part, the place and docx4j's sentence: on save `/word/document.xml:
+  /w:document/w:body[1]/w:r[1]: You can't add a run (w:r) directly to the body (w:body); add it to a paragraph (w:p) and add
+  that.`; on read `/word/document.xml: w:body, child 2 (w:r) (line 1, column 365): You can't ...`, a string shown quoted
+  (`child 0 (a string "MISPLACED string in a run")`), cut at 80 characters.
+- **The gate** (D6, docx4j CR-064 D8 and D9): every Office file under `test/fixtures` (check 72's apart), `test/mc-fun`,
+  the check 52 to 71b saves, `test/integer-attributes`, `test/runprops-word365`, `test/s17`, `test/text-extraction` and
+  docx4j's charts corpus, 806 files, loaded, every part unmarshalled, saved under the check and checked on request: 0 saves
+  refused, 0 findings, 0 failures, in 27 seconds (the scratch script `gate-misplaced.mjs`). No rule had to be downgraded
+  to a report. `test/misplaced-content.test.mjs` keeps the fixtures' and `mc-fun`'s part of it (the kept-branch fixtures
+  included, since objects 202b58d's false positive was in a kept `mc:Choice`).
+- **Cost at save** (section 6): none measurable. `loadAndSave.docx`, every part unmarshalled, 20 warm saves: 30.3 ms and
+  27.9 ms a save with the check on, 30.1 and 27.3 off; `invoice.docx` 14.9 and 14.2 on, 14.5 and 14.1 off. The facade
+  tests each container's list as it opens it, a set lookup per child, inside the marshal's own visit.
+- **A gap in the facade's walk, found by this phase and sent to the objects session** (its CR-017): a container whose value
+  carries no `TYPE_NAME` is not tested, where the marshal still writes it by its element's declared class. That is section
+  2's second escape (a value built by hand without its type), and it was how `createPackage` built its own document until
+  today: its `w:document`, `w:body` and `w:sectPr` values now carry their `TYPE_NAME`, as a loaded document's do, so a
+  created document's body is a container the walk sees (every created package's test passes unchanged).
+  `misplaced-content.test.mjs` asserts the gap as it stands, CR-001 section 19's way: an untyped paragraph holding a table
+  passes `checkContent()` and is written; the same paragraph typed is refused. The facade's fix flips the assertion.
+  Confirmed and fixed in the objects working tree the same day (uncommitted; a 0.7.1 is Jason's call): the save side tests
+  a container as the class it is written as, its `TYPE_NAME` or, built without one, the class its name declares where it
+  stands (the runtime's `omitElement` lookup; the root by its declaration), so an untyped document and body, an untyped
+  paragraph in a typed body, an untyped root and an untyped paragraph in a kept `mc:Choice` all report; its 341 fidelity
+  hashes unchanged. The read side already typed a child by its declaration. At that release the assertion here flips.
+- **The builders refuse first** (objects CR-017's own rule): `p([r('x'), tbl(...)])` throws a `TypeError` with the same
+  message before any tree holds the table; the direct push past it is what this phase catches.
+
+**Tests** (`test/misplaced-content.test.mjs`, 6; `check72.test.mjs` updated; 1,646 pass): section 2's five edits (a run in the
+body, a table and a paragraph in a paragraph, a cell beside a table's rows, a string in a run) refused with the part, the
+path, `holder`, `item`, `element`, `index`, `rule` and docx4j's sentence, nothing written and `lastSave` untouched, two in one
+part both listed, and the content API's insert still refusing first; the opt-out writing each as held with the finding on
+`lastSave.misplaced`, the string still failing with the cause named, a clean save's `[]`, and `clone()`; `checkContent()` on
+check 72's eighteen files (one finding each but 72m's none) leaving the part untouched, the package's check its parts', the
+untouched save byte for byte and unrefused, then refused once unmarshalled with the same findings; D7's warning per file with
+the fields of a table, the line and column, the message's shape, 72m's `text`, and a part whose contents are set clean again;
+the gate; the facade's gap as it stands. `check72.test.mjs`'s "today" test is now the files' fates: one warning each, the
+save refused but 72m's, and under the opt-out section 7's table as before (`AS_HELD`). `test/nodenext/consumer.mts` names
+`MisplacedContentWarning` and `MisplacedContentException` by the package's name.
+
+**Departures and notes.** docx4j refuses at the add (`ArrayListDocx4j`); this package at the save, the check on request
+and the load warning, D1 to D7's reasons. docx4j-python's checked save (its CR-020) is off by default and refuses only a
+child its session made; this package's is on by default and refuses any re-marshalled part holding one (D6 (a)), the
+opt-out for a file another producer wrote that way. The message's first clause is docx4j's wording through the objects
+package; the refusal's own sentence and the place are this package's. The editor and docx4j-python are to be told at the
+commit: a save that wrote a misplaced child yesterday throws today.

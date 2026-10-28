@@ -1,3 +1,5 @@
+import type { MisplacedContentWarning } from './mce/preprocessor.mjs';
+
 /** docx4j Docx4JException: anything the packaging layer cannot recover from. */
 export class Docx4JException extends Error {
   readonly cause: unknown;
@@ -98,4 +100,27 @@ export class PartUnmarshalException extends Docx4JException {
   readonly location: string | undefined;
   readonly line: number | undefined;
   readonly column: number | undefined;
+}
+
+/**
+ * A save refused for a child its container never admits (CR-016 D2): the part being marshalled holds a run straight in
+ * the body, a table in a paragraph, a string in a run, ..., which Word 365 refuses the file for or repairs by dropping
+ * content (check 72). Nothing was written. `findings` are the part's, each with its path and docx4j's message naming
+ * the fix; `pkg.checkContentOnSave = false` writes the file as held and reports them on `pkg.lastSave.misplaced` instead.
+ */
+export class MisplacedContentException extends Docx4JException {
+  constructor(
+    /** The part refused: `/word/document.xml`. */
+    readonly partName: string,
+    readonly findings: readonly MisplacedContentWarning[],
+    options?: { cause?: unknown },
+  ) {
+    super(
+      `Save refused: ${partName} holds ${findings.length === 1 ? 'a child its container never admits' : `${findings.length} children their containers never admit`}, `
+      + 'which Word 365 refuses the file for or repairs by dropping content (set pkg.checkContentOnSave = false to write it as held):\n'
+      + findings.map((f) => `  ${f.message}`).join('\n'),
+      options,
+    );
+    this.name = 'MisplacedContentException';
+  }
 }

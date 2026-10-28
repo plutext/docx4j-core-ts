@@ -59,7 +59,9 @@ implemented, P1 to P3, unreleased, with CR-002 section 65 (the measurement sette
 limits below it, and `lineSpacing` writing Word's auto rule, check 71b, section 65.9) and its section 65.3 (the setters' table the objects package's). So is CR-002 section 63
 (writing into a control showing its placeholder as Word does, the placeholder no content, in Word's form, `w:placeholder` naming a glossary
 entry, and in the bare form alike; placeholders written in Word's form, their entries in a glossary made on save; checks 63 to 67, check 63
-run again with Design Mode off, since Design Mode changes what a write into a placeholder does). CR-018 (dates in the package's zone, the portfolio's
+run again with Design Mode off, since Design Mode changes what a write into a placeholder does). CR-016 (misplaced content refused before it reaches a saved file, docx4j CR-064's rules
+in the objects package's CR-017: a save throws `MisplacedContentException` for a run in the body, a table in a paragraph, a string in a run, ..., unless `pkg.checkContentOnSave`
+is off; `checkContent()` on request; a `target.misplaced` part warning per child read; check 72 for Word's repairs) is implemented, unreleased. CR-018 (dates in the package's zone, the portfolio's
 date rule of 2026-10-28: `pkg.dateTimeZone` for every instant's wall clock, a comment stamped to the minute, Word's bound-date conversion and the
 save's `dcterms` times as opt-ins) is implemented, unreleased. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
@@ -181,6 +183,18 @@ Key mechanics:
   the tree, the readers and the save keep the value as written (E2), and a decimal reads truncated as Word reads it
   (`value.truncated`) or, in a form Word refuses a document for, dropped (`value.refused`; P1, the objects package's CR-015).
   The setters refuse such a value before it is written (CR-002 section 65), from the same table (`keptRange`).
+- **A child its container never admits is refused at save** (CR-016; docx4j CR-064's rules in the objects facade, its CR-017,
+  `onMisplaced` on read and on save: a run straight in the body, a table or a paragraph in a paragraph, a cell beside a
+  table's rows, a string in a run, a name and value that disagree; never an allow-list). Only a part being marshalled is
+  checked, so a document read and saved untouched is never refused. The save throws `MisplacedContentException` with every
+  such child in the part (`findings`: `target.misplaced`, docx4j-python's code and fields, `path`, `holder`, `item`,
+  `element`, `index`, `rule`, docx4j's message naming the fix) and writes nothing, unless `pkg.checkContentOnSave` is false,
+  when the part is written as held and they go to `pkg.lastSave.misplaced`. `part.checkContent()` and `pkg.checkContent()`
+  are the same walk on request, changing nothing (an untouched part read privately). On load each one is the same warning
+  on the part (`line` and `column` in place of `path`; a string in a run, which the runtime drops, has `text`, and is the only
+  notice of it). The builders (`p`, `r`, `tbl`, ...) refuse first. The facade's walk keys on the container's `TYPE_NAME`:
+  `createPackage`'s document, body and `sectPr` carry theirs; a container built by hand without one escapes the walk (a
+  known objects gap, asserted in `misplaced-content.test.mjs`). The gate: 806 corpus files save under the check unrefused.
 - **Dates are in the package's zone** (CR-018, the portfolio's date rule, docx4j CR-067 D12). A revision's or a comment's `w:date`
   is Word's local wall-clock time labelled `Z`, the true UTC beside it in `dateUtc` (CR-002 section 29); "local" is
   `pkg.dateTimeZone` (an IANA id, the client's for this package, never saved; copied by `clone()`), else the runtime's zone,
@@ -389,7 +403,10 @@ and check 71b's file (`check71bBytes`, `test/fixtures/check71b/`: the same sette
 snippet, a copy held equal; Word 365's run (its JSONs beside the build, its save in `test/check71b/`, with a SHA-1 manifest) pinned, and the shim's run held to
 it case for case, its one difference listed (section 65.9),
 `check72.test.mjs` CR-016 D5's: check 72's 18 files (`check72Files`, `test/fixtures/check72/`: one misplaced child each, per rule of docx4j CR-064's five sets, for
-Word's repairs), and what this package does with each today (loads clean, the readers see two, a save writes seventeen back, a string in a run the one lost; CR-016 section 7), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
+Word's repairs), and each file's fate here (a `target.misplaced` warning at the load, the readers see two, the save refused but 72m's, whose string the runtime dropped at the read, and under the opt-out seventeen written back as held; CR-016 sections 7 and 8), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
+`misplaced-content.test.mjs` CR-016 phase 2's: section 2's five direct edits refused at save with the part, the path and docx4j's fix, nothing written; the opt-out writing as held
+onto `pkg.lastSave.misplaced`; `checkContent()` on check 72's files leaving the part untouched and the untouched save unrefused; D7's warning fields per file; the gate over every
+fixture and `mc-fun` file; the facade's `TYPE_NAME` gap asserted as it stands,
 `integer-attributes.test.mjs` CR-017's and CR-002 section 65.3's: docx4j CR-065's and CR-066's probes and Word 365's saves (`test/integer-attributes/`, copied
 unedited from the share with a SHA-1 manifest, outside `fixtures/`): rounds 5 and 6's 660 integer cases, a `value.out_of_range` warning on load and on
 `pkg.lastSave` exactly where Word's save changed the value, its rule or its attribute (432, the objects package's own count), `wordReads` what Word wrote,

@@ -206,7 +206,8 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
     const pgSz: wml.SectPr.PgSz = { w: landscape ? ph : pw, h: landscape ? pw : ph, code };
     if (landscape) pgSz.orient = 'landscape';
     const pgMar: wml.SectPr.PgMar = { top: 1440, right: 1440, bottom: 1440, left: 1440, header: 708, footer: 708, gutter: 0 };
-    const document: wml.Document = { body: { content: [], sectPr: { pgSz, pgMar } } };
+    // typed, as a loaded document is, so the objects facade's walks (its onMisplaced, CR-016) see the body as a container
+    const document: wml.Document = { TYPE_NAME: 'org_docx4j_wml.Document', body: { TYPE_NAME: 'org_docx4j_wml.Body', content: [], sectPr: { TYPE_NAME: 'org_docx4j_wml.SectPr', pgSz, pgMar } } };
     const main = new MainDocumentPart();
     main.setContents(document);
     pkg.addTargetPart(main);

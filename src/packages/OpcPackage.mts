@@ -15,7 +15,7 @@ import { RelationshipsPart, type AddPartBehaviour } from '../parts/Relationships
 import type { CustomXmlDataStoragePart } from '../parts/DefaultXmlPart.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart, DocPropsCustomPart } from '../parts/docProps/index.mjs';
 import { assertTimeZone, runtimeTimeZone } from '../model/dateZone.mjs';
-import { mceKeep, mcePreprocess, type PartWarning } from '../opc/mce/preprocessor.mjs';
+import { mceKeep, mcePreprocess, type PartWarning, type MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
 /** Anything `OpcPackage.load` accepts: zip bytes, a flat OPC string, or a container. */
@@ -50,8 +50,19 @@ export class OpcPackage implements RelationshipSource {
    * On/off values and `w:u`'s are settled when the part is read, so they are written the same either way.
    */
   normaliseOnSave: boolean | undefined;
-  /** What the last save did beyond writing the package: each value it normalised (CR-015 D8), each it wrote past what Word stores (CR-017 P3). Undefined until one. */
+  /** What the last save did beyond writing the package: each value it normalised (CR-015 D8), each it wrote past what Word stores (CR-017 P3), each misplaced child it wrote under `checkContentOnSave = false` (CR-016). Undefined until one. */
   lastSave: SaveReport | undefined;
+  /**
+   * Whether a save refuses a part holding a child its container never admits (CR-016 D2, docx4j CR-064's rules in the
+   * objects facade, its CR-017): a run straight in the body, a table in a paragraph, a cell beside a table's rows, a
+   * string in a run, a name and value that disagree. On by default: the save throws `MisplacedContentException` with
+   * every such child in the part, its path and docx4j's message naming the fix, and writes nothing, since Word 365
+   * refuses such a file or repairs it by dropping content (check 72). Off, the part is written as held and each is on
+   * `lastSave.misplaced`. Only a part being marshalled is checked (one unmarshalled, or given contents); a part copied
+   * from the source is never refused, so a document read and saved untouched never is. `checkContent()` is the same
+   * check on request. A misplaced child read from a file is a `target.misplaced` warning on its part (D7).
+   */
+  checkContentOnSave = true;
   private dateTimeZone_: string | undefined;
   /**
    * The client's time zone for this package, an IANA id (`Australia/Sydney`), or undefined for the runtime's (CR-018; the
@@ -154,6 +165,18 @@ export class OpcPackage implements RelationshipSource {
     return out;
   }
 
+  /**
+   * Every child a part holds that its container never admits (CR-016 D6, the check on request): what a save would
+   * refuse for, over every typed XML part, each finding with its part, its path, the rule and docx4j's message naming
+   * the fix. Nothing is changed, and an untouched part stays untouched (read privately). `[]` for a package whose
+   * content is all in its place.
+   */
+  async checkContent(): Promise<MisplacedContentWarning[]> {
+    const out: MisplacedContentWarning[] = [];
+    for (const part of this.parts) if (part instanceof XmlPart) out.push(...(await part.checkContent()));
+    return out;
+  }
+
   /** Unmarshals every XML part, so that `contents` is available synchronously everywhere. */
   async unmarshalAll(): Promise<void> {
     for (const part of this.parts) if (part instanceof XmlPart) await part.getContents();
@@ -200,6 +223,7 @@ export class OpcPackage implements RelationshipSource {
       throw new Docx4JException(`Cloning ${this.constructor.name} produced ${copy.constructor.name}`);
     }
     copy.normaliseOnSave = this.normaliseOnSave;
+    copy.checkContentOnSave = this.checkContentOnSave;
     copy.dateTimeZone = this.dateTimeZone;
     copy.boundDatesConvertedAsWord = this.boundDatesConvertedAsWord;
     copy.writeTimesOnSave = this.writeTimesOnSave;
