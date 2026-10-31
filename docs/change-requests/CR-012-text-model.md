@@ -2303,3 +2303,162 @@ first `:` that comes before any `/`, `?` or `#`. So `&unknown;avascript:x` and `
 `MarkdownHostileLinksTest.noEntityEncodedScriptSchemeDestination`, its document's seven new targets among the hostile
 ones and its `benignLinksKept` cases. Reported to docx4j the same day; docx4j-25 confirmed and fixed it there.
 
+
+## 22. Embedded objects: the object block's fields, the embedded-object filter, and warnings naming the part (docx4j CR-070's hand-off, proposed 2026-10-31)
+
+From docx4j-12's hand-off of docx4j CR-070 (`1560ab379`, `VERSION_17_3_5`, unpushed; WD 0.47 draft, REQ-512, REQ-522,
+REQ-513, REQ-801; docx4j's `EmbeddedObjectsTest`, 9, the tests to mirror; docx4j is the oracle). Registered as
+`core-ts/CR-012.22`, depending on `docx4j/CR-070`, which waits on the portfolio's WD work. Nothing implemented; waits for
+Jason's go. Three additions and one consequence for the suite:
+
+1. **REQ-512's object block gains fields**, each absent where it doesn't apply: `kind` (`embed`, `link` from
+   `o:OLEObject/@Type`, or `control` for a `w:control`, or an `o:OLEObject` whose part's content type is
+   `application/vnd.ms-office.activeX+xml` or `application/vnd.ms-office.activeX`); `relationshipId` (the `r:id`); `part`
+   (the embedded part's or control's part name; absent for a link, even with an internal relationship, and for an
+   unresolved relationship); `contentType` (the part's); for an OLE 1.0 package (ProgID `Package`, an `Ole10Native`
+   stream) `label`, `fileName`, `command` from `Ole10Native`'s plain fields, not the UTF-16 ones, empty absent. A
+   `w:control` has no `progId`. docx4j: `TextRun.getObject()` giving a `TextObject`.
+2. **REQ-522, an embedded-object filter under `embedded: true`**: asked once per object the extractor would read (an
+   embedded OOXML package, an OLE 1.0 package; never a link or a control, never one level down), before reading, with
+   the object's description and its address (`body/3/object:0`). Indices count declined objects too, so addresses don't
+   move. A decline keeps the object block. A filter that throws declines, with `content.not_read` naming the object's
+   part at the anchoring paragraph's address. No filter reads every object.
+3. **`altchunk.not_expanded`'s selector is the chunk's part name** (it was the content type, which the warning still
+   carries as `contentType`), and a warning raised inside an embedded package or a chunk names the outer package's or
+   chunk's part (REQ-801's `content.not_read` rule, applied to every part-naming warning): case 47's nested HTML chunk
+   names `/word/chunk47.docx`.
+4. **The conformance table**: `phase0/expected-findings.tsv`'s 12 `altchunk.not_expanded` rows are keyed by part name
+   (`/word/afchunk.htm`, `/word/chunk43.txt` ... `/word/chunk63.htm`); case 36's count-2 row is split into
+   `/word/afchunk.htm` (html reader absent, 1) and `/word/chunk47.docx` (default, 1). `GOLDENS.md`'s selector sentence
+   changed with it.
+
+### 22.1 Here today
+
+`embedded: true` is refused (`TextOptionError`, REQ-512, phase 5d), so items 1 and 2 have nothing to change yet: the
+object block is written without those fields, and no object is read. `altchunk.not_expanded` is raised by the
+`Extractor` with the chunk's content type as its `selector` (`TextWarning.contentType`, section 15), and the suite copied
+at docx4j `198d015a3` (`test/text-extraction/manifest.json`) keys its 12 rows by content type; the adapter
+(`test/text-extraction/adapter.mjs`) matches a row by `kind` and `selector`, so the next suite copy fails those rows until
+item 3 is in (the suite rule: a claimed row that fails, or a count that moves, fails the test). Nothing here is nested
+yet (no chunk expanded, no package read), so the outer-part rule of item 3 has no case until 5d and 5e, but the
+re-keyed table already shows it: WD 0.47 (draft) states in REQ-801 that a warning raised one level down names the host
+package's part (a nested chunk's `altchunk.not_expanded`, a nested `image.not_described`), which is why case 36's row splits
+into `/word/afchunk.htm` and `/word/chunk47.docx` (the portfolio session, 2026-10-31). Here, where `/word/chunk47.docx` is
+not expanded, its own `altchunk.not_expanded` has that selector, so the split row is met by 22.2 (a) alone; once 5e expands
+a `.docx` chunk, the nested HTML chunk's warning must still name `/word/chunk47.docx`.
+
+### 22.2 Proposal
+
+- **22.2 (a), with the next suite copy** (`scripts/copy-text-extraction-suite.mjs` at a docx4j commit holding CR-070's
+  table): `altchunk.not_expanded`'s `selector` becomes the chunk's part name (resolved from the `altChunk`'s `r:id` through
+  the story part's relationships; the content type kept as `contentType`), the adapter unchanged; the text goldens
+  (phase 6) hold no warnings, so none moves. Small: the warning's constructor and the Extractor's one call. The two
+  land in one commit, since the pinned rows are the test of it.
+- **22.2 (b), with phase 5d** (`embedded`, REQ-512): the object block's fields of item 1 read from the `o:OLEObject`, its
+  relationship and part (`Ole10Native` parsed for the three plain fields); the filter of item 2 as a `TextOptions` member
+  (`embeddedFilter?: (object: { description, address, part, contentType, kind }) => boolean`, named by the WD when 0.47 is
+  ruled); the outer-part rule for every warning raised inside an embedded package or a chunk (5d and 5e alike).
+- **Tests**: docx4j's `EmbeddedObjectsTest` mirrored over the suite's fixtures; the conformance suite's rows after the
+  copy.
+
+### 22.3 Decisions (for Jason)
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | When 22.2 (a) lands | With the next suite copy, whenever that is asked for (it needs a docx4j commit holding CR-070's table, which waits on WD 0.47); not before, since the pinned rows would then fail |
+| D2 | Where items 1 and 2 land | Phase 5d, unchanged in scope; this section is their specification when 5d is scheduled |
+| D3 | The filter's shape | A function member of `TextOptions`, the WD's name once 0.47 is ruled; a throwing filter declines with `content.not_read`, as docx4j's |
+
+## 23. WD 0.41 to 0.47 statements recorded for the text model (2026-10-31; nothing built)
+
+The portfolio committed WD 0.34 to 0.42 at `e49964f` (2026-10-29), 0.45 at `3693c44` (2026-10-31) and 0.46 and 0.47 at
+`fb26239` (2026-10-31). What they say to this package, each recorded here as the portfolio asked, and built only at Jason's
+go. Section 22 is 0.47's REQ-512, REQ-522, REQ-513 and REQ-801. The rest:
+
+### 23.1 REQ-1002, `profile` (WD 0.41; docx4j `bc842ac66`, CR-046 section 9, `TextOptionsProfileTest`)
+
+A preset of option values applied before the caller's own, so a caller's option overrides it whichever came first. docx4j's
+shape: every option set by name is recorded (each setter and `set(name, value)`), and `profile` fills only the others, so
+the order of `profile` and a caller's option does not matter; `profile: word-text`, case-insensitive, hyphen or underscore,
+in a map in either order; `toMap` carries `profile` last (null where none); an unknown profile refused naming REQ-1002.
+`word-text` = `view` accepted; `include` headers, footers, comments; `comments`, `hidden`, `notes`, `note_references`,
+`toc`, `placeholders`, `altchunks` true; `text_boxes`, `list_labels`, `field_codes`, `page_markers`, `alt_text`,
+`metadata`, `charts`, `smartart`, `embedded` false; `fields` cached; `bindings` bound; `symbols` asis; `tables` tsv;
+`layout` none; `math` unicodemath (the WD; docx4j writes latex, having no UnicodeMath, documented there). An
+implementation documents what it does not reproduce: the notes' and comments' forms, CRLF and CR cells, folded hyphens,
+Word's linear math, and the three accidents left out (the DATE/TIME/SAVEDATE-triggered open-time update, the SYMBOL
+omission, the stale PAGE). Here: `TextOptions` (section 4.4) takes its options by the WD's names; the preset is a table and
+the recording of set names. D1 below.
+
+### 23.2 REQ-711, output encoding (WD 0.45)
+
+Wherever an implementation writes a serialization as bytes: UTF-8 without a byte order mark unless the caller names an
+encoding; a character the named encoding lacks written as a documented replacement and reported once by
+`text.unencodable` (REQ-801) with the count and the first address. A JS string has no encoding under it. Here the text
+model, the plain text and the Markdown return strings, there is no CLI and no text file writer, so nothing changes; a
+future writer writes `'utf8'` (Node adds no BOM).
+
+### 23.3 Fields under `fields: cached` (WD 0.42, D34; the hidden-code rule; REQ-902's kinds)
+
+Under `fields: cached` a `LISTNUM`, `AUTONUM`, `AUTONUMLGL` or `AUTONUMOUT` gives no text (Word never stores their results
+and Word's plain text omits them, as it omits list labels), stays in the block model with a null result and raises no
+`field.no_result`; a `SYMBOL` gives its character in every mode (a Windows-1252 code, a symbol font's glyph as its
+private-use character, `\u` a code point, `###` for a code Word cannot read), a named departure from Word's converter;
+under `update` all five are computed (phase 5a). The code of a field is evaluated without its hidden runs (a `w:vanish`
+instruction run is not part of it; an IF whose true branch is hidden gives an empty result), measured on docx4j's
+fields-fun memo; this package's `field_codes` reading already leaves a hidden run out unless `hidden: true` asks for the
+whole code. Two REQ-902 inspector kinds, info group, anchored at the field: `fields.auto_update` on a `DATE`, `TIME` or
+`SAVEDATE` field (Word's open refreshes it and recomputes the document's IF fields with literal or auto-updating operands,
+the last field excepted, writing the results on save) and `fields.print_update` on a `PAGE`, `NUMPAGES`, `SECTION`,
+`SECTIONPAGES`, `PRINTDATE`, `REF` or `SEQ` field (Word's PDF export updates it, then the literal IFs). This package has
+no inspector; the kinds go to whichever CR carries REQ-902. The IF-field probe and the memo (docx4j `fields/cr067-iffield`,
+`fields/cr067-fields-fun`) read here on 2026-10-29: the text model the stored result in every case (the paper's section
+7.12); the Office JS readers read a nested field's stored result as text too (`NopeTITLE_MISMATCH`), unmeasured against
+Word's own `paragraph.text`, which the portfolio proposed Jason measure.
+
+### 23.4 REQ-205, offsets (WD 0.46)
+
+Every count, offset or length into text that the specification states or an implementation returns counts Unicode scalar
+values (code points), never UTF-16 code units or bytes; a UTF-16 implementation converts. An emulated API's own offsets
+(REQ-202) keep that API's unit, Office JS's being code units, and are not offsets of the specification. Here: `officeOffset`
+and `Range`'s and `search`'s offsets stay code units (CR-002 section 13; REQ-202); a WD find or outline offset, when one
+is exposed, converts to code points. The text goldens hold astral text (eight files: U+1F600, U+F0041, U+E0041, U+E0042)
+but no offsets, so none moves. WD 0.48 (`fb3cfcb`, 2026-10-31; Jason's ruling) carries REQ-205 into REQ-605: a grid table's
+column width is the code-point count of its widest cell line (the unit the text's, not an encoding's; a code point is not a
+grapheme). Here `tables: grid` pads by string length, UTF-16 code units (`PlainText.mts`'s grid writer: the widths from
+`l.length`, the padding `w - text.length`), as docx4j's `PlainText` did; it changes to a code-point count (`[...l].length`,
+or a counted iteration) when this section is taken; docx4j and python are changing theirs together. No suite row or golden
+holds a grid table with astral text, so none moves; a test with one is added with the change.
+
+### 23.5 REQ-702, the date under `markup_detail: author_date` (WD 0.46; REQ-706's `revision.date` the same form)
+
+The date is the author's local time from `w:date` in ISO 8601 extended format with no designator, the UTC offset appended
+where `dateUtc` is present (`w:date` less `dateUtc`: `2026-10-31T11:00:00+11:00`), `dateUtc` alone with a `Z`, the stored
+`Z` never written, no conversion; comments the same. **Here today** `TextRevision.date` and `TextComment.date` are the
+stored `w:date` string as the package wrote it (`calendarText`, section 15), with its `Z`, which `PlainText` and the
+Markdown's CriticMarkup write under `author_date`. So REQ-702 is a behaviour change here: the string is to be formed from
+`w:date` and `dateUtc` as stated, in the Extractor's `revisionOf` and the comment reader, and the block model's `date`
+documented as the WD's form. D2 below.
+
+**The oracle landed in docx4j** (2026-10-31, `VERSION_17_3_5`, unpushed; the portfolio session): `1a0b5315c` the grid width
+(23.4; `gridWidthsCountCodePoints`: `abcd` against `x` and two U+1F600 gives width 4) and `fc71f12e6` the date form, after
+Jason ruled the date review's option (c) ("rule (c), yes, build it into 17.3.5"; the date doc's section 3.7, `a6bd4bb`):
+`RevisionDates` (localTime, offset, text); `TrackedChange.getAuthorLocalTime()` and `getAuthorOffset()` beside `getDate()`,
+the instant, unchanged; `TextRevision` and `TextComment` `getDate()` in REQ-702's form; a comment's `w16cex:dateUtc` found
+through its last paragraph's `w14:paraId`, `commentsIds`' `durableId` and `commentsExtensible`; `author: ` alone where there is
+no date. WD 0.49 (`a993e46`) adds three precision rules: a zero offset is `+00:00`, never `Z`; an offset is written only
+where `w:date` less `dateUtc` is a whole number of quarter hours within -12:00 to +14:00, else none; `w:date`'s designator is
+never read, `dateUtc`'s applied, a date-only value is midnight, fractional seconds dropped. The oracle file is
+`revisions/cr068/manual-redline-dates.docx`: D1 `2026-10-31T00:00:00`, D2 `2026-10-31T00:00:00Z`, D3
+`2026-10-31T00:00:00+00:00`, D4 `2026-10-31T11:00:00+11:00`. Here, when this section is taken: `tracking.mts` gains an
+author-local-time and offset reading beside `revisionDateOf` (the instant, unchanged; `TrackedChange.date` and
+`Comment.creationDate` keep CR-018's reading), the comment reader follows the `commentsExtensible` path for `dateUtc`
+(`parts/wml/comments.mts` already resolves `w16cex` for writes), and `calendarText` gives way to the formed string.
+
+### 23.6 Decisions (for Jason)
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | `profile` and its `math` value | Build 23.1 as its own small item when asked (the preset, the recording of set names, `profile` last in `toMap`, the refusal); `math: unicodemath` as the WD says, since this package's `math` option has the value (section 4.4), docx4j's latex a documented difference there, not here |
+| D2 | When 23.5 lands | With the next text-extraction suite copy whose rows show the form (docx4j builds it first, as the oracle), or at Jason's go before that; the change is confined to `revisionOf` and the comment reader |
+| D3 | 23.3's cached rule for the five fields | With phase 5a, where the five are otherwise computed; a struck-out `LISTNUM` with a stored result in a non-Word file is the one case the rule changes today, not worth a release of its own |
