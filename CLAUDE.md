@@ -333,7 +333,8 @@ Key mechanics:
 suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here;
 the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails, or a count that moves, fails the test),
 `text-model.test.mjs` the text model itself (docx4j's `TextsTest`, `TextsTocTest` and `TextsPhase2Test` where phase 2 reaches, and
-this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`),
+this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`;
+a `SET`'s result never shown, on docx4j's field probe and Word's save of it in `test/fixtures/fields/`, CR-012 section 26),
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest`,
 `MarkdownAlternateContentTest`, `MarkdownHostileLinksTest` and `MarkdownHostileMarkupTest`, with docx4j's strings, docx4j-core's
 `LinkTargetsTest`, and `blocks()`),

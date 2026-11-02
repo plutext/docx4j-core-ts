@@ -151,6 +151,16 @@ labels, read off Word's PDFs, through the `Emulator` and `Body.listLabels` (REQ-
 belongs to one paragraph style). They are outside `fixtures/parity/`, so the parity harness writes
 no golden for them, and they hold no revision markup.
 
+## Field probes (`fixtures/fields/`, CR-012 section 26)
+
+docx4j's field evaluation probe, `expr-probe-r1.docx`, and Word 365's save of it, `expr-probe-r1-word365.docx`, copied
+unchanged from `docx4j-core-tests/src/test/resources/fields/cr067-phase2/` at `f9992c7eb` (docx4j CR-067 phase 2,
+2026-10-28, in the 17.3.5 release; Apache-2.0). Its README's cases 106 to 114 are `SET` and `REF`: Word shows nothing
+for a `SET`, and stores its value as the field's result under a bookmark of its name, which a `REF` reads; docx4j's
+probe holds `OLD` there. `text-model.test.mjs` holds the text model to Word's text on both (REQ-505). They hold no
+revision markup and no text box. They have no text golden yet: the 282 were recorded before they were copied, and are
+recut with CR-012 section 24 (its D5); until then the weekly workflow reports them as new.
+
 ## The text extraction suite (`text-extraction/`, CR-012 phase 0)
 
 docx4j's text extraction conformance suite and the agreement test's fixtures, copied unedited, with
@@ -5587,3 +5597,55 @@ async function check() {
      error) and `{...00FF}` in the OOXML; every other control its part and node. The shim has no
      `document.customXmlParts`. CR-020 makes `customXmlPart` and the node the resolver's: B7 the one part in
      `bind-plain`, B7 part 1 and B11 part 2 in `bind-plain-two-parts`, none for B7 and B12 in `bind-plain-no-part`.
+   - **Result** (Jason, 2026-11-02, Word 365 16.0.20326.20232; the runs in `fixtures/check73/73-*-word365-run.json`):
+     - **Shown:** `bind-plain` B7 `B7_XML_VALUE`; `bind-plain-two-parts` B7 `B7_XML_VALUE_PART2` and B11
+       `B11_XML_VALUE_PART2`; `bind-plain-no-part` B7 and B12 their stale surfaces. **Two-parts' B7 is part 2**, where
+       Word's save of 23 October (`bind-fun/bind-plain-two-parts-word365.docx`) had part 1, `{...0001}`, and docx4j
+       CR-058 took its rule from that save.
+     - **The parts in Word's order:** Word's own three (core, extended and cover page properties), then the probe's: in
+       `bind-plain-two-parts` `{...0002}` before `{...0001}`, the reverse of the file's order.
+     - **The OOXML right after the open** holds the repaired IDs already: `bind-plain` B7 `{...0001}`; two-parts B7
+       and B11 `{...0002}`; no-part B7 and B12 the stale `{...00FF}`. So an add-in reading OOXML sees the ID Word bound,
+       before any save.
+     - **`body.contentControls` gave no control** in any of the three files, so the reads per control (`xmlMapping`,
+       `customXmlPart`) did not run. Check 73b looks for them other ways.
+73b. Check 73 again, for what its run left open (CR-020, 2026-11-02): where Word 365 finds the probes' controls, what
+   `xmlMapping.customXmlPart` gives a stale one, and whether Word's choice between two fitting parts holds.
+   - **Why:** in check 73's run `body.contentControls` gave no control, so `customXmlPart` was not read; and Word bound
+     `bind-plain-two-parts`' B7 to part 2, where its save of 23 October had part 1. CR-020's resolver (docx4j CR-058's
+     rule) takes, of several fitting parts, the first in part-name order that selects a node: part 1. If Word's choice
+     follows an order it keeps, the resolver can follow it; if not, no rule can.
+   - **The files**, in `__tmp/73b/`: docx4j's `bind-plain.docx` and `bind-plain-two-parts.docx` as in check 73, and
+     `bind-plain-two-parts-swapped.docx`, the same with the main part's two `customXml` relationships listed in the
+     other order (`fixtures/check73b/build.mjs`; nothing else changed). The snippet is beside them,
+     `check73b-script-lab.html` and `check73b-script-lab.js` (`fixtures/check73b/`).
+   - **The snippet reads and changes nothing:** check 73's reads, and the controls looked for five ways
+     (`document.contentControls`, `body.contentControls`, `body.getContentControls()`, each paragraph's
+     `contentControls` and its range's), each way's count and tags recorded; the reads per control go through the first
+     way that finds any.
+   - **Steps, in Word 365 only.** Close Word first, and have one file open at a time, each in a fresh session: close
+     Word after each.
+     1. Open `__tmp/73b/bind-plain-two-parts.docx`. Say what B7 and B11 show.
+     2. In Script Lab, start a new snippet: paste `__tmp/73b/check73b-script-lab.html` over the HTML tab and
+        `__tmp/73b/check73b-script-lab.js` over the Script tab (once; open it again in Script Lab each time after).
+     3. Click **Read**. When it says Done, copy the box into a new file `__tmp/73b/result-two-parts-1.txt`.
+     4. File > Close, **Don't Save** if Word asks, and close Word.
+     5. Steps 1, 3 and 4 twice more on the same file: `result-two-parts-2.txt`, `result-two-parts-3.txt`.
+     6. The same once on `__tmp/73b/bind-plain-two-parts-swapped.docx` (what B7 and B11 show;
+        `result-two-parts-swapped.txt`) and once on `__tmp/73b/bind-plain.docx` (`result-bind-plain.txt`).
+   - **What this package gives** (the snippet through the Word shim, 2026-11-02): four of the five ways find every
+     control (a paragraph's collections miss `bind-plain`'s block-level B2); the shim has no `document.contentControls`
+     or `document.customXmlParts`; the stale controls' `customXmlPart` undefined until CR-020.
+   - **Result** (Jason, 2026-11-02, Word 365 16.0.20326.20232, five fresh sessions; the runs in
+     `fixtures/check73b/73b-*-word365-run.json`):
+     - **Two-parts, three times, and the swapped copy:** B7 `B7_XML_VALUE_PART1`, B11 `B11_XML_VALUE_PART2`, each time;
+       Word's parts in the package's order, `{...0001}` then `{...0002}`, the swapped relationships changing nothing;
+       B7's `customXmlPart` and its OOXML `{...0001}`, B11's `{...0002}`. So Word's choice holds in a fresh session, is
+       its save's of 23 October, and is docx4j's rule (part-name order). Check 73's one reversed order (part 2 first, B7
+       to part 2) was in a session that had just had `bind-plain.docx` open, and is not explained.
+     - **`bind-plain`:** every control's `customXmlPart` `{...0001}`, B7's too (the repaired part); `customXmlNode` the
+       node, its text the value Word shows (B3's lines joined by U+000B, as Office JS writes a break); **B4, whose
+       XPath selects nothing, `isMapped: false`** (here `true`) and its `customXmlNode` a `GeneralException`.
+     - **Only `body.getContentControls()` (WordApi 1.5) finds these controls:** `document.contentControls`,
+       `body.contentControls` and each paragraph's collections give none, in every file. The shim's
+       `body.contentControls` gives them all.

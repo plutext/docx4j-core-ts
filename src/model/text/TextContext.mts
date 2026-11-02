@@ -76,6 +76,8 @@ export class PackageTrees {
   /** Each header and footer part related from the main document part, with its content. */
   readonly headersAndFooters = new Map<Part, wml.Hdr | wml.Ftr>();
   glossary: { part: Part; tree: wml.GlossaryDocument } | undefined;
+  /** Each story part that could not be read, with the reason: a reading taking it raises `content.not_read` (REQ-801). */
+  readonly unreadable = new Map<Part, unknown>();
   settings: wml.CTSettings | undefined;
   /** The document properties under `core`, `app` and `custom` (REQ-515). */
   properties: Record<string, unknown> | undefined;
@@ -119,15 +121,15 @@ export class PackageTrees {
         }
       }
       trees.settings = await readQuietly(main.documentSettingsPart);
-      const footnotes = await readQuietly(main.footnotesPart);
+      const footnotes = await trees.readStory(main.footnotesPart);
       if (footnotes && main.footnotesPart) trees.footnotes = { part: main.footnotesPart, tree: footnotes };
-      const endnotes = await readQuietly(main.endnotesPart);
+      const endnotes = await trees.readStory(main.endnotesPart);
       if (endnotes && main.endnotesPart) trees.endnotes = { part: main.endnotesPart, tree: endnotes };
-      const comments = await readQuietly(main.commentsPart);
+      const comments = await trees.readStory(main.commentsPart);
       if (comments && main.commentsPart) trees.comments = { part: main.commentsPart, tree: comments };
       trees.commentsExtended = await readQuietly(main.commentsExtendedPart);
       for (const part of [...main.headerParts, ...main.footerParts] as XmlPart<wml.Hdr | wml.Ftr>[]) {
-        const content = await readQuietly(part);
+        const content = await trees.readStory(part);
         if (content) trees.headersAndFooters.set(part, content);
       }
     }
@@ -145,8 +147,19 @@ export class PackageTrees {
   async readGlossary(): Promise<void> {
     const part = this.main?.part.glossaryDocumentPart;
     if (this.glossary || !part) return;
-    const tree = await readQuietly(part);
+    const tree = await this.readStory(part);
     if (tree) this.glossary = { part, tree };
+  }
+
+  /** A story part's content; undefined where it has none, and where it could not be read, then kept in `unreadable`. */
+  private async readStory<T>(part: XmlPart<T> | undefined): Promise<T | undefined> {
+    if (!part) return undefined;
+    try {
+      return await part.readContents();
+    } catch (e) {
+      this.unreadable.set(part, e);
+      return undefined;
+    }
   }
 
   // --- bound values (REQ-509) ---------------------------------------------------------------------

@@ -7,10 +7,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { zipSync, unzipSync, strToU8 } from 'fflate';
+import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import {
   WordprocessingMLPackage, Texts, PlainText, TextOptions, TextOptionError, TextResult, TextContext, TEXT_OPTION_NAMES,
-  ImageDescription, Paragraph, XmlPart,
+  ImageDescription, Paragraph, XmlPart, PartUnmarshalException,
 } from '../dist/index.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -154,6 +154,111 @@ test('REQ-505: codes excluded unless asked for; a field with no result contribut
   assert.equal(result.blocks[2].fields[0].result, undefined);
   assert.deepEqual(result.warnings.map(String), ['field.no_result at body/0', 'field.no_result at body/2']);
   assert.equal(await text(pkg, { field_codes: true }), 'Page  PAGE \n QUOTE x RESULT\n AUTHOR \n');
+});
+
+test("REQ-505 (WD 0.37), CR-012 section 26: a SET's stored result is never shown, complex or simple, in every view; its result is '', or none with field.no_result where it stores none", async () => {
+  const complex = (instr, stored) => '<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
+    + `<w:r><w:instrText xml:space="preserve">${instr}</w:instrText></w:r>`
+    + (stored === undefined ? '' : `<w:r><w:fldChar w:fldCharType="separate"/></w:r><w:bookmarkStart w:id="0" w:name="name"/><w:r><w:t>${stored}</w:t></w:r><w:bookmarkEnd w:id="0"/>`)
+    + '<w:r><w:fldChar w:fldCharType="end"/></w:r>';
+  const para = (label, field) => `<w:p><w:r><w:t xml:space="preserve">${label} [</w:t></w:r>${field}<w:r><w:t>]</w:t></w:r></w:p>`;
+  const xml = para('complex', complex(' SET name "Ann" ', 'SET_COMPLEX_STORED'))
+    + para('simple', '<w:fldSimple w:instr=" SET name &quot;Ann&quot; "><w:r><w:t>SET_SIMPLE_STORED</w:t></w:r></w:fldSimple>')
+    + para('none', complex(' SET name "Ann" ', undefined))
+    + para('empty', '<w:fldSimple w:instr=" SET name 1 "/>')
+    + para('lower', complex(' set name 2 ', 'SET_LOWER_STORED'))
+    + para('settle', complex(' SETTLE x ', 'NOT_A_SET'));
+  const pkg = await miniDocx(xml).load();
+  const shown = 'complex []\nsimple []\nnone []\nempty []\nlower []\nsettle [NOT_A_SET]\n';
+  for (const view of ['accepted', 'original', 'markup']) assert.equal(await text(pkg, { view }), shown, view);
+  assert.equal(await text(pkg, { hidden: true }), shown);                    // never shown: not hidden text
+  const result = await Texts.of(pkg);
+  assert.deepEqual(result.blocks.map((b) => b.fields[0].result), ['', '', undefined, undefined, '', 'NOT_A_SET']);
+  assert.deepEqual(result.warnings.map(String), ['field.no_result at body/2', 'field.no_result at body/3']);
+  // the code is still the code
+  assert.equal((await text(pkg, { field_codes: true })).split('\n')[0], 'complex [ SET name "Ann" ]');
+  assert.equal((await text(pkg, { field_codes: true })).split('\n')[1], 'simple [ SET name "Ann" ]');
+});
+
+/** loadAndSave.docx with one part's root end tag left unclosed, as docx4j's UnreadablePartTest breaks one. */
+const LOAD_AND_SAVE = unzipSync(readFileSync(join(here, 'fixtures', 'loadAndSave.docx')));
+function brokenAt(name) {
+  const entries = { ...LOAD_AND_SAVE };
+  entries[name] = strToU8(strFromU8(entries[name]).replace(/>\s*$/, ''));
+  return WordprocessingMLPackage.load(zipSync(entries));
+}
+const notRead = (result) => result.warnings.filter((w) => w.kind === 'content.not_read').map(String);
+const bodyText = (result) => result.blocks.filter((b) => b.address.startsWith('body/')).map((b) => b.text);
+
+test("CR-012 section 25 (docx4j 4fdd80063): a main part that cannot be read throws the part's PartUnmarshalException, from the package and from the part (D1)", async () => {
+  const pkg = await brokenAt('word/document.xml');
+  const names = (e) => e instanceof PartUnmarshalException && e.message.startsWith('/word/document.xml: Malformed XML');
+  await assert.rejects(Texts.of(pkg), names);
+  await assert.rejects(Texts.of(pkg.getMainDocumentPart()), names);
+});
+
+test("CR-012 section 25: a header that cannot be read, read alone, throws why; in the package's reading it is content.not_read at its address", async () => {
+  const pkg = await brokenAt('word/header2.xml');
+  const header = pkg.getMainDocumentPart().headerParts.find((h) => h.partName.name === '/word/header2.xml');
+  await assert.rejects(Texts.of(header), (e) => e instanceof PartUnmarshalException && e.message.startsWith('/word/header2.xml: Malformed XML'));
+  const whole = await Texts.of(await WordprocessingMLPackage.load(zipSync(LOAD_AND_SAVE)), { include: ['headers'] });
+  const result = await Texts.of(pkg, { include: ['headers'] });
+  assert.deepEqual(notRead(result), ['content.not_read at header:rId16 (/word/header2.xml)']);
+  assert.deepEqual(result.blocks.filter((b) => b.address.startsWith('header:rId16')), []);
+  assert.ok(whole.blocks.some((b) => b.address.startsWith('header:rId16')), 'the header has text when it can be read');
+  assert.deepEqual(bodyText(result), bodyText(whole), 'the body is still read');
+  // headers are read on request: not asked for, it is not the reading's, and nothing is said
+  assert.deepEqual(notRead(await Texts.of(pkg)), []);
+});
+
+test("CR-012 section 25: the notes, a footer and the comments that cannot be read contribute nothing and are content.not_read, where the reading takes them (REQ-801)", async () => {
+  const whole = await Texts.of(await WordprocessingMLPackage.load(zipSync(LOAD_AND_SAVE)), { include: ['footers'], comments: true });
+  for (const [name, expected] of [
+    ['word/footnotes.xml', 'content.not_read (/word/footnotes.xml)'],
+    ['word/endnotes.xml', 'content.not_read (/word/endnotes.xml)'],
+    ['word/footer2.xml', 'content.not_read at footer:rId18 (/word/footer2.xml)'],
+    ['word/comments.xml', 'content.not_read (/word/comments.xml)'],
+  ]) {
+    const pkg = await brokenAt(name);
+    const result = await Texts.of(pkg, { include: ['footers'], comments: true });
+    assert.deepEqual(notRead(result), [expected], name);
+    assert.deepEqual(bodyText(result).length, bodyText(whole).length, `${name}: the body is still read`);
+  }
+  // the notes are read by default, and not under notes: false; the comments only when asked for, or in markup
+  assert.deepEqual(notRead(await Texts.of(await brokenAt('word/footnotes.xml'))), ['content.not_read (/word/footnotes.xml)']);
+  assert.deepEqual(notRead(await Texts.of(await brokenAt('word/footnotes.xml'), { notes: false })), []);
+  assert.deepEqual(notRead(await Texts.of(await brokenAt('word/comments.xml'))), []);
+  assert.deepEqual(notRead(await Texts.of(await brokenAt('word/comments.xml'), { view: 'markup' })), ['content.not_read (/word/comments.xml)']);
+  // a footer no section shows (footer1, the first page's, without w:titlePg) is not the reading's
+  assert.deepEqual(notRead(await Texts.of(await brokenAt('word/footer1.xml'), { include: ['footers'] })), []);
+  // the story part overloads say it too
+  const notes = await brokenAt('word/footnotes.xml');
+  assert.deepEqual(notRead(await Texts.of(notes.getMainDocumentPart().footnotesPart)), ['content.not_read (/word/footnotes.xml)']);
+  const comments = await brokenAt('word/comments.xml');
+  assert.deepEqual(notRead(await Texts.of(comments.getMainDocumentPart().commentsPart)), ['content.not_read (/word/comments.xml)']);
+});
+
+test("CR-012 section 25: a glossary that cannot be read is content.not_read when it is included, and nothing is said when it is not", async () => {
+  const entries = unzipSync(readFileSync(join(here, 'fixtures', 'invoice.docx')));
+  entries['word/glossary/document.xml'] = strToU8(strFromU8(entries['word/glossary/document.xml']).replace(/>\s*$/, ''));
+  const pkg = await WordprocessingMLPackage.load(zipSync(entries));
+  assert.deepEqual(notRead(await Texts.of(pkg, { include: ['glossary'] })), ['content.not_read (/word/glossary/document.xml)']);
+  assert.deepEqual(notRead(await Texts.of(pkg)), []);
+});
+
+test("CR-012 section 26 D1: docx4j's expr-probe-r1 (f9992c7eb) and Word 365's save of it read as Word shows them: a SET shows nothing, the REF its bookmark's text", async () => {
+  // test/fixtures/fields/: docx4j-core-tests' fields/cr067-phase2/, cases 106 to 114 of its README. Word's save holds each
+  // SET's value as its stored result, inside the bookmark of its name; docx4j's probe holds OLD there
+  const lines = async (name) => {
+    const pkg = await WordprocessingMLPackage.load(readFileSync(join(here, 'fixtures', 'fields', name)));
+    return (await text(pkg)).split('\n').filter((l) => /^S(0[1-9]|10)_(SET|REF)/.test(l));
+  };
+  assert.deepEqual(await lines('expr-probe-r1-word365.docx'), [
+    'S01_SET = ', 'S02_REF_SET = 42', 'S06_SET_STRING = ', 'S07_REF_STRING = Hello World', 'S09_SET_NESTED = ', 'S10_REF_NESTED = 42',
+  ]);
+  assert.deepEqual(await lines('expr-probe-r1.docx'), [
+    'S01_SET = ', 'S02_REF_SET = OLD', 'S06_SET_STRING = ', 'S07_REF_STRING = OLD', 'S09_SET_NESTED = ', 'S10_REF_NESTED = OLD',
+  ]);
 });
 
 const NOTES_BODY = '<w:p><w:r><w:t>A</w:t></w:r><w:r><w:footnoteReference w:id="7"/></w:r>'

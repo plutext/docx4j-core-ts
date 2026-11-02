@@ -2565,7 +2565,13 @@ Word's `bisect/C02.txt` under `profile: word-text`).
    merges into the word's first run where the block model's formatting agrees (with section 24's four members among
    it), as runs merge throughout: Word's C02 gives one run, `The C02_ modern ...`; a bold or a cased letter stays its
    own run. The joined block takes the frame's place in the block list, so what the frame anchored (a text box) still
-   follows the joined paragraph (REQ-518).
+   follows the joined paragraph (REQ-518). **Here the letter stays its own run** (D6, open): runs merge only where their
+   text and `Paragraph.text`'s agree character for character in one paragraph (section 4.4, the `officeOffset` rule), and
+   the frame is a paragraph of its own in Office JS, so its letter's run and the word's never meet that rule. The plain
+   text and the Markdown are docx4j's (`The C02_ modern ...`: the writers join the runs), and the text goldens compare
+   runs joined by docx4j's rule (section 15.5), so no golden differs; the block model does, one run where docx4j has the
+   letter merged. docx4j-python's CR-029 (decided 2026-11-02, `5c69b43`) takes the same departure, its Q3, under its
+   `office_offset` rule; REQ-521 constrains the text, not the runs, so all three conform.
 4. **No block, no join.** Where the paragraph next makes no block (wholly hidden under `hidden: false`, a table of
    contents' under `toc: false`), the frame stays a paragraph. A frame whose mark the view deletes is already one
    paragraph with the next (CR-043's join, at the first paragraph's address): no drop-cap join and no warning.
@@ -2642,6 +2648,12 @@ Jason, 2026-11-02: "CR-012 section 24, 56 & 26 decisions as recommended" (the 56
 | D4 | The Unicode version | 15.0, the version docx4j's tests run (JDK 21), so that a golden recut from docx4j agrees code point for code point; documented in `CaseMapping`'s doc comment as WD 0.52 asks; moved deliberately, never by the runtime |
 | D5 | The goldens | Recut with `TextHarness` writing the four members, from the 17.3.5 release, which holds `75b9bdb54` (`test/java/pom.xml` raised from 17.3.4 to it), in the same change; the parity workflow moved to `VERSION_17_3_6` ahead of it (Jason, 2026-11-02) |
 
+Added after them (2026-11-02, from docx4j-python's CR-029 Q3, through the portfolio session), open:
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D6 | A joined drop cap's letter in the block model (section 24.3, item 3) | Its own run, as section 4.4's `officeOffset` rule makes it and as docx4j-python's CR-029 Q3 decided: a run's text agrees with `Paragraph.text` within one paragraph, and the frame is its own paragraph in Office JS. A named departure from docx4j's merged run; the plain text, the Markdown and the goldens' joined runs unchanged. The case against: a block-model consumer comparing runs with docx4j's sees one more run |
+
 ## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
 
 docx4j-12's note of docx4j `4fdd80063` (`VERSION_17_3_6`, unpushed; Jason there: "make those three throw a
@@ -2683,7 +2695,31 @@ docx4j's test breaks one, read with every story included):
 | D2 | When it lands | With section 24's suite copy or on its own; it touches only `TextContext.mts` and the extractor's story reads, and no suite row moves |
 
 **Decided 2026-11-02, D1 and D2 as recommended** (Jason, with sections 24 and 26; his words are in section 24.6). Under
-D2 it lands with the suite copy or on its own, whichever comes first. Nothing implemented.
+D2 it lands with the suite copy or on its own, whichever comes first.
+
+### 25.1 Implemented (2026-11-02)
+
+Jason: "commit then go for section 26, then section 25"; on its own, before the suite copy (D2). As proposed:
+- `PackageTrees.read` keeps each story part it could not read, with the reason (`unreadable`): the footnotes, the
+  endnotes, the comments, every header and footer, and the glossary when it is included. The settings, the comments'
+  extended part and the document properties are no story, and are read as before.
+- The extractor raises `content.not_read`, `partName` the part's name, where the reading takes that story, as docx4j's
+  `storyContent`: the notes under `notes` (the default); a header or footer that a section shows, when included, at its
+  prefix (`header:rId16`); the comments when included, and in markup; the glossary when included. The story part
+  overloads say it too (`Texts.of(footnotesPart)`, `Texts.of(commentsPart)`). Nothing of that part is read; the body as
+  before. A header or footer no section shows (a first page's without `w:titlePg`) is not the reading's, and nothing is
+  said, as in docx4j.
+- D1: the main part's `PartUnmarshalException`, as before. Read alone, a header or footer that cannot be read throws its
+  own `PartUnmarshalException` the same way (`Texts.of(headerPart)`), where docx4j throws its unchecked exception naming
+  the part; before, it read as empty, silently.
+- An embedded or chunked document's main part (REQ-512's half) lands with phases 5d and 5e.
+
+Tests (`text-model.test.mjs`, 4), on `loadAndSave.docx` (and `invoice.docx` for the glossary) broken in memory as
+docx4j's `UnreadablePartTest` breaks a part: the main part from the package and from the part; a header read alone and
+in the package's reading, the body still read, nothing said when headers aren't asked for; the footnotes, the endnotes,
+a footer and the comments, with `notes: false`, the comments outside markup, a footer no section shows and the part
+overloads; the glossary included and not. No golden or suite row moves: no fixture holds a part that cannot be read.
+1,652 tests pass.
 
 ## 26. A SET field's result is never shown (WD 0.37 REQ-505; docx4j `f9992c7eb` and `4b066a369`, proposed 2026-11-02)
 
@@ -2720,5 +2756,28 @@ until then. Section 23.3's rule for the five fields takes it.
 | D1 | The oracle | Copy `expr-probe-r1.docx` and Word's save into `test/fixtures/fields/` (two files, with docx4j's commit in `test/README.md`), since this package's tests read no file from the docx4j checkout at run time |
 | D2 | When it lands | On its own, before the suite copy: a claimed requirement read wrongly, one small change, no suite row or golden moving |
 
-**Decided 2026-11-02, D1 and D2 as recommended** (Jason, with sections 24 and 25; his words are in section 24.6). Nothing
-implemented.
+**Decided 2026-11-02, D1 and D2 as recommended** (Jason, with sections 24 and 25; his words are in section 24.6).
+
+### 26.1 Implemented (2026-11-02)
+
+Jason: "commit then go for section 26, then section 25". docx4j's rule, ported as it stands at `4b066a369`:
+- `FieldState.hiddenResult`, set at a complex field's `separate` when its code's first word is `SET` (any case), and
+  carried when the field runs on into another block; `text()` adds nothing, and appends nothing to any field's result
+  or open bookmark, while a field so marked is open. Its `TextField` result is `''` where it was separated, else
+  `undefined` with `field.no_result`, as before.
+- A `w:fldSimple` whose first word is `SET` reads its content through the same capture marked hidden, and records `''`
+  where the element holds content, else `undefined` with `field.no_result`.
+- Under `field_codes` the code is still read; `hidden: true` shows no more (a SET's result is not hidden text).
+- **A departure, small:** docx4j's complex form tests the trimmed code for `SET ` or `SET` (`regionMatches`), so a
+  tab after the name escapes it there; here both forms take the first token, as docx4j's simple form does
+  (`FieldInstruction.parse`). Word writes a space.
+- The field's code and the bookmark are untouched, and the Office JS readers unchanged (`Paragraph.text` reads Office
+  JS's characters).
+
+Tests (`text-model.test.mjs`, 2): the built forms, complex and simple, with and without a stored result, lower case,
+and `SETTLE` (not a SET), in the three views, with `hidden` and with `field_codes`; and D1's copies in
+`test/fixtures/fields/` (docx4j `f9992c7eb`, `test/README.md`), read line for line as Word shows them: `S01_SET = `,
+`S06_SET_STRING = ` and `S09_SET_NESTED = ` on both, the `REF`s `42`, `Hello World` and `42` on Word's save and docx4j's
+`OLD` on the probe. Before the change the SETs read `42` and `OLD`. No golden moved: no document with a text golden
+holds a `SET`; the two copies have none until section 24's recut (D5), and the weekly workflow reports them as new
+until then. 1,648 tests pass.

@@ -4,9 +4,13 @@
 measured `@docx4j/core-ts` 0.6.0 at `f426a31` against docx4j 17.3.5 and found `bind-plain.docx` B7 read as its stale
 surface. Measured here the same day (section 1), with a second gap the identifier could not see (a bound date's AM/PM).
 D1 to D6 decided 2026-11-02, all as recommended (Jason: "CR-020 as recommended; for D3 we'll do the Script Lab read";
-section 5), D3 to be held to check 73, that read (`test/README.md`). Nothing implemented. docx4j's CR-058 is complete
-(phase 1 `FormattingSwitchHelper`, phase 2 `StoreItemResolver`, `35cdeaee6`), released in 17.3.5; docx4j-python's
-counterpart is `python/CR-014.1c`.
+section 5), D3 to be held to check 73, that read (`test/README.md`). Check 73 run the same day (section 5.1): Word
+binds two-parts' B7 to part 2 where its October save had part 1; check 73b the same day (section 5.2): in four fresh
+sessions part 1, as docx4j's rule, and Office JS's `customXmlPart` the repaired part (D3 stands). D7 (keep the
+part-name order) and D8 (`isMapped` false where the XPath selects nothing) decided the same day, as recommended (Jason:
+"CR-020's D7 and D8 as recommended"). Nothing implemented. docx4j's
+CR-058 is complete (phase 1 `FormattingSwitchHelper`, phase 2 `StoreItemResolver`, `35cdeaee6`), released in 17.3.5;
+docx4j-python's counterpart is `python/CR-014.1c`.
 
 ## 0. Summary
 
@@ -74,6 +78,10 @@ docx4j's `StoreItemResolver.resolve` rule (its D4), over the package's custom XM
 - remembered per package and (ID, XPath), since one stale ID fits different parts for different XPaths (the
   two-parts probe: B7 part 1, B11 part 2); a package's parts changing (`customXmlParts.add`, a delete) forgets it.
 
+`XmlMapping.isMapped` reads through it too (D8, check 73b): `true` only where the binding names a node, its part's by
+ID or the resolved one's; `false` where the XPath selects nothing there, or a stale ID nothing fits, with `customXmlNode`
+undefined, as Office JS reports B4.
+
 Routed through it, as docx4j routes its lookups: `TextContext.boundValue` (the text model, REQ-509),
 `XmlMapping.customXmlPart` and so `customXmlNode`, `applyBindingTo` (text, date, list, checkbox, picture),
 `updateFromControl` (the surface written to the part Word would write it to), and the `od:xpath` passes'
@@ -105,6 +113,11 @@ Word 365's five saves from the share. `test/store-items.test.mjs`:
 - `XmlMapping.customXmlPart` on B7, and an untouched round trip of each probe byte for byte after every reader;
 - docx4j's `BoundDateFormatTest` rows DF1 to DF13 and TW1 to TW6 against Word's saves, in Word's zone and nominally,
   and `withoutALidTheDocumentDefaultLanguageIsUsed` (a German `w:docDefaults` added in the test).
+- check 73b's snippet (`test/fixtures/check73b/`) through the Word shim on the three probes and the swapped copy, held
+  to Word's runs beside it: each control's `customXmlPart` and `customXmlNode`, `isMapped` (B4 `false`), the text after
+  the open; the lookups' one difference listed (Word's `body.contentControls` gives none of these controls; the shim's
+  gives them all), and check 73's runs the same where they read;
+- `isMapped` and `customXmlNode` on B4 and on the no-part probe's B7 and B12 (D8).
 The `customxml.test.mjs` cases already pinning a missing part's behaviour move with it.
 
 ## 4. Phases and sizes
@@ -128,6 +141,55 @@ Jason before the port is held to it.
 | D4 | Reporting, and docx4j's strict property | `notes` on `BindingResult` for each repair and each unresolved stale ID; no strict option, since nothing here ever threw on a stale ID |
 | D5 | The date items | Take them in this CR: `am/pm` and `AM/PM` as Word shows them (measured), and the document's default language where `w:lid` is absent (docx4j's rule; unmeasured here) |
 | D6 | Release | With the next release; the visible change is a stale control showing its value and a fixed `am/pm`, both Word's |
+
+### 5.1 Check 73's run (2026-11-02, Word 365 16.0.20326.20232)
+
+Jason ran check 73 on docx4j's three probes (`test/README.md` check 73; the runs in `test/fixtures/check73/`):
+- **What Word shows:** `bind-plain` B7 `B7_XML_VALUE`; `bind-plain-no-part` B7 and B12 their stale surfaces, as on
+  23 October; but `bind-plain-two-parts` B7 `B7_XML_VALUE_PART2` (and B11 `B11_XML_VALUE_PART2`), where Word's save of
+  23 October shows `B7_XML_VALUE_PART1` and writes `{...0001}`. docx4j CR-058's D4 took part-name order from that save,
+  and section 2.1 here took docx4j's rule.
+- **Word's custom XML parts, in its order:** its own three, then in two-parts `{...0002}` before `{...0001}`, the
+  reverse of the package's (part names, relationships and zip entries all list part 1 first). B7 went to the first
+  fitting part in Word's order today.
+- **D3, half settled:** the body's OOXML right after the open already holds the ID Word bound (`{...0001}` in
+  `bind-plain`, `{...0002}` twice in two-parts, the stale `{...00FF}` kept in no-part). So an add-in reading OOXML sees
+  the repaired ID before any save, where `XmlMapping.storeItemID` here gives the stored one until `applyBindings` writes it
+  back (D2). `xmlMapping.customXmlPart` was not read: `body.contentControls` gave no control in Word, in any file.
+- **Check 73b** (`test/README.md`) looks for the controls five ways and reads `customXmlPart` through the first that finds
+  them; opens two-parts three times in fresh sessions, to see whether Word's order and its choice hold; and opens a copy
+  with the two relationships listed the other way round, to see whether they follow the relationships.
+
+D7 (of several parts the XPath fits, which: section 2.1, docx4j CR-058 D4) was put then, to wait for check 73b: Word's
+order taken if it held and followed the file, docx4j's part-name order kept if it changed between opens. Section 5.2
+has it with 73b's result.
+
+### 5.2 Check 73b's run (2026-11-02)
+
+Jason ran check 73b (`test/README.md` check 73b; the runs in `test/fixtures/check73b/`), each file in a fresh session:
+- **Two-parts, three opens, and a copy with its two relationships listed the other way round:** B7 shows
+  `B7_XML_VALUE_PART1` and B11 `B11_XML_VALUE_PART2` every time; Word's parts are in the package's order, `{...0001}`
+  first, whichever way the relationships run; B7's `customXmlPart` is `{...0001}` and B11's `{...0002}`, as the OOXML
+  says. That is Word's save of 23 October and docx4j's rule: of the fitting parts, the first in part-name order (here
+  also the zip's and the item properties' order; the relationships are ruled out). Check 73's open, part 2 first, came
+  straight after `bind-plain.docx` had been open; it is recorded and not explained.
+- **D3 stands:** Office JS's `xmlMapping.customXmlPart` for a stale control is the part Word bound it to, the part the
+  resolver takes (`bind-plain` B7 and the two-parts controls), so `customXmlPart` here is the resolved part, as D3 has
+  it. `XmlMapping.storeItemID` (an extension; Office JS has none) stays the ID as stored until `applyBindings` writes the
+  part's back (D2); Word's own OOXML holds the repaired ID from the open, a difference the shim's `getOoxml` keeps.
+- **`isMapped`:** Word reports `false` for B4, bound to its part by ID with an XPath that selects nothing, and
+  `customXmlNode` a `GeneralException`; here `isMapped` is `true` wherever a `w:dataBinding` is (`XmlMapping.isMapped`).
+  Every other control, the stale ones repaired, `true` in both.
+- **Only `body.getContentControls()` finds these probes' controls in Word**; `body.contentControls`,
+  `document.contentControls` and the paragraphs' collections give none, in every file. The shim gives them through all.
+  Recorded only: what in these files Word's older collections pass over is unmeasured, and no decision depends on it.
+
+Jason, 2026-11-02: "CR-020's D7 and D8 as recommended".
+
+| # | Decision | Recommendation (taken) |
+|---|---|---|
+| D7 | Of several parts the XPath fits, which | Keep docx4j's rule as section 2.1 has it, the first in part-name order that selects a node: Word's choice in every fresh session and in its save; check 73's reversed open recorded as unexplained. Nothing for docx4j to change; it hears the result |
+| D8 | `XmlMapping.isMapped` where the XPath selects nothing | `false`, as Office JS (check 73b's B4): mapped is "bound to a node", read through the resolver, so a stale ID nothing fits is `false` too (unmeasured; it follows); `customXmlNode` stays undefined there. In this CR, since `XmlMapping` goes through the resolver here; a small change in the content API (CR-002), noted there |
 
 ## 6. Registry
 

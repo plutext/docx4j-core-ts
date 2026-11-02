@@ -223,6 +223,8 @@ class FieldState {
   link: string | undefined;
   /** A table of contents under `toc: false` (D12): nothing of it is read. */
   toc = false;
+  /** A SET field: its stored result is never shown (Word hides it; REQ-505, CR-012 section 26). */
+  hiddenResult = false;
   /** Where its code's runs begin, for a table of contents' to be taken out again. */
   codeBlock: TextBlock | undefined;
   codeStart = 0;
@@ -240,6 +242,7 @@ class FieldState {
     f.computed = this.computed;
     f.link = this.link;
     f.toc = this.toc;
+    f.hiddenResult = this.hiddenResult;
     return f;
   }
 }
@@ -451,6 +454,7 @@ export class Extractor {
   // --- the glossary (REQ-516) -------------------------------------------------------------------
 
   private glossary(out: TextBlock[]): void {
+    this.storyRead(this.trees.main?.part.glossaryDocumentPart);
     const g = this.trees.glossary;
     const parts = g?.tree.docParts?.docPart ?? [];
     for (let i = 0; i < parts.length; i++) {
@@ -1049,6 +1053,7 @@ export class Extractor {
           const f = fields[0];
           if (f) {
             f.separated = true;
+            f.hiddenResult = isSetField(f.instr);
             f.link = fieldHyperlinkTarget(f.instr);
             if (!this.options.toc && !suppressed(para.story) && isTocField(f.instr)) {
               f.toc = true;
@@ -1194,6 +1199,7 @@ export class Extractor {
       return;
     }
     if (suppressed(para.story)) return;
+    if (para.story.fields.some((f) => f.hiddenResult)) return;      // a SET's stored value: never shown
     if (!(hidden && !this.options.hidden)) {
       for (const f of para.story.fields) f.result += s;
       for (const b of this.openBookmarks.values()) {
@@ -1254,6 +1260,14 @@ export class Extractor {
       return;
     }
     if (this.options.fieldCodes && !inCode(para.story)) this.addText(para, instr, 'FIELD_CODE', false, state);
+    if (isSetField(instr)) {
+      // a SET's stored value is never shown (REQ-505), in this form as in the complex one (FieldState.hiddenResult)
+      this.resultOf(field.content as Element[] | undefined, para, state, undefined, true);
+      const stored = (field.content?.length ?? 0) > 0;
+      para.block.fields.push(new TextField(instr, stored ? '' : undefined));
+      if (!stored) this.warn(new TextWarning(TextWarning.FIELD_NO_RESULT, para.block.address));
+      return;
+    }
     const before = para.block.runs.length;
     const text = this.resultOf(field.content as Element[] | undefined, para, state, fieldHyperlinkTarget(instr));
     const hasResult = text !== '' || para.block.runs.length > before;
@@ -1261,11 +1275,12 @@ export class Extractor {
     if (!hasResult) this.warn(new TextWarning(TextWarning.FIELD_NO_RESULT, para.block.address));
   }
 
-  /** The runs of a simple field's result, added to the paragraph; their text. */
-  private resultOf(content: Element[] | undefined, para: ParagraphState, state: RunState, link: string | undefined): string {
+  /** The runs of a simple field's result, added to the paragraph; their text. `hidden`: a result never shown (a SET's). */
+  private resultOf(content: Element[] | undefined, para: ParagraphState, state: RunState, link: string | undefined, hidden = false): string {
     const capture = new FieldState();
     capture.separated = true;
     capture.link = link;
+    capture.hiddenResult = hidden;
     para.story.fields.push(capture);
     try {
       this.runs(content, para, state);
@@ -1487,6 +1502,16 @@ export class Extractor {
     }
   }
 
+  /**
+   * A story part the reading takes that could not be read: none of its text, and `content.not_read` naming it (REQ-801),
+   * at the story's address prefix for a header or footer; docx4j's `storyContent` (`4fdd80063`).
+   */
+  private storyRead(part: Part | undefined, address?: string): void {
+    if (part && this.trees.unreadable.has(part)) {
+      this.warn(new TextWarning(TextWarning.CONTENT_NOT_READ, address, undefined, undefined, part.partName.name));
+    }
+  }
+
   warn(w: TextWarning): void {
     if (this.warned.has(w.key)) return;
     this.warned.add(w.key);
@@ -1528,15 +1553,18 @@ export class Extractor {
     emitted.add(rId);
     const main = this.trees.main;
     const part = main ? related(main.part, rId) : undefined;
+    const prefix = `${this.root}${kind === 'HEADER' ? 'header:' : 'footer:'}${rId}`;
+    this.storyRead(part, prefix);
     const content = part ? this.trees.headersAndFooters.get(part) : undefined;
     if (!content) return;
-    const prefix = `${this.root}${kind === 'HEADER' ? 'header:' : 'footer:'}${rId}`;
     const story = new Story(this, kind, prefix, part);
     this.blocks(blockItems(content), prefix, story, out);
   }
 
   /** A header or footer part's content as its own story (`Texts.of(headerPart)`). */
   headerOrFooterPart(part: Part, kind: 'HEADER' | 'FOOTER', rId: string): TextResult {
+    // read alone, a part that could not be read throws why, as the main part does (CR-012 section 25, D1)
+    if (this.trees.unreadable.has(part)) throw this.trees.unreadable.get(part);
     const out: TextBlock[] = [];
     const content = this.trees.headersAndFooters.get(part);
     const prefix = `${this.root}${kind === 'HEADER' ? 'header:' : 'footer:'}${rId}`;
@@ -1547,6 +1575,7 @@ export class Extractor {
   // --- notes (REQ-503) ------------------------------------------------------------------------
 
   private notes(type: NoteType, out: TextBlock[]): void {
+    this.storyRead(type === 'footnote' ? this.trees.main?.part.footnotesPart : this.trees.main?.part.endnotesPart);
     const holder = type === 'footnote' ? this.trees.footnotes : this.trees.endnotes;
     const numbers = type === 'footnote' ? this.context.footnotes : this.context.endnotes;
     if (!holder || numbers.size === 0) return;
@@ -1591,6 +1620,7 @@ export class Extractor {
   // --- comments (REQ-504) ---------------------------------------------------------------------
 
   private comments(out: Map<string, TextComment>): void {
+    this.storyRead(this.trees.main?.part.commentsPart);
     const part = this.trees.comments;
     if (!part) return;
     const extended = new Map<string, { done?: unknown; paraIdParent?: string }>();
@@ -1810,6 +1840,12 @@ function inToc(story: Story): boolean {
 export function isTocField(instr: string): boolean {
   const tokens = fieldTokens(instr);
   return tokens.length > 0 && tokens[0]!.toUpperCase() === 'TOC';
+}
+
+/** A SET field's code: Word stores its value as its result, under a bookmark of its name, and shows nothing (REQ-505). */
+function isSetField(instr: string): boolean {
+  const tokens = fieldTokens(instr);
+  return tokens.length > 0 && tokens[0]!.toUpperCase() === 'SET';
 }
 
 /** A table of contents' code, shown under `field_codes` until it was known to be one, taken out again. */

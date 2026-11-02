@@ -1,0 +1,289 @@
+{
+ "check": "73b",
+ "host": {
+  "diagnostics": {
+   "host": "Word",
+   "version": "16.0.20326.20232",
+   "platform": "PC"
+  },
+  "url": "X:\\__tmp\\73b\\bind-plain.docx"
+ },
+ "parts": [
+  {
+   "id": "{6C3C8BC8-F283-45AE-878A-BAB7291924A1}",
+   "namespaceUri": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
+  },
+  {
+   "id": "{6668398D-A668-4E3E-A5EB-62B293D839F1}",
+   "namespaceUri": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
+  },
+  {
+   "id": "{55AF091B-3C7A-41E3-B477-F2FDAA23CFDA}",
+   "namespaceUri": "http://schemas.microsoft.com/office/2006/coverPageProps"
+  },
+  {
+   "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+   "namespaceUri": "urn:probe:bind"
+  }
+ ],
+ "bodyBindings": [
+  {
+   "tag": "B1",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b1[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B2",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b2[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B3",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b3[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B4",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:nothere[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B5",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b5[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B6",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b6[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B7",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b7[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B8",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b10[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  },
+  {
+   "tag": "B9",
+   "dataBinding": [
+    "<w:dataBinding w:prefixMappings=\"xmlns:p='urn:probe:bind'\" w:xpath=\"/p:root[1]/p:b9[1]\" w:storeItemID=\"{B1D0F00D-0000-4000-8000-000000000001}\"/>"
+   ]
+  }
+ ],
+ "lookups": [
+  {
+   "via": "document.contentControls",
+   "count": 0,
+   "tags": []
+  },
+  {
+   "via": "body.contentControls",
+   "count": 0,
+   "tags": []
+  },
+  {
+   "via": "body.getContentControls()",
+   "count": 8,
+   "tags": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "B8"
+   ]
+  },
+  {
+   "via": "paragraphs[i].contentControls",
+   "count": 0,
+   "tags": []
+  },
+  {
+   "via": "paragraphs[i].getRange().contentControls",
+   "count": 0,
+   "tags": []
+  }
+ ],
+ "controls": [
+  {
+   "id": 101,
+   "tag": "B1",
+   "title": "B1",
+   "type": "PlainText",
+   "text": "B1_XML_VALUE",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b1[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b1",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B1_XML_VALUE"
+   }
+  },
+  {
+   "id": 102,
+   "tag": "B2",
+   "title": "B2",
+   "type": "PlainText",
+   "text": "B2_XML_VALUE",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b2[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b2",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B2_XML_VALUE"
+   }
+  },
+  {
+   "id": 103,
+   "tag": "B3",
+   "title": "B3",
+   "type": "PlainText",
+   "text": "B3_XML_LINE_ONE\\u000bB3_XML_LINE_TWO",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b3[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b3",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B3_XML_LINE_ONE\\u000aB3_XML_LINE_TWO"
+   }
+  },
+  {
+   "id": 104,
+   "tag": "B4",
+   "title": "B4",
+   "type": "PlainText",
+   "text": "B4_SURFACE_UNRESOLVED",
+   "mapping": {
+    "isMapped": false,
+    "xpath": "/p:root[1]/p:nothere[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": "error: GeneralException: Error code: 0x80004005"
+  },
+  {
+   "id": 105,
+   "tag": "B5",
+   "title": "B5",
+   "type": "PlainText",
+   "text": "",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b5[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b5",
+    "namespaceUri": "urn:probe:bind",
+    "text": ""
+   }
+  },
+  {
+   "id": 106,
+   "tag": "B6",
+   "title": "B6",
+   "type": "PlainText",
+   "text": "B6_SAME",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b6[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b6",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B6_SAME"
+   }
+  },
+  {
+   "id": 107,
+   "tag": "B7",
+   "title": "B7",
+   "type": "PlainText",
+   "text": "B7_XML_VALUE",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b7[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b7",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B7_XML_VALUE"
+   }
+  },
+  {
+   "id": 108,
+   "tag": "B8",
+   "title": "B8",
+   "type": "PlainText",
+   "text": "B10_XML_VALUE",
+   "mapping": {
+    "isMapped": true,
+    "xpath": "/p:root[1]/p:b10[1]",
+    "prefixMappings": "xmlns:p='urn:probe:bind'"
+   },
+   "customXmlPart": {
+    "id": "{B1D0F00D-0000-4000-8000-000000000001}",
+    "namespaceUri": "urn:probe:bind"
+   },
+   "customXmlNode": {
+    "baseName": "b10",
+    "namespaceUri": "urn:probe:bind",
+    "text": "B10_XML_VALUE"
+   }
+  }
+ ],
+ "controlsVia": "body.getContentControls()",
+ "controlCount": 8
+}
