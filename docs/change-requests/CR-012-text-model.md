@@ -2462,3 +2462,253 @@ author-local-time and offset reading beside `revisionDateOf` (the instant, uncha
 | D1 | `profile` and its `math` value | Build 23.1 as its own small item when asked (the preset, the recording of set names, `profile` last in `toMap`, the refusal); `math: unicodemath` as the WD says, since this package's `math` option has the value (section 4.4), docx4j's latex a documented difference there, not here |
 | D2 | When 23.5 lands | With the next text-extraction suite copy whose rows show the form (docx4j builds it first, as the oracle), or at Jason's go before that; the change is confined to `revisionOf` and the comment reader |
 | D3 | 23.3's cached rule for the five fields | With phase 5a, where the five are otherwise computed; a struck-out `LISTNUM` with a stored result in a non-Word file is the one case the rule changes today, not worth a release of its own |
+
+## 24. `w:caps` in capitals by the run's language: docx4j CR-069 phase 1's hand-off (proposed 2026-10-31)
+
+From docx4j-12's hand-off of docx4j CR-069 phase 1 (`75b9bdb54`, `VERSION_17_3_5`, unpushed; its section 11; `c832243f9`
+and `079de83db` after it), on WD 0.50 to 0.52 (REQ-607 and REQ-710's note-reference sentence; portfolio `4b1590d`, `12f9bda`,
+`e561572`). docx4j's `CaseMappingTest` (10) is the test to mirror, and the suite's `dpp/` folder (WD 0.50's sixth `[PROBE]`
+fixture, Word 365's text saves as the oracle) its conformance rows. Nothing implemented; waits for Jason's go. Phase 2's
+hand-off (the drop-cap join) followed the same day, section 24.3, and phase 3's (`<sup>` and `<sub>` in Markdown) on
+2026-11-01, section 24.4; phase 4's (`text.formatting_join`, the inspector's, and `strike` taking `w:dstrike`) the same
+day, section 24.5.
+
+1. **Three run flags and a language on the block model.** `TextRun` gains `caps`, `smallCaps` and `verticalAlignment`
+   (`'BASELINE' | 'SUPERSCRIPT' | 'SUBSCRIPT'`, docx4j's `VerticalAlignment` names as strings, REQ-710's flag), each
+   the run's own property, else its styles' (the resolver's effective run properties, which XOR the toggles through
+   the style chain), in `Extractor.formatOf` beside `bold`. Unlike `bold`, the paragraph style does not cancel the
+   case: a heading style's caps is the text's (WD 0.51; Word's saves have not measured a style's caps, on CR-069's
+   list). A run under both is a caps run, `smallCaps` false. A note reference run is baseline whatever its style
+   raises (REQ-710: a reference, not a superscript), which holds by construction, since the formatting is set on text
+   runs only. And `language` (docx4j `TextRun.getLanguage()`, the WD's `lang`), on a cased run only, so that a
+   `w:lang` alone never splits runs: the run's `w:lang/@w:val`, else its styles' with the document defaults' (one
+   effective `w:rPr`), else the settings' `w:themeFontLang/@w:val`, else `en-US` (docx4j's documented default). Runs
+   merge only where the four agree (`sameFormat`, `copyFormat`).
+2. **`CaseMapping`** (docx4j's public class, `src/model/text/CaseMapping.mts`, exported from `./model`): `upper(text,
+   language)`, each code point to its Unicode simple uppercase mapping (`UnicodeData.txt` field 12; Java's
+   `Character.toUpperCase(int)`), and `i` to U+0130 where the language's primary subtag is `tr` or `az`. Nothing
+   expands (`ß` and U+FB01 stay; U+01C6 gives U+01C4, not the titlecase U+01C5), and the UTF-16 length is kept (a code
+   point whose mapping would change it is kept, docx4j's guard, its section 11.2 item 3). The block model keeps the
+   stored text, so addresses, offsets and `officeOffset` never move.
+3. **The writers**: `PlainText` and `WmlToMarkdown` write a caps run, and a small-caps run under `small_caps: upper`,
+   through it: a text run, a code paragraph in Markdown, and a comment's text (docx4j `CaseMapping.written`); a field
+   code under `field_codes: true` and a list label as stored (both on CR-069's unmeasured list).
+4. **The option** `small_caps` (`'asis' | 'upper'`, default `asis`; `TextOptions.smallCaps`), after `symbols` in
+   `TEXT_OPTION_NAMES` (WD section 10's order), in `toMap` and by name; the `word-text` preset sets `upper`.
+
+### 24.1 Why a table, not the runtime's uppercase
+
+JavaScript has no simple case mapping: `toUpperCase()` is the full mapping (`ß` to `SS`, U+FB01 to `FI`), and
+`toLocaleUpperCase('tr')` gives the dotted capital but still expands `ß`. Taking `c.toUpperCase()` where it is one code
+point and `c` otherwise is not the simple mapping either. Measured here (2026-10-31) over every code point, against
+Java 21's `Character.toUpperCase(int)` (1,450 code points mapped; Unicode 15.0): Node 22.23 and 24.15 (ICU's Unicode
+17.0) differ at 82, 27 where the full mapping expands but a simple one exists (the Greek forms with ypogegrammeni,
+U+1F80 to U+1FAF's lowercase, U+1FB3, U+1FC3, U+1FF3: U+1FB3's simple uppercase is U+1FBC, its full `ΑΙ`) and 55
+pairs Unicode 16.0 and 17.0 added (U+019B, U+0264, U+1C8A, U+A7CD to U+A7DB, Garay's U+10D70 to U+10D85). Node 18's ICU
+is older again, so the runtime's answer would differ across CI's Node 18, 20 and 22. WD 0.52 settles the version: the
+simple mapping in the version the implementation documents, a later pair unmapped until it moves; docx4j's is the
+running JDK's, 15.0 on the tests' JDK 21, and its rows map only characters stable since 10.0 (`c832243f9`). So here a
+generated table at a stated version: `scripts/generate-case-mapping.mjs` reads `UnicodeData.txt` of that version and
+writes `src/model/text/caseMapping.generated.mts` (committed, as the font tables are), 1,450 entries in 195 runs of one
+delta (stride 1 or 2) at 15.0. No mapping in 15.0 changes a code point's UTF-16 length, so the length guard is a
+check, not a case.
+
+### 24.2 The suite and the goldens
+
+- **The suite copy.** `dpp/` comes with the next copy of docx4j's suite (`scripts/copy-text-extraction-suite.mjs`; the
+  copy replaces `suite/` whole). That copy is large on its own: docx4j's suite has moved 144 files since `198d015a3`
+  (phase 0's tables, CR-068's `revisions/cr068/`, CR-070's re-keyed `altchunk.not_expanded` rows, which section 22.2 (a)
+  must land with, and the runner's changes), so it is a recount in its own right. `conformance.mjs` takes docx4j's
+  phase 0 changes (`993e385e7`): the `dpp/` folder's four tables, the scenarios `small_caps`, `drop_caps` and
+  `profile`, and `word-saves.tsv` read as REQ-1002's NOTE reads a Word save (decoded by its byte order mark, else the
+  row's code page, `windows-1252`; the extraction passed through that code page, a character it lacks `?` on both
+  sides, which needs a small encoder, `TextDecoder` decoding only; lines compared at CR LF, CR, LF and tab).
+  `adapter.mjs` advertises REQ-607. At the 17.3.5 release phase 0 has 82 cases, 30 of them additions to Appendix A, so
+  the suite test's pinned 67 and 15 become 82 and 30. docx4j `02f9fc333` (`VERSION_17_3_6`, unpushed on 2026-11-02;
+  docx4j-12's note) adds rows only: a fixture, `phase0/extraction-probe-opaque.docx`, with cases 83 to 85 (a PDF in an
+  OLE 1.0 package, a PDF in an Acrobat storage, a picture whose only text is drawn), each expecting no token, under
+  `embedded: true` (83, 84: REQ-512 opens only a `.txt` package; refused here, section 22, so pending) and `alt_text: true`
+  (85, REQ-514), and inspection rows for the inspector. A copy at or after it counts 85 and 33, and changes nothing
+  else here; D1 copies at the release, and the next copy after that takes the three.
+- **`profile` (section 23.1) is needed for Word's saves.** Every `word-saves.tsv` row is under `profile: word-text` and
+  cites REQ-1002, which this package does not advertise, so without 23.1 those 22 rows (16 of them REQ-607's) stay
+  pending here and only the token rows check the mapping. D2 below.
+- **The text goldens** (phase 6, `test/golden/text/`, this repository's `TextHarness`) gain the four members when the
+  harness writes them (its version raised) and are recut from a docx4j build holding `75b9bdb54`. Their plain text moves
+  where a text run reads as caps: 30 documents under `test/fixtures/` and `test/text-extraction/` hold `w:caps` or `w:smallCaps` in some part (most in styles:
+  checks 22, 24 to 26, `loadAndSave.docx`, the `parity/` tables), so how many readings move is known at the recut.
+  docx4j's own suite has no block-model golden to recut (WD 0.52's correction).
+- **Tests**: `CaseMappingTest` mirrored (Word's table; the tr/az rule; the differences from `toUpperCase` pinned, `ß`,
+  U+FB01, U+1FB3, the titlecase digraph, a supplementary letter; the length kept for every code point; the flags and
+  the language on Word's probe; a paragraph style's caps; a run under both; runs merged by language; the language of
+  last resort; a note reference baseline; the option), and the generated table held to its version's file.
+
+### 24.3 Phase 2's hand-off: the drop cap joined to its word (docx4j `15c66769f`, WD REQ-521)
+
+From docx4j-12 the same day (docx4j CR-069 section 12; `DropCapJoinTest`, 8, to mirror; WD 0.54, portfolio `e1332e6`,
+writes docx4j's shapes into REQ-521 and the warning's selector into REQ-521 and REQ-801), to land with the rest of
+section 24, since the same suite copy carries its rows (six `paragraph.drop_cap_joined` rows over the three views, and
+Word's `bisect/C02.txt` under `profile: word-text`).
+
+1. **A frame**: one `w:p` whose effective `w:framePr/@w:dropCap` (its own or its paragraph style's) is `drop` or
+   `margin`, whose text as read in the view holds no whitespace and no space character (U+00A0 included; an empty
+   frame, a picture's drop cap, counts as one word at most), which carries no `w:sectPr` (docx4j leaves a frame that
+   ends a section as it is; WD 0.54, portfolio `e1332e6`, states it in REQ-521) and which no deleted mark has joined already.
+2. **Read, then taken.** The frame is read as a paragraph of its own (its fields, bookmarks and notes in reading
+   order), then the next sibling in the same container takes it, if that sibling is a paragraph, passing over markers
+   only (bookmarks, range starts and ends, `w:permStart`/`w:permEnd`, `w:proofErr`) and what the view removes. Anything
+   else next (a table, a block-level control, an `altChunk`, the end of the body, a cell, a note or a text box) leaves
+   the frame as it is. Every story and every cell is in scope.
+3. **The join**: the frame's runs and fields at the start of the second paragraph's block, no separator; the block keeps
+   the second paragraph's address and properties (style, alignment, numbering), the frame's dropped. The letter's run
+   merges into the word's first run where the block model's formatting agrees (with section 24's four members among
+   it), as runs merge throughout: Word's C02 gives one run, `The C02_ modern ...`; a bold or a cased letter stays its
+   own run. The joined block takes the frame's place in the block list, so what the frame anchored (a text box) still
+   follows the joined paragraph (REQ-518).
+4. **No block, no join.** Where the paragraph next makes no block (wholly hidden under `hidden: false`, a table of
+   contents' under `toc: false`), the frame stays a paragraph. A frame whose mark the view deletes is already one
+   paragraph with the next (CR-043's join, at the first paragraph's address): no drop-cap join and no warning.
+5. **The warning** `paragraph.drop_cap_joined` (REQ-801) at the frame's address, its selector the name of the part the
+   paragraphs are in (`/word/document.xml`), as the `dpp/` rows have it.
+6. **The option** `drop_caps` (`'join' | 'asis'`, default `join`; `TextOptions.dropCaps`), after `toc` in
+   `TEXT_OPTION_NAMES`; the `word-text` preset sets `asis` (Word's text save writes `T`, then `he C02_ ...`).
+   `adapter.mjs` advertises REQ-521.
+
+Here: `Extractor.blocks` (where the deleted-mark chains are built, section 15) remembers a frame just read, and
+`paragraph` returns its block, as docx4j's now does, so the next one can take it. docx4j's eighth item, the
+inspector's record of the frame's `w:p` at the joined block's address, has no counterpart: this package has no
+inspector. No document under `test/fixtures/` or `test/text-extraction/` holds a `w:dropCap` of `drop` or `margin`, so no
+text golden moves for the join; only the `dpp/` probe and its bisect files have one.
+
+### 24.4 Phase 3's hand-off: `<sup>` and `<sub>` in Markdown (docx4j `5a2ce31ee`, WD REQ-710)
+
+From docx4j-12 on 2026-11-01 (docx4j CR-069 section 13; docx4j-markdown's `MarkdownVerticalAlignTest`, 6, to mirror),
+landing with the rest of section 24: the same suite copy carries its rows (`H<sub>2</sub>O`, `x<sup>2</sup>`,
+`1<sup>st</sup>` and `48,210<sup>3</sup>` under Markdown, `48,2103` in plain text, Word's `bisect/C06` and `C07` saves under
+`profile: word-text`, and both hand-cut goldens, `dpp-forks-word365.accepted.txt` and `.md`). At `5a2ce31ee` docx4j's
+`dpp/` run is 188 passed, 4 pending (phase 4's `text.formatting_join`, a capability of the inspector, which this
+package has no counterpart to), and all 22 of Word's saves agree.
+
+1. **`WmlToMarkdown`**: a text run whose `verticalAlignment` is `SUPERSCRIPT` or `SUBSCRIPT` is written between `<sup>`
+   and `</sup>`, or `<sub>` and `</sub>`, as `MdHtmlInline` nodes (which `commonmark.mts` already renders, for `<br>` and
+   CriticMarkup), never as text and never as a Unicode superscript. Plain text is unchanged: the baseline characters.
+2. **Outside the emphasis**: `48,210<sup>**3**</sup>`, `<sub>~~*x*~~</sub>`; in `48,210**<sup>3</sup>**` the `**` is not
+   left-flanking (a digit before it, `<` after it), so it would not open. The inline sink keeps the alignment beside the
+   emphasis flags, so adjacent runs share one pair of tags where bold, italic, strike and the alignment agree (the
+   emphasis flush rule): `x<sup>ab</sup><sup>**c**</sup><sub>d</sub>`.
+3. **Code**: a monospace run is a code span inside the tags (``<sup>`f()`</sup>``); a code block gets no tags, its text
+   literal, so a raised run there is its baseline characters.
+4. **Line breaks** split a run, and each line is wrapped on its own.
+5. **A note reference** is a reference run, never a text run, so never wrapped (`Body[^1]`, even under a direct
+   `w:vertAlign` on its run); this holds by construction, as in section 24 item 1.
+6. **Document text cannot form the tags**: the renderer escapes its `<`, so a `<sup>` typed in the document shows as text.
+7. `adapter.mjs` advertises REQ-710.
+
+docx4j's `Docx4J.toHTML` writing `sup` and `sub` elements (its D4) is its own converter, not the WD's, and this package
+writes no HTML: nothing to port. WD 0.55 (portfolio `2adc557`) states items 2, 3 and 5 in REQ-710, from docx4j's
+points: the tags enclose the run's emphasis and a code span, a fenced code block's run is on the baseline, a note reference
+is never wrapped, the NOTE giving the flanking reason; no conformance row covers the nesting yet, so here it is held by
+`MarkdownVerticalAlignTest` mirrored, with docx4j's strings. Here 11 documents under `test/` have a raised or lowered run in their main part; their
+Markdown gains the tags, which no committed golden holds (the phase 6 goldens are the block model and plain text;
+section 16.5's sweep was not committed), and docx4j changed none of the Markdown tests `markdown.test.mjs` mirrors.
+
+### 24.5 Phase 4's hand-off: `text.formatting_join`, and `strike` taking `w:dstrike` (docx4j `7326296b1`)
+
+From docx4j-12 on 2026-11-01 (docx4j CR-069 section 14). The kind itself is the inspector's (`InspectWalk`, REQ-905's
+group by format; `INSPECTION.md`'s row and `support/inspect_oracle.py` in the suite), and this package has no inspector,
+so there is nothing to build for it here; the `dpp/` suite's four `inspect text.formatting_join` rows (`1.3161.335` and
+`48,2103`, on the probe and on `bisect/C04` and `C07`) pend here by capability, whatever the copy. docx4j's `dpp/` run is
+now 192 passed, 0 pending.
+
+One change reaches the text model: **`TextRun.strike` takes `w:dstrike` as well as `w:strike`** (struck once or twice,
+the run's own else its styles'), and the paragraph style's `w:strike` or `w:dstrike` cancels it, as before, so Markdown
+writes `~~` for a double-struck run (WD 0.56, portfolio `1eb5791`, states it in REQ-703's emphasis bullet: the block
+model's one strike flag covers both, a paragraph style's either cancelling it). Here it is one line in
+`Extractor.formatOf`, with the property's doc comment. No
+text golden moves: of the two documents under `test/` holding `w:dstrike`, `parity/NumberingImplicitNumId.docx` has it only
+in a style, off, and check 60's file has no text golden.
+
+### 24.6 Decisions (for Jason)
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | When it lands | With the next suite copy, one commit with section 22.2 (a), since the `dpp/` rows and Word's saves are its test and the copy brings CR-070's re-keyed rows too; at the 17.3.5 release (tag `docx4j-17.3.5`, `64fae4cd0`, on Maven Central 2026-11-01), whose suite files are phase 4's (`7326296b1`): nothing the copy reads changed after it (CR-069's phase 5, `c102d2ef6`, and `4a10eed5b`, the HTML markup view's dates, touch none), so the suite is copied once |
+| D2 | `profile: word-text` | Take section 23.1 with it (its D1), so that Word's 22 saves are checked here as in docx4j; the preset small (a table and the recording of set names) |
+| D3 | The members' names | docx4j's (`caps`, `smallCaps`, `verticalAlignment`, `language`), as every block-model name here, the WD's `lang` noted in the doc comment |
+| D4 | The Unicode version | 15.0, the version docx4j's tests run (JDK 21), so that a golden recut from docx4j agrees code point for code point; documented in `CaseMapping`'s doc comment as WD 0.52 asks; moved deliberately, never by the runtime |
+| D5 | The goldens | Recut with `TextHarness` writing the four members, from the 17.3.5 release, which holds `75b9bdb54` (`test/java/pom.xml` raised from 17.3.4 to it, and the parity workflow moved to `VERSION_17_3_6`), in the same change |
+
+## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
+
+docx4j-12's note of docx4j `4fdd80063` (`VERSION_17_3_6`, unpushed; Jason there: "make those three throw a
+Docx4JException naming the part and its cause"; docx4j CR-065 section 9). In docx4j a part that cannot be read loads
+with no content (its CR-065 D1), and the text model now says so:
+- the main document part: `Texts.of(package)` and `Texts.of(part)` throw, "The content of /word/document.xml could not
+  be read, so it cannot be read as text: <the deepest cause>", where the result was empty with no warning;
+- an embedded or chunked document's main part: `content.not_read` (REQ-512) instead;
+- the footnotes, endnotes, a header, a footer, the comments or the glossary, where the reading takes them: nothing from
+  that part and `content.not_read` (REQ-801) naming it, the body still read, where the notes threw a
+  `NullPointerException` and the rest were passed over silently.
+No expected-tokens row changes. `UnreadablePartTest` (+5) is docx4j's test.
+
+**Here today** (measured 2026-11-02 on `loadAndSave.docx`, each story part's root end tag left unclosed in turn, as
+docx4j's test breaks one, read with every story included):
+- the main document part: `Texts.of` throws already, the part's own `PartUnmarshalException` ("/word/document.xml:
+  Malformed XML (line 2, column 25565): end tag name contains invalid characters: "w:document""), since the part is
+  read when asked and is never held empty; `Texts.of(part)` the same;
+- the footnotes, the endnotes, each of three headers and three footers, the comments: read, that part's text absent,
+  **no warning** (`PackageTrees.read`'s `readQuietly`). The glossary is read the same way;
+- an embedded or chunked document: not read here (`embedded: true` is refused until phase 5d; chunks are
+  `altchunk.not_expanded` until 5e), so REQ-512's half lands with those phases.
+
+**Proposed.**
+1. `PackageTrees.read` keeps the parts it could not read, and the extractor raises `content.not_read` for each where the
+   reading takes that story (the notes under `notes`, the default; headers, footers, comments and the glossary when included), with
+   `partName` the part's name, the address the story's prefix for a header or footer (`header:rId8`) and none for the
+   others, as docx4j's `storyContent`; the body is read as now.
+2. The main part: keep throwing the part's `PartUnmarshalException`, which already names the part and the cause, and
+   is what every other reader here throws (CR-001 section 26's rule). docx4j's wording is an unchecked wrapper Java
+   needs because the text model declares nothing; nothing here declares exceptions (D1).
+3. Tests: `text-model.test.mjs` gains docx4j's five as they apply (the package's main part, a part's, a header, the
+   notes and headers as `content.not_read`, the embedded case pending with 5d), on `loadAndSave.docx` broken in memory.
+   No golden moves: no fixture holds an unreadable part.
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | The main part's error | The part's `PartUnmarshalException` as it is (its message names the part and the cause), not docx4j's sentence; a caller matching on docx4j's text is the case against, and none is known |
+| D2 | When it lands | With section 24's suite copy or on its own; it touches only `TextContext.mts` and the extractor's story reads, and no suite row moves |
+
+## 26. A SET field's result is never shown (WD 0.37 REQ-505; docx4j `f9992c7eb` and `4b066a369`, proposed 2026-11-02)
+
+docx4j-12's note of docx4j `4b066a369` (`VERSION_17_3_6`, unpushed; CR-067 section 15; `FieldPartAndSimpleSetTest`) made a
+`SET` written as `w:fldSimple` show nothing in every mode, "as the complex form already did" (since CR-067 phase 2,
+`f9992c7eb`, 2026-10-28). The rule is REQ-505's since WD 0.37: "a field's cached result MUST be emitted ..., except a SET
+field's, which MUST NOT be emitted in any mode: Word stores the value as the field's result under a bookmark of the
+field's name and displays nothing", measured on docx4j's `fields/cr067-phase2/expr-probe-r1.docx` (case 106,
+`S01_SET: { SET total 42 }`, blank in Word's text and PDF). The block model keeps the field, its result `""`, or `null`
+with `field.no_result` where it has no result content.
+
+**Here today** this package advertises REQ-505 but shows a `SET`'s stored result, in both forms, under the default
+`fields: cached`. Measured 2026-11-02: Word 365's own save of the probe (`expr-probe-r1-word365.docx`, the result `42` stored
+inside the `total` bookmark) reads `S01_SET = 42` here, where Word shows `S01_SET = `; a built paragraph with a complex and
+a simple `SET` reads `SET_COMPLEX_STORED` and `SET_SIMPLE_STORED`. No suite row holds a `SET` (the probe is in docx4j's
+fields tests, not the text-extraction suite), so the conformance run cannot see it. The bookmark keeps its text, so a
+`REF total` still reads `42` (case 107), as it does here.
+
+**Proposed.** In the extractor, a field whose instruction's name is `SET` (any case, `FieldInstruction`'s parse:
+the first word) emits no runs from its result, in both forms and every view, as docx4j's `hiddenResult`; its `TextField`
+result is `""`, or `null` with `field.no_result` where the field has no result content, as docx4j's. The bookmark text is
+untouched. The Office JS readers are not changed: `Paragraph.text` reads Office JS's characters, and
+what Word's `paragraph.text` gives for a `SET` is unmeasured. Tests: `text-model.test.mjs` on the probe's Word save
+(`S01_SET = ` and `S02_REF_SET = 42`; the probe copied into `test/fixtures/fields/` with its README's case lines, or
+read from docx4j's checkout as the revisions tests' fixtures are, D1) and on built complex and simple forms. No golden
+moves: no fixture under `test/fixtures/` or `test/text-extraction/` holds a `SET` (checked 2026-11-02).
+
+The other half of `4b066a369`, a `LISTNUM` or `AUTONUM*` in a header, footer or note keeping its stored result under
+`fields: update` (the main-story-only guard seeing the field's part), is phase 5a's: `fields: update` is refused here
+until then. Section 23.3's rule for the five fields takes it.
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | The oracle | Copy `expr-probe-r1.docx` and Word's save into `test/fixtures/fields/` (two files, with docx4j's commit in `test/README.md`), since this package's tests read no file from the docx4j checkout at run time |
+| D2 | When it lands | On its own, before the suite copy: a claimed requirement read wrongly, one small change, no suite row or golden moving |

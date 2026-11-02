@@ -2626,8 +2626,10 @@ compiler.
 - **A difference from docx4j.** The docx4j session measured docx4j 17.3.3-SNAPSHOT (`fc6059ed3`)
   reading `off` as on, with both the reference JAXB and MOXy: `val` comes back null, and
   `BooleanDefaultTrue.isVal()` reads null as true. This package reads `off` as the standard does.
-  docx4j's CR-045 (proposed, `82bf972e3`) would make docx4j agree. No golden holds an on/off
-  value, so parity can't see the difference.
+  docx4j's CR-060 (complete 2026-10-24, released in 17.3.5 on 2026-11-01) made docx4j agree: off
+  for exactly `false`, `off` or `0`, under the reference JAXB and MOXy. Its CR-045 (`82bf972e3`), which
+  proposed the fix, is superseded by CR-060 (`2b7ed3a3e`, 2026-11-01). No golden holds an on/off value,
+  so parity never saw the difference, and CR-060 moved no golden (CR-015 section 11.1).
 
 ## 26. A styles part that cannot be read refuses the document, and says so (2026-10-17)
 
