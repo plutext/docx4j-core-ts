@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:09Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:51Z",
     "fixture": "text-extraction/revisions/python/artefact8/8-word-accepted.docx",
     "fixtureBytes": 18811,
     "timeZone": "UTC",
@@ -221,7 +221,7 @@
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "My second{>>Claude, 2026-10-20T04:46:00Z: Changed 'first' to 'second': the source says 2010 was the second.<<} 2010 document.\nAdded by an agent, right after the first paragraph.\n$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$\n\n\nRegion\tQuarter\tTotal\nWest\tQ2\t240\nNorth\tQ2\t300\nThis paragraph will be made bold.\nA heading the appended paragraph follows\nAnd one appended at the very end.\n",
+      "plainText": "My second{>>Claude, 2026-10-20T04:46:00: Changed 'first' to 'second': the source says 2010 was the second.<<} 2010 document.\nAdded by an agent, right after the first paragraph.\n$$\\frac{dy}{dx} \\pm\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}$$\n\n\nRegion\tQuarter\tTotal\nWest\tQ2\t240\nNorth\tQ2\t300\nThis paragraph will be made bold.\nA heading the appended paragraph follows\nAnd one appended at the very end.\n",
       "blocks": [
         {
           "address": "body/0",
@@ -417,7 +417,7 @@
           "id": "0",
           "author": "Claude",
           "initials": "C",
-          "date": "2026-10-20T04:46:00Z",
+          "date": "2026-10-20T04:46:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -639,7 +639,7 @@
           "id": "0",
           "author": "Claude",
           "initials": "C",
-          "date": "2026-10-20T04:46:00Z",
+          "date": "2026-10-20T04:46:00",
           "blocks": [
             {
               "address": "comment:0/0",

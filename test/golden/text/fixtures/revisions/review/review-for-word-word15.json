@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:51Z",
     "fixture": "fixtures/revisions/review/review-for-word-word15.docx",
     "fixtureBytes": 21104,
     "timeZone": "UTC",
@@ -1260,7 +1260,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Review file for Word (ED-005 section 9.2)\nMade by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save.{++Author A, 2026-09-30T18:18:00Z:  ++}\n1. Text inserted and deleted by two authors\nThe quick brown fox jumps over the {++Author A, 2026-09-30T13:34:00Z: very ++}lazy dog near the {--Author B, 2026-09-30T13:34:00Z: old --}stone bridge.\n2. An insertion deleted by another author\nCows graze in the {--Author B, 2026-09-30T13:34:00Z: green --}field beside the river.\n3. Typed over a selection\nThe notice period is {--Author A, 2026-09-30T13:34:00Z: 7 days--}{++Author A, 2026-09-30T13:34:00Z: 14 days++} from delivery.\n4. Run formatting changed\nThe word alpha becomes bold and the word bravo becomes larger.\n5. Paragraph properties changed\nCentre this paragraph.\nIndent this paragraph.\nGive this paragraph the style Heading 2.\nA Heading 2 already in the file, for comparison\n6. Paragraph marks inserted and deleted\nSplit this paragraph after the colon:\n the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\nRow\tAction\tNote\n1\tKeep\tstays\n2\tKeep\ta row goes below this one\n{++Author A, 2026-09-30T13:34:00Z: new++}\t{++Author A, 2026-09-30T13:34:00Z: new++}\t{++Author A, 2026-09-30T13:34:00Z: new++}\n{--Author B, 2026-09-30T13:34:00Z: 3--}\t{--Author B, 2026-09-30T13:34:00Z: Delete--}\t{--Author B, 2026-09-30T13:34:00Z: this row is deleted--}\nThe paragraph after the table.\n8. Inline items inserted and deleted\nLeft{--Author A, 2026-09-30T13:34:00Z: \t--}right: the tab between them is deleted. A tab goes after this colon:{++Author A, 2026-09-30T13:34:00Z: \t++} and a footnote at the end of this sentence{++Author B, 2026-09-30T13:34:00Z: [1]++}.\nThe footnote on this sentence is deleted{--Author B, 2026-09-30T13:34:00Z: [2]--}.\n9. A list started, and a link\nThis paragraph becomes a numbered list item.\nThe docx4j site is linked here.\n10. Replace all\nThe {--Author B, 2026-09-30T13:34:00Z: colour--}{++Author B, 2026-09-30T13:34:00Z: color++} of the sky and the {--Author B, 2026-09-30T13:34:00Z: colour--}{++Author B, 2026-09-30T13:34:00Z: color++} of the sea.\n11. The parts, changed through the parts panel (untracked)\nThe headings' {--Author B, 2026-09-30T13:34:00Z: colour--}{++Author B, 2026-09-30T13:34:00Z: color++}, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.\nThe first item of a list the engine made.\nThe second item.\n12. The agent's edits\n{--Claude, 2026-09-30T13:34:00Z: The tenant pays rent monthly in arrears.--}\n{++Claude, 2026-09-30T13:34:00Z: Rent++}\n{++Claude, 2026-09-30T13:34:00Z: The tenant pays rent monthly in advance, as the ++}{>>Claude, 2026-09-30T23:34:00Z: Changed from arrears, as agreed.<<}{++Claude, 2026-09-30T13:34:00Z: lease says.++}\n{++Claude, 2026-09-30T13:34:00Z: The first obligation.++}\n{++Claude, 2026-09-30T13:34:00Z: The second obligation.++}\nNotice must be given within {--Claude, 2026-09-30T13:34:00Z: 30 days--}{++Claude, 2026-09-30T13:34:00Z: 60 days++}.\n13. Comments\nAuthor A comments on this sentence, and Author B answers.{>>Author A, 2026-09-30T13:34:00Z: A comment by Author A, replied to and resolved.<<}{>>Author B, 2026-09-30T13:34:00Z: A reply by Author B.<<} Author B comments on this sentence alone.{>>Author B, 2026-09-30T13:34:00Z: A comment by Author B.<<} This sentence carries a comment that is deleted.\nA comment by Author A runs from here\nto here, over two paragraphs.{>>Author A, 2026-09-30T13:34:00Z: A comment by Author A over two paragraphs.<<}\n[1] A tracked footnote.\n[2] A footnote whose reference is deleted.\n",
+      "plainText": "Review file for Word (ED-005 section 9.2)\nMade by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save.{++Author A, 2026-09-30T18:18:00:  ++}\n1. Text inserted and deleted by two authors\nThe quick brown fox jumps over the {++Author A, 2026-09-30T13:34:00: very ++}lazy dog near the {--Author B, 2026-09-30T13:34:00: old --}stone bridge.\n2. An insertion deleted by another author\nCows graze in the {--Author B, 2026-09-30T13:34:00: green --}field beside the river.\n3. Typed over a selection\nThe notice period is {--Author A, 2026-09-30T13:34:00: 7 days--}{++Author A, 2026-09-30T13:34:00: 14 days++} from delivery.\n4. Run formatting changed\nThe word alpha becomes bold and the word bravo becomes larger.\n5. Paragraph properties changed\nCentre this paragraph.\nIndent this paragraph.\nGive this paragraph the style Heading 2.\nA Heading 2 already in the file, for comparison\n6. Paragraph marks inserted and deleted\nSplit this paragraph after the colon:\n the rest becomes a paragraph of its own.\nJoin this paragraph with the next one.\nThis is the paragraph it joins.\n7. Table rows inserted and deleted\nRow\tAction\tNote\n1\tKeep\tstays\n2\tKeep\ta row goes below this one\n{++Author A, 2026-09-30T13:34:00: new++}\t{++Author A, 2026-09-30T13:34:00: new++}\t{++Author A, 2026-09-30T13:34:00: new++}\n{--Author B, 2026-09-30T13:34:00: 3--}\t{--Author B, 2026-09-30T13:34:00: Delete--}\t{--Author B, 2026-09-30T13:34:00: this row is deleted--}\nThe paragraph after the table.\n8. Inline items inserted and deleted\nLeft{--Author A, 2026-09-30T13:34:00: \t--}right: the tab between them is deleted. A tab goes after this colon:{++Author A, 2026-09-30T13:34:00: \t++} and a footnote at the end of this sentence{++Author B, 2026-09-30T13:34:00: [1]++}.\nThe footnote on this sentence is deleted{--Author B, 2026-09-30T13:34:00: [2]--}.\n9. A list started, and a link\nThis paragraph becomes a numbered list item.\nThe docx4j site is linked here.\n10. Replace all\nThe {--Author B, 2026-09-30T13:34:00: colour--}{++Author B, 2026-09-30T13:34:00: color++} of the sky and the {--Author B, 2026-09-30T13:34:00: colour--}{++Author B, 2026-09-30T13:34:00: color++} of the sea.\n11. The parts, changed through the parts panel (untracked)\nThe headings' {--Author B, 2026-09-30T13:34:00: colour--}{++Author B, 2026-09-30T13:34:00: color++}, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.\nThe first item of a list the engine made.\nThe second item.\n12. The agent's edits\n{--Claude, 2026-09-30T13:34:00: The tenant pays rent monthly in arrears.--}\n{++Claude, 2026-09-30T13:34:00: Rent++}\n{++Claude, 2026-09-30T13:34:00: The tenant pays rent monthly in advance, as the ++}{>>Claude, 2026-09-30T23:34:00: Changed from arrears, as agreed.<<}{++Claude, 2026-09-30T13:34:00: lease says.++}\n{++Claude, 2026-09-30T13:34:00: The first obligation.++}\n{++Claude, 2026-09-30T13:34:00: The second obligation.++}\nNotice must be given within {--Claude, 2026-09-30T13:34:00: 30 days--}{++Claude, 2026-09-30T13:34:00: 60 days++}.\n13. Comments\nAuthor A comments on this sentence, and Author B answers.{>>Author A, 2026-09-30T13:34:00: A comment by Author A, replied to and resolved.<<}{>>Author B, 2026-09-30T13:34:00: A reply by Author B.<<} Author B comments on this sentence alone.{>>Author B, 2026-09-30T13:34:00: A comment by Author B.<<} This sentence carries a comment that is deleted.\nA comment by Author A runs from here\nto here, over two paragraphs.{>>Author A, 2026-09-30T13:34:00: A comment by Author A over two paragraphs.<<}\n[1] A tracked footnote.\n[2] A footnote whose reference is deleted.\n",
       "blocks": [
         {
           "address": "body/0",
@@ -1285,7 +1285,7 @@
             {
               "kind": "TEXT",
               "text": " ",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T18:18:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T18:18:00"}
             }
           ]
         },
@@ -1309,13 +1309,13 @@
             {
               "kind": "TEXT",
               "text": "very ",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": "lazy dog near the "},
             {
               "kind": "TEXT",
               "text": "old ",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": "stone bridge."}
           ]
@@ -1340,7 +1340,7 @@
             {
               "kind": "TEXT",
               "text": "green ",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": "field beside the river."}
           ]
@@ -1365,12 +1365,12 @@
             {
               "kind": "TEXT",
               "text": "7 days",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "14 days",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": " from delivery."}
           ]
@@ -1633,7 +1633,7 @@
                         {
                           "kind": "TEXT",
                           "text": "new",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1652,7 +1652,7 @@
                         {
                           "kind": "TEXT",
                           "text": "new",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1671,7 +1671,7 @@
                         {
                           "kind": "TEXT",
                           "text": "new",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1695,7 +1695,7 @@
                         {
                           "kind": "TEXT",
                           "text": "3",
-                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1714,7 +1714,7 @@
                         {
                           "kind": "TEXT",
                           "text": "Delete",
-                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1733,7 +1733,7 @@
                         {
                           "kind": "TEXT",
                           "text": "this row is deleted",
-                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
                         }
                       ]
                     }
@@ -1770,19 +1770,19 @@
             {
               "kind": "TEXT",
               "text": "\t",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": "right: the tab between them is deleted. A tab goes after this colon:"},
             {
               "kind": "TEXT",
               "text": "\t",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": " and a footnote at the end of this sentence"},
             {
               "kind": "NOTE_REFERENCE",
               "text": "",
-              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00Z"},
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00"},
               "noteType": "footnote",
               "noteNumber": 1,
               "noteId": "1"
@@ -1801,7 +1801,7 @@
             {
               "kind": "NOTE_REFERENCE",
               "text": "",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"},
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"},
               "noteType": "footnote",
               "noteNumber": 2,
               "noteId": "2"
@@ -1868,23 +1868,23 @@
             {
               "kind": "TEXT",
               "text": "colour",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "color",
-              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": " of the sky and the "},
             {
               "kind": "TEXT",
               "text": "colour",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "color",
-              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": " of the sea."}
           ]
@@ -1909,12 +1909,12 @@
             {
               "kind": "TEXT",
               "text": "colour",
-              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "color",
-              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
@@ -1977,7 +1977,7 @@
             {
               "kind": "TEXT",
               "text": "The tenant pays rent monthly in arrears.",
-              "revision": {"type": "DELETION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             }
           ]
         },
@@ -1993,7 +1993,7 @@
             {
               "kind": "TEXT",
               "text": "Rent",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             }
           ]
         },
@@ -2007,30 +2007,30 @@
             {
               "kind": "TEXT",
               "text": "The tenant pays rent ",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "monthly",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"},
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"},
               "bold": true
             },
             {
               "kind": "TEXT",
               "text": " in advance, as the ",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "46"},
             {
               "kind": "TEXT",
               "text": "lease",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"},
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"},
               "link": "https://www.docx4java.org/"
             },
             {
               "kind": "TEXT",
               "text": " says.",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             }
           ],
           "fields": [{"instr": " HYPERLINK \"https://www.docx4java.org/\" ", "result": "lease"}]
@@ -2057,13 +2057,13 @@
             {
               "kind": "PAGE_MARKER",
               "text": "",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"},
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"},
               "pageNumber": 3
             },
             {
               "kind": "TEXT",
               "text": "The first obligation.",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             }
           ]
         },
@@ -2089,7 +2089,7 @@
             {
               "kind": "TEXT",
               "text": "The second obligation.",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             }
           ]
         },
@@ -2104,12 +2104,12 @@
             {
               "kind": "TEXT",
               "text": "30 days",
-              "revision": {"type": "DELETION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "DELETION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             },
             {
               "kind": "TEXT",
               "text": "60 days",
-              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00Z"}
+              "revision": {"type": "INSERTION", "author": "Claude", "date": "2026-09-30T13:34:00"}
             },
             {"kind": "TEXT", "text": "."}
           ]
@@ -2188,7 +2188,7 @@
           "id": "46",
           "author": "Claude",
           "initials": "C",
-          "date": "2026-09-30T23:34:00Z",
+          "date": "2026-09-30T23:34:00",
           "blocks": [
             {
               "address": "comment:46/0",
@@ -2203,7 +2203,7 @@
           "id": "56",
           "author": "Author A",
           "initials": "AA",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "resolved": true,
           "blocks": [
             {
@@ -2221,7 +2221,7 @@
           "id": "57",
           "author": "Author B",
           "initials": "AB",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "parentId": "56",
           "blocks": [
             {
@@ -2238,7 +2238,7 @@
           "id": "58",
           "author": "Author B",
           "initials": "AB",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "blocks": [
             {
               "address": "comment:58/0",
@@ -2254,7 +2254,7 @@
           "id": "59",
           "author": "Author A",
           "initials": "AA",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "blocks": [
             {
               "address": "comment:59/0",
@@ -2938,7 +2938,7 @@
           "id": "46",
           "author": "Claude",
           "initials": "C",
-          "date": "2026-09-30T23:34:00Z",
+          "date": "2026-09-30T23:34:00",
           "blocks": [
             {
               "address": "comment:46/0",
@@ -2953,7 +2953,7 @@
           "id": "56",
           "author": "Author A",
           "initials": "AA",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "resolved": true,
           "blocks": [
             {
@@ -2971,7 +2971,7 @@
           "id": "57",
           "author": "Author B",
           "initials": "AB",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "parentId": "56",
           "blocks": [
             {
@@ -2988,7 +2988,7 @@
           "id": "58",
           "author": "Author B",
           "initials": "AB",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "blocks": [
             {
               "address": "comment:58/0",
@@ -3004,7 +3004,7 @@
           "id": "59",
           "author": "Author A",
           "initials": "AA",
-          "date": "2026-09-30T13:34:00Z",
+          "date": "2026-09-30T13:34:00",
           "blocks": [
             {
               "address": "comment:59/0",

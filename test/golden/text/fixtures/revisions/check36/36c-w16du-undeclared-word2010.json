@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:50Z",
     "fixture": "fixtures/revisions/check36/36c-w16du-undeclared-word2010.docx",
     "fixtureBytes": 13877,
     "timeZone": "UTC",
@@ -79,7 +79,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Check 36, 36c: a tracked insertion with w16du:dateUtc; w16du is NOT declared ignorable.\nKept text, then {++Check 36, 2026-10-04T10:00:00Z: inserted text++}.\nAfter.\n",
+      "plainText": "Check 36, 36c: a tracked insertion with w16du:dateUtc; w16du is NOT declared ignorable.\nKept text, then {++Check 36, 2026-10-04T10:00:00: inserted text++}.\nAfter.\n",
       "blocks": [
         {
           "address": "body/0",
@@ -102,7 +102,7 @@
             {
               "kind": "TEXT",
               "text": "inserted text",
-              "revision": {"type": "INSERTION", "author": "Check 36", "date": "2026-10-04T10:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Check 36", "date": "2026-10-04T10:00:00"}
             },
             {"kind": "TEXT", "text": "."}
           ]

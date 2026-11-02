@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:09Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:52Z",
     "fixture": "text-extraction/suite/phase0/evidence/extraction-probe-r3-word-save.docx",
     "fixtureBytes": 95467,
     "timeZone": "UTC",
@@ -3341,7 +3341,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Text extraction probe\nBuilt by docx4j (ExtractionProbeBuilder, in docx4j-core-tests). Each case starts with a heading, Case and its number. Marker tokens are upper-case words joined by underscores; the README beside this file says where each should appear.\nCase 1: a text box: a wps Choice and a VML Fallback with different text\nThe box: \nCHOICE_ALPHA_123\nCase 2: a wps Choice and no Fallback\nThe box: \nCHOICE_ONLY_789\nCase 3: a Choice requiring an unknown namespace, and a Fallback, each a run\nThe runs: SUPPORTED_DELTA \nCase 4: two Choices, the first requiring an unknown namespace, the second wps; a Fallback\nThe box: \nCHOICE2_WPS_ETA\nCase 5: two Choices both understood (w14, then wps), each a run; a Fallback\nThe runs: MCE5_FIRST_SUPPORTED \nCase 6: the wps namespace bound to another prefix (shape2010)\nThe box: \nMCE6_REBOUND_CHOICE\nCase 7: a Choice requiring two namespaces, one unknown (wps zz9)\nThe box: \nMCE7_FALLBACK\nCase 8: nested: a text box in a wps Choice whose paragraph holds another AlternateContent\nThe box: \nMCE8_OUTER MCE8_INNER_CHOICE \nCase 9: an insertion and a deletion in one paragraph\nTC9_BASE {++Probe, 2026-10-17T00:00:00Z: TC9_INSERTED ++}{--Probe, 2026-10-17T00:00:00Z: TC9_DELETED--}\nCase 10: a move from paragraph A to paragraph B, with its range markers\nTC10_PARA_A {--Probe, 2026-10-17T00:00:00Z: TC10_MOVED--}\nTC10_PARA_B {++Probe, 2026-10-17T00:00:00Z: TC10_MOVED++}\nCase 11: a deleted paragraph mark between two paragraphs\nTC11_FIRST \nTC11_SECOND\nCase 12: an inserted paragraph mark splitting a paragraph\nTC12_ONE \nTC12_TWO\nCase 13: a table with a plain row, a deleted row and an inserted row\nTC13_PLAIN_ROW\n{--Probe, 2026-10-17T00:00:00Z: TC13_DELETED_ROW--}\n{++Probe, 2026-10-17T00:00:00Z: TC13_INSERTED_ROW++}\nAfter the table.\nCase 14: a deletion inside an insertion (a second author deletes part of the first author\u2019s insertion)\n{++Probe, 2026-10-17T00:00:00Z: TC14_INS_KEPT ++}{--Probe Two, 2026-10-17T01:00:00Z: TC14_DEL_IN_INS--}\nCase 15: an inserted field and a deleted field\nInserted: {++Probe, 2026-10-17T00:00:00Z: TC15_INSERTED_FIELD++} Deleted: {--Probe, 2026-10-17T00:00:00Z: TC15_DELETED_FIELD--}\nCase 16: a formatting-only change\nA run made bold, the change tracked: TC16_FORMAT_ONLY\nCase 17: tracked changes in a text box and in a footnote\nThe box (wps, no mc): \nTC17_BOX_BASE {++Probe, 2026-10-17T00:00:00Z: TC17_BOX_INS ++}{--Probe, 2026-10-17T00:00:00Z: TC17_BOX_DEL--}\nTC17_NOTE_REF_HERE [1]\nCase 18: hidden and near-hidden text\nA run with w:vanish: \nA run whose character style is hidden: \nWhite text: HID18_WHITE_TEXT\n1pt text: HID18_TINY\nw:webHidden: HID18_WEBHIDDEN\nCase 19: complex fields: a marker in the code and the result, and one in the code only\nQUOTE: FLD19_RESULT\nDOCVARIABLE: FLD19_RESULT_TWO\nCase 20: a simple field\nfldSimple: FLD20_SIMPLE_RESULT\nCase 21: hyperlinks: a w:hyperlink with r:id, and a HYPERLINK field\nw:hyperlink: FLD21_LINK_TEXT\nHYPERLINK field: FLD21_FIELD_LINK_TEXT\nCase 22: a content control showing its placeholder\nThe control: PLC22_PLACEHOLDER\nCase 23: a content control bound to a custom XML part, its surface text stale\nThe control: BND23_XML_VALUE\nCase 24: a rich text control, and a block-level control in a table cell\nInline: SDT24_CONTENT\nSDT24_IN_CELL\nAfter the table.\nCase 25: text boxes and legacy WordArt\nA floating DrawingML box: \nTBX25_FLOAT\nAn inline DrawingML box: \nTBX25_INLINE\nA VML box, no mc: \nTBX25_VML_ONLY\nIn a cell: \nTBX25_IN_CELL\nLegacy WordArt (v:textpath): \nWA25_TEXTPATH\nCase 26: headers and footers over two sections, and a header no section uses\nSection 1 has a default, a first-page and an even-page header, and a default footer (header1 also holds the box of case 25). The next paragraph starts section 2, on a new page, with its own default header.\nThe last paragraph of section 1.\nThe first paragraph of section 2.\nCase 27: a footnote, an endnote, and a footnote whose reference is deleted\nFN27_REF_HERE [2]\nEN27_REF_HERE [1]\nFN27_DELETED_REF_HERE {--Probe, 2026-10-17T00:00:00Z: [3]--}\nCase 28: comments: one with a reply, and one resolved\nCMT28_ANCHOR{>>Probe, 2026-10-17T00:00:00Z: CMT28_COMMENT_TEXT<<}{>>Probe, 2026-10-17T00:00:00Z: CMT28_REPLY<<} and CMT28_RESOLVED_ANCHOR{>>Probe, 2026-10-17T00:00:00Z: CMT28_RESOLVED_COMMENT<<}\nCase 29: symbols, a numbered list and a Symbol-font bulleted list\nSYM29_MARK \uf0fc \uf061\nLST29_ITEM_A\nLST29_ITEM_B\nLST29_ITEM_C\nLST29_BULLET_ONE\nLST29_BULLET_TWO\nCase 30: breaks, a tab and hyphens\nBRK30_BEFORE\nBRK30_AFTER\n\nBRK30_PAGE\n\nBRK30_COLUMN\nTAB30_LEFT\tTAB30_RIGHT\nHY30_NON\u2011BREAK HY30_SO\u00adFT\nCase 31: a table: header row, two-paragraph cell, nested table, merged cell, empty cell\n[table: listed format]\nTBL31_HEADER\nTBL31_CELL_P1; TBL31_CELL_P2\tTBL31_NESTED\nTBL31_MERGED\tTBL31_LAST_CELL\nAfter the table.\nCase 32: an equation with a fraction\n$$MTH32\\_A+\\frac{MTH32\\_B}{2}$$\nCase 33: pictures: alt text and a title, decorative, and an SVG with text in it\nAlt text and title: \nDecorative: \nSVG, its PNG fallback in a:blip: \nCase 34: a chart\nThe chart: \n[chart: clustered column; value axis: CHT34_AXIS_TITLE]\nCHT34_TITLE\n\tCHT34_SERIES_ONE\tCHT34_SERIES_TWO\nCHT34_CAT_A\t3\t4\nCHT34_CAT_B\t5\t2\nCase 35: SmartArt: a root and two children, stored out of reading order\nThe diagram: \nSMA35_ROOT\nSMA35_CHILD_ONE\nSMA35_CHILD_TWO\nCase 36: an altChunk holding HTML\nALT36_CHUNK_TEXT\nAfter the altChunk.\nCase 37: ruby\nRuby: RBY37_BASE\nCase 38: document properties and a custom XML part\nThe core properties hold a title and a subject; the custom XML part case 23 binds to holds one more value.\nCase 39: an embedded workbook\n\nCase 40: an embedded document containing another embedded document\n\nCase 41: an OLE package containing a plain-text file\n\nCase 42: an ActiveX label with a preview\n\nCase 43: a plain-text altChunk\nALT43_TEXT_LINE_ONE\nALT43_TEXT_LINE_TWO\nCase 44: an MHT altChunk\nALT44_MHT_CHUNK\nCase 45: an RTF altChunk\nALT45_RTF_CHUNK\nCase 46: a Flat OPC altChunk\nALT46_FLATOPC_CHUNK\nCase 47: a document altChunk containing an HTML altChunk\nALT47_DOCX_CHUNK\nALT47_NESTED_CHUNK\nCase 48: inspection kinds and characters preserved in extraction\nSHD48_SHADED ZW48_SP\u200bLIT TAG48_MARK\udb40\udc41\udb40\udc42 \n\nOFF48_BOX\n\nZER48_BOX\nSPV48_SEPARATOR\nCase 49: external fields with cached results\nDDE49_RESULT INC49_RESULT Local file link\nCase 53: an embedded presentation with groups, a table, a hidden slide and speaker notes\n\nCase 54: a glossary document with two building-block entries\nThe glossary holds two entries; neither is inserted into the main story.\n[1] TC17_NOTE_BASE {--Probe, 2026-10-17T00:00:00Z: TC17_NOTE_DEL--}\n[2] FN27_NOTE_TEXT\n[3] FN27_DELETED_REF_NOTE\n[1] EN27_NOTE_TEXT\n",
+      "plainText": "Text extraction probe\nBuilt by docx4j (ExtractionProbeBuilder, in docx4j-core-tests). Each case starts with a heading, Case and its number. Marker tokens are upper-case words joined by underscores; the README beside this file says where each should appear.\nCase 1: a text box: a wps Choice and a VML Fallback with different text\nThe box: \nCHOICE_ALPHA_123\nCase 2: a wps Choice and no Fallback\nThe box: \nCHOICE_ONLY_789\nCase 3: a Choice requiring an unknown namespace, and a Fallback, each a run\nThe runs: SUPPORTED_DELTA \nCase 4: two Choices, the first requiring an unknown namespace, the second wps; a Fallback\nThe box: \nCHOICE2_WPS_ETA\nCase 5: two Choices both understood (w14, then wps), each a run; a Fallback\nThe runs: MCE5_FIRST_SUPPORTED \nCase 6: the wps namespace bound to another prefix (shape2010)\nThe box: \nMCE6_REBOUND_CHOICE\nCase 7: a Choice requiring two namespaces, one unknown (wps zz9)\nThe box: \nMCE7_FALLBACK\nCase 8: nested: a text box in a wps Choice whose paragraph holds another AlternateContent\nThe box: \nMCE8_OUTER MCE8_INNER_CHOICE \nCase 9: an insertion and a deletion in one paragraph\nTC9_BASE {++Probe, 2026-10-17T00:00:00: TC9_INSERTED ++}{--Probe, 2026-10-17T00:00:00: TC9_DELETED--}\nCase 10: a move from paragraph A to paragraph B, with its range markers\nTC10_PARA_A {--Probe, 2026-10-17T00:00:00: TC10_MOVED--}\nTC10_PARA_B {++Probe, 2026-10-17T00:00:00: TC10_MOVED++}\nCase 11: a deleted paragraph mark between two paragraphs\nTC11_FIRST \nTC11_SECOND\nCase 12: an inserted paragraph mark splitting a paragraph\nTC12_ONE \nTC12_TWO\nCase 13: a table with a plain row, a deleted row and an inserted row\nTC13_PLAIN_ROW\n{--Probe, 2026-10-17T00:00:00: TC13_DELETED_ROW--}\n{++Probe, 2026-10-17T00:00:00: TC13_INSERTED_ROW++}\nAfter the table.\nCase 14: a deletion inside an insertion (a second author deletes part of the first author\u2019s insertion)\n{++Probe, 2026-10-17T00:00:00: TC14_INS_KEPT ++}{--Probe Two, 2026-10-17T01:00:00: TC14_DEL_IN_INS--}\nCase 15: an inserted field and a deleted field\nInserted: {++Probe, 2026-10-17T00:00:00: TC15_INSERTED_FIELD++} Deleted: {--Probe, 2026-10-17T00:00:00: TC15_DELETED_FIELD--}\nCase 16: a formatting-only change\nA run made bold, the change tracked: TC16_FORMAT_ONLY\nCase 17: tracked changes in a text box and in a footnote\nThe box (wps, no mc): \nTC17_BOX_BASE {++Probe, 2026-10-17T00:00:00: TC17_BOX_INS ++}{--Probe, 2026-10-17T00:00:00: TC17_BOX_DEL--}\nTC17_NOTE_REF_HERE [1]\nCase 18: hidden and near-hidden text\nA run with w:vanish: \nA run whose character style is hidden: \nWhite text: HID18_WHITE_TEXT\n1pt text: HID18_TINY\nw:webHidden: HID18_WEBHIDDEN\nCase 19: complex fields: a marker in the code and the result, and one in the code only\nQUOTE: FLD19_RESULT\nDOCVARIABLE: FLD19_RESULT_TWO\nCase 20: a simple field\nfldSimple: FLD20_SIMPLE_RESULT\nCase 21: hyperlinks: a w:hyperlink with r:id, and a HYPERLINK field\nw:hyperlink: FLD21_LINK_TEXT\nHYPERLINK field: FLD21_FIELD_LINK_TEXT\nCase 22: a content control showing its placeholder\nThe control: PLC22_PLACEHOLDER\nCase 23: a content control bound to a custom XML part, its surface text stale\nThe control: BND23_XML_VALUE\nCase 24: a rich text control, and a block-level control in a table cell\nInline: SDT24_CONTENT\nSDT24_IN_CELL\nAfter the table.\nCase 25: text boxes and legacy WordArt\nA floating DrawingML box: \nTBX25_FLOAT\nAn inline DrawingML box: \nTBX25_INLINE\nA VML box, no mc: \nTBX25_VML_ONLY\nIn a cell: \nTBX25_IN_CELL\nLegacy WordArt (v:textpath): \nWA25_TEXTPATH\nCase 26: headers and footers over two sections, and a header no section uses\nSection 1 has a default, a first-page and an even-page header, and a default footer (header1 also holds the box of case 25). The next paragraph starts section 2, on a new page, with its own default header.\nThe last paragraph of section 1.\nThe first paragraph of section 2.\nCase 27: a footnote, an endnote, and a footnote whose reference is deleted\nFN27_REF_HERE [2]\nEN27_REF_HERE [1]\nFN27_DELETED_REF_HERE {--Probe, 2026-10-17T00:00:00: [3]--}\nCase 28: comments: one with a reply, and one resolved\nCMT28_ANCHOR{>>Probe, 2026-10-17T00:00:00: CMT28_COMMENT_TEXT<<}{>>Probe, 2026-10-17T00:00:00: CMT28_REPLY<<} and CMT28_RESOLVED_ANCHOR{>>Probe, 2026-10-17T00:00:00: CMT28_RESOLVED_COMMENT<<}\nCase 29: symbols, a numbered list and a Symbol-font bulleted list\nSYM29_MARK \uf0fc \uf061\nLST29_ITEM_A\nLST29_ITEM_B\nLST29_ITEM_C\nLST29_BULLET_ONE\nLST29_BULLET_TWO\nCase 30: breaks, a tab and hyphens\nBRK30_BEFORE\nBRK30_AFTER\n\nBRK30_PAGE\n\nBRK30_COLUMN\nTAB30_LEFT\tTAB30_RIGHT\nHY30_NON\u2011BREAK HY30_SO\u00adFT\nCase 31: a table: header row, two-paragraph cell, nested table, merged cell, empty cell\n[table: listed format]\nTBL31_HEADER\nTBL31_CELL_P1; TBL31_CELL_P2\tTBL31_NESTED\nTBL31_MERGED\tTBL31_LAST_CELL\nAfter the table.\nCase 32: an equation with a fraction\n$$MTH32\\_A+\\frac{MTH32\\_B}{2}$$\nCase 33: pictures: alt text and a title, decorative, and an SVG with text in it\nAlt text and title: \nDecorative: \nSVG, its PNG fallback in a:blip: \nCase 34: a chart\nThe chart: \n[chart: clustered column; value axis: CHT34_AXIS_TITLE]\nCHT34_TITLE\n\tCHT34_SERIES_ONE\tCHT34_SERIES_TWO\nCHT34_CAT_A\t3\t4\nCHT34_CAT_B\t5\t2\nCase 35: SmartArt: a root and two children, stored out of reading order\nThe diagram: \nSMA35_ROOT\nSMA35_CHILD_ONE\nSMA35_CHILD_TWO\nCase 36: an altChunk holding HTML\nALT36_CHUNK_TEXT\nAfter the altChunk.\nCase 37: ruby\nRuby: RBY37_BASE\nCase 38: document properties and a custom XML part\nThe core properties hold a title and a subject; the custom XML part case 23 binds to holds one more value.\nCase 39: an embedded workbook\n\nCase 40: an embedded document containing another embedded document\n\nCase 41: an OLE package containing a plain-text file\n\nCase 42: an ActiveX label with a preview\n\nCase 43: a plain-text altChunk\nALT43_TEXT_LINE_ONE\nALT43_TEXT_LINE_TWO\nCase 44: an MHT altChunk\nALT44_MHT_CHUNK\nCase 45: an RTF altChunk\nALT45_RTF_CHUNK\nCase 46: a Flat OPC altChunk\nALT46_FLATOPC_CHUNK\nCase 47: a document altChunk containing an HTML altChunk\nALT47_DOCX_CHUNK\nALT47_NESTED_CHUNK\nCase 48: inspection kinds and characters preserved in extraction\nSHD48_SHADED ZW48_SP\u200bLIT TAG48_MARK\udb40\udc41\udb40\udc42 \n\nOFF48_BOX\n\nZER48_BOX\nSPV48_SEPARATOR\nCase 49: external fields with cached results\nDDE49_RESULT INC49_RESULT Local file link\nCase 53: an embedded presentation with groups, a table, a hidden slide and speaker notes\n\nCase 54: a glossary document with two building-block entries\nThe glossary holds two entries; neither is inserted into the main story.\n[1] TC17_NOTE_BASE {--Probe, 2026-10-17T00:00:00: TC17_NOTE_DEL--}\n[2] FN27_NOTE_TEXT\n[3] FN27_DELETED_REF_NOTE\n[1] EN27_NOTE_TEXT\n",
       "blocks": [
         {
           "address": "body/0",
@@ -3566,12 +3566,12 @@
             {
               "kind": "TEXT",
               "text": "TC9_INSERTED ",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             },
             {
               "kind": "TEXT",
               "text": "TC9_DELETED",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ]
         },
@@ -3595,7 +3595,7 @@
             {
               "kind": "TEXT",
               "text": "TC10_MOVED",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ]
         },
@@ -3610,7 +3610,7 @@
             {
               "kind": "TEXT",
               "text": "TC10_MOVED",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ]
         },
@@ -3709,7 +3709,7 @@
                         {
                           "kind": "TEXT",
                           "text": "TC13_DELETED_ROW",
-                          "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+                          "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
                         }
                       ]
                     }
@@ -3733,7 +3733,7 @@
                         {
                           "kind": "TEXT",
                           "text": "TC13_INSERTED_ROW",
-                          "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
                         }
                       ]
                     }
@@ -3774,12 +3774,12 @@
             {
               "kind": "TEXT",
               "text": "TC14_INS_KEPT ",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             },
             {
               "kind": "TEXT",
               "text": "TC14_DEL_IN_INS",
-              "revision": {"type": "DELETION", "author": "Probe Two", "date": "2026-10-17T01:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe Two", "date": "2026-10-17T01:00:00"}
             }
           ]
         },
@@ -3803,13 +3803,13 @@
             {
               "kind": "TEXT",
               "text": "TC15_INSERTED_FIELD",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             },
             {"kind": "TEXT", "text": " Deleted: "},
             {
               "kind": "TEXT",
               "text": "TC15_DELETED_FIELD",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ],
           "fields": [
@@ -3863,12 +3863,12 @@
             {
               "kind": "TEXT",
               "text": "TC17_BOX_INS ",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             },
             {
               "kind": "TEXT",
               "text": "TC17_BOX_DEL",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ]
         },
@@ -4262,7 +4262,7 @@
             {
               "kind": "NOTE_REFERENCE",
               "text": "",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"},
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"},
               "noteType": "footnote",
               "noteNumber": 3,
               "noteId": "3"
@@ -5080,7 +5080,7 @@
             {
               "kind": "TEXT",
               "text": "TC17_NOTE_DEL",
-              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00Z"}
+              "revision": {"type": "DELETION", "author": "Probe", "date": "2026-10-17T00:00:00"}
             }
           ]
         },
@@ -5132,7 +5132,7 @@
           "id": "25",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:25/0",
@@ -5149,7 +5149,7 @@
           "id": "26",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "parentId": "25",
           "blocks": [
             {
@@ -5166,7 +5166,7 @@
           "id": "27",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "resolved": true,
           "blocks": [
             {
@@ -6929,7 +6929,7 @@
           "id": "25",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:25/0",
@@ -6946,7 +6946,7 @@
           "id": "26",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "parentId": "25",
           "blocks": [
             {
@@ -6963,7 +6963,7 @@
           "id": "27",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "resolved": true,
           "blocks": [
             {

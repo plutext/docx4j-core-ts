@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:05Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:45Z",
     "fixture": "fixtures/html/paste-samples.docx",
     "fixtureBytes": 8544,
     "timeZone": "UTC",
@@ -95,7 +95,11 @@
             {"kind": "TEXT", "text": "italic", "italic": true},
             {"kind": "TEXT", "text": ", underlined, "},
             {"kind": "TEXT", "text": "struck through", "strike": true},
-            {"kind": "TEXT", "text": ", a superscript and a subscript run, then "},
+            {"kind": "TEXT", "text": ", a super"},
+            {"kind": "TEXT", "text": "script"},
+            {"kind": "TEXT", "text": " and a sub"},
+            {"kind": "TEXT", "text": "script"},
+            {"kind": "TEXT", "text": " run, then "},
             {"kind": "TEXT", "text": "bold italic together", "bold": true, "italic": true},
             {"kind": "TEXT", "text": "."}
           ]
@@ -580,7 +584,11 @@
             {"kind": "TEXT", "text": "italic", "italic": true},
             {"kind": "TEXT", "text": ", underlined, "},
             {"kind": "TEXT", "text": "struck through", "strike": true},
-            {"kind": "TEXT", "text": ", a superscript and a subscript run, then "},
+            {"kind": "TEXT", "text": ", a super"},
+            {"kind": "TEXT", "text": "script"},
+            {"kind": "TEXT", "text": " and a sub"},
+            {"kind": "TEXT", "text": "script"},
+            {"kind": "TEXT", "text": " run, then "},
             {"kind": "TEXT", "text": "bold italic together", "bold": true, "italic": true},
             {"kind": "TEXT", "text": "."}
           ]

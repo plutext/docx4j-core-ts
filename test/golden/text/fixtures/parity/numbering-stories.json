@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:06Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:46Z",
     "fixture": "fixtures/parity/numbering-stories.docx",
     "fixtureBytes": 16611,
     "timeZone": "UTC",
@@ -396,7 +396,7 @@
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "P01 Every numbered paragraph in this document uses w:num 70.\nP02 body item\nP03 body item\nP04 body item\nP11 Two footnotes[1] and[2]\nP15 An endnote[1]\nP19 A comment{>>probe, 2026-09-12T00:00:00Z: P16 comment item\nP17 comment item\nP18 comment item<<}\nP23 A text box: \nP20 text box item\nP21 text box item\nP22 text box item\nP24 body item after the notes\nP25 body item after the notes\nP26 body item after the notes\n[1]P05 footnote one item\nP06 footnote one item\nP07 footnote one item\n[2]P08 footnote two item\nP09 footnote two item\nP10 footnote two item\n[1]P12 endnote item\nP13 endnote item\nP14 endnote item\n",
+      "plainText": "P01 Every numbered paragraph in this document uses w:num 70.\nP02 body item\nP03 body item\nP04 body item\nP11 Two footnotes[1] and[2]\nP15 An endnote[1]\nP19 A comment{>>probe, 2026-09-12T00:00:00: P16 comment item\nP17 comment item\nP18 comment item<<}\nP23 A text box: \nP20 text box item\nP21 text box item\nP22 text box item\nP24 body item after the notes\nP25 body item after the notes\nP26 body item after the notes\n[1]P05 footnote one item\nP06 footnote one item\nP07 footnote one item\n[2]P08 footnote two item\nP09 footnote two item\nP10 footnote two item\n[1]P12 endnote item\nP13 endnote item\nP14 endnote item\n",
       "blocks": [
         {
           "address": "body/0",
@@ -784,7 +784,7 @@
           "id": "1",
           "author": "probe",
           "initials": "p",
-          "date": "2026-09-12T00:00:00Z",
+          "date": "2026-09-12T00:00:00",
           "blocks": [
             {
               "address": "comment:1/0",
@@ -1367,7 +1367,7 @@
           "id": "1",
           "author": "probe",
           "initials": "p",
-          "date": "2026-09-12T00:00:00Z",
+          "date": "2026-09-12T00:00:00",
           "blocks": [
             {
               "address": "comment:1/0",

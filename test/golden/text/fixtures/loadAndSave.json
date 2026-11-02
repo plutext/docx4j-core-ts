@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:05Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:45Z",
     "fixture": "fixtures/loadAndSave.docx",
     "fixtureBytes": 55625,
     "timeZone": "UTC",
@@ -391,7 +391,7 @@
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Title\nTable of Contents\nSection 1\nLorem ipsum\u2026\nBold\nItalics\nUnderline\nColor\nHighlight\nFont (Times New Roman)\nHyperlink\nText with footnote[1]\nText with endnote[1]\nTable:\n1\t2\t3\na\tb\tc\n\nText box:\nHello world\n\n\nImage:\n\nEquation:\n$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$\nRTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b\nField: 6:25 PM\nSection 2\nLorem ipsum\u2026\n\n\n\nSection 3\nLorem ipsum\u2026{>>Buck Cronk, 2026-05-18T18:21:00Z: Comment<<}\n\n[chart: pie]\nA Chart\n\tSales\n1st Qtr\t8.2\n2nd Qtr\t3.2\n3rd Qtr\t1.4\n4th Qtr\t1.2\n[1] Footnote\n[1] Endnote\n",
+      "plainText": "Title\nTable of Contents\nSection 1\nLorem ipsum\u2026\nBold\nItalics\nUnderline\nColor\nHighlight\nFont (Times New Roman)\nHyperlink\nText with footnote[1]\nText with endnote[1]\nTable:\n1\t2\t3\na\tb\tc\n\nText box:\nHello world\n\n\nImage:\n\nEquation:\n$$(x+a)^{n}=\\sum_{k=0}^{n}(\\frac{n}{k})x^{k}a^{n-k}$$\nRTL text: \u0623\u0647\u0644\u0627\u064b \u0648\u0633\u0647\u0644\u0627\u064b\nField: 6:25 PM\nSection 2\nLorem ipsum\u2026\n\n\n\nSection 3\nLorem ipsum\u2026{>>Buck Cronk, 2026-05-18T18:21:00-05:00: Comment<<}\n\n[chart: pie]\nA Chart\n\tSales\n1st Qtr\t8.2\n2nd Qtr\t3.2\n3rd Qtr\t1.4\n4th Qtr\t1.2\n[1] Footnote\n[1] Endnote\n",
       "blocks": [
         {
           "address": "body/0",
@@ -753,7 +753,7 @@
           "id": "4",
           "author": "Buck Cronk",
           "initials": "BC",
-          "date": "2026-05-18T18:21:00Z",
+          "date": "2026-05-18T18:21:00-05:00",
           "blocks": [
             {
               "address": "comment:4/0",
@@ -1231,7 +1231,7 @@
           "id": "4",
           "author": "Buck Cronk",
           "initials": "BC",
-          "date": "2026-05-18T18:21:00Z",
+          "date": "2026-05-18T18:21:00-05:00",
           "blocks": [
             {
               "address": "comment:4/0",

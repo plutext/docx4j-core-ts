@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:09Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:52Z",
     "fixture": "text-extraction/suite/phase0/extraction-probe-inspect.docx",
     "fixtureBytes": 39500,
     "timeZone": "UTC",
@@ -595,7 +595,12 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
         {"kind": "sdt.binding_differs", "address": "body/67"}
       ]
@@ -603,7 +608,7 @@
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>Probe, 2026-10-17T00:00:00Z: CMT63_ANCHORED<<}\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>Probe, 2026-10-17T00:00:00: CMT63_ANCHORED<<}\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
       "blocks": [
         {
           "address": "body/0",
@@ -1189,7 +1194,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -1203,7 +1208,12 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
         {"kind": "sdt.binding_differs", "address": "body/67"}
       ]
@@ -1847,7 +1857,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -1861,7 +1871,12 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
         {"kind": "sdt.binding_differs", "address": "body/67"}
       ]

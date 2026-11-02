@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:51Z",
     "fixture": "fixtures/revisions/cr043/cr043-tracked.docx",
     "fixtureBytes": 44084,
     "timeZone": "UTC",
@@ -1287,7 +1287,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: 1\nC02 the PAGE field here is deleted: {--Author A, 2026-10-16T10:17:00Z: 1--} (after the field).\nC04 a picture is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00Z: ++}\nC05 the picture here is deleted: {--Author A, 2026-10-16T10:17:00Z: --} (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.; C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)\nC10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)\nC10b body half (Normal, right aligned)\nC11 before {--Author A, 2026-10-16T10:17:00Z: BOOKMARKED --}after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: {++Author A, 2026-10-16T10:17:00Z: C11b INSERTED WORDS++}\nC12 the endnote reference here is deleted: {--Author A, 2026-10-16T10:17:00Z: [1] --}(after the reference).\nC12b an endnote is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00Z: [2]++}\nC13 the table after this paragraph is deleted whole.\n{--Author A, 2026-10-16T10:17:00Z: C13 r1c1--}\t{--Author A, 2026-10-16T10:17:00Z: C13 r1c2--}\n{--Author A, 2026-10-16T10:17:00Z: C13 r2c1--}\t{--Author A, 2026-10-16T10:17:00Z: C13 r2c2--}\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\n{--Author A, 2026-10-16T10:17:00Z: C15 move one.--}\n{--Author A, 2026-10-16T10:17:00Z: C15 move two.--}\n{--Author A, 2026-10-16T10:17:00Z: C15 move three: these three paragraphs are moved into the cell below.--}\n[table: listed format]\n{++Author A, 2026-10-16T10:17:00Z: C15 move one.++}; {++Author A, 2026-10-16T10:17:00Z: C15 move two.++}; {++Author A, 2026-10-16T10:17:00Z: C15 move three: these three paragraphs are moved into the cell below.++}C15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: C16 inserted link\nC16b a content control is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00Z: C16b control text++}\nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>CR-043 base, 2026-10-16T00:00:00Z: C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [3]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete:{--Author A, 2026-10-16T10:17:00Z:  DELETEME--}. Inserted text goes at the end.{++Author A, 2026-10-16T10:17:00Z:  C22 inserted.++}\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\n{++Author A, 2026-10-16T10:17:00Z: C25 r1c1++}\t{++Author A, 2026-10-16T10:17:00Z: C25 r1c2++}\n{++Author A, 2026-10-16T10:17:00Z: C25 r2c1++}\t{++Author A, 2026-10-16T10:17:00Z: C25 r2c2++}\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted.{++Author A, 2026-10-16T10:17:00Z:  ++}\nC06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n{--Author A, 2026-10-16T10:17:00Z: [1] C12 endnote text (its reference is deleted).--}\n{++Author A, 2026-10-16T10:17:00Z: [2] C12b inserted endnote text.++}\n[3] C21 endnote text, a word to delete:{--Author A, 2026-10-16T10:17:00Z:  DELETEME--}. Inserted text goes at the end{++Author A, 2026-10-16T10:17:00Z:  C21 inserted.++}.\n",
+      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: 1\nC02 the PAGE field here is deleted: {--Author A, 2026-10-16T10:17:00+11:00: 1--} (after the field).\nC04 a picture is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00+11:00: ++}\nC05 the picture here is deleted: {--Author A, 2026-10-16T10:17:00+11:00: --} (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.; C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)\nC10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)\nC10b body half (Normal, right aligned)\nC11 before {--Author A, 2026-10-16T10:17:00+11:00: BOOKMARKED --}after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: {++Author A, 2026-10-16T10:17:00+11:00: C11b INSERTED WORDS++}\nC12 the endnote reference here is deleted: {--Author A, 2026-10-16T10:17:00+11:00: [1] --}(after the reference).\nC12b an endnote is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00+11:00: [2]++}\nC13 the table after this paragraph is deleted whole.\n{--Author A, 2026-10-16T10:17:00+11:00: C13 r1c1--}\t{--Author A, 2026-10-16T10:17:00+11:00: C13 r1c2--}\n{--Author A, 2026-10-16T10:17:00+11:00: C13 r2c1--}\t{--Author A, 2026-10-16T10:17:00+11:00: C13 r2c2--}\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\n{--Author A, 2026-10-16T10:17:00+11:00: C15 move one.--}\n{--Author A, 2026-10-16T10:17:00+11:00: C15 move two.--}\n{--Author A, 2026-10-16T10:17:00+11:00: C15 move three: these three paragraphs are moved into the cell below.--}\n[table: listed format]\n{++Author A, 2026-10-16T10:17:00+11:00: C15 move one.++}; {++Author A, 2026-10-16T10:17:00+11:00: C15 move two.++}; {++Author A, 2026-10-16T10:17:00+11:00: C15 move three: these three paragraphs are moved into the cell below.++}C15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: C16 inserted link\nC16b a content control is inserted at the end of this paragraph: {++Author A, 2026-10-16T10:17:00+11:00: C16b control text++}\nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>CR-043 base, 2026-10-16T00:00:00: C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [3]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete:{--Author A, 2026-10-16T10:17:00+11:00:  DELETEME--}. Inserted text goes at the end.{++Author A, 2026-10-16T10:17:00+11:00:  C22 inserted.++}\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\n{++Author A, 2026-10-16T10:17:00+11:00: C25 r1c1++}\t{++Author A, 2026-10-16T10:17:00+11:00: C25 r1c2++}\n{++Author A, 2026-10-16T10:17:00+11:00: C25 r2c1++}\t{++Author A, 2026-10-16T10:17:00+11:00: C25 r2c2++}\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted.{++Author A, 2026-10-16T10:17:00+11:00:  ++}\nC06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n{--Author A, 2026-10-16T10:17:00+11:00: [1] C12 endnote text (its reference is deleted).--}\n{++Author A, 2026-10-16T10:17:00+11:00: [2] C12b inserted endnote text.++}\n[3] C21 endnote text, a word to delete:{--Author A, 2026-10-16T10:17:00+11:00:  DELETEME--}. Inserted text goes at the end{++Author A, 2026-10-16T10:17:00+11:00:  C21 inserted.++}.\n",
       "blocks": [
         {
           "address": "body/0",
@@ -1321,7 +1321,7 @@
             {
               "kind": "TEXT",
               "text": "1",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": " (after the field)."}
           ],
@@ -1338,7 +1338,7 @@
             {
               "kind": "IMAGE",
               "text": "",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "image": {"descr": "", "name": "Picture 2", "title": "", "part": "/word/media/image1.png"},
               "description": {"text": "Picture 2", "provenance": "AUTHOR"}
             }
@@ -1355,7 +1355,7 @@
             {
               "kind": "IMAGE",
               "text": "",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "image": {"descr": "C05 picture", "name": "c05", "title": "", "part": "/word/media/image2.png"},
               "description": {"text": "C05 picture", "provenance": "AUTHOR"}
             },
@@ -1490,7 +1490,7 @@
             {
               "kind": "TEXT",
               "text": "BOOKMARKED ",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": "after: the bookmarked word is deleted."}
           ]
@@ -1506,7 +1506,7 @@
             {
               "kind": "TEXT",
               "text": "C11b INSERTED WORDS",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -1521,7 +1521,7 @@
             {
               "kind": "NOTE_REFERENCE",
               "text": "",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "noteType": "endnote",
               "noteNumber": 1,
               "noteId": "1"
@@ -1529,7 +1529,7 @@
             {
               "kind": "TEXT",
               "text": " ",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": "(after the reference)."}
           ]
@@ -1545,7 +1545,7 @@
             {
               "kind": "NOTE_REFERENCE",
               "text": "",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "noteType": "endnote",
               "noteNumber": 2,
               "noteId": "2"
@@ -1580,7 +1580,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C13 r1c1",
-                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -1599,7 +1599,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C13 r1c2",
-                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -1623,13 +1623,13 @@
                         {
                           "kind": "PAGE_MARKER",
                           "text": "",
-                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
                           "pageNumber": 2
                         },
                         {
                           "kind": "TEXT",
                           "text": "C13 r2c1",
-                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -1648,7 +1648,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C13 r2c2",
-                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -1748,7 +1748,7 @@
             {
               "kind": "TEXT",
               "text": "C15 move one.",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -1762,7 +1762,7 @@
             {
               "kind": "TEXT",
               "text": "C15 move two.",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -1776,7 +1776,7 @@
             {
               "kind": "TEXT",
               "text": "C15 move three: these three paragraphs are moved into the cell below.",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -1801,7 +1801,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C15 move one.",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     },
@@ -1815,7 +1815,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C15 move two.",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     },
@@ -1829,7 +1829,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C15 move three: these three paragraphs are moved into the cell below.",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         },
                         {"kind": "TEXT", "text": "C15 r1c1"}
                       ]
@@ -1863,7 +1863,7 @@
             {
               "kind": "TEXT",
               "text": "C16b control text",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -1913,13 +1913,13 @@
             {
               "kind": "TEXT",
               "text": " DELETEME",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": ". Inserted text goes at the end."},
             {
               "kind": "TEXT",
               "text": " C22 inserted.",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -2032,7 +2032,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C25 r1c1",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -2051,7 +2051,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C25 r1c2",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -2075,7 +2075,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C25 r2c1",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -2094,7 +2094,7 @@
                         {
                           "kind": "TEXT",
                           "text": "C25 r2c2",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
                         }
                       ]
                     }
@@ -2118,7 +2118,7 @@
             {
               "kind": "TEXT",
               "text": " ",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -2169,7 +2169,7 @@
             {
               "kind": "NOTE_MARK",
               "text": "",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "noteType": "endnote",
               "noteNumber": 1,
               "noteId": "1"
@@ -2177,7 +2177,7 @@
             {
               "kind": "TEXT",
               "text": " C12 endnote text (its reference is deleted).",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -2195,7 +2195,7 @@
             {
               "kind": "NOTE_MARK",
               "text": "",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"},
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"},
               "noteType": "endnote",
               "noteNumber": 2,
               "noteId": "2"
@@ -2203,7 +2203,7 @@
             {
               "kind": "TEXT",
               "text": " C12b inserted endnote text.",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             }
           ]
         },
@@ -2222,13 +2222,13 @@
             {
               "kind": "TEXT",
               "text": " DELETEME",
-              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": ". Inserted text goes at the end"},
             {
               "kind": "TEXT",
               "text": " C21 inserted.",
-              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-16T10:17:00+11:00"}
             },
             {"kind": "TEXT", "text": "."}
           ]
@@ -2239,7 +2239,7 @@
           "id": "47",
           "author": "CR-043 base",
           "initials": "CB",
-          "date": "2026-10-16T00:00:00Z",
+          "date": "2026-10-16T00:00:00",
           "blocks": [
             {
               "address": "comment:47/0",
@@ -2931,7 +2931,7 @@
           "id": "47",
           "author": "CR-043 base",
           "initials": "CB",
-          "date": "2026-10-16T00:00:00Z",
+          "date": "2026-10-16T00:00:00",
           "blocks": [
             {
               "address": "comment:47/0",

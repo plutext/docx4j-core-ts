@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:05Z",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "3040274929c1ee55",
+    "date": "2026-11-02T14:58:44Z",
     "fixture": "fixtures/check40/40c-word365.docx",
     "fixtureBytes": 18161,
     "timeZone": "UTC",
@@ -425,7 +425,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Check 40c: for the Script Lab snippet check40-script.js. Table 1 (D) loses its middle column, table 2 (E) gains one at the end, both with tracking on, through Office JS. Then Save As 40c-word365.docx.\nD1A\tD1C\nD2A\tD2C\n\nTable 2:\nE1A\tE1B\tE1C\t{++Author A, 2026-10-09T08:35:00Z: E1D++}\nE2A\tE2B\tE2C\t{++Author A, 2026-10-09T08:35:00Z: E2D++}\n\n",
+      "plainText": "Check 40c: for the Script Lab snippet check40-script.js. Table 1 (D) loses its middle column, table 2 (E) gains one at the end, both with tracking on, through Office JS. Then Save As 40c-word365.docx.\nD1A\tD1C\nD2A\tD2C\n\nTable 2:\nE1A\tE1B\tE1C\t{++Author A, 2026-10-09T08:35:00+11:00: E1D++}\nE2A\tE2B\tE2C\t{++Author A, 2026-10-09T08:35:00+11:00: E2D++}\n\n",
       "blocks": [
         {
           "address": "body/0",
@@ -569,7 +569,7 @@
                         {
                           "kind": "TEXT",
                           "text": "E1D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T08:35:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T08:35:00+11:00"}
                         }
                       ]
                     }
@@ -629,7 +629,7 @@
                         {
                           "kind": "TEXT",
                           "text": "E2D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T08:35:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T08:35:00+11:00"}
                         }
                       ]
                     }
