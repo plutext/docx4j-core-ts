@@ -3,9 +3,10 @@
 **Status:** Proposed 2026-11-02, from the portfolio's note (docx4j-portfolio-10) of docx-tool-identifier's phase 0, which
 measured `@docx4j/core-ts` 0.6.0 at `f426a31` against docx4j 17.3.5 and found `bind-plain.docx` B7 read as its stale
 surface. Measured here the same day (section 1), with a second gap the identifier could not see (a bound date's AM/PM).
-Nothing implemented; the port waits for Jason's go. Decisions D1 to D6 for Jason in section 5, each with a
-recommendation. docx4j's CR-058 is complete (phase 1 `FormattingSwitchHelper`, phase 2 `StoreItemResolver`,
-`35cdeaee6`), released in 17.3.5; docx4j-python's counterpart is `python/CR-014.1c`.
+D1 to D6 decided 2026-11-02, all as recommended (Jason: "CR-020 as recommended; for D3 we'll do the Script Lab read";
+section 5), D3 to be held to check 73, that read (`test/README.md`). Nothing implemented. docx4j's CR-058 is complete
+(phase 1 `FormattingSwitchHelper`, phase 2 `StoreItemResolver`, `35cdeaee6`), released in 17.3.5; docx4j-python's
+counterpart is `python/CR-014.1c`.
 
 ## 0. Summary
 
@@ -111,13 +112,19 @@ The `customxml.test.mjs` cases already pinning a missing part's behaviour move w
 One phase, small: the resolver and its routing (half a day), the formatter (an hour), the tests and the copy. Section
 2.1's change to `XmlMapping.customXmlPart` is the content API's (CR-002), and is held to Office JS only by D3.
 
-## 5. Decisions (for Jason)
+## 5. Decisions (taken 2026-11-02, all as recommended)
+
+Jason, 2026-11-02: "CR-020 as recommended; for D3 we'll do the Script Lab read". D3's read is check 73 (`test/README.md`,
+`test/fixtures/check73/`). Office JS's `XmlMapping` has no `storeItemId` (D3's row supposed one), so the check reads
+`xmlMapping.customXmlPart` and `customXmlNode` on each of docx4j's three stale-ID probes, and the ID the body's OOXML
+holds once Word has opened it. If Office JS's `customXmlPart` is not the part the resolver takes, D3 comes back to
+Jason before the port is held to it.
 
 | # | Decision | Recommendation |
 |---|---|---|
 | D1 | Where the resolver applies | Every reader and the bind, as docx4j: the text model, `XmlMapping`, `applyBindings`, `updateFromContentControls` and the `od:xpath` passes, so they all name the part Word binds |
 | D2 | Write-back | `applyBindings` only, as docx4j's generator and Word's save; never a reader; `updateFromContentControls` writes to the resolved part and leaves the ID (docx4j's `UpdateXmlFromDocumentSurface`) |
-| D3 | `XmlMapping.storeItemID` | The stored ID (the XML), `customXmlPart` the resolved part. Word repairs on open, so Office JS probably reads the part's ID; unmeasured: a Script Lab read of B7's `xmlMapping.storeItemId` on `bind-plain.docx` settles it, optional |
+| D3 | `XmlMapping.storeItemID` | The stored ID (the XML), `customXmlPart` the resolved part. Word repairs on open, so Office JS probably reads the part's ID; unmeasured: a Script Lab read of B7's `xmlMapping` on `bind-plain.docx` settles it, optional (check 73, taken) |
 | D4 | Reporting, and docx4j's strict property | `notes` on `BindingResult` for each repair and each unresolved stale ID; no strict option, since nothing here ever threw on a stale ID |
 | D5 | The date items | Take them in this CR: `am/pm` and `AM/PM` as Word shows them (measured), and the document's default language where `w:lid` is absent (docx4j's rule; unmeasured here) |
 | D6 | Release | With the next release; the visible change is a stale control showing its value and a fixed `am/pm`, both Word's |

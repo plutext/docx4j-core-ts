@@ -5551,3 +5551,39 @@ async function check() {
      the read, and under `pkg.checkContentOnSave = false` the save writes as before. CR-016 sections 7 and 8 have it. Word's
      saves read back here as any file, the moved text where Word put it.
 
+73. What Office JS reports of a bound control whose `w:storeItemID` names no part (CR-020 D3, 2026-11-02; Jason: "CR-020
+   as recommended; for D3 we'll do the Script Lab read").
+   - **Why:** Word repairs such a binding on open, silently: it binds the control to the custom XML part its XPath fits,
+     and its save writes that part's ID (docx4j CR-058 section 8, Jason's runs of 22 and 23 October). CR-020 has this
+     package's `XmlMapping.customXmlPart` give the part its resolver finds and `XmlMapping.storeItemID` (an extension)
+     the ID as stored (D3). What an add-in sees is unmeasured: whether Office JS's `xmlMapping.customXmlPart` is the
+     repaired part, which part it is where two fit, and which ID the document's OOXML holds once Word has opened it.
+     Office JS's `XmlMapping` has no `storeItemId`, so the ID is read from the OOXML.
+   - **The files** are docx4j's probes, copied unedited to `__tmp/73/` from `docx4j-core-tests/src/test/resources/OpenDoPE/`
+     (byte for byte the share's `bind-fun/` copies Jason ran in October). Every control shows a stale surface while its
+     part holds the value:
+     - `bind-plain.docx`: B1 to B9 bound to the one part, `{B1D0F00D-...-000000000001}`, but B7 bound to
+       `{...-0000000000FF}`, which no part has; the part's root holds `p:b7`;
+     - `bind-plain-two-parts.docx`: B7 and B11 bound to `{...00FF}`; both parts hold `b7`, only part 2 holds `b11`
+       (Word's save: B7 part 1, B11 part 2);
+     - `bind-plain-no-part.docx`: B7's XPath in another namespace and B12's from `p:nothing`, so nothing fits (Word's
+       save: their surfaces and the stale ID kept).
+     The snippet is beside them, `check73-script-lab.html` and `check73-script-lab.js` (`fixtures/check73/`).
+   - **The snippet reads and changes nothing:** the document's custom XML parts, each control's `w:tag` and
+     `w:dataBinding` in the body's OOXML, and for each control its tag, its text, its `xmlMapping` (`isMapped`, `xpath`,
+     `prefixMappings`) and the `customXmlPart` and `customXmlNode` that names, each read in a Word.run of its own.
+   - **Steps, in Word 365 only.** Close Word first, and have one file open at a time, each in a fresh session.
+     1. Open `__tmp/73/bind-plain.docx`. Say whether Word reports a problem or offers a repair, and what B7 shows
+        (`B7_STALE_SURFACE` or `B7_XML_VALUE`).
+     2. In Script Lab, start a new snippet: paste `__tmp/73/check73-script-lab.html` over the HTML tab and
+        `__tmp/73/check73-script-lab.js` over the Script tab. Script Lab keeps it for the other two files.
+     3. Click **Read**. When it says Done, copy the box into a new file `__tmp/73/result-bind-plain.txt`.
+     4. File > Close, and **Don't Save** if Word asks: the files must stay as docx4j's. Then close Word.
+     5. The same for `__tmp/73/bind-plain-two-parts.docx` (what B7 and B11 show; `result-bind-plain-two-parts.txt`) and
+        `__tmp/73/bind-plain-no-part.docx` (what B7 and B12 show; `result-bind-plain-no-part.txt`), opening the snippet
+        again in Script Lab each time.
+   - **What this package gives** (the snippet through the Word shim, 2026-11-02, before CR-020): every control mapped;
+     B7, B11 and B12 their stale surfaces, their `customXmlPart` and `customXmlNode` undefined (the snippet records the
+     error) and `{...00FF}` in the OOXML; every other control its part and node. The shim has no
+     `document.customXmlParts`. CR-020 makes `customXmlPart` and the node the resolver's: B7 the one part in
+     `bind-plain`, B7 part 1 and B11 part 2 in `bind-plain-two-parts`, none for B7 and B12 in `bind-plain-no-part`.

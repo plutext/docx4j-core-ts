@@ -2468,7 +2468,8 @@ author-local-time and offset reading beside `revisionDateOf` (the instant, uncha
 From docx4j-12's hand-off of docx4j CR-069 phase 1 (`75b9bdb54`, `VERSION_17_3_5`, unpushed; its section 11; `c832243f9`
 and `079de83db` after it), on WD 0.50 to 0.52 (REQ-607 and REQ-710's note-reference sentence; portfolio `4b1590d`, `12f9bda`,
 `e561572`). docx4j's `CaseMappingTest` (10) is the test to mirror, and the suite's `dpp/` folder (WD 0.50's sixth `[PROBE]`
-fixture, Word 365's text saves as the oracle) its conformance rows. Nothing implemented; waits for Jason's go. Phase 2's
+fixture, Word 365's text saves as the oracle) its conformance rows. D1 to D5 decided 2026-11-02, all as recommended
+(section 24.6); nothing implemented. Phase 2's
 hand-off (the drop-cap join) followed the same day, section 24.3, and phase 3's (`<sup>` and `<sub>` in Markdown) on
 2026-11-01, section 24.4; phase 4's (`text.formatting_join`, the inspector's, and `strike` taking `w:dstrike`) the same
 day, section 24.5.
@@ -2628,7 +2629,10 @@ model's one strike flag covers both, a paragraph style's either cancelling it). 
 text golden moves: of the two documents under `test/` holding `w:dstrike`, `parity/NumberingImplicitNumId.docx` has it only
 in a style, off, and check 60's file has no text golden.
 
-### 24.6 Decisions (for Jason)
+### 24.6 Decisions (taken 2026-11-02, all as recommended)
+
+Jason, 2026-11-02: "CR-012 section 24, 56 & 26 decisions as recommended" (the 56 read as 25: CR-012 has no section
+56, and sections 24 to 26 were the three with decisions open).
 
 | # | Decision | Recommendation |
 |---|---|---|
@@ -2636,7 +2640,7 @@ in a style, off, and check 60's file has no text golden.
 | D2 | `profile: word-text` | Take section 23.1 with it (its D1), so that Word's 22 saves are checked here as in docx4j; the preset small (a table and the recording of set names) |
 | D3 | The members' names | docx4j's (`caps`, `smallCaps`, `verticalAlignment`, `language`), as every block-model name here, the WD's `lang` noted in the doc comment |
 | D4 | The Unicode version | 15.0, the version docx4j's tests run (JDK 21), so that a golden recut from docx4j agrees code point for code point; documented in `CaseMapping`'s doc comment as WD 0.52 asks; moved deliberately, never by the runtime |
-| D5 | The goldens | Recut with `TextHarness` writing the four members, from the 17.3.5 release, which holds `75b9bdb54` (`test/java/pom.xml` raised from 17.3.4 to it, and the parity workflow moved to `VERSION_17_3_6`), in the same change |
+| D5 | The goldens | Recut with `TextHarness` writing the four members, from the 17.3.5 release, which holds `75b9bdb54` (`test/java/pom.xml` raised from 17.3.4 to it), in the same change; the parity workflow moved to `VERSION_17_3_6` ahead of it (Jason, 2026-11-02) |
 
 ## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
 
@@ -2678,6 +2682,9 @@ docx4j's test breaks one, read with every story included):
 | D1 | The main part's error | The part's `PartUnmarshalException` as it is (its message names the part and the cause), not docx4j's sentence; a caller matching on docx4j's text is the case against, and none is known |
 | D2 | When it lands | With section 24's suite copy or on its own; it touches only `TextContext.mts` and the extractor's story reads, and no suite row moves |
 
+**Decided 2026-11-02, D1 and D2 as recommended** (Jason, with sections 24 and 26; his words are in section 24.6). Under
+D2 it lands with the suite copy or on its own, whichever comes first. Nothing implemented.
+
 ## 26. A SET field's result is never shown (WD 0.37 REQ-505; docx4j `f9992c7eb` and `4b066a369`, proposed 2026-11-02)
 
 docx4j-12's note of docx4j `4b066a369` (`VERSION_17_3_6`, unpushed; CR-067 section 15; `FieldPartAndSimpleSetTest`) made a
@@ -2712,3 +2719,6 @@ until then. Section 23.3's rule for the five fields takes it.
 |---|---|---|
 | D1 | The oracle | Copy `expr-probe-r1.docx` and Word's save into `test/fixtures/fields/` (two files, with docx4j's commit in `test/README.md`), since this package's tests read no file from the docx4j checkout at run time |
 | D2 | When it lands | On its own, before the suite copy: a claimed requirement read wrongly, one small change, no suite row or golden moving |
+
+**Decided 2026-11-02, D1 and D2 as recommended** (Jason, with sections 24 and 25; his words are in section 24.6). Nothing
+implemented.

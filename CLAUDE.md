@@ -491,9 +491,10 @@ table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry 
   `5cf47d752`; 17.3.1 ships CR-030, the table context, and otherwise PDF-side work that changes no
   XML), to `VERSION_17_3_3` on 2026-10-09 when 17.3.2 was released (tag `docx4j-17.3.2`,
   `856afc5da`), to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
-  `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows), and to
+  `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows), to
   `VERSION_17_3_5` on 2026-10-22 when 17.3.4 was released (tag `docx4j-17.3.4`, `8f455ebab`; 17.3.4 ships
-  CR-046, the text model this package's CR-012 follows). The parity workflow checks out `VERSION_17_3_5`,
+  CR-046, the text model this package's CR-012 follows), and to `VERSION_17_3_6` on 2026-11-01 when 17.3.5
+  was released (tag `docx4j-17.3.5`, `64fae4cd0`). The parity workflow checks out `VERSION_17_3_6` (since 2026-11-02),
   and `test/java/pom.xml` resolves the 17.3.4 release for a hand-run (the workflow reads docx4j's
   `<revision>` instead), since CR-012's phase 6; the release answers `w:framePr`'s `anchorLock` as before
   `82c64bf14`, so a hand-run that means to reproduce the goldens builds the head. The classes being
