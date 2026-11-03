@@ -25,6 +25,7 @@ import re
 import sys
 import unicodedata
 import zipfile
+import struct
 from email import message_from_bytes
 
 from fontTools import agl
@@ -33,7 +34,13 @@ from lxml import etree
 
 FIXTURES = [
     'extraction-probe.docx', 'extraction-probe-external.docm', 'extraction-probe-structure.docx',
-    'extraction-probe-inspect.docx']
+    'extraction-probe-inspect.docx', 'extraction-probe-html.docx']
+
+# The capability column (CR-050 phase 4): a row an inspector makes in every environment, or only without an
+# HTML reader (an HTML, XHTML or MHT chunk it cannot decode), or only with one (the hand-written rows of
+# expected-inspection-html.tsv, folded in below). The names are the harness's scenario names.
+ANY, READER_ABSENT, READER_PRESENT = 'any', 'html reader absent', 'html reader present'
+HTML_CHUNK_TYPES = ('text/html', 'application/xhtml+xml', 'message/rfc822')
 
 PREFIX = {
     'http://schemas.openxmlformats.org/wordprocessingml/2006/main': 'w',
@@ -91,9 +98,10 @@ UNDERSTOOD = set()
 ACTIVE = {'field.external', 'settings.update_fields', 'relationship.external', 'part.macro', 'part.activex',
           'altchunk.script', 'altchunk.external_ref'}
 INVENTORY = {'altchunk', 'object.embedded', 'font.embedded', 'ink', 'revision.author', 'rsids', 'people',
-             'part.unknown', 'hyperlink.web'}
+             'part.unknown', 'hyperlink.web', 'value.out_of_range'}
 VISIBLE = {
-    'text.near_background': 'differently', 'text.tiny': 'differently', 'chars.zero_width': 'no', 'chars.tag': 'no',
+    'text.near_background': 'differently', 'text.tiny': 'differently', 'text.formatting_join': 'differently',
+    'chars.zero_width': 'no', 'chars.tag': 'no',
     'chars.bidi': 'no', 'chars.private_use': 'no', 'font.glyph_blank': 'no', 'font.glyph_mismatch': 'differently',
     'paragraph.collapsed': 'differently', 'shape.zero_size': 'no', 'shape.off_page': 'no', 'shape.hidden': 'no',
     'smartart.data': 'no', 'text.hidden': 'no', 'paragraph.hidden': 'no', 'revision.deleted': 'no',
@@ -106,7 +114,7 @@ VISIBLE = {
     'header_footer': 'yes', 'watermark': 'yes', 'note': 'yes', 'sdt.placeholder': 'yes', 'chart.cached': 'yes',
     'text.web_hidden': 'yes', 'altchunk': 'yes', 'object.embedded': 'yes', 'properties': 'no', 'font.embedded': '-',
     'ink': 'yes', 'doc_vars': 'no', 'custom_xml': 'no', 'people': 'no', 'revision.author': 'no', 'rsids': 'no',
-    'part.unknown': '-',
+    'part.unknown': '-', 'image.svg_text': 'yes', 'image.metafile_text': 'yes', 'value.out_of_range': '-',
 }
 
 # the named outputs of expected-inspection.tsv: the options each sets beyond the defaults, and its format
@@ -138,6 +146,151 @@ EMU_PER_PT = 12700
 # D19 (b): a name of this form ("Text Box 3", "Picture 7") is no finding unless extraction carries it
 DEFAULT_NAME = re.compile(r'[^0-9]+ [0-9]+')
 WHITE = 'FFFFFF'
+
+
+# ---------------------------------------------------------------- Word's storage width per attribute (CR-066 D6)
+
+# the one table docx4j's inspector reads (InspectRanges): CR-066 sections 3.1 and 3.4 row for row
+STORAGE_TABLE = posixpath.join(posixpath.dirname(posixpath.abspath(__file__)), '..', '..', '..', '..', '..', '..',
+                               'docx4j-core/src/main/resources/org/docx4j/model/text/word-integer-storage.tsv')
+STORAGE_WORD = {'int16': 'int16', 'int16-clamp': 'int16', 'column-w': 'int16', 'column-space': 'int16',
+                'pair-firstLine': 'int16', 'pair-hanging': 'int16', 'rule-negated': 'int16', 'rule-positive': 'int16',
+                'rule-negated-drop': 'int16', 'rule-positive-drop': 'int16', 'uint16': 'uint16',
+                'uint16-clamp': 'uint16', 'uint16-min': 'uint16', 'int32': 'int32', 'uint8': '8 bits',
+                'uint5': '5 bits', 'bits15-flag': '15 bits', 'twips-unmeasured': '16 bits'}
+LEXICAL = re.compile(r'\s*([+-]?)(\d*)(?:\.\d*)?\s*$')
+
+
+def load_storage_rules():
+    """element/attribute -> [(context name or None, context values or None, storage, range text, lo, hi)]"""
+    rules = {}
+    header = True
+    for line in open(STORAGE_TABLE, encoding='utf-8').read().splitlines():
+        if not line or line.startswith('#'):
+            continue
+        if header:
+            header = False
+            continue
+        element, attribute, context, storage, rng = line.split('\t')[:5]
+        name, values = (None, None) if not context else (context.split('=', 1)[0], set(context.split('=', 1)[1].split('|')))
+        lo, hi = (int(x) for x in rng.split('..')) if rng else (None, None)
+        rules.setdefault(element + '/' + attribute, []).append((name, values, storage, rng, lo, hi))
+    return rules
+
+
+STORAGE_RULES = load_storage_rules()
+
+
+def wrap16(v):
+    m = v % 65536
+    return m - 65536 if m >= 32768 else m
+
+
+def wrap32(v):
+    m = v % (1 << 32)
+    return m - (1 << 32) if m >= (1 << 31) else m
+
+
+def sign_rule(stored, drop_at_zero):
+    if stored < 0:
+        return 'exact %d' % -stored
+    if stored > 0:
+        return 'atLeast %d' % stored
+    return 'dropped' if drop_at_zero else 'atLeast 0'
+
+
+def word_reads(storage, v, lo, hi):
+    """what Word reads for a value outside the row's range, in the attribute's own terms (InspectRanges.reading)"""
+    if storage == 'int16':
+        return str(wrap16(v))
+    if storage == 'uint16':
+        return str(v % 65536)
+    if storage == 'int32':
+        return str(wrap32(v))
+    if storage == 'uint8':
+        return str(v % 256)
+    if storage == 'uint5':
+        return str(v % 32)
+    if storage in ('pair-firstLine', 'pair-hanging'):
+        s = wrap16(v if storage == 'pair-firstLine' else -v)
+        return 'firstLine %d' % s if s >= 0 else 'hanging %d' % -s
+    if storage.startswith('rule-'):
+        return sign_rule(wrap16(-v if 'negated' in storage else v), storage.endswith('-drop'))
+    if storage == 'bits15-flag':
+        u = v % 65536
+        return 'h=%d%s' % (u - 32768 if u >= 32768 else u, ' hRule dropped' if u >= 32768 else '')
+    if storage == 'int16-clamp':
+        return str(min(max(wrap16(v), lo), hi))
+    if storage == 'uint16-clamp':
+        return str(min(max(v % 65536, lo), hi))
+    if storage == 'uint16-min':
+        return str(max(v % 65536, lo))
+    if storage == 'column-w':
+        s = wrap16(v)
+        return 'computed' if s < 0 else str(s)
+    if storage == 'column-space':
+        s = wrap16(v)
+        return '-1' if s < 0 else str(s)
+    if storage == 'twips-unmeasured':
+        return 'changed'
+    raise ValueError('unknown storage ' + storage)
+
+
+def lexical(text):
+    """Word's reading of an integer attribute's text (CR-065); None for a form Word refuses"""
+    m = LEXICAL.match(text or '')
+    if not m:
+        return None
+    v = int(m.group(2)) if m.group(2) else 0
+    return -v if m.group(1) == '-' else v
+
+
+def range_summary(el, attribute, text):
+    rules = STORAGE_RULES.get(el.tag.split('}')[1] + '/' + attribute)
+    if not rules:
+        return None
+    rule = None
+    for name, values, storage, rng, lo, hi in rules:
+        if name is None or (el.get(wq(name)) or '') in values:
+            rule = (name, values, storage, rng, lo, hi)
+            break
+    if rule is None or rule[2] == 'ignored':
+        return None
+    name, values, storage, rng, lo, hi = rule
+    v = lexical(text)
+    if v is None or lo <= v <= hi:
+        return None
+    # the key's deciding sibling (type, lineRule, hRule), named by any of its rows, where the element has it
+    deciding = next((r[0] for r in rules if r[0]), None)
+    context = '; %s=%s' % (deciding, el.get(wq(deciding))) if deciding and el.get(wq(deciding)) is not None else ''
+    return 'attribute=w:%s/@w:%s%s; value=%s; storage=%s; range=%s; word_reads=%s' % (
+        el.tag.split('}')[1], attribute, context, text.strip(), STORAGE_WORD[storage], rng, word_reads(storage, v, lo, hi))
+
+
+def adjacent_runs(a, b):
+    """two runs of one parent with no run between them"""
+    if a is b or a.getparent() is None or a.getparent() is not b.getparent():
+        return False
+    for sib in a.itersiblings():
+        if sib is b:
+            return True
+        if sib.tag == wq('r'):
+            return False
+    return False
+
+
+def range_findings(root):
+    """[(element, summary)] for every attribute outside Word's storage width under root, in document order"""
+    out = []
+    for el in root.iter():
+        if not isinstance(el.tag, str) or not el.tag.startswith('{%s}' % W):
+            continue
+        for k, text in el.attrib.items():
+            if k.startswith('{%s}' % W):
+                summary = range_summary(el, k.split('}')[1], text)
+                if summary:
+                    out.append((el, summary))
+    return out
 
 
 # ---------------------------------------------------------------- small helpers
@@ -186,6 +339,36 @@ def on(el, attr='{%s}val' % W):
 
 def cps(s):
     return len(s)  # Python strings are code points
+
+
+# a run's children that write nothing in the default plain text and separate nothing (text.formatting_join)
+TRANSPARENT = {'rPr', 'fldChar', 'instrText', 'delInstrText', 'lastRenderedPageBreak', 'commentReference', 'annotationRef'}
+
+
+def plain_sequence(r):
+    """A run's characters as the default plain text writes them: its display text, None for each child that writes
+    something else (a tab, a break, a hyphen, a reference, a picture), nothing for a field's characters and instruction"""
+    out = []
+    for c in r:
+        if not isinstance(c.tag, str):
+            continue
+        if c.tag in ('{%s}t' % W, '{%s}delText' % W, '{%s}t' % M):
+            out.extend(c.text or '')
+        elif c.tag == '{%s}sym' % W:
+            out.append(chr(int(c.get('{%s}char' % W), 16)))
+        elif not (c.tag.startswith('{%s}' % W) and c.tag.split('}')[1] in TRANSPARENT):
+            out.append(None)
+    return out
+
+
+def display_index(seq, i):
+    """A position in a plain sequence as an offset in the run's display text"""
+    return sum(1 for c in seq[:i] if c is not None)
+
+
+def nd(c):
+    """A decimal digit, Java's Character.isDigit (str.isdigit also takes the superscript digits)"""
+    return c is not None and unicodedata.category(c) == 'Nd'
 
 
 def wq(local):
@@ -371,6 +554,8 @@ class Finding:
         text = len(self.excerpt or '') > 0
         if self.kind == 'properties':
             return 'info' if inside else 'omitted'
+        if self.kind == 'text.formatting_join' and inside and fmt != 'plain':
+            return 'info'   # Markdown's ~~ and <sup>, the block model's flags, show the parts apart (CR-069 phase 4)
         if inside and self.visible in ('no', 'differently', 'indeterminate'):
             return 'unseen'
         if not inside and text:
@@ -647,6 +832,40 @@ class Inspector:
         for face, (part, first) in self.used_faces.items():
             f = self.add(Finding('font.embedded', self.chain, part, excerpt='', needs={'never'}, selector=face))
             f.anchor = first
+        self.walk_ranges()
+
+    def walk_ranges(self):
+        """CR-066 D6: every integer attribute outside Word's storage width, in every WordprocessingML XML part (the
+        main document first, then by part name), every mc branch included; one finding per attribute occurrence"""
+        main = self.main
+        parts = [main]
+        for n in sorted(self.pkg.names):
+            part = '/' + n
+            ct = self.pkg.content_type(part) or ''
+            if part != main and ct.endswith('+xml') and ('wordprocessingml' in ct or 'ms-word' in ct):
+                parts.append(part)
+        for part in parts:
+            # a part of a WordprocessingML type that is not XML (a docx altChunk declares the main part's type and
+            # holds a zip) is skipped, as docx4j's InspectPackage.dom skips a binary part that does not look like XML
+            if not self.pkg.has(part) or not self.pkg.read(part).lstrip(b'\xef\xbb\xbf \t\r\n').startswith(b'<'):
+                continue
+            root = self.pkg.xml(part)
+            if root is None:
+                continue
+            last_run, last_summary = None, None
+            for el, summary in range_findings(root):
+                # a run's property in the run after one with the same finding is the same finding (run splitting does
+                # not count, INSPECTION.md Identity); a paragraph's or a style's never merges
+                run = next((a for a in [el] + list(el.iterancestors()) if a.tag == wq('r')), None)
+                if run is not None and last_run is not None and summary == last_summary and adjacent_runs(last_run, run):
+                    continue
+                last_run, last_summary = run, (summary if run is not None else None)
+                # its selector in expected-findings.tsv: the part, the attribute and the value (unique per case)
+                attribute = summary[len('attribute='):summary.index(';')]
+                value = summary.split('; value=', 1)[1].split(';', 1)[0]
+                self.add(Finding('value.out_of_range', self.chain, part, path_of(el), excerpt='', needs={'never'},
+                                 summary=summary, selector=('>'.join(self.chain) + '>' if self.chain else '') + part
+                                 + ' ' + attribute + '=' + value))
 
     def collect_references(self, part, root, refs, story):
         """A story's note and comment references (phase 2). The text model reads a note through a reference it
@@ -893,9 +1112,70 @@ class Inspector:
                 if pua:
                     self.emit_run(groups, 'chars.private_use', r, t, pua[0], pua[-1] + 1, inner, ())
                 self.font_tests(groups, p, r, t, layers, inner)
+            if not whole:
+                self.formatting_joins(groups, part, p, root, needs)
             for g in groups.values():
                 for f in g:
                     self.add(f)
+
+    def formatting_joins(self, groups, part, p, root, needs):
+        """text.formatting_join (WD 9.2; CR-069 phase 4): a struck (w:strike, w:dstrike) or raised or lowered (w:vertAlign)
+        run meeting its neighbour at a digit|digit boundary with nothing between, the two differing in that formatting.
+        The runs as the default plain text joins them: a hidden, deleted or unselected run leaves no text; a tab, break,
+        hyphen, reference, picture or equation separates; a field's characters and instruction do neither. The excerpt
+        and range are the joined token, to a space or a separator either side, one finding a token."""
+        runs, seqs = [], []
+        for r in self.own_runs(p):
+            if r.tag == '{%s}r' % M:
+                runs.append(r)
+                seqs.append([None])
+                continue
+            if on(prop(self.layers(p, r), 'vanish')):
+                continue
+            rn = self.context_needs(r, root, needs)
+            if 'view:original' in rn or 'view:markup' in rn:
+                continue
+            seq = plain_sequence(r)
+            if seq:
+                runs.append(r)
+                seqs.append(seq)
+        last = None
+        for k in range(1, len(runs)):
+            a, b = seqs[k - 1], seqs[k]
+            if not (nd(a[-1]) and nd(b[0])):
+                continue
+            left, right = runs[k - 1], runs[k]
+            if self.set_apart(p, left) == self.set_apart(p, right):
+                continue
+            fr, fi = k - 1, len(a) - 1
+            while True:
+                r, i = (fr, fi - 1) if fi > 0 else (fr - 1, len(seqs[fr - 1]) - 1 if fr > 0 else -1)
+                if r < 0 or seqs[r][i] is None or seqs[r][i].isspace():
+                    break
+                fr, fi = r, i
+            tr, ti = k, 0
+            while True:
+                r, i = (tr, ti + 1) if ti < len(seqs[tr]) - 1 else (tr + 1, 0)
+                if r >= len(seqs) or seqs[r][i] is None or seqs[r][i].isspace():
+                    break
+                tr, ti = r, i
+            start = display_index(seqs[fr], fi)
+            if last == (fr, start):
+                continue   # the token's finding is made
+            last = (fr, start)
+            token = ''.join(c for x in range(fr, tr + 1)
+                            for c in seqs[x][(fi if x == fr else 0):(ti + 1 if x == tr else len(seqs[x]))])
+            n = self.context_needs(left, root, needs) | self.context_needs(right, root, needs)
+            f = Finding('text.formatting_join', self.chain, part, path_of(runs[fr]), start,
+                        path_of(runs[tr]) if tr != fr else '', display_index(seqs[tr], ti) + 1, excerpt=token, needs=n)
+            groups.setdefault('text.formatting_join', []).append(f)
+
+    def set_apart(self, p, r):
+        """What sets a run apart for text.formatting_join: struck, once or twice, and its vertical alignment"""
+        layers = self.layers(p, r)
+        v = prop(layers, 'vertAlign')
+        return (bool(on(prop(layers, 'strike'))) or bool(on(prop(layers, 'dstrike'))),
+                v.get(wq('val')) if v is not None and v.get(wq('val')) is not None else 'baseline')
 
     def own_runs_all(self, p):
         out = []
@@ -1282,6 +1562,15 @@ class Inspector:
                     self.status['undecided'].append(verdict + '@' + self.loc(part, path_of(d)))
             if docpr is not None:
                 self.alt_text(part, d, docpr, dn)
+            for pic in d.iter('{%s}pic' % PIC):
+                blip = pic.find('.//{%s}blip' % A)
+                if blip is None:
+                    continue
+                # Word 365 draws the SVG asvg:svgBlip names, an older Office the raster copy a:blip names (D21)
+                svg = blip.find('.//{%s}svgBlip' % ASVG)
+                raster = self.pkg.target(part, blip.get('{%s}embed' % R))
+                shown = self.pkg.target(part, svg.get('{%s}embed' % R)) if svg is not None and svg.get('{%s}embed' % R) else raster
+                self.image_text(part, shown, None if shown == raster else raster, dn)
             chart = d.find('.//{http://schemas.openxmlformats.org/drawingml/2006/chart}chart')
             if chart is not None:
                 target = self.pkg.target(part, chart.get('{%s}id' % R))
@@ -1322,6 +1611,39 @@ class Inspector:
             im = s.find('{%s}imagedata' % V)
             if im is not None and im.get('{%s}title' % O):
                 self.add(Finding('alt_text.title', self.chain, part, path_of(im), excerpt=im.get('{%s}title' % O), needs=dn | {'never'}))
+            if im is not None:
+                self.image_text(part, self.pkg.target(part, im.get('{%s}id' % R)), None, dn)
+
+    def image_text(self, part, target, raster, dn):
+        """The text an image part a picture shows draws (D21): one finding per part, where the walk first meets a
+        picture showing it; a later picture showing the same part is counted in the finding's summary."""
+        if not hasattr(self, 'images'):
+            self.images = {}
+        if target is None or not self.pkg.has(target):
+            return
+        if target in self.images:
+            f, info = self.images[target]
+            if f is not None:
+                info[0] += 1
+                f.summary = image_summary(info)
+            return
+        ctype = (self.pkg.content_type(target) or '').lower()
+        svg = ctype == 'image/svg+xml'
+        if not svg and ctype not in ('image/x-emf', 'image/x-wmf', 'image/emf', 'image/wmf'):
+            return
+        self.images[target] = (None, None)
+        data = self.pkg.read(target)
+        try:
+            lines = svg_text(etree.fromstring(data)) if svg else metafile_text(data)
+        except Exception:
+            self.status['skipped'].append('unreadable@' + self.loc(target, ''))
+            return
+        if not lines:
+            return
+        info = [1, len(lines), raster]
+        f = self.add(Finding('image.svg_text' if svg else 'image.metafile_text', self.chain, target, excerpt='\n'.join(lines),
+                             needs=dn | {'never'}, summary=image_summary(info)))
+        self.images[target] = (f, info)
 
     def text_of_shape(self, d):
         boxes = [x for x in d.iter(wq('txbxContent'))]
@@ -1999,6 +2321,113 @@ def flat_opc(data, chain):
     return Package(buf.getvalue(), chain)
 
 
+# ---------------------------------------------------------------- the text a picture draws (D21)
+
+SVG_NS = 'http://www.w3.org/2000/svg'
+ASVG = 'http://schemas.microsoft.com/office/drawing/2016/SVG/main'
+# a LOGFONT's lfCharSet to a codec, as docx4j's decoder (POI's FontCharset) maps it; SYMBOL (2) is left out
+CHARSETS = {0: 'cp1252', 1: 'cp1252', 77: 'mac_roman', 128: 'cp932', 129: 'cp949', 130: 'johab', 134: 'gbk',
+            136: 'cp950', 161: 'cp1253', 162: 'cp1254', 163: 'cp1258', 177: 'cp1255', 178: 'cp1256', 186: 'cp1257',
+            204: 'cp1251', 222: 'cp874', 238: 'cp1250', 255: 'cp1252'}
+WMF_OBJECT_RECORDS = {0x02FC, 0x02FB, 0x00F7, 0x01F9, 0x02FA, 0x06FF, 0x0142}   # MS-WMF's object records: each takes a slot
+STOCK_FONTS = {10, 11, 12, 13, 14, 16, 17}                                       # MS-EMF's stock fonts: ANSI
+
+
+def image_summary(info):
+    return 'pictures=%d texts=%d' % (info[0], info[1]) + (' raster=' + info[2] if info[2] else '')
+
+
+def svg_text(root):
+    """One line per <text> element with characters, in document order, white space collapsed as xml:space default"""
+    lines = []
+    for t in root.iter('{%s}text' % SVG_NS):
+        s = re.sub(r'[ \t\r\n]+', ' ', ''.join(t.itertext())).strip(' \t\r\n')
+        if s:
+            lines.append(s)
+    return lines
+
+
+def metafile_text(data):
+    """One line per text record with characters, in record order; a WMF's or an EMF's by the header"""
+    placeable = data[:4] == b'\xd7\xcd\xc6\x9a'
+    wmf = placeable or (data[0] in (1, 2) and data[1] == 0 and data[2] == 9 and data[3] == 0)
+    return wmf_text(data, placeable) if wmf else emf_text(data)
+
+
+def text_line(lines, raw, codec):
+    s = raw.decode(codec, 'replace').rstrip('\x00')
+    if s.strip():
+        lines.append(s)
+
+
+def wmf_text(data, placeable):
+    off = 22 if placeable else 0
+    off += struct.unpack_from('<H', data, off + 2)[0] * 2         # HeaderSize, in words
+    table, charset, symbol, lines = [], 'cp1252', False, []
+    while off + 6 <= len(data):
+        size, func = struct.unpack_from('<IH', data, off)
+        size *= 2
+        if func == 0 or size < 6 or off + size > len(data):
+            break
+        p = off + 6
+        if func in WMF_OBJECT_RECORDS:                               # the lowest free slot
+            entry = ('font', data[p + 13]) if func == 0x02FB else ('other', None)
+            if None in table:
+                table[table.index(None)] = entry
+            else:
+                table.append(entry)
+        elif func == 0x012D:                                         # SELECTOBJECT
+            i = struct.unpack_from('<H', data, p)[0]
+            if i < len(table) and table[i] and table[i][0] == 'font':
+                symbol = table[i][1] == 2
+                charset = CHARSETS.get(table[i][1], 'cp1252')
+        elif func == 0x01F0:                                         # DELETEOBJECT
+            i = struct.unpack_from('<H', data, p)[0]
+            if i < len(table):
+                table[i] = None
+        elif func == 0x0521:                                         # TEXTOUT
+            n = struct.unpack_from('<h', data, p)[0]
+            if not symbol:
+                text_line(lines, data[p + 2:p + 2 + n], charset)
+        elif func == 0x0A32:                                         # EXTTEXTOUT
+            y, x, n, opts = struct.unpack_from('<hhhH', data, p)
+            q = p + 8 + (8 if opts & 0x0006 else 0)
+            if not symbol and not opts & 0x0010:
+                text_line(lines, data[q:q + n], charset)
+        off += size
+    return lines
+
+
+def emf_text(data):
+    off, table, charset, symbol, lines = 0, {}, 'cp1252', False, []
+    while off + 8 <= len(data):
+        t, size = struct.unpack_from('<II', data, off)
+        if size < 8 or off + size > len(data):
+            break
+        p = off + 8
+        if t == 82:                                                  # EXTCREATEFONTINDIRECTW: the slot it names
+            table[struct.unpack_from('<I', data, p)[0]] = ('font', data[p + 4 + 23])
+        elif t == 37:                                                # SELECTOBJECT
+            i = struct.unpack_from('<I', data, p)[0]
+            if i & 0x80000000:
+                if (i & 0x7fffffff) in STOCK_FONTS:
+                    symbol, charset = False, 'cp1252'
+            elif i in table and table[i][0] == 'font':
+                symbol = table[i][1] == 2
+                charset = CHARSETS.get(table[i][1], 'cp1252')
+        elif t == 40:                                                # DELETEOBJECT
+            table.pop(struct.unpack_from('<I', data, p)[0], None)
+        elif t in (83, 84):                                          # EXTTEXTOUTA, EXTTEXTOUTW
+            chars, offs, opts = struct.unpack_from('<III', data, p + 36)
+            raw = data[off + offs:off + offs + (chars * 2 if t == 84 else chars)]
+            if not opts & 0x0010 and (t == 84 or not symbol):
+                text_line(lines, raw, 'utf-16-le' if t == 84 else charset)
+        if t == 14:
+            break
+        off += size
+    return lines
+
+
 # ---------------------------------------------------------------- the tables
 
 def resolve(root, path):
@@ -2018,12 +2447,19 @@ def resolve(root, path):
 CASE = re.compile(r'Case (\d+):')
 
 # the case of an inventory finding no element of the document refers to, from the builder's source
+# a value.out_of_range finding in a part that is not a story: the case that wrote it (CR-066 D6)
+RANGE_PART_CASES = {
+    ('extraction-probe-inspect.docx', '/word/styles.xml'): '80',
+    ('extraction-probe-inspect.docx', '/word/settings.xml'): '80',
+    ('extraction-probe-inspect.docx', '/word/header2.xml'): '81',
+}
 PART_CASES = {
     ('extraction-probe-external.docm', '/word/settings.xml'): '50',
     ('extraction-probe-external.docm', '/word/vbaProject.bin'): '51',
     ('extraction-probe-inspect.docx', '/word/people.xml'): '63',
     ('extraction-probe-inspect.docx', '/word/probe63.xml'): '63',
     ('extraction-probe-inspect.docx', '/word/header1.xml'): '59',
+    ('extraction-probe-inspect.docx', '/word/media/svg71.svg'): '71',   # shown by the used header's picture
 }
 
 
@@ -2055,6 +2491,8 @@ def case_of(pkg, f, cases):
         el = resolve(root, f.anchor)
         if el is not None:
             return case_before(root, el)
+    if f.kind == 'value.out_of_range' and (pkg.fixture, f.part) in RANGE_PART_CASES:
+        return RANGE_PART_CASES[(pkg.fixture, f.part)]
     if (pkg.fixture, f.part) in PART_CASES:
         return PART_CASES[(pkg.fixture, f.part)]
     if f.part == main and f.path:
@@ -2164,23 +2602,66 @@ def main(directory):
     for line in open(posixpath.join(directory, 'expected-tokens.tsv'), encoding='utf-8').read().splitlines()[1:]:
         cols = line.split('\t')
         cases[cols[1].replace('‑', '').replace('­', '')] = cols[0]
-    rows = ['fixture\tcase\tkind\tchain\tpart\tpath\tstart\tend_path\tend\taddress\tvisible\treveal\t'
-            + '\t'.join(name for name, _, _ in OUTPUTS) + '\texcerpt_length\texcerpt_cut\tselector\tsummary']
-    status_rows = ['fixture\tstatus\tskipped\tundecided']
+    header = ('fixture\tcase\tkind\tchain\tpart\tpath\tstart\tend_path\tend\taddress\tvisible\treveal\t'
+              + '\t'.join(name for name, _, _ in OUTPUTS) + '\texcerpt_length\texcerpt_cut\tselector\tsummary'
+              + '\tcapability\tparsed\tevidence\tpending')
+    columns = header.split('\t')
+    rows = [header]
+    status_rows = ['fixture\tcapability\tstatus\tskipped\tundecided']
+    # the rows an inspector with an HTML reader makes, written by hand (INSPECTION.md), by fixture
+    present = {}
+    for line in open(posixpath.join(directory, 'expected-inspection-html.tsv'), encoding='utf-8').read().splitlines():
+        cols = line.split('\t')
+        if cols[0] == 'fixture':
+            html_columns = cols
+            continue
+        row = dict(zip(html_columns, cols))
+        present.setdefault(row['fixture'], []).append(row)
     for fixture in FIXTURES:
         pkg, findings, status = inspect_fixture(posixpath.join(directory, fixture))
+        keys, html_chunks, absent = set(), [], {}
         for f in findings:
             sel = selector(pkg, f)
             case = case_of(pkg, f, cases) or '0'   # 0: the fixture's, as a golden's case is
             excerpt = f.excerpt or ''
-            rows.append('\t'.join(tsv_value(x) for x in [
+            key = tuple(tsv_value(x) for x in [f.kind, '>'.join(f.chain), f.part, f.path, f.start, f.end_path, f.end])
+            keys.add(key)
+            capability = ANY
+            if f.kind == 'altchunk' and not f.chain and f.summary in HTML_CHUNK_TYPES:
+                capability = READER_ABSENT   # with a reader the chunk is parsed (its twin below) and not skipped
+                html_chunks.append(f.part)
+            line = '\t'.join(tsv_value(x) for x in [
                 fixture, case, f.kind, '>'.join(f.chain), f.part, f.path, f.start, f.end_path, f.end, '',
                 f.visible, f.reveal()] + [f.group(o, fmt) for _, o, fmt in OUTPUTS] + [
                 cps(excerpt), 'true' if cps(excerpt) > 200 else 'false', sel,
-                f.summary.replace('\t', ' ').replace('\n', ' ')]))
-        partial = bool(status['skipped'])
-        status_rows.append('\t'.join([fixture, 'PARTIAL' if partial else 'COMPLETE', '; '.join(sorted(status['skipped'])),
-                                      '; '.join(sorted(status['undecided']))]))
+                f.summary.replace('\t', ' ').replace('\n', ' '), capability, '', '', ''])
+            rows.append(line)
+            if capability == READER_ABSENT:
+                absent[key] = line
+        hand = {}
+        for row in present.get(fixture, []):
+            hand[tuple(row[k] for k in ('kind', 'chain', 'part', 'path', 'start', 'end_path', 'end'))] = row
+        # with a reader, each HTML, XHTML or MHT chunk's altchunk finding is made with parsed 'html' (the chunk read,
+        # CR-053): the absent row's twin, carrying the hand-written row's evidence where there is one
+        for key, absent_row in list(absent.items()):
+            twin = dict(zip(columns, absent_row.split('\t')))
+            twin['capability'], twin['parsed'] = READER_PRESENT, 'html'
+            if key in hand:
+                twin['evidence'], twin['pending'] = hand[key].get('evidence', ''), hand[key].get('pending', '')
+            rows.append('\t'.join(twin.get(c, '') for c in columns))
+        for key, row in hand.items():
+            if key in keys:
+                continue   # the same finding in both environments (a property part, a chunk): the rows above
+            row['capability'] = READER_PRESENT
+            rows.append('\t'.join(row.get(c, '') for c in columns))
+        skipped = sorted(status['skipped'])
+        undecided = '; '.join(sorted(status['undecided']))
+        if not html_chunks:
+            status_rows.append('\t'.join([fixture, ANY, 'PARTIAL' if skipped else 'COMPLETE', '; '.join(skipped), undecided]))
+        else:
+            with_reader = [x for x in skipped if x not in ['not_decoded@|%s|' % p for p in html_chunks]]
+            status_rows.append('\t'.join([fixture, READER_ABSENT, 'PARTIAL' if skipped else 'COMPLETE', '; '.join(skipped), undecided]))
+            status_rows.append('\t'.join([fixture, READER_PRESENT, 'PARTIAL' if with_reader else 'COMPLETE', '; '.join(with_reader), undecided]))
     open(posixpath.join(directory, 'expected-inspection.tsv'), 'w', encoding='utf-8', newline='\n').write('\n'.join(rows) + '\n')
     open(posixpath.join(directory, 'expected-inspection-status.tsv'), 'w', encoding='utf-8', newline='\n').write(
         '\n'.join(status_rows) + '\n')

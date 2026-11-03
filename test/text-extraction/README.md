@@ -8,9 +8,9 @@ CR-053). The specification is the portfolio's `docs/text_extraction_specificatio
 | Path | What |
 |---|---|
 | `suite/` | docx4j's `docx4j-core-tests/src/test/resources/text-extraction/`, whole and unedited: the fixtures (`phase0/*.docx`, `*.docm`), the tables (`expected-tokens.tsv`, `expected-findings.tsv`, `expected-order.tsv`, `case-statements.tsv`, `goldens.tsv`, `expected-inspection*.tsv`), the goldens (`phase0/*.txt`, `*.md`), the contracts (`GOLDENS.md`, `INSPECTION.md`), the probes' Word evidence and the builder's support files. Its own READMEs describe it. |
-| `revisions/` | The CR-043 fixtures of docx4j's `revisions/` that `test/fixtures/` does not already hold (13 of 132), at their paths there. |
+| `revisions/` | The CR-043 fixtures of docx4j's `revisions/` that `test/fixtures/` does not already hold (44 of 174), at their paths there. |
 | `understood-namespaces.txt` | docx4j's published understood set (`docx4j-core/src/main/resources/org/docx4j/jaxb/`, REQ-306). |
-| `manifest.json` | The docx4j commit, and for every file docx4j's path, its SHA-1 and its path here. The 119 revisions fixtures this repository already held are listed at their `test/fixtures/` paths. |
+| `manifest.json` | The docx4j commit, and for every file docx4j's path, its SHA-1 and its path here. The 130 revisions fixtures this repository already held are listed at their `test/fixtures/` paths. |
 | `conformance.mjs` | The runner: docx4j's `ExtractionConformance`, mirrored. |
 | `agreement.mjs` | The agreement test's runner: docx4j's `ViewAgreementTest`, mirrored. |
 | `adapter.mjs` | The engine over this package's text model (CR-012 phases 2 and 3): docx4j's `TextsAdapter`, mirrored, advertising the statements this package implements (`IMPLEMENTED`), writing plain text or, for format `md`, Markdown (`MarkdownExporter`), and the agreement test's engine. |
@@ -28,7 +28,20 @@ The suite lives here rather than under `test/fixtures/`: the weekly parity workf
 
 ## Provenance
 
-Copied 2026-10-21 from docx4j `198d015a3` (`VERSION_17_3_4`, CR-053 under WD 0.28, Word's rounds 11 and
+Copied 2026-11-03 from the docx4j 17.3.5 release (`64fae4cd0`, tag `docx4j-17.3.5`, on Maven Central since 2026-11-01;
+CR-012 section 24.7, its D1): 307 files. Since `198d015a3` the suite gained `dpp/` (docx4j CR-069's: Word's probe, its
+bisected cases and `caps-lang` probes, Word 365's text saves of them in `word-saves.tsv`, its tables and two hand-cut
+goldens), `bind-props.docx`, and appendix cases 68 to 82 (`extraction-probe-inspect.docx`, CR-050 phase 3 and CR-066
+phase 4: 82 cases, 30 additions). The inspection table folds the reader-present rows in under a `capability` column
+(CR-050 phase 4), and `expected-inspection-html-status.tsv` is gone. `expected-findings.tsv`'s `altchunk.not_expanded`
+rows are keyed by the chunk's part name (CR-070, WD 0.47; CR-012 section 22.2 (a)). `revisions/` gained CR-068's
+`cr068/`, CR-043 section 17's `s17/`, and this package's checks 54 and 57 saved by Word (`core-ts/`). Five fixtures the
+first copies held here (`python/artefact8/`, the editor's `review/`) are now listed at their `test/fixtures/` copies.
+The runner and the adapter take docx4j's changes to `ExtractionConformance` and `TextsAdapter`. `phase0/`'s rows are
+docx4j's, in its order (1,772; docx4j's report at its head has 40 more, cases 83 to 85 of `02f9fc333`, after the
+release), and so are `dpp/`'s 192.
+
+The copy before (`979aca7`, 2026-10-21) was at docx4j `198d015a3` (`VERSION_17_3_4`, CR-053 under WD 0.28, Word's rounds 11 and
 12; committed 2026-10-21 and not yet pushed). Its suite is the one WD 0.28 (portfolio `f2046e5`) cites
 at `4a8833eea`, with only `support/inspect_oracle.py`'s decoder changed. `4a8833eea` added a fifth
 fixture, `extraction-probe-html.docx`, read only by an inspector with an HTML reader, with its tables

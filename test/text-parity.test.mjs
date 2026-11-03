@@ -103,6 +103,10 @@ function run(r) {
   put(m, 'italic', r.italic);
   put(m, 'strike', r.strike);
   put(m, 'monospace', r.monospace);
+  put(m, 'caps', r.caps);
+  put(m, 'smallCaps', r.smallCaps);
+  if (r.verticalAlignment !== 'BASELINE') m.verticalAlignment = r.verticalAlignment;
+  put(m, 'language', r.language);
   put(m, 'link', r.link);
   put(m, 'math', r.math);
   put(m, 'displayMath', r.displayMath);
@@ -181,7 +185,8 @@ function goldenBody(golden, name) {
 
 // ------------------------------------------------------------------ run boundaries (CR-012 section 15.5)
 
-const FORMAT = ['hidden', 'placeholder', 'bold', 'italic', 'strike', 'monospace', 'link', 'math', 'displayMath'];
+const FORMAT = ['hidden', 'placeholder', 'bold', 'italic', 'strike', 'monospace', 'caps', 'smallCaps', 'verticalAlignment', 'language',
+  'link', 'math', 'displayMath'];
 
 /**
  * A block's runs joined by docx4j's rule (Extractor.addText): two neighbouring text or field-code runs of one kind
@@ -217,6 +222,37 @@ function joinedBody(b) {
   return { ...b, blocks: b.blocks.map(joined), ...(b.comments ? { comments: b.comments.map((c) => ({ ...c, ...(c.blocks ? { blocks: c.blocks.map(joined) } : {}) })) } : {}) };
 }
 
+// ------------------------------------------------------------------ REQ-702's date form (CR-012 section 23.5)
+
+/**
+ * docx4j 17.3.5 writes a revision's and a comment's date as REQ-702's form (its fc71f12e6 and 1a0b5315c: `w:date`'s wall
+ * clock with the offset `w16cex:dateUtc` gives, `2026-10-09T08:35:00+11:00`, and a mark with no date its author alone),
+ * where this package writes `w:date` as stored (`2026-10-09T08:35:00Z`) until CR-012 section 23.5 lands (its D2). On
+ * both sides each date keeps its wall clock and loses its zone, in the block model and in the markup reading's
+ * `author, date:` details, so that the digits are still compared; `DATE_FORM.differs` counts the readings where only
+ * the form differed, which must be some until section 23.5 lands and this mask goes.
+ */
+const DATE_FORM = { differs: 0 };
+const DATE = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:Z|[+-]\d{2}:\d{2})$/;
+const wallClock = (date) => (typeof date === 'string' ? date.replace(DATE, '$1') : date);
+
+function maskDatesInBlock(b) {
+  const m = { ...b };
+  if (b.runs) m.runs = b.runs.map((r) => (r.revision?.date === undefined ? r : { ...r, revision: { ...r.revision, date: wallClock(r.revision.date) } }));
+  if (b.rows) m.rows = b.rows.map((row) => ({ ...row, ...(row.cells ? { cells: row.cells.map((c) => ({ ...c, ...(c.blocks ? { blocks: c.blocks.map(maskDatesInBlock) } : {}) })) } : {}) }));
+  return m;
+}
+
+/** A body with every date's zone taken off, and a marker's empty date (`author, : `) written as its author alone. */
+function maskDates(body) {
+  const plainText = body.plainText
+    .replace(/(\{(?:\+\+|--|>>)[^{}\n]*?), (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:Z|[+-]\d{2}:\d{2}): /g, '$1, $2: ')
+    .replace(/(\{(?:\+\+|--|>>)[^{}\n,]*), : /g, '$1: ');
+  const out = { ...body, plainText, blocks: body.blocks.map(maskDatesInBlock) };
+  if (body.comments) out.comments = body.comments.map((c) => ({ ...c, ...(c.date === undefined ? {} : { date: wallClock(c.date) }), ...(c.blocks ? { blocks: c.blocks.map(maskDatesInBlock) } : {}) }));
+  return out;
+}
+
 // ------------------------------------------------------------------ what phase 5 and REQ-303 leave (CR-012 section 20)
 
 /**
@@ -232,16 +268,25 @@ function joinedBody(b) {
  *   `chart:`, `smartart:` or `altchunk:` address, which this package doesn't make, and every
  *   `altchunk.not_expanded` warning;
  * - `req303` (REQ-303 by URI, section 15.3: `Requires` matched by namespace, not prefix): the blocks at and under
- *   these addresses, check 50's rebound prefixes and the probe's case 6, and the warnings there.
+ *   these addresses, check 50's rebound prefixes and the probe's case 6, and the warnings there;
+ * - `nestedFields` (phase 5a, REQ-506; docx4j CR-067 D4, in 17.3.5): the blocks at these addresses, where a nested
+ *   field's stored result, which Word writes as `w:instrText` after its `separate`, is the nested field's result and an
+ *   operand of the outer instruction in docx4j's block model, and part of the outer instruction here (the text agrees);
+ * - `dateFromUtc` (section 23.5, REQ-702's date form): the blocks at these addresses, a mark with a `w16du:dateUtc` and
+ *   no `w:date`, whose date docx4j writes from the UTC instant and this package leaves out.
  * The plain text is compared with the equations masked, in each reading where nothing else set aside differs. Each
  * flag must still set aside something that differs, in some reading, so that a phase arriving fails here and its
  * entries are removed.
  */
 const PROBE = { math: true, charts: true, smartart: true };
 const PROBE_CASE_6 = ['body/13'];
+const NESTED_FIELDS = ['body/61', 'body/113', 'body/114', 'body/115', 'body/116', 'body/117', 'body/122', 'body/126', 'body/127'];
 const PENDING = {
   'fixtures/charts/waterfall.json': { charts: true },
   'fixtures/check50/50-declarations.json': { req303: ['body/4', 'body/6', 'body/8'] },
+  // the nested fields of docx4j CR-067's expression probe: F54, I29 to I33, S04, S08 and S09
+  'fixtures/fields/expr-probe-r1.json': { nestedFields: NESTED_FIELDS },
+  'fixtures/fields/expr-probe-r1-word365.json': { nestedFields: NESTED_FIELDS },
   'fixtures/loadAndSave.json': { math: true, charts: true },
   'fixtures/revisions/cr043/equations-accept-all.json': { math: true },
   'fixtures/revisions/cr043/equations-reject-all.json': { math: true },
@@ -250,9 +295,9 @@ const PENDING = {
   'fixtures/revisions/python/artefact8/8-tracked-changes.json': { math: true },
   'fixtures/revisions/python/artefact8/8-word-accepted.json': { math: true },
   'fixtures/revisions/python/artefact8/8-word-rejected.json': { math: true },
-  'text-extraction/revisions/python/artefact8/8-tracked-changes.json': { math: true },
-  'text-extraction/revisions/python/artefact8/8-word-accepted.json': { math: true },
-  'text-extraction/revisions/python/artefact8/8-word-rejected.json': { math: true },
+  'text-extraction/revisions/core-ts/check57/57-fields-equations-word365.json': { math: true },
+  'text-extraction/revisions/core-ts/check57/57-fields-equations-word365-rejected.json': { math: true },
+  'text-extraction/revisions/cr068/manual-redline-dates.json': { dateFromUtc: ['body/2'] },
   // the probe in its eight copies: phase 5's cases, and case 6 where the copy keeps the rebound prefix
   'text-extraction/suite/extraction-probe.json': { ...PROBE, req303: PROBE_CASE_6 },
   'text-extraction/suite/extraction-probe.word-resave.json': PROBE,
@@ -266,7 +311,7 @@ const PENDING = {
 
 /** The flags that set blocks aside by their address's last segment, and the flags that set them aside by address. */
 const MARKERS = { charts: '/chart:', smartart: '/smartart:', altchunks: '/altchunk:' };
-const AT = ['latexOnly', 'req303'];
+const AT = ['latexOnly', 'req303', 'nestedFields', 'dateFromUtc'];
 
 /** Every block, its cells' blocks and its comments' blocks, in order. */
 function allBlocks(body) {
@@ -337,12 +382,12 @@ function setAside(body, pending) {
 
 // ------------------------------------------------------------------ the tests
 
-test('text goldens: one per document under test/fixtures/ and test/text-extraction/, from TextHarness version 1', () => {
-  assert.equal(goldens.length, 282, 'the WordprocessingML documents committed under the two directories (CR-012 section 20)');
+test('text goldens: one per document under test/fixtures/ and test/text-extraction/, from TextHarness version 2', () => {
+  assert.equal(goldens.length, 338, 'the WordprocessingML documents committed under the two directories (CR-012 sections 20 and 24.7)');
   for (const name of Object.keys(PENDING)) assert.ok(goldens.includes(name), `PENDING names a golden: ${name}`);
   return Promise.all(goldens.map(async (name) => {
     const golden = JSON.parse(await readFile(join(goldenDir, name), 'utf8'));
-    assert.equal(golden.header.harnessVersion, '1', name);
+    assert.equal(golden.header.harnessVersion, '2', name);
     assert.equal(golden.header.timeZone, 'UTC', name);
     assert.equal(golden.header.fixture.replace(/\.(docx|docm|dotx)$/, '.json'), name, name);
     assert.deepEqual(Object.keys(golden.readings), ['accepted', 'original', 'markup', 'everything'], name);
@@ -359,8 +404,11 @@ for (const name of goldens) {
     for (const [reading, { options }] of Object.entries(golden.readings)) {
       const result = await Texts.of(pkg, TextOptions.of(options));
       metadata ??= result.metadata;
-      const oursWhole = joinedBody(body(result));
-      const theirsWhole = joinedBody(goldenBody(golden, reading));
+      const oursRaw = joinedBody(body(result));
+      const theirsRaw = joinedBody(goldenBody(golden, reading));
+      const oursWhole = maskDates(oursRaw);
+      const theirsWhole = maskDates(theirsRaw);
+      if (!isDeepStrictEqual(oursRaw, theirsRaw) && isDeepStrictEqual(oursWhole, theirsWhole)) DATE_FORM.differs++;
       const { kept: ours, aside: oursAside } = setAside(oursWhole, pending);
       const { kept: theirs, aside: theirsAside } = setAside(theirsWhole, pending);
       const at = `${name} ${reading}`;
@@ -388,3 +436,7 @@ for (const name of goldens) {
     assert.deepStrictEqual(JSON.parse(JSON.stringify(metadata)), golden.metadata, `${name}: the metadata`);
   });
 }
+
+test('REQ-702\'s date form (CR-012 section 23.5) still differs somewhere, so the date mask is still needed', () => {
+  assert.ok(DATE_FORM.differs > 0, 'no reading differs only in its dates\' form: if section 23.5 has landed, remove maskDates');
+});

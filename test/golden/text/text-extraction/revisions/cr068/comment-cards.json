@@ -1,0 +1,418 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
+    "fixture": "text-extraction/revisions/cr068/comment-cards.docx",
+    "fixtureBytes": 9243,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {"fields_update_on_open": false, "core": {}, "app": {}},
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder).\nC1 struck text, untracked (the manual redline).\nC2 a tracked deletion keeping its strike (D14).\nC3 a tracked deletion, its strike removed (D6).\nC4 a tracked insertion keeping its underline (D14).\nC5 a tracked insertion, its underline removed (D7).\nEnd of the comment cards probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C1 struck text, untracked (the manual redline)."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C2 a tracked deletion keeping its strike (D14)."}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C3 a tracked deletion, its strike removed (D6)."}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C4 a tracked insertion keeping its underline (D14)."}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C5 a tracked insertion, its underline removed (D7)."}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "End of the comment cards probe."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "CR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder).\nC1 struck text, untracked (the manual redline).{>>CR-068 base, 2026-10-30T09:00:00: C1 the remark withdrawn is the word before this one.<<}\nC2 a tracked deletion keeping its strike (D14).{>>CR-068 base, 2026-10-30T09:00:00: C2 the remark withdrawn is the word before this one.<<}\nC3 a tracked deletion, its strike removed (D6).{>>CR-068 base, 2026-10-30T09:00:00: C3 the remark withdrawn is the word before this one.<<}\nC4 a tracked insertion keeping its underline (D14).{>>CR-068 base, 2026-10-30T09:00:00: C4 the remark added is the word before this one.<<}\nC5 a tracked insertion, its underline removed (D7).{>>CR-068 base, 2026-10-30T09:00:00: C5 the remark added is the word before this one.<<}\nEnd of the comment cards probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C1 struck text, untracked (the manual redline)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C2 a tracked deletion keeping its strike (D14)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C3 a tracked deletion, its strike removed (D6)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C4 a tracked insertion keeping its underline (D14)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "3"}
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C5 a tracked insertion, its underline removed (D7)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "End of the comment cards probe."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {"kind": "TEXT", "text": "C1 the remark "},
+                {"kind": "TEXT", "text": "withdrawn", "strike": true},
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [
+                {"kind": "TEXT", "text": "C2 the remark "},
+                {
+                  "kind": "TEXT",
+                  "text": "withdrawn",
+                  "revision": {"type": "DELETION", "author": "manual redline", "date": "2026-10-31T11:00:00+11:00"},
+                  "strike": true
+                },
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [
+                {"kind": "TEXT", "text": "C3 the remark "},
+                {
+                  "kind": "TEXT",
+                  "text": "withdrawn",
+                  "revision": {"type": "DELETION", "author": "manual redline", "date": "2026-10-31T11:00:00+11:00"}
+                },
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:3/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [
+                {"kind": "TEXT", "text": "C4 the remark "},
+                {
+                  "kind": "TEXT",
+                  "text": "added",
+                  "revision": {"type": "INSERTION", "author": "manual redline", "date": "2026-10-31T11:00:00+11:00"}
+                },
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [
+                {"kind": "TEXT", "text": "C5 the remark "},
+                {
+                  "kind": "TEXT",
+                  "text": "added",
+                  "revision": {"type": "INSERTION", "author": "manual redline", "date": "2026-10-31T11:00:00+11:00"}
+                },
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "\nCR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder).\nC1 struck text, untracked (the manual redline).{>>C1 the remark withdrawn is the word before this one.<<}\nC2 a tracked deletion keeping its strike (D14).{>>C2 the remark  is the word before this one.<<}\nC3 a tracked deletion, its strike removed (D6).{>>C3 the remark  is the word before this one.<<}\nC4 a tracked insertion keeping its underline (D14).{>>C4 the remark added is the word before this one.<<}\nC5 a tracked insertion, its underline removed (D7).{>>C5 the remark added is the word before this one.<<}\nEnd of the comment cards probe.\n",
+      "blocks": [
+        {"address": "header:rId4/0", "kind": "PARAGRAPH", "story": "HEADER"},
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 comment cards probe: what the comment card shows of a tracked change in a comment. Built by docx4j (ManualRedlineProbeBuilder)."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C1 struck text, untracked (the manual redline)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C2 a tracked deletion keeping its strike (D14)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "1"}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C3 a tracked deletion, its strike removed (D6)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "2"}
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C4 a tracked insertion keeping its underline (D14)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "3"}
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C5 a tracked insertion, its underline removed (D7)."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "4"}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "End of the comment cards probe."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [
+                {"kind": "TEXT", "text": "C1 the remark "},
+                {"kind": "TEXT", "text": "withdrawn", "strike": true},
+                {"kind": "TEXT", "text": " is the word before this one."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:1/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "C2 the remark  is the word before this one."}]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:2/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "C3 the remark  is the word before this one."}]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:3/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [{"kind": "TEXT", "text": "C4 the remark added is the word before this one."}]
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:4/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "style": "CommentText",
+              "revisions": 1,
+              "runs": [{"kind": "TEXT", "text": "C5 the remark added is the word before this one."}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

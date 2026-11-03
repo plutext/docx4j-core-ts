@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:05Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:05Z",
     "fixture": "fixtures/check41/41c-word365.docx",
     "fixtureBytes": 18167,
     "timeZone": "UTC",
@@ -507,7 +507,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Check 41c: for the Script Lab snippet check41-script.js. Table 1 (F) is AutoFit to contents, table 2 (G) AutoFit to window; each gains a column at the end through Office JS with tracking on. Then Save As 41c-word365.docx.\nF1A\tF1B\tF1C\t{++Author A, 2026-10-09T09:00:00Z: F1D++}\nF2A\tF2B\tF2C\t{++Author A, 2026-10-09T09:00:00Z: F2D++}\n\nTable 2:\nG1A\tG1B\tG1C\t{++Author A, 2026-10-09T09:00:00Z: G1D++}\nG2A\tG2B\tG2C\t{++Author A, 2026-10-09T09:00:00Z: G2D++}\n\n",
+      "plainText": "Check 41c: for the Script Lab snippet check41-script.js. Table 1 (F) is AutoFit to contents, table 2 (G) AutoFit to window; each gains a column at the end through Office JS with tracking on. Then Save As 41c-word365.docx.\nF1A\tF1B\tF1C\t{++Author A, 2026-10-09T09:00:00+11:00: F1D++}\nF2A\tF2B\tF2C\t{++Author A, 2026-10-09T09:00:00+11:00: F2D++}\n\nTable 2:\nG1A\tG1B\tG1C\t{++Author A, 2026-10-09T09:00:00+11:00: G1D++}\nG2A\tG2B\tG2C\t{++Author A, 2026-10-09T09:00:00+11:00: G2D++}\n\n",
       "blocks": [
         {
           "address": "body/0",
@@ -578,7 +578,7 @@
                         {
                           "kind": "TEXT",
                           "text": "F1D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00+11:00"}
                         }
                       ]
                     }
@@ -638,7 +638,7 @@
                         {
                           "kind": "TEXT",
                           "text": "F2D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00+11:00"}
                         }
                       ]
                     }
@@ -713,7 +713,7 @@
                         {
                           "kind": "TEXT",
                           "text": "G1D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00+11:00"}
                         }
                       ]
                     }
@@ -773,7 +773,7 @@
                         {
                           "kind": "TEXT",
                           "text": "G2D",
-                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00Z"}
+                          "revision": {"type": "INSERTION", "author": "Author A", "date": "2026-10-09T09:00:00+11:00"}
                         }
                       ]
                     }

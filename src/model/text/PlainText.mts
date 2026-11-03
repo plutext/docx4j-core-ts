@@ -1,6 +1,7 @@
 // CR-012 phase 2: plain text from the block model (WD section 7.1), docx4j's org.docx4j.model.text.PlainText.
 import type { TextOptions } from './TextOptions.mjs';
 import type { TextResult, TextBlock, TextRun, TextRow, TextCell, TextRevision, TextComment } from './TextResult.mjs';
+import { CaseMapping } from './CaseMapping.mjs';
 
 /** The spaces for each 720-twip tab stop of indent under `layout: indent` (REQ-709). */
 export const INDENT_SPACES = 4;
@@ -225,7 +226,10 @@ class Writer {
 
   private run(run: TextRun): void {
     switch (run.kind) {
-      case 'TEXT': case 'FIELD_CODE': case 'LIST_LABEL':
+      case 'TEXT': // w:caps in capitals, by the run's language (REQ-607)
+        this.out += CaseMapping.written(run, this.options);
+        break;
+      case 'FIELD_CODE': case 'LIST_LABEL':
         this.out += run.text;
         break;
       case 'NOTE_REFERENCE':
@@ -257,7 +261,7 @@ class Writer {
   private comment(comment: TextComment): void {
     this.out += '{>>';
     this.detail(comment.author, comment.date);
-    this.out += `${comment.text}<<}`;
+    this.out += `${CaseMapping.written(comment, this.options)}<<}`;
   }
 
   /** A block written on its own, for a table cell's value. */

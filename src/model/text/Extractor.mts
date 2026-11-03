@@ -25,6 +25,7 @@ import {
 } from './TextResult.mjs';
 import { type TextContext, type PackageTrees, calendarText } from './TextContext.mjs';
 import { normalize } from './normalize.mjs';
+import { CaseMapping } from './CaseMapping.mjs';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -136,6 +137,9 @@ function showingPlaceholder(pr: wml.SdtPr | undefined): boolean {
 }
 
 /** What a reflective walk does at each object (docx4j `Visitor`). */
+/** A drop cap's frame paragraph just read in a container's walk, for the paragraph next to take (REQ-521). */
+interface DropCapState { block?: TextBlock }
+
 interface Visitor {
   /** A typed object reached; false to go no deeper. */
   enter?(value: Obj): boolean;
@@ -470,19 +474,24 @@ export class Extractor {
   /** Block-level content into `sink`: paragraphs (joined in a view), tables, and what is transparent. */
   blocks(items: Element[] | undefined, prefix: string, story: Story, sink: TextBlock[], state: RunState = PLAIN): void {
     if (!items) return;
-    for (let i = 0; i < items.length; i++) i = this.block(items, i, prefix, story, sink, state);
+    const dropCap: DropCapState = {};
+    for (let i = 0; i < items.length; i++) i = this.block(items, i, prefix, story, sink, state, dropCap);
   }
 
   /** A paragraph chain whose deleted mark has a table next: it joins the table's first cell's first paragraph (docx4j CR-043 section 17). */
   private pendingTableJoin: { chain: wml.P[]; addresses: string[] } | undefined;
 
-  /** The block at `items[i]` into `sink`, with the paragraphs a view joins to it; the index of the last item it took. */
-  private block(items: Element[], i: number, prefix: string, story: Story, sink: TextBlock[], state: RunState): number {
+  /**
+   * The block at `items[i]` into `sink`, with the paragraphs a view joins to it; the index of the last item it took.
+   * `dropCap` is a drop cap's frame paragraph just read in the same container, for the paragraph next to take (REQ-521).
+   */
+  private block(items: Element[], i: number, prefix: string, story: Story, sink: TextBlock[], state: RunState, dropCap: DropCapState = {}): number {
     const item = items[i]!;
     if (this.removes(item)) return i;
     const v = unwrap(item);
     const address = `${prefix}/${i}`;
     const tn = typeOf(v);
+    if (tn !== P && !isMarker(item)) dropCap.block = undefined;      // a table, a control, the end: left as it is
     if (tn === P) {
       const chain: wml.P[] = [v as wml.P];
       const addresses = [address];
@@ -503,9 +512,13 @@ export class Extractor {
       if (this.plan?.joinsIntoTable(chain[chain.length - 1]!)) {
         // a deleted mark with a table next and text left: into the table's first cell (docx4j CR-043 section 17)
         this.pendingTableJoin = { chain, addresses };
+        dropCap.block = undefined;
         return j;
       }
-      this.paragraph(chain, addresses, story, sink, state);
+      const taking = dropCap.block;
+      dropCap.block = undefined;
+      const block = this.paragraph(chain, addresses, story, sink, state, taking);
+      if (taking === undefined && block !== undefined && this.dropCapFrame(chain, block)) dropCap.block = block;
       return j;
     }
     if (tn === TBL) {
@@ -516,6 +529,7 @@ export class Extractor {
         this.pendingTableJoin = undefined;
         this.paragraph(chain, addresses, story, sink, state);
       }
+      dropCap.block = undefined;
     } else if (isSdt(v) && this.unwraps(item)) {
       // an inserted control rejected: its content in its place, its properties gone
       this.blocks(sdtContentOf(v), address, story, sink, state);
@@ -613,13 +627,17 @@ export class Extractor {
     return -1;
   }
 
-  private paragraph(chain: wml.P[], addresses: string[], story: Story, sink: TextBlock[], state: RunState): void {
+  /**
+   * A paragraph chain's block into the sink, returned; undefined where it makes none. A drop cap's frame paragraph read
+   * just before (`dropCap`; REQ-521) is taken in at its start.
+   */
+  private paragraph(chain: wml.P[], addresses: string[], story: Story, sink: TextBlock[], state: RunState, dropCap?: TextBlock): TextBlock | undefined {
     const first = chain[0]!;
     const last = chain[chain.length - 1]!;
     const block = new TextBlock('PARAGRAPH', story.kind, addresses[0]!);
     if (this.fieldsOnly) {
       for (let c = 0; c < chain.length; c++) this.runs(chain[c]!.content as Element[] | undefined, new ParagraphState(block, chain[c]!, addresses[c]!, story), state);
-      return;
+      return undefined;
     }
     if (chain.length > 1) block.joined = addresses.slice(1);
     block.paraId = first.paraId;
@@ -652,7 +670,7 @@ export class Extractor {
       block.runs.length = 0;
       this.flushIfOutsideTable(story, sink);
       this.endSection(last, story);
-      return;
+      return undefined;
     }
     block.hidden = hiddenParagraph;
     if (!this.options.hidden) {
@@ -662,7 +680,7 @@ export class Extractor {
       // a table of contents' paragraph, under toc: false (D12): no line at all
       this.flushIfOutsideTable(story, sink);
       this.endSection(last, story);
-      return;
+      return undefined;
     }
     // one count per paragraph: the label (list_labels) and the numbering's value come from it
     if (this.trees.pkg !== undefined && (this.options.listLabels || block.numbering !== undefined)) {
@@ -671,9 +689,72 @@ export class Extractor {
       if (block.numbering !== undefined && counted !== undefined && !counted.notNumbered) block.numbering.value = counted.count;
     }
     block.section = story.sections?.length ?? 0;
-    sink.push(block);
+    if (dropCap === undefined || !this.joinDropCap(dropCap, block, story, sink)) sink.push(block);
     this.flushIfOutsideTable(story, sink);
     this.endSection(last, story);
+    return block;
+  }
+
+  /**
+   * Whether a paragraph just read is a drop cap's frame, for the paragraph next to take (REQ-521; CR-012 section 24.3):
+   * under `drop_caps: join`, one `w:p` whose `w:framePr/@w:dropCap` (its own, or its style's) is `drop` or `margin`, whose
+   * text is at most one word (no white space and no space character, U+00A0 included), and which ends no section.
+   */
+  private dropCapFrame(chain: wml.P[], block: TextBlock): boolean {
+    if (this.options.dropCaps !== 'join' || chain.length !== 1) return false;
+    const p = chain[0]!;
+    if (p.pPr?.sectPr) return false;
+    // Java's Character.isWhitespace or isSpaceChar, docx4j's test
+    if (/[\t-\r\x1C-\x1F\p{Z}]/u.test(block.text)) return false;
+    let pPr = this.viewPPr(p);
+    if (this.resolver) {
+      try {
+        pPr = this.resolver.getEffectivePPr(pPr);
+      } catch {
+        // the paragraph's own properties, as read
+      }
+    }
+    const dropCap = pPr?.framePr?.dropCap;
+    return dropCap === 'drop' || dropCap === 'margin';
+  }
+
+  /**
+   * A drop cap's frame paragraph joined to the block after it (REQ-521): its runs and fields put at the block's start with
+   * no separator, the block (its address, its properties) in the frame's place in the sink, so that what the frame
+   * anchored still follows it; the warning `paragraph.drop_cap_joined` at the frame's address. The letter's run merges
+   * into the word's first run on docx4j's rule (the same kind, hidden and placeholder flags, revision and formatting; D6,
+   * Jason 2026-11-02), which replaces section 4.4's `officeOffset` contiguity rule at this one join, the two runs' text
+   * coming from two paragraphs' `Paragraph.text`: the merged run keeps the letter's source, and its `officeOffset` is
+   * undefined. False, and nothing done, where the frame is not in the sink.
+   */
+  private joinDropCap(frame: TextBlock, block: TextBlock, story: Story, sink: TextBlock[]): boolean {
+    const at = sink.lastIndexOf(frame);
+    if (at < 0) return false;
+    const runs = [...frame.runs];
+    let first = 0;
+    if (runs.length > 0 && block.runs.length > 0) {
+      const left = runs[runs.length - 1]!;
+      const right = block.runs[0]!;
+      if (left.kind === 'TEXT' && right.kind === 'TEXT' && !left.math && !right.math && left.hidden === right.hidden
+        && left.placeholder === right.placeholder && sameRevision(left.revision, right.revision) && left.sameFormat(right)) {
+        const merged = new TextRun('TEXT', left.text + right.text, left.revision);
+        merged.hidden = left.hidden;
+        merged.placeholder = left.placeholder;
+        merged.copyFormat(left);
+        merged.source = left.source;
+        runs[runs.length - 1] = merged;
+        first = 1;
+      }
+    }
+    runs.push(...block.runs.slice(first));
+    block.runs.length = 0;
+    block.runs.push(...runs);
+    block.fields.unshift(...frame.fields);
+    block.revisions += frame.revisions;
+    block.hidden = block.hidden && frame.hidden;
+    sink[at] = block;
+    this.warn(new TextWarning(TextWarning.DROP_CAP_JOINED, frame.address, undefined, undefined, story.part?.partName.name));
+    return true;
   }
 
   private endSection(last: wml.P, story: Story): void {
@@ -694,13 +775,16 @@ export class Extractor {
 
   // --- altChunk (REQ-513) -----------------------------------------------------------------------
 
-  /** An `altChunk`: not expanded until CR-012 phase 5e, which raises `altchunk.not_expanded` with its content type. */
+  /**
+   * An `altChunk`: not expanded until CR-012 phase 5e, which raises `altchunk.not_expanded` naming the chunk's part, its
+   * selector (WD 0.47, CR-012 section 22.2 (a)), with its content type.
+   */
   private altChunk(chunk: wml.CTAltChunk, address: string, story: Story): void {
     const part = related(story.part, chunk.id);
     if (!(part instanceof AlternativeFormatInputPart)) return;
     const ct = part.contentType ?? '';
     const semi = ct.indexOf(';');
-    this.warn(new TextWarning(TextWarning.ALTCHUNK_NOT_EXPANDED, address, undefined, (semi >= 0 ? ct.slice(0, semi) : ct).trim()));
+    this.warn(new TextWarning(TextWarning.ALTCHUNK_NOT_EXPANDED, address, undefined, (semi >= 0 ? ct.slice(0, semi) : ct).trim(), part.partName.name));
   }
 
   // --- bound values (REQ-509) -------------------------------------------------------------------
@@ -1696,7 +1780,9 @@ export class Extractor {
   /**
    * A run's formatting beyond its paragraph style's (CR-046 phase 3): bold, italic, struck through,
    * monospaced, each as the run's own property gives it, else its styles', where the paragraph style
-   * alone doesn't give it. A run carrying only that.
+   * alone doesn't give it. And, whatever the paragraph style says, what the text shows (docx4j CR-069;
+   * CR-012 section 24): its case, folded the same way, a run under both caps and small caps being caps
+   * (WD REQ-607); its vertical alignment (REQ-710); and a cased run's language. A run carrying only that.
    */
   private formatOf(r: wml.R, p: wml.P): TextRun {
     const own = r.rPr;
@@ -1705,9 +1791,31 @@ export class Extractor {
     const f = new TextRun('TEXT', '', undefined);
     f.bold = onOf(own?.b, styles?.b) && !on(paragraph?.b);
     f.italic = onOf(own?.i, styles?.i) && !on(paragraph?.i);
-    f.strike = onOf(own?.strike, styles?.strike) && !on(paragraph?.strike);
+    // struck once or twice (w:dstrike: docx4j CR-069 phase 4, CR-012 section 24.5), the paragraph style's either cancelling it
+    f.strike = (onOf(own?.strike, styles?.strike) || onOf(own?.dstrike, styles?.dstrike))
+      && !(on(paragraph?.strike) || on(paragraph?.dstrike));
     f.monospace = isMonospace(this.runFont(r, p)) && !isMonospace(asciiFont(paragraph));
+    f.caps = onOf(own?.caps, styles?.caps);
+    f.smallCaps = !f.caps && onOf(own?.smallCaps, styles?.smallCaps);
+    const vertAlign = own?.vertAlign ?? styles?.vertAlign;
+    if (vertAlign?.val === 'superscript') f.verticalAlignment = 'SUPERSCRIPT';
+    if (vertAlign?.val === 'subscript') f.verticalAlignment = 'SUBSCRIPT';
+    if (f.caps || f.smallCaps) f.language = this.language(own, styles);
     return f;
+  }
+
+  /** The settings' `w:themeFontLang`, else docx4j's default: a cased run's language of last resort; undefined until asked. */
+  private themeFontLang: string | undefined;
+
+  /**
+   * The language a cased run's capitals are mapped by (WD REQ-607): its own `w:lang/@w:val`, else its styles' (with the
+   * document defaults'), else `w:themeFontLang`'s, else `CaseMapping.DEFAULT_LANGUAGE`.
+   */
+  private language(own: wml.RPr | undefined, styles: wml.RPr | undefined): string {
+    const lang = langOf(own?.lang) ?? langOf(styles?.lang);
+    if (lang !== undefined) return lang;
+    this.themeFontLang ??= langOf(this.trees.settings?.themeFontLang) ?? CaseMapping.DEFAULT_LANGUAGE;
+    return this.themeFontLang;
   }
 
   /** The run's font for `monospace`: its own `w:rFonts/@w:ascii`, else its styles'. */
@@ -1792,6 +1900,12 @@ function textLength(block: TextBlock): number {
 
 function sameRevision(a: TextRevision | undefined, b: TextRevision | undefined): boolean {
   return a === undefined ? b === undefined : a.equals(b);
+}
+
+/** A `w:lang`'s `w:val`, trimmed; undefined for none or an empty one. */
+function langOf(l: wml.CTLanguage | undefined): string | undefined {
+  const v = l?.val?.trim();
+  return v === undefined || v === '' ? undefined : v;
 }
 
 /** An on/off property: the run's own where it has one, else its styles'. */

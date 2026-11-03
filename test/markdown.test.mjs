@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
 import {
   WordprocessingMLPackage, Texts, PlainText, TextOptions, MarkdownExporter, MarkdownExportOptions,
-  NumberingDefinitionsPart, EndnotesPart, CommentsPart, ImagePart, XmlPart, LinkTargets, Namespaces, setLogger,
+  NumberingDefinitionsPart, EndnotesPart, FootnotesPart, CommentsPart, ImagePart, XmlPart, LinkTargets, Namespaces, setLogger,
 } from '../dist/index.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -416,6 +416,71 @@ test('a block-level mc:AlternateContent gives the branch the text model reads, a
     assert.ok(out.includes('CHOICEW14'), out);
     assert.ok(!out.includes('FALLBACKTEXT'), out);
   }
+});
+
+// ---------------------------------------------------------------- MarkdownVerticalAlignTest (CR-012 section 24.4)
+
+// docx4j CR-069 phase 3: a raised or lowered run in <sup> or <sub> (WD REQ-710), CommonMark inline HTML, never a Unicode
+// superscript or subscript character; the tags outside the emphasis and outside a code span; none in a code block, nor
+// around a note's reference. docx4j renders each Markdown with commonmark-java's HTML renderer too, which this package
+// does not port: its strings are held here, and the flanking reason is REQ-710's NOTE.
+const vr = (rPr, text) => `<w:r>${rPr === '' ? '' : `<w:rPr>${rPr}</w:rPr>`}<w:t xml:space="preserve">${text}</w:t></w:r>`;
+const SUP = '<w:vertAlign w:val="superscript"/>';
+const SUB = '<w:vertAlign w:val="subscript"/>';
+async function paragraphs(...ps) {
+  const pkg = await docx();
+  pkg.getMainDocumentPart().setXml(`<w:document ${W}><w:body>${ps.map((p) => `<w:p>${p}</w:p>`).join('')}</w:body></w:document>`);
+  return pkg;
+}
+
+test('raised and lowered runs are tagged; the literal characters kept as stored (dpp C06, C07)', async () => {
+  const out = await md(await paragraphs(
+    `${vr('', 'H')}${vr(SUB, '2')}${vr('', 'O and x')}${vr(SUP, '2')}${vr('', ' on the 1')}${vr(SUP, 'st')}${vr('', '; literal x² and H₂O.')}`,
+    `${vr('', 'Revenue 48,210')}${vr(SUP, '3')}${vr('', ' in the period.')}`));
+  assert.equal(out, 'H<sub>2</sub>O and x<sup>2</sup> on the 1<sup>st</sup>; literal x² and H₂O.\n\nRevenue 48,210<sup>3</sup> in the period.\n');
+});
+
+test('the tags are outside the emphasis: ** after a digit and before a tag would not open, inside it does', async () => {
+  const out = await md(await paragraphs(`${vr('', 'Revenue 48,210')}${vr(`<w:b/>${SUP}`, '3')}${vr('', ' and C')}${vr(`<w:i/><w:strike/>${SUB}`, 'x')}`));
+  assert.equal(out, 'Revenue 48,210<sup>**3**</sup> and C<sub>~~*x*~~</sub>\n');
+});
+
+test('raised runs of one formatting share their tags; the formatting changing inside them, each part has its own', async () => {
+  const out = await md(await paragraphs(`${vr('', 'x')}${vr(SUP, 'a')}${vr(`${SUP}<w:color w:val="FF0000"/>`, 'b')}${vr(`<w:b/>${SUP}`, 'c')}${vr(SUB, 'd')}`));
+  assert.equal(out, 'x<sup>ab</sup><sup>**c**</sup><sub>d</sub>\n');
+});
+
+test('a code span inside the tags, and none in a code block, its text being literal', async () => {
+  const mono = '<w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/>';
+  assert.equal(await md(await paragraphs(`${vr('', 'call ')}${vr(mono + SUP, 'f()')}${vr('', ' here')}`)), 'call <sup>`f()`</sup> here\n');
+  const code = await paragraphs(`<w:pPr><w:pStyle w:val="HTMLPreformatted"/></w:pPr>${vr('', 'x = 10')}${vr(SUP, '3')}`);
+  assert.equal(await md(code), '```\nx = 103\n```\n');
+});
+
+test('document text cannot form the tags: its < is escaped', async () => {
+  const out = await md(await paragraphs(vr('', 'a &lt;sup&gt;3&lt;/sup&gt; b')));
+  assert.ok(!out.includes('<sup>'), out);
+  assert.equal(out, 'a \\<sup\\>3\\</sup\\> b\n');
+});
+
+test('a note\'s reference is a reference, not a superscript (REQ-710): its style raises it, Markdown writes [^1]', async () => {
+  const pkg = await paragraphs(`${vr('', 'Body')}<w:r><w:rPr>${SUP}</w:rPr><w:footnoteReference w:id="1"/></w:r>`);
+  const footnotes = new FootnotesPart();
+  pkg.getMainDocumentPart().addTargetPart(footnotes);
+  footnotes.setXml(`<w:footnotes ${W}>`
+    + '<w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote>'
+    + '<w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>'
+    + `<w:footnote w:id="1"><w:p><w:r><w:rPr>${SUP}</w:rPr><w:footnoteRef/></w:r>${vr('', ' The note.')}</w:p></w:footnote>`
+    + '</w:footnotes>');
+  assert.equal(await md(pkg), 'Body[^1]\n\n[^1]: The note.\n');
+});
+
+test('w:caps in capitals, by the run\'s language, in Markdown as in plain text: text, a code paragraph and a comment (REQ-607)', async () => {
+  const out = await md(await paragraphs(`${vr('<w:caps/><w:lang w:val="tr-TR"/>', 'istanbul')}${vr('', ' and ')}${vr('<w:smallCaps/>', 'small')}`,
+    `<w:pPr><w:pStyle w:val="HTMLPreformatted"/></w:pPr>${vr('<w:caps/>', 'x = 1')}`));
+  assert.equal(out, 'İSTANBUL and small\n\n```\nX = 1\n```\n');
+  const upper = await md(await paragraphs(vr('<w:smallCaps/>', 'small')), { textOptions: { small_caps: 'upper' } });
+  assert.equal(upper, 'SMALL\n');
 });
 
 // ---------------------------------------------------------------- this package's own

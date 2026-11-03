@@ -1,10 +1,11 @@
 // CR-012 phase 3: the block model written as a Markdown tree, docx4j-markdown's org.docx4j.markdown.WmlToMarkdown
-// (VERSION_17_3_4, unchanged since 198d015a3), which commonmark.mts then serializes as commonmark-java does.
+// (the 17.3.5 release: since CR-012 section 24, docx4j CR-069's <sup> and <sub> and w:caps in capitals), which commonmark.mts then serializes as commonmark-java does.
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import { log } from '../properties/log.mjs';
 import { LinkTargets } from './LinkTargets.mjs';
 import type { TextOptions } from './TextOptions.mjs';
-import type { TextResult, TextBlock, TextRun, TextRevision, TextNumbering, TextRow, TextCell, TextComment, NoteType } from './TextResult.mjs';
+import type { TextResult, TextBlock, TextRun, TextRevision, TextNumbering, TextRow, TextCell, TextComment, NoteType, TextVerticalAlignment } from './TextResult.mjs';
+import { CaseMapping } from './CaseMapping.mjs';
 import {
   MdNode, MdDocument, MdParagraph, MdHeading, MdBlockQuote, MdListBlock, MdBulletList, MdOrderedList, MdListItem,
   MdFencedCodeBlock, MdThematicBreak, MdHtmlInline, MdText, MdCode, MdEmphasis, MdStrongEmphasis, MdLink, MdImage,
@@ -251,7 +252,8 @@ export class WmlToMarkdown {
       if (revision !== undefined) out += this.open(revision);
       for (let k = i; k < j; k++) {
         const r = runs[k]!;
-        if (r.kind === 'TEXT' || r.kind === 'FIELD_CODE') out += r.text;
+        if (r.kind === 'TEXT') out += CaseMapping.written(r, this.textOptions);
+        else if (r.kind === 'FIELD_CODE') out += r.text;
       }
       if (revision !== undefined) out += close(revision);
       i = j;
@@ -634,7 +636,7 @@ export class WmlToMarkdown {
   }
 
   private text(run: TextRun, sink: InlineSink): void {
-    const value = run.text;
+    const value = CaseMapping.written(run, this.textOptions);         // w:caps in capitals, by the run's language (REQ-607)
     if (value === '') return;
     if (run.math) {
       const l = latex(run);
@@ -648,9 +650,13 @@ export class WmlToMarkdown {
       const line = lines[l]!;
       if (line === '') continue;
       if (run.monospace) {
+        // the tags around the code span, not in it, where they would be its text
+        const t = tag(run.verticalAlignment);
+        if (t !== undefined) sink.node(new MdHtmlInline(`<${t}>`));
         sink.node(new MdCode(line));
+        if (t !== undefined) sink.node(new MdHtmlInline(`</${t}>`));
       } else {
-        sink.text(line, bold, run.italic, run.strike);
+        sink.text(line, bold, run.italic, run.strike, run.verticalAlignment);
       }
     }
   }
@@ -658,7 +664,7 @@ export class WmlToMarkdown {
   private comment(comment: TextComment, sink: InlineSink): void {
     sink.node(new MdHtmlInline('{>>'));
     this.detailText(comment.author, comment.date, sink);
-    sink.text(comment.text, false, false, false);
+    sink.text(CaseMapping.written(comment, this.textOptions), false, false, false);
     sink.node(new MdHtmlInline('<<}'));
   }
 
@@ -722,20 +728,31 @@ function tagged<T extends MdNode>(node: T, block: TextBlock): T {
   return node;
 }
 
+/**
+ * The inline HTML a raised or lowered run is written in, `sup` or `sub`, never a Unicode superscript or subscript
+ * character (WD REQ-710; docx4j CR-069 phase 3, CR-012 section 24.4); undefined on the baseline. The tags are the
+ * writer's: document text can't form them, the renderer escaping its `<`.
+ */
+function tag(vertical: TextVerticalAlignment): string | undefined {
+  return vertical === 'SUPERSCRIPT' ? 'sup' : vertical === 'SUBSCRIPT' ? 'sub' : undefined;
+}
+
 /** Accumulates same-formatted text, wrapping it on flush. */
 class InlineSink {
   private buf = '';
   private bold = false;
   private italic = false;
   private strike = false;
+  private vertical: TextVerticalAlignment = 'BASELINE';
 
   constructor(private readonly parent: MdNode) {}
 
-  text(s: string, b: boolean, i: boolean, st: boolean): void {
-    if ((b !== this.bold || i !== this.italic || st !== this.strike) && this.buf.length > 0) this.flush();
+  text(s: string, b: boolean, i: boolean, st: boolean, v: TextVerticalAlignment = 'BASELINE'): void {
+    if ((b !== this.bold || i !== this.italic || st !== this.strike || v !== this.vertical) && this.buf.length > 0) this.flush();
     this.bold = b;
     this.italic = i;
     this.strike = st;
+    this.vertical = v;
     this.buf += s;
   }
 
@@ -763,7 +780,11 @@ class InlineSink {
       st.appendChild(n);
       n = st;
     }
+    // the tags outside the emphasis: 48,210<sup>**3**</sup>, where a ** after the digit, before the tag, would not open
+    const t = tag(this.vertical);
+    if (t !== undefined) this.parent.appendChild(new MdHtmlInline(`<${t}>`));
     this.parent.appendChild(n);
+    if (t !== undefined) this.parent.appendChild(new MdHtmlInline(`</${t}>`));
     this.buf = '';
   }
 }

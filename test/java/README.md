@@ -19,12 +19,13 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.3.4` (`pom.xml`'s `docx4j.version`, the latest
-release, on Maven Central since 2026-10-22; overridable with `-Ddocx4j.version=...`; **harness
+The harness resolves `org.docx4j:docx4j-core:17.3.5` (`pom.xml`'s `docx4j.version`, the latest
+release, on Maven Central since 2026-11-01; overridable with `-Ddocx4j.version=...`; **harness
 version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have,
 `RevisionsHarness` docx4j CR-043's `org.docx4j.model.revisions`, first released in 17.3.3, and
-`TextHarness` docx4j CR-046's `org.docx4j.model.text`, first released in 17.3.4**, so the project
-does not compile against anything earlier) and the JAXB implementation and four font jars
+`TextHarness` docx4j CR-046's `org.docx4j.model.text`, first released in 17.3.4, and since its version 2
+CR-069's run members, first released in 17.3.5**, so the project does not compile against anything
+earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
 **docx4j's answers move on its development branch, `VERSION_17_3_6`** (`<revision>`
 `17.3.6-SNAPSHOT`, since 17.3.5 was released on 2026-11-01 from `VERSION_17_3_5`, commit
@@ -283,8 +284,10 @@ About eight seconds for 96 fixtures; the same rules as above for which docx4j it
 
 ## The text harness (CR-012)
 
-A fourth main class, the oracle for the text model (CR-012 phase 6, its D8 c): docx4j 17.3.4's
-`org.docx4j.model.text` (its CR-046), `Texts.of` and `PlainText.of`. For every `.docx`, `.docm` and
+A fourth main class, the oracle for the text model (CR-012 phase 6, its D8 c): docx4j's
+`org.docx4j.model.text` (its CR-046), `Texts.of` and `PlainText.of`; the committed goldens are cut from
+the 17.3.5 release (CR-012 section 24.7), and since version 2 a run carries `caps`, `smallCaps`,
+`verticalAlignment` and `language` (docx4j CR-069). For every `.docx`, `.docm` and
 `.dotx` under each of the fixtures directories, at any depth, it records the result's metadata
 once and four readings (`TextHarness.READINGS`), each its options in the specification's names and
 values (REQ-1001), which the test passes to `Texts.of` as they stand:
@@ -312,7 +315,7 @@ mvn -q compile exec:java -Dexec.mainClass=org.docx4j.parity.TextHarness \
   -Dfixtures=../fixtures,../text-extraction -Dout=../golden/text -Ddocx4j.commit=<hash>
 ```
 
-About six seconds for 288 documents; the same rules as above for which docx4j it runs against. It
+About eight seconds for 389 documents (2026-11-03, the working tree's); the same rules as above for which docx4j it runs against. It
 runs in UTC (the header's `timeZone`), with system font discovery off and `MC_PREFER_CHOICE` set,
 as the other harnesses do.
 
@@ -321,7 +324,7 @@ as the other harnesses do.
   documents that would share a golden stop the run.
 - **A working tree may hold more than is committed.** The Word checks' `build.mjs` files write
   their `.docx` beside them (`test/fixtures/check48/` and `check51` to `check54`), git-ignored; a
-  hand-run writes goldens for them, which are not committed (282 are). `RevisionsHarness` finds the
+  hand-run writes goldens for them, which are not committed (338 are; 51 such files since check 72). `RevisionsHarness` finds the
   same files. The weekly workflow's checkout has none.
 
 ## Files

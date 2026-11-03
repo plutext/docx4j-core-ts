@@ -156,3 +156,57 @@ Other viewers, measured here the same day:
 - docx4j's HTML output names the fonts (`font-family: 'Inspect Probe Word'`) and embeds none (no
   `@font-face`), so a browser draws the stored characters (CAT) in a face of its own; the stale
   surface and case 67's Fallback as in the PDF.
+
+## extraction-probe-inspect.docx: cases 68–74 (CR-050 phase 3, D21, 21 October 2026)
+
+`extraction-probe-inspect-r2.docx` (sha256 9ad0d7a1…), Word 365 on the Windows VM, Print Layout; no prompt
+or repair on open. Then `-r3` (sha256 8af1d0fe…), cases 72 and 73 rebuilt, for the re-check below.
+
+| Case | Looked for | Word 365 |
+|---|---|---|
+| 68 | an SVG-only picture (`a:blip` names the SVG, no raster copy) | drawn: `SVG68_PLAIN` and `SVG68_TSPAN after` (after in red); **`SVG68_TEXTPATH` not drawn** (LibreOffice 26.2 draws it on its curve) |
+| 69 | two pictures showing one SVG part (with Word's raster copy) | both show `SVG69_SHARED` |
+| 70 | an SVG with a circle, a `<title>`, no `<text>` | the blue circle |
+| 71 | an SVG picture in the header, after the watermark line | `SVG71_HEADER` in the header |
+| 72 | a hand-built WMF through `v:imagedata` | drawn (lines overlapping in r2, five separate lines in r3): `WMF72_TEXTOUT`, `WMF72_SJIS 年度` and `WMF72_SLOT_REUSED` readable; `WMF72_SYMBOL` as Greek capitals (ΩΜΦ72_ΣΨΜ…, the Symbol face's glyphs for those bytes); `WMF72_GLYPH_INDEX` as unrelated CJK and symbol glyphs; r4 (sha256 1a4f0533…): the ① added after 年度 (cp932 0x8740, not in plain Shift_JIS) drawn |
+| 73 | a hand-built EMF | **r2: nothing drawn.** Its header's Frame said 50.8 × 25.4 mm for a 508 × 254 mm device (a tenth); LibreOffice drew nothing from it either, and drew the four lines once the Frame matched. **r3**: `EMF73_UTF16 ünï` and `EMF73_ANSI é` readable; `EMF73_GLYPH_INDEX` as wrong glyphs (bjcTP\|divme\|fkabu); `EMF73_STOCK_FONT` drawn at the stock `SYSTEM_FONT`'s fixed size, minute beside the 120-pixel lines |
+| 74 | Apache POI's `SimpleEMF_windows.emf` (EMF+ dual) | the PDF icon and the path `C:\Users\tallison\Idea Projects\tika-…` |
+| svg-fun | `now you see it.docx`: the SVG edited by hand to say `Now you do not (svg)`, its PNG copy still `Now you see it` | **`Now you do not (svg)`**: Word 365 draws the SVG part, not the raster copy |
+
+What the oracle took from this: the picture a reader sees is the `asvg:svgBlip`'s target where there is one
+(`InspectWalk.imageText`'s `shown`), so the SVG's text is the finding and the raster copy is named in the
+summary; `WMF72_SYMBOL` and `WMF72_GLYPH_INDEX` are left out rightly (`image.text`: what Word draws for
+them is not the bytes); an SVG's `<textPath>` text is reported though Word 365 does not draw it (another
+viewer does), noted on the kind's row in `../INSPECTION.md`. Case 73's fixture was a defect of the
+builder (`InspectMetafiles.emf73`), fixed the same day; the inspector read its records either way.
+
+
+## extraction-probe-inspect.docx: cases 75–82 (CR-066 phase 4, 27 October 2026)
+
+`extraction-probe-inspect-r5.docx` (sha256 d5b6ee0c…), Word 365 version 2608 build 20326.20232 (the first
+check to record the full build), Print Layout; Jason's screenshot of the eight cases, no repair or
+prompt reported. The page break falls after case 77, so page 2's header (`HDR63_USED`, `SVG71_HEADER`,
+`RNG81_HEADER`) shows above case 78. Word's save, `extraction-probe-inspect-r5-word365.docx` (sha256 3a14d34c…,
+kept on the share with the probe rounds' saves, not here), read the same day: every value written back as the
+`value.out_of_range` summaries' `word_reads` say, a second measurement beside CR-066 §3.1 and §3.4.
+
+| Case | Looked for | Word 365 |
+|---|---|---|
+| 75 | `w:spacing/@w:before="65537"` (uint16: 1) and `w:ind/@w:left="66256"` (int16: 720) | `RNG75_LEFT_BEFORE` indented half an inch, no extra space before it |
+| 76 | a one-cell table: `tblW` 65536 pct (int16: 0, auto), `gridCol` 70000 (unmeasured), `tcW` 70000 dxa (4464) | a one-cell table about 3 in wide, `RNG76_CELL` |
+| 77 | a left tab stop at `w:pos="32768"` (int16: -32768, clamped to -31680) | `RNG77_TAB`, nothing visible on the line |
+| 78 | `w:firstLine="65535"` (hanging 1) and `w:line="65535"` under `exact` (atLeast 1) | `RNG78_FIRSTLINE_LINE` looks single-spaced with no visible indent |
+| 79 | a row `w:trHeight="65537"` under `exact` (exact 1 twip), a border `w:sz="256"` (0) and `w:space="32"` (0), `w:w="65636"` (100 %) | the row is a line under the heading (`RNG79_ROW` clipped away); `RNG79_BORDER` with no top border; `RNG79_SCALE` at normal width |
+| 80 | style `ProbeWide` with `w:ind/@w:left="66256"` (720) in styles.xml; `w:hyphenationZone="65537"` (1) in settings.xml | `RNG80_STYLE` indented half an inch |
+| 81 | the used header's `w:ind/@w:right="66976"` (1440); a run's `w:spacing/@w:val="65537"` in an unselected `mc:Fallback` | `RNG81_HERE RNG81_CHOICE` on the page, the Fallback's text not shown; `RNG81_HEADER` as the header's last line (a 1 in right indent is not measurable on a short line) |
+| 82 | `w:pgNumType/@w:start="4294967295"` on the body's section (int32: -1) | `RNG82_SECTION`; no PAGE field in the fixture shows the start |
+
+Written back by Word's save: 75 `w:before="1"`, `w:left="720"`; 76 `w:tblW w:w="0" w:type="pct"`, `w:gridCol w:w="4464"` (recomputed
+from the cell), `w:tcW w:w="4464"`; 77 `w:pos="-31680"`; 78 `w:line="1" w:lineRule="atLeast"`, `w:hanging="1"`; 79 `w:trHeight
+w:hRule="exact" w:val="1"`, `w:top w:sz="0" w:space="0"`, the run's `w:w` dropped (100 is Word's default); 80 the style's
+`w:left="720"`, `w:hyphenationZone w:val="1"`; 81 the header's `w:right="1440"`, the `mc:AlternateContent` resolved to its
+w14 Choice (`RNG81_HERE RNG81_CHOICE` one run, the Fallback and its `w:spacing` gone, as Word's saves of cases 63 to 67
+did); 82 `w:pgNumType w:start="-1"`.
+
+What the inspector took from this: nothing to change. The eight cases open clean on Word 365, show the
+readings the `value.out_of_range` summaries give (`word_reads=`), and Word writes those readings back.

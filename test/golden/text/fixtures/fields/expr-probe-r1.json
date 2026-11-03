@@ -1,0 +1,2889 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:06Z",
+    "fixture": "fixtures/fields/expr-probe-r1.docx",
+    "fixtureBytes": 13381,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {"creator": "docx4j 17.3.5-SNAPSHOT", "lastModifiedBy": "docx4j 17.3.5-SNAPSHOT"},
+    "app": {"Application": "docx4j", "AppVersion": "11.4"}
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-067 phase 2 expression probe\nSelect all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD.\nBookmark x holds the number 5.\nFormulas: operators and the default number format\nF01_PRECEDENCE = OLD\nF02_PARENS = OLD\nF03_DIV = OLD\nF04_THIRD = OLD\nF05_TWO_THIRDS = OLD\nF06_POWER = OLD\nF07_ROOT = OLD\nF08_UNARY = OLD\nF09_PERCENT = OLD\nF10_TIMES_NEG = OLD\nF11_SPACES = OLD\nF12_BIG = OLD\nF13_SW_2DP = OLD\nF14_SW_3DP = OLD\nF15_COMPARE_IN_FORMULA = OLD\nF16_EQUAL_IN_FORMULA = OLD\nFormulas: error texts\nF17_ZERO_DIVIDE = OLD\nF18_UNEXPECTED_END = OLD\nF19_SYNTAX = OLD\nF20_UNDEFINED = OLD\nF21_BAD_FUNCTION = OLD\nFormulas: functions\nF22_ABS = OLD\nF23_INT_POS = OLD\nF24_INT_NEG = OLD\nF25_ROUND_2 = OLD\nF26_ROUND_HALF = OLD\nF27_ROUND_NEG_HALF = OLD\nF28_ROUND_HUNDREDS = OLD\nF29_MOD = OLD\nF30_MOD_NEG = OLD\nF31_SIGN = OLD\nF32_SUM = OLD\nF33_AVERAGE = OLD\nF34_MIN = OLD\nF35_MAX = OLD\nF36_COUNT = OLD\nF37_PRODUCT = OLD\nF38_AND = OLD\nF39_OR = OLD\nF40_NOT = OLD\nF41_TRUE = OLD\nF42_FALSE = OLD\nF43_IF_FUNCTION = OLD\nF44_NESTED_FUNCTIONS = OLD\nFormulas: number forms (the VM's regional format decides; please note it in results.txt)\nF45_DECIMAL_POINT = OLD\nF46_DECIMAL_COMMA = OLD\nF47_THOUSANDS = OLD\nF48_LEADING_ZEROS = OLD\nFormulas: bookmarks (bookmark x holds the text 5)\nF49_BOOKMARK = OLD\nF50_BOOKMARK_SPACED = OLD\nF51_BOOKMARK_IN_FUNCTION = OLD\nF52_DEFINED = OLD\nF53_DEFINED_NOPE = OLD\nF54_NESTED_REF = OLD\nCOMPARE: numbers, strings, wildcards, case\nC01_NUM_GT = OLD\nC02_NUM_TWO_DIGITS = OLD\nC03_QUOTED_NUMBERS = OLD\nC04_STRING_ORDER = OLD\nC05_CASE = OLD\nC06_WILDCARD_STAR = OLD\nC07_WILDCARD_Q = OLD\nC08_WILDCARD_LEFT = OLD\nC09_MIXED = OLD\nC10_BOOKMARK_NAME = OLD\nC11_DECIMAL_EQ = OLD\nC12_LEADING_ZEROS = OLD\nC13_THOUSANDS = OLD\nC14_NEGATIVE = OLD\nC15_EMPTY = OLD\nC16_NE = OLD\nC17_GE = OLD\nC18_LE = OLD\nIF: the forms\nI01_QUOTED = OLD\nI02_BARE = OLD\nI03_NO_FALSE_TEXT = OLD\nI04_MULTI_WORD = OLD\nI05_NE = OLD\nI06_GE = OLD\nI07_LE = OLD\nI08_NO_SPACES = OLD\nI09_BAD_OPERATOR = OLD\nI10_EXTRA_TEXT = OLD\nI11_BARE_EXTRA = OLD\nI12_EMPTY_STRINGS = OLD\nI13_SPACE_IN_STRING = OLD\nI14_EMPTY_RIGHT = OLD\nI15_FORMAT_SWITCH = OLD\nIF: numbers against strings\nI16_NUMERIC = OLD\nI17_QUOTED_NUMBERS = OLD\nI18_STRING_ORDER = OLD\nI19_MIXED = OLD\nI20_DECIMAL = OLD\nI21_NEGATIVE = OLD\nI22_THOUSANDS = OLD\nIF: case and wildcards\nI23_CASE = OLD\nI24_WILDCARD_STAR = OLD\nI25_WILDCARD_Q = OLD\nI26_WILDCARD_NE = OLD\nI27_WILDCARD_LT = OLD\nI28_WILDCARD_LEFT = OLD\nIF: nested fields\nI29_NESTED_FORMULA = OLD\nI30_NESTED_DATE = OLD\nI31_NESTED_IN_RESULT = OLD\nI32_NESTED_REF = OLD\nI33_NESTED_BOTH = OLD\nSET and REF (bookmarks a SET defines)\nS01_SET = \nS02_REF_SET = OLD\nS03_FORMULA_SET = OLD\nS04_IF_REF_SET = OLD\nS05_DEFINED_SET = OLD\nS06_SET_STRING = \nS07_REF_STRING = OLD\nS08_IF_STRING_WILDCARD = OLD\nS09_SET_NESTED = \nS10_REF_NESTED = OLD\nTable formulas (the cells below the numbers and to their right)\n1\t10\tx\tOLD\n2\t20\t\tOLD\n3\t30\t5\tOLD\nOLD\tOLD\tOLD\tOLD\nOLD\tOLD\tOLD\tOLD\nEnd of the probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "CR-067 phase 2 expression probe"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Select all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Bookmark x holds the number 5."}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: operators and the default number format"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F01_PRECEDENCE = OLD"}],
+          "fields": [{"instr": " =2+3*4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F02_PARENS = OLD"}],
+          "fields": [{"instr": " =(2+3)*4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F03_DIV = OLD"}],
+          "fields": [{"instr": " =10/4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F04_THIRD = OLD"}],
+          "fields": [{"instr": " =1/3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F05_TWO_THIRDS = OLD"}],
+          "fields": [{"instr": " =2/3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F06_POWER = OLD"}],
+          "fields": [{"instr": " =2^10 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F07_ROOT = OLD"}],
+          "fields": [{"instr": " =2^0.5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F08_UNARY = OLD"}],
+          "fields": [{"instr": " =-5+2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F09_PERCENT = OLD"}],
+          "fields": [{"instr": " =50% ", "result": "OLD"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F10_TIMES_NEG = OLD"}],
+          "fields": [{"instr": " =2*-3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F11_SPACES = OLD"}],
+          "fields": [{"instr": " = 5 + 1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F12_BIG = OLD"}],
+          "fields": [{"instr": " =1000000*1000000 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F13_SW_2DP = OLD"}],
+          "fields": [{"instr": " =10 \\# \"0.00\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F14_SW_3DP = OLD"}],
+          "fields": [{"instr": " =1/3 \\# \"0.000\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F15_COMPARE_IN_FORMULA = OLD"}],
+          "fields": [{"instr": " =3>2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F16_EQUAL_IN_FORMULA = OLD"}],
+          "fields": [{"instr": " =3=2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: error texts"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F17_ZERO_DIVIDE = OLD"}],
+          "fields": [{"instr": " =1/0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F18_UNEXPECTED_END = OLD"}],
+          "fields": [{"instr": " =1+ ", "result": "OLD"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F19_SYNTAX = OLD"}],
+          "fields": [{"instr": " =1 2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F20_UNDEFINED = OLD"}],
+          "fields": [{"instr": " =nope ", "result": "OLD"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F21_BAD_FUNCTION = OLD"}],
+          "fields": [{"instr": " =NOPE(1) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: functions"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F22_ABS = OLD"}],
+          "fields": [{"instr": " =ABS(-3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F23_INT_POS = OLD"}],
+          "fields": [{"instr": " =INT(3.7) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F24_INT_NEG = OLD"}],
+          "fields": [{"instr": " =INT(-3.7) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F25_ROUND_2 = OLD"}],
+          "fields": [{"instr": " =ROUND(2.345,2) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F26_ROUND_HALF = OLD"}],
+          "fields": [{"instr": " =ROUND(2.5,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F27_ROUND_NEG_HALF = OLD"}],
+          "fields": [{"instr": " =ROUND(-2.5,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F28_ROUND_HUNDREDS = OLD"}],
+          "fields": [{"instr": " =ROUND(1234.5,-2) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F29_MOD = OLD"}],
+          "fields": [{"instr": " =MOD(7,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F30_MOD_NEG = OLD"}],
+          "fields": [{"instr": " =MOD(-7,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F31_SIGN = OLD"}],
+          "fields": [{"instr": " =SIGN(-5) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F32_SUM = OLD"}],
+          "fields": [{"instr": " =SUM(1,2,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F33_AVERAGE = OLD"}],
+          "fields": [{"instr": " =AVERAGE(1,2,4) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F34_MIN = OLD"}],
+          "fields": [{"instr": " =MIN(4,2,8) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F35_MAX = OLD"}],
+          "fields": [{"instr": " =MAX(4,2,8) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F36_COUNT = OLD"}],
+          "fields": [{"instr": " =COUNT(1,2,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F37_PRODUCT = OLD"}],
+          "fields": [{"instr": " =PRODUCT(2,3,4) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F38_AND = OLD"}],
+          "fields": [{"instr": " =AND(1,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F39_OR = OLD"}],
+          "fields": [{"instr": " =OR(1,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F40_NOT = OLD"}],
+          "fields": [{"instr": " =NOT(0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F41_TRUE = OLD"}],
+          "fields": [{"instr": " =TRUE ", "result": "OLD"}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F42_FALSE = OLD"}],
+          "fields": [{"instr": " =FALSE ", "result": "OLD"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F43_IF_FUNCTION = OLD"}],
+          "fields": [{"instr": " =IF(3>2,10,20) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F44_NESTED_FUNCTIONS = OLD"}],
+          "fields": [{"instr": " =ROUND(AVERAGE(1,2),0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Formulas: number forms (the VM's regional format decides; please note it in results.txt)"
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F45_DECIMAL_POINT = OLD"}],
+          "fields": [{"instr": " =1.5+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F46_DECIMAL_COMMA = OLD"}],
+          "fields": [{"instr": " =1,5+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F47_THOUSANDS = OLD"}],
+          "fields": [{"instr": " =1,000+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F48_LEADING_ZEROS = OLD"}],
+          "fields": [{"instr": " =007+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: bookmarks (bookmark x holds the text 5)"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F49_BOOKMARK = OLD"}],
+          "fields": [{"instr": " =x*2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F50_BOOKMARK_SPACED = OLD"}],
+          "fields": [{"instr": " =3 + x ", "result": "OLD"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F51_BOOKMARK_IN_FUNCTION = OLD"}],
+          "fields": [{"instr": " =SUM(x,1) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F52_DEFINED = OLD"}],
+          "fields": [{"instr": " =DEFINED(x) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F53_DEFINED_NOPE = OLD"}],
+          "fields": [{"instr": " =DEFINED(nope) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "F54_NESTED_REF = OLD"}],
+          "fields": [{"instr": " REF x ", "result": "OLD"}, {"instr": " =OLD+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "COMPARE: numbers, strings, wildcards, case"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C01_NUM_GT = OLD"}],
+          "fields": [{"instr": " COMPARE 5 > 3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C02_NUM_TWO_DIGITS = OLD"}],
+          "fields": [{"instr": " COMPARE 10 > 9 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C03_QUOTED_NUMBERS = OLD"}],
+          "fields": [{"instr": " COMPARE \"10\" > \"9\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C04_STRING_ORDER = OLD"}],
+          "fields": [{"instr": " COMPARE abc < abd ", "result": "OLD"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C05_CASE = OLD"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"ABC\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C06_WILDCARD_STAR = OLD"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a*\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C07_WILDCARD_Q = OLD"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a?c\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C08_WILDCARD_LEFT = OLD"}],
+          "fields": [{"instr": " COMPARE \"a?c\" = \"abc\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C09_MIXED = OLD"}],
+          "fields": [{"instr": " COMPARE 5 > \"abc\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C10_BOOKMARK_NAME = OLD"}],
+          "fields": [{"instr": " COMPARE x = 5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C11_DECIMAL_EQ = OLD"}],
+          "fields": [{"instr": " COMPARE 5 = 5.0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C12_LEADING_ZEROS = OLD"}],
+          "fields": [{"instr": " COMPARE 007 = 7 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C13_THOUSANDS = OLD"}],
+          "fields": [{"instr": " COMPARE 1,000 = 1000 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C14_NEGATIVE = OLD"}],
+          "fields": [{"instr": " COMPARE -1 < 0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C15_EMPTY = OLD"}],
+          "fields": [{"instr": " COMPARE \"\" = \"\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C16_NE = OLD"}],
+          "fields": [{"instr": " COMPARE 5 <> 4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C17_GE = OLD"}],
+          "fields": [{"instr": " COMPARE 5 >= 5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "C18_LE = OLD"}],
+          "fields": [{"instr": " COMPARE 5 <= 4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: the forms"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I01_QUOTED = OLD"}],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I02_BARE = OLD"}],
+          "fields": [{"instr": " IF 5 > 3 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I03_NO_FALSE_TEXT = OLD"}],
+          "fields": [{"instr": " IF 5 = 4 yes ", "result": "OLD"}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I04_MULTI_WORD = OLD"}],
+          "fields": [{"instr": " IF 5 = 5 \"multi word true\" \"multi word false\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I05_NE = OLD"}],
+          "fields": [{"instr": " IF 5 <> 4 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I06_GE = OLD"}],
+          "fields": [{"instr": " IF 5 >= 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I07_LE = OLD"}],
+          "fields": [{"instr": " IF 5 <= 4 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I08_NO_SPACES = OLD"}],
+          "fields": [{"instr": " IF 5=5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I09_BAD_OPERATOR = OLD"}],
+          "fields": [{"instr": " IF 5 ! 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I10_EXTRA_TEXT = OLD"}],
+          "fields": [{"instr": " IF 5 > 3 yes no extra ", "result": "OLD"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I11_BARE_EXTRA = OLD"}],
+          "fields": [{"instr": " IF 5 = 5 a b c ", "result": "OLD"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I12_EMPTY_STRINGS = OLD"}],
+          "fields": [{"instr": " IF \"\" = \"\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I13_SPACE_IN_STRING = OLD"}],
+          "fields": [{"instr": " IF \"a b\" = \"a b\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I14_EMPTY_RIGHT = OLD"}],
+          "fields": [{"instr": " IF 5 = \"\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I15_FORMAT_SWITCH = OLD"}],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" \\* Upper ", "result": "OLD"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: numbers against strings"}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I16_NUMERIC = OLD"}],
+          "fields": [{"instr": " IF 10 > 9 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I17_QUOTED_NUMBERS = OLD"}],
+          "fields": [{"instr": " IF \"10\" > \"9\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I18_STRING_ORDER = OLD"}],
+          "fields": [{"instr": " IF abc < abd yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I19_MIXED = OLD"}],
+          "fields": [{"instr": " IF 5 > \"abc\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I20_DECIMAL = OLD"}],
+          "fields": [{"instr": " IF 5.0 = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I21_NEGATIVE = OLD"}],
+          "fields": [{"instr": " IF -1 < 0 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I22_THOUSANDS = OLD"}],
+          "fields": [{"instr": " IF 1,000 > 999 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: case and wildcards"}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I23_CASE = OLD"}],
+          "fields": [{"instr": " IF \"abc\" = \"ABC\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I24_WILDCARD_STAR = OLD"}],
+          "fields": [{"instr": " IF \"abc\" = \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I25_WILDCARD_Q = OLD"}],
+          "fields": [{"instr": " IF \"abc\" = \"a?c\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I26_WILDCARD_NE = OLD"}],
+          "fields": [{"instr": " IF \"abc\" <> \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I27_WILDCARD_LT = OLD"}],
+          "fields": [{"instr": " IF \"abc\" < \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I28_WILDCARD_LEFT = OLD"}],
+          "fields": [{"instr": " IF \"a?c\" = \"abc\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: nested fields"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I29_NESTED_FORMULA = OLD"}],
+          "fields": [{"instr": " =2+3 ", "result": "OLD"}, {"instr": " IF OLD = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I30_NESTED_DATE = OLD"}],
+          "fields": [{"instr": " DATE \\@ yyyy ", "result": "OLD"}, {"instr": " IF OLD > 2000 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I31_NESTED_IN_RESULT = OLD"}],
+          "fields": [{"instr": " =1+1 ", "result": "OLD"}, {"instr": " IF 5 = 5 OLD no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I32_NESTED_REF = OLD"}],
+          "fields": [{"instr": " REF x ", "result": "OLD"}, {"instr": " IF OLD = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "I33_NESTED_BOTH = OLD"}],
+          "fields": [
+            {"instr": " =1+1 ", "result": "OLD"},
+            {"instr": " =1+2 ", "result": "OLD"},
+            {"instr": " IF OLD < OLD yes no ", "result": "OLD"}
+          ]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "SET and REF (bookmarks a SET defines)"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S01_SET = "}],
+          "fields": [{"instr": " SET total 42 ", "result": ""}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S02_REF_SET = OLD"}],
+          "fields": [{"instr": " REF total ", "result": "OLD"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S03_FORMULA_SET = OLD"}],
+          "fields": [{"instr": " =total+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S04_IF_REF_SET = OLD"}],
+          "fields": [{"instr": " REF total ", "result": "OLD"}, {"instr": " IF OLD > 40 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S05_DEFINED_SET = OLD"}],
+          "fields": [{"instr": " =DEFINED(total) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S06_SET_STRING = "}],
+          "fields": [{"instr": " SET greeting \"Hello World\" ", "result": ""}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S07_REF_STRING = OLD"}],
+          "fields": [{"instr": " REF greeting ", "result": "OLD"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S08_IF_STRING_WILDCARD = OLD"}],
+          "fields": [{"instr": " REF greeting ", "result": "OLD"}, {"instr": " IF OLD = \"Hello*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S09_SET_NESTED = "}],
+          "fields": [{"instr": " =6*7 ", "result": "OLD"}, {"instr": " SET n OLD ", "result": ""}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S10_REF_NESTED = OLD"}],
+          "fields": [{"instr": " REF n ", "result": "OLD"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Table formulas (the cells below the numbers and to their right)"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/130/0",
+              "cells": [
+                {
+                  "address": "body/130/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "x"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/1",
+              "cells": [
+                {
+                  "address": "body/130/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/2",
+                  "blocks": [{"address": "body/130/1/2/0", "kind": "PARAGRAPH", "story": "MAIN"}]
+                },
+                {
+                  "address": "body/130/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/2",
+              "cells": [
+                {
+                  "address": "body/130/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "30"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/3",
+              "cells": [
+                {
+                  "address": "body/130/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =AVERAGE(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(A1:B2) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/4",
+              "cells": [
+                {
+                  "address": "body/130/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =A1+B2 ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =MAX(A1:A3) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =COUNT(C1:C3) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: docx4j 17.3.5-SNAPSHOT; lastModifiedBy: docx4j 17.3.5-SNAPSHOT]\n[application properties: Application: docx4j; AppVersion: 11.4]\nCR-067 phase 2 expression probe\nSelect all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD.\nBookmark x holds the number 5.\nFormulas: operators and the default number format\nF01_PRECEDENCE =  =2+3*4 OLD\nF02_PARENS =  =(2+3)*4 OLD\nF03_DIV =  =10/4 OLD\nF04_THIRD =  =1/3 OLD\nF05_TWO_THIRDS =  =2/3 OLD\nF06_POWER =  =2^10 OLD\nF07_ROOT =  =2^0.5 OLD\nF08_UNARY =  =-5+2 OLD\nF09_PERCENT =  =50% OLD\nF10_TIMES_NEG =  =2*-3 OLD\nF11_SPACES =  = 5 + 1 OLD\nF12_BIG =  =1000000*1000000 OLD\nF13_SW_2DP =  =10 \\# \"0.00\" OLD\nF14_SW_3DP =  =1/3 \\# \"0.000\" OLD\nF15_COMPARE_IN_FORMULA =  =3>2 OLD\nF16_EQUAL_IN_FORMULA =  =3=2 OLD\nFormulas: error texts\nF17_ZERO_DIVIDE =  =1/0 OLD\nF18_UNEXPECTED_END =  =1+ OLD\nF19_SYNTAX =  =1 2 OLD\nF20_UNDEFINED =  =nope OLD\nF21_BAD_FUNCTION =  =NOPE(1) OLD\nFormulas: functions\nF22_ABS =  =ABS(-3) OLD\nF23_INT_POS =  =INT(3.7) OLD\nF24_INT_NEG =  =INT(-3.7) OLD\nF25_ROUND_2 =  =ROUND(2.345,2) OLD\nF26_ROUND_HALF =  =ROUND(2.5,0) OLD\nF27_ROUND_NEG_HALF =  =ROUND(-2.5,0) OLD\nF28_ROUND_HUNDREDS =  =ROUND(1234.5,-2) OLD\nF29_MOD =  =MOD(7,3) OLD\nF30_MOD_NEG =  =MOD(-7,3) OLD\nF31_SIGN =  =SIGN(-5) OLD\nF32_SUM =  =SUM(1,2,3) OLD\nF33_AVERAGE =  =AVERAGE(1,2,4) OLD\nF34_MIN =  =MIN(4,2,8) OLD\nF35_MAX =  =MAX(4,2,8) OLD\nF36_COUNT =  =COUNT(1,2,3) OLD\nF37_PRODUCT =  =PRODUCT(2,3,4) OLD\nF38_AND =  =AND(1,0) OLD\nF39_OR =  =OR(1,0) OLD\nF40_NOT =  =NOT(0) OLD\nF41_TRUE =  =TRUE OLD\nF42_FALSE =  =FALSE OLD\nF43_IF_FUNCTION =  =IF(3>2,10,20) OLD\nF44_NESTED_FUNCTIONS =  =ROUND(AVERAGE(1,2),0) OLD\nFormulas: number forms (the VM's regional format decides; please note it in results.txt)\nF45_DECIMAL_POINT =  =1.5+1 OLD\nF46_DECIMAL_COMMA =  =1,5+1 OLD\nF47_THOUSANDS =  =1,000+1 OLD\nF48_LEADING_ZEROS =  =007+1 OLD\nFormulas: bookmarks (bookmark x holds the text 5)\nF49_BOOKMARK =  =x*2 OLD\nF50_BOOKMARK_SPACED =  =3 + x OLD\nF51_BOOKMARK_IN_FUNCTION =  =SUM(x,1) OLD\nF52_DEFINED =  =DEFINED(x) OLD\nF53_DEFINED_NOPE =  =DEFINED(nope) OLD\nF54_NESTED_REF =  = REF x OLD+1 OLD\nCOMPARE: numbers, strings, wildcards, case\nC01_NUM_GT =  COMPARE 5 > 3 OLD\nC02_NUM_TWO_DIGITS =  COMPARE 10 > 9 OLD\nC03_QUOTED_NUMBERS =  COMPARE \"10\" > \"9\" OLD\nC04_STRING_ORDER =  COMPARE abc < abd OLD\nC05_CASE =  COMPARE \"abc\" = \"ABC\" OLD\nC06_WILDCARD_STAR =  COMPARE \"abc\" = \"a*\" OLD\nC07_WILDCARD_Q =  COMPARE \"abc\" = \"a?c\" OLD\nC08_WILDCARD_LEFT =  COMPARE \"a?c\" = \"abc\" OLD\nC09_MIXED =  COMPARE 5 > \"abc\" OLD\nC10_BOOKMARK_NAME =  COMPARE x = 5 OLD\nC11_DECIMAL_EQ =  COMPARE 5 = 5.0 OLD\nC12_LEADING_ZEROS =  COMPARE 007 = 7 OLD\nC13_THOUSANDS =  COMPARE 1,000 = 1000 OLD\nC14_NEGATIVE =  COMPARE -1 < 0 OLD\nC15_EMPTY =  COMPARE \"\" = \"\" OLD\nC16_NE =  COMPARE 5 <> 4 OLD\nC17_GE =  COMPARE 5 >= 5 OLD\nC18_LE =  COMPARE 5 <= 4 OLD\nIF: the forms\nI01_QUOTED =  IF 5 > 3 \"yes\" \"no\" OLD\nI02_BARE =  IF 5 > 3 yes no OLD\nI03_NO_FALSE_TEXT =  IF 5 = 4 yes OLD\nI04_MULTI_WORD =  IF 5 = 5 \"multi word true\" \"multi word false\" OLD\nI05_NE =  IF 5 <> 4 yes no OLD\nI06_GE =  IF 5 >= 5 yes no OLD\nI07_LE =  IF 5 <= 4 yes no OLD\nI08_NO_SPACES =  IF 5=5 yes no OLD\nI09_BAD_OPERATOR =  IF 5 ! 5 yes no OLD\nI10_EXTRA_TEXT =  IF 5 > 3 yes no extra OLD\nI11_BARE_EXTRA =  IF 5 = 5 a b c OLD\nI12_EMPTY_STRINGS =  IF \"\" = \"\" yes no OLD\nI13_SPACE_IN_STRING =  IF \"a b\" = \"a b\" yes no OLD\nI14_EMPTY_RIGHT =  IF 5 = \"\" yes no OLD\nI15_FORMAT_SWITCH =  IF 5 > 3 \"yes\" \"no\" \\* Upper OLD\nIF: numbers against strings\nI16_NUMERIC =  IF 10 > 9 yes no OLD\nI17_QUOTED_NUMBERS =  IF \"10\" > \"9\" yes no OLD\nI18_STRING_ORDER =  IF abc < abd yes no OLD\nI19_MIXED =  IF 5 > \"abc\" yes no OLD\nI20_DECIMAL =  IF 5.0 = 5 yes no OLD\nI21_NEGATIVE =  IF -1 < 0 yes no OLD\nI22_THOUSANDS =  IF 1,000 > 999 yes no OLD\nIF: case and wildcards\nI23_CASE =  IF \"abc\" = \"ABC\" yes no OLD\nI24_WILDCARD_STAR =  IF \"abc\" = \"a*\" yes no OLD\nI25_WILDCARD_Q =  IF \"abc\" = \"a?c\" yes no OLD\nI26_WILDCARD_NE =  IF \"abc\" <> \"a*\" yes no OLD\nI27_WILDCARD_LT =  IF \"abc\" < \"a*\" yes no OLD\nI28_WILDCARD_LEFT =  IF \"a?c\" = \"abc\" yes no OLD\nIF: nested fields\nI29_NESTED_FORMULA =  IF  =2+3 OLD = 5 yes no OLD\nI30_NESTED_DATE =  IF  DATE \\@ yyyy OLD > 2000 yes no OLD\nI31_NESTED_IN_RESULT =  IF 5 = 5  =1+1 OLD no OLD\nI32_NESTED_REF =  IF  REF x OLD = 5 yes no OLD\nI33_NESTED_BOTH =  IF  =1+1 OLD <  =1+2 OLD yes no OLD\nSET and REF (bookmarks a SET defines)\nS01_SET =  SET total 42 \nS02_REF_SET =  REF total OLD\nS03_FORMULA_SET =  =total+1 OLD\nS04_IF_REF_SET =  IF  REF total OLD > 40 yes no OLD\nS05_DEFINED_SET =  =DEFINED(total) OLD\nS06_SET_STRING =  SET greeting \"Hello World\" \nS07_REF_STRING =  REF greeting OLD\nS08_IF_STRING_WILDCARD =  IF  REF greeting OLD = \"Hello*\" yes no OLD\nS09_SET_NESTED =  SET n  =6*7 OLD \nS10_REF_NESTED =  REF n OLD\nTable formulas (the cells below the numbers and to their right)\n1\t10\tx\t =SUM(LEFT) OLD\n2\t20\t\t =SUM(LEFT) OLD\n3\t30\t5\t =SUM(LEFT) OLD\n =SUM(ABOVE) OLD\t =AVERAGE(ABOVE) OLD\t =SUM(ABOVE) OLD\t =SUM(A1:B2) OLD\n =A1+B2 OLD\t =MAX(A1:A3) OLD\t =COUNT(C1:C3) OLD\t =SUM(ABOVE) OLD\nEnd of the probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "CR-067 phase 2 expression probe"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Select all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "Bookmark x holds the number 5."}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: operators and the default number format"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F01_PRECEDENCE = "},
+            {"kind": "FIELD_CODE", "text": " =2+3*4 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2+3*4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F02_PARENS = "},
+            {"kind": "FIELD_CODE", "text": " =(2+3)*4 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =(2+3)*4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F03_DIV = "},
+            {"kind": "FIELD_CODE", "text": " =10/4 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =10/4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F04_THIRD = "},
+            {"kind": "FIELD_CODE", "text": " =1/3 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1/3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F05_TWO_THIRDS = "},
+            {"kind": "FIELD_CODE", "text": " =2/3 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2/3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F06_POWER = "},
+            {"kind": "FIELD_CODE", "text": " =2^10 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2^10 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F07_ROOT = "},
+            {"kind": "FIELD_CODE", "text": " =2^0.5 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2^0.5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F08_UNARY = "},
+            {"kind": "FIELD_CODE", "text": " =-5+2 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =-5+2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F09_PERCENT = "},
+            {"kind": "FIELD_CODE", "text": " =50% "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =50% ", "result": "OLD"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F10_TIMES_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =2*-3 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2*-3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F11_SPACES = "},
+            {"kind": "FIELD_CODE", "text": " = 5 + 1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " = 5 + 1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F12_BIG = "},
+            {"kind": "FIELD_CODE", "text": " =1000000*1000000 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1000000*1000000 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F13_SW_2DP = "},
+            {"kind": "FIELD_CODE", "text": " =10 \\# \"0.00\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =10 \\# \"0.00\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F14_SW_3DP = "},
+            {"kind": "FIELD_CODE", "text": " =1/3 \\# \"0.000\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1/3 \\# \"0.000\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F15_COMPARE_IN_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " =3>2 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =3>2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F16_EQUAL_IN_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " =3=2 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =3=2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: error texts"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F17_ZERO_DIVIDE = "},
+            {"kind": "FIELD_CODE", "text": " =1/0 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1/0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F18_UNEXPECTED_END = "},
+            {"kind": "FIELD_CODE", "text": " =1+ "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1+ ", "result": "OLD"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F19_SYNTAX = "},
+            {"kind": "FIELD_CODE", "text": " =1 2 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1 2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F20_UNDEFINED = "},
+            {"kind": "FIELD_CODE", "text": " =nope "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =nope ", "result": "OLD"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F21_BAD_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =NOPE(1) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =NOPE(1) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: functions"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F22_ABS = "},
+            {"kind": "FIELD_CODE", "text": " =ABS(-3) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ABS(-3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F23_INT_POS = "},
+            {"kind": "FIELD_CODE", "text": " =INT(3.7) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =INT(3.7) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F24_INT_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =INT(-3.7) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =INT(-3.7) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F25_ROUND_2 = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(2.345,2) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ROUND(2.345,2) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F26_ROUND_HALF = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(2.5,0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ROUND(2.5,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F27_ROUND_NEG_HALF = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(-2.5,0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ROUND(-2.5,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F28_ROUND_HUNDREDS = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(1234.5,-2) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ROUND(1234.5,-2) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F29_MOD = "},
+            {"kind": "FIELD_CODE", "text": " =MOD(7,3) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =MOD(7,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F30_MOD_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =MOD(-7,3) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =MOD(-7,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F31_SIGN = "},
+            {"kind": "FIELD_CODE", "text": " =SIGN(-5) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =SIGN(-5) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F32_SUM = "},
+            {"kind": "FIELD_CODE", "text": " =SUM(1,2,3) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =SUM(1,2,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F33_AVERAGE = "},
+            {"kind": "FIELD_CODE", "text": " =AVERAGE(1,2,4) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =AVERAGE(1,2,4) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F34_MIN = "},
+            {"kind": "FIELD_CODE", "text": " =MIN(4,2,8) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =MIN(4,2,8) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F35_MAX = "},
+            {"kind": "FIELD_CODE", "text": " =MAX(4,2,8) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =MAX(4,2,8) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F36_COUNT = "},
+            {"kind": "FIELD_CODE", "text": " =COUNT(1,2,3) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =COUNT(1,2,3) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F37_PRODUCT = "},
+            {"kind": "FIELD_CODE", "text": " =PRODUCT(2,3,4) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =PRODUCT(2,3,4) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F38_AND = "},
+            {"kind": "FIELD_CODE", "text": " =AND(1,0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =AND(1,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F39_OR = "},
+            {"kind": "FIELD_CODE", "text": " =OR(1,0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =OR(1,0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F40_NOT = "},
+            {"kind": "FIELD_CODE", "text": " =NOT(0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =NOT(0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F41_TRUE = "},
+            {"kind": "FIELD_CODE", "text": " =TRUE "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =TRUE ", "result": "OLD"}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F42_FALSE = "},
+            {"kind": "FIELD_CODE", "text": " =FALSE "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =FALSE ", "result": "OLD"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F43_IF_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =IF(3>2,10,20) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =IF(3>2,10,20) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F44_NESTED_FUNCTIONS = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(AVERAGE(1,2),0) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =ROUND(AVERAGE(1,2),0) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Formulas: number forms (the VM's regional format decides; please note it in results.txt)"
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F45_DECIMAL_POINT = "},
+            {"kind": "FIELD_CODE", "text": " =1.5+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1.5+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F46_DECIMAL_COMMA = "},
+            {"kind": "FIELD_CODE", "text": " =1,5+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1,5+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F47_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " =1,000+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1,000+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F48_LEADING_ZEROS = "},
+            {"kind": "FIELD_CODE", "text": " =007+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =007+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: bookmarks (bookmark x holds the text 5)"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F49_BOOKMARK = "},
+            {"kind": "FIELD_CODE", "text": " =x*2 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =x*2 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F50_BOOKMARK_SPACED = "},
+            {"kind": "FIELD_CODE", "text": " =3 + x "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =3 + x ", "result": "OLD"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F51_BOOKMARK_IN_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =SUM(x,1) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =SUM(x,1) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F52_DEFINED = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(x) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =DEFINED(x) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F53_DEFINED_NOPE = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(nope) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =DEFINED(nope) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "F54_NESTED_REF = "},
+            {"kind": "FIELD_CODE", "text": " = REF x OLD+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF x ", "result": "OLD"}, {"instr": " =OLD+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "COMPARE: numbers, strings, wildcards, case"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C01_NUM_GT = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 > 3 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 > 3 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C02_NUM_TWO_DIGITS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 10 > 9 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 10 > 9 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C03_QUOTED_NUMBERS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"10\" > \"9\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"10\" > \"9\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C04_STRING_ORDER = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE abc < abd "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE abc < abd ", "result": "OLD"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C05_CASE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"ABC\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"ABC\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C06_WILDCARD_STAR = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"a*\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a*\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C07_WILDCARD_Q = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"a?c\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a?c\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C08_WILDCARD_LEFT = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"a?c\" = \"abc\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"a?c\" = \"abc\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C09_MIXED = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 > \"abc\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 > \"abc\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C10_BOOKMARK_NAME = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE x = 5 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE x = 5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C11_DECIMAL_EQ = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 = 5.0 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 = 5.0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C12_LEADING_ZEROS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 007 = 7 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 007 = 7 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C13_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 1,000 = 1000 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 1,000 = 1000 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C14_NEGATIVE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE -1 < 0 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE -1 < 0 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C15_EMPTY = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"\" = \"\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE \"\" = \"\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C16_NE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 <> 4 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 <> 4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C17_GE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 >= 5 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 >= 5 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "C18_LE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 <= 4 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " COMPARE 5 <= 4 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: the forms"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I01_QUOTED = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 \"yes\" \"no\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I02_BARE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I03_NO_FALSE_TEXT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 4 yes "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 = 4 yes ", "result": "OLD"}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I04_MULTI_WORD = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5 \"multi word true\" \"multi word false\" "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 = 5 \"multi word true\" \"multi word false\" ", "result": "OLD"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I05_NE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 <> 4 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 <> 4 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I06_GE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 >= 5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 >= 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I07_LE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 <= 4 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 <= 4 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I08_NO_SPACES = "},
+            {"kind": "FIELD_CODE", "text": " IF 5=5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5=5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I09_BAD_OPERATOR = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 ! 5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 ! 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I10_EXTRA_TEXT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 yes no extra "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 yes no extra ", "result": "OLD"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I11_BARE_EXTRA = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5 a b c "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 = 5 a b c ", "result": "OLD"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I12_EMPTY_STRINGS = "},
+            {"kind": "FIELD_CODE", "text": " IF \"\" = \"\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"\" = \"\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I13_SPACE_IN_STRING = "},
+            {"kind": "FIELD_CODE", "text": " IF \"a b\" = \"a b\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"a b\" = \"a b\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I14_EMPTY_RIGHT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = \"\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 = \"\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I15_FORMAT_SWITCH = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 \"yes\" \"no\" \\* Upper "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" \\* Upper ", "result": "OLD"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: numbers against strings"}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I16_NUMERIC = "},
+            {"kind": "FIELD_CODE", "text": " IF 10 > 9 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 10 > 9 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I17_QUOTED_NUMBERS = "},
+            {"kind": "FIELD_CODE", "text": " IF \"10\" > \"9\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"10\" > \"9\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I18_STRING_ORDER = "},
+            {"kind": "FIELD_CODE", "text": " IF abc < abd yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF abc < abd yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I19_MIXED = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > \"abc\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5 > \"abc\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I20_DECIMAL = "},
+            {"kind": "FIELD_CODE", "text": " IF 5.0 = 5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 5.0 = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I21_NEGATIVE = "},
+            {"kind": "FIELD_CODE", "text": " IF -1 < 0 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF -1 < 0 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I22_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " IF 1,000 > 999 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF 1,000 > 999 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: case and wildcards"}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I23_CASE = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"ABC\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"ABC\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I24_WILDCARD_STAR = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"a*\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I25_WILDCARD_Q = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"a?c\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"a?c\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I26_WILDCARD_NE = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" <> \"a*\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"abc\" <> \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I27_WILDCARD_LT = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" < \"a*\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"abc\" < \"a*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I28_WILDCARD_LEFT = "},
+            {"kind": "FIELD_CODE", "text": " IF \"a?c\" = \"abc\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " IF \"a?c\" = \"abc\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: nested fields"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I29_NESTED_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " IF  =2+3 OLD = 5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =2+3 ", "result": "OLD"}, {"instr": " IF OLD = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I30_NESTED_DATE = "},
+            {"kind": "FIELD_CODE", "text": " IF  DATE \\@ yyyy OLD > 2000 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " DATE \\@ yyyy ", "result": "OLD"}, {"instr": " IF OLD > 2000 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I31_NESTED_IN_RESULT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5  =1+1 OLD no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =1+1 ", "result": "OLD"}, {"instr": " IF 5 = 5 OLD no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I32_NESTED_REF = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF x OLD = 5 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF x ", "result": "OLD"}, {"instr": " IF OLD = 5 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "I33_NESTED_BOTH = "},
+            {"kind": "FIELD_CODE", "text": " IF  =1+1 OLD <  =1+2 OLD yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [
+            {"instr": " =1+1 ", "result": "OLD"},
+            {"instr": " =1+2 ", "result": "OLD"},
+            {"instr": " IF OLD < OLD yes no ", "result": "OLD"}
+          ]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "SET and REF (bookmarks a SET defines)"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S01_SET = "}, {"kind": "FIELD_CODE", "text": " SET total 42 "}],
+          "fields": [{"instr": " SET total 42 ", "result": ""}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S02_REF_SET = "},
+            {"kind": "FIELD_CODE", "text": " REF total "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF total ", "result": "OLD"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S03_FORMULA_SET = "},
+            {"kind": "FIELD_CODE", "text": " =total+1 "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =total+1 ", "result": "OLD"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S04_IF_REF_SET = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF total OLD > 40 yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF total ", "result": "OLD"}, {"instr": " IF OLD > 40 yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S05_DEFINED_SET = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(total) "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " =DEFINED(total) ", "result": "OLD"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S06_SET_STRING = "},
+            {"kind": "FIELD_CODE", "text": " SET greeting \"Hello World\" "}
+          ],
+          "fields": [{"instr": " SET greeting \"Hello World\" ", "result": ""}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S07_REF_STRING = "},
+            {"kind": "FIELD_CODE", "text": " REF greeting "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF greeting ", "result": "OLD"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S08_IF_STRING_WILDCARD = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF greeting OLD = \"Hello*\" yes no "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF greeting ", "result": "OLD"}, {"instr": " IF OLD = \"Hello*\" yes no ", "result": "OLD"}]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "S09_SET_NESTED = "}, {"kind": "FIELD_CODE", "text": " SET n  =6*7 OLD "}],
+          "fields": [{"instr": " =6*7 ", "result": "OLD"}, {"instr": " SET n OLD ", "result": ""}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "S10_REF_NESTED = "},
+            {"kind": "FIELD_CODE", "text": " REF n "},
+            {"kind": "TEXT", "text": "OLD"}
+          ],
+          "fields": [{"instr": " REF n ", "result": "OLD"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Table formulas (the cells below the numbers and to their right)"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/130/0",
+              "cells": [
+                {
+                  "address": "body/130/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "x"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/1",
+              "cells": [
+                {
+                  "address": "body/130/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/2",
+                  "blocks": [{"address": "body/130/1/2/0", "kind": "PARAGRAPH", "story": "MAIN"}]
+                },
+                {
+                  "address": "body/130/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/2",
+              "cells": [
+                {
+                  "address": "body/130/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "30"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/3",
+              "cells": [
+                {
+                  "address": "body/130/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =AVERAGE(ABOVE) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =AVERAGE(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(A1:B2) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(A1:B2) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/4",
+              "cells": [
+                {
+                  "address": "body/130/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =A1+B2 "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =A1+B2 ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =MAX(A1:A3) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =MAX(A1:A3) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =COUNT(C1:C3) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =COUNT(C1:C3) ", "result": "OLD"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "OLD"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "OLD"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        }
+      ]
+    }
+  }
+}

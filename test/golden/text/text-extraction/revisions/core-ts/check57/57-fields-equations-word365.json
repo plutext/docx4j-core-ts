@@ -1,0 +1,1220 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
+    "fixture": "text-extraction/revisions/core-ts/check57/57-fields-equations-word365.docx",
+    "fixtureBytes": 16675,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "3",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-23T05:56:00Z",
+      "modified": "2026-10-23T05:58:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 3,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph.\nBEGIN1 insertText-after complex-field\nkeep1a FA1x\ny FB1 keep1b\nEND1\nBEGIN2 insertText-after simple-field\nkeep2a FA2x\ny FB2 keep2b\nEND2\nBEGIN3 insertParagraph-after complex-field\nkeep3a FA3\nNEWPARA3\n FB3 keep3b\nEND3\nBEGIN4 insertParagraph-after simple-field\nkeep4a FA4\nNEWPARA4\n FB4 keep4b\nEND4\nBEGIN5 open display-equation\nEND5\nBEGIN6 open inline-equation\nEND6\nBEGIN7 paragraph-delete display-equation\nEND7\nBEGIN8 paragraph-delete inline-equation\nEND8\nBEGIN9 range-delete display-equation\n\nEND9\nBEGIN10 range-delete inline-equation\nkeep10a  keep10b\nEND10\nEnd of check 57.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A9075A1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72FD7B06",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 insertText-after complex-field"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E03779C",
+          "runs": [{"kind": "TEXT", "text": "keep1a FA1x"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "016597B5",
+          "runs": [{"kind": "TEXT", "text": "y FB1 keep1b"}],
+          "fields": [{"instr": " QUOTE \"FA1 FB1\" ", "result": "FA1xy FB1"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3179BE6A",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "268AC32D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 insertText-after simple-field"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F162197",
+          "runs": [{"kind": "TEXT", "text": "keep2a FA2x"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "346E4C15",
+          "runs": [{"kind": "TEXT", "text": "y FB2 keep2b"}],
+          "fields": [{"instr": " QUOTE \"FA2 FB2\" ", "result": "FA2xy FB2"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0669A2B4",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D937FCA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 insertParagraph-after complex-field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B6CFB8F",
+          "runs": [{"kind": "TEXT", "text": "keep3a FA3"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DD8C1ED",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E9A208B",
+          "runs": [{"kind": "TEXT", "text": " FB3 keep3b"}],
+          "fields": [{"instr": " QUOTE \"FA3 FB3\" ", "result": "FA3NEWPARA3 FB3"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39DF4083",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44BAB2D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 insertParagraph-after simple-field"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC089A9",
+          "runs": [{"kind": "TEXT", "text": "keep4a FA4"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02A3F5AB",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA4"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "496AAB81",
+          "runs": [{"kind": "TEXT", "text": " FB4 keep4b"}],
+          "fields": [{"instr": " QUOTE \"FA4 FB4\" ", "result": "FA4NEWPARA4 FB4"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C425AD1",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38A2CD6E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 open display-equation"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58AFD611",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "582C6439",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 open inline-equation"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A0DD16C",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B9F227E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 paragraph-delete display-equation"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FB39A8",
+          "revisions": 1,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F5D638E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 paragraph-delete inline-equation"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CC10133",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3987F95A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 range-delete display-equation"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "3075BEDF"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "30284E4C",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "155098EC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 range-delete inline-equation"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50074B02",
+          "runs": [{"kind": "TEXT", "text": "keep10a  keep10b"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42D56B2F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "107DD3A7",
+          "runs": [{"kind": "TEXT", "text": "End of check 57."}]
+        }
+      ]
+    },
+    "original": {
+      "options": {"view": "original"},
+      "plainText": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph.\nBEGIN1 insertText-after complex-field\nkeep1a FA1x\ny FB1 keep1b\nEND1\nBEGIN2 insertText-after simple-field\nkeep2a FA2x\ny FB2 keep2b\nEND2\nBEGIN3 insertParagraph-after complex-field\nkeep3a FA3\nNEWPARA3\n FB3 keep3b\nEND3\nBEGIN4 insertParagraph-after simple-field\nkeep4a FA4\nNEWPARA4\n FB4 keep4b\nEND4\nBEGIN5 open display-equation\n$$E=mc^{2}$$\nEND5\nBEGIN6 open inline-equation\nkeep6a L6 $E=mc^{2}$ R6 keep6b\nEND6\nBEGIN7 paragraph-delete display-equation\n$$E=mc^{2}$$\nEND7\nBEGIN8 paragraph-delete inline-equation\nkeep8a L8 $E=mc^{2}$ R8 keep8b\nEND8\nBEGIN9 range-delete display-equation\n$$E=mc^{2}$$\nEND9\nBEGIN10 range-delete inline-equation\nkeep10a L10 $E=mc^{2}$ R10 keep10b\nEND10\nEnd of check 57.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A9075A1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72FD7B06",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 insertText-after complex-field"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E03779C",
+          "runs": [{"kind": "TEXT", "text": "keep1a FA1x"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "016597B5",
+          "runs": [{"kind": "TEXT", "text": "y FB1 keep1b"}],
+          "fields": [{"instr": " QUOTE \"FA1 FB1\" ", "result": "FA1xy FB1"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3179BE6A",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "268AC32D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 insertText-after simple-field"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F162197",
+          "runs": [{"kind": "TEXT", "text": "keep2a FA2x"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "346E4C15",
+          "runs": [{"kind": "TEXT", "text": "y FB2 keep2b"}],
+          "fields": [{"instr": " QUOTE \"FA2 FB2\" ", "result": "FA2xy FB2"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0669A2B4",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D937FCA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 insertParagraph-after complex-field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B6CFB8F",
+          "runs": [{"kind": "TEXT", "text": "keep3a FA3"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DD8C1ED",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E9A208B",
+          "runs": [{"kind": "TEXT", "text": " FB3 keep3b"}],
+          "fields": [{"instr": " QUOTE \"FA3 FB3\" ", "result": "FA3NEWPARA3 FB3"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39DF4083",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44BAB2D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 insertParagraph-after simple-field"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC089A9",
+          "runs": [{"kind": "TEXT", "text": "keep4a FA4"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02A3F5AB",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA4"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "496AAB81",
+          "runs": [{"kind": "TEXT", "text": " FB4 keep4b"}],
+          "fields": [{"instr": " QUOTE \"FA4 FB4\" ", "result": "FA4NEWPARA4 FB4"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C425AD1",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38A2CD6E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 open display-equation"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58AFD611",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "$$E=mc^{2}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6CB43399",
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "582C6439",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 open inline-equation"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A0DD16C",
+          "revisions": 3,
+          "runs": [
+            {"kind": "TEXT", "text": "keep6a L6 "},
+            {"kind": "TEXT", "text": "$E=mc^{2}$", "math": true},
+            {"kind": "TEXT", "text": " R6 keep6b"}
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3F27F998",
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B9F227E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 paragraph-delete display-equation"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FB39A8",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "$$E=mc^{2}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1ADF9B81",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F5D638E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 paragraph-delete inline-equation"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CC10133",
+          "revisions": 3,
+          "runs": [
+            {"kind": "TEXT", "text": "keep8a L8 "},
+            {"kind": "TEXT", "text": "$E=mc^{2}$", "math": true},
+            {"kind": "TEXT", "text": " R8 keep8b"}
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6357C75C",
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3987F95A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 range-delete display-equation"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3075BEDF",
+          "runs": [{"kind": "TEXT", "text": "$$E=mc^{2}$$", "math": true, "displayMath": true}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "30284E4C",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "155098EC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 range-delete inline-equation"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50074B02",
+          "revisions": 2,
+          "runs": [
+            {"kind": "TEXT", "text": "keep10a L10 "},
+            {"kind": "TEXT", "text": "$E=mc^{2}$", "math": true},
+            {"kind": "TEXT", "text": " R10 keep10b"}
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42D56B2F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "107DD3A7",
+          "runs": [{"kind": "TEXT", "text": "End of check 57."}]
+        }
+      ]
+    },
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph.\nBEGIN1 insertText-after complex-field\nkeep1a FA1x\ny FB1 keep1b\nEND1\nBEGIN2 insertText-after simple-field\nkeep2a FA2x\ny FB2 keep2b\nEND2\nBEGIN3 insertParagraph-after complex-field\nkeep3a FA3\nNEWPARA3\n FB3 keep3b\nEND3\nBEGIN4 insertParagraph-after simple-field\nkeep4a FA4\nNEWPARA4\n FB4 keep4b\nEND4\nBEGIN5 open display-equation\n{--docx4j, 2026-10-23T00:00:00: $$E=mc^{2}$$--}\nEND5\nBEGIN6 open inline-equation\n{--docx4j, 2026-10-23T00:00:00: keep6a L6 $E=mc^{2}$ R6 keep6b--}\nEND6\nBEGIN7 paragraph-delete display-equation\n{--Author A, 2026-10-23T16:57:00+11:00: $$E=mc^{2}$$--}\nEND7\nBEGIN8 paragraph-delete inline-equation\n{--Author A, 2026-10-23T16:57:00+11:00: keep8a L8 $E=mc^{2}$ R8 keep8b--}\nEND8\nBEGIN9 range-delete display-equation\n{--Author A, 2026-10-23T16:57:00+11:00: $$E=mc^{2}$$--}\nEND9\nBEGIN10 range-delete inline-equation\nkeep10a {--Author A, 2026-10-23T16:57:00+11:00: L10 $E=mc^{2}$ R10--} keep10b\nEND10\nEnd of check 57.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A9075A1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72FD7B06",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 insertText-after complex-field"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E03779C",
+          "runs": [{"kind": "TEXT", "text": "keep1a FA1x"}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "016597B5",
+          "runs": [{"kind": "TEXT", "text": "y FB1 keep1b"}],
+          "fields": [{"instr": " QUOTE \"FA1 FB1\" ", "result": "FA1xy FB1"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3179BE6A",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "268AC32D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 insertText-after simple-field"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F162197",
+          "runs": [{"kind": "TEXT", "text": "keep2a FA2x"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "346E4C15",
+          "runs": [{"kind": "TEXT", "text": "y FB2 keep2b"}],
+          "fields": [{"instr": " QUOTE \"FA2 FB2\" ", "result": "FA2xy FB2"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0669A2B4",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D937FCA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 insertParagraph-after complex-field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B6CFB8F",
+          "runs": [{"kind": "TEXT", "text": "keep3a FA3"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DD8C1ED",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E9A208B",
+          "runs": [{"kind": "TEXT", "text": " FB3 keep3b"}],
+          "fields": [{"instr": " QUOTE \"FA3 FB3\" ", "result": "FA3NEWPARA3 FB3"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39DF4083",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44BAB2D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 insertParagraph-after simple-field"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC089A9",
+          "runs": [{"kind": "TEXT", "text": "keep4a FA4"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02A3F5AB",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA4"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "496AAB81",
+          "runs": [{"kind": "TEXT", "text": " FB4 keep4b"}],
+          "fields": [{"instr": " QUOTE \"FA4 FB4\" ", "result": "FA4NEWPARA4 FB4"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C425AD1",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38A2CD6E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 open display-equation"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58AFD611",
+          "revisions": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$E=mc^{2}$$",
+              "revision": {"type": "DELETION", "author": "docx4j", "date": "2026-10-23T00:00:00"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6CB43399",
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "582C6439",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 open inline-equation"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A0DD16C",
+          "revisions": 3,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "keep6a L6 ",
+              "revision": {"type": "DELETION", "author": "docx4j", "date": "2026-10-23T00:00:00"}
+            },
+            {
+              "kind": "TEXT",
+              "text": "$E=mc^{2}$",
+              "revision": {"type": "DELETION", "author": "docx4j", "date": "2026-10-23T00:00:00"},
+              "math": true
+            },
+            {
+              "kind": "TEXT",
+              "text": " R6 keep6b",
+              "revision": {"type": "DELETION", "author": "docx4j", "date": "2026-10-23T00:00:00"}
+            }
+          ]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3F27F998",
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B9F227E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 paragraph-delete display-equation"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FB39A8",
+          "revisions": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$E=mc^{2}$$",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1ADF9B81",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F5D638E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 paragraph-delete inline-equation"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CC10133",
+          "revisions": 3,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "keep8a L8 ",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"}
+            },
+            {
+              "kind": "TEXT",
+              "text": "$E=mc^{2}$",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"},
+              "math": true
+            },
+            {
+              "kind": "TEXT",
+              "text": " R8 keep8b",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"}
+            }
+          ]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6357C75C",
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3987F95A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 range-delete display-equation"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3075BEDF",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "$$E=mc^{2}$$",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"},
+              "math": true,
+              "displayMath": true
+            }
+          ]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "30284E4C",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "155098EC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 range-delete inline-equation"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50074B02",
+          "revisions": 2,
+          "runs": [
+            {"kind": "TEXT", "text": "keep10a "},
+            {
+              "kind": "TEXT",
+              "text": "L10 ",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"}
+            },
+            {
+              "kind": "TEXT",
+              "text": "$E=mc^{2}$",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"},
+              "math": true
+            },
+            {
+              "kind": "TEXT",
+              "text": " R10",
+              "revision": {"type": "DELETION", "author": "Author A", "date": "2026-10-23T16:57:00+11:00"}
+            },
+            {"kind": "TEXT", "text": " keep10b"}
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42D56B2F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "107DD3A7",
+          "runs": [{"kind": "TEXT", "text": "End of check 57."}]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 3; lastModifiedBy: Author A; created: 2026-10-23T05:56:00Z; modified: 2026-10-23T05:58:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 3; DocSecurity: 0]\nCheck 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph.\nBEGIN1 insertText-after complex-field\nkeep1a  QUOTE \"FA1 FB1\" FA1x\ny FB1 keep1b\nEND1\nBEGIN2 insertText-after simple-field\nkeep2a  QUOTE \"FA2 FB2\" FA2x\ny FB2 keep2b\nEND2\nBEGIN3 insertParagraph-after complex-field\nkeep3a  QUOTE \"FA3 FB3\" FA3\nNEWPARA3\n FB3 keep3b\nEND3\nBEGIN4 insertParagraph-after simple-field\nkeep4a  QUOTE \"FA4 FB4\" FA4\nNEWPARA4\n FB4 keep4b\nEND4\nBEGIN5 open display-equation\nEND5\nBEGIN6 open inline-equation\nEND6\nBEGIN7 paragraph-delete display-equation\n[page 2]END7\nBEGIN8 paragraph-delete inline-equation\nEND8\nBEGIN9 range-delete display-equation\n\nEND9\nBEGIN10 range-delete inline-equation\nkeep10a  keep10b\nEND10\nEnd of check 57.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A9075A1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 57. Each case is a region: its BEGIN paragraph, the case's paragraph, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "72FD7B06",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 insertText-after complex-field"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E03779C",
+          "runs": [
+            {"kind": "TEXT", "text": "keep1a "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"FA1 FB1\" "},
+            {"kind": "TEXT", "text": "FA1x"}
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "016597B5",
+          "runs": [{"kind": "TEXT", "text": "y FB1 keep1b"}],
+          "fields": [{"instr": " QUOTE \"FA1 FB1\" ", "result": "FA1xy FB1"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3179BE6A",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "268AC32D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 insertText-after simple-field"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F162197",
+          "runs": [
+            {"kind": "TEXT", "text": "keep2a "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"FA2 FB2\" "},
+            {"kind": "TEXT", "text": "FA2x"}
+          ]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "346E4C15",
+          "runs": [{"kind": "TEXT", "text": "y FB2 keep2b"}],
+          "fields": [{"instr": " QUOTE \"FA2 FB2\" ", "result": "FA2xy FB2"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0669A2B4",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1D937FCA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 insertParagraph-after complex-field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B6CFB8F",
+          "runs": [
+            {"kind": "TEXT", "text": "keep3a "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"FA3 FB3\" "},
+            {"kind": "TEXT", "text": "FA3"}
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7DD8C1ED",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E9A208B",
+          "runs": [{"kind": "TEXT", "text": " FB3 keep3b"}],
+          "fields": [{"instr": " QUOTE \"FA3 FB3\" ", "result": "FA3NEWPARA3 FB3"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39DF4083",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44BAB2D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 insertParagraph-after simple-field"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC089A9",
+          "runs": [
+            {"kind": "TEXT", "text": "keep4a "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"FA4 FB4\" "},
+            {"kind": "TEXT", "text": "FA4"}
+          ]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02A3F5AB",
+          "runs": [{"kind": "TEXT", "text": "NEWPARA4"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "496AAB81",
+          "runs": [{"kind": "TEXT", "text": " FB4 keep4b"}],
+          "fields": [{"instr": " QUOTE \"FA4 FB4\" ", "result": "FA4NEWPARA4 FB4"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C425AD1",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38A2CD6E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 open display-equation"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "58AFD611",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "582C6439",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 open inline-equation"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A0DD16C",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B9F227E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 paragraph-delete display-equation"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "22FB39A8",
+          "revisions": 1,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F5D638E",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 paragraph-delete inline-equation"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CC10133",
+          "revisions": 1,
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3987F95A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 range-delete display-equation"}]
+        },
+        {"address": "body/32", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "3075BEDF"},
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "30284E4C",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "155098EC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 range-delete inline-equation"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "50074B02",
+          "runs": [{"kind": "TEXT", "text": "keep10a  keep10b"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42D56B2F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "107DD3A7",
+          "runs": [{"kind": "TEXT", "text": "End of check 57."}]
+        }
+      ]
+    }
+  }
+}

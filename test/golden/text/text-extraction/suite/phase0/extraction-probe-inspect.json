@@ -1,31 +1,31 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:09Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:11Z",
     "fixture": "text-extraction/suite/phase0/extraction-probe-inspect.docx",
-    "fixtureBytes": 39500,
+    "fixtureBytes": 49586,
     "timeZone": "UTC",
     "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
   },
   "metadata": {
     "fields_update_on_open": false,
-    "core": {"creator": "docx4j 17.3.4-SNAPSHOT", "lastModifiedBy": "docx4j 17.3.4-SNAPSHOT"},
+    "core": {"creator": "docx4j 17.3.5-SNAPSHOT", "lastModifiedBy": "docx4j 17.3.5-SNAPSHOT"},
     "app": {"Application": "docx4j", "AppVersion": "11.4"}
   },
   "readings": {
     "accepted": {
       "options": {},
-      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "plainText": "Text extraction probe, inspection cases (58 to 82)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\nCase 68: an SVG-only picture: text with tspan and textPath\nSVG only (a:blip names the SVG, no raster copy): \nCase 69: two pictures showing one SVG part, each with the raster copy Word keeps\nFirst:  second: \nCase 70: an SVG with no text\nNo text element: \nCase 71: an SVG picture in the header the section uses\nThe picture is in the header the section uses, after its watermark.\nCase 72: a WMF picture through VML: text in two character sets, through the object table\nWMF (v:imagedata): \nCase 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font\nEMF (a:blip): \nCase 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text\nEMF+ dual (a:blip): \nCase 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them\nRNG75_LEFT_BEFORE\nCase 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width\nRNG76_CELL\nCase 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches\nRNG77_TAB\nCase 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast\nRNG78_FIRSTLINE_LINE\nCase 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits\nRNG79_ROW\nRNG79_BORDER\nRNG79_SCALE\nCase 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked\nRNG80_STYLE\nCase 81: the same wrap in the header the section uses and in an unselected Fallback\nRNG81_HERE RNG81_CHOICE \nCase 82: a page number start beyond 32 bits on the body\"s section\nRNG82_SECTION\n[1] NOTE63_REFERENCED\n",
       "blocks": [
         {
           "address": "body/0",
           "kind": "PARAGRAPH",
           "story": "MAIN",
           "style": "Title",
-          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 82)"}]
         },
         {
           "address": "body/1",
@@ -581,6 +581,351 @@
           "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
         },
         {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 68: an SVG-only picture: text with tspan and textPath"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "SVG only (a:blip names the SVG, no raster copy): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG68_DESCR", "name": "Picture 11", "title": "", "part": "/word/media/svg68.svg"},
+              "description": {"text": "SVG68_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 69: two pictures showing one SVG part, each with the raster copy Word keeps"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "First: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_FIRST_DESCR",
+                "name": "Picture 12",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_FIRST_DESCR", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " second: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_SECOND_DESCR",
+                "name": "Picture 13",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_SECOND_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 70: an SVG with no text"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "No text element: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG70_DESCR", "name": "Picture 14", "title": "", "part": "/word/media/svg70.svg"},
+              "description": {"text": "SVG70_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 71: an SVG picture in the header the section uses"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The picture is in the header the section uses, after its watermark."}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 72: a WMF picture through VML: text in two character sets, through the object table"
+            }
+          ]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "WMF (v:imagedata): "},
+            {"kind": "IMAGE", "text": "", "image": {"vml": true, "part": "/word/media/image72.wmf"}}
+          ]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font"
+            }
+          ]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF73_DESCR", "name": "Picture 16", "title": "", "part": "/word/media/image73.emf"},
+              "description": {"text": "EMF73_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text"
+            }
+          ]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF+ dual (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF74_DESCR", "name": "Picture 17", "title": "", "part": "/word/media/image74.emf"},
+              "description": {"text": "EMF74_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG75_LEFT_BEFORE"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width"
+            }
+          ]
+        },
+        {
+          "address": "body/85",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/85/0",
+              "cells": [
+                {
+                  "address": "body/85/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/85/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG76_CELL"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches"}]
+        },
+        {"address": "body/87", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG77_TAB"}]},
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast"
+            }
+          ]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentFirstLine": 65535,
+          "runs": [{"kind": "TEXT", "text": "RNG78_FIRSTLINE_LINE"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits"
+            }
+          ]
+        },
+        {
+          "address": "body/91",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/91/0",
+              "cells": [
+                {
+                  "address": "body/91/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/91/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG79_ROW"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/92", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_BORDER"}]},
+        {"address": "body/93", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_SCALE"}]},
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked"
+            }
+          ]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ProbeWide",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG80_STYLE"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 81: the same wrap in the header the section uses and in an unselected Fallback"
+            }
+          ]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG81_HERE RNG81_CHOICE "}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 82: a page number start beyond 32 bits on the body\"s section"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG82_SECTION"}]
+        },
+        {
           "address": "footnote:1/0",
           "kind": "PARAGRAPH",
           "story": "FOOTNOTE",
@@ -595,22 +940,28 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
-        {"kind": "sdt.binding_differs", "address": "body/67"}
+        {"kind": "sdt.binding_differs", "address": "body/67"},
+        {"kind": "mce.branches_differ", "address": "body/97", "branch": "mc:Choice Requires=\"w14\""}
       ]
     },
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Text extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>Probe, 2026-10-17T00:00:00Z: CMT63_ANCHORED<<}\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "plainText": "Text extraction probe, inspection cases (58 to 82)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\n\nPAR58_VISIBLE \nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\nFLD61_SIMPLE_RESULT FLD61_COMPLEX_RESULT\nFLD61_LINK_SIMPLE_RESULT FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET FLD61_BOOKMARK_RESULT FLD61_FILE_RESULT FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>Probe, 2026-10-17T00:00:00: CMT63_ANCHORED<<}\nINK63_HERE \nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: \nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\nCase 68: an SVG-only picture: text with tspan and textPath\nSVG only (a:blip names the SVG, no raster copy): \nCase 69: two pictures showing one SVG part, each with the raster copy Word keeps\nFirst:  second: \nCase 70: an SVG with no text\nNo text element: \nCase 71: an SVG picture in the header the section uses\nThe picture is in the header the section uses, after its watermark.\nCase 72: a WMF picture through VML: text in two character sets, through the object table\nWMF (v:imagedata): \nCase 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font\nEMF (a:blip): \nCase 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text\nEMF+ dual (a:blip): \nCase 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them\nRNG75_LEFT_BEFORE\nCase 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width\nRNG76_CELL\nCase 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches\nRNG77_TAB\nCase 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast\nRNG78_FIRSTLINE_LINE\nCase 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits\nRNG79_ROW\nRNG79_BORDER\nRNG79_SCALE\nCase 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked\nRNG80_STYLE\nCase 81: the same wrap in the header the section uses and in an unselected Fallback\nRNG81_HERE RNG81_CHOICE \nCase 82: a page number start beyond 32 bits on the body\"s section\nRNG82_SECTION\n[1] NOTE63_REFERENCED\n",
       "blocks": [
         {
           "address": "body/0",
           "kind": "PARAGRAPH",
           "story": "MAIN",
           "style": "Title",
-          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 82)"}]
         },
         {
           "address": "body/1",
@@ -1171,6 +1522,351 @@
           "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
         },
         {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 68: an SVG-only picture: text with tspan and textPath"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "SVG only (a:blip names the SVG, no raster copy): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG68_DESCR", "name": "Picture 11", "title": "", "part": "/word/media/svg68.svg"},
+              "description": {"text": "SVG68_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 69: two pictures showing one SVG part, each with the raster copy Word keeps"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "First: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_FIRST_DESCR",
+                "name": "Picture 12",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_FIRST_DESCR", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " second: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_SECOND_DESCR",
+                "name": "Picture 13",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_SECOND_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 70: an SVG with no text"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "No text element: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG70_DESCR", "name": "Picture 14", "title": "", "part": "/word/media/svg70.svg"},
+              "description": {"text": "SVG70_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 71: an SVG picture in the header the section uses"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The picture is in the header the section uses, after its watermark."}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 72: a WMF picture through VML: text in two character sets, through the object table"
+            }
+          ]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "WMF (v:imagedata): "},
+            {"kind": "IMAGE", "text": "", "image": {"vml": true, "part": "/word/media/image72.wmf"}}
+          ]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font"
+            }
+          ]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF73_DESCR", "name": "Picture 16", "title": "", "part": "/word/media/image73.emf"},
+              "description": {"text": "EMF73_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text"
+            }
+          ]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF+ dual (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF74_DESCR", "name": "Picture 17", "title": "", "part": "/word/media/image74.emf"},
+              "description": {"text": "EMF74_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG75_LEFT_BEFORE"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width"
+            }
+          ]
+        },
+        {
+          "address": "body/85",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/85/0",
+              "cells": [
+                {
+                  "address": "body/85/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/85/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG76_CELL"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches"}]
+        },
+        {"address": "body/87", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG77_TAB"}]},
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast"
+            }
+          ]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentFirstLine": 65535,
+          "runs": [{"kind": "TEXT", "text": "RNG78_FIRSTLINE_LINE"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits"
+            }
+          ]
+        },
+        {
+          "address": "body/91",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/91/0",
+              "cells": [
+                {
+                  "address": "body/91/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/91/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG79_ROW"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/92", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_BORDER"}]},
+        {"address": "body/93", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_SCALE"}]},
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked"
+            }
+          ]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ProbeWide",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG80_STYLE"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 81: the same wrap in the header the section uses and in an unselected Fallback"
+            }
+          ]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG81_HERE RNG81_CHOICE "}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 82: a page number start beyond 32 bits on the body\"s section"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG82_SECTION"}]
+        },
+        {
           "address": "footnote:1/0",
           "kind": "PARAGRAPH",
           "story": "FOOTNOTE",
@@ -1189,7 +1885,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -1203,9 +1899,15 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
-        {"kind": "sdt.binding_differs", "address": "body/67"}
+        {"kind": "sdt.binding_differs", "address": "body/67"},
+        {"kind": "mce.branches_differ", "address": "body/97", "branch": "mc:Choice Requires=\"w14\""}
       ]
     },
     "everything": {
@@ -1220,7 +1922,7 @@
         "metadata": true,
         "page_markers": true
       },
-      "plainText": "[core properties: creator: docx4j 17.3.4-SNAPSHOT; lastModifiedBy: docx4j 17.3.4-SNAPSHOT]\n[application properties: Application: docx4j; AppVersion: 11.4]\nHDR63_USED\n\nWMK63_WATERMARK\nText extraction probe, inspection cases (58 to 67)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\nVAN58_INHERITED\nPAR58_VISIBLE PAR58_PART_HIDDEN\nPAR58_WHOLE\nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\n includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d FLD61_SIMPLE_RESULT  IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png FLD61_COMPLEX_RESULT\n link Word.Document.12 FLD61_LINK_BARE.docx FLD61_LINK_SIMPLE_RESULT  LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET  HYPERLINK \\l \"fld61target\" FLD61_BOOKMARK_RESULT  HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" FLD61_FILE_RESULT  HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>CMT63_ANCHORED<<}\nINK63_HERE [image: Ink 8]\nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: [image: PIC66_NAME_ONLY]\nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\n[1] NOTE63_REFERENCED\n",
+      "plainText": "[core properties: creator: docx4j 17.3.5-SNAPSHOT; lastModifiedBy: docx4j 17.3.5-SNAPSHOT]\n[application properties: Application: docx4j; AppVersion: 11.4]\nHDR63_USED\n\nWMK63_WATERMARK\nHeader picture: [image: a header picture]\nRNG81_HEADER\nText extraction probe, inspection cases (58 to 82)\nBuilt by docx4j (ExtractionInspectCases, in docx4j-core-tests), beside extraction-probe.docx, for CR-050. Each case starts with a heading, Case and its number. The page colour is pale green.\nCase 58: formatting: hidden text, tiny text, colours at the threshold, a collapsed heading\nVAN58_SHOWN\nVAN58_INHERITED\nPAR58_VISIBLE PAR58_PART_HIDDEN\nPAR58_WHOLE\nSZ58_TWO SZ58_ONE_HALF\nSZ58_COMPLEX SZ58_NOT_COMPLEX\nCOL58_NEAR COL58_FAR\nHEAD58_COLLAPSED\nBODY58_FIRST\nHEAD58_NESTED\nBODY58_LAST\nHEAD58_AFTER\nCase 59: geometry: off the page, partly on it, flat, indeterminate, aligned, hidden, in an unused header\nOff the page: \nGEO59_OFF_PAGE\nPartly on the page: \nGEO59_PARTLY\nFlat: \nGEO59_FLAT\nParagraph-relative, below wherever the paragraph falls: \nGEO59_INDETERMINATE\nAligned to the page: \nGEO59_ALIGNED\nHidden: \nGEO59_HIDDEN\nCase 60: characters: supplementary private use, a bidi override split across runs, symbol and icon fonts\nPUA60_SUPPLEMENTARY \udb80\udc41\nBIDI60_SPLIT \u202e\u202c BIDI60_AFTER\nSYM60_SYMBOL_FONTS \uf0e5 \uf04a \uf04a\nSYM60_TEXT_FONT \uf041\nICN60_ICON_FONT \ue700\nCase 61: fields: INCLUDEPICTURE and LINK in both forms, and HYPERLINK to a bookmark, a file and a UNC path\n includePicture \"file:///C:/CR050-MISSING/FLD61_INCPIC_SIMPLE.png\" \\d FLD61_SIMPLE_RESULT  IncludePicture file:///C:/CR050-MISSING/FLD61_INCPIC_COMPLEX.png FLD61_COMPLEX_RESULT\n link Word.Document.12 FLD61_LINK_BARE.docx FLD61_LINK_SIMPLE_RESULT  LINK Excel.Sheet.12 \"C:\\\\CR050-MISSING\\\\FLD61_LINK_QUOTED.xlsx\" \"Sheet1!R1C1\" FLD61_LINK_COMPLEX_RESULT\nFLD61_TARGET  HYPERLINK \\l \"fld61target\" FLD61_BOOKMARK_RESULT  HYPERLINK \"file:///C:/CR050-MISSING/FLD61_FILE.docx\" FLD61_FILE_RESULT  HYPERLINK \"\\\\\\\\cr050-missing\\\\share\\\\FLD61_UNC.docx\" FLD61_UNC_RESULT\nCase 62: backgrounds: highlight, shading, auto, a table style, the page colour, a pattern\nBG62_HIGHLIGHT BG62_HIGHLIGHT_OVER_SHADING BG62_SHADED_CONTRAST BG62_AUTO_COLOUR\nBG62_AUTO_FILL\nBG62_TABLE_STYLE\nBG62_PAGE BG62_PAGE_NOT_WHITE\nBG62_PATTERN\nCase 63: inventory: an unknown part, notes, comments, docVars, people, ink, a watermark, a scripted chunk, an embedded document holding hidden text\nNOTE63_HERE[1]\nCMT63_HERE{>>CMT63_ANCHORED<<}\nINK63_HERE [image: Ink 8]\nAfter the chunk.\nEMB63_HERE \nCase 64: links: w:hyperlink to a file, a UNC path, the web, mail, and a bookmark\nLNK64_FILE_TEXT LNK64_UNC_TEXT LNK64_WEB_TEXT LNK64_MAIL_TEXT LNK64_BOOKMARK_TEXT\nCase 65: embedded fonts that draw text as other text or as nothing, a careful swap, symbol and plain faces\nFNT65_WORD CAT\nFNT65_TWIN CAT\nFNT65_BLANK INVISIBLE INK\nFNT65_ZERO MIXED\nFNT65_NAMED MAT\nFNT65_SHARED FEE\nFNT65_CAREFUL SIZE\nFNT65_PLAIN PLAIN\nFNT65_SYMBOL \uf041\uf061\uf06b\nFNT65_CCMP BOB\nFNT65_LIGA DOT\nFNT65_NO_LIGA ODD\nFNT65_PUA_PLAIN \ue123\nCase 66: a picture named and not described, a decorative one, a workbook with a hidden row and column\nNamed: [image: PIC66_NAME_ONLY]\nDecorative: \n\nCase 67: stored content: a Fallback holding near-background text, the stale surface of a bound control holding tag characters\nMCE67_HERE MCE67_CHOICE \nSDT67_HERE SDT67_VALUE\nCase 68: an SVG-only picture: text with tspan and textPath\nSVG only (a:blip names the SVG, no raster copy): [image: SVG68_DESCR]\nCase 69: two pictures showing one SVG part, each with the raster copy Word keeps\nFirst: [image: SVG69_FIRST_DESCR] second: [image: SVG69_SECOND_DESCR]\nCase 70: an SVG with no text\nNo text element: [image: SVG70_DESCR]\nCase 71: an SVG picture in the header the section uses\nThe picture is in the header the section uses, after its watermark.\nCase 72: a WMF picture through VML: text in two character sets, through the object table\nWMF (v:imagedata): \nCase 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font\nEMF (a:blip): [image: EMF73_DESCR]\nCase 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text\nEMF+ dual (a:blip): [image: EMF74_DESCR]\nCase 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them\nRNG75_LEFT_BEFORE\nCase 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width\nRNG76_CELL\nCase 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches\nRNG77_TAB\nCase 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast\nRNG78_FIRSTLINE_LINE\nCase 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits\nRNG79_ROW\nRNG79_BORDER\nRNG79_SCALE\nCase 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked\nRNG80_STYLE\nCase 81: the same wrap in the header the section uses and in an unselected Fallback\nRNG81_HERE RNG81_CHOICE \nCase 82: a page number start beyond 32 bits on the body\"s section\nRNG82_SECTION\n[1] NOTE63_REFERENCED\n",
       "blocks": [
         {
           "address": "header:rId5/0",
@@ -1236,11 +1938,31 @@
           "runs": [{"kind": "TEXT", "text": "WMK63_WATERMARK"}]
         },
         {
+          "address": "header:rId5/2",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "runs": [
+            {"kind": "TEXT", "text": "Header picture: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "a header picture", "name": "Picture 15", "title": "", "part": "/word/media/svg71.svg"},
+              "description": {"text": "a header picture", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "header:rId5/3",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "runs": [{"kind": "TEXT", "text": "RNG81_HEADER"}]
+        },
+        {
           "address": "body/0",
           "kind": "PARAGRAPH",
           "story": "MAIN",
           "style": "Title",
-          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 67)"}]
+          "runs": [{"kind": "TEXT", "text": "Text extraction probe, inspection cases (58 to 82)"}]
         },
         {
           "address": "body/1",
@@ -1829,6 +2551,351 @@
           "runs": [{"kind": "TEXT", "text": "SDT67_HERE SDT67_VALUE"}]
         },
         {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 68: an SVG-only picture: text with tspan and textPath"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "SVG only (a:blip names the SVG, no raster copy): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG68_DESCR", "name": "Picture 11", "title": "", "part": "/word/media/svg68.svg"},
+              "description": {"text": "SVG68_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 69: two pictures showing one SVG part, each with the raster copy Word keeps"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "First: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_FIRST_DESCR",
+                "name": "Picture 12",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_FIRST_DESCR", "provenance": "AUTHOR"}
+            },
+            {"kind": "TEXT", "text": " second: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {
+                "descr": "SVG69_SECOND_DESCR",
+                "name": "Picture 13",
+                "title": "",
+                "part": "/word/media/document_image_rId27.png"
+              },
+              "description": {"text": "SVG69_SECOND_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 70: an SVG with no text"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "No text element: "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "SVG70_DESCR", "name": "Picture 14", "title": "", "part": "/word/media/svg70.svg"},
+              "description": {"text": "SVG70_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 71: an SVG picture in the header the section uses"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "The picture is in the header the section uses, after its watermark."}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 72: a WMF picture through VML: text in two character sets, through the object table"
+            }
+          ]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "WMF (v:imagedata): "},
+            {"kind": "IMAGE", "text": "", "image": {"vml": true, "part": "/word/media/image72.wmf"}}
+          ]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font"
+            }
+          ]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF73_DESCR", "name": "Picture 16", "title": "", "part": "/word/media/image73.emf"},
+              "description": {"text": "EMF73_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 74: an EMF+ dual file from Windows (Apache POI\"s test data): the GDI records carry the text"
+            }
+          ]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [
+            {"kind": "TEXT", "text": "EMF+ dual (a:blip): "},
+            {
+              "kind": "IMAGE",
+              "text": "",
+              "image": {"descr": "EMF74_DESCR", "name": "Picture 17", "title": "", "part": "/word/media/image74.emf"},
+              "description": {"text": "EMF74_DESCR", "provenance": "AUTHOR"}
+            }
+          ]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG75_LEFT_BEFORE"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width"
+            }
+          ]
+        },
+        {
+          "address": "body/85",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/85/0",
+              "cells": [
+                {
+                  "address": "body/85/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/85/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG76_CELL"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches"}]
+        },
+        {"address": "body/87", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG77_TAB"}]},
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast"
+            }
+          ]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "indentFirstLine": 65535,
+          "runs": [{"kind": "TEXT", "text": "RNG78_FIRSTLINE_LINE"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits"
+            }
+          ]
+        },
+        {
+          "address": "body/91",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/91/0",
+              "cells": [
+                {
+                  "address": "body/91/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/91/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "runs": [{"kind": "TEXT", "text": "RNG79_ROW"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {"address": "body/92", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_BORDER"}]},
+        {"address": "body/93", "kind": "PARAGRAPH", "story": "MAIN", "runs": [{"kind": "TEXT", "text": "RNG79_SCALE"}]},
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked"
+            }
+          ]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "ProbeWide",
+          "indentLeft": 66256,
+          "runs": [{"kind": "TEXT", "text": "RNG80_STYLE"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Case 81: the same wrap in the header the section uses and in an unselected Fallback"
+            }
+          ]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG81_HERE RNG81_CHOICE "}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Case 82: a page number start beyond 32 bits on the body\"s section"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "runs": [{"kind": "TEXT", "text": "RNG82_SECTION"}]
+        },
+        {
           "address": "footnote:1/0",
           "kind": "PARAGRAPH",
           "story": "FOOTNOTE",
@@ -1847,7 +2914,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-17T00:00:00Z",
+          "date": "2026-10-17T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -1861,9 +2928,15 @@
         }
       ],
       "warnings": [
-        {"kind": "altchunk.not_expanded", "address": "body/42", "contentType": "text/html"},
+        {
+          "kind": "altchunk.not_expanded",
+          "address": "body/42",
+          "contentType": "text/html",
+          "partName": "/word/chunk63.htm"
+        },
         {"kind": "mce.branches_differ", "address": "body/66", "branch": "mc:Choice Requires=\"w14\""},
-        {"kind": "sdt.binding_differs", "address": "body/67"}
+        {"kind": "sdt.binding_differs", "address": "body/67"},
+        {"kind": "mce.branches_differ", "address": "body/97", "branch": "mc:Choice Requires=\"w14\""}
       ]
     }
   }

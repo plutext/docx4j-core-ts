@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:08Z",
     "fixture": "fixtures/revisions/check29/29d-inserted-mark-end-tracked.docx",
     "fixtureBytes": 16144,
     "timeZone": "UTC",
@@ -194,7 +194,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Check 29 (CR-002 section 29): which paragraph mark is new when Enter is pressed at the end of a paragraph. Each case from a fresh copy of this file.\nCase a heading\nA Normal paragraph after the heading.\nCase b: the end of this Normal paragraph.\nA Normal paragraph after case b.\nCases c and d: Author A inserted this paragraph\u2019s mark.\n{++Author B, 2026-09-29T05:53:00Z: New++}\nA Normal paragraph after cases c and d.\nCase e: before the split, after the split. Author A inserted this paragraph\u2019s mark.\nA Normal paragraph after case e.\n",
+      "plainText": "Check 29 (CR-002 section 29): which paragraph mark is new when Enter is pressed at the end of a paragraph. Each case from a fresh copy of this file.\nCase a heading\nA Normal paragraph after the heading.\nCase b: the end of this Normal paragraph.\nA Normal paragraph after case b.\nCases c and d: Author A inserted this paragraph\u2019s mark.\n{++Author B, 2026-09-29T05:53:00+10:00: New++}\nA Normal paragraph after cases c and d.\nCase e: before the split, after the split. Author A inserted this paragraph\u2019s mark.\nA Normal paragraph after case e.\n",
       "blocks": [
         {
           "address": "body/0",
@@ -256,7 +256,7 @@
             {
               "kind": "TEXT",
               "text": "New",
-              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-29T05:53:00Z"}
+              "revision": {"type": "INSERTION", "author": "Author B", "date": "2026-09-29T05:53:00+10:00"}
             }
           ]
         },

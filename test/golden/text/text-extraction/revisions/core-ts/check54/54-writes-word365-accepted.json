@@ -1,0 +1,5643 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
+    "fixture": "text-extraction/revisions/core-ts/check54/54-writes-word365-accepted.docx",
+    "fixtureBytes": 31143,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-22T04:47:00Z",
+      "modified": "2026-10-22T04:47:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "Check 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph.\nBEGIN1 IN1 paragraph-before untracked word head1b\nHEAD1A \nNEWPARA\nHEAD1B HEAD1C\nBODY1A BODY1B\nEND1\nBEGIN2 IN1 paragraph-after untracked word head2b\nHEAD2A HEAD2B\nNEWPARA\n HEAD2C\nBODY2A BODY2B\nEND2\nBEGIN3 IN1 paragraph-before tracked word head3b\nHEAD3A \nNEWPARA\nHEAD3B HEAD3C\nBODY3A BODY3B\nEND3\nBEGIN4 IN1 replace tracked word head4b\nHEAD4A NEWTEXT HEAD4C\nBODY4A BODY4B\nEND4\nBEGIN5 TE delete untracked from head5b to-table t5r1c1a\nHEAD5A PLAIN5A PLAIN5B\nEND5\nBEGIN6 TE delete tracked from head6b to-table t6r1c1a\nHEAD6A PLAIN6A PLAIN6B\nEND6\nBEGIN7 TE replace untracked from head7b to-table t7r1c1a\nHEAD7A HEAD7B HEAD7C\nT7R1C1A T7R1C1B\tT7R1C2A T7R1C2B\nT7R2C1A T7R2C1B\tT7R2C2A T7R2C2B\nPLAIN7A PLAIN7B\nEND7\nBEGIN8 WT delete untracked whole body8a\nT8R1C1A T8R1C1B\tT8R1C2A T8R1C2B\nT8R2C1A T8R2C1B\tT8R2C2A T8R2C2B\nPLAIN8A PLAIN8B\nEND8\nBEGIN9 WT delete tracked whole body9a\nT9R1C1A T9R1C1B\tT9R1C2A T9R1C2B\nT9R2C1A T9R2C1B\tT9R2C2A T9R2C2B\nPLAIN9A PLAIN9B\nEND9\nBEGIN10 WL delete untracked whole list10a\nBODY10A BODY10B\tT10R1C2A T10R1C2B\nEND10\nBEGIN11 WL delete tracked whole list11a\nBODY11A BODY11B\tT11R1C2A T11R1C2B\nEND11\nBEGIN12 WC delete untracked whole list12a\nHEAD12A HEAD12B HEAD12C\nBODY12A BODY12B\nEND12\nBEGIN13 WC delete tracked whole list13a\nHEAD13A HEAD13B HEAD13C\nBODY13A BODY13B\n\nEND13\nBEGIN14 CCW delete untracked from head14b to body14a\nHEAD14A  BODY14B\nEND14\nBEGIN15 CCW delete tracked from head15b to body15a\nHEAD15A  BODY15B\nEND15\nBEGIN16 CCW replace untracked from head16b to body16a\nHEAD16A NEWTEXT BODY16B\nEND16\nBEGIN17 CCW replace tracked from head17b to body17a\nHEAD17A NEWTEXT BODY17B\nEND17\nBEGIN18 CCI delete untracked from head18b to body18a\nHEAD18A \n BODY18B\nLIST18A LIST18B\nEND18\nBEGIN19 CCI delete tracked from head19b to body19a\nHEAD19A \n BODY19B\nLIST19A LIST19B\nEND19\nBEGIN20 CCO delete untracked from body20b to plain20a\nHEAD20A HEAD20B HEAD20C\nBODY20A \n PLAIN20B\nEND20\nBEGIN21 QP italic untracked from quote21b to plain21a\nQUOTE21A QUOTE21B\nPLAIN21A PLAIN21B\nEND21\nBEGIN22 QP italic tracked from quote22b to plain22a\nQUOTE22A QUOTE22B\nPLAIN22A PLAIN22B\nEND22\nBEGIN23 HP size14 untracked from head23b to plain23a\nHEAD23A HEAD23B HEAD23C\nPLAIN23A PLAIN23B\nEND23\nBEGIN24 HP size14 tracked from head24b to plain24a\nHEAD24A HEAD24B HEAD24C\nPLAIN24A PLAIN24B\nEND24\nBEGIN25 LP underline untracked from list25b to plain25a\nLIST25A LIST25B\nPLAIN25A PLAIN25B\nEND25\nBEGIN26 PS replace untracked from plain26b to styl26a\nPLAIN26A NEWTEXT STYL26B\nEND26\nBEGIN27 CMT delete untracked from head27a to body27a\n BODY27B\nEND27\nBEGIN28 CMT delete tracked from head28a to body28a\n BODY28B\nEND28\nBEGIN29 CMS delete untracked from head29a to body29a\n BODY29B\nEND29\nBEGIN30 BMK delete untracked from head30a to body30a\n BODY30B\nEND30\nBEGIN31 OWN own-delete tracked from head31b to own31a\nHEAD31A  OWN31B\nBODY31A BODY31B\nEND31\nBEGIN32 BL style untracked from body32b to list32a\nBODY32A BODY32B\nLIST32A LIST32B\nEND32\nBEGIN33 BL style tracked from body33b to list33a\nBODY33A BODY33B\nLIST33A LIST33B\nEND33\nBEGIN34 HB hyperlink untracked from head34b to body34a\nHEAD34A HEAD34B HEAD34C\nBODY34A BODY34B\nEND34\nBEGIN35 HB ooxml untracked from head35b to body35a\nHEAD35A NEWOOXML BODY35B\nEND35\nBEGIN36 HB control untracked from head36b to body36a\nHEAD36A HEAD36B HEAD36C\nBODY36A BODY36B\nEND36\nBEGIN37 W2 control untracked from head37b to-mark body37a\nHEAD37A HEAD37B HEAD37C\nBODY37A BODY37B\nPLAIN37A PLAIN37B\nEND37\nBEGIN38 WP control untracked start head38a to-mark body38a\nHEAD38A HEAD38B HEAD38C\nBODY38A BODY38B\nPLAIN38A PLAIN38B\nEND38\nBEGIN39 TBL control untracked from head39b to body39a\nHEAD39A HEAD39B HEAD39C\nT39R1C1A T39R1C1B\tT39R1C2A T39R1C2B\nT39R2C1A T39R2C1B\tT39R2C2A T39R2C2B\nBODY39A BODY39B\nEND39\nBEGIN40 INTO control untracked from head40b to t40r2c1a\nHEAD40A HEAD40B HEAD40C\nT40R1C1A T40R1C1B\tT40R1C2A T40R1C2B\nT40R2C1A T40R2C1B\tT40R2C2A T40R2C2B\nBODY40A BODY40B\nEND40\nBEGIN41 CELL control untracked from t41r1c1b to body41a\nHEAD41A HEAD41B HEAD41C\nT41R1C1A T41R1C1B\tT41R1C2A T41R1C2B\nT41R2C1A T41R2C1B\tT41R2C2A T41R2C2B\nBODY41A BODY41B\nEND41\nBEGIN42 HB control tracked from head42b to body42a\nHEAD42A HEAD42B HEAD42C\nBODY42A BODY42B\nEND42\nBEGIN43 WP control tracked start head43a to-mark body43a\nHEAD43A HEAD43B HEAD43C\nBODY43A BODY43B\nPLAIN43A PLAIN43B\nEND43\nEnd of check 54.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0FA6BC4E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0A92BBA7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 IN1 paragraph-before untracked word head1b"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "148E9F53",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1A "}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70641E60",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A35BBCD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1B HEAD1C"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7281E9",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY1A BODY1B", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EEAAB3",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "401773D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 IN1 paragraph-after untracked word head2b"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75CC67ED",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD2A HEAD2B"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DB02A73",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC2C3C9",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": " HEAD2C"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70DDCBF6",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY2A BODY2B", "italic": true}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E68353",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3148AA72",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 IN1 paragraph-before tracked word head3b"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CA2ABD4",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3A "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D7C106E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4BBFA018",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3B HEAD3C"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "116D99E7",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY3A BODY3B", "italic": true}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "34B5FCF3",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44B5BB70",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 IN1 replace tracked word head4b"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AE48445",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "HEAD4A NEWTEXT HEAD4C"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BB2F09A",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY4A BODY4B", "italic": true}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AC5443A",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CD7175A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 TE delete untracked from head5b to-table t5r1c1a"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E68155A",
+          "runs": [{"kind": "TEXT", "text": "HEAD5A PLAIN5A PLAIN5B"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7A08289C",
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260ADFE2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 TE delete tracked from head6b to-table t6r1c1a"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "04C82E7D",
+          "runs": [{"kind": "TEXT", "text": "HEAD6A PLAIN6A PLAIN6B"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EAC16CD",
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AF38272",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 TE replace untracked from head7b to-table t7r1c1a"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AE056A8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD7A HEAD7B HEAD7C"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/31/0",
+              "cells": [
+                {
+                  "address": "body/31/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B6965FD",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C1A T7R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "557A7798",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C2A T7R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/31/1",
+              "cells": [
+                {
+                  "address": "body/31/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "14DFAF79",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C1A T7R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "645B6B0E",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C2A T7R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4724F933",
+          "runs": [{"kind": "TEXT", "text": "PLAIN7A PLAIN7B"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7078F4DD",
+          "runs": [{"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6B56AC3B",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 WT delete untracked whole body8a"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4721704F",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C1A T8R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "68DE578B",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C2A T8R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/35/1",
+              "cells": [
+                {
+                  "address": "body/35/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "61A89858",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C1A T8R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1BE955F7",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C2A T8R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "79FD4FFD",
+          "runs": [{"kind": "TEXT", "text": "PLAIN8A PLAIN8B"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05F28331",
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "439FA007",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 WT delete tracked whole body9a"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/39/0",
+              "cells": [
+                {
+                  "address": "body/39/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "52B1F8E6",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C1A T9R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "10A678E8",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C2A T9R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/39/1",
+              "cells": [
+                {
+                  "address": "body/39/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0A977D8C",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C1A T9R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70B80C8B",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C2A T9R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F27CD4B",
+          "runs": [{"kind": "TEXT", "text": "PLAIN9A PLAIN9B"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44FB82D3",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7FD6A48D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 WL delete untracked whole list10a"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/43/0",
+              "cells": [
+                {
+                  "address": "body/43/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6873B57F",
+                      "alignment": "center",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+                        {"kind": "TEXT", "text": "BODY10A BODY10B", "italic": true}
+                      ]
+                    },
+                    {
+                      "address": "body/43/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3A06C824",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "numbering": {
+                        "numId": "1",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/43/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3138E259",
+                      "runs": [{"kind": "TEXT", "text": "T10R1C2A T10R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "178B1F0F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F3339D2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN11 WL delete tracked whole list11a"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/46/0",
+              "cells": [
+                {
+                  "address": "body/46/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B3E100B",
+                      "alignment": "center",
+                      "runs": [{"kind": "TEXT", "text": "BODY11A BODY11B", "italic": true}]
+                    },
+                    {
+                      "address": "body/46/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "16FA5F46",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "numbering": {
+                        "numId": "2",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/46/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1E25BBDA",
+                      "runs": [{"kind": "TEXT", "text": "T11R1C2A T11R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4280EE71",
+          "runs": [{"kind": "TEXT", "text": "END11"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6748349F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN12 WC delete untracked whole list12a"}]
+        },
+        {
+          "address": "body/49/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5817B437",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD12A HEAD12B HEAD12C"}]
+        },
+        {
+          "address": "body/49/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "206996DF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY12A BODY12B", "italic": true}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260A214A",
+          "runs": [{"kind": "TEXT", "text": "END12"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DABCFE6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN13 WC delete tracked whole list13a"}]
+        },
+        {
+          "address": "body/52/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73539759",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD13A HEAD13B HEAD13C"}]
+        },
+        {
+          "address": "body/52/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68E227A4",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY13A BODY13B", "italic": true}]
+        },
+        {"address": "body/52/2", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "28E49690"},
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73EADCBE",
+          "runs": [{"kind": "TEXT", "text": "END13"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14234A68",
+          "runs": [{"kind": "TEXT", "text": "BEGIN14 CCW delete untracked from head14b to body14a"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A4FC708",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD14A "}, {"kind": "TEXT", "text": " BODY14B", "italic": true}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41936B27",
+          "runs": [{"kind": "TEXT", "text": "END14"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F828A90",
+          "runs": [{"kind": "TEXT", "text": "BEGIN15 CCW delete tracked from head15b to body15a"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6606AF33",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD15A "}, {"kind": "TEXT", "text": " BODY15B", "italic": true}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "297C2599",
+          "runs": [{"kind": "TEXT", "text": "END15"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1ABB31E8",
+          "runs": [{"kind": "TEXT", "text": "BEGIN16 CCW replace untracked from head16b to body16a"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "11FE7412",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD16A "},
+            {"kind": "TEXT", "text": "NEWTEXT", "bold": true},
+            {"kind": "TEXT", "text": " BODY16B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69B7A1C4",
+          "runs": [{"kind": "TEXT", "text": "END16"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44C5C421",
+          "runs": [{"kind": "TEXT", "text": "BEGIN17 CCW replace tracked from head17b to body17a"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F5E4803",
+          "alignment": "center",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 4},
+            {"kind": "TEXT", "text": "HEAD17A NEWTEXT"},
+            {"kind": "TEXT", "text": " BODY17B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7EFD63EB",
+          "runs": [{"kind": "TEXT", "text": "END17"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "59EF1D7D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN18 CCI delete untracked from head18b to body18a"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68126338",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD18A "}]
+        },
+        {
+          "address": "body/68/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6FFC3617",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY18B", "italic": true}]
+        },
+        {
+          "address": "body/68/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39B3F822",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "5",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST18A LIST18B"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4842F9DB",
+          "runs": [{"kind": "TEXT", "text": "END18"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C7827AA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN19 CCI delete tracked from head19b to body19a"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5796EE94",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD19A "}]
+        },
+        {
+          "address": "body/72/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02D96A5C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY19B", "italic": true}]
+        },
+        {
+          "address": "body/72/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69D1F142",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "6",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST19A LIST19B"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "362166C4",
+          "runs": [{"kind": "TEXT", "text": "END19"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A704C5D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN20 CCO delete untracked from body20b to plain20a"}]
+        },
+        {
+          "address": "body/75/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "012E597D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD20A HEAD20B HEAD20C"}]
+        },
+        {
+          "address": "body/75/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07FE1714",
+          "runs": [{"kind": "TEXT", "text": "BODY20A ", "italic": true}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2E1A7537",
+          "runs": [{"kind": "TEXT", "text": " PLAIN20B"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "480F8257",
+          "runs": [{"kind": "TEXT", "text": "END20"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "160828C3",
+          "runs": [{"kind": "TEXT", "text": "BEGIN21 QP italic untracked from quote21b to plain21a"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52107C8F",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE21A QUOTE21B"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D874ADF",
+          "runs": [{"kind": "TEXT", "text": "PLAIN21A", "italic": true}, {"kind": "TEXT", "text": " PLAIN21B"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A502D72",
+          "runs": [{"kind": "TEXT", "text": "END21"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60EC3F7C",
+          "runs": [{"kind": "TEXT", "text": "BEGIN22 QP italic tracked from quote22b to plain22a"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "624C666A",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE22A QUOTE22B"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2801DFB4",
+          "runs": [{"kind": "TEXT", "text": "PLAIN22A", "italic": true}, {"kind": "TEXT", "text": " PLAIN22B"}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AEFC525",
+          "runs": [{"kind": "TEXT", "text": "END22"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0B6B0498",
+          "runs": [{"kind": "TEXT", "text": "BEGIN23 HP size14 untracked from head23b to plain23a"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "239C0147",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 5}, {"kind": "TEXT", "text": "HEAD23A HEAD23B HEAD23C"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "32E9D444",
+          "runs": [{"kind": "TEXT", "text": "PLAIN23A PLAIN23B"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F80F584",
+          "runs": [{"kind": "TEXT", "text": "END23"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2157A75D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN24 HP size14 tracked from head24b to plain24a"}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3ABC6F88",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD24A HEAD24B HEAD24C"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A0F7897",
+          "runs": [{"kind": "TEXT", "text": "PLAIN24A PLAIN24B"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E921DEE",
+          "runs": [{"kind": "TEXT", "text": "END24"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "769334EF",
+          "runs": [{"kind": "TEXT", "text": "BEGIN25 LP underline untracked from list25b to plain25a"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0862B03C",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "7",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST25A LIST25B"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0FA791",
+          "runs": [{"kind": "TEXT", "text": "PLAIN25A PLAIN25B"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C9C413C",
+          "runs": [{"kind": "TEXT", "text": "END25"}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "417F99A7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN26 PS replace untracked from plain26b to styl26a"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C83ADB6",
+          "style": "Check54Styled",
+          "runs": [
+            {"kind": "TEXT", "text": "PLAIN26A ", "caps": true, "language": "en-US"},
+            {"kind": "TEXT", "text": "NEWTEXT"},
+            {"kind": "TEXT", "text": " STYL26B", "caps": true, "language": "en-US"}
+          ]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42AC08D7",
+          "runs": [{"kind": "TEXT", "text": "END26"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5CDC0542",
+          "runs": [{"kind": "TEXT", "text": "BEGIN27 CMT delete untracked from head27a to body27a"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6729EB5F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY27B", "italic": true}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4E377BF2",
+          "runs": [{"kind": "TEXT", "text": "END27"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "419AC3FD",
+          "runs": [{"kind": "TEXT", "text": "BEGIN28 CMT delete tracked from head28a to body28a"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "445A6834",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY28B", "italic": true}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B5C5BA5",
+          "runs": [{"kind": "TEXT", "text": "END28"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0134B119",
+          "runs": [{"kind": "TEXT", "text": "BEGIN29 CMS delete untracked from head29a to body29a"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46170506",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY29B", "italic": true}]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7C288BB2",
+          "runs": [{"kind": "TEXT", "text": "END29"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A8427AC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN30 BMK delete untracked from head30a to body30a"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D3B9A2C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY30B", "italic": true}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029665A0",
+          "runs": [{"kind": "TEXT", "text": "END30"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC56438",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 6},
+            {"kind": "TEXT", "text": "BEGIN31 OWN own-delete tracked from head31b to own31a"}
+          ]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55A2A1EB",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD31A  OWN31B"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B2AA297",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY31A BODY31B", "italic": true}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DAC5C1E",
+          "runs": [{"kind": "TEXT", "text": "END31"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28569589",
+          "runs": [{"kind": "TEXT", "text": "BEGIN32 BL style untracked from body32b to list32a"}]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CB369CF",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY32A BODY32B"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29EEF727",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST32A LIST32B"}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F8C5B8C",
+          "runs": [{"kind": "TEXT", "text": "END32"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56A0F588",
+          "runs": [{"kind": "TEXT", "text": "BEGIN33 BL style tracked from body33b to list33a"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "77F83CEB",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY33A BODY33B"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0945ED66",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST33A LIST33B"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AB1166E",
+          "runs": [{"kind": "TEXT", "text": "END33"}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56B65286",
+          "runs": [{"kind": "TEXT", "text": "BEGIN34 HB hyperlink untracked from head34b to body34a"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B88D358",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD34A "},
+            {"kind": "TEXT", "text": "HEAD34B HEAD34C", "link": "https://example.com/check54"}
+          ]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B20A9B1",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "BODY34A", "bold": true, "italic": true, "link": "https://example.com/check54"},
+            {"kind": "TEXT", "text": " BODY34B", "italic": true}
+          ],
+          "fields": [{"instr": "HYPERLINK \"https://example.com/check54\"", "result": "HEAD34B HEAD34CBODY34A"}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F1AB328",
+          "runs": [{"kind": "TEXT", "text": "END34"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E57E6C9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN35 HB ooxml untracked from head35b to body35a"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00DDC476",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD35A NEWOOXML"}, {"kind": "TEXT", "text": " BODY35B", "italic": true}]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56C6882E",
+          "runs": [{"kind": "TEXT", "text": "END35"}]
+        },
+        {
+          "address": "body/132",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19633816",
+          "runs": [{"kind": "TEXT", "text": "BEGIN36 HB control untracked from head36b to body36a"}]
+        },
+        {
+          "address": "body/133",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E6B6E1A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD36A HEAD36B HEAD36C"}]
+        },
+        {
+          "address": "body/134",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A6B8135",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY36A BODY36B", "italic": true}]
+        },
+        {
+          "address": "body/135",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1948BD13",
+          "runs": [{"kind": "TEXT", "text": "END36"}]
+        },
+        {
+          "address": "body/136",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "168A4E2F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN37 W2 control untracked from head37b to-mark body37a"}]
+        },
+        {
+          "address": "body/137",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52E6111A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 7}, {"kind": "TEXT", "text": "HEAD37A HEAD37B HEAD37C"}]
+        },
+        {
+          "address": "body/138",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F2AFCD8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY37A BODY37B", "italic": true}]
+        },
+        {
+          "address": "body/139",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F32C19D",
+          "runs": [{"kind": "TEXT", "text": "PLAIN37A PLAIN37B"}]
+        },
+        {
+          "address": "body/140",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "293A6107",
+          "runs": [{"kind": "TEXT", "text": "END37"}]
+        },
+        {
+          "address": "body/141",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3FA91DD6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN38 WP control untracked start head38a to-mark body38a"}]
+        },
+        {
+          "address": "body/142/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EA81D8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD38A HEAD38B HEAD38C"}]
+        },
+        {
+          "address": "body/142/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "208412EA",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY38A BODY38B", "italic": true}]
+        },
+        {
+          "address": "body/143",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05D64D83",
+          "runs": [{"kind": "TEXT", "text": "PLAIN38A PLAIN38B"}]
+        },
+        {
+          "address": "body/144",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "09685E67",
+          "runs": [{"kind": "TEXT", "text": "END38"}]
+        },
+        {
+          "address": "body/145",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03FA57A9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN39 TBL control untracked from head39b to body39a"}]
+        },
+        {
+          "address": "body/146",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36019163",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD39A HEAD39B HEAD39C"}]
+        },
+        {
+          "address": "body/147",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/147/0",
+              "cells": [
+                {
+                  "address": "body/147/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75335622",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C1A T39R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D7C4804",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C2A T39R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/147/1",
+              "cells": [
+                {
+                  "address": "body/147/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "40F3F973",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C1A T39R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6AB57EED",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C2A T39R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/148",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "74AE81FB",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY39A BODY39B", "italic": true}]
+        },
+        {
+          "address": "body/149",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BD810D",
+          "runs": [{"kind": "TEXT", "text": "END39"}]
+        },
+        {
+          "address": "body/150",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "320CCE21",
+          "runs": [{"kind": "TEXT", "text": "BEGIN40 INTO control untracked from head40b to t40r2c1a"}]
+        },
+        {
+          "address": "body/151",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "304C8BE0",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD40A HEAD40B HEAD40C"}]
+        },
+        {
+          "address": "body/152",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/152/0",
+              "cells": [
+                {
+                  "address": "body/152/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "039ED995",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C1A T40R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "000DEE5E",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C2A T40R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/152/1",
+              "cells": [
+                {
+                  "address": "body/152/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "526A39A9",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C1A T40R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5032F052",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C2A T40R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/153",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51483D6D",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY40A BODY40B", "italic": true}]
+        },
+        {
+          "address": "body/154",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B696CE4",
+          "runs": [{"kind": "TEXT", "text": "END40"}]
+        },
+        {
+          "address": "body/155",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "76834F0D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN41 CELL control untracked from t41r1c1b to body41a"}]
+        },
+        {
+          "address": "body/156",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "267C98F7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD41A HEAD41B HEAD41C"}]
+        },
+        {
+          "address": "body/157",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/157/0",
+              "cells": [
+                {
+                  "address": "body/157/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1504FD4C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C1A T41R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B75FD9C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C2A T41R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/157/1",
+              "cells": [
+                {
+                  "address": "body/157/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2AE135D5",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 8},
+                        {"kind": "TEXT", "text": "T41R2C1A T41R2C1B"}
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1CDAF549",
+                      "runs": [{"kind": "TEXT", "text": "T41R2C2A T41R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/158",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13024B8E",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY41A BODY41B", "italic": true}]
+        },
+        {
+          "address": "body/159",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A194CDE",
+          "runs": [{"kind": "TEXT", "text": "END41"}]
+        },
+        {
+          "address": "body/160",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17A6C907",
+          "runs": [{"kind": "TEXT", "text": "BEGIN42 HB control tracked from head42b to body42a"}]
+        },
+        {
+          "address": "body/161",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "747AC5FD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD42A HEAD42B HEAD42C"}]
+        },
+        {
+          "address": "body/162",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "250A80CF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY42A BODY42B", "italic": true}]
+        },
+        {
+          "address": "body/163",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1EFC4F75",
+          "runs": [{"kind": "TEXT", "text": "END42"}]
+        },
+        {
+          "address": "body/164",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5080EF34",
+          "runs": [{"kind": "TEXT", "text": "BEGIN43 WP control tracked start head43a to-mark body43a"}]
+        },
+        {
+          "address": "body/165/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D658477",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD43A HEAD43B HEAD43C"}]
+        },
+        {
+          "address": "body/165/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A97BC9F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY43A BODY43B", "italic": true}]
+        },
+        {
+          "address": "body/166",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A2BEF1C",
+          "runs": [{"kind": "TEXT", "text": "PLAIN43A PLAIN43B"}]
+        },
+        {
+          "address": "body/167",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3280ECB9",
+          "runs": [{"kind": "TEXT", "text": "END43"}]
+        },
+        {
+          "address": "body/168",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17065019",
+          "runs": [{"kind": "TEXT", "text": "End of check 54."}]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "Check 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph.\nBEGIN1 IN1 paragraph-before untracked word head1b\nHEAD1A \nNEWPARA\nHEAD1B HEAD1C\nBODY1A BODY1B\nEND1\nBEGIN2 IN1 paragraph-after untracked word head2b\nHEAD2A HEAD2B\nNEWPARA\n HEAD2C\nBODY2A BODY2B\nEND2\nBEGIN3 IN1 paragraph-before tracked word head3b\nHEAD3A \nNEWPARA\nHEAD3B HEAD3C\nBODY3A BODY3B\nEND3\nBEGIN4 IN1 replace tracked word head4b\nHEAD4A NEWTEXT HEAD4C\nBODY4A BODY4B\nEND4\nBEGIN5 TE delete untracked from head5b to-table t5r1c1a\nHEAD5A PLAIN5A PLAIN5B\nEND5\nBEGIN6 TE delete tracked from head6b to-table t6r1c1a\nHEAD6A PLAIN6A PLAIN6B\nEND6\nBEGIN7 TE replace untracked from head7b to-table t7r1c1a\nHEAD7A HEAD7B HEAD7C\nT7R1C1A T7R1C1B\tT7R1C2A T7R1C2B\nT7R2C1A T7R2C1B\tT7R2C2A T7R2C2B\nPLAIN7A PLAIN7B\nEND7\nBEGIN8 WT delete untracked whole body8a\nT8R1C1A T8R1C1B\tT8R1C2A T8R1C2B\nT8R2C1A T8R2C1B\tT8R2C2A T8R2C2B\nPLAIN8A PLAIN8B\nEND8\nBEGIN9 WT delete tracked whole body9a\nT9R1C1A T9R1C1B\tT9R1C2A T9R1C2B\nT9R2C1A T9R2C1B\tT9R2C2A T9R2C2B\nPLAIN9A PLAIN9B\nEND9\nBEGIN10 WL delete untracked whole list10a\nBODY10A BODY10B\tT10R1C2A T10R1C2B\nEND10\nBEGIN11 WL delete tracked whole list11a\nBODY11A BODY11B\tT11R1C2A T11R1C2B\nEND11\nBEGIN12 WC delete untracked whole list12a\nHEAD12A HEAD12B HEAD12C\nBODY12A BODY12B\nEND12\nBEGIN13 WC delete tracked whole list13a\nHEAD13A HEAD13B HEAD13C\nBODY13A BODY13B\n\nEND13\nBEGIN14 CCW delete untracked from head14b to body14a\nHEAD14A  BODY14B\nEND14\nBEGIN15 CCW delete tracked from head15b to body15a\nHEAD15A  BODY15B\nEND15\nBEGIN16 CCW replace untracked from head16b to body16a\nHEAD16A NEWTEXT BODY16B\nEND16\nBEGIN17 CCW replace tracked from head17b to body17a\nHEAD17A NEWTEXT BODY17B\nEND17\nBEGIN18 CCI delete untracked from head18b to body18a\nHEAD18A \n BODY18B\nLIST18A LIST18B\nEND18\nBEGIN19 CCI delete tracked from head19b to body19a\nHEAD19A \n BODY19B\nLIST19A LIST19B\nEND19\nBEGIN20 CCO delete untracked from body20b to plain20a\nHEAD20A HEAD20B HEAD20C\nBODY20A \n PLAIN20B\nEND20\nBEGIN21 QP italic untracked from quote21b to plain21a\nQUOTE21A QUOTE21B\nPLAIN21A PLAIN21B\nEND21\nBEGIN22 QP italic tracked from quote22b to plain22a\nQUOTE22A QUOTE22B\nPLAIN22A PLAIN22B\nEND22\nBEGIN23 HP size14 untracked from head23b to plain23a\nHEAD23A HEAD23B HEAD23C\nPLAIN23A PLAIN23B\nEND23\nBEGIN24 HP size14 tracked from head24b to plain24a\nHEAD24A HEAD24B HEAD24C\nPLAIN24A PLAIN24B\nEND24\nBEGIN25 LP underline untracked from list25b to plain25a\nLIST25A LIST25B\nPLAIN25A PLAIN25B\nEND25\nBEGIN26 PS replace untracked from plain26b to styl26a\nPLAIN26A NEWTEXT STYL26B\nEND26\nBEGIN27 CMT delete untracked from head27a to body27a\n BODY27B\nEND27\nBEGIN28 CMT delete tracked from head28a to body28a\n BODY28B\nEND28\nBEGIN29 CMS delete untracked from head29a to body29a\n BODY29B{>>Check 54, 2026-10-22T00:00:00: ACROSS29<<}\nEND29\nBEGIN30 BMK delete untracked from head30a to body30a\n BODY30B\nEND30\nBEGIN31 OWN own-delete tracked from head31b to own31a\nHEAD31A  OWN31B\nBODY31A BODY31B\nEND31\nBEGIN32 BL style untracked from body32b to list32a\nBODY32A BODY32B\nLIST32A LIST32B\nEND32\nBEGIN33 BL style tracked from body33b to list33a\nBODY33A BODY33B\nLIST33A LIST33B\nEND33\nBEGIN34 HB hyperlink untracked from head34b to body34a\nHEAD34A HEAD34B HEAD34C\nBODY34A BODY34B\nEND34\nBEGIN35 HB ooxml untracked from head35b to body35a\nHEAD35A NEWOOXML BODY35B\nEND35\nBEGIN36 HB control untracked from head36b to body36a\nHEAD36A HEAD36B HEAD36C\nBODY36A BODY36B\nEND36\nBEGIN37 W2 control untracked from head37b to-mark body37a\nHEAD37A HEAD37B HEAD37C\nBODY37A BODY37B\nPLAIN37A PLAIN37B\nEND37\nBEGIN38 WP control untracked start head38a to-mark body38a\nHEAD38A HEAD38B HEAD38C\nBODY38A BODY38B\nPLAIN38A PLAIN38B\nEND38\nBEGIN39 TBL control untracked from head39b to body39a\nHEAD39A HEAD39B HEAD39C\nT39R1C1A T39R1C1B\tT39R1C2A T39R1C2B\nT39R2C1A T39R2C1B\tT39R2C2A T39R2C2B\nBODY39A BODY39B\nEND39\nBEGIN40 INTO control untracked from head40b to t40r2c1a\nHEAD40A HEAD40B HEAD40C\nT40R1C1A T40R1C1B\tT40R1C2A T40R1C2B\nT40R2C1A T40R2C1B\tT40R2C2A T40R2C2B\nBODY40A BODY40B\nEND40\nBEGIN41 CELL control untracked from t41r1c1b to body41a\nHEAD41A HEAD41B HEAD41C\nT41R1C1A T41R1C1B\tT41R1C2A T41R1C2B\nT41R2C1A T41R2C1B\tT41R2C2A T41R2C2B\nBODY41A BODY41B\nEND41\nBEGIN42 HB control tracked from head42b to body42a\nHEAD42A HEAD42B HEAD42C\nBODY42A BODY42B\nEND42\nBEGIN43 WP control tracked start head43a to-mark body43a\nHEAD43A HEAD43B HEAD43C\nBODY43A BODY43B\nPLAIN43A PLAIN43B\nEND43\nEnd of check 54.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0FA6BC4E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0A92BBA7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 IN1 paragraph-before untracked word head1b"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "148E9F53",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1A "}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70641E60",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A35BBCD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1B HEAD1C"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7281E9",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY1A BODY1B", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EEAAB3",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "401773D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 IN1 paragraph-after untracked word head2b"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75CC67ED",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD2A HEAD2B"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DB02A73",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC2C3C9",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": " HEAD2C"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70DDCBF6",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY2A BODY2B", "italic": true}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E68353",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3148AA72",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 IN1 paragraph-before tracked word head3b"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CA2ABD4",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3A "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D7C106E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4BBFA018",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3B HEAD3C"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "116D99E7",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY3A BODY3B", "italic": true}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "34B5FCF3",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44B5BB70",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 IN1 replace tracked word head4b"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AE48445",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "HEAD4A NEWTEXT HEAD4C"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BB2F09A",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY4A BODY4B", "italic": true}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AC5443A",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CD7175A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 TE delete untracked from head5b to-table t5r1c1a"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E68155A",
+          "runs": [{"kind": "TEXT", "text": "HEAD5A PLAIN5A PLAIN5B"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7A08289C",
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260ADFE2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 TE delete tracked from head6b to-table t6r1c1a"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "04C82E7D",
+          "runs": [{"kind": "TEXT", "text": "HEAD6A PLAIN6A PLAIN6B"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EAC16CD",
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AF38272",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 TE replace untracked from head7b to-table t7r1c1a"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AE056A8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD7A HEAD7B HEAD7C"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/31/0",
+              "cells": [
+                {
+                  "address": "body/31/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B6965FD",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C1A T7R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "557A7798",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C2A T7R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/31/1",
+              "cells": [
+                {
+                  "address": "body/31/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "14DFAF79",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C1A T7R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "645B6B0E",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C2A T7R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4724F933",
+          "runs": [{"kind": "TEXT", "text": "PLAIN7A PLAIN7B"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7078F4DD",
+          "runs": [{"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6B56AC3B",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 WT delete untracked whole body8a"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4721704F",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C1A T8R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "68DE578B",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C2A T8R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/35/1",
+              "cells": [
+                {
+                  "address": "body/35/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "61A89858",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C1A T8R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1BE955F7",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C2A T8R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "79FD4FFD",
+          "runs": [{"kind": "TEXT", "text": "PLAIN8A PLAIN8B"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05F28331",
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "439FA007",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 WT delete tracked whole body9a"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/39/0",
+              "cells": [
+                {
+                  "address": "body/39/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "52B1F8E6",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C1A T9R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "10A678E8",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C2A T9R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/39/1",
+              "cells": [
+                {
+                  "address": "body/39/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0A977D8C",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C1A T9R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70B80C8B",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C2A T9R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F27CD4B",
+          "runs": [{"kind": "TEXT", "text": "PLAIN9A PLAIN9B"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44FB82D3",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7FD6A48D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 WL delete untracked whole list10a"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/43/0",
+              "cells": [
+                {
+                  "address": "body/43/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6873B57F",
+                      "alignment": "center",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+                        {"kind": "TEXT", "text": "BODY10A BODY10B", "italic": true}
+                      ]
+                    },
+                    {
+                      "address": "body/43/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3A06C824",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "numbering": {
+                        "numId": "1",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/43/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3138E259",
+                      "runs": [{"kind": "TEXT", "text": "T10R1C2A T10R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "178B1F0F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F3339D2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN11 WL delete tracked whole list11a"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/46/0",
+              "cells": [
+                {
+                  "address": "body/46/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B3E100B",
+                      "alignment": "center",
+                      "runs": [{"kind": "TEXT", "text": "BODY11A BODY11B", "italic": true}]
+                    },
+                    {
+                      "address": "body/46/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "16FA5F46",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "numbering": {
+                        "numId": "2",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/46/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1E25BBDA",
+                      "runs": [{"kind": "TEXT", "text": "T11R1C2A T11R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4280EE71",
+          "runs": [{"kind": "TEXT", "text": "END11"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6748349F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN12 WC delete untracked whole list12a"}]
+        },
+        {
+          "address": "body/49/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5817B437",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD12A HEAD12B HEAD12C"}]
+        },
+        {
+          "address": "body/49/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "206996DF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY12A BODY12B", "italic": true}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260A214A",
+          "runs": [{"kind": "TEXT", "text": "END12"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DABCFE6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN13 WC delete tracked whole list13a"}]
+        },
+        {
+          "address": "body/52/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73539759",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD13A HEAD13B HEAD13C"}]
+        },
+        {
+          "address": "body/52/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68E227A4",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY13A BODY13B", "italic": true}]
+        },
+        {"address": "body/52/2", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "28E49690"},
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73EADCBE",
+          "runs": [{"kind": "TEXT", "text": "END13"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14234A68",
+          "runs": [{"kind": "TEXT", "text": "BEGIN14 CCW delete untracked from head14b to body14a"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A4FC708",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD14A "}, {"kind": "TEXT", "text": " BODY14B", "italic": true}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41936B27",
+          "runs": [{"kind": "TEXT", "text": "END14"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F828A90",
+          "runs": [{"kind": "TEXT", "text": "BEGIN15 CCW delete tracked from head15b to body15a"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6606AF33",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD15A "}, {"kind": "TEXT", "text": " BODY15B", "italic": true}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "297C2599",
+          "runs": [{"kind": "TEXT", "text": "END15"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1ABB31E8",
+          "runs": [{"kind": "TEXT", "text": "BEGIN16 CCW replace untracked from head16b to body16a"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "11FE7412",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD16A "},
+            {"kind": "TEXT", "text": "NEWTEXT", "bold": true},
+            {"kind": "TEXT", "text": " BODY16B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69B7A1C4",
+          "runs": [{"kind": "TEXT", "text": "END16"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44C5C421",
+          "runs": [{"kind": "TEXT", "text": "BEGIN17 CCW replace tracked from head17b to body17a"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F5E4803",
+          "alignment": "center",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 4},
+            {"kind": "TEXT", "text": "HEAD17A NEWTEXT"},
+            {"kind": "TEXT", "text": " BODY17B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7EFD63EB",
+          "runs": [{"kind": "TEXT", "text": "END17"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "59EF1D7D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN18 CCI delete untracked from head18b to body18a"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68126338",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD18A "}]
+        },
+        {
+          "address": "body/68/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6FFC3617",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY18B", "italic": true}]
+        },
+        {
+          "address": "body/68/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39B3F822",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "5",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST18A LIST18B"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4842F9DB",
+          "runs": [{"kind": "TEXT", "text": "END18"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C7827AA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN19 CCI delete tracked from head19b to body19a"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5796EE94",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD19A "}]
+        },
+        {
+          "address": "body/72/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02D96A5C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY19B", "italic": true}]
+        },
+        {
+          "address": "body/72/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69D1F142",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "6",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST19A LIST19B"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "362166C4",
+          "runs": [{"kind": "TEXT", "text": "END19"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A704C5D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN20 CCO delete untracked from body20b to plain20a"}]
+        },
+        {
+          "address": "body/75/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "012E597D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD20A HEAD20B HEAD20C"}]
+        },
+        {
+          "address": "body/75/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07FE1714",
+          "runs": [{"kind": "TEXT", "text": "BODY20A ", "italic": true}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2E1A7537",
+          "runs": [{"kind": "TEXT", "text": " PLAIN20B"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "480F8257",
+          "runs": [{"kind": "TEXT", "text": "END20"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "160828C3",
+          "runs": [{"kind": "TEXT", "text": "BEGIN21 QP italic untracked from quote21b to plain21a"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52107C8F",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE21A QUOTE21B"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D874ADF",
+          "runs": [{"kind": "TEXT", "text": "PLAIN21A", "italic": true}, {"kind": "TEXT", "text": " PLAIN21B"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A502D72",
+          "runs": [{"kind": "TEXT", "text": "END21"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60EC3F7C",
+          "runs": [{"kind": "TEXT", "text": "BEGIN22 QP italic tracked from quote22b to plain22a"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "624C666A",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE22A QUOTE22B"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2801DFB4",
+          "runs": [{"kind": "TEXT", "text": "PLAIN22A", "italic": true}, {"kind": "TEXT", "text": " PLAIN22B"}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AEFC525",
+          "runs": [{"kind": "TEXT", "text": "END22"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0B6B0498",
+          "runs": [{"kind": "TEXT", "text": "BEGIN23 HP size14 untracked from head23b to plain23a"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "239C0147",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 5}, {"kind": "TEXT", "text": "HEAD23A HEAD23B HEAD23C"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "32E9D444",
+          "runs": [{"kind": "TEXT", "text": "PLAIN23A PLAIN23B"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F80F584",
+          "runs": [{"kind": "TEXT", "text": "END23"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2157A75D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN24 HP size14 tracked from head24b to plain24a"}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3ABC6F88",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD24A HEAD24B HEAD24C"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A0F7897",
+          "runs": [{"kind": "TEXT", "text": "PLAIN24A PLAIN24B"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E921DEE",
+          "runs": [{"kind": "TEXT", "text": "END24"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "769334EF",
+          "runs": [{"kind": "TEXT", "text": "BEGIN25 LP underline untracked from list25b to plain25a"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0862B03C",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "numbering": {
+            "numId": "7",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST25A LIST25B"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0FA791",
+          "runs": [{"kind": "TEXT", "text": "PLAIN25A PLAIN25B"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C9C413C",
+          "runs": [{"kind": "TEXT", "text": "END25"}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "417F99A7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN26 PS replace untracked from plain26b to styl26a"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C83ADB6",
+          "style": "Check54Styled",
+          "runs": [
+            {"kind": "TEXT", "text": "PLAIN26A ", "caps": true, "language": "en-US"},
+            {"kind": "TEXT", "text": "NEWTEXT"},
+            {"kind": "TEXT", "text": " STYL26B", "caps": true, "language": "en-US"}
+          ]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42AC08D7",
+          "runs": [{"kind": "TEXT", "text": "END26"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5CDC0542",
+          "runs": [{"kind": "TEXT", "text": "BEGIN27 CMT delete untracked from head27a to body27a"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6729EB5F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY27B", "italic": true}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4E377BF2",
+          "runs": [{"kind": "TEXT", "text": "END27"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "419AC3FD",
+          "runs": [{"kind": "TEXT", "text": "BEGIN28 CMT delete tracked from head28a to body28a"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "445A6834",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY28B", "italic": true}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B5C5BA5",
+          "runs": [{"kind": "TEXT", "text": "END28"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0134B119",
+          "runs": [{"kind": "TEXT", "text": "BEGIN29 CMS delete untracked from head29a to body29a"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46170506",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": " BODY29B", "italic": true},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7C288BB2",
+          "runs": [{"kind": "TEXT", "text": "END29"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A8427AC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN30 BMK delete untracked from head30a to body30a"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D3B9A2C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY30B", "italic": true}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029665A0",
+          "runs": [{"kind": "TEXT", "text": "END30"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC56438",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 6},
+            {"kind": "TEXT", "text": "BEGIN31 OWN own-delete tracked from head31b to own31a"}
+          ]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55A2A1EB",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD31A  OWN31B"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B2AA297",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY31A BODY31B", "italic": true}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DAC5C1E",
+          "runs": [{"kind": "TEXT", "text": "END31"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28569589",
+          "runs": [{"kind": "TEXT", "text": "BEGIN32 BL style untracked from body32b to list32a"}]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CB369CF",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY32A BODY32B"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29EEF727",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST32A LIST32B"}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F8C5B8C",
+          "runs": [{"kind": "TEXT", "text": "END32"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56A0F588",
+          "runs": [{"kind": "TEXT", "text": "BEGIN33 BL style tracked from body33b to list33a"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "77F83CEB",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY33A BODY33B"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0945ED66",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST33A LIST33B"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AB1166E",
+          "runs": [{"kind": "TEXT", "text": "END33"}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56B65286",
+          "runs": [{"kind": "TEXT", "text": "BEGIN34 HB hyperlink untracked from head34b to body34a"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B88D358",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD34A "},
+            {"kind": "TEXT", "text": "HEAD34B HEAD34C", "link": "https://example.com/check54"}
+          ]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B20A9B1",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "BODY34A", "bold": true, "italic": true, "link": "https://example.com/check54"},
+            {"kind": "TEXT", "text": " BODY34B", "italic": true}
+          ],
+          "fields": [{"instr": "HYPERLINK \"https://example.com/check54\"", "result": "HEAD34B HEAD34CBODY34A"}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F1AB328",
+          "runs": [{"kind": "TEXT", "text": "END34"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E57E6C9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN35 HB ooxml untracked from head35b to body35a"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00DDC476",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD35A NEWOOXML"}, {"kind": "TEXT", "text": " BODY35B", "italic": true}]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56C6882E",
+          "runs": [{"kind": "TEXT", "text": "END35"}]
+        },
+        {
+          "address": "body/132",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19633816",
+          "runs": [{"kind": "TEXT", "text": "BEGIN36 HB control untracked from head36b to body36a"}]
+        },
+        {
+          "address": "body/133",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E6B6E1A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD36A HEAD36B HEAD36C"}]
+        },
+        {
+          "address": "body/134",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A6B8135",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY36A BODY36B", "italic": true}]
+        },
+        {
+          "address": "body/135",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1948BD13",
+          "runs": [{"kind": "TEXT", "text": "END36"}]
+        },
+        {
+          "address": "body/136",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "168A4E2F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN37 W2 control untracked from head37b to-mark body37a"}]
+        },
+        {
+          "address": "body/137",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52E6111A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 7}, {"kind": "TEXT", "text": "HEAD37A HEAD37B HEAD37C"}]
+        },
+        {
+          "address": "body/138",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F2AFCD8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY37A BODY37B", "italic": true}]
+        },
+        {
+          "address": "body/139",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F32C19D",
+          "runs": [{"kind": "TEXT", "text": "PLAIN37A PLAIN37B"}]
+        },
+        {
+          "address": "body/140",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "293A6107",
+          "runs": [{"kind": "TEXT", "text": "END37"}]
+        },
+        {
+          "address": "body/141",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3FA91DD6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN38 WP control untracked start head38a to-mark body38a"}]
+        },
+        {
+          "address": "body/142/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EA81D8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD38A HEAD38B HEAD38C"}]
+        },
+        {
+          "address": "body/142/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "208412EA",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY38A BODY38B", "italic": true}]
+        },
+        {
+          "address": "body/143",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05D64D83",
+          "runs": [{"kind": "TEXT", "text": "PLAIN38A PLAIN38B"}]
+        },
+        {
+          "address": "body/144",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "09685E67",
+          "runs": [{"kind": "TEXT", "text": "END38"}]
+        },
+        {
+          "address": "body/145",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03FA57A9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN39 TBL control untracked from head39b to body39a"}]
+        },
+        {
+          "address": "body/146",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36019163",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD39A HEAD39B HEAD39C"}]
+        },
+        {
+          "address": "body/147",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/147/0",
+              "cells": [
+                {
+                  "address": "body/147/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75335622",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C1A T39R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D7C4804",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C2A T39R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/147/1",
+              "cells": [
+                {
+                  "address": "body/147/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "40F3F973",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C1A T39R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6AB57EED",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C2A T39R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/148",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "74AE81FB",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY39A BODY39B", "italic": true}]
+        },
+        {
+          "address": "body/149",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BD810D",
+          "runs": [{"kind": "TEXT", "text": "END39"}]
+        },
+        {
+          "address": "body/150",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "320CCE21",
+          "runs": [{"kind": "TEXT", "text": "BEGIN40 INTO control untracked from head40b to t40r2c1a"}]
+        },
+        {
+          "address": "body/151",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "304C8BE0",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD40A HEAD40B HEAD40C"}]
+        },
+        {
+          "address": "body/152",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/152/0",
+              "cells": [
+                {
+                  "address": "body/152/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "039ED995",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C1A T40R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "000DEE5E",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C2A T40R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/152/1",
+              "cells": [
+                {
+                  "address": "body/152/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "526A39A9",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C1A T40R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5032F052",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C2A T40R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/153",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51483D6D",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY40A BODY40B", "italic": true}]
+        },
+        {
+          "address": "body/154",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B696CE4",
+          "runs": [{"kind": "TEXT", "text": "END40"}]
+        },
+        {
+          "address": "body/155",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "76834F0D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN41 CELL control untracked from t41r1c1b to body41a"}]
+        },
+        {
+          "address": "body/156",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "267C98F7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD41A HEAD41B HEAD41C"}]
+        },
+        {
+          "address": "body/157",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/157/0",
+              "cells": [
+                {
+                  "address": "body/157/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1504FD4C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C1A T41R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B75FD9C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C2A T41R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/157/1",
+              "cells": [
+                {
+                  "address": "body/157/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2AE135D5",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 8},
+                        {"kind": "TEXT", "text": "T41R2C1A T41R2C1B"}
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1CDAF549",
+                      "runs": [{"kind": "TEXT", "text": "T41R2C2A T41R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/158",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13024B8E",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY41A BODY41B", "italic": true}]
+        },
+        {
+          "address": "body/159",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A194CDE",
+          "runs": [{"kind": "TEXT", "text": "END41"}]
+        },
+        {
+          "address": "body/160",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17A6C907",
+          "runs": [{"kind": "TEXT", "text": "BEGIN42 HB control tracked from head42b to body42a"}]
+        },
+        {
+          "address": "body/161",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "747AC5FD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD42A HEAD42B HEAD42C"}]
+        },
+        {
+          "address": "body/162",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "250A80CF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY42A BODY42B", "italic": true}]
+        },
+        {
+          "address": "body/163",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1EFC4F75",
+          "runs": [{"kind": "TEXT", "text": "END42"}]
+        },
+        {
+          "address": "body/164",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5080EF34",
+          "runs": [{"kind": "TEXT", "text": "BEGIN43 WP control tracked start head43a to-mark body43a"}]
+        },
+        {
+          "address": "body/165/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D658477",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD43A HEAD43B HEAD43C"}]
+        },
+        {
+          "address": "body/165/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A97BC9F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY43A BODY43B", "italic": true}]
+        },
+        {
+          "address": "body/166",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A2BEF1C",
+          "runs": [{"kind": "TEXT", "text": "PLAIN43A PLAIN43B"}]
+        },
+        {
+          "address": "body/167",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3280ECB9",
+          "runs": [{"kind": "TEXT", "text": "END43"}]
+        },
+        {
+          "address": "body/168",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17065019",
+          "runs": [{"kind": "TEXT", "text": "End of check 54."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Check 54",
+          "initials": "C54",
+          "date": "2026-10-22T00:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "1C1E89AD",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "ACROSS29"}]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-22T04:47:00Z; modified: 2026-10-22T04:47:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nCheck 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph.\nBEGIN1 IN1 paragraph-before untracked word head1b\nHEAD1A \nNEWPARA\nHEAD1B HEAD1C\nBODY1A BODY1B\nEND1\nBEGIN2 IN1 paragraph-after untracked word head2b\nHEAD2A HEAD2B\nNEWPARA\n HEAD2C\nBODY2A BODY2B\nEND2\nBEGIN3 IN1 paragraph-before tracked word head3b\nHEAD3A \nNEWPARA\nHEAD3B HEAD3C\nBODY3A BODY3B\nEND3\nBEGIN4 IN1 replace tracked word head4b\n[page 2]HEAD4A NEWTEXT HEAD4C\nBODY4A BODY4B\nEND4\nBEGIN5 TE delete untracked from head5b to-table t5r1c1a\nHEAD5A PLAIN5A PLAIN5B\nEND5\nBEGIN6 TE delete tracked from head6b to-table t6r1c1a\nHEAD6A PLAIN6A PLAIN6B\nEND6\nBEGIN7 TE replace untracked from head7b to-table t7r1c1a\nHEAD7A HEAD7B HEAD7C\nT7R1C1A T7R1C1B\tT7R1C2A T7R1C2B\nT7R2C1A T7R2C1B\tT7R2C2A T7R2C2B\nPLAIN7A PLAIN7B\nEND7\nBEGIN8 WT delete untracked whole body8a\nT8R1C1A T8R1C1B\tT8R1C2A T8R1C2B\nT8R2C1A T8R2C1B\tT8R2C2A T8R2C2B\nPLAIN8A PLAIN8B\nEND8\nBEGIN9 WT delete tracked whole body9a\nT9R1C1A T9R1C1B\tT9R1C2A T9R1C2B\nT9R2C1A T9R2C1B\tT9R2C2A T9R2C2B\nPLAIN9A PLAIN9B\nEND9\nBEGIN10 WL delete untracked whole list10a\n[table: listed format]\n[page 3]BODY10A BODY10B; 1.\t\tT10R1C2A T10R1C2B\nEND10\nBEGIN11 WL delete tracked whole list11a\n[table: listed format]\nBODY11A BODY11B; 1.\t\tT11R1C2A T11R1C2B\nEND11\nBEGIN12 WC delete untracked whole list12a\nHEAD12A HEAD12B HEAD12C\nBODY12A BODY12B\nEND12\nBEGIN13 WC delete tracked whole list13a\nHEAD13A HEAD13B HEAD13C\nBODY13A BODY13B\n\nEND13\nBEGIN14 CCW delete untracked from head14b to body14a\nHEAD14A  BODY14B\nEND14\nBEGIN15 CCW delete tracked from head15b to body15a\nHEAD15A  BODY15B\nEND15\nBEGIN16 CCW replace untracked from head16b to body16a\nHEAD16A NEWTEXT BODY16B\nEND16\nBEGIN17 CCW replace tracked from head17b to body17a\n[page 4]HEAD17A NEWTEXT BODY17B\nEND17\nBEGIN18 CCI delete untracked from head18b to body18a\nHEAD18A \n BODY18B\n1.\tLIST18A LIST18B\nEND18\nBEGIN19 CCI delete tracked from head19b to body19a\nHEAD19A \n BODY19B\n1.\tLIST19A LIST19B\nEND19\nBEGIN20 CCO delete untracked from body20b to plain20a\nHEAD20A HEAD20B HEAD20C\nBODY20A \n PLAIN20B\nEND20\nBEGIN21 QP italic untracked from quote21b to plain21a\nQUOTE21A QUOTE21B\nPLAIN21A PLAIN21B\nEND21\nBEGIN22 QP italic tracked from quote22b to plain22a\nQUOTE22A QUOTE22B\nPLAIN22A PLAIN22B\nEND22\nBEGIN23 HP size14 untracked from head23b to plain23a\n[page 5]HEAD23A HEAD23B HEAD23C\nPLAIN23A PLAIN23B\nEND23\nBEGIN24 HP size14 tracked from head24b to plain24a\nHEAD24A HEAD24B HEAD24C\nPLAIN24A PLAIN24B\nEND24\nBEGIN25 LP underline untracked from list25b to plain25a\n1.\tLIST25A LIST25B\nPLAIN25A PLAIN25B\nEND25\nBEGIN26 PS replace untracked from plain26b to styl26a\nPLAIN26A NEWTEXT STYL26B\nEND26\nBEGIN27 CMT delete untracked from head27a to body27a\n BODY27B\nEND27\nBEGIN28 CMT delete tracked from head28a to body28a\n BODY28B\nEND28\nBEGIN29 CMS delete untracked from head29a to body29a\n BODY29B{>>ACROSS29<<}\nEND29\nBEGIN30 BMK delete untracked from head30a to body30a\n BODY30B\nEND30\n[page 6]BEGIN31 OWN own-delete tracked from head31b to own31a\nHEAD31A  OWN31B\nBODY31A BODY31B\nEND31\nBEGIN32 BL style untracked from body32b to list32a\nBODY32A BODY32B\nLIST32A LIST32B\nEND32\nBEGIN33 BL style tracked from body33b to list33a\nBODY33A BODY33B\nLIST33A LIST33B\nEND33\nBEGIN34 HB hyperlink untracked from head34b to body34a\nHEAD34A HYPERLINK \"https://example.com/check54\"HEAD34B HEAD34C\nBODY34A BODY34B\nEND34\nBEGIN35 HB ooxml untracked from head35b to body35a\nHEAD35A NEWOOXML BODY35B\nEND35\nBEGIN36 HB control untracked from head36b to body36a\nHEAD36A HEAD36B HEAD36C\nBODY36A BODY36B\nEND36\nBEGIN37 W2 control untracked from head37b to-mark body37a\n[page 7]HEAD37A HEAD37B HEAD37C\nBODY37A BODY37B\nPLAIN37A PLAIN37B\nEND37\nBEGIN38 WP control untracked start head38a to-mark body38a\nHEAD38A HEAD38B HEAD38C\nBODY38A BODY38B\nPLAIN38A PLAIN38B\nEND38\nBEGIN39 TBL control untracked from head39b to body39a\nHEAD39A HEAD39B HEAD39C\nT39R1C1A T39R1C1B\tT39R1C2A T39R1C2B\nT39R2C1A T39R2C1B\tT39R2C2A T39R2C2B\nBODY39A BODY39B\nEND39\nBEGIN40 INTO control untracked from head40b to t40r2c1a\nHEAD40A HEAD40B HEAD40C\nT40R1C1A T40R1C1B\tT40R1C2A T40R1C2B\nT40R2C1A T40R2C1B\tT40R2C2A T40R2C2B\nBODY40A BODY40B\nEND40\nBEGIN41 CELL control untracked from t41r1c1b to body41a\nHEAD41A HEAD41B HEAD41C\nT41R1C1A T41R1C1B\tT41R1C2A T41R1C2B\n[page 8]T41R2C1A T41R2C1B\tT41R2C2A T41R2C2B\nBODY41A BODY41B\nEND41\nBEGIN42 HB control tracked from head42b to body42a\nHEAD42A HEAD42B HEAD42C\nBODY42A BODY42B\nEND42\nBEGIN43 WP control tracked start head43a to-mark body43a\nHEAD43A HEAD43B HEAD43C\nBODY43A BODY43B\nPLAIN43A PLAIN43B\nEND43\nEnd of check 54.\nClick or tap here to enter text.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0FA6BC4E",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Check 54. Each case is a region: its BEGIN paragraph, its content, its END paragraph."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0A92BBA7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN1 IN1 paragraph-before untracked word head1b"}]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "148E9F53",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1A "}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70641E60",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A35BBCD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD1B HEAD1C"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A7281E9",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY1A BODY1B", "italic": true}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EEAAB3",
+          "runs": [{"kind": "TEXT", "text": "END1"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "401773D0",
+          "runs": [{"kind": "TEXT", "text": "BEGIN2 IN1 paragraph-after untracked word head2b"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75CC67ED",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD2A HEAD2B"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DB02A73",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC2C3C9",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": " HEAD2C"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "70DDCBF6",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY2A BODY2B", "italic": true}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07E68353",
+          "runs": [{"kind": "TEXT", "text": "END2"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3148AA72",
+          "runs": [{"kind": "TEXT", "text": "BEGIN3 IN1 paragraph-before tracked word head3b"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0CA2ABD4",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3A "}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D7C106E",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "NEWPARA"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4BBFA018",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD3B HEAD3C"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "116D99E7",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY3A BODY3B", "italic": true}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "34B5FCF3",
+          "runs": [{"kind": "TEXT", "text": "END3"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44B5BB70",
+          "runs": [{"kind": "TEXT", "text": "BEGIN4 IN1 replace tracked word head4b"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0AE48445",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 2}, {"kind": "TEXT", "text": "HEAD4A NEWTEXT HEAD4C"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BB2F09A",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY4A BODY4B", "italic": true}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1AC5443A",
+          "runs": [{"kind": "TEXT", "text": "END4"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CD7175A",
+          "runs": [{"kind": "TEXT", "text": "BEGIN5 TE delete untracked from head5b to-table t5r1c1a"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7E68155A",
+          "runs": [{"kind": "TEXT", "text": "HEAD5A PLAIN5A PLAIN5B"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7A08289C",
+          "runs": [{"kind": "TEXT", "text": "END5"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260ADFE2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN6 TE delete tracked from head6b to-table t6r1c1a"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "04C82E7D",
+          "runs": [{"kind": "TEXT", "text": "HEAD6A PLAIN6A PLAIN6B"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EAC16CD",
+          "runs": [{"kind": "TEXT", "text": "END6"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AF38272",
+          "runs": [{"kind": "TEXT", "text": "BEGIN7 TE replace untracked from head7b to-table t7r1c1a"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AE056A8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD7A HEAD7B HEAD7C"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/31/0",
+              "cells": [
+                {
+                  "address": "body/31/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3B6965FD",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C1A T7R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "557A7798",
+                      "runs": [{"kind": "TEXT", "text": "T7R1C2A T7R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/31/1",
+              "cells": [
+                {
+                  "address": "body/31/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "14DFAF79",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C1A T7R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/31/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/31/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "645B6B0E",
+                      "runs": [{"kind": "TEXT", "text": "T7R2C2A T7R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4724F933",
+          "runs": [{"kind": "TEXT", "text": "PLAIN7A PLAIN7B"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7078F4DD",
+          "runs": [{"kind": "TEXT", "text": "END7"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6B56AC3B",
+          "runs": [{"kind": "TEXT", "text": "BEGIN8 WT delete untracked whole body8a"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/35/0",
+              "cells": [
+                {
+                  "address": "body/35/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4721704F",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C1A T8R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "68DE578B",
+                      "runs": [{"kind": "TEXT", "text": "T8R1C2A T8R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/35/1",
+              "cells": [
+                {
+                  "address": "body/35/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "61A89858",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C1A T8R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/35/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/35/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1BE955F7",
+                      "runs": [{"kind": "TEXT", "text": "T8R2C2A T8R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "79FD4FFD",
+          "runs": [{"kind": "TEXT", "text": "PLAIN8A PLAIN8B"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05F28331",
+          "runs": [{"kind": "TEXT", "text": "END8"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "439FA007",
+          "runs": [{"kind": "TEXT", "text": "BEGIN9 WT delete tracked whole body9a"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/39/0",
+              "cells": [
+                {
+                  "address": "body/39/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "52B1F8E6",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C1A T9R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "10A678E8",
+                      "runs": [{"kind": "TEXT", "text": "T9R1C2A T9R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/39/1",
+              "cells": [
+                {
+                  "address": "body/39/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0A977D8C",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C1A T9R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/39/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/39/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "70B80C8B",
+                      "runs": [{"kind": "TEXT", "text": "T9R2C2A T9R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F27CD4B",
+          "runs": [{"kind": "TEXT", "text": "PLAIN9A PLAIN9B"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44FB82D3",
+          "runs": [{"kind": "TEXT", "text": "END9"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7FD6A48D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN10 WL delete untracked whole list10a"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/43/0",
+              "cells": [
+                {
+                  "address": "body/43/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6873B57F",
+                      "alignment": "center",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+                        {"kind": "TEXT", "text": "BODY10A BODY10B", "italic": true}
+                      ]
+                    },
+                    {
+                      "address": "body/43/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3A06C824",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "listLabel": "1.\t",
+                      "numbering": {
+                        "numId": "1",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/43/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/43/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3138E259",
+                      "runs": [{"kind": "TEXT", "text": "T10R1C2A T10R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "178B1F0F",
+          "runs": [{"kind": "TEXT", "text": "END10"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F3339D2",
+          "runs": [{"kind": "TEXT", "text": "BEGIN11 WL delete tracked whole list11a"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/46/0",
+              "cells": [
+                {
+                  "address": "body/46/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B3E100B",
+                      "alignment": "center",
+                      "runs": [{"kind": "TEXT", "text": "BODY11A BODY11B", "italic": true}]
+                    },
+                    {
+                      "address": "body/46/0/0/1",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "16FA5F46",
+                      "style": "ListParagraph",
+                      "indentLeft": 720,
+                      "indentHanging": 360,
+                      "listLabel": "1.\t",
+                      "numbering": {
+                        "numId": "2",
+                        "level": 0,
+                        "format": "decimal",
+                        "levelText": "%1.",
+                        "start": 1,
+                        "value": 1,
+                        "abstractNumId": "0"
+                      },
+                      "contextualSpacing": true
+                    }
+                  ]
+                },
+                {
+                  "address": "body/46/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/46/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1E25BBDA",
+                      "runs": [{"kind": "TEXT", "text": "T11R1C2A T11R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4280EE71",
+          "runs": [{"kind": "TEXT", "text": "END11"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6748349F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN12 WC delete untracked whole list12a"}]
+        },
+        {
+          "address": "body/49/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5817B437",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD12A HEAD12B HEAD12C"}]
+        },
+        {
+          "address": "body/49/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "206996DF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY12A BODY12B", "italic": true}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "260A214A",
+          "runs": [{"kind": "TEXT", "text": "END12"}]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6DABCFE6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN13 WC delete tracked whole list13a"}]
+        },
+        {
+          "address": "body/52/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73539759",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD13A HEAD13B HEAD13C"}]
+        },
+        {
+          "address": "body/52/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68E227A4",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY13A BODY13B", "italic": true}]
+        },
+        {"address": "body/52/2", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "28E49690"},
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "73EADCBE",
+          "runs": [{"kind": "TEXT", "text": "END13"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14234A68",
+          "runs": [{"kind": "TEXT", "text": "BEGIN14 CCW delete untracked from head14b to body14a"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A4FC708",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD14A "}, {"kind": "TEXT", "text": " BODY14B", "italic": true}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41936B27",
+          "runs": [{"kind": "TEXT", "text": "END14"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F828A90",
+          "runs": [{"kind": "TEXT", "text": "BEGIN15 CCW delete tracked from head15b to body15a"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6606AF33",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD15A "}, {"kind": "TEXT", "text": " BODY15B", "italic": true}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "297C2599",
+          "runs": [{"kind": "TEXT", "text": "END15"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1ABB31E8",
+          "runs": [{"kind": "TEXT", "text": "BEGIN16 CCW replace untracked from head16b to body16a"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "11FE7412",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD16A "},
+            {"kind": "TEXT", "text": "NEWTEXT", "bold": true},
+            {"kind": "TEXT", "text": " BODY16B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69B7A1C4",
+          "runs": [{"kind": "TEXT", "text": "END16"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44C5C421",
+          "runs": [{"kind": "TEXT", "text": "BEGIN17 CCW replace tracked from head17b to body17a"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F5E4803",
+          "alignment": "center",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 4},
+            {"kind": "TEXT", "text": "HEAD17A NEWTEXT"},
+            {"kind": "TEXT", "text": " BODY17B", "italic": true}
+          ]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7EFD63EB",
+          "runs": [{"kind": "TEXT", "text": "END17"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "59EF1D7D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN18 CCI delete untracked from head18b to body18a"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68126338",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD18A "}]
+        },
+        {
+          "address": "body/68/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6FFC3617",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY18B", "italic": true}]
+        },
+        {
+          "address": "body/68/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39B3F822",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "5",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST18A LIST18B"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4842F9DB",
+          "runs": [{"kind": "TEXT", "text": "END18"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4C7827AA",
+          "runs": [{"kind": "TEXT", "text": "BEGIN19 CCI delete tracked from head19b to body19a"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5796EE94",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD19A "}]
+        },
+        {
+          "address": "body/72/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02D96A5C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY19B", "italic": true}]
+        },
+        {
+          "address": "body/72/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "69D1F142",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "6",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST19A LIST19B"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "362166C4",
+          "runs": [{"kind": "TEXT", "text": "END19"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A704C5D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN20 CCO delete untracked from body20b to plain20a"}]
+        },
+        {
+          "address": "body/75/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "012E597D",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD20A HEAD20B HEAD20C"}]
+        },
+        {
+          "address": "body/75/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07FE1714",
+          "runs": [{"kind": "TEXT", "text": "BODY20A ", "italic": true}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2E1A7537",
+          "runs": [{"kind": "TEXT", "text": " PLAIN20B"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "480F8257",
+          "runs": [{"kind": "TEXT", "text": "END20"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "160828C3",
+          "runs": [{"kind": "TEXT", "text": "BEGIN21 QP italic untracked from quote21b to plain21a"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52107C8F",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE21A QUOTE21B"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D874ADF",
+          "runs": [{"kind": "TEXT", "text": "PLAIN21A", "italic": true}, {"kind": "TEXT", "text": " PLAIN21B"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A502D72",
+          "runs": [{"kind": "TEXT", "text": "END21"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60EC3F7C",
+          "runs": [{"kind": "TEXT", "text": "BEGIN22 QP italic tracked from quote22b to plain22a"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "624C666A",
+          "style": "Check54Italic",
+          "runs": [{"kind": "TEXT", "text": "QUOTE22A QUOTE22B"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2801DFB4",
+          "runs": [{"kind": "TEXT", "text": "PLAIN22A", "italic": true}, {"kind": "TEXT", "text": " PLAIN22B"}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6AEFC525",
+          "runs": [{"kind": "TEXT", "text": "END22"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0B6B0498",
+          "runs": [{"kind": "TEXT", "text": "BEGIN23 HP size14 untracked from head23b to plain23a"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "239C0147",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 5}, {"kind": "TEXT", "text": "HEAD23A HEAD23B HEAD23C"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "32E9D444",
+          "runs": [{"kind": "TEXT", "text": "PLAIN23A PLAIN23B"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F80F584",
+          "runs": [{"kind": "TEXT", "text": "END23"}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2157A75D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN24 HP size14 tracked from head24b to plain24a"}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3ABC6F88",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD24A HEAD24B HEAD24C"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A0F7897",
+          "runs": [{"kind": "TEXT", "text": "PLAIN24A PLAIN24B"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E921DEE",
+          "runs": [{"kind": "TEXT", "text": "END24"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "769334EF",
+          "runs": [{"kind": "TEXT", "text": "BEGIN25 LP underline untracked from list25b to plain25a"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0862B03C",
+          "style": "ListParagraph",
+          "indentLeft": 720,
+          "indentHanging": 360,
+          "listLabel": "1.\t",
+          "numbering": {
+            "numId": "7",
+            "level": 0,
+            "format": "decimal",
+            "levelText": "%1.",
+            "start": 1,
+            "value": 1,
+            "abstractNumId": "0"
+          },
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "LIST25A LIST25B"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0FA791",
+          "runs": [{"kind": "TEXT", "text": "PLAIN25A PLAIN25B"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6C9C413C",
+          "runs": [{"kind": "TEXT", "text": "END25"}]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "417F99A7",
+          "runs": [{"kind": "TEXT", "text": "BEGIN26 PS replace untracked from plain26b to styl26a"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C83ADB6",
+          "style": "Check54Styled",
+          "runs": [
+            {"kind": "TEXT", "text": "PLAIN26A ", "caps": true, "language": "en-US"},
+            {"kind": "TEXT", "text": "NEWTEXT"},
+            {"kind": "TEXT", "text": " STYL26B", "caps": true, "language": "en-US"}
+          ]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "42AC08D7",
+          "runs": [{"kind": "TEXT", "text": "END26"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5CDC0542",
+          "runs": [{"kind": "TEXT", "text": "BEGIN27 CMT delete untracked from head27a to body27a"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6729EB5F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY27B", "italic": true}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4E377BF2",
+          "runs": [{"kind": "TEXT", "text": "END27"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "419AC3FD",
+          "runs": [{"kind": "TEXT", "text": "BEGIN28 CMT delete tracked from head28a to body28a"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "445A6834",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY28B", "italic": true}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B5C5BA5",
+          "runs": [{"kind": "TEXT", "text": "END28"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0134B119",
+          "runs": [{"kind": "TEXT", "text": "BEGIN29 CMS delete untracked from head29a to body29a"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "46170506",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": " BODY29B", "italic": true},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7C288BB2",
+          "runs": [{"kind": "TEXT", "text": "END29"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A8427AC",
+          "runs": [{"kind": "TEXT", "text": "BEGIN30 BMK delete untracked from head30a to body30a"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D3B9A2C",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": " BODY30B", "italic": true}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "029665A0",
+          "runs": [{"kind": "TEXT", "text": "END30"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC56438",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 6},
+            {"kind": "TEXT", "text": "BEGIN31 OWN own-delete tracked from head31b to own31a"}
+          ]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55A2A1EB",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD31A  OWN31B"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B2AA297",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY31A BODY31B", "italic": true}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0DAC5C1E",
+          "runs": [{"kind": "TEXT", "text": "END31"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28569589",
+          "runs": [{"kind": "TEXT", "text": "BEGIN32 BL style untracked from body32b to list32a"}]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1CB369CF",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY32A BODY32B"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29EEF727",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST32A LIST32B"}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F8C5B8C",
+          "runs": [{"kind": "TEXT", "text": "END32"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56A0F588",
+          "runs": [{"kind": "TEXT", "text": "BEGIN33 BL style tracked from body33b to list33a"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "77F83CEB",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "BODY33A BODY33B"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0945ED66",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "LIST33A LIST33B"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5AB1166E",
+          "runs": [{"kind": "TEXT", "text": "END33"}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56B65286",
+          "runs": [{"kind": "TEXT", "text": "BEGIN34 HB hyperlink untracked from head34b to body34a"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B88D358",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [
+            {"kind": "TEXT", "text": "HEAD34A "},
+            {"kind": "FIELD_CODE", "text": "HYPERLINK \"https://example.com/check54\""},
+            {"kind": "TEXT", "text": "HEAD34B HEAD34C", "link": "https://example.com/check54"}
+          ]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3B20A9B1",
+          "alignment": "center",
+          "runs": [
+            {"kind": "TEXT", "text": "BODY34A", "bold": true, "italic": true, "link": "https://example.com/check54"},
+            {"kind": "TEXT", "text": " BODY34B", "italic": true}
+          ],
+          "fields": [{"instr": "HYPERLINK \"https://example.com/check54\"", "result": "HEAD34B HEAD34CBODY34A"}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6F1AB328",
+          "runs": [{"kind": "TEXT", "text": "END34"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E57E6C9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN35 HB ooxml untracked from head35b to body35a"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00DDC476",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "HEAD35A NEWOOXML"}, {"kind": "TEXT", "text": " BODY35B", "italic": true}]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56C6882E",
+          "runs": [{"kind": "TEXT", "text": "END35"}]
+        },
+        {
+          "address": "body/132",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "19633816",
+          "runs": [{"kind": "TEXT", "text": "BEGIN36 HB control untracked from head36b to body36a"}]
+        },
+        {
+          "address": "body/133",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E6B6E1A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD36A HEAD36B HEAD36C"}]
+        },
+        {
+          "address": "body/134",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4A6B8135",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY36A BODY36B", "italic": true}]
+        },
+        {
+          "address": "body/135",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1948BD13",
+          "runs": [{"kind": "TEXT", "text": "END36"}]
+        },
+        {
+          "address": "body/136",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "168A4E2F",
+          "runs": [{"kind": "TEXT", "text": "BEGIN37 W2 control untracked from head37b to-mark body37a"}]
+        },
+        {
+          "address": "body/137",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52E6111A",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 7}, {"kind": "TEXT", "text": "HEAD37A HEAD37B HEAD37C"}]
+        },
+        {
+          "address": "body/138",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F2AFCD8",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY37A BODY37B", "italic": true}]
+        },
+        {
+          "address": "body/139",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F32C19D",
+          "runs": [{"kind": "TEXT", "text": "PLAIN37A PLAIN37B"}]
+        },
+        {
+          "address": "body/140",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "293A6107",
+          "runs": [{"kind": "TEXT", "text": "END37"}]
+        },
+        {
+          "address": "body/141",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3FA91DD6",
+          "runs": [{"kind": "TEXT", "text": "BEGIN38 WP control untracked start head38a to-mark body38a"}]
+        },
+        {
+          "address": "body/142/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "55EA81D8",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD38A HEAD38B HEAD38C"}]
+        },
+        {
+          "address": "body/142/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "208412EA",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY38A BODY38B", "italic": true}]
+        },
+        {
+          "address": "body/143",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05D64D83",
+          "runs": [{"kind": "TEXT", "text": "PLAIN38A PLAIN38B"}]
+        },
+        {
+          "address": "body/144",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "09685E67",
+          "runs": [{"kind": "TEXT", "text": "END38"}]
+        },
+        {
+          "address": "body/145",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03FA57A9",
+          "runs": [{"kind": "TEXT", "text": "BEGIN39 TBL control untracked from head39b to body39a"}]
+        },
+        {
+          "address": "body/146",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36019163",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD39A HEAD39B HEAD39C"}]
+        },
+        {
+          "address": "body/147",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/147/0",
+              "cells": [
+                {
+                  "address": "body/147/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "75335622",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C1A T39R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4D7C4804",
+                      "runs": [{"kind": "TEXT", "text": "T39R1C2A T39R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/147/1",
+              "cells": [
+                {
+                  "address": "body/147/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "40F3F973",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C1A T39R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/147/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/147/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6AB57EED",
+                      "runs": [{"kind": "TEXT", "text": "T39R2C2A T39R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/148",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "74AE81FB",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY39A BODY39B", "italic": true}]
+        },
+        {
+          "address": "body/149",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "65BD810D",
+          "runs": [{"kind": "TEXT", "text": "END39"}]
+        },
+        {
+          "address": "body/150",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "320CCE21",
+          "runs": [{"kind": "TEXT", "text": "BEGIN40 INTO control untracked from head40b to t40r2c1a"}]
+        },
+        {
+          "address": "body/151",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "304C8BE0",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD40A HEAD40B HEAD40C"}]
+        },
+        {
+          "address": "body/152",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/152/0",
+              "cells": [
+                {
+                  "address": "body/152/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "039ED995",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C1A T40R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "000DEE5E",
+                      "runs": [{"kind": "TEXT", "text": "T40R1C2A T40R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/152/1",
+              "cells": [
+                {
+                  "address": "body/152/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "526A39A9",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C1A T40R2C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/152/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/152/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5032F052",
+                      "runs": [{"kind": "TEXT", "text": "T40R2C2A T40R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/153",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "51483D6D",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY40A BODY40B", "italic": true}]
+        },
+        {
+          "address": "body/154",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5B696CE4",
+          "runs": [{"kind": "TEXT", "text": "END40"}]
+        },
+        {
+          "address": "body/155",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "76834F0D",
+          "runs": [{"kind": "TEXT", "text": "BEGIN41 CELL control untracked from t41r1c1b to body41a"}]
+        },
+        {
+          "address": "body/156",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "267C98F7",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD41A HEAD41B HEAD41C"}]
+        },
+        {
+          "address": "body/157",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/157/0",
+              "cells": [
+                {
+                  "address": "body/157/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1504FD4C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C1A T41R1C1B"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "7B75FD9C",
+                      "runs": [{"kind": "TEXT", "text": "T41R1C2A T41R1C2B"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/157/1",
+              "cells": [
+                {
+                  "address": "body/157/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2AE135D5",
+                      "runs": [
+                        {"kind": "PAGE_MARKER", "text": "", "pageNumber": 8},
+                        {"kind": "TEXT", "text": "T41R2C1A T41R2C1B"}
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/157/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/157/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1CDAF549",
+                      "runs": [{"kind": "TEXT", "text": "T41R2C2A T41R2C2B"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/158",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13024B8E",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY41A BODY41B", "italic": true}]
+        },
+        {
+          "address": "body/159",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5A194CDE",
+          "runs": [{"kind": "TEXT", "text": "END41"}]
+        },
+        {
+          "address": "body/160",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17A6C907",
+          "runs": [{"kind": "TEXT", "text": "BEGIN42 HB control tracked from head42b to body42a"}]
+        },
+        {
+          "address": "body/161",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "747AC5FD",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD42A HEAD42B HEAD42C"}]
+        },
+        {
+          "address": "body/162",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "250A80CF",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY42A BODY42B", "italic": true}]
+        },
+        {
+          "address": "body/163",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1EFC4F75",
+          "runs": [{"kind": "TEXT", "text": "END42"}]
+        },
+        {
+          "address": "body/164",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5080EF34",
+          "runs": [{"kind": "TEXT", "text": "BEGIN43 WP control tracked start head43a to-mark body43a"}]
+        },
+        {
+          "address": "body/165/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D658477",
+          "style": "Heading1",
+          "outlineLevel": 0,
+          "runs": [{"kind": "TEXT", "text": "HEAD43A HEAD43B HEAD43C"}]
+        },
+        {
+          "address": "body/165/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3A97BC9F",
+          "alignment": "center",
+          "runs": [{"kind": "TEXT", "text": "BODY43A BODY43B", "italic": true}]
+        },
+        {
+          "address": "body/166",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6A2BEF1C",
+          "runs": [{"kind": "TEXT", "text": "PLAIN43A PLAIN43B"}]
+        },
+        {
+          "address": "body/167",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3280ECB9",
+          "runs": [{"kind": "TEXT", "text": "END43"}]
+        },
+        {
+          "address": "body/168",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "17065019",
+          "runs": [{"kind": "TEXT", "text": "End of check 54."}]
+        },
+        {
+          "address": "glossary:0/0",
+          "kind": "PARAGRAPH",
+          "story": "GLOSSARY",
+          "runs": [{"kind": "TEXT", "text": "Click or tap here to enter text."}]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "Check 54",
+          "initials": "C54",
+          "date": "2026-10-22T00:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "1C1E89AD",
+              "style": "CommentText",
+              "runs": [{"kind": "TEXT", "text": "ACROSS29"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

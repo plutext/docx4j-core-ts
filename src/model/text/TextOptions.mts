@@ -30,6 +30,22 @@ export type TextTables = 'auto' | 'tsv' | 'grid';
 export type TextMarkupDetail = 'type' | 'author' | 'author_date';
 /** `layout` (REQ-709). */
 export type TextLayout = 'none' | 'indent';
+/**
+ * `drop_caps` (REQ-521): a drop cap's frame paragraph (`w:framePr/@w:dropCap`) joined to the paragraph after it, as the
+ * page reads (`join`), or the two paragraphs as the package holds them (`asis`, Word's text). CR-012 section 24.3.
+ */
+export type TextDropCaps = 'join' | 'asis';
+/**
+ * `small_caps` (REQ-607): a small-caps run written as its stored characters (`asis`), or in capitals as a caps run is
+ * (`upper`, Word's text). CR-012 section 24.
+ */
+export type TextSmallCaps = 'asis' | 'upper';
+/**
+ * `profile` (REQ-1002, WD 0.41): a preset of option values applied before the caller's own, so that an option the caller
+ * sets by name, before or after the profile, overrides it. `word-text` is Word's Save As plain text as the options reach
+ * it (`WORD_TEXT_PROFILE`). CR-012 section 23.1.
+ */
+export type TextProfile = 'word-text';
 
 /** A boolean option's value: a boolean, or `"true"` / `"false"` as a tool passes it. */
 type Bool = boolean | 'true' | 'false';
@@ -51,6 +67,7 @@ export interface TextOptionsInit {
   field_codes?: Bool;
   fields?: TextFields;
   toc?: Bool;
+  drop_caps?: TextDropCaps;
   placeholders?: Bool;
   bindings?: TextBindings;
   list_labels?: Bool;
@@ -61,12 +78,15 @@ export interface TextOptionsInit {
   alt_text?: Bool;
   metadata?: Bool;
   symbols?: TextSymbols;
+  small_caps?: TextSmallCaps;
   math?: TextMath;
   tables?: TextTables;
   markup_detail?: TextMarkupDetail;
   page_markers?: Bool;
   layout?: TextLayout;
   warnings?: Bool;
+  /** A preset applied before the other options, whichever came first (REQ-1002); `word-text` or `word_text`, in any case. */
+  profile?: TextProfile | string | null;
   /** The describer images take their text from (REQ-514); `AltTextDescriber` by default. */
   imageDescriber?: ImageDescriber;
 }
@@ -86,10 +106,28 @@ export class TextOptionError extends Docx4JException {
 /** The option names of WD section 10, in its order. docx4j `TextOptions.NAMES`. */
 export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
   'view', 'include', 'text_boxes', 'notes', 'note_references', 'comments', 'hidden', 'field_codes',
-  'fields', 'toc', 'placeholders', 'bindings', 'list_labels', 'charts', 'smartart', 'embedded', 'altchunks',
-  'alt_text', 'metadata', 'symbols', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
-  'warnings',
+  'fields', 'toc', 'drop_caps', 'placeholders', 'bindings', 'list_labels', 'charts', 'smartart', 'embedded', 'altchunks',
+  'alt_text', 'metadata', 'symbols', 'small_caps', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
+  'warnings', 'profile',
 ]);
+
+/**
+ * `profile: word-text`'s values by WD name, in WD order (REQ-1002; docx4j `TextOptions.WORD_TEXT_VALUES`): the accepted
+ * view, hidden text in, headers, footers and comments in, text boxes out, notes and their references in, no list labels,
+ * fields cached, no field codes, the table of contents in, a drop cap apart from its word, placeholders in, bound values,
+ * chunks expanded, symbols as they are, small caps in capitals, tables as tab-separated rows, no page markers, no
+ * indentation, no alt text, no metadata, no charts, SmartArt or embedded packages. What it does not reproduce: the notes'
+ * and comments' forms, CR LF and CR cells, folded hyphens, Word's linear math (`math: unicodemath` is refused here, as in
+ * docx4j, so the preset leaves math as LaTeX; CR-012 section 23.1), and three accidents of Word's own: the partial update
+ * a DATE, TIME or SAVEDATE field triggers on open, the SYMBOL omission, and the stale PAGE number.
+ */
+export const WORD_TEXT_PROFILE: Readonly<Record<string, unknown>> = Object.freeze({
+  view: 'accepted', include: 'headers,footers,comments', text_boxes: false, notes: true, note_references: true,
+  comments: true, hidden: true, field_codes: false, fields: 'cached', toc: true, drop_caps: 'asis', placeholders: true,
+  bindings: 'bound', list_labels: false, charts: false, smartart: false, embedded: false, altchunks: true,
+  alt_text: false, metadata: false, symbols: 'asis', small_caps: 'upper', math: 'latex', tables: 'tsv',
+  page_markers: false, layout: 'none',
+});
 
 const INCLUDES: readonly TextInclude[] = ['headers', 'footers', 'comments', 'glossary'];
 
@@ -121,6 +159,8 @@ export class TextOptions {
    * included under `field_codes`, and a paragraph with nothing else in it is no paragraph.
    */
   toc = false;
+  /** `drop_caps` (REQ-521): `join`, the default, or `asis`. */
+  dropCaps: TextDropCaps = 'join';
   placeholders = true;
   bindings: TextBindings = 'bound';
   listLabels = false;
@@ -131,6 +171,8 @@ export class TextOptions {
   altText = false;
   metadata = false;
   symbols: TextSymbols = 'asis';
+  /** `small_caps` (REQ-607): `asis`, the default, or `upper`. */
+  smallCaps: TextSmallCaps = 'asis';
   math: TextMath = 'latex';
   tables: TextTables = 'auto';
   markupDetail: TextMarkupDetail = 'type';
@@ -144,6 +186,10 @@ export class TextOptions {
   warnings = true;
   /** The describer images take their text from (REQ-514). */
   imageDescriber: ImageDescriber = AltTextDescriber.INSTANCE;
+  /** The profile applied (REQ-1002), or undefined. */
+  private profileName: TextProfile | undefined;
+  /** The options the caller set by name: a profile does not override them, whichever came first. */
+  private readonly explicit = new Set<string>();
 
   /** Options from the specification's names and values (REQ-1001); those not named keep their defaults. */
   static of(init?: TextOptionsInit | TextOptions): TextOptions {
@@ -158,9 +204,37 @@ export class TextOptions {
     return o;
   }
 
-  /** Sets one option by its specification name and value; throws `TextOptionError` for one it does not define. */
+  /**
+   * Sets one option by its specification name and value; throws `TextOptionError` for one it does not define. An option set
+   * by name is the caller's: a profile, applied before or after, leaves it (REQ-1002). A member assigned directly is not
+   * recorded so, and a profile applied after the assignment overrides it.
+   */
   set(name: string, value: unknown): this {
     const n = (name ?? '').trim();
+    if (n === 'profile') return this.profile(value === undefined || value === null ? undefined : profileOf(value));
+    this.apply(n, name, value);
+    this.explicit.add(n);
+    return this;
+  }
+
+  /**
+   * Applies a profile (REQ-1002): its values for every option the caller has not set by name; an option the caller sets
+   * afterwards overrides it too. Undefined clears the name, leaving the values. See `WORD_TEXT_PROFILE`.
+   */
+  profile(p: TextProfile | undefined): this {
+    this.profileName = p;
+    if (p === undefined) return this;
+    for (const [n, value] of Object.entries(WORD_TEXT_PROFILE)) if (!this.explicit.has(n)) this.apply(n, n, value);
+    return this;
+  }
+
+  /** The profile applied, or undefined. */
+  get profileApplied(): TextProfile | undefined {
+    return this.profileName;
+  }
+
+  /** Sets one option without recording it as the caller's (a profile's value). */
+  private apply(n: string, name: string, value: unknown): void {
     switch (n) {
       case 'view': this.view = viewOf(value); break;
       case 'include': this.setInclude(value); break;
@@ -172,6 +246,7 @@ export class TextOptions {
       case 'field_codes': this.fieldCodes = bool(n, value, 'REQ-505'); break;
       case 'fields': this.fields = choice(n, value, ['cached', 'update'], 'REQ-506'); break;
       case 'toc': this.toc = bool(n, value, 'REQ-520'); break;
+      case 'drop_caps': this.dropCaps = choice(n, value, ['join', 'asis'], 'REQ-521'); break;
       case 'placeholders': this.placeholders = bool(n, value, 'REQ-508'); break;
       case 'bindings': this.bindings = choice(n, value, ['bound', 'surface'], 'REQ-509'); break;
       case 'list_labels': this.listLabels = bool(n, value, 'REQ-510'); break;
@@ -182,6 +257,7 @@ export class TextOptions {
       case 'alt_text': this.altText = bool(n, value, 'REQ-514'); break;
       case 'metadata': this.metadata = bool(n, value, 'REQ-515'); break;
       case 'symbols': this.symbols = choice(n, value, ['asis', 'unicode'], 'REQ-601'); break;
+      case 'small_caps': this.smallCaps = choice(n, value, ['asis', 'upper'], 'REQ-607'); break;
       case 'math': this.math = choice(n, value, ['latex', 'unicodemath'], 'REQ-604'); break;
       case 'tables': this.tables = choice(n, value, ['auto', 'tsv', 'grid'], 'REQ-605'); break;
       case 'markup_detail': this.markupDetail = choice(n, value, ['type', 'author', 'author_date'], 'REQ-702'); break;
@@ -192,7 +268,6 @@ export class TextOptions {
         throw new TextOptionError(`Unknown text option '${String(name)}'; the options are ${TEXT_OPTION_NAMES.join(', ')} (WD REQ-1001)`,
           String(name), 'REQ-1001', 'unknown');
     }
-    return this;
   }
 
   private setInclude(value: unknown): void {
@@ -205,6 +280,7 @@ export class TextOptions {
   /** Adds stories to `include` (docx4j's builder `include(Include...)`). */
   include(...stories: TextInclude[]): this {
     for (const s of stories) this.includeSet.add(choice('include', s, INCLUDES, 'REQ-501'));
+    this.explicit.add('include');
     return this;
   }
 
@@ -229,6 +305,7 @@ export class TextOptions {
     const o = new TextOptions();
     Object.assign(o, this);
     (o as unknown as { includeSet: Set<TextInclude> }).includeSet = new Set(this.includeSet);
+    (o as unknown as { explicit: Set<string> }).explicit = new Set(this.explicit);
     return o;
   }
 
@@ -237,11 +314,11 @@ export class TextOptions {
     return {
       view: this.view, include: [...this.includeSet], text_boxes: this.textBoxes, notes: this.notes,
       note_references: this.noteReferences, comments: this.commentsOption, hidden: this.hidden,
-      field_codes: this.fieldCodes, fields: this.fields, toc: this.toc, placeholders: this.placeholders,
+      field_codes: this.fieldCodes, fields: this.fields, toc: this.toc, drop_caps: this.dropCaps, placeholders: this.placeholders,
       bindings: this.bindings, list_labels: this.listLabels, charts: this.charts, smartart: this.smartart,
       embedded: this.embedded, altchunks: this.altchunks, alt_text: this.altText, metadata: this.metadata,
-      symbols: this.symbols, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
-      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings,
+      symbols: this.symbols, small_caps: this.smallCaps, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
+      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, profile: this.profileName ?? null,
     };
   }
 
@@ -267,6 +344,13 @@ export class TextOptions {
       throw new TextOptionError('Not implemented yet (WD REQ-1001): embedded: true (REQ-512, CR-012 phase 5d)', 'embedded', 'REQ-512', 'not_implemented');
     }
   }
+}
+
+/** A profile's name as the WD writes it (`word-text`), case-insensitively, a hyphen or an underscore. */
+function profileOf(value: unknown): TextProfile {
+  const s = String(value).trim();
+  if (s.toLowerCase().replace(/_/g, '-') === 'word-text') return 'word-text';
+  throw new TextOptionError(`profile: '${s}' is not one of word-text (WD REQ-1002)`, 'profile', 'REQ-1002', 'invalid');
 }
 
 function viewOf(value: unknown): TextModelView {

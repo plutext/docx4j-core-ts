@@ -10,7 +10,8 @@ import { HTML_READER_ABSENT } from './conformance.mjs';
  * CR-001 section 17.6); REQ-303, which matches `Requires` by prefix as REQ-303 permits (case 6 rebinds wps's
  * namespace to another prefix and expects the URI to decide); REQ-506, REQ-511, REQ-512, REQ-513 and
  * REQ-604, phase 5's; REQ-705, HTML, which this package doesn't write; REQ-1203, the whole-document goldens,
- * which hold phase 5's content; and the inspector's (REQ-901 to 907, REQ-1204).
+ * which hold phase 5's content; and the inspector's (REQ-901 to 907, REQ-1204, and docx4j CR-069 phase 4's
+ * text.formatting_join).
  */
 export const IMPLEMENTED = Object.freeze([
   'REQ-201', 'REQ-202', 'REQ-204',
@@ -21,6 +22,14 @@ export const IMPLEMENTED = Object.freeze([
   'REQ-601', 'REQ-602', 'REQ-603', 'REQ-605', 'REQ-606',
   'REQ-701', 'REQ-702', 'REQ-703', 'REQ-704', 'REQ-706', 'REQ-707', 'REQ-708', 'REQ-709',
   'REQ-801', 'REQ-802', 'REQ-1001', 'REQ-1202',
+  // profile: word-text (WD 0.41; CR-012 section 23.1)
+  'REQ-1002',
+  // w:caps in capitals by the run's language, w:smallCaps as stored, small_caps (docx4j CR-069 phase 1; CR-012 section 24)
+  'REQ-607',
+  // a drop cap joined to its word, paragraph.drop_cap_joined, drop_caps (CR-069 phase 2; section 24.3)
+  'REQ-521',
+  // <sup> and <sub> in Markdown, the baseline in plain text, the block model's flag (CR-069 phase 3; section 24.4)
+  'REQ-710',
 ]);
 
 /** A scenario's options: `default` (and `markdown`), or WD options as `name: value`, several `; ` apart. */

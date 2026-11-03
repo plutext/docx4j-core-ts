@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
     "fixture": "fixtures/revisions/cr043/comments/c43-u23-reject-all-two-paragraph-insertion-commented.docx",
     "fixtureBytes": 3560,
     "timeZone": "UTC",
@@ -87,7 +87,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "CR-043 probe: U23: Reject All. Comment C43_U23_SPANNING covers two inserted paragraphs whole.\nC43_U23_BEFORE\n{++Probe, 2026-10-21T00:00:00Z: C43_U23_FIRST_INSERTED_PARAGRAPH++}\n{++Probe, 2026-10-21T00:00:00Z: C43_U23_SECOND_INSERTED_PARAGRAPH++}{>>Probe, 2026-10-21T00:00:00Z: C43_U23_SPANNING<<}\nC43_U23_AFTER_CONTROL{>>Probe, 2026-10-21T00:00:00Z: C43_U23_CONTROL<<}\n",
+      "plainText": "CR-043 probe: U23: Reject All. Comment C43_U23_SPANNING covers two inserted paragraphs whole.\nC43_U23_BEFORE\n{++Probe, 2026-10-21T00:00:00: C43_U23_FIRST_INSERTED_PARAGRAPH++}\n{++Probe, 2026-10-21T00:00:00: C43_U23_SECOND_INSERTED_PARAGRAPH++}{>>Probe, 2026-10-21T00:00:00: C43_U23_SPANNING<<}\nC43_U23_AFTER_CONTROL{>>Probe, 2026-10-21T00:00:00: C43_U23_CONTROL<<}\n",
       "blocks": [
         {
           "address": "body/0",
@@ -115,7 +115,7 @@
             {
               "kind": "TEXT",
               "text": "C43_U23_FIRST_INSERTED_PARAGRAPH",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-21T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-21T00:00:00"}
             }
           ]
         },
@@ -128,7 +128,7 @@
             {
               "kind": "TEXT",
               "text": "C43_U23_SECOND_INSERTED_PARAGRAPH",
-              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-21T00:00:00Z"}
+              "revision": {"type": "INSERTION", "author": "Probe", "date": "2026-10-21T00:00:00"}
             },
             {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
           ]
@@ -148,7 +148,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-21T00:00:00Z",
+          "date": "2026-10-21T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -164,7 +164,7 @@
           "id": "5",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-21T00:00:00Z",
+          "date": "2026-10-21T00:00:00",
           "blocks": [
             {
               "address": "comment:5/0",
@@ -241,7 +241,7 @@
           "id": "0",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-21T00:00:00Z",
+          "date": "2026-10-21T00:00:00",
           "blocks": [
             {
               "address": "comment:0/0",
@@ -257,7 +257,7 @@
           "id": "5",
           "author": "Probe",
           "initials": "P",
-          "date": "2026-10-21T00:00:00Z",
+          "date": "2026-10-21T00:00:00",
           "blocks": [
             {
               "address": "comment:5/0",

@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
     "fixture": "fixtures/revisions/cr043/tracked-changes-equations.docx",
     "fixtureBytes": 17241,
     "timeZone": "UTC",
@@ -689,7 +689,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "with units of metres per second:\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$++}\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$++}\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$\\bar{U}\\mathrm{.}$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$U.$$++}\nAn expectation over a probability distribution is written\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$E[U].$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$E\\left[U\\right]\\mathrm{.}$$++}\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\ninstantaneous wind;\n1-second average;\n10-minute average;\nhourly average;\ndaily average;\nannual mean.\nBecause wind-to-power conversion is nonlinear,\n{--Jason Harrop, 2026-09-01T12:43:00Z: $$P(E[U])\\ne E[P(U)].$$--}{++Jason Harrop, 2026-09-01T12:43:00Z: $$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$++}\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
+      "plainText": "with units of metres per second:\n{--Jason Harrop, 2026-09-01T12:43:00+10:00: $$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00+10:00: $$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$++}\nHeight above ground is\n$$z\\mathrm{.}$$\nAir density is\n$$\\rho$$\nin\n{--Jason Harrop, 2026-09-01T12:43:00+10:00: $$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$--}{++Jason Harrop, 2026-09-01T12:43:00+10:00: $$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$++}\nPower is $P$, normally in MW, and energy is $E$, normally in MWh or GWh.\nWind direction will usually be denoted by\n$$\\theta\\mathrm{.}$$\nA bar denotes an average:\n{--Jason Harrop, 2026-09-01T12:43:00+10:00: $$\\bar{U}\\mathrm{.}$$--}{++Jason Harrop, 2026-09-01T12:43:00+10:00: $$U.$$++}\nAn expectation over a probability distribution is written\n{--Jason Harrop, 2026-09-01T12:43:00+10:00: $$E[U].$$--}{++Jason Harrop, 2026-09-01T12:43:00+10:00: $$E\\left[U\\right]\\mathrm{.}$$++}\nThese are related concepts but are not always interchangeable.\n0.5 Time averages matter\nA phrase such as \u201cwind speed is 8 m/s\u201d is incomplete without knowing whether this means:\ninstantaneous wind;\n1-second average;\n10-minute average;\nhourly average;\ndaily average;\nannual mean.\nBecause wind-to-power conversion is nonlinear,\n{--Jason Harrop, 2026-09-01T12:43:00+10:00: $$P(E[U])\\ne E[P(U)].$$--}{++Jason Harrop, 2026-09-01T12:43:00+10:00: $$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$++}\nTemporal resolution will therefore be treated as part of the definition of a wind quantity, not as incidental metadata.\n\n",
       "blocks": [
         {
           "address": "body/0",
@@ -709,14 +709,14 @@
             {
               "kind": "TEXT",
               "text": "$$\\mathrm{m}\\mathrm{\\backslash ,s\\^\\{-1\\}}.$$",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             },
             {
               "kind": "TEXT",
               "text": "$$\\mathrm{m}\\mathrm{\u2009}{\\mathrm{s}}^{\\mathrm{-1}}\\mathrm{.}$$",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             }
@@ -772,14 +772,14 @@
             {
               "kind": "TEXT",
               "text": "$$\\mathrm{kg}\\mathrm{\\backslash ,m\\^\\{-3\\}}.$$",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             },
             {
               "kind": "TEXT",
               "text": "$$\\mathrm{kg}\\mathrm{\u2009}{\\mathrm{m}}^{\\mathrm{-3}}\\mathrm{.}$$",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             }
@@ -833,14 +833,14 @@
             {
               "kind": "TEXT",
               "text": "$$\\bar{U}\\mathrm{.}$$",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             },
             {
               "kind": "TEXT",
               "text": "$$U.$$",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             }
@@ -864,14 +864,14 @@
             {
               "kind": "TEXT",
               "text": "$$E[U].$$",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             },
             {
               "kind": "TEXT",
               "text": "$$E\\left[U\\right]\\mathrm{.}$$",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             }
@@ -1045,14 +1045,14 @@
             {
               "kind": "TEXT",
               "text": "$$P(E[U])\\ne E[P(U)].$$",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             },
             {
               "kind": "TEXT",
               "text": "$$P(E\\left[U\\right])\\mathrm{\u2260}E\\left[P(U)\\right]\\mathrm{.}$$",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00Z"},
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2026-09-01T12:43:00+10:00"},
               "math": true,
               "displayMath": true
             }

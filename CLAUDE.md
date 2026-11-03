@@ -68,7 +68,11 @@ them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPat
 reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
 date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). So is CR-021 (a `w:br` outside a
 `w:r` read as Word reads it, docx4j CR-073's three rules as a DOM pass ahead of the package's hook, `br.outside_run` on the part; held
-to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). The editor's release requests are
+to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-012
+section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
+Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
+`<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`),
+with the suite copied at the 17.3.5 release (its `dpp/` rows, Word's 22 text saves among them) and the text goldens recut from it. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -92,6 +96,8 @@ node --test test/roundtrip.test.mjs   # one file, after npm run build
 node examples/node/report.mjs test/fixtures/loadAndSave.docx   # the examples run against dist/
 
 npm run generate:fonts   # src/model/fonts/*.generated.mts from ../docx4j's font tables and themes; committed output
+node scripts/generate-case-mapping.mjs <UnicodeData.txt> 15.0.0   # src/model/text/caseMapping.generated.mts (CR-012 section 24.1);
+                    # the file from unicode.org/Public/15.0.0/ucd/, its SHA-256 in the output's header; --check compares
 ```
 
 Dependencies come from npm; `package-lock.json` is committed, and `npm update` then a lockfile commit
@@ -160,8 +166,11 @@ src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTr
 src/model/text/   the text model (CR-012, docx4j's org.docx4j.model.text): Texts.of (a package, a story part, content in a package; ofResolved, the copy route),
                   TextContext (note numbers, numbering states, plans, made once by Texts.contextOf over PackageTrees, every story read with readContents),
                   TextOptions keyed by the specification's option names, the block model (TextResult, TextBlock, TextRun, ...: docx4j's enum names as strings),
-                  Extractor (the walk: selectedBranchOf's branch, the view through content/ResolvedView.mts, scope, characters), PlainText; each TextRun's
-                  officeOffset is where its text lies in Paragraph.text (REQ-202's emulated-API exemption). The Office JS readers keep Office JS's text (D2).
+                  Extractor (the walk: selectedBranchOf's branch, the view through content/ResolvedView.mts, scope, characters; a drop cap's frame
+                  joined to the paragraph next, section 24.3), PlainText; each TextRun's officeOffset is where its text lies in Paragraph.text (REQ-202's
+                  emulated-API exemption; a joined drop cap's merged run has none). The Office JS readers keep Office JS's text (D2).
+                  CaseMapping (section 24): w:caps written in capitals by the run's language, Unicode 15.0's simple mapping from caseMapping.generated.mts,
+                  never the runtime's toUpperCase; the block model keeps the stored text, the writers (PlainText, WmlToMarkdown) map it
                   MarkdownExporter (export, blocks: a block's Markdown each; a link whose scheme LinkTargets.isSafe refuses, its character references decoded too, written as its text, CR-012 sections 21 and 21.2) over WmlToMarkdown, docx4j-markdown's, which builds a Markdown tree that
                   commonmark.mts, a port of commonmark-java's Markdown renderer (its BSD notice kept), writes as docx4j writes it (CR-012 phase 3)
 src/office-js/    the Word shim (Word.run(pkg, fn), context.sync, proxies throwing NotSupportedError, enums, Word.supported) and toApiScript; exported only from ./office-js.
@@ -345,14 +354,17 @@ Key mechanics:
 `sml-extensions.test.mjs` the Excel 2010/2013 extension parts (CR-004),
 `kept-branches.test.mjs` the content API over kept `mc:AlternateContent`, resolved and kept loads compared (CR-010 phase 3),
 `text-extraction.test.mjs` the text extraction suite and agreement test (CR-012 phase 0: `test/text-extraction/`, docx4j's
-suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here;
-the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails, or a count that moves, fails the test),
+suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here,
+the 17.3.5 release since section 24; the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails,
+or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, whose Word text saves `verifyWordSave` reads by encoding),
+`text-caps.test.mjs` CR-012 section 24's: docx4j's `CaseMappingTest`, `DropCapJoinTest` and `TextOptionsProfileTest` mirrored, the
+generated table's version and source, `w:dstrike`, and a Word save under `profile: word-text`,
 `text-model.test.mjs` the text model itself (docx4j's `TextsTest`, `TextsTocTest` and `TextsPhase2Test` where phase 2 reaches, and
 this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`;
 a `SET`'s result never shown, on docx4j's field probe and Word's save of it in `test/fixtures/fields/`, CR-012 section 26),
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest`,
-`MarkdownAlternateContentTest`, `MarkdownHostileLinksTest` and `MarkdownHostileMarkupTest`, with docx4j's strings, docx4j-core's
-`LinkTargetsTest`, and `blocks()`),
+`MarkdownAlternateContentTest`, `MarkdownHostileLinksTest`, `MarkdownHostileMarkupTest` and `MarkdownVerticalAlignTest`, with docx4j's
+strings, docx4j-core's `LinkTargetsTest`, and `blocks()`),
 `mc-fun.test.mjs` CR-013's: docx4j's `mc-fun` probes (`test/mc-fun/`, copied with a manifest, outside `fixtures/`) read by
 every reader against Word 365's saves, docx4j's `TrackedChangesAlternateContentTest` (twins, resolve-all, rows, cells, records), D4's
 refusals, and the mutators reaching every branch,
@@ -466,11 +478,12 @@ any depth, and what each resolve-all leaves, with and without a filter, tracked 
 version 2, CR-002 section 54) comments (`RevisionsHarness`, in UTC; a golden's path mirrors its
 fixture's; recorded from docx4j `VERSION_17_3_5` at `5163c2986`), compared by
 `test/revisions-parity.test.mjs`. `test/golden/text/` is CR-012 phase 6's: what docx4j's `org.docx4j.model.text`
-(`Texts.of`, `PlainText.of`) answers for each of the 282 documents under `test/fixtures/` and `test/text-extraction/`,
+(`Texts.of`, `PlainText.of`) answers for each of the 338 committed documents under `test/fixtures/` and `test/text-extraction/`,
 in four readings (the three views, and every story and optional item included), as the block model and the plain text
-(`TextHarness`, `-Dfixtures=../fixtures,../text-extraction`; a golden's path is the directory's name and the document's),
-compared by `test/text-parity.test.mjs` with the runs joined by docx4j's rule (CR-012 section 15.5) and its `PENDING`
-table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry required to still differ.
+(`TextHarness` version 2, cut from the 17.3.5 release, CR-012 section 24.7; `-Dfixtures=../fixtures,../text-extraction`; a golden's
+path is the directory's name and the document's), compared by `test/text-parity.test.mjs` with the runs joined by docx4j's rule
+(CR-012 section 15.5), its `PENDING` table setting aside what phase 5, REQ-303 and section 23.5 govern, and REQ-702's date form
+(section 23.5) masked on both sides, each required to still differ.
 
 ## Rules
 
@@ -519,9 +532,9 @@ table setting aside what phase 5 and REQ-303 govern in 20 documents, each entry 
   `VERSION_17_3_5` on 2026-10-22 when 17.3.4 was released (tag `docx4j-17.3.4`, `8f455ebab`; 17.3.4 ships
   CR-046, the text model this package's CR-012 follows), and to `VERSION_17_3_6` on 2026-11-01 when 17.3.5
   was released (tag `docx4j-17.3.5`, `64fae4cd0`). The parity workflow checks out `VERSION_17_3_6` (since 2026-11-02),
-  and `test/java/pom.xml` resolves the 17.3.4 release for a hand-run (the workflow reads docx4j's
-  `<revision>` instead), since CR-012's phase 6; the release answers `w:framePr`'s `anchorLock` as before
-  `82c64bf14`, so a hand-run that means to reproduce the goldens builds the head. The classes being
+  and `test/java/pom.xml` resolves the 17.3.5 release for a hand-run (the workflow reads docx4j's
+  `<revision>` instead), since CR-012's section 24 (the text goldens are cut from it; 17.3.5 holds
+  `82c64bf14`'s `anchorLock`, so it reproduces the property goldens too). The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,

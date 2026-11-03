@@ -2366,6 +2366,8 @@ a `.docx` chunk, the nested HTML chunk's warning must still name `/word/chunk47.
 | # | Decision | Recommendation |
 |---|---|---|
 | D1 | When 22.2 (a) lands | With the next suite copy, whenever that is asked for (it needs a docx4j commit holding CR-070's table, which waits on WD 0.47); not before, since the pinned rows would then fail |
+
+22.2 (a) landed with section 24's suite copy, at the 17.3.5 release, on 2026-11-03 (section 24.7): the 12 re-keyed rows pass.
 | D2 | Where items 1 and 2 land | Phase 5d, unchanged in scope; this section is their specification when 5d is scheduled |
 | D3 | The filter's shape | A function member of `TextOptions`, the WD's name once 0.47 is ruled; a throwing filter declines with `content.not_read`, as docx4j's |
 
@@ -2463,13 +2465,19 @@ author-local-time and offset reading beside `revisionDateOf` (the instant, uncha
 | D2 | When 23.5 lands | With the next text-extraction suite copy whose rows show the form (docx4j builds it first, as the oracle), or at Jason's go before that; the change is confined to `revisionOf` and the comment reader |
 | D3 | 23.3's cached rule for the five fields | With phase 5a, where the five are otherwise computed; a struck-out `LISTNUM` with a stored result in a non-Word file is the one case the rule changes today, not worth a release of its own |
 
+23.1 was built with section 24 on 2026-11-03 (section 24.6's D2; section 24.7). Its `math` value is `latex`, as docx4j's
+preset has it, not D1's `unicodemath`: `math: unicodemath` is refused here, so a preset holding it would refuse every
+reading. 23.5 is not built; the recut text goldens hold its form, and `text-parity.test.mjs` masks it until it lands.
+
 ## 24. `w:caps` in capitals by the run's language: docx4j CR-069 phase 1's hand-off (proposed 2026-10-31)
 
 From docx4j-12's hand-off of docx4j CR-069 phase 1 (`75b9bdb54`, `VERSION_17_3_5`, unpushed; its section 11; `c832243f9`
 and `079de83db` after it), on WD 0.50 to 0.52 (REQ-607 and REQ-710's note-reference sentence; portfolio `4b1590d`, `12f9bda`,
 `e561572`). docx4j's `CaseMappingTest` (10) is the test to mirror, and the suite's `dpp/` folder (WD 0.50's sixth `[PROBE]`
 fixture, Word 365's text saves as the oracle) its conformance rows. D1 to D5 decided 2026-11-02, all as recommended
-(section 24.6); nothing implemented. Phase 2's
+(section 24.6); D6 the same day, by Jason. **Implemented 2026-11-03** (Jason: "do CR-012 section 24 (capitals)"), all four
+phases with the suite copy at the 17.3.5 release, section 22.2 (a), section 23.1's `profile` and the goldens recut
+(section 24.7). Phase 2's
 hand-off (the drop-cap join) followed the same day, section 24.3, and phase 3's (`<sup>` and `<sub>` in Markdown) on
 2026-11-01, section 24.4; phase 4's (`text.formatting_join`, the inspector's, and `strike` taking `w:dstrike`) the same
 day, section 24.5.
@@ -2656,6 +2664,175 @@ handle a drop-cap letter as docx4j does!"
 | # | Decision | Recommendation | Decided |
 |---|---|---|---|
 | D6 | A joined drop cap's letter in the block model (section 24.3, item 3) | Its own run, as section 4.4's `officeOffset` rule makes it and as docx4j-python's CR-029 Q3 had it: a run's text agrees with `Paragraph.text` within one paragraph, and the frame is its own paragraph in Office JS. A named departure from docx4j's merged run; the plain text, the Markdown and the goldens' joined runs unchanged. The case against: a block-model consumer comparing runs with docx4j's sees one more run | As docx4j: the letter's run merges into its word's first run on docx4j's rule, keeping the letter's source, `officeOffset` undefined; a letter whose formatting differs stays its own run with its offset (section 24.3, item 3; docx4j-python's CR-029 section 4.5, `120c316`) |
+
+### 24.7 Implemented (2026-11-03)
+
+Jason, 2026-11-03: "do CR-012 section 24 (capitals)". Built as sections 24 to 24.5 say, with D1 to D6 as decided, in one
+change with the suite copy (D1), section 22.2 (a) (D1), section 23.1 (D2) and the goldens (D5).
+
+- **The text model.** `TextRun` gains `caps`, `smallCaps`, `verticalAlignment` and `language`, set in `Extractor.formatOf`
+  beside `bold`; `sameFormat` and `copyFormat` carry them, so a `w:lang` alone never splits runs. `language` is the run's
+  `w:lang`, else its styles' with the document defaults' (the resolver's effective `w:rPr`), else `w:themeFontLang`, else
+  `en-US`. `strike` takes `w:dstrike` (section 24.5). The drop-cap join is `Extractor.dropCapFrame` and `joinDropCap`:
+  the frame's block is held per container walk, `blocks()`'s, and `paragraph` now returns its block. `extractBlocks`
+  (section 17.13) reads each block on its own, so it joins no frame. Under D6 the merged run keeps the letter's `source`,
+  and its `officeOffset` is undefined; a bold or cased letter keeps its own run, with its offset in its own paragraph.
+- **`CaseMapping`** (`src/model/text/CaseMapping.mts`, exported from `./model`): `upper`, `isUpper`, `written` (a run, a
+  block or a comment), `DEFAULT_LANGUAGE` and `UNICODE_VERSION`. Its table `caseMapping.generated.mts` comes from
+  `scripts/generate-case-mapping.mjs <UnicodeData.txt> 15.0.0`, which takes the file's path (it fetches nothing) and
+  records the file's SHA-256; `--check` regenerates and compares. The table has 1,450 code points in 200 runs of one
+  delta and one stride (section 24.1's 195 was another compression of the same pairs). It equals Java 21's
+  `Character.toUpperCase(int)` at every code point (Java's dump compared, no difference), and no pair is left out by the
+  length guard.
+- **The writers.** `PlainText` and `WmlToMarkdown` write a text run, a code paragraph's text and a comment's text through
+  `CaseMapping.written`. Field codes and list labels are written as stored. `InlineSink` carries the alignment beside
+  the emphasis, and the tags go outside it (section 24.4).
+- **The options.** `drop_caps` comes after `toc` and `small_caps` after `symbols` in `TEXT_OPTION_NAMES`. `profile` is
+  last there, and in `toMap`, where it is `null` with none set. `WORD_TEXT_PROFILE` holds docx4j's values. An unknown
+  profile is refused naming REQ-1002. There are two departures:
+  - **`math: latex` in the preset.** This is docx4j's value, and not `unicodemath`, which section 23.6's D1 recommendation
+    said. That recommendation was wrong: `math: unicodemath` is refused here (`checkImplemented`, as docx4j refuses it),
+    so a preset holding it would refuse every reading under `profile`. The preset therefore leaves math as LaTeX, a
+    documented difference from the WD's preset, as docx4j's is. **For Jason**, if he wants it otherwise.
+  - **What counts as the caller's.** An option set by name (`set`, `TextOptions.of`, `include()`) is the caller's: a
+    profile applied before or after leaves it. docx4j's builder methods record their option too. Here the options are
+    public members, and a member assigned directly is not recorded, so a profile applied after the assignment
+    overrides it. The doc comment of `set` says so.
+- **Section 22.2 (a).** `altchunk.not_expanded` carries the chunk's part name, and `TextWarning.selector` reads branch,
+  then part name, then content type, as docx4j's `getSelector` does since 17.3.5.
+
+**The suite at the 17.3.5 release** (`64fae4cd0`, 307 files; manifest.json; `test/text-extraction/README.md`):
+- **Copied files.** `dpp/`, `bind-props.docx`, CR-068's `revisions/cr068/`, CR-043 section 17's probes, and check 54's and
+  57's Word saves under `revisions/core-ts/` are new here. Five revisions fixtures are now listed at their
+  `test/fixtures/` copies.
+- **The runner.** `conformance.mjs` takes docx4j's changes:
+  - CR-069's pending reasons;
+  - the inspection table's `capability` column, docx4j CR-050 phase 4, whose `expected-inspection-html-status.tsv` is
+    gone;
+  - `verifyWordSave`, with a small Windows-1252 encoder, since `TextDecoder` decodes only;
+  - the three scenarios.
+- **The adapter.** It advertises REQ-1002, REQ-607, REQ-521 and REQ-710. It does not advertise `text.formatting_join`,
+  which needs an inspector.
+- **`phase0/`.** 1,772 rows: 786 pass, 986 pend.
+- **`dpp/`.** 192 rows: 184 pass, among them all 22 of Word's saves. 8 pend: the inspector's 6, and the two
+  whole-document goldens under REQ-1203, whose text is still held exact by a test of its own.
+- **Against docx4j's own reports.** Both directories give the same rows in the same order as docx4j's own reports
+  (`docx4j-core-tests/target/text-extraction/`). docx4j's report at its head has 40 more `phase0` rows, cases 83 to 85
+  of `02f9fc333`, which the next copy takes (D1).
+- **The agreement test.** 212 fixtures (174 revisions, 38 text-extraction), at no difference.
+
+**The goldens** (D5):
+- **The cut.** `TextHarness` is version 2: a run's four members, each where not its default. `test/java/pom.xml` is at
+  17.3.5, and the goldens were recut from that release (`docx4jCoreJarSha256` `c196579b75735e62`). There are 338
+  committed goldens: the 282, plus `fields/`'s two and the suite copy's 59, less 5 whose documents moved under
+  `test/fixtures/`. A hand-run also writes 51 for the Word checks' built files (checks 48 to 72, git-ignored), which
+  are not committed, as before.
+- **What moved for section 24.** Two documents' plain text moved: `parity/tables-conditions` and its mode-12 copy read
+  their first column in capitals. Five carry the members, and both sides agree.
+- **What the release brought besides.** 17.3.5's other changes are set aside in `text-parity.test.mjs`. Each must still
+  differ, so that its arrival fails the test:
+  - **REQ-702's date form** (section 23.5, its D2 open). docx4j writes `w:date`'s wall clock with the offset
+    `w16cex:dateUtc` gives, and a dateless mark as its author alone. The mask takes the zone off every date on both
+    sides, so the digits are still compared, in 204 readings of 112 of the earlier documents and in the new ones'
+    markup readings. `manual-redline-dates.docx`'s D2 is set aside by address: its date comes from `w16du:dateUtc`
+    alone, and this package leaves it out.
+  - **Nested fields** (phase 5a; docx4j CR-067 D4). Nine blocks of the expression probe and Word's save of it: docx4j's
+    block model gives the nested field its stored result and the outer instruction that result as an operand. The text
+    agrees.
+  - **Equations** (phase 5b). Two of Word's saves of check 57.
+
+  The hand-run over the built check files, compared once and not committed, shows the same three causes (checks 51 and
+  57 on equations). It also shows one more, check 72's misplaced children (CR-016 section 7), in 13 of its 18 files:
+  JAXB drops a run, a cell or a row in the body and keeps a paragraph in a run; the objects facade keeps the first and
+  drops the last. 72e's and 72j's bare breaks are read here as Word reads them (CR-021), which docx4j does from 17.3.6
+  (its CR-073), not in the 17.3.5 release.
+
+**Tests:**
+- `test/text-caps.test.mjs` (23) mirrors docx4j's `CaseMappingTest`, `DropCapJoinTest` and `TextOptionsProfileTest`, with
+  the table, `w:dstrike` and a Word save under the preset.
+- `markdown.test.mjs` gains `MarkdownVerticalAlignTest` (6, docx4j's strings; its HTML rendering is commonmark-java's,
+  not ported) and the writers' capitals.
+- `text-extraction.test.mjs` gains the `dpp/` suite, its goldens, the capability column and `verifyWordSave`.
+
+Not ported: docx4j's memo test under the preset, whose fixture this repository does not hold (a Word save under the
+preset stands in), and the inspector's `text.formatting_join`.
+
+### 24.8 WD 0.80: the chain ends at `default_language`, not `w:themeFontLang` (2026-11-04; proposed, nothing built)
+
+WD 0.80 (portfolio `df66c75`) rules WD 0.72's open item (1) (Jason: "Strike w:themeFontLang from REQ-607's chain; add
+a documented default-language option"). A cased run's language is now:
+- the run's `w:lang/@w:val`;
+- else its styles';
+- else `w:docDefaults`';
+- else the new option `default_language`, a BCP 47 tag, `en-US` by default.
+
+`w:themeFontLang` is no longer a link. docx4j measured this on its screen-caps probe in Word 365 on 4 November. A
+`w:caps` run with no language anywhere is cased by the installation's editing language, on the screen, in the PDF and in
+the text save alike. A file with and without `w:themeFontLang` behaved identically under both an English and a Turkish
+editing language. A library has no editing language, so the option stands in for it. The option reaches only this
+mapping, and the `word-text` preset leaves it at its default. The settings part is no longer consulted for the caps
+language.
+
+**Here today** (section 24.7). `Extractor.language` takes the run's `w:lang`, else its styles' with the document
+defaults'. After that it falls to the settings' `w:themeFontLang`, then `CaseMapping.DEFAULT_LANGUAGE` (`en-US`).
+`TextOptions` has no `default_language`. docx4j has not built the change yet: `VERSION_17_3_6` at `4f7128174` still reads
+`w:themeFontLang` (`Extractor.java` line 2753).
+
+**Measured** (2026-11-04, on the build as section 24.7 left it). Each document was read twice: once as built, and once
+with `w:themeFontLang` deleted from the settings tree, which is what the change does here. The reading included every
+story, hidden text and comments.
+- **This repository's 397 documents** under `test/fixtures/` and `test/text-extraction/` (387 `.docx`, 2 `.docm`, 8 flat
+  OPC; the suite's copy among them, part of it not yet committed): every one reads, and nothing moves, neither the text
+  nor any cased run's `language`. 248 of them have a `w:themeFontLang` (163 `en-AU`, 81 `en-US`, one each `en-GB`,
+  `ru-RU`, `et-EE` and `it-IT`). 21 hold a caps or small-caps run, and none of those runs reaches the last link. So the
+  338 text goldens, the suite's rows and Word's 22 text saves are unchanged.
+- **docx4j's part-not-read fixture** (`docx4j-core-tests/src/test/resources/text-extraction/part-not-read/`,
+  `w:themeFontLang` `tr-TR`, read here in section 28.4). 5 of its 8 files move. Each caps line that falls to the last link
+  changes from the dotted to the undotted capital I:
+  - **intact and numbering-absent:** both caps lines (`İSTANBUL CAPS-BY-STYLE` and `İSTANBUL DİRECT CAPS` become
+    `ISTANBUL CAPS-BY-STYLE` and `ISTANBUL DIRECT CAPS`);
+  - **numbering, styles and styles-absent:** the direct line only (here the style-cased run already reads as stored,
+    section 28.4's two defects).
+
+  The settings and settings-absent files read `en-US` already. numbering-unneeded holds no caps run. The direct line
+  moves too because the direct run (`<w:caps/>`, no `w:lang`) also falls to the last link. WD 0.80's Appendix A.8 row
+  names only the style-cased run. docx4j's expected texts have both lines dotted today (`part-not-read-intact.*.txt`),
+  and both move with its build.
+
+**Proposed.**
+1. **The option.** `TextOptions.defaultLanguage` (`default_language`), a string defaulting to
+   `CaseMapping.DEFAULT_LANGUAGE`. It goes into `TEXT_OPTION_NAMES` and `toMap()` after `small_caps`, the WD's options
+   order. It is set by name like every other option, kept as the caller spells it (trimmed), and refused with a
+   `TextOptionError` (`invalid`, REQ-607) where it is not a well-formed BCP 47 tag (`Intl.getCanonicalLocales` throws a
+   `RangeError` on one; D2). It is not in `WORD_TEXT_VALUES`, so the preset leaves it.
+2. **The chain.** `Extractor.language` becomes the run's `w:lang`, else its styles' with the document defaults', else
+   `options.defaultLanguage`. The `themeFontLang` member goes. The settings tree is no longer read for the caps language.
+   `TextRun.language` and `CaseMapping`'s doc comments say so. `CaseMapping.upper(text, undefined)` keeps `en-US`.
+3. **Section 28.** The settings part's consults (28, 28.2 item 3 and 28.4) lose the caps language. Its `part.not_read`
+   then rests on `fields_update_on_open`, forms protection and even headers, as the WD now has it.
+4. **Tests.** `text-caps.test.mjs`'s "language of last resort" test is turned around:
+   - `w:themeFontLang` `tr-TR` with no other language reads `ISTANBUL`;
+   - `default_language: tr-TR` reads `İSTANBUL`, with `language` `tr-TR` on the run;
+   - a run's own `w:lang` `en-US` under `default_language: tr-TR` stays `ISTANBUL`.
+
+   It also tests the option's default, its name in the map, its refusal of a malformed tag, and `profile: word-text`
+   leaving it alone. The adapter needs no change: `optionsOf` passes a scenario's `default_language: ...` to `set`.
+
+A suite copy or a part-not-read fixture taken after docx4j builds the change carries the new expected texts. Built as
+above, this package reads them as docx4j does.
+
+WD 0.81 (portfolio `29afa65`, 2026-11-04) corrects Appendix A.8 to match the measurement above. The intact text loses the
+dot on both cased lines, since neither the style-cased run nor the direct `w:caps` control has a `w:lang`. REQ-607's NOTE
+records the measurement and names this section as proposed. D2 is now an open item in the WD for Jason, with this
+section's rule recommended for every port: a value that is not well formed under BCP 47's grammar is refused as an
+invalid option value, so a typo cannot select `en-US` without anyone noticing. The mapping uses the language subtag only
+and ignores the region, which is what `CaseMapping` does already (`tr` and `az`). Once built, this section is
+registered as a new entry, `core-ts/CR-012.24.8`, depending on `core-ts/CR-012.24`.
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | When to build it | On its own, after section 24 is committed as it stands. Section 24 then matches the 17.3.5 release its goldens and suite are cut from, and this change matches docx4j's follow-on (CR-046 section 10). Nothing in this repository moves, so the order costs nothing. |
+| D2 | A `default_language` that is not a well-formed BCP 47 tag | Refused with `TextOptionError` (`invalid`), as this package refuses every other option value outside its domain. Java's `Locale.forLanguageTag` accepts any string, so docx4j would have to check explicitly. An open item in WD 0.81, this rule recommended for every port. |
 
 ## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
 
@@ -3082,6 +3259,73 @@ Everything else equals docx4j's in every view: the labels by style (`Article I`,
 hidden text and the revisions. No warning is raised anywhere. With this section built, every reading would equal
 docx4j's but for the caps lines, which wait on section 24.
 
+Read again after section 24 was built (2026-11-03, `small_caps: upper` as docx4j's expected texts are cut): **18 of the
+24 readings equal docx4j's**, every caps line among them. The six that differ are this section's two defects, as above:
+`numbering` loses the styles (`hidden-by-style` shown, `istanbul caps-by-style` and `small caps by style` as stored), and
+`styles` loses the direct labels. The intact reading's language of last resort, `w:themeFontLang`, agrees with docx4j's.
+WD 0.72's open item under REQ-801 (portfolio `0c98d97`) would strike that link: Word maps by its editing language. That
+would change that expected text and section 24's chain together. It also has Word give a numbered paragraph with no
+numbering part a default list. Both are Jason's rulings; nothing here moves until he rules.
+
+WD 0.73 (portfolio `4af37ec`, 2026-11-04) adds Jason's recheck of two relationships parts in Word 365. Word keeps the
+relationships parsed before the error:
+- **`word/_rels/document.xml.rels` cut after its third relationship.** Word keeps the styles, numbering and settings, and
+  loses only the comments relationship: the references remain, and the comments are empty.
+- **`_rels/.rels` cut after the main document's relationship.** Word keeps the main part and loses the three property
+  parts: TITLE and Company are empty, and Custom1 gives the unknown-property error.
+
+Here the load refuses either file, naming the part. Measured on 2026-11-04 on `loadAndSave.docx`, each part cut after
+its first and third relationship: `PartUnmarshalException: /word/_rels/document.xml.rels: Malformed XML (line 2, column
+488)`, and the same for `/_rels/.rels`. The WD's new open item under REQ-801 recommends (i):
+- the relationships parsed before the error kept, with `part.not_read` naming the relationships part and the count kept;
+- the parts the lost relationships named read as absent, each with its own warning where consulted;
+- the same rule for every part that is not a story part: the root's complete children before the first error kept, the
+  rest absent, with `part.not_read` and the count;
+- a story part refused as now.
+
+If Jason takes (i), the load here keeps the prefix of a broken relationships part with the warning; this section's
+styles reading keeps the complete styles before the error; and the fixture's late-cut expected texts become Word's. If
+he keeps the refusal, this package stands as it is. The same WD measures a numbered paragraph with no numbering part:
+Word counts on one shared counter after the direct instance restarts (1, 1, 2, 3, 4 on heading, item, item, heading,
+item). The recommendation is now Word's default definition under REQ-510's model: the style's instance plain, the direct
+instance with `startOverride` 1 on every level. That would reach both the absent-part reading here and this section's
+unreadable one. Nothing moves until he rules.
+
 | # | Decision | Recommendation |
 |---|---|---|
 | D4 | The fixture | Copied with the build (D1) into `test/part-not-read/`, outside `fixtures/` and `text-extraction/` so that no text golden is wanted, unedited, with a SHA-1 manifest naming `3ad164bdf`. Each reading held to docx4j's expected text and `expected-warnings.tsv`, the caps lines pending section 24, each pending line required to still differ, so that section 24's landing announces itself |
+
+### 28.5 WD 0.76's rulings (2026-11-04)
+
+Jason ruled three of the WD's open items (docx4j-portfolio `7c5ee35`, relayed by docx4j-portfolio-10). Each changes
+28.2 when it is built. The build still waits for D1.
+
+1. **A properties part that cannot be read** (D3's (b)) reads as absent, with `part.not_read` once per part, where the
+   result carries metadata (REQ-515) or `fields: update` reads it. Here the metadata is read through `readQuietly`,
+   which passes over such a part silently today, so 28.2 item 3 gains the core, app and custom parts, raised where
+   `metadata: true`. `fields: update` is phase 5a's.
+2. **No numbering part, or one that cannot be read** (REQ-510 with REQ-801). A numbered paragraph is counted as
+   REQ-510's model counts Word's default definition: one nine-level decimal `w:abstractNum`, level n's text
+   `%{n+1}.`, the style's instance plain, and the direct instance with a `w:startOverride` of 1 at every level. So
+   heading, item, item, heading, item reads 1, 1, 2, 3, 4. A new warning, `part.absent`, names the part the package
+   would have held where it is absent; `part.not_read` names an unreadable one. Either is raised once, at the first
+   numbered paragraph.
+   - **What changes here.** Today an absent numbering part gives no label, and no warning (28.1's table). Under the
+     ruling, it reads as Word's default list. 28.2 item 2 then counts the paragraphs over that definition, built in
+     memory and never written to the package, in place of "the numbering as for a package that lacks the part".
+   - **Nothing committed moves.** None of the 586 committed documents holds a non-zero `w:numId` without a numbering
+     part (measured 2026-11-04), so no golden or suite row changes. docx4j's A.8 fixture's `numbering` and
+     `numbering-absent` expected texts would, at its recut.
+3. **A relationships part that cannot be read** MAY refuse the load. One that doesn't refuse reads the relationships
+   parsed before the error, raises `part.not_read` naming the relationships part with the count kept, and reads a part
+   that only a lost relationship named as absent.
+   - **Here.** The load refuses either relationships part, naming it (`PartUnmarshalException`, measured on
+     `loadAndSave.docx` in 28.4). That conforms as it stands, and nothing changes.
+   - **If the prefix is ever taken here,** the save needs one of two forms, as the portfolio's repair policy records:
+     a save refused after such a load, or one copying the damaged relationships part and the unreached entries from
+     the source. A save writes only the parts reachable through relationships.
+
+Still open in the WD: 0.72's (1), the caps chain's last link (Jason asks what the screen shows, not the text save),
+and the one rule for every part that is not a story part. WD 0.80 (2026-11-04) rules the first: the chain ends at a
+`default_language` option, `w:themeFontLang` struck (section 24.8). The settings part is then no longer consulted for the
+caps language.

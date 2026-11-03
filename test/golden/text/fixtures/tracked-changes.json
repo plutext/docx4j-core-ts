@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
     "fixture": "fixtures/tracked-changes.docx",
     "fixtureBytes": 142893,
     "timeZone": "UTC",
@@ -1191,7 +1191,7 @@
     },
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "Docx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\nLevel 1\nLevel 2\n\nNumbering\nLevel 1\nLevel 2\nLevel 3\n\nImages\n\nJpeg:\n\n\n\nGif (scaled):\n\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\nThat was a page break\n\nHere is some change tracking. {++Jason Harrop, 2007-12-09T10:14:00Z: An insertion++} Followed by{--Jason Harrop, 2007-12-09T10:14:00Z:  A deletion--}.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
+      "plainText": "Docx sample document\nThis is a document exhibiting basic docx features.  \nThis is style Heading 1\n\nSome text.\nTables\n\n[table: listed format]\nCell text: Vertical merge; Shaded grey: Shaded grey\nCell text: Vertical merge\nShaded grey: Horizontal merge\n\n(There is another document which tests tables more thoroughly)\nParagraph properties\n\nLeft indent\nCentred \nAlign Right\nJustified text\n\nIndented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented indented \n\nFirst line indent, Left indent, Hanging indent aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb aaa bbb\n\n\nNormal\nA short paragraph with 10 points spacing before, 20 points after.\nRun properties\n\nFont styles Aerial Black\nFont styles 18 point\nFont styles bold\nFont styles italic\nFont styles underline\nBullets & numbering\n\nBullets\nLevel 1\nLevel 2\n\nNumbering\nLevel 1\nLevel 2\nLevel 3\n\nImages\n\nJpeg:\n\n\n\nGif (scaled):\n\n\n\nPng (from http://davidpritchard.org/images/pacsoc-s1b.png )\n\n\n(TODO: we really should have both 2003 & 2007 pictures)\n\n\n\nThat was a page break\n\nHere is some change tracking. {++Jason Harrop, 2007-12-09T10:14:00: An insertion++} Followed by{--Jason Harrop, 2007-12-09T10:14:00:  A deletion--}.\n\nThis line contains a soft return\nand here it continues\u0085\n\n",
       "blocks": [
         {
           "address": "body/0",
@@ -1761,13 +1761,13 @@
             {
               "kind": "TEXT",
               "text": "An insertion",
-              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00Z"}
+              "revision": {"type": "INSERTION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00"}
             },
             {"kind": "TEXT", "text": " Followed by"},
             {
               "kind": "TEXT",
               "text": " A deletion",
-              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00Z"}
+              "revision": {"type": "DELETION", "author": "Jason Harrop", "date": "2007-12-09T10:14:00"}
             },
             {"kind": "TEXT", "text": "."}
           ]

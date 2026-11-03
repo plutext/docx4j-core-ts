@@ -1,0 +1,1160 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
+    "fixture": "text-extraction/revisions/cr068/word-phase1-reject-all.docx",
+    "fixtureBytes": 22358,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-31T04:23:00Z",
+      "modified": "2026-10-31T04:23:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 0,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17.\nM01 Rate: 1.316 1.335 per cent.\nM02 cell:\t1.3161.335\nM03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week.\nM04 Item\tPrice\nWidget\t$40.00 $35.00\nGadget\t$12.00\nGizmo\t$99.00\nM05 style-struck words then plain words.\nM06 style strike turned off by the run then plain.\nM07  after the insertion.\nM08 Quoted: Version 2 (every run of the field struck).\nM08b Quoted: simple field (a struck run in a fldSimple).\nM09 See example.com/old-terms example.com/new-terms for the terms.\nM10 A text box follows, and a footnote[1]: \nM10 text box: the price is $40.00 $35.00.\nM11 This whole paragraph is struck through, its mark too.\nM11 after: the paragraph after the struck one.\nM12 The party shall promptly notify the other.\nM13 Fee: EUR 500 EUR 450 a month.\nM14 first struck run, second struck run, kept words, third struck run end.\nM15 Before old A\told B\nold C after.\nM16 A comment is anchored on these words.\nM17 Party: Acme Pty Ltd Acme Holdings Pty Ltd.\nEnd of the probe.\n[1] M10 footnote: the rate is 1.316 1.335.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5331FEE1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "400BE630",
+          "runs": [{"kind": "TEXT", "text": "M01 Rate: 1.316 1.335 per cent."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/2/0",
+              "cells": [
+                {
+                  "address": "body/2/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "238AA139",
+                      "runs": [{"kind": "TEXT", "text": "M02 cell:"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1857BCC2",
+                      "runs": [{"kind": "TEXT", "text": "1.3161.335"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56BFE77B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "M03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/4/0",
+              "cells": [
+                {
+                  "address": "body/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1B202FEE",
+                      "runs": [{"kind": "TEXT", "text": "M04 Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3CDB738F",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/1",
+              "cells": [
+                {
+                  "address": "body/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2731E37D",
+                      "runs": [{"kind": "TEXT", "text": "Widget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FF0E763",
+                      "runs": [{"kind": "TEXT", "text": "$40.00 $35.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/2",
+              "cells": [
+                {
+                  "address": "body/4/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "748EE8EA",
+                      "runs": [{"kind": "TEXT", "text": "Gadget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "298A5517",
+                      "runs": [{"kind": "TEXT", "text": "$12.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/3",
+              "cells": [
+                {
+                  "address": "body/4/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "037AB64A",
+                      "runs": [{"kind": "TEXT", "text": "Gizmo"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15AFEE81",
+                      "runs": [{"kind": "TEXT", "text": "$99.00"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36AFD425",
+          "runs": [
+            {"kind": "TEXT", "text": "M05 "},
+            {"kind": "TEXT", "text": "style-struck words", "strike": true},
+            {"kind": "TEXT", "text": " then plain words."}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "126A5607",
+          "runs": [{"kind": "TEXT", "text": "M06 style strike turned off by the run then plain."}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14730211",
+          "runs": [{"kind": "TEXT", "text": "M07  after the insertion."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1B231082",
+          "runs": [
+            {"kind": "TEXT", "text": "M08 Quoted: "},
+            {"kind": "TEXT", "text": "Version 2", "strike": true},
+            {"kind": "TEXT", "text": " (every run of the field struck)."}
+          ],
+          "fields": [{"instr": " QUOTE \"Version 2\" ", "result": "Version 2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B3D05E6",
+          "runs": [
+            {"kind": "TEXT", "text": "M08b Quoted: "},
+            {"kind": "TEXT", "text": "simple field", "strike": true},
+            {"kind": "TEXT", "text": " (a struck run in a fldSimple)."}
+          ],
+          "fields": [{"instr": " QUOTE \"simple field\" ", "result": "simple field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F1804A5",
+          "runs": [
+            {"kind": "TEXT", "text": "M09 See "},
+            {"kind": "TEXT", "text": "example.com/old-terms", "link": "https://example.com/old-terms"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "example.com/new-terms", "link": "https://example.com/new-terms"},
+            {"kind": "TEXT", "text": " for the terms."}
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "377721B5",
+          "runs": [
+            {"kind": "TEXT", "text": "M10 A text box follows, and a footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": ": "}
+          ]
+        },
+        {
+          "address": "body/11/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "633E35AA",
+          "runs": [{"kind": "TEXT", "text": "M10 text box: the price is $40.00 $35.00."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7054E894",
+          "runs": [{"kind": "TEXT", "text": "M11 This whole paragraph is struck through, its mark too."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "046B6F14",
+          "runs": [{"kind": "TEXT", "text": "M11 after: the paragraph after the struck one."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "289108BE",
+          "runs": [{"kind": "TEXT", "text": "M12 The party shall promptly notify the other."}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F091685",
+          "runs": [{"kind": "TEXT", "text": "M13 Fee: EUR 500 EUR 450 a month."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AB1E0AD",
+          "runs": [{"kind": "TEXT", "text": "M14 first struck run, second struck run, kept words, third struck run end."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1505506D",
+          "runs": [{"kind": "TEXT", "text": "M15 Before old A\told B\nold C after."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07EB1794",
+          "runs": [{"kind": "TEXT", "text": "M16 A comment is anchored on these words."}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60F44229",
+          "runs": [{"kind": "TEXT", "text": "M17 Party: Acme Pty Ltd Acme Holdings Pty Ltd."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "159AFDFB",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "22CBE08C",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " M10 footnote: the rate is 1.316 1.335."}
+          ]
+        }
+      ]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {
+      "options": {"view": "markup", "markup_detail": "author_date"},
+      "plainText": "CR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17.\nM01 Rate: 1.316 1.335 per cent.\nM02 cell:\t1.3161.335\nM03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week.\nM04 Item\tPrice\nWidget\t$40.00 $35.00\nGadget\t$12.00\nGizmo\t$99.00\nM05 style-struck words then plain words.\nM06 style strike turned off by the run then plain.\nM07  after the insertion.\nM08 Quoted: Version 2 (every run of the field struck).\nM08b Quoted: simple field (a struck run in a fldSimple).\nM09 See example.com/old-terms example.com/new-terms for the terms.\nM10 A text box follows, and a footnote[1]: \nM10 text box: the price is $40.00 $35.00.\nM11 This whole paragraph is struck through, its mark too.\nM11 after: the paragraph after the struck one.\nM12 The party shall promptly notify the other.\nM13 Fee: EUR 500 EUR 450 a month.\nM14 first struck run, second struck run, kept words, third struck run end.\nM15 Before old A\told B\nold C after.\nM16 A comment is anchored on these words.{>>CR-068 base, 2026-10-30T09:00:00: M16 comment: withdrawn remark, kept remark.<<}\nM17 Party: Acme Pty Ltd Acme Holdings Pty Ltd.\nEnd of the probe.\n[1] M10 footnote: the rate is 1.316 1.335.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5331FEE1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "400BE630",
+          "runs": [{"kind": "TEXT", "text": "M01 Rate: 1.316 1.335 per cent."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/2/0",
+              "cells": [
+                {
+                  "address": "body/2/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "238AA139",
+                      "runs": [{"kind": "TEXT", "text": "M02 cell:"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1857BCC2",
+                      "runs": [{"kind": "TEXT", "text": "1.3161.335"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56BFE77B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "M03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/4/0",
+              "cells": [
+                {
+                  "address": "body/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1B202FEE",
+                      "runs": [{"kind": "TEXT", "text": "M04 Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3CDB738F",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/1",
+              "cells": [
+                {
+                  "address": "body/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2731E37D",
+                      "runs": [{"kind": "TEXT", "text": "Widget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FF0E763",
+                      "runs": [{"kind": "TEXT", "text": "$40.00 $35.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/2",
+              "cells": [
+                {
+                  "address": "body/4/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "748EE8EA",
+                      "runs": [{"kind": "TEXT", "text": "Gadget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "298A5517",
+                      "runs": [{"kind": "TEXT", "text": "$12.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/3",
+              "cells": [
+                {
+                  "address": "body/4/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "037AB64A",
+                      "runs": [{"kind": "TEXT", "text": "Gizmo"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15AFEE81",
+                      "runs": [{"kind": "TEXT", "text": "$99.00"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36AFD425",
+          "runs": [
+            {"kind": "TEXT", "text": "M05 "},
+            {"kind": "TEXT", "text": "style-struck words", "strike": true},
+            {"kind": "TEXT", "text": " then plain words."}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "126A5607",
+          "runs": [{"kind": "TEXT", "text": "M06 style strike turned off by the run then plain."}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14730211",
+          "runs": [{"kind": "TEXT", "text": "M07  after the insertion."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1B231082",
+          "runs": [
+            {"kind": "TEXT", "text": "M08 Quoted: "},
+            {"kind": "TEXT", "text": "Version 2", "strike": true},
+            {"kind": "TEXT", "text": " (every run of the field struck)."}
+          ],
+          "fields": [{"instr": " QUOTE \"Version 2\" ", "result": "Version 2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B3D05E6",
+          "runs": [
+            {"kind": "TEXT", "text": "M08b Quoted: "},
+            {"kind": "TEXT", "text": "simple field", "strike": true},
+            {"kind": "TEXT", "text": " (a struck run in a fldSimple)."}
+          ],
+          "fields": [{"instr": " QUOTE \"simple field\" ", "result": "simple field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F1804A5",
+          "runs": [
+            {"kind": "TEXT", "text": "M09 See "},
+            {"kind": "TEXT", "text": "example.com/old-terms", "link": "https://example.com/old-terms"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "example.com/new-terms", "link": "https://example.com/new-terms"},
+            {"kind": "TEXT", "text": " for the terms."}
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "377721B5",
+          "runs": [
+            {"kind": "TEXT", "text": "M10 A text box follows, and a footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": ": "}
+          ]
+        },
+        {
+          "address": "body/11/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "633E35AA",
+          "runs": [{"kind": "TEXT", "text": "M10 text box: the price is $40.00 $35.00."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7054E894",
+          "runs": [{"kind": "TEXT", "text": "M11 This whole paragraph is struck through, its mark too."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "046B6F14",
+          "runs": [{"kind": "TEXT", "text": "M11 after: the paragraph after the struck one."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "289108BE",
+          "runs": [{"kind": "TEXT", "text": "M12 The party shall promptly notify the other."}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F091685",
+          "runs": [{"kind": "TEXT", "text": "M13 Fee: EUR 500 EUR 450 a month."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AB1E0AD",
+          "runs": [{"kind": "TEXT", "text": "M14 first struck run, second struck run, kept words, third struck run end."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1505506D",
+          "runs": [{"kind": "TEXT", "text": "M15 Before old A\told B\nold C after."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07EB1794",
+          "runs": [
+            {"kind": "TEXT", "text": "M16 A comment is anchored on these words."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60F44229",
+          "runs": [{"kind": "TEXT", "text": "M17 Party: Acme Pty Ltd Acme Holdings Pty Ltd."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "159AFDFB",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "22CBE08C",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " M10 footnote: the rate is 1.316 1.335."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "0E58E58B",
+              "style": "CommentText",
+              "runs": [
+                {"kind": "TEXT", "text": "M16 comment: "},
+                {"kind": "TEXT", "text": "withdrawn remark, ", "strike": true},
+                {"kind": "TEXT", "text": "kept remark."}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: revision: 2; lastModifiedBy: Author A; created: 2026-10-31T04:23:00Z; modified: 2026-10-31T04:23:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 0; DocSecurity: 0]\nM10 header: Draft Final version\nCR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17.\nM01 Rate: 1.316 1.335 per cent.\nM02 cell:\t1.3161.335\nM03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week.\nM04 Item\tPrice\nWidget\t$40.00 $35.00\nGadget\t$12.00\nGizmo\t$99.00\nM05 style-struck words then plain words.\nM06 style strike turned off by the run then plain.\nM07  after the insertion.\nM08 Quoted:  QUOTE \"Version 2\" Version 2 (every run of the field struck).\nM08b Quoted:  QUOTE \"simple field\" simple field (a struck run in a fldSimple).\nM09 See example.com/old-terms example.com/new-terms for the terms.\nM10 A text box follows, and a footnote[1]: \nM10 text box: the price is $40.00 $35.00.\nM11 This whole paragraph is struck through, its mark too.\nM11 after: the paragraph after the struck one.\nM12 The party shall promptly notify the other.\nM13 Fee: EUR 500 EUR 450 a month.\nM14 first struck run, second struck run, kept words, third struck run end.\nM15 Before old A\told B\nold C after.\nM16 A comment is anchored on these words.{>>M16 comment: withdrawn remark, kept remark.<<}\nM17 Party: Acme Pty Ltd Acme Holdings Pty Ltd.\nEnd of the probe.\n[1] M10 footnote: the rate is 1.316 1.335.\n",
+      "blocks": [
+        {
+          "address": "header:rId11/0",
+          "kind": "PARAGRAPH",
+          "story": "HEADER",
+          "paraId": "45EB6FCE",
+          "runs": [{"kind": "TEXT", "text": "M10 header: Draft Final version"}]
+        },
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5331FEE1",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "CR-068 phase 0 probe: the base: a manual redline, nothing tracked. Built by docx4j (ManualRedlineProbeBuilder); the text of each case starts with its tag, M01 to M17."
+            }
+          ]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "400BE630",
+          "runs": [{"kind": "TEXT", "text": "M01 Rate: 1.316 1.335 per cent."}]
+        },
+        {
+          "address": "body/2",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/2/0",
+              "cells": [
+                {
+                  "address": "body/2/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "238AA139",
+                      "runs": [{"kind": "TEXT", "text": "M02 cell:"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/2/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/2/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1857BCC2",
+                      "runs": [{"kind": "TEXT", "text": "1.3161.335"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56BFE77B",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "M03 The Supplier shall deliver the Goods within 30 days of the Order Date. Late delivery incurs no penalty. Late delivery incurs a penalty of 2 per cent a week."
+            }
+          ]
+        },
+        {
+          "address": "body/4",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/4/0",
+              "cells": [
+                {
+                  "address": "body/4/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1B202FEE",
+                      "runs": [{"kind": "TEXT", "text": "M04 Item"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3CDB738F",
+                      "runs": [{"kind": "TEXT", "text": "Price"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/1",
+              "cells": [
+                {
+                  "address": "body/4/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "2731E37D",
+                      "runs": [{"kind": "TEXT", "text": "Widget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3FF0E763",
+                      "runs": [{"kind": "TEXT", "text": "$40.00 $35.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/2",
+              "cells": [
+                {
+                  "address": "body/4/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "748EE8EA",
+                      "runs": [{"kind": "TEXT", "text": "Gadget"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "298A5517",
+                      "runs": [{"kind": "TEXT", "text": "$12.00"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/4/3",
+              "cells": [
+                {
+                  "address": "body/4/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "037AB64A",
+                      "runs": [{"kind": "TEXT", "text": "Gizmo"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/4/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/4/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "15AFEE81",
+                      "runs": [{"kind": "TEXT", "text": "$99.00"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "36AFD425",
+          "runs": [
+            {"kind": "TEXT", "text": "M05 "},
+            {"kind": "TEXT", "text": "style-struck words", "strike": true},
+            {"kind": "TEXT", "text": " then plain words."}
+          ]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "126A5607",
+          "runs": [{"kind": "TEXT", "text": "M06 style strike turned off by the run then plain."}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14730211",
+          "runs": [{"kind": "TEXT", "text": "M07  after the insertion."}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1B231082",
+          "runs": [
+            {"kind": "TEXT", "text": "M08 Quoted: "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"Version 2\" "},
+            {"kind": "TEXT", "text": "Version 2", "strike": true},
+            {"kind": "TEXT", "text": " (every run of the field struck)."}
+          ],
+          "fields": [{"instr": " QUOTE \"Version 2\" ", "result": "Version 2"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2B3D05E6",
+          "runs": [
+            {"kind": "TEXT", "text": "M08b Quoted: "},
+            {"kind": "FIELD_CODE", "text": " QUOTE \"simple field\" "},
+            {"kind": "TEXT", "text": "simple field", "strike": true},
+            {"kind": "TEXT", "text": " (a struck run in a fldSimple)."}
+          ],
+          "fields": [{"instr": " QUOTE \"simple field\" ", "result": "simple field"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F1804A5",
+          "runs": [
+            {"kind": "TEXT", "text": "M09 See "},
+            {"kind": "TEXT", "text": "example.com/old-terms", "link": "https://example.com/old-terms"},
+            {"kind": "TEXT", "text": " "},
+            {"kind": "TEXT", "text": "example.com/new-terms", "link": "https://example.com/new-terms"},
+            {"kind": "TEXT", "text": " for the terms."}
+          ]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "377721B5",
+          "runs": [
+            {"kind": "TEXT", "text": "M10 A text box follows, and a footnote"},
+            {"kind": "NOTE_REFERENCE", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": ": "}
+          ]
+        },
+        {
+          "address": "body/11/textbox:0/0",
+          "kind": "PARAGRAPH",
+          "story": "TEXT_BOX",
+          "paraId": "633E35AA",
+          "runs": [{"kind": "TEXT", "text": "M10 text box: the price is $40.00 $35.00."}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7054E894",
+          "runs": [{"kind": "TEXT", "text": "M11 This whole paragraph is struck through, its mark too."}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "046B6F14",
+          "runs": [{"kind": "TEXT", "text": "M11 after: the paragraph after the struck one."}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "289108BE",
+          "runs": [{"kind": "TEXT", "text": "M12 The party shall promptly notify the other."}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F091685",
+          "runs": [{"kind": "TEXT", "text": "M13 Fee: EUR 500 EUR 450 a month."}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7AB1E0AD",
+          "runs": [{"kind": "TEXT", "text": "M14 first struck run, second struck run, kept words, third struck run end."}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1505506D",
+          "runs": [{"kind": "TEXT", "text": "M15 Before old A\told B\nold C after."}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07EB1794",
+          "runs": [
+            {"kind": "TEXT", "text": "M16 A comment is anchored on these words."},
+            {"kind": "COMMENT_REFERENCE", "text": "", "commentId": "0"}
+          ]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60F44229",
+          "runs": [{"kind": "TEXT", "text": "M17 Party: Acme Pty Ltd Acme Holdings Pty Ltd."}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "159AFDFB",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        },
+        {
+          "address": "footnote:1/0",
+          "kind": "PARAGRAPH",
+          "story": "FOOTNOTE",
+          "paraId": "22CBE08C",
+          "style": "FootnoteText",
+          "noteType": "footnote",
+          "noteNumber": 1,
+          "noteId": "1",
+          "runs": [
+            {"kind": "NOTE_MARK", "text": "", "noteType": "footnote", "noteNumber": 1, "noteId": "1"},
+            {"kind": "TEXT", "text": " M10 footnote: the rate is 1.316 1.335."}
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "id": "0",
+          "author": "CR-068 base",
+          "initials": "CB",
+          "date": "2026-10-30T09:00:00",
+          "blocks": [
+            {
+              "address": "comment:0/0",
+              "kind": "PARAGRAPH",
+              "story": "COMMENT",
+              "paraId": "0E58E58B",
+              "style": "CommentText",
+              "runs": [
+                {"kind": "TEXT", "text": "M16 comment: "},
+                {"kind": "TEXT", "text": "withdrawn remark, ", "strike": true},
+                {"kind": "TEXT", "text": "kept remark."}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

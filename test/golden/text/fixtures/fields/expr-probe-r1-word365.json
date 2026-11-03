@@ -1,0 +1,3231 @@
+{
+  "header": {
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:06Z",
+    "fixture": "fixtures/fields/expr-probe-r1-word365.docx",
+    "fixtureBytes": 20860,
+    "timeZone": "UTC",
+    "mcPreferChoice": "a a13cmd a14 a15 a16 a1611 a16svg a18hc adec am3d an18 anam3d b c c14 c15 c16 c16ac c16r3 cdr cdr14 cei comp cp cppr cs cx cx1 cx2 dc dcterms dgm dgm14 dgm1612 ds dsp iact ink16 lc m mc msink o p p13cmd p14 p15 p1510 p159 p16 p166 p1710 p173 p184 pic pic14 pkg prop properties psez pslz psuz pvml r rel sl sle sle15 thm15 tsle v vt w w10 w14 w15 w16 w16cex w16cid w16du w16sdtdh w16sdtfl w16se we wetp wne wp wp14 wp15 wpc wpg wps x12ac x14 x14ac x15 x15ac x16 xcalcf xdr xdr14 xm xr xvml"
+  },
+  "metadata": {
+    "fields_update_on_open": false,
+    "core": {
+      "creator": "docx4j 17.3.5-SNAPSHOT",
+      "revision": "2",
+      "lastModifiedBy": "Author A",
+      "created": "2026-10-28T04:54:00Z",
+      "modified": "2026-10-28T04:54:00Z"
+    },
+    "app": {
+      "Application": "Microsoft Office Word",
+      "AppVersion": "16.0000",
+      "Template": "Normal.dotm",
+      "TotalTime": 1,
+      "DocSecurity": 0
+    }
+  },
+  "readings": {
+    "accepted": {
+      "options": {},
+      "plainText": "CR-067 phase 2 expression probe\nSelect all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD.\nBookmark x holds the number 5.\nFormulas: operators and the default number format\nF01_PRECEDENCE = 14\nF02_PARENS = 20\nF03_DIV = 2.5\nF04_THIRD = 0.33\nF05_TWO_THIRDS = 0.67\nF06_POWER = 1024\nF07_ROOT = 1.4\nF08_UNARY = -3\nF09_PERCENT = 0.5\nF10_TIMES_NEG = -6\nF11_SPACES = 6\nF12_BIG = 1000000000000\nF13_SW_2DP = 10.00\nF14_SW_3DP = 0.333\nF15_COMPARE_IN_FORMULA = 1\nF16_EQUAL_IN_FORMULA = 0\nFormulas: error texts\nF17_ZERO_DIVIDE = !Zero Divide\nF18_UNEXPECTED_END = !Unexpected End of Formula\nF19_SYNTAX = !Missing Operator\nF20_UNDEFINED = !Undefined Bookmark, NOPE\u9f6f\u00ee\nF21_BAD_FUNCTION = !Syntax Error, 1\nFormulas: functions\nF22_ABS = 3\nF23_INT_POS = 3\nF24_INT_NEG = -3\nF25_ROUND_2 = 2.35\nF26_ROUND_HALF = 3\nF27_ROUND_NEG_HALF = -3\nF28_ROUND_HUNDREDS = 1200\nF29_MOD = 1\nF30_MOD_NEG = -1\nF31_SIGN = -1\nF32_SUM = 6\nF33_AVERAGE = 2.33\nF34_MIN = 2\nF35_MAX = 8\nF36_COUNT = 3\nF37_PRODUCT = 24\nF38_AND = 0\nF39_OR = 1\nF40_NOT = 1\nF41_TRUE = 1\nF42_FALSE = 0\nF43_IF_FUNCTION = 10\nF44_NESTED_FUNCTIONS = 2\nFormulas: number forms (the VM's regional format decides; please note it in results.txt)\nF45_DECIMAL_POINT = 2.5\nF46_DECIMAL_COMMA = !Syntax Error, ,\nF47_THOUSANDS = 1,001\nF48_LEADING_ZEROS = 8\nFormulas: bookmarks (bookmark x holds the text 5)\nF49_BOOKMARK = 10\nF50_BOOKMARK_SPACED = 8\nF51_BOOKMARK_IN_FUNCTION = 6\nF52_DEFINED = 1\nF53_DEFINED_NOPE = 0\nF54_NESTED_REF = 6\nCOMPARE: numbers, strings, wildcards, case\nC01_NUM_GT = 1\nC02_NUM_TWO_DIGITS = 1\nC03_QUOTED_NUMBERS = 0\nC04_STRING_ORDER = 1\nC05_CASE = 0\nC06_WILDCARD_STAR = 1\nC07_WILDCARD_Q = 1\nC08_WILDCARD_LEFT = 0\nC09_MIXED = 0\nC10_BOOKMARK_NAME = 1\nC11_DECIMAL_EQ = 1\nC12_LEADING_ZEROS = 1\nC13_THOUSANDS = 1\nC14_NEGATIVE = 1\nC15_EMPTY = 1\nC16_NE = 1\nC17_GE = 1\nC18_LE = 0\nIF: the forms\nI01_QUOTED = yes\nI02_BARE = yes\nI03_NO_FALSE_TEXT = \nI04_MULTI_WORD = multi word true\nI05_NE = yes\nI06_GE = yes\nI07_LE = no\nI08_NO_SPACES = Error! Unknown op code for conditional.\nI09_BAD_OPERATOR = Error! Unknown op code for conditional.\nI10_EXTRA_TEXT = yes\nI11_BARE_EXTRA = a\nI12_EMPTY_STRINGS = yes\nI13_SPACE_IN_STRING = yes\nI14_EMPTY_RIGHT = no\nI15_FORMAT_SWITCH = YES\nIF: numbers against strings\nI16_NUMERIC = yes\nI17_QUOTED_NUMBERS = no\nI18_STRING_ORDER = yes\nI19_MIXED = no\nI20_DECIMAL = yes\nI21_NEGATIVE = yes\nI22_THOUSANDS = yes\nIF: case and wildcards\nI23_CASE = no\nI24_WILDCARD_STAR = yes\nI25_WILDCARD_Q = yes\nI26_WILDCARD_NE = no\nI27_WILDCARD_LT = no\nI28_WILDCARD_LEFT = no\nIF: nested fields\nI29_NESTED_FORMULA = yes\nI30_NESTED_DATE = yes\nI31_NESTED_IN_RESULT = 2\nI32_NESTED_REF = yes\nI33_NESTED_BOTH = yes\nSET and REF (bookmarks a SET defines)\nS01_SET = \nS02_REF_SET = 42\nS03_FORMULA_SET = 43\nS04_IF_REF_SET = yes\nS05_DEFINED_SET = 1\nS06_SET_STRING = \nS07_REF_STRING = Hello World\nS08_IF_STRING_WILDCARD = yes\nS09_SET_NESTED = \nS10_REF_NESTED = 42\nTable formulas (the cells below the numbers and to their right)\n1\t10\tx\t11\n2\t20\t\t22\n3\t30\t5\t38\n6\t20\t5\t33\n21\t3\t1\t104\nEnd of the probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3AD0C40B",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "CR-067 phase 2 expression probe"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75FDA17A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Select all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1E28AA1A",
+          "runs": [{"kind": "TEXT", "text": "Bookmark x holds the number 5."}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "191266C3",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: operators and the default number format"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71FD0CF8",
+          "runs": [{"kind": "TEXT", "text": "F01_PRECEDENCE = 14"}],
+          "fields": [{"instr": " =2+3*4 ", "result": "14"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13E786E6",
+          "runs": [{"kind": "TEXT", "text": "F02_PARENS = 20"}],
+          "fields": [{"instr": " =(2+3)*4 ", "result": "20"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "342EE253",
+          "runs": [{"kind": "TEXT", "text": "F03_DIV = 2.5"}],
+          "fields": [{"instr": " =10/4 ", "result": "2.5"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05AD498C",
+          "runs": [{"kind": "TEXT", "text": "F04_THIRD = 0.33"}],
+          "fields": [{"instr": " =1/3 ", "result": "0.33"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63EB2698",
+          "runs": [{"kind": "TEXT", "text": "F05_TWO_THIRDS = 0.67"}],
+          "fields": [{"instr": " =2/3 ", "result": "0.67"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F3491E6",
+          "runs": [{"kind": "TEXT", "text": "F06_POWER = 1024"}],
+          "fields": [{"instr": " =2^10 ", "result": "1024"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2ECE07FC",
+          "runs": [{"kind": "TEXT", "text": "F07_ROOT = 1.4"}],
+          "fields": [{"instr": " =2^0.5 ", "result": "1.4"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "311529D0",
+          "runs": [{"kind": "TEXT", "text": "F08_UNARY = -3"}],
+          "fields": [{"instr": " =-5+2 ", "result": "-3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13F1CD2F",
+          "runs": [{"kind": "TEXT", "text": "F09_PERCENT = 0.5"}],
+          "fields": [{"instr": " =50% ", "result": "0.5"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E593587",
+          "runs": [{"kind": "TEXT", "text": "F10_TIMES_NEG = -6"}],
+          "fields": [{"instr": " =2*-3 ", "result": "-6"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F675162",
+          "runs": [{"kind": "TEXT", "text": "F11_SPACES = 6"}],
+          "fields": [{"instr": " = 5 + 1 ", "result": "6"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39AA1889",
+          "runs": [{"kind": "TEXT", "text": "F12_BIG = 1000000000000"}],
+          "fields": [{"instr": " =1000000*1000000 ", "result": "1000000000000"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D7C0407",
+          "runs": [{"kind": "TEXT", "text": "F13_SW_2DP = 10.00"}],
+          "fields": [{"instr": " =10 \\# \"0.00\" ", "result": "10.00"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29B36C97",
+          "runs": [{"kind": "TEXT", "text": "F14_SW_3DP = 0.333"}],
+          "fields": [{"instr": " =1/3 \\# \"0.000\" ", "result": "0.333"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6359B3D8",
+          "runs": [{"kind": "TEXT", "text": "F15_COMPARE_IN_FORMULA = 1"}],
+          "fields": [{"instr": " =3>2 ", "result": "1"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03556141",
+          "runs": [{"kind": "TEXT", "text": "F16_EQUAL_IN_FORMULA = 0"}],
+          "fields": [{"instr": " =3=2 ", "result": "0"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D80B0C8",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: error texts"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0AF560",
+          "runs": [{"kind": "TEXT", "text": "F17_ZERO_DIVIDE = "}, {"kind": "TEXT", "text": "!Zero Divide", "bold": true}],
+          "fields": [{"instr": " =1/0 ", "result": "!Zero Divide"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38743313",
+          "runs": [
+            {"kind": "TEXT", "text": "F18_UNEXPECTED_END = "},
+            {"kind": "TEXT", "text": "!Unexpected End of Formula", "bold": true}
+          ],
+          "fields": [{"instr": " =1+ ", "result": "!Unexpected End of Formula"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5CD83984",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "TEXT", "text": "F19_SYNTAX = "},
+            {"kind": "TEXT", "text": "!Missing Operator", "bold": true}
+          ],
+          "fields": [{"instr": " =1 2 ", "result": "!Missing Operator"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E236015",
+          "runs": [
+            {"kind": "TEXT", "text": "F20_UNDEFINED = "},
+            {"kind": "TEXT", "text": "!Undefined Bookmark, NOPE\u9f6f\u00ee", "bold": true}
+          ],
+          "fields": [{"instr": " =nope ", "result": "!Undefined Bookmark, NOPE\u9f6f\u00ee"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E29EB61",
+          "runs": [{"kind": "TEXT", "text": "F21_BAD_FUNCTION = "}, {"kind": "TEXT", "text": "!Syntax Error, 1", "bold": true}],
+          "fields": [{"instr": " =NOPE(1) ", "result": "!Syntax Error, 1"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0937DBDB",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: functions"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EFA1E73",
+          "runs": [{"kind": "TEXT", "text": "F22_ABS = 3"}],
+          "fields": [{"instr": " =ABS(-3) ", "result": "3"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C6EFCF8",
+          "runs": [{"kind": "TEXT", "text": "F23_INT_POS = 3"}],
+          "fields": [{"instr": " =INT(3.7) ", "result": "3"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68EB6BBE",
+          "runs": [{"kind": "TEXT", "text": "F24_INT_NEG = -3"}],
+          "fields": [{"instr": " =INT(-3.7) ", "result": "-3"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A9133F6",
+          "runs": [{"kind": "TEXT", "text": "F25_ROUND_2 = 2.35"}],
+          "fields": [{"instr": " =ROUND(2.345,2) ", "result": "2.35"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F833957",
+          "runs": [{"kind": "TEXT", "text": "F26_ROUND_HALF = 3"}],
+          "fields": [{"instr": " =ROUND(2.5,0) ", "result": "3"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "083B7156",
+          "runs": [{"kind": "TEXT", "text": "F27_ROUND_NEG_HALF = -3"}],
+          "fields": [{"instr": " =ROUND(-2.5,0) ", "result": "-3"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6B77A297",
+          "runs": [{"kind": "TEXT", "text": "F28_ROUND_HUNDREDS = 1200"}],
+          "fields": [{"instr": " =ROUND(1234.5,-2) ", "result": "1200"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "67A57D74",
+          "runs": [{"kind": "TEXT", "text": "F29_MOD = 1"}],
+          "fields": [{"instr": " =MOD(7,3) ", "result": "1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52CABC0F",
+          "runs": [{"kind": "TEXT", "text": "F30_MOD_NEG = -1"}],
+          "fields": [{"instr": " =MOD(-7,3) ", "result": "-1"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "469D5B06",
+          "runs": [{"kind": "TEXT", "text": "F31_SIGN = -1"}],
+          "fields": [{"instr": " =SIGN(-5) ", "result": "-1"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DB9CB46",
+          "runs": [{"kind": "TEXT", "text": "F32_SUM = 6"}],
+          "fields": [{"instr": " =SUM(1,2,3) ", "result": "6"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BB80AF4",
+          "runs": [{"kind": "TEXT", "text": "F33_AVERAGE = 2.33"}],
+          "fields": [{"instr": " =AVERAGE(1,2,4) ", "result": "2.33"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E891A44",
+          "runs": [{"kind": "TEXT", "text": "F34_MIN = 2"}],
+          "fields": [{"instr": " =MIN(4,2,8) ", "result": "2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC184A2",
+          "runs": [{"kind": "TEXT", "text": "F35_MAX = 8"}],
+          "fields": [{"instr": " =MAX(4,2,8) ", "result": "8"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "370A2434",
+          "runs": [{"kind": "TEXT", "text": "F36_COUNT = 3"}],
+          "fields": [{"instr": " =COUNT(1,2,3) ", "result": "3"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1B1BA134",
+          "runs": [{"kind": "TEXT", "text": "F37_PRODUCT = 24"}],
+          "fields": [{"instr": " =PRODUCT(2,3,4) ", "result": "24"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E041838",
+          "runs": [{"kind": "TEXT", "text": "F38_AND = 0"}],
+          "fields": [{"instr": " =AND(1,0) ", "result": "0"}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4E21C507",
+          "runs": [{"kind": "TEXT", "text": "F39_OR = 1"}],
+          "fields": [{"instr": " =OR(1,0) ", "result": "1"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00908F97",
+          "runs": [{"kind": "TEXT", "text": "F40_NOT = 1"}],
+          "fields": [{"instr": " =NOT(0) ", "result": "1"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44E13280",
+          "runs": [{"kind": "TEXT", "text": "F41_TRUE = 1"}],
+          "fields": [{"instr": " =TRUE ", "result": "1"}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E5B3D82",
+          "runs": [{"kind": "TEXT", "text": "F42_FALSE = 0"}],
+          "fields": [{"instr": " =FALSE ", "result": "0"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D535D78",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 3}, {"kind": "TEXT", "text": "F43_IF_FUNCTION = 10"}],
+          "fields": [{"instr": " =IF(3>2,10,20) ", "result": "10"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6235BC1A",
+          "runs": [{"kind": "TEXT", "text": "F44_NESTED_FUNCTIONS = 2"}],
+          "fields": [{"instr": " =ROUND(AVERAGE(1,2),0) ", "result": "2"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "427E26C8",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Formulas: number forms (the VM's regional format decides; please note it in results.txt)"
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7CA2B1BA",
+          "runs": [{"kind": "TEXT", "text": "F45_DECIMAL_POINT = 2.5"}],
+          "fields": [{"instr": " =1.5+1 ", "result": "2.5"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "08891C11",
+          "runs": [{"kind": "TEXT", "text": "F46_DECIMAL_COMMA = "}, {"kind": "TEXT", "text": "!Syntax Error, ,", "bold": true}],
+          "fields": [{"instr": " =1,5+1 ", "result": "!Syntax Error, ,"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F067672",
+          "runs": [{"kind": "TEXT", "text": "F47_THOUSANDS = 1,001"}],
+          "fields": [{"instr": " =1,000+1 ", "result": "1,001"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05FAA4B9",
+          "runs": [{"kind": "TEXT", "text": "F48_LEADING_ZEROS = 8"}],
+          "fields": [{"instr": " =007+1 ", "result": "8"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B8DEE3F",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: bookmarks (bookmark x holds the text 5)"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EF9EB10",
+          "runs": [{"kind": "TEXT", "text": "F49_BOOKMARK = 10"}],
+          "fields": [{"instr": " =x*2 ", "result": "10"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "24BB882D",
+          "runs": [{"kind": "TEXT", "text": "F50_BOOKMARK_SPACED = 8"}],
+          "fields": [{"instr": " =3 + x ", "result": "8"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4963E523",
+          "runs": [{"kind": "TEXT", "text": "F51_BOOKMARK_IN_FUNCTION = 6"}],
+          "fields": [{"instr": " =SUM(x,1) ", "result": "6"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "185A51CC",
+          "runs": [{"kind": "TEXT", "text": "F52_DEFINED = 1"}],
+          "fields": [{"instr": " =DEFINED(x) ", "result": "1"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C00D008",
+          "runs": [{"kind": "TEXT", "text": "F53_DEFINED_NOPE = 0"}],
+          "fields": [{"instr": " =DEFINED(nope) ", "result": "0"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2639A357",
+          "runs": [{"kind": "TEXT", "text": "F54_NESTED_REF = 6"}],
+          "fields": [{"instr": " REF x ", "result": "5"}, {"instr": " =5+1 ", "result": "6"}]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0C3C11AE",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "COMPARE: numbers, strings, wildcards, case"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "777F0837",
+          "runs": [{"kind": "TEXT", "text": "C01_NUM_GT = 1"}],
+          "fields": [{"instr": " COMPARE 5 > 3 ", "result": "1"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F6B152C",
+          "runs": [{"kind": "TEXT", "text": "C02_NUM_TWO_DIGITS = 1"}],
+          "fields": [{"instr": " COMPARE 10 > 9 ", "result": "1"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A18281B",
+          "runs": [{"kind": "TEXT", "text": "C03_QUOTED_NUMBERS = 0"}],
+          "fields": [{"instr": " COMPARE \"10\" > \"9\" ", "result": "0"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BC75598",
+          "runs": [{"kind": "TEXT", "text": "C04_STRING_ORDER = 1"}],
+          "fields": [{"instr": " COMPARE abc < abd ", "result": "1"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "292B947E",
+          "runs": [{"kind": "TEXT", "text": "C05_CASE = 0"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"ABC\" ", "result": "0"}]
+        },
+        {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07EC6B63",
+          "runs": [{"kind": "TEXT", "text": "C06_WILDCARD_STAR = 1"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a*\" ", "result": "1"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13E05EA1",
+          "runs": [{"kind": "TEXT", "text": "C07_WILDCARD_Q = 1"}],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a?c\" ", "result": "1"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "219AF9AB",
+          "runs": [{"kind": "TEXT", "text": "C08_WILDCARD_LEFT = 0"}],
+          "fields": [{"instr": " COMPARE \"a?c\" = \"abc\" ", "result": "0"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5168CAEB",
+          "runs": [{"kind": "TEXT", "text": "C09_MIXED = 0"}],
+          "fields": [{"instr": " COMPARE 5 > \"abc\" ", "result": "0"}]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C3D833F",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 4}, {"kind": "TEXT", "text": "C10_BOOKMARK_NAME = 1"}],
+          "fields": [{"instr": " COMPARE x = 5 ", "result": "1"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1EE0D49E",
+          "runs": [{"kind": "TEXT", "text": "C11_DECIMAL_EQ = 1"}],
+          "fields": [{"instr": " COMPARE 5 = 5.0 ", "result": "1"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "324964E0",
+          "runs": [{"kind": "TEXT", "text": "C12_LEADING_ZEROS = 1"}],
+          "fields": [{"instr": " COMPARE 007 = 7 ", "result": "1"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44AFB70C",
+          "runs": [{"kind": "TEXT", "text": "C13_THOUSANDS = 1"}],
+          "fields": [{"instr": " COMPARE 1,000 = 1000 ", "result": "1"}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "240E20C0",
+          "runs": [{"kind": "TEXT", "text": "C14_NEGATIVE = 1"}],
+          "fields": [{"instr": " COMPARE -1 < 0 ", "result": "1"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0B33FA",
+          "runs": [{"kind": "TEXT", "text": "C15_EMPTY = 1"}],
+          "fields": [{"instr": " COMPARE \"\" = \"\" ", "result": "1"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41D5C993",
+          "runs": [{"kind": "TEXT", "text": "C16_NE = 1"}],
+          "fields": [{"instr": " COMPARE 5 <> 4 ", "result": "1"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41A2D861",
+          "runs": [{"kind": "TEXT", "text": "C17_GE = 1"}],
+          "fields": [{"instr": " COMPARE 5 >= 5 ", "result": "1"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F53E21F",
+          "runs": [{"kind": "TEXT", "text": "C18_LE = 0"}],
+          "fields": [{"instr": " COMPARE 5 <= 4 ", "result": "0"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "701693C7",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: the forms"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D30354D",
+          "runs": [{"kind": "TEXT", "text": "I01_QUOTED = yes"}],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" ", "result": "yes"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D799621",
+          "runs": [{"kind": "TEXT", "text": "I02_BARE = yes"}],
+          "fields": [{"instr": " IF 5 > 3 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2C812A95",
+          "runs": [{"kind": "TEXT", "text": "I03_NO_FALSE_TEXT = "}],
+          "fields": [{"instr": " IF 5 = 4 yes "}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "724B719D",
+          "runs": [{"kind": "TEXT", "text": "I04_MULTI_WORD = multi word true"}],
+          "fields": [{"instr": " IF 5 = 5 \"multi word true\" \"multi word false\" ", "result": "multi word true"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "53528BEB",
+          "runs": [{"kind": "TEXT", "text": "I05_NE = yes"}],
+          "fields": [{"instr": " IF 5 <> 4 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20CEA830",
+          "runs": [{"kind": "TEXT", "text": "I06_GE = yes"}],
+          "fields": [{"instr": " IF 5 >= 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "33170FE8",
+          "runs": [{"kind": "TEXT", "text": "I07_LE = no"}],
+          "fields": [{"instr": " IF 5 <= 4 yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "16CA024A",
+          "runs": [
+            {"kind": "TEXT", "text": "I08_NO_SPACES = "},
+            {"kind": "TEXT", "text": "Error! Unknown op code for conditional.", "bold": true}
+          ],
+          "fields": [{"instr": " IF 5=5 yes no ", "result": "Error! Unknown op code for conditional."}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC67D8A",
+          "runs": [
+            {"kind": "TEXT", "text": "I09_BAD_OPERATOR = "},
+            {"kind": "TEXT", "text": "Error! Unknown op code for conditional.", "bold": true}
+          ],
+          "fields": [{"instr": " IF 5 ! 5 yes no ", "result": "Error! Unknown op code for conditional."}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7FCAFADC",
+          "runs": [{"kind": "TEXT", "text": "I10_EXTRA_TEXT = yes"}],
+          "fields": [{"instr": " IF 5 > 3 yes no extra ", "result": "yes"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2906C10F",
+          "runs": [{"kind": "TEXT", "text": "I11_BARE_EXTRA = a"}],
+          "fields": [{"instr": " IF 5 = 5 a b c ", "result": "a"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03292F19",
+          "runs": [{"kind": "TEXT", "text": "I12_EMPTY_STRINGS = yes"}],
+          "fields": [{"instr": " IF \"\" = \"\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E0092F8",
+          "runs": [{"kind": "TEXT", "text": "I13_SPACE_IN_STRING = yes"}],
+          "fields": [{"instr": " IF \"a b\" = \"a b\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "57131979",
+          "runs": [{"kind": "TEXT", "text": "I14_EMPTY_RIGHT = no"}],
+          "fields": [{"instr": " IF 5 = \"\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12C51E96",
+          "runs": [{"kind": "TEXT", "text": "I15_FORMAT_SWITCH = YES"}],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" \\* Upper ", "result": "YES"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2F331BFD",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 5},
+            {"kind": "TEXT", "text": "IF: numbers against strings"}
+          ]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56C574ED",
+          "runs": [{"kind": "TEXT", "text": "I16_NUMERIC = yes"}],
+          "fields": [{"instr": " IF 10 > 9 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "702394E4",
+          "runs": [{"kind": "TEXT", "text": "I17_QUOTED_NUMBERS = no"}],
+          "fields": [{"instr": " IF \"10\" > \"9\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2013E524",
+          "runs": [{"kind": "TEXT", "text": "I18_STRING_ORDER = yes"}],
+          "fields": [{"instr": " IF abc < abd yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "364A68BA",
+          "runs": [{"kind": "TEXT", "text": "I19_MIXED = no"}],
+          "fields": [{"instr": " IF 5 > \"abc\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FA06875",
+          "runs": [{"kind": "TEXT", "text": "I20_DECIMAL = yes"}],
+          "fields": [{"instr": " IF 5.0 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27D435E2",
+          "runs": [{"kind": "TEXT", "text": "I21_NEGATIVE = yes"}],
+          "fields": [{"instr": " IF -1 < 0 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1323EFBA",
+          "runs": [{"kind": "TEXT", "text": "I22_THOUSANDS = yes"}],
+          "fields": [{"instr": " IF 1,000 > 999 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "64B07721",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: case and wildcards"}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60D70E8B",
+          "runs": [{"kind": "TEXT", "text": "I23_CASE = no"}],
+          "fields": [{"instr": " IF \"abc\" = \"ABC\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3555D75E",
+          "runs": [{"kind": "TEXT", "text": "I24_WILDCARD_STAR = yes"}],
+          "fields": [{"instr": " IF \"abc\" = \"a*\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39340811",
+          "runs": [{"kind": "TEXT", "text": "I25_WILDCARD_Q = yes"}],
+          "fields": [{"instr": " IF \"abc\" = \"a?c\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C2642A1",
+          "runs": [{"kind": "TEXT", "text": "I26_WILDCARD_NE = no"}],
+          "fields": [{"instr": " IF \"abc\" <> \"a*\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02D6D4C9",
+          "runs": [{"kind": "TEXT", "text": "I27_WILDCARD_LT = no"}],
+          "fields": [{"instr": " IF \"abc\" < \"a*\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06ADE2A3",
+          "runs": [{"kind": "TEXT", "text": "I28_WILDCARD_LEFT = no"}],
+          "fields": [{"instr": " IF \"a?c\" = \"abc\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "57DC42DC",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: nested fields"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "37FDD2DF",
+          "runs": [{"kind": "TEXT", "text": "I29_NESTED_FORMULA = yes"}],
+          "fields": [{"instr": " =2+3 ", "result": "5"}, {"instr": " IF 5 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F8F8137",
+          "runs": [{"kind": "TEXT", "text": "I30_NESTED_DATE = yes"}],
+          "fields": [{"instr": " DATE \\@ yyyy ", "result": "2026"}, {"instr": " IF 2026 > 2000 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F5CEA67",
+          "runs": [{"kind": "TEXT", "text": "I31_NESTED_IN_RESULT = 2"}],
+          "fields": [{"instr": " =1+1 ", "result": "2"}, {"instr": " IF 5 = 5 2 no ", "result": "2"}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0A995FF1",
+          "runs": [{"kind": "TEXT", "text": "I32_NESTED_REF = yes"}],
+          "fields": [{"instr": " REF x ", "result": "5"}, {"instr": " IF 5 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390250F5",
+          "runs": [{"kind": "TEXT", "text": "I33_NESTED_BOTH = yes"}],
+          "fields": [
+            {"instr": " =1+1 ", "result": "2"},
+            {"instr": " =1+2 ", "result": "3"},
+            {"instr": " IF 2 < 3 yes no ", "result": "yes"}
+          ]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28E88785",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "SET and REF (bookmarks a SET defines)"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BA3BBD9",
+          "runs": [{"kind": "TEXT", "text": "S01_SET = "}],
+          "fields": [{"instr": " SET total 42 ", "result": ""}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "536A7F6C",
+          "runs": [{"kind": "TEXT", "text": "S02_REF_SET = 42"}],
+          "fields": [{"instr": " REF total ", "result": "42"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "37A73B5C",
+          "runs": [{"kind": "TEXT", "text": "S03_FORMULA_SET = 43"}],
+          "fields": [{"instr": " =total+1 ", "result": "43"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "259D0C32",
+          "runs": [{"kind": "PAGE_MARKER", "text": "", "pageNumber": 6}, {"kind": "TEXT", "text": "S04_IF_REF_SET = yes"}],
+          "fields": [{"instr": " REF total ", "result": "42"}, {"instr": " IF 42 > 40 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14E9907D",
+          "runs": [{"kind": "TEXT", "text": "S05_DEFINED_SET = 1"}],
+          "fields": [{"instr": " =DEFINED(total) ", "result": "1"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F58D956",
+          "runs": [{"kind": "TEXT", "text": "S06_SET_STRING = "}],
+          "fields": [{"instr": " SET greeting \"Hello World\" ", "result": ""}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E968E7B",
+          "runs": [{"kind": "TEXT", "text": "S07_REF_STRING = Hello World"}],
+          "fields": [{"instr": " REF greeting ", "result": "Hello World"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20E50783",
+          "runs": [{"kind": "TEXT", "text": "S08_IF_STRING_WILDCARD = yes"}],
+          "fields": [
+            {"instr": " REF greeting ", "result": "Hello World"},
+            {"instr": " IF \"Hello World\" = \"Hello*\" yes no ", "result": "yes"}
+          ]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0D5DE5C3",
+          "runs": [{"kind": "TEXT", "text": "S09_SET_NESTED = "}],
+          "fields": [{"instr": " =6*7 ", "result": "42"}, {"instr": " SET n 42 ", "result": ""}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "66443404",
+          "runs": [{"kind": "TEXT", "text": "S10_REF_NESTED = 42"}],
+          "fields": [{"instr": " REF n ", "result": "42"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "618C76E9",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Table formulas (the cells below the numbers and to their right)"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/130/0",
+              "cells": [
+                {
+                  "address": "body/130/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "64BAB357",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "697F039E",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "48BABDA2",
+                      "runs": [{"kind": "TEXT", "text": "x"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3F09C5A5",
+                      "runs": [{"kind": "TEXT", "text": "11"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "11"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/1",
+              "cells": [
+                {
+                  "address": "body/130/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3BA03FC0",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0DBA8930",
+                      "runs": [{"kind": "TEXT", "text": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/2",
+                  "blocks": [{"address": "body/130/1/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "482DA125"}]
+                },
+                {
+                  "address": "body/130/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "198BF6D0",
+                      "runs": [{"kind": "TEXT", "text": "22"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "22"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/2",
+              "cells": [
+                {
+                  "address": "body/130/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6DCDB572",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "07B6BE91",
+                      "runs": [{"kind": "TEXT", "text": "30"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "08B986BD",
+                      "runs": [{"kind": "TEXT", "text": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5072ADC4",
+                      "runs": [{"kind": "TEXT", "text": "38"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "38"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/3",
+              "cells": [
+                {
+                  "address": "body/130/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "269DAAA6",
+                      "runs": [{"kind": "TEXT", "text": "6"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "6"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "09A8770D",
+                      "runs": [{"kind": "TEXT", "text": "20"}],
+                      "fields": [{"instr": " =AVERAGE(ABOVE) ", "result": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1EEBF1E9",
+                      "runs": [{"kind": "TEXT", "text": "5"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5CAC365C",
+                      "runs": [{"kind": "TEXT", "text": "33"}],
+                      "fields": [{"instr": " =SUM(A1:B2) ", "result": "33"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/4",
+              "cells": [
+                {
+                  "address": "body/130/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "193B56D1",
+                      "runs": [{"kind": "TEXT", "text": "21"}],
+                      "fields": [{"instr": " =A1+B2 ", "result": "21"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "147E49A0",
+                      "runs": [{"kind": "TEXT", "text": "3"}],
+                      "fields": [{"instr": " =MAX(A1:A3) ", "result": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4BDB2D5B",
+                      "runs": [{"kind": "TEXT", "text": "1"}],
+                      "fields": [{"instr": " =COUNT(C1:C3) ", "result": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3267D8AC",
+                      "runs": [{"kind": "TEXT", "text": "104"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "104"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "170D9A6B",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        }
+      ],
+      "warnings": [{"kind": "field.no_result", "address": "body/84"}]
+    },
+    "original": {"options": {"view": "original"}, "sameAs": "accepted"},
+    "markup": {"options": {"view": "markup", "markup_detail": "author_date"}, "sameAs": "accepted"},
+    "everything": {
+      "options": {
+        "include": ["headers", "footers", "comments", "glossary"],
+        "comments": true,
+        "hidden": true,
+        "field_codes": true,
+        "toc": true,
+        "list_labels": true,
+        "alt_text": true,
+        "metadata": true,
+        "page_markers": true
+      },
+      "plainText": "[core properties: creator: docx4j 17.3.5-SNAPSHOT; revision: 2; lastModifiedBy: Author A; created: 2026-10-28T04:54:00Z; modified: 2026-10-28T04:54:00Z]\n[application properties: Application: Microsoft Office Word; AppVersion: 16.0000; Template: Normal.dotm; TotalTime: 1; DocSecurity: 0]\nCR-067 phase 2 expression probe\nSelect all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD.\nBookmark x holds the number 5.\nFormulas: operators and the default number format\nF01_PRECEDENCE =  =2+3*4 14\nF02_PARENS =  =(2+3)*4 20\nF03_DIV =  =10/4 2.5\nF04_THIRD =  =1/3 0.33\nF05_TWO_THIRDS =  =2/3 0.67\nF06_POWER =  =2^10 1024\nF07_ROOT =  =2^0.5 1.4\nF08_UNARY =  =-5+2 -3\nF09_PERCENT =  =50% 0.5\nF10_TIMES_NEG =  =2*-3 -6\nF11_SPACES =  = 5 + 1 6\nF12_BIG =  =1000000*1000000 1000000000000\nF13_SW_2DP =  =10 \\# \"0.00\" 10.00\nF14_SW_3DP =  =1/3 \\# \"0.000\" 0.333\nF15_COMPARE_IN_FORMULA =  =3>2 1\nF16_EQUAL_IN_FORMULA =  =3=2 0\nFormulas: error texts\nF17_ZERO_DIVIDE =  =1/0 !Zero Divide\nF18_UNEXPECTED_END =  =1+ !Unexpected End of Formula\n[page 2]F19_SYNTAX =  =1 2 !Missing Operator\nF20_UNDEFINED =  =nope !Undefined Bookmark, NOPE\u9f6f\u00ee\nF21_BAD_FUNCTION =  =NOPE(1) !Syntax Error, 1\nFormulas: functions\nF22_ABS =  =ABS(-3) 3\nF23_INT_POS =  =INT(3.7) 3\nF24_INT_NEG =  =INT(-3.7) -3\nF25_ROUND_2 =  =ROUND(2.345,2) 2.35\nF26_ROUND_HALF =  =ROUND(2.5,0) 3\nF27_ROUND_NEG_HALF =  =ROUND(-2.5,0) -3\nF28_ROUND_HUNDREDS =  =ROUND(1234.5,-2) 1200\nF29_MOD =  =MOD(7,3) 1\nF30_MOD_NEG =  =MOD(-7,3) -1\nF31_SIGN =  =SIGN(-5) -1\nF32_SUM =  =SUM(1,2,3) 6\nF33_AVERAGE =  =AVERAGE(1,2,4) 2.33\nF34_MIN =  =MIN(4,2,8) 2\nF35_MAX =  =MAX(4,2,8) 8\nF36_COUNT =  =COUNT(1,2,3) 3\nF37_PRODUCT =  =PRODUCT(2,3,4) 24\nF38_AND =  =AND(1,0) 0\nF39_OR =  =OR(1,0) 1\nF40_NOT =  =NOT(0) 1\nF41_TRUE =  =TRUE 1\nF42_FALSE =  =FALSE 0\n[page 3]F43_IF_FUNCTION =  =IF(3>2,10,20) 10\nF44_NESTED_FUNCTIONS =  =ROUND(AVERAGE(1,2),0) 2\nFormulas: number forms (the VM's regional format decides; please note it in results.txt)\nF45_DECIMAL_POINT =  =1.5+1 2.5\nF46_DECIMAL_COMMA =  =1,5+1 !Syntax Error, ,\nF47_THOUSANDS =  =1,000+1 1,001\nF48_LEADING_ZEROS =  =007+1 8\nFormulas: bookmarks (bookmark x holds the text 5)\nF49_BOOKMARK =  =x*2 10\nF50_BOOKMARK_SPACED =  =3 + x 8\nF51_BOOKMARK_IN_FUNCTION =  =SUM(x,1) 6\nF52_DEFINED =  =DEFINED(x) 1\nF53_DEFINED_NOPE =  =DEFINED(nope) 0\nF54_NESTED_REF =  = REF x 5+1 6\nCOMPARE: numbers, strings, wildcards, case\nC01_NUM_GT =  COMPARE 5 > 3 1\nC02_NUM_TWO_DIGITS =  COMPARE 10 > 9 1\nC03_QUOTED_NUMBERS =  COMPARE \"10\" > \"9\" 0\nC04_STRING_ORDER =  COMPARE abc < abd 1\nC05_CASE =  COMPARE \"abc\" = \"ABC\" 0\nC06_WILDCARD_STAR =  COMPARE \"abc\" = \"a*\" 1\nC07_WILDCARD_Q =  COMPARE \"abc\" = \"a?c\" 1\nC08_WILDCARD_LEFT =  COMPARE \"a?c\" = \"abc\" 0\nC09_MIXED =  COMPARE 5 > \"abc\" 0\n[page 4]C10_BOOKMARK_NAME =  COMPARE x = 5 1\nC11_DECIMAL_EQ =  COMPARE 5 = 5.0 1\nC12_LEADING_ZEROS =  COMPARE 007 = 7 1\nC13_THOUSANDS =  COMPARE 1,000 = 1000 1\nC14_NEGATIVE =  COMPARE -1 < 0 1\nC15_EMPTY =  COMPARE \"\" = \"\" 1\nC16_NE =  COMPARE 5 <> 4 1\nC17_GE =  COMPARE 5 >= 5 1\nC18_LE =  COMPARE 5 <= 4 0\nIF: the forms\nI01_QUOTED =  IF 5 > 3 \"yes\" \"no\" yes\nI02_BARE =  IF 5 > 3 yes no yes\nI03_NO_FALSE_TEXT =  IF 5 = 4 yes \nI04_MULTI_WORD =  IF 5 = 5 \"multi word true\" \"multi word false\" multi word true\nI05_NE =  IF 5 <> 4 yes no yes\nI06_GE =  IF 5 >= 5 yes no yes\nI07_LE =  IF 5 <= 4 yes no no\nI08_NO_SPACES =  IF 5=5 yes no Error! Unknown op code for conditional.\nI09_BAD_OPERATOR =  IF 5 ! 5 yes no Error! Unknown op code for conditional.\nI10_EXTRA_TEXT =  IF 5 > 3 yes no extra yes\nI11_BARE_EXTRA =  IF 5 = 5 a b c a\nI12_EMPTY_STRINGS =  IF \"\" = \"\" yes no yes\nI13_SPACE_IN_STRING =  IF \"a b\" = \"a b\" yes no yes\nI14_EMPTY_RIGHT =  IF 5 = \"\" yes no no\nI15_FORMAT_SWITCH =  IF 5 > 3 \"yes\" \"no\" \\* Upper YES\n[page 5]IF: numbers against strings\nI16_NUMERIC =  IF 10 > 9 yes no yes\nI17_QUOTED_NUMBERS =  IF \"10\" > \"9\" yes no no\nI18_STRING_ORDER =  IF abc < abd yes no yes\nI19_MIXED =  IF 5 > \"abc\" yes no no\nI20_DECIMAL =  IF 5.0 = 5 yes no yes\nI21_NEGATIVE =  IF -1 < 0 yes no yes\nI22_THOUSANDS =  IF 1,000 > 999 yes no yes\nIF: case and wildcards\nI23_CASE =  IF \"abc\" = \"ABC\" yes no no\nI24_WILDCARD_STAR =  IF \"abc\" = \"a*\" yes no yes\nI25_WILDCARD_Q =  IF \"abc\" = \"a?c\" yes no yes\nI26_WILDCARD_NE =  IF \"abc\" <> \"a*\" yes no no\nI27_WILDCARD_LT =  IF \"abc\" < \"a*\" yes no no\nI28_WILDCARD_LEFT =  IF \"a?c\" = \"abc\" yes no no\nIF: nested fields\nI29_NESTED_FORMULA =  IF  =2+3 5 = 5 yes no yes\nI30_NESTED_DATE =  IF  DATE \\@ yyyy 2026 > 2000 yes no yes\nI31_NESTED_IN_RESULT =  IF 5 = 5  =1+1 2 no 2\nI32_NESTED_REF =  IF  REF x 5 = 5 yes no yes\nI33_NESTED_BOTH =  IF  =1+1 2 <  =1+2 3 yes no yes\nSET and REF (bookmarks a SET defines)\nS01_SET =  SET total 42 \nS02_REF_SET =  REF total 42\nS03_FORMULA_SET =  =total+1 43\n[page 6]S04_IF_REF_SET =  IF  REF total 42 > 40 yes no yes\nS05_DEFINED_SET =  =DEFINED(total) 1\nS06_SET_STRING =  SET greeting \"Hello World\" \nS07_REF_STRING =  REF greeting Hello World\nS08_IF_STRING_WILDCARD =  IF  REF greeting Hello World = \"Hello*\" yes no yes\nS09_SET_NESTED =  SET n  =6*7 42 \nS10_REF_NESTED =  REF n 42\nTable formulas (the cells below the numbers and to their right)\n1\t10\tx\t =SUM(LEFT) 11\n2\t20\t\t =SUM(LEFT) 22\n3\t30\t5\t =SUM(LEFT) 38\n =SUM(ABOVE) 6\t =AVERAGE(ABOVE) 20\t =SUM(ABOVE) 5\t =SUM(A1:B2) 33\n =A1+B2 21\t =MAX(A1:A3) 3\t =COUNT(C1:C3) 1\t =SUM(ABOVE) 104\nEnd of the probe.\n",
+      "blocks": [
+        {
+          "address": "body/0",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3AD0C40B",
+          "style": "Title",
+          "contextualSpacing": true,
+          "runs": [{"kind": "TEXT", "text": "CR-067 phase 2 expression probe"}]
+        },
+        {
+          "address": "body/1",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "75FDA17A",
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Select all, press F9, then save as described in README.txt. Each case: its token, then the field. A field Word leaves alone still says OLD."
+            }
+          ]
+        },
+        {
+          "address": "body/2",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1E28AA1A",
+          "runs": [{"kind": "TEXT", "text": "Bookmark x holds the number 5."}]
+        },
+        {
+          "address": "body/3",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "191266C3",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: operators and the default number format"}]
+        },
+        {
+          "address": "body/4",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "71FD0CF8",
+          "runs": [
+            {"kind": "TEXT", "text": "F01_PRECEDENCE = "},
+            {"kind": "FIELD_CODE", "text": " =2+3*4 "},
+            {"kind": "TEXT", "text": "14"}
+          ],
+          "fields": [{"instr": " =2+3*4 ", "result": "14"}]
+        },
+        {
+          "address": "body/5",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13E786E6",
+          "runs": [
+            {"kind": "TEXT", "text": "F02_PARENS = "},
+            {"kind": "FIELD_CODE", "text": " =(2+3)*4 "},
+            {"kind": "TEXT", "text": "20"}
+          ],
+          "fields": [{"instr": " =(2+3)*4 ", "result": "20"}]
+        },
+        {
+          "address": "body/6",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "342EE253",
+          "runs": [
+            {"kind": "TEXT", "text": "F03_DIV = "},
+            {"kind": "FIELD_CODE", "text": " =10/4 "},
+            {"kind": "TEXT", "text": "2.5"}
+          ],
+          "fields": [{"instr": " =10/4 ", "result": "2.5"}]
+        },
+        {
+          "address": "body/7",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05AD498C",
+          "runs": [
+            {"kind": "TEXT", "text": "F04_THIRD = "},
+            {"kind": "FIELD_CODE", "text": " =1/3 "},
+            {"kind": "TEXT", "text": "0.33"}
+          ],
+          "fields": [{"instr": " =1/3 ", "result": "0.33"}]
+        },
+        {
+          "address": "body/8",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "63EB2698",
+          "runs": [
+            {"kind": "TEXT", "text": "F05_TWO_THIRDS = "},
+            {"kind": "FIELD_CODE", "text": " =2/3 "},
+            {"kind": "TEXT", "text": "0.67"}
+          ],
+          "fields": [{"instr": " =2/3 ", "result": "0.67"}]
+        },
+        {
+          "address": "body/9",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4F3491E6",
+          "runs": [
+            {"kind": "TEXT", "text": "F06_POWER = "},
+            {"kind": "FIELD_CODE", "text": " =2^10 "},
+            {"kind": "TEXT", "text": "1024"}
+          ],
+          "fields": [{"instr": " =2^10 ", "result": "1024"}]
+        },
+        {
+          "address": "body/10",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2ECE07FC",
+          "runs": [
+            {"kind": "TEXT", "text": "F07_ROOT = "},
+            {"kind": "FIELD_CODE", "text": " =2^0.5 "},
+            {"kind": "TEXT", "text": "1.4"}
+          ],
+          "fields": [{"instr": " =2^0.5 ", "result": "1.4"}]
+        },
+        {
+          "address": "body/11",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "311529D0",
+          "runs": [
+            {"kind": "TEXT", "text": "F08_UNARY = "},
+            {"kind": "FIELD_CODE", "text": " =-5+2 "},
+            {"kind": "TEXT", "text": "-3"}
+          ],
+          "fields": [{"instr": " =-5+2 ", "result": "-3"}]
+        },
+        {
+          "address": "body/12",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13F1CD2F",
+          "runs": [
+            {"kind": "TEXT", "text": "F09_PERCENT = "},
+            {"kind": "FIELD_CODE", "text": " =50% "},
+            {"kind": "TEXT", "text": "0.5"}
+          ],
+          "fields": [{"instr": " =50% ", "result": "0.5"}]
+        },
+        {
+          "address": "body/13",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3E593587",
+          "runs": [
+            {"kind": "TEXT", "text": "F10_TIMES_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =2*-3 "},
+            {"kind": "TEXT", "text": "-6"}
+          ],
+          "fields": [{"instr": " =2*-3 ", "result": "-6"}]
+        },
+        {
+          "address": "body/14",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7F675162",
+          "runs": [
+            {"kind": "TEXT", "text": "F11_SPACES = "},
+            {"kind": "FIELD_CODE", "text": " = 5 + 1 "},
+            {"kind": "TEXT", "text": "6"}
+          ],
+          "fields": [{"instr": " = 5 + 1 ", "result": "6"}]
+        },
+        {
+          "address": "body/15",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39AA1889",
+          "runs": [
+            {"kind": "TEXT", "text": "F12_BIG = "},
+            {"kind": "FIELD_CODE", "text": " =1000000*1000000 "},
+            {"kind": "TEXT", "text": "1000000000000"}
+          ],
+          "fields": [{"instr": " =1000000*1000000 ", "result": "1000000000000"}]
+        },
+        {
+          "address": "body/16",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D7C0407",
+          "runs": [
+            {"kind": "TEXT", "text": "F13_SW_2DP = "},
+            {"kind": "FIELD_CODE", "text": " =10 \\# \"0.00\" "},
+            {"kind": "TEXT", "text": "10.00"}
+          ],
+          "fields": [{"instr": " =10 \\# \"0.00\" ", "result": "10.00"}]
+        },
+        {
+          "address": "body/17",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "29B36C97",
+          "runs": [
+            {"kind": "TEXT", "text": "F14_SW_3DP = "},
+            {"kind": "FIELD_CODE", "text": " =1/3 \\# \"0.000\" "},
+            {"kind": "TEXT", "text": "0.333"}
+          ],
+          "fields": [{"instr": " =1/3 \\# \"0.000\" ", "result": "0.333"}]
+        },
+        {
+          "address": "body/18",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6359B3D8",
+          "runs": [
+            {"kind": "TEXT", "text": "F15_COMPARE_IN_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " =3>2 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =3>2 ", "result": "1"}]
+        },
+        {
+          "address": "body/19",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03556141",
+          "runs": [
+            {"kind": "TEXT", "text": "F16_EQUAL_IN_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " =3=2 "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " =3=2 ", "result": "0"}]
+        },
+        {
+          "address": "body/20",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7D80B0C8",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: error texts"}]
+        },
+        {
+          "address": "body/21",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0AF560",
+          "runs": [
+            {"kind": "TEXT", "text": "F17_ZERO_DIVIDE = "},
+            {"kind": "FIELD_CODE", "text": " =1/0 "},
+            {"kind": "TEXT", "text": "!Zero Divide", "bold": true}
+          ],
+          "fields": [{"instr": " =1/0 ", "result": "!Zero Divide"}]
+        },
+        {
+          "address": "body/22",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "38743313",
+          "runs": [
+            {"kind": "TEXT", "text": "F18_UNEXPECTED_END = "},
+            {"kind": "FIELD_CODE", "text": " =1+ "},
+            {"kind": "TEXT", "text": "!Unexpected End of Formula", "bold": true}
+          ],
+          "fields": [{"instr": " =1+ ", "result": "!Unexpected End of Formula"}]
+        },
+        {
+          "address": "body/23",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5CD83984",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 2},
+            {"kind": "TEXT", "text": "F19_SYNTAX = "},
+            {"kind": "FIELD_CODE", "text": " =1 2 "},
+            {"kind": "TEXT", "text": "!Missing Operator", "bold": true}
+          ],
+          "fields": [{"instr": " =1 2 ", "result": "!Missing Operator"}]
+        },
+        {
+          "address": "body/24",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E236015",
+          "runs": [
+            {"kind": "TEXT", "text": "F20_UNDEFINED = "},
+            {"kind": "FIELD_CODE", "text": " =nope "},
+            {"kind": "TEXT", "text": "!Undefined Bookmark, NOPE\u9f6f\u00ee", "bold": true}
+          ],
+          "fields": [{"instr": " =nope ", "result": "!Undefined Bookmark, NOPE\u9f6f\u00ee"}]
+        },
+        {
+          "address": "body/25",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E29EB61",
+          "runs": [
+            {"kind": "TEXT", "text": "F21_BAD_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =NOPE(1) "},
+            {"kind": "TEXT", "text": "!Syntax Error, 1", "bold": true}
+          ],
+          "fields": [{"instr": " =NOPE(1) ", "result": "!Syntax Error, 1"}]
+        },
+        {
+          "address": "body/26",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0937DBDB",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: functions"}]
+        },
+        {
+          "address": "body/27",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3EFA1E73",
+          "runs": [
+            {"kind": "TEXT", "text": "F22_ABS = "},
+            {"kind": "FIELD_CODE", "text": " =ABS(-3) "},
+            {"kind": "TEXT", "text": "3"}
+          ],
+          "fields": [{"instr": " =ABS(-3) ", "result": "3"}]
+        },
+        {
+          "address": "body/28",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C6EFCF8",
+          "runs": [
+            {"kind": "TEXT", "text": "F23_INT_POS = "},
+            {"kind": "FIELD_CODE", "text": " =INT(3.7) "},
+            {"kind": "TEXT", "text": "3"}
+          ],
+          "fields": [{"instr": " =INT(3.7) ", "result": "3"}]
+        },
+        {
+          "address": "body/29",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "68EB6BBE",
+          "runs": [
+            {"kind": "TEXT", "text": "F24_INT_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =INT(-3.7) "},
+            {"kind": "TEXT", "text": "-3"}
+          ],
+          "fields": [{"instr": " =INT(-3.7) ", "result": "-3"}]
+        },
+        {
+          "address": "body/30",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A9133F6",
+          "runs": [
+            {"kind": "TEXT", "text": "F25_ROUND_2 = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(2.345,2) "},
+            {"kind": "TEXT", "text": "2.35"}
+          ],
+          "fields": [{"instr": " =ROUND(2.345,2) ", "result": "2.35"}]
+        },
+        {
+          "address": "body/31",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F833957",
+          "runs": [
+            {"kind": "TEXT", "text": "F26_ROUND_HALF = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(2.5,0) "},
+            {"kind": "TEXT", "text": "3"}
+          ],
+          "fields": [{"instr": " =ROUND(2.5,0) ", "result": "3"}]
+        },
+        {
+          "address": "body/32",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "083B7156",
+          "runs": [
+            {"kind": "TEXT", "text": "F27_ROUND_NEG_HALF = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(-2.5,0) "},
+            {"kind": "TEXT", "text": "-3"}
+          ],
+          "fields": [{"instr": " =ROUND(-2.5,0) ", "result": "-3"}]
+        },
+        {
+          "address": "body/33",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6B77A297",
+          "runs": [
+            {"kind": "TEXT", "text": "F28_ROUND_HUNDREDS = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(1234.5,-2) "},
+            {"kind": "TEXT", "text": "1200"}
+          ],
+          "fields": [{"instr": " =ROUND(1234.5,-2) ", "result": "1200"}]
+        },
+        {
+          "address": "body/34",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "67A57D74",
+          "runs": [
+            {"kind": "TEXT", "text": "F29_MOD = "},
+            {"kind": "FIELD_CODE", "text": " =MOD(7,3) "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =MOD(7,3) ", "result": "1"}]
+        },
+        {
+          "address": "body/35",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "52CABC0F",
+          "runs": [
+            {"kind": "TEXT", "text": "F30_MOD_NEG = "},
+            {"kind": "FIELD_CODE", "text": " =MOD(-7,3) "},
+            {"kind": "TEXT", "text": "-1"}
+          ],
+          "fields": [{"instr": " =MOD(-7,3) ", "result": "-1"}]
+        },
+        {
+          "address": "body/36",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "469D5B06",
+          "runs": [
+            {"kind": "TEXT", "text": "F31_SIGN = "},
+            {"kind": "FIELD_CODE", "text": " =SIGN(-5) "},
+            {"kind": "TEXT", "text": "-1"}
+          ],
+          "fields": [{"instr": " =SIGN(-5) ", "result": "-1"}]
+        },
+        {
+          "address": "body/37",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1DB9CB46",
+          "runs": [
+            {"kind": "TEXT", "text": "F32_SUM = "},
+            {"kind": "FIELD_CODE", "text": " =SUM(1,2,3) "},
+            {"kind": "TEXT", "text": "6"}
+          ],
+          "fields": [{"instr": " =SUM(1,2,3) ", "result": "6"}]
+        },
+        {
+          "address": "body/38",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BB80AF4",
+          "runs": [
+            {"kind": "TEXT", "text": "F33_AVERAGE = "},
+            {"kind": "FIELD_CODE", "text": " =AVERAGE(1,2,4) "},
+            {"kind": "TEXT", "text": "2.33"}
+          ],
+          "fields": [{"instr": " =AVERAGE(1,2,4) ", "result": "2.33"}]
+        },
+        {
+          "address": "body/39",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E891A44",
+          "runs": [
+            {"kind": "TEXT", "text": "F34_MIN = "},
+            {"kind": "FIELD_CODE", "text": " =MIN(4,2,8) "},
+            {"kind": "TEXT", "text": "2"}
+          ],
+          "fields": [{"instr": " =MIN(4,2,8) ", "result": "2"}]
+        },
+        {
+          "address": "body/40",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4CC184A2",
+          "runs": [
+            {"kind": "TEXT", "text": "F35_MAX = "},
+            {"kind": "FIELD_CODE", "text": " =MAX(4,2,8) "},
+            {"kind": "TEXT", "text": "8"}
+          ],
+          "fields": [{"instr": " =MAX(4,2,8) ", "result": "8"}]
+        },
+        {
+          "address": "body/41",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "370A2434",
+          "runs": [
+            {"kind": "TEXT", "text": "F36_COUNT = "},
+            {"kind": "FIELD_CODE", "text": " =COUNT(1,2,3) "},
+            {"kind": "TEXT", "text": "3"}
+          ],
+          "fields": [{"instr": " =COUNT(1,2,3) ", "result": "3"}]
+        },
+        {
+          "address": "body/42",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1B1BA134",
+          "runs": [
+            {"kind": "TEXT", "text": "F37_PRODUCT = "},
+            {"kind": "FIELD_CODE", "text": " =PRODUCT(2,3,4) "},
+            {"kind": "TEXT", "text": "24"}
+          ],
+          "fields": [{"instr": " =PRODUCT(2,3,4) ", "result": "24"}]
+        },
+        {
+          "address": "body/43",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E041838",
+          "runs": [
+            {"kind": "TEXT", "text": "F38_AND = "},
+            {"kind": "FIELD_CODE", "text": " =AND(1,0) "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " =AND(1,0) ", "result": "0"}]
+        },
+        {
+          "address": "body/44",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4E21C507",
+          "runs": [
+            {"kind": "TEXT", "text": "F39_OR = "},
+            {"kind": "FIELD_CODE", "text": " =OR(1,0) "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =OR(1,0) ", "result": "1"}]
+        },
+        {
+          "address": "body/45",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "00908F97",
+          "runs": [
+            {"kind": "TEXT", "text": "F40_NOT = "},
+            {"kind": "FIELD_CODE", "text": " =NOT(0) "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =NOT(0) ", "result": "1"}]
+        },
+        {
+          "address": "body/46",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44E13280",
+          "runs": [
+            {"kind": "TEXT", "text": "F41_TRUE = "},
+            {"kind": "FIELD_CODE", "text": " =TRUE "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =TRUE ", "result": "1"}]
+        },
+        {
+          "address": "body/47",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0E5B3D82",
+          "runs": [
+            {"kind": "TEXT", "text": "F42_FALSE = "},
+            {"kind": "FIELD_CODE", "text": " =FALSE "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " =FALSE ", "result": "0"}]
+        },
+        {
+          "address": "body/48",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5D535D78",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 3},
+            {"kind": "TEXT", "text": "F43_IF_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =IF(3>2,10,20) "},
+            {"kind": "TEXT", "text": "10"}
+          ],
+          "fields": [{"instr": " =IF(3>2,10,20) ", "result": "10"}]
+        },
+        {
+          "address": "body/49",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6235BC1A",
+          "runs": [
+            {"kind": "TEXT", "text": "F44_NESTED_FUNCTIONS = "},
+            {"kind": "FIELD_CODE", "text": " =ROUND(AVERAGE(1,2),0) "},
+            {"kind": "TEXT", "text": "2"}
+          ],
+          "fields": [{"instr": " =ROUND(AVERAGE(1,2),0) ", "result": "2"}]
+        },
+        {
+          "address": "body/50",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "427E26C8",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {
+              "kind": "TEXT",
+              "text": "Formulas: number forms (the VM's regional format decides; please note it in results.txt)"
+            }
+          ]
+        },
+        {
+          "address": "body/51",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7CA2B1BA",
+          "runs": [
+            {"kind": "TEXT", "text": "F45_DECIMAL_POINT = "},
+            {"kind": "FIELD_CODE", "text": " =1.5+1 "},
+            {"kind": "TEXT", "text": "2.5"}
+          ],
+          "fields": [{"instr": " =1.5+1 ", "result": "2.5"}]
+        },
+        {
+          "address": "body/52",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "08891C11",
+          "runs": [
+            {"kind": "TEXT", "text": "F46_DECIMAL_COMMA = "},
+            {"kind": "FIELD_CODE", "text": " =1,5+1 "},
+            {"kind": "TEXT", "text": "!Syntax Error, ,", "bold": true}
+          ],
+          "fields": [{"instr": " =1,5+1 ", "result": "!Syntax Error, ,"}]
+        },
+        {
+          "address": "body/53",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0F067672",
+          "runs": [
+            {"kind": "TEXT", "text": "F47_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " =1,000+1 "},
+            {"kind": "TEXT", "text": "1,001"}
+          ],
+          "fields": [{"instr": " =1,000+1 ", "result": "1,001"}]
+        },
+        {
+          "address": "body/54",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "05FAA4B9",
+          "runs": [
+            {"kind": "TEXT", "text": "F48_LEADING_ZEROS = "},
+            {"kind": "FIELD_CODE", "text": " =007+1 "},
+            {"kind": "TEXT", "text": "8"}
+          ],
+          "fields": [{"instr": " =007+1 ", "result": "8"}]
+        },
+        {
+          "address": "body/55",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7B8DEE3F",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Formulas: bookmarks (bookmark x holds the text 5)"}]
+        },
+        {
+          "address": "body/56",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0EF9EB10",
+          "runs": [
+            {"kind": "TEXT", "text": "F49_BOOKMARK = "},
+            {"kind": "FIELD_CODE", "text": " =x*2 "},
+            {"kind": "TEXT", "text": "10"}
+          ],
+          "fields": [{"instr": " =x*2 ", "result": "10"}]
+        },
+        {
+          "address": "body/57",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "24BB882D",
+          "runs": [
+            {"kind": "TEXT", "text": "F50_BOOKMARK_SPACED = "},
+            {"kind": "FIELD_CODE", "text": " =3 + x "},
+            {"kind": "TEXT", "text": "8"}
+          ],
+          "fields": [{"instr": " =3 + x ", "result": "8"}]
+        },
+        {
+          "address": "body/58",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4963E523",
+          "runs": [
+            {"kind": "TEXT", "text": "F51_BOOKMARK_IN_FUNCTION = "},
+            {"kind": "FIELD_CODE", "text": " =SUM(x,1) "},
+            {"kind": "TEXT", "text": "6"}
+          ],
+          "fields": [{"instr": " =SUM(x,1) ", "result": "6"}]
+        },
+        {
+          "address": "body/59",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "185A51CC",
+          "runs": [
+            {"kind": "TEXT", "text": "F52_DEFINED = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(x) "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =DEFINED(x) ", "result": "1"}]
+        },
+        {
+          "address": "body/60",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5C00D008",
+          "runs": [
+            {"kind": "TEXT", "text": "F53_DEFINED_NOPE = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(nope) "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " =DEFINED(nope) ", "result": "0"}]
+        },
+        {
+          "address": "body/61",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2639A357",
+          "runs": [
+            {"kind": "TEXT", "text": "F54_NESTED_REF = "},
+            {"kind": "FIELD_CODE", "text": " = REF x 5+1 "},
+            {"kind": "TEXT", "text": "6"}
+          ],
+          "fields": [{"instr": " REF x ", "result": "5"}, {"instr": " =5+1 ", "result": "6"}]
+        },
+        {
+          "address": "body/62",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0C3C11AE",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "COMPARE: numbers, strings, wildcards, case"}]
+        },
+        {
+          "address": "body/63",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "777F0837",
+          "runs": [
+            {"kind": "TEXT", "text": "C01_NUM_GT = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 > 3 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 5 > 3 ", "result": "1"}]
+        },
+        {
+          "address": "body/64",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F6B152C",
+          "runs": [
+            {"kind": "TEXT", "text": "C02_NUM_TWO_DIGITS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 10 > 9 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 10 > 9 ", "result": "1"}]
+        },
+        {
+          "address": "body/65",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2A18281B",
+          "runs": [
+            {"kind": "TEXT", "text": "C03_QUOTED_NUMBERS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"10\" > \"9\" "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " COMPARE \"10\" > \"9\" ", "result": "0"}]
+        },
+        {
+          "address": "body/66",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BC75598",
+          "runs": [
+            {"kind": "TEXT", "text": "C04_STRING_ORDER = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE abc < abd "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE abc < abd ", "result": "1"}]
+        },
+        {
+          "address": "body/67",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "292B947E",
+          "runs": [
+            {"kind": "TEXT", "text": "C05_CASE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"ABC\" "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"ABC\" ", "result": "0"}]
+        },
+        {
+          "address": "body/68",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "07EC6B63",
+          "runs": [
+            {"kind": "TEXT", "text": "C06_WILDCARD_STAR = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"a*\" "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a*\" ", "result": "1"}]
+        },
+        {
+          "address": "body/69",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "13E05EA1",
+          "runs": [
+            {"kind": "TEXT", "text": "C07_WILDCARD_Q = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"abc\" = \"a?c\" "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE \"abc\" = \"a?c\" ", "result": "1"}]
+        },
+        {
+          "address": "body/70",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "219AF9AB",
+          "runs": [
+            {"kind": "TEXT", "text": "C08_WILDCARD_LEFT = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"a?c\" = \"abc\" "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " COMPARE \"a?c\" = \"abc\" ", "result": "0"}]
+        },
+        {
+          "address": "body/71",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5168CAEB",
+          "runs": [
+            {"kind": "TEXT", "text": "C09_MIXED = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 > \"abc\" "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " COMPARE 5 > \"abc\" ", "result": "0"}]
+        },
+        {
+          "address": "body/72",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3C3D833F",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 4},
+            {"kind": "TEXT", "text": "C10_BOOKMARK_NAME = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE x = 5 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE x = 5 ", "result": "1"}]
+        },
+        {
+          "address": "body/73",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1EE0D49E",
+          "runs": [
+            {"kind": "TEXT", "text": "C11_DECIMAL_EQ = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 = 5.0 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 5 = 5.0 ", "result": "1"}]
+        },
+        {
+          "address": "body/74",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "324964E0",
+          "runs": [
+            {"kind": "TEXT", "text": "C12_LEADING_ZEROS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 007 = 7 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 007 = 7 ", "result": "1"}]
+        },
+        {
+          "address": "body/75",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "44AFB70C",
+          "runs": [
+            {"kind": "TEXT", "text": "C13_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 1,000 = 1000 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 1,000 = 1000 ", "result": "1"}]
+        },
+        {
+          "address": "body/76",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "240E20C0",
+          "runs": [
+            {"kind": "TEXT", "text": "C14_NEGATIVE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE -1 < 0 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE -1 < 0 ", "result": "1"}]
+        },
+        {
+          "address": "body/77",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "4D0B33FA",
+          "runs": [
+            {"kind": "TEXT", "text": "C15_EMPTY = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE \"\" = \"\" "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE \"\" = \"\" ", "result": "1"}]
+        },
+        {
+          "address": "body/78",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41D5C993",
+          "runs": [
+            {"kind": "TEXT", "text": "C16_NE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 <> 4 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 5 <> 4 ", "result": "1"}]
+        },
+        {
+          "address": "body/79",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "41A2D861",
+          "runs": [
+            {"kind": "TEXT", "text": "C17_GE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 >= 5 "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " COMPARE 5 >= 5 ", "result": "1"}]
+        },
+        {
+          "address": "body/80",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F53E21F",
+          "runs": [
+            {"kind": "TEXT", "text": "C18_LE = "},
+            {"kind": "FIELD_CODE", "text": " COMPARE 5 <= 4 "},
+            {"kind": "TEXT", "text": "0"}
+          ],
+          "fields": [{"instr": " COMPARE 5 <= 4 ", "result": "0"}]
+        },
+        {
+          "address": "body/81",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "701693C7",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: the forms"}]
+        },
+        {
+          "address": "body/82",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D30354D",
+          "runs": [
+            {"kind": "TEXT", "text": "I01_QUOTED = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 \"yes\" \"no\" "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" ", "result": "yes"}]
+        },
+        {
+          "address": "body/83",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2D799621",
+          "runs": [
+            {"kind": "TEXT", "text": "I02_BARE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/84",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2C812A95",
+          "runs": [{"kind": "TEXT", "text": "I03_NO_FALSE_TEXT = "}, {"kind": "FIELD_CODE", "text": " IF 5 = 4 yes "}],
+          "fields": [{"instr": " IF 5 = 4 yes "}]
+        },
+        {
+          "address": "body/85",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "724B719D",
+          "runs": [
+            {"kind": "TEXT", "text": "I04_MULTI_WORD = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5 \"multi word true\" \"multi word false\" "},
+            {"kind": "TEXT", "text": "multi word true"}
+          ],
+          "fields": [{"instr": " IF 5 = 5 \"multi word true\" \"multi word false\" ", "result": "multi word true"}]
+        },
+        {
+          "address": "body/86",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "53528BEB",
+          "runs": [
+            {"kind": "TEXT", "text": "I05_NE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 <> 4 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5 <> 4 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/87",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20CEA830",
+          "runs": [
+            {"kind": "TEXT", "text": "I06_GE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 >= 5 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5 >= 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/88",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "33170FE8",
+          "runs": [
+            {"kind": "TEXT", "text": "I07_LE = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 <= 4 yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF 5 <= 4 yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/89",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "16CA024A",
+          "runs": [
+            {"kind": "TEXT", "text": "I08_NO_SPACES = "},
+            {"kind": "FIELD_CODE", "text": " IF 5=5 yes no "},
+            {"kind": "TEXT", "text": "Error! Unknown op code for conditional.", "bold": true}
+          ],
+          "fields": [{"instr": " IF 5=5 yes no ", "result": "Error! Unknown op code for conditional."}]
+        },
+        {
+          "address": "body/90",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5EC67D8A",
+          "runs": [
+            {"kind": "TEXT", "text": "I09_BAD_OPERATOR = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 ! 5 yes no "},
+            {"kind": "TEXT", "text": "Error! Unknown op code for conditional.", "bold": true}
+          ],
+          "fields": [{"instr": " IF 5 ! 5 yes no ", "result": "Error! Unknown op code for conditional."}]
+        },
+        {
+          "address": "body/91",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7FCAFADC",
+          "runs": [
+            {"kind": "TEXT", "text": "I10_EXTRA_TEXT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 yes no extra "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 yes no extra ", "result": "yes"}]
+        },
+        {
+          "address": "body/92",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2906C10F",
+          "runs": [
+            {"kind": "TEXT", "text": "I11_BARE_EXTRA = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5 a b c "},
+            {"kind": "TEXT", "text": "a"}
+          ],
+          "fields": [{"instr": " IF 5 = 5 a b c ", "result": "a"}]
+        },
+        {
+          "address": "body/93",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "03292F19",
+          "runs": [
+            {"kind": "TEXT", "text": "I12_EMPTY_STRINGS = "},
+            {"kind": "FIELD_CODE", "text": " IF \"\" = \"\" yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF \"\" = \"\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/94",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5E0092F8",
+          "runs": [
+            {"kind": "TEXT", "text": "I13_SPACE_IN_STRING = "},
+            {"kind": "FIELD_CODE", "text": " IF \"a b\" = \"a b\" yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF \"a b\" = \"a b\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/95",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "57131979",
+          "runs": [
+            {"kind": "TEXT", "text": "I14_EMPTY_RIGHT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = \"\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF 5 = \"\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/96",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "12C51E96",
+          "runs": [
+            {"kind": "TEXT", "text": "I15_FORMAT_SWITCH = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > 3 \"yes\" \"no\" \\* Upper "},
+            {"kind": "TEXT", "text": "YES"}
+          ],
+          "fields": [{"instr": " IF 5 > 3 \"yes\" \"no\" \\* Upper ", "result": "YES"}]
+        },
+        {
+          "address": "body/97",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2F331BFD",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 5},
+            {"kind": "TEXT", "text": "IF: numbers against strings"}
+          ]
+        },
+        {
+          "address": "body/98",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "56C574ED",
+          "runs": [
+            {"kind": "TEXT", "text": "I16_NUMERIC = "},
+            {"kind": "FIELD_CODE", "text": " IF 10 > 9 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 10 > 9 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/99",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "702394E4",
+          "runs": [
+            {"kind": "TEXT", "text": "I17_QUOTED_NUMBERS = "},
+            {"kind": "FIELD_CODE", "text": " IF \"10\" > \"9\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF \"10\" > \"9\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/100",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "2013E524",
+          "runs": [
+            {"kind": "TEXT", "text": "I18_STRING_ORDER = "},
+            {"kind": "FIELD_CODE", "text": " IF abc < abd yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF abc < abd yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/101",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "364A68BA",
+          "runs": [
+            {"kind": "TEXT", "text": "I19_MIXED = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 > \"abc\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF 5 > \"abc\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/102",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5FA06875",
+          "runs": [
+            {"kind": "TEXT", "text": "I20_DECIMAL = "},
+            {"kind": "FIELD_CODE", "text": " IF 5.0 = 5 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 5.0 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/103",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "27D435E2",
+          "runs": [
+            {"kind": "TEXT", "text": "I21_NEGATIVE = "},
+            {"kind": "FIELD_CODE", "text": " IF -1 < 0 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF -1 < 0 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/104",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1323EFBA",
+          "runs": [
+            {"kind": "TEXT", "text": "I22_THOUSANDS = "},
+            {"kind": "FIELD_CODE", "text": " IF 1,000 > 999 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF 1,000 > 999 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/105",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "64B07721",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: case and wildcards"}]
+        },
+        {
+          "address": "body/106",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "60D70E8B",
+          "runs": [
+            {"kind": "TEXT", "text": "I23_CASE = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"ABC\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"ABC\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/107",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "3555D75E",
+          "runs": [
+            {"kind": "TEXT", "text": "I24_WILDCARD_STAR = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"a*\" yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"a*\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/108",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "39340811",
+          "runs": [
+            {"kind": "TEXT", "text": "I25_WILDCARD_Q = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" = \"a?c\" yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " IF \"abc\" = \"a?c\" yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/109",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1C2642A1",
+          "runs": [
+            {"kind": "TEXT", "text": "I26_WILDCARD_NE = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" <> \"a*\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF \"abc\" <> \"a*\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/110",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "02D6D4C9",
+          "runs": [
+            {"kind": "TEXT", "text": "I27_WILDCARD_LT = "},
+            {"kind": "FIELD_CODE", "text": " IF \"abc\" < \"a*\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF \"abc\" < \"a*\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/111",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "06ADE2A3",
+          "runs": [
+            {"kind": "TEXT", "text": "I28_WILDCARD_LEFT = "},
+            {"kind": "FIELD_CODE", "text": " IF \"a?c\" = \"abc\" yes no "},
+            {"kind": "TEXT", "text": "no"}
+          ],
+          "fields": [{"instr": " IF \"a?c\" = \"abc\" yes no ", "result": "no"}]
+        },
+        {
+          "address": "body/112",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "57DC42DC",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "IF: nested fields"}]
+        },
+        {
+          "address": "body/113",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "37FDD2DF",
+          "runs": [
+            {"kind": "TEXT", "text": "I29_NESTED_FORMULA = "},
+            {"kind": "FIELD_CODE", "text": " IF  =2+3 5 = 5 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " =2+3 ", "result": "5"}, {"instr": " IF 5 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/114",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "1F8F8137",
+          "runs": [
+            {"kind": "TEXT", "text": "I30_NESTED_DATE = "},
+            {"kind": "FIELD_CODE", "text": " IF  DATE \\@ yyyy 2026 > 2000 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " DATE \\@ yyyy ", "result": "2026"}, {"instr": " IF 2026 > 2000 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/115",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F5CEA67",
+          "runs": [
+            {"kind": "TEXT", "text": "I31_NESTED_IN_RESULT = "},
+            {"kind": "FIELD_CODE", "text": " IF 5 = 5  =1+1 2 no "},
+            {"kind": "TEXT", "text": "2"}
+          ],
+          "fields": [{"instr": " =1+1 ", "result": "2"}, {"instr": " IF 5 = 5 2 no ", "result": "2"}]
+        },
+        {
+          "address": "body/116",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0A995FF1",
+          "runs": [
+            {"kind": "TEXT", "text": "I32_NESTED_REF = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF x 5 = 5 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " REF x ", "result": "5"}, {"instr": " IF 5 = 5 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/117",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "390250F5",
+          "runs": [
+            {"kind": "TEXT", "text": "I33_NESTED_BOTH = "},
+            {"kind": "FIELD_CODE", "text": " IF  =1+1 2 <  =1+2 3 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [
+            {"instr": " =1+1 ", "result": "2"},
+            {"instr": " =1+2 ", "result": "3"},
+            {"instr": " IF 2 < 3 yes no ", "result": "yes"}
+          ]
+        },
+        {
+          "address": "body/118",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "28E88785",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "SET and REF (bookmarks a SET defines)"}]
+        },
+        {
+          "address": "body/119",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "7BA3BBD9",
+          "runs": [{"kind": "TEXT", "text": "S01_SET = "}, {"kind": "FIELD_CODE", "text": " SET total 42 "}],
+          "fields": [{"instr": " SET total 42 ", "result": ""}]
+        },
+        {
+          "address": "body/120",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "536A7F6C",
+          "runs": [
+            {"kind": "TEXT", "text": "S02_REF_SET = "},
+            {"kind": "FIELD_CODE", "text": " REF total "},
+            {"kind": "TEXT", "text": "42"}
+          ],
+          "fields": [{"instr": " REF total ", "result": "42"}]
+        },
+        {
+          "address": "body/121",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "37A73B5C",
+          "runs": [
+            {"kind": "TEXT", "text": "S03_FORMULA_SET = "},
+            {"kind": "FIELD_CODE", "text": " =total+1 "},
+            {"kind": "TEXT", "text": "43"}
+          ],
+          "fields": [{"instr": " =total+1 ", "result": "43"}]
+        },
+        {
+          "address": "body/122",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "259D0C32",
+          "runs": [
+            {"kind": "PAGE_MARKER", "text": "", "pageNumber": 6},
+            {"kind": "TEXT", "text": "S04_IF_REF_SET = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF total 42 > 40 yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [{"instr": " REF total ", "result": "42"}, {"instr": " IF 42 > 40 yes no ", "result": "yes"}]
+        },
+        {
+          "address": "body/123",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "14E9907D",
+          "runs": [
+            {"kind": "TEXT", "text": "S05_DEFINED_SET = "},
+            {"kind": "FIELD_CODE", "text": " =DEFINED(total) "},
+            {"kind": "TEXT", "text": "1"}
+          ],
+          "fields": [{"instr": " =DEFINED(total) ", "result": "1"}]
+        },
+        {
+          "address": "body/124",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "5F58D956",
+          "runs": [
+            {"kind": "TEXT", "text": "S06_SET_STRING = "},
+            {"kind": "FIELD_CODE", "text": " SET greeting \"Hello World\" "}
+          ],
+          "fields": [{"instr": " SET greeting \"Hello World\" ", "result": ""}]
+        },
+        {
+          "address": "body/125",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "6E968E7B",
+          "runs": [
+            {"kind": "TEXT", "text": "S07_REF_STRING = "},
+            {"kind": "FIELD_CODE", "text": " REF greeting "},
+            {"kind": "TEXT", "text": "Hello World"}
+          ],
+          "fields": [{"instr": " REF greeting ", "result": "Hello World"}]
+        },
+        {
+          "address": "body/126",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "20E50783",
+          "runs": [
+            {"kind": "TEXT", "text": "S08_IF_STRING_WILDCARD = "},
+            {"kind": "FIELD_CODE", "text": " IF  REF greeting Hello World = \"Hello*\" yes no "},
+            {"kind": "TEXT", "text": "yes"}
+          ],
+          "fields": [
+            {"instr": " REF greeting ", "result": "Hello World"},
+            {"instr": " IF \"Hello World\" = \"Hello*\" yes no ", "result": "yes"}
+          ]
+        },
+        {
+          "address": "body/127",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "0D5DE5C3",
+          "runs": [{"kind": "TEXT", "text": "S09_SET_NESTED = "}, {"kind": "FIELD_CODE", "text": " SET n  =6*7 42 "}],
+          "fields": [{"instr": " =6*7 ", "result": "42"}, {"instr": " SET n 42 ", "result": ""}]
+        },
+        {
+          "address": "body/128",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "66443404",
+          "runs": [
+            {"kind": "TEXT", "text": "S10_REF_NESTED = "},
+            {"kind": "FIELD_CODE", "text": " REF n "},
+            {"kind": "TEXT", "text": "42"}
+          ],
+          "fields": [{"instr": " REF n ", "result": "42"}]
+        },
+        {
+          "address": "body/129",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "618C76E9",
+          "style": "Heading2",
+          "outlineLevel": 1,
+          "runs": [{"kind": "TEXT", "text": "Table formulas (the cells below the numbers and to their right)"}]
+        },
+        {
+          "address": "body/130",
+          "kind": "TABLE",
+          "story": "MAIN",
+          "rows": [
+            {
+              "address": "body/130/0",
+              "cells": [
+                {
+                  "address": "body/130/0/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "64BAB357",
+                      "runs": [{"kind": "TEXT", "text": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "697F039E",
+                      "runs": [{"kind": "TEXT", "text": "10"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "48BABDA2",
+                      "runs": [{"kind": "TEXT", "text": "x"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/0/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/0/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3F09C5A5",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "11"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "11"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/1",
+              "cells": [
+                {
+                  "address": "body/130/1/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3BA03FC0",
+                      "runs": [{"kind": "TEXT", "text": "2"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "0DBA8930",
+                      "runs": [{"kind": "TEXT", "text": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/1/2",
+                  "blocks": [{"address": "body/130/1/2/0", "kind": "PARAGRAPH", "story": "MAIN", "paraId": "482DA125"}]
+                },
+                {
+                  "address": "body/130/1/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/1/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "198BF6D0",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "22"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "22"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/2",
+              "cells": [
+                {
+                  "address": "body/130/2/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "6DCDB572",
+                      "runs": [{"kind": "TEXT", "text": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "07B6BE91",
+                      "runs": [{"kind": "TEXT", "text": "30"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "08B986BD",
+                      "runs": [{"kind": "TEXT", "text": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/2/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/2/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5072ADC4",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(LEFT) "}, {"kind": "TEXT", "text": "38"}],
+                      "fields": [{"instr": " =SUM(LEFT) ", "result": "38"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/3",
+              "cells": [
+                {
+                  "address": "body/130/3/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "269DAAA6",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "6"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "6"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "09A8770D",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =AVERAGE(ABOVE) "}, {"kind": "TEXT", "text": "20"}],
+                      "fields": [{"instr": " =AVERAGE(ABOVE) ", "result": "20"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "1EEBF1E9",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "5"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "5"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/3/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/3/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "5CAC365C",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(A1:B2) "}, {"kind": "TEXT", "text": "33"}],
+                      "fields": [{"instr": " =SUM(A1:B2) ", "result": "33"}]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "address": "body/130/4",
+              "cells": [
+                {
+                  "address": "body/130/4/0",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/0/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "193B56D1",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =A1+B2 "}, {"kind": "TEXT", "text": "21"}],
+                      "fields": [{"instr": " =A1+B2 ", "result": "21"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/1",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/1/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "147E49A0",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =MAX(A1:A3) "}, {"kind": "TEXT", "text": "3"}],
+                      "fields": [{"instr": " =MAX(A1:A3) ", "result": "3"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/2",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/2/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "4BDB2D5B",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =COUNT(C1:C3) "}, {"kind": "TEXT", "text": "1"}],
+                      "fields": [{"instr": " =COUNT(C1:C3) ", "result": "1"}]
+                    }
+                  ]
+                },
+                {
+                  "address": "body/130/4/3",
+                  "blocks": [
+                    {
+                      "address": "body/130/4/3/0",
+                      "kind": "PARAGRAPH",
+                      "story": "MAIN",
+                      "paraId": "3267D8AC",
+                      "runs": [{"kind": "FIELD_CODE", "text": " =SUM(ABOVE) "}, {"kind": "TEXT", "text": "104"}],
+                      "fields": [{"instr": " =SUM(ABOVE) ", "result": "104"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "address": "body/131",
+          "kind": "PARAGRAPH",
+          "story": "MAIN",
+          "paraId": "170D9A6B",
+          "runs": [{"kind": "TEXT", "text": "End of the probe."}]
+        }
+      ],
+      "warnings": [{"kind": "field.no_result", "address": "body/84"}]
+    }
+  }
+}

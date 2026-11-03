@@ -129,7 +129,7 @@ const OPTION_STATEMENTS = {
   toc: 'REQ-520', bindings: 'REQ-509', list_labels: 'REQ-510', charts: 'REQ-511', smartart: 'REQ-511',
   embedded: 'REQ-512', altchunks: 'REQ-513', alt_text: 'REQ-514', metadata: 'REQ-515',
   symbols: 'REQ-601', math: 'REQ-604', tables: 'REQ-605', markup_detail: 'REQ-702',
-  page_markers: 'REQ-708', layout: 'REQ-709',
+  page_markers: 'REQ-708', layout: 'REQ-709', drop_caps: 'REQ-521', small_caps: 'REQ-607', profile: 'REQ-1002',
 };
 
 /** The statement a scenario's option belongs to (WD section 10), which the engine must implement too. */
@@ -155,6 +155,22 @@ export function scenarioRequirements(scenario) {
   return new Set([statement]);
 }
 
+/**
+ * docx4j CR-069's statements (WD 0.44) and the phase of that CR each lands in: REQ-607 the case mapping (1), REQ-521 the
+ * drop-cap join (2), REQ-710 the superscript tags (3), the inspector kind text.formatting_join (4), a capability as
+ * CR-047 is.
+ */
+export const CR069 = Object.freeze({ 'REQ-607': 1, 'REQ-521': 2, 'REQ-710': 3, 'text.formatting_join': 4 });
+
+/** Why a check pends: CR-069's latest phase among the missing statements, else CR-046's phase or the inspector. */
+export function pendingReason(reqs, missing) {
+  let cr069 = 0;
+  for (const req of missing) cr069 = Math.max(cr069, CR069[req] ?? 0);
+  if (cr069 > 0) return `CR-069 phase ${cr069}`;
+  const p = phase(reqs);
+  return p === 9 ? 'the inspector (CR-050)' : `phase ${p}`;
+}
+
 /** The phase a row waits for, as docx4j's CR-046 numbers them; 9 is the inspector (CR-050). */
 export function phase(reqs) {
   let result = 1;
@@ -173,17 +189,15 @@ export function phase(reqs) {
 export const INSPECTION_TABLE = 'expected-inspection.tsv';
 export const INSPECTION_STATUS = 'expected-inspection-status.tsv';
 /**
- * An inspector with an HTML reader (docx4j CR-053 phase 3): the fifth fixture's findings, written by
- * hand and checked against Word 365's save of it, with `parsed`, and `pending` where a row rests on a
- * rule not yet ruled on.
+ * A table row's or a status row's `capability` (docx4j CR-050 phase 4): `any`, or the environment it holds in, an HTML
+ * reader present or absent. A table without the column is every row `any`.
  */
-export const INSPECTION_HTML_TABLE = 'expected-inspection-html.tsv';
-export const INSPECTION_HTML_STATUS = 'expected-inspection-html-status.tsv';
+export const INSPECTION_ANY = 'any';
 /** A finding's identity: its kind and its stored location. */
 export const INSPECTION_KEY = ['kind', 'chain', 'part', 'path', 'start', 'end_path', 'end'];
 /** The fields compared for a finding whose identity matched. */
 export const INSPECTION_FIELDS = ['address', 'visible', 'reveal', 'plain', 'markdown', 'blocks', 'hidden',
-  'embedded', 'comments', 'excerpt_length', 'excerpt_cut'];
+  'embedded', 'comments', 'excerpt_length', 'excerpt_cut', 'parsed'];
 /** The statements an inspection row needs (WD section 9), REQ-903's counts apart. */
 export const INSPECTION_STATEMENTS = 'REQ-901, REQ-902, REQ-904, REQ-905, REQ-906, REQ-907';
 /** The six outputs the table gives each finding's group under. */
@@ -289,9 +303,8 @@ class Run {
     const ready = this.engine !== null && missing.length === 0;
     if (!ready) {
       this.pending++;
-      const p = phase(reqs);
       this.report.push(`${row.fixture}\t${row.case}\t${item}\t${view}\t${scenario}\tPENDING\t`
-        + `${p === 9 ? 'the inspector (CR-050)' : `phase ${p}`}; ${missing.join(', ')}`
+        + `${pendingReason(reqs, missing)}; ${missing.join(', ')}`
         + `${this.engine === null ? '; Texts adapter not installed' : ''}`);
     }
     return ready;
@@ -330,83 +343,132 @@ async function checkToken(run, dir, row, view, scenario, format, expected) {
   run.pass(row, row.token, view, scenario);
 }
 
+/**
+ * docx4j CR-050 phase 0: each fixture's inspection compared with the table as multisets of (kind, location), then each
+ * matched finding's fields, the fixture's status and the limitations every inspector states. Since its phase 4 the table
+ * carries a `capability` column: a fixture is compared against its rows of `any` and of the engine's environment (an
+ * HTML reader present or absent), with the status row of that environment; the other environment's rows are reported
+ * pending, by count. A row resting on a rule not yet ruled on (its `pending`) is left out on both sides and reported
+ * pending.
+ */
 async function inspections(run, dir) {
   if (!existsSync(join(dir, INSPECTION_TABLE))) return;
+  const environment = run.engine !== null && run.implemented.has(HTML_READER_PRESENT) ? HTML_READER_PRESENT : HTML_READER_ABSENT;
+  const other = environment === HTML_READER_PRESENT ? HTML_READER_ABSENT : HTML_READER_PRESENT;
   const expected = new Map();
+  const others = new Map();
+  const environmental = new Map();
+  const add = (map, row) => { if (!map.has(row.fixture)) map.set(row.fixture, []); map.get(row.fixture).push(row); };
   for (const row of table(join(dir, INSPECTION_TABLE))) {
-    if (!expected.has(row.fixture)) expected.set(row.fixture, []);
-    expected.get(row.fixture).push(row);
+    const capability = row.capability ?? INSPECTION_ANY;
+    environmental.set(row.fixture, (environmental.get(row.fixture) ?? false) || capability !== INSPECTION_ANY);
+    if (capability === INSPECTION_ANY || capability === environment) add(expected, row);
+    else add(others, row);
   }
-  const statuses = table(join(dir, INSPECTION_STATUS));
-  for (const status of statuses) {
-    // the whole fixture's comparison is REQ-1204's, its checks REQ-901, 902 and 904 to 907's. The table
-    // is an inspector's with no HTML reader: with one, a chunk's hidden text is found and the chunk is
-    // not skipped, so the comparison pends
-    const statements = `${INSPECTION_STATEMENTS}, REQ-1204`;
-    const row = { fixture: status.fixture, case: '0', statements };
-    const inspectionRequires = requirements(statements);
-    inspectionRequires.add(HTML_READER_ABSENT);
-    if (!run.ready(row, 'inspection', '-', 'default', inspectionRequires)) continue;
-    compareInspection(status.fixture, expected.get(status.fixture) ?? [], status, await run.engine.inspect(join(dir, status.fixture)));
-    run.pass(row, 'inspection', '-', 'default');
+  const statuses = new Map();
+  for (const status of table(join(dir, INSPECTION_STATUS))) {
+    const capability = status.capability ?? INSPECTION_ANY;
+    if (capability === INSPECTION_ANY || capability === environment) statuses.set(status.fixture, status);
   }
-  await htmlInspections(run, dir);
-  // REQ-903: an extraction's counts under each output, against the table's groups, with no HTML reader
-  const countsRequire = requirements('REQ-903');
-  countsRequire.add(HTML_READER_ABSENT);
-  for (const status of statuses) {
-    const row = { fixture: status.fixture, case: '0', statements: 'REQ-903' };
+  for (const [fixture, status] of statuses) {
+    // the whole fixture's comparison is REQ-1204's, its checks REQ-901, 902 and 904 to 907's; a fixture with rows of an
+    // environment also REQ-513's (the chunk read, or skipped)
+    const statements = `${INSPECTION_STATEMENTS}, REQ-1204${environmental.get(fixture) ? ', REQ-513' : ''}`;
+    const row = { fixture, case: '0', statements };
+    if (others.has(fixture)) {
+      const n = others.get(fixture).length;
+      run.pend(row, 'inspection', '-', other, `${n}${n === 1 ? ' row of ' : ' rows of '}${other}, not this run's environment`);
+    }
+    if (!run.ready(row, 'inspection', '-', environment, requirements(statements))) continue;
+    const checked = [];
+    const pending = new Set();
+    for (const r of expected.get(fixture) ?? []) {
+      if ((r.pending ?? '') === '') {
+        checked.push(r);
+      } else {
+        pending.add(inspectionKey(r));
+        run.pend(r, `inspect:${r.kind}:${r.selector}`, '-', environment, r.pending);
+      }
+    }
+    const actual = await run.engine.inspect(join(dir, fixture));
+    const found = actual.findings.filter((f) => !pending.has(inspectionKey(f)));
+    compareInspection(fixture, checked, status, { ...actual, findings: found });
+    run.pass(row, 'inspection', '-', environment);
+  }
+  // REQ-903: an extraction's counts under each output, against the table's groups; the rows of this run's environment
+  for (const [fixture, status] of statuses) {
+    const row = { fixture, case: '0', statements: 'REQ-903' };
     for (const output of INSPECTION_OUTPUTS) {
-      if (!run.ready(row, 'counts', '-', output, countsRequire)) continue;
+      if (!run.ready(row, 'counts', '-', output, requirements('REQ-903'))) continue;
       const want = {};
       for (const group of ['unseen', 'omitted', 'active', 'info']) {
-        want[group] = String((expected.get(status.fixture) ?? []).filter((f) => f[output] === group).length);
+        want[group] = String((expected.get(fixture) ?? []).filter((f) => f[output] === group).length);
       }
       want.status = status.status;
-      equal(want, await run.engine.counts(join(dir, status.fixture), output), `${status.fixture}: counts under ${output}`);
+      equal(want, await run.engine.counts(join(dir, fixture), output), `${fixture}: counts under ${output}`);
       run.pass(row, 'counts', '-', output);
     }
   }
 }
 
+// ------------------------------------------------------------------ Word's saves (docx4j CR-069 phase 0)
+
+/** The table of Word's own text saves (dpp/README.md): fixture, case, save, encoding, scenario, statements, note. */
+export const WORD_SAVES = 'word-saves.tsv';
+
+/** Windows-1252's characters from 0x80 to 0x9F; undefined for its five unassigned bytes (Java's decoder gives U+FFFD). */
+const CP1252_HIGH = [0x20AC, undefined, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, 0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, undefined, 0x017D, undefined,
+  undefined, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, 0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, undefined, 0x017E, 0x0178];
+
 /**
- * docx4j CR-053 phase 3: an inspector with an HTML reader, on the fixture whose chunks it reads, against
- * the HTML table, `parsed` compared with the other fields. A row resting on a rule not yet ruled on (its
- * `pending`) is left out on both sides and reported pending.
+ * A string through Windows-1252 and back, as Java's `new String(s.getBytes(cp1252), cp1252)`: a character the code page
+ * lacks is `?` (`TextDecoder` decodes only, so the encoder is this).
  */
-async function htmlInspections(run, dir) {
-  if (!existsSync(join(dir, INSPECTION_HTML_TABLE))) return;
-  const expected = new Map();
-  for (const row of table(join(dir, INSPECTION_HTML_TABLE))) {
-    if (!expected.has(row.fixture)) expected.set(row.fixture, []);
-    expected.get(row.fixture).push(row);
+function throughCp1252(text) {
+  let out = '';
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    out += cp < 0x80 || (cp >= 0xA0 && cp <= 0xFF) || CP1252_HIGH.includes(cp) ? ch : '?';
   }
-  const fields = [...INSPECTION_FIELDS, 'parsed'];
-  for (const status of table(join(dir, INSPECTION_HTML_STATUS))) {
-    const statements = `${INSPECTION_STATEMENTS}, REQ-1204, REQ-513`;
-    const row = { fixture: status.fixture, case: '0', statements };
-    const reqs = requirements(statements);
-    reqs.add(HTML_READER_PRESENT);
-    if (!run.ready(row, 'inspection', '-', HTML_READER_PRESENT, reqs)) continue;
-    const checked = [];
-    const pending = new Set();
-    for (const r of expected.get(status.fixture) ?? []) {
-      if (r.pending === '') {
-        checked.push(r);
-      } else {
-        pending.add(inspectionKey(r));
-        run.pend(r, `inspect:${r.kind}:${r.selector}`, '-', HTML_READER_PRESENT, r.pending);
-      }
-    }
-    const actual = await run.engine.inspect(join(dir, status.fixture));
-    const found = actual.findings.filter((f) => !pending.has(inspectionKey(f)));
-    compareInspection(status.fixture, checked, status, { ...actual, findings: found }, fields);
-    run.pass(row, 'inspection', '-', HTML_READER_PRESENT);
+  return out;
+}
+
+/** Word's text split into lines as the NOTE's residue has it: at CR LF, CR, LF or a tab, trailing empty lines dropped. */
+export function wordSaveLines(text) {
+  const lines = text.split(/\r\n|\r|\n|\t/);
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+  return lines;
+}
+
+/**
+ * Word's Save As text of a fixture against an extraction, as WD REQ-1002's NOTE reads one (docx4j `verifyWordSave`):
+ * decoded by its byte order mark (the table's encoding `UTF-8`, which must have one), else in the saving system's ANSI
+ * code page (the table names it, `windows-1252` on the VM, and the file must have no mark); the extraction passed through
+ * that encoding, so that a character the code page lacks is Word's `?` on both sides; then compared line by line, where a
+ * line ends at CR LF, CR, LF or a tab, since Word ends a paragraph CR LF and a cell CR where the specification writes LF
+ * and a tab (the residue the NOTE names), and trailing empty lines are dropped. Everything else, every character and
+ * every break between paragraphs or cells, must agree.
+ */
+export function verifyWordSave(save, encoding, actual) {
+  const bytes = readFileSync(save);
+  const bom = bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+  const utf8 = /^utf-?8$/i.test(encoding);
+  if (!utf8 && !/^windows-1252$/i.test(encoding)) throw new Error(`${save}: encoding ${encoding}`);
+  if (bom !== utf8) {
+    throw new AssertionError({ message: `${save}: ${bom ? `a byte order mark, but the table says ${encoding}` : 'no byte order mark, but the table says UTF-8'}` });
+  }
+  const word = bom ? new TextDecoder('utf-8').decode(bytes.subarray(3)) : new TextDecoder('windows-1252').decode(bytes);
+  const expected = wordSaveLines(word);
+  const got = wordSaveLines(utf8 ? actual : throughCp1252(actual));
+  for (let i = 0; i < Math.max(expected.length, got.length); i++) {
+    const e = i < expected.length ? expected[i] : '<end>';
+    const g = i < got.length ? got[i] : '<end>';
+    if (e !== g) throw new AssertionError({ message: `${save}: line ${i + 1}: Word wrote [${e}], the extraction [${g}]` });
   }
 }
 
 /**
- * Runs the suite in `dir` (the fixture directory, `phase0/`) against an engine, or null for none.
+ * Runs the suite in `dir` (a fixture directory: `phase0/`, or docx4j CR-069's `dpp/`) against an engine, or null for none.
  * Throws an AssertionError at the first enabled assertion that fails; returns the report otherwise.
  */
 export async function run(dir, engine) {
@@ -468,6 +530,16 @@ export async function run(dir, engine) {
     const output = await r.output(dir, row, row.view, row.scenario, row.format);
     verifyGolden(join(dir, row.golden), output.text);
     r.pass(row, item, row.view, row.scenario);
+  }
+  // docx4j CR-069 phase 0: Word's own Save As text of a fixture against the text under its scenario (profile: word-text)
+  if (existsSync(join(dir, WORD_SAVES))) {
+    for (const row of table(join(dir, WORD_SAVES))) {
+      const item = `word save:${row.save}`;
+      if (!r.ready(row, item, 'accepted', row.scenario, rowRequirements(row))) continue;
+      const output = await r.output(dir, row, 'accepted', row.scenario, 'txt');
+      verifyWordSave(join(dir, row.save), row.encoding, output.text);
+      r.pass(row, item, 'accepted', row.scenario);
+    }
   }
   return { passed: r.passed, pending: r.pending, report: r.report };
 }

@@ -360,7 +360,7 @@ test("outline(options, context, { blocks }) gives a block's entries as the whole
   // table of contents begun in an earlier block, moves
   for (const path of ['text-extraction/revisions/cr043/cr043-base.docx', 'text-extraction/suite/phase0/extraction-probe-structure.docx',
     'text-extraction/suite/phase0/extraction-probe.docx', 'text-extraction/revisions/editor/revisions/revisions-word2010.docx',
-    'text-extraction/revisions/editor/review/review-for-word.docx', 'text-extraction/revisions/python/artefact8/8-tracked-changes.docx']) {
+    'fixtures/revisions/review/review-for-word.docx', 'fixtures/revisions/python/artefact8/8-tracked-changes.docx']) {
     const { pkg, body } = await read(path);
     for (const options of [{}, { view: 'original' }, { view: 'markup' }, { toc: true }, { field_codes: true }]) {
       const context = await Texts.contextOf(pkg);

@@ -1,10 +1,10 @@
 {
   "header": {
-    "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:23:08Z",
+    "harnessVersion": "2",
+    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
+    "docx4jVersion": "docx4j-core-17.3.5.jar",
+    "docx4jCoreJarSha256": "c196579b75735e62",
+    "date": "2026-11-03T08:48:09Z",
     "fixture": "fixtures/revisions/cr043/cr043-accept-all.docx",
     "fixtureBytes": 36370,
     "timeZone": "UTC",
@@ -640,7 +640,7 @@
     "original": {"options": {"view": "original"}, "sameAs": "accepted"},
     "markup": {
       "options": {"view": "markup", "markup_detail": "author_date"},
-      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: 1\nC02 the PAGE field here is deleted:  (after the field).\nC04 a picture is inserted at the end of this paragraph: \nC05 the picture here is deleted:  (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)\nC10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)C10b body half (Normal, right aligned)\nC11 before after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: C11b INSERTED WORDS\nC12 the endnote reference here is deleted: (after the reference).\nC12b an endnote is inserted at the end of this paragraph: [1]\nC13 the table after this paragraph is deleted whole.\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\n\n[table: listed format]\nC15 move one.; C15 move two.; C15 move three: these three paragraphs are moved into the cell below.C15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: C16 inserted link\nC16b a content control is inserted at the end of this paragraph: C16b control text\nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>CR-043 base, 2026-10-16T00:00:00Z: C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [2]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete:. Inserted text goes at the end. C22 inserted.\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\nC25 r1c1\tC25 r1c2\nC25 r2c1\tC25 r2c2\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted. C06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n[1] C12b inserted endnote text.\n[2] C21 endnote text, a word to delete:. Inserted text goes at the end C21 inserted..\n",
+      "plainText": "CR-043 phase 0 probe, built by docx4j (Cr043ProbeBuilder). Each case's text starts with its tag; cr043-probe.ps1 makes the tracked edit the case names, through Word's object model.\nC01 a PAGE field is inserted at the end of this paragraph: 1\nC02 the PAGE field here is deleted:  (after the field).\nC04 a picture is inserted at the end of this paragraph: \nC05 the picture here is deleted:  (after the picture).\nC08 this paragraph's mark, right before a table, is deleted.\n[table: listed format]\nC09 first paragraph in the cell: its mark is deleted.C09 last paragraph in the cell: deleting its mark (the cell's end) is tried.\nC09 after the table.\nC10 heading half (Heading 1; its mark inserted, written by docx4j)\nC10 body half (Normal, right aligned)\nC10b heading half (Heading 1; its mark deleted, written by docx4j)C10b body half (Normal, right aligned)\nC11 before after: the bookmarked word is deleted.\nC11b text is inserted at the end of this paragraph, and a bookmark put on it: C11b INSERTED WORDS\nC12 the endnote reference here is deleted: (after the reference).\nC12b an endnote is inserted at the end of this paragraph: [1]\nC13 the table after this paragraph is deleted whole.\nC14 a column is added to the table after this paragraph.\nC14 r1c1\tC14 r1c2\t\nC14 r2c1\tC14 r2c2\t\n\n[table: listed format]\nC15 move one.; C15 move two.; C15 move three: these three paragraphs are moved into the cell below.C15 r1c1\nC16 a hyperlink is inserted at the end of this paragraph: C16 inserted link\nC16b a content control is inserted at the end of this paragraph: C16b control text\nC17 this whole paragraph, its mark included, is made bold.\nC18 commented words{>>CR-043 base, 2026-10-16T00:00:00: C18 comment text, a word to delete: C18 inserted..<<}: the comment's own text is edited.\nC21 the endnote of this reference is edited: [2]\nC22 a text box anchored here is made untracked, then its text edited tracked.\nC22 text box text, a word to delete:. Inserted text goes at the end. C22 inserted.\nC23 the second row of the table after this paragraph is indented (row property exceptions).\nC23 r1c1\tC23 r1c2\nC23 r2c1\tC23 r2c2\nC25 a table is inserted in place of the next paragraph.\nC25 r1c1\tC25 r1c2\nC25 r2c1\tC25 r2c2\nC06 last paragraph of section A (left margin 2in): its mark, the section break, is deleted. C06 first paragraph of section B (left margin 1.5in).\nC07 last paragraph of section B: section B's left margin is changed to 0.5in.\nC07 first paragraph of section C (left margin 1in).\nEnd of the probe.\n[1] C12b inserted endnote text.\n[2] C21 endnote text, a word to delete:. Inserted text goes at the end C21 inserted..\n",
       "blocks": [
         {
           "address": "body/0",
@@ -1256,7 +1256,7 @@
           "id": "1",
           "author": "CR-043 base",
           "initials": "CB",
-          "date": "2026-10-16T00:00:00Z",
+          "date": "2026-10-16T00:00:00",
           "blocks": [
             {
               "address": "comment:1/0",
@@ -1923,7 +1923,7 @@
           "id": "1",
           "author": "CR-043 base",
           "initials": "CB",
-          "date": "2026-10-16T00:00:00Z",
+          "date": "2026-10-16T00:00:00",
           "blocks": [
             {
               "address": "comment:1/0",

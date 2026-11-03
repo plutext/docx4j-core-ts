@@ -87,7 +87,7 @@ Three cases had no rule in the paper when the probe was built; it has since rule
 Cases 39–49 and 53–54 extend the main probe; cases 50–52 are in `extraction-probe-external.docm`;
 cases 55–57 (a table of contents, an interrupted list, an embedded workbook with hidden sheets) are in
 `extraction-probe-structure.docx`, a fixture of their own so that the main probe is not rebuilt (19 October 2026);
-cases 58–67, the inspector's boundary cases (CR-050 phase 0), are in `extraction-probe-inspect.docx`.
+cases 58–82, the inspector's boundary cases (CR-050 phase 0; 68–74 the text a picture draws, phase 3; 75–82 an integer attribute beyond Word's storage width, CR-066 phase 4), are in `extraction-probe-inspect.docx`.
 Jason checked the earlier 52-case r2 DOCX without repair, declining field updates (18 October 2026).
 The unchanged external DOCM also passed. Jason completed the r3 check for cases 53–54 (18 October 2026).
 The Word findings above describe the original 38-case
@@ -95,7 +95,8 @@ fixture, retained in the parent directory with its re-save.
 `case-statements.tsv` maps the original WD Appendix A plus the approved cases 53–54 (WD 0.5) and 55–57.
 `expected-order.tsv` pins presentation and glossary order. `expected-findings.tsv` separates warnings,
 metadata and inspector findings from text counts. `expected-inspection.tsv` lists every finding an inspector
-makes, by location, and `expected-inspection-status.tsv` each fixture's status (`../INSPECTION.md`).
+makes, by location, with the capability it depends on (`any`, or an HTML reader present or absent), and
+`expected-inspection-status.tsv` each fixture's status per capability (`../INSPECTION.md`).
 Inspector requirements are pending CR-050 phase 1.
 The default test environment has no HTML reader (jsoup and docx4j-ImportXHTML). The HTML and MHT chunk rows' capability scenario supplies one.
 All external targets are deliberately missing local files. Nothing is fetched by the suite.
@@ -378,11 +379,11 @@ Golden conventions and baseline commands are in `../GOLDENS.md`.
 
 | Token | accepted | original | markup | option | with option | note | statements |
 |---|---|---|---|---|---|---|---|
-| `IMG33_ALT_TEXT` | – | – | – | `alt_text: true` | yes | wp:docPr/@descr: plain text [image: descr] with the option; Markdown ![descr](…) by default (#20) | REQ-514 |
-| `IMG33_TITLE` | – | – | – |  |  | wp:docPr/@title is never read (#20) | REQ-514 |
-| `IMG33_DECORATIVE_DESCR` | – | – | – |  |  | marked decorative (adec:decorative): no alt text under any option (D22) | REQ-514 |
-| `IMG33_SVG_ALT` | – | – | – | `alt_text: true` | yes | as IMG33_ALT_TEXT | REQ-514 |
-| `SVG33_INNER_TEXT` | – | – | – |  |  | a <text> element in the SVG part: an image's, never text (#20) | REQ-514 |
+| `IMG33_ALT_TEXT` | – | – | – | `alt_text: true` | yes | wp:docPr/@descr: plain text [image: descr] with the option; Markdown ![descr](…) by default (#20) | REQ-514, REQ-902 |
+| `IMG33_TITLE` | – | – | – |  |  | wp:docPr/@title is never read (#20) | REQ-514, REQ-902 |
+| `IMG33_DECORATIVE_DESCR` | – | – | – |  |  | marked decorative (adec:decorative): no alt text under any option (D22) | REQ-514, REQ-902 |
+| `IMG33_SVG_ALT` | – | – | – | `alt_text: true` | yes | as IMG33_ALT_TEXT | REQ-514, REQ-902 |
+| `SVG33_INNER_TEXT` | – | – | – |  |  | a <text> element in the SVG part: an image's, never text (#20) | REQ-514, REQ-902 |
 
 ### Case 34: a chart
 
@@ -725,4 +726,113 @@ Golden conventions and baseline commands are in `../GOLDENS.md`.
 | `SDT67_HERE` | yes | yes | yes |  |  |  | REQ-902, REQ-302, REQ-509 |
 | `SDT67_VALUE` | yes | yes | yes | `bindings: surface` | – | the bound value, read by default | REQ-902, REQ-302, REQ-509 |
 | `SDT67_SURFACE` | – | – | – | `bindings: surface` | yes | the stale surface, followed by U+E0041 U+E0042, which Word 365 replaces with the bound value on open; inspection: sdt.stored_surface, and chars.tag in it | REQ-902, REQ-302, REQ-509 |
+
+### Case 68: an SVG-only picture: text with tspan and textPath
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `SVG68_DESCR` | – | – | – | `alt_text: true` | yes | the picture's descr | REQ-902, REQ-904, REQ-514 |
+| `SVG68_PLAIN` | – | – | – |  |  | a <text> element in the SVG part: an image's, never text (REQ-514); inspection: image.svg_text, unextractable (D21) | REQ-902, REQ-904, REQ-514 |
+| `SVG68_TSPAN` | – | – | – |  |  | a <tspan> in a <text>: one line with the text after it, white space collapsed; inspection: image.svg_text | REQ-902, REQ-904, REQ-514 |
+| `SVG68_TEXTPATH` | – | – | – |  |  | a <textPath> over a path in <defs>; inspection: image.svg_text | REQ-902, REQ-904, REQ-514 |
+
+### Case 69: two pictures showing one SVG part, each with the raster copy Word keeps
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `SVG69_FIRST_DESCR` | – | – | – | `alt_text: true` | yes | the first picture's descr | REQ-902, REQ-904, REQ-514 |
+| `SVG69_SECOND_DESCR` | – | – | – | `alt_text: true` | yes | the second picture's descr | REQ-902, REQ-904, REQ-514 |
+| `SVG69_SHARED` | – | – | – |  |  | the one SVG part both pictures show: one finding, at the first; inspection: image.svg_text, summary pictures=2, raster named | REQ-902, REQ-904, REQ-514 |
+
+### Case 70: an SVG with no text
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `SVG70_DESCR` | – | – | – | `alt_text: true` | yes | the picture's descr | REQ-902, REQ-904, REQ-514 |
+| `SVG70_TITLE_ONLY` | – | – | – |  |  | an SVG <title>, not drawn: no image.svg_text finding | REQ-902, REQ-904, REQ-514 |
+
+### Case 71: an SVG picture in the header the section uses
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `SVG71_HEADER` | – | – | – |  |  | a <text> in an SVG a header's picture shows; inspection: image.svg_text, its part reached from the header | REQ-902, REQ-904, REQ-514, REQ-502 |
+
+### Case 72: a WMF picture through VML: text in two character sets, through the object table
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `WMF72_TEXTOUT` | – | – | – |  |  | a META_TEXTOUT record with the ANSI font selected; inspection: image.metafile_text, unextractable (D21) | REQ-902, REQ-904, REQ-514 |
+| `WMF72_SJIS` | – | – | – |  |  | a META_EXTTEXTOUT record with a Shift-JIS font selected: WMF72_SJIS 年度, decoded in the font's charset; inspection: image.metafile_text | REQ-902, REQ-904, REQ-514 |
+| `WMF72_GLYPH_INDEX` | – | – | – |  |  | a META_EXTTEXTOUT record of glyph indices (ETO_GLYPH_INDEX): left out (image.text) | REQ-902, REQ-904, REQ-514 |
+| `WMF72_SLOT_REUSED` | – | – | – |  |  | a META_TEXTOUT after the Shift-JIS font's slot was deleted and reused by an ANSI font; inspection: image.metafile_text | REQ-902, REQ-904, REQ-514 |
+| `WMF72_SYMBOL` | – | – | – |  |  | a META_TEXTOUT with a SYMBOL-charset font selected: left out (image.text) | REQ-902, REQ-904, REQ-514 |
+
+### Case 73: an EMF picture: UTF-16 and ANSI text records, a glyph-index record, a stock font
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `EMF73_DESCR` | – | – | – | `alt_text: true` | yes | the picture's descr | REQ-902, REQ-904, REQ-514 |
+| `EMF73_UTF16` | – | – | – |  |  | an EMR_EXTTEXTOUTW record: EMF73_UTF16 ünï; inspection: image.metafile_text, unextractable (D21) | REQ-902, REQ-904, REQ-514 |
+| `EMF73_ANSI` | – | – | – |  |  | an EMR_EXTTEXTOUTA record with the ANSI font at object-table index 1 selected: EMF73_ANSI é; inspection: image.metafile_text | REQ-902, REQ-904, REQ-514 |
+| `EMF73_GLYPH_INDEX` | – | – | – |  |  | an EMR_EXTTEXTOUTW record of glyph indices: left out (image.text) | REQ-902, REQ-904, REQ-514 |
+| `EMF73_STOCK_FONT` | – | – | – |  |  | an EMR_EXTTEXTOUTA record with the stock SYSTEM_FONT selected (ANSI); inspection: image.metafile_text | REQ-902, REQ-904, REQ-514 |
+
+### Case 74: an EMF+ dual file from Windows (Apache POI's test data): the GDI records carry the text
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `EMF74_DESCR` | – | – | – | `alt_text: true` | yes | the picture's descr | REQ-902, REQ-904, REQ-514 |
+
+### Case 75: a paragraph indent and a spacing beyond 16 bits: Word wraps them
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG75_LEFT_BEFORE` | yes | yes | yes |  |  | w:spacing/@w:before 65537 (uint16: Word reads 1) and w:ind/@w:left 66256 (int16: 720); inspection: value.out_of_range, one finding per attribute | REQ-902, REQ-904 |
+
+### Case 76: table widths beyond 16 bits: a table width in fiftieths of a percent, a grid column, a cell width
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG76_CELL` | yes | yes | yes |  |  | w:tblW 65536 pct (int16: Word reads 0), w:gridCol 70000 (unmeasured: changed), w:tcW 70000 dxa (4464); inspection: value.out_of_range, three findings | REQ-902, REQ-904 |
+
+### Case 77: a tab stop beyond 16 bits: wrapped, then clamped to 22 inches
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG77_TAB` | yes | yes | yes |  |  | w:tab/@w:pos 32768 (Word reads -31680); inspection: value.out_of_range | REQ-902, REQ-904 |
+
+### Case 78: a first-line indent and an exact line spacing beyond 16 bits: the wrap crosses to hanging and to atLeast
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG78_FIRSTLINE_LINE` | yes | yes | yes |  |  | w:spacing/@w:line 65535 exact (the sign is the rule: Word reads atLeast 1) and w:ind/@w:firstLine 65535 (one field with hanging: hanging 1); inspection: value.out_of_range, two findings | REQ-902, REQ-904 |
+
+### Case 79: a row height, a border and a text scale beyond their widths: the sign rule, 8 and 5 bits, 16 bits
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG79_ROW` | yes | yes | yes |  |  | w:trHeight 65537 exact (Word reads exact 1); the table width under auto is not checked; inspection: value.out_of_range | REQ-902, REQ-904 |
+| `RNG79_BORDER` | yes | yes | yes |  |  | w:pBdr/w:top sz 256 (8 bits: Word reads 0) and space 32 (5 bits: 0); inspection: value.out_of_range, two findings | REQ-902, REQ-904 |
+| `RNG79_SCALE` | yes | yes | yes |  |  | w:w 65636 (uint16: Word reads 100); inspection: value.out_of_range | REQ-902, REQ-904 |
+
+### Case 80: the same wrap in a style and in a setting: styles.xml and settings.xml are checked
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG80_STYLE` | yes | yes | yes |  |  | its style's w:ind/@w:left 66256 (Word reads 720) in styles.xml, and w:hyphenationZone 65537 (1) in settings.xml; inspection: value.out_of_range in each part | REQ-902, REQ-904 |
+
+### Case 81: the same wrap in the header the section uses and in an unselected Fallback
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG81_HERE` | yes | yes | yes |  |  |  | REQ-902, REQ-904, REQ-302, REQ-502 |
+| `RNG81_CHOICE` | yes | yes | yes |  |  | the selected Choice (w14) | REQ-902, REQ-904, REQ-302, REQ-502 |
+| `RNG81_FALLBACK` | – | – | – |  |  | a run in the unselected Fallback whose w:spacing/@w:val is 65537 (Word reads 1); inspection: mce.branch, and value.out_of_range in it | REQ-902, REQ-904, REQ-302, REQ-502 |
+| `RNG81_HEADER` | – | – | – | `include: headers` | yes | w:ind/@w:right 66976 (Word reads 1440) in the header the section uses; inspection: value.out_of_range | REQ-902, REQ-904, REQ-302, REQ-502 |
+
+### Case 82: a page number start beyond 32 bits on the body's section
+
+| Token | accepted | original | markup | option | with option | note | statements |
+|---|---|---|---|---|---|---|---|
+| `RNG82_SECTION` | yes | yes | yes |  |  | the body's w:sectPr carries w:pgNumType/@w:start 4294967295 (int32: Word reads -1); inspection: value.out_of_range | REQ-902, REQ-904 |
 

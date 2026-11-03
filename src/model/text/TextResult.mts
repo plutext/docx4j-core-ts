@@ -41,6 +41,12 @@ export type TextRunKind =
 /** `footnote` or `endnote`, as a note reference, mark or block says whose it is. */
 export type NoteType = 'footnote' | 'endnote';
 
+/**
+ * A run's `w:vertAlign` (WD REQ-710): `SUPERSCRIPT`, `SUBSCRIPT`, or `BASELINE` for neither. docx4j's
+ * `TextRun.VerticalAlignment` names as strings (CR-012 section 24, D3).
+ */
+export type TextVerticalAlignment = 'BASELINE' | 'SUPERSCRIPT' | 'SUBSCRIPT';
+
 // The tree objects a block or run was read from: kept out of the block model's JSON (REQ-706 holds no
 // tree objects; CR-012 section 4.4), so held here rather than as properties.
 const blockSources = new WeakMap<TextBlock, object>();
@@ -186,10 +192,32 @@ export class TextRun {
   bold = false;
   /** Italic where its paragraph's style is not. */
   italic = false;
-  /** Struck through where its paragraph's style is not. */
+  /** Struck through where its paragraph's style is not: `w:strike`, or `w:dstrike`, struck twice (CR-012 section 24.5). */
   strike = false;
   /** In a monospaced font where its paragraph's style is not in one. */
   monospace = false;
+  /**
+   * Shown in capitals (`w:caps`): the run's own property, else its styles', the paragraph style's among them (the case is
+   * the text's, not emphasis). `text` stays the stored characters; the plain-text and Markdown writers write them in
+   * capitals by `language` (`CaseMapping`; WD REQ-607, CR-012 section 24).
+   */
+  caps = false;
+  /**
+   * In small capitals (`w:smallCaps`), folded as `caps` is, and not caps: a run under both is a caps run. The writers write
+   * its stored characters, unless `small_caps: upper` is set (WD REQ-607).
+   */
+  smallCaps = false;
+  /**
+   * The text's `w:vertAlign`, the run's own, else its styles' (WD REQ-710); `BASELINE` for a note reference, which is a
+   * reference (REQ-503), not a superscript.
+   */
+  verticalAlignment: TextVerticalAlignment = 'BASELINE';
+  /**
+   * For a caps or small-caps run, the language its capitals are mapped by (WD REQ-607, the WD's `lang`): its
+   * `w:lang/@w:val`, else its styles' or the document defaults', else the settings' `w:themeFontLang`, else
+   * `CaseMapping.DEFAULT_LANGUAGE`; undefined for any other run, so that a `w:lang` alone never splits runs.
+   */
+  language: string | undefined;
   /** For text in a link: its target (a `w:hyperlink`'s, or a HYPERLINK field's, REQ-703). */
   link: string | undefined;
   /** True for an equation (REQ-604). */
@@ -224,6 +252,8 @@ export class TextRun {
   /** Whether two runs' text can be one run: the same formatting, link and equation. */
   sameFormat(o: TextRun): boolean {
     return this.bold === o.bold && this.italic === o.italic && this.strike === o.strike && this.monospace === o.monospace
+      && this.caps === o.caps && this.smallCaps === o.smallCaps && this.verticalAlignment === o.verticalAlignment
+      && this.language === o.language
       && this.link === o.link && this.math === o.math && this.displayMath === o.displayMath;
   }
 
@@ -232,6 +262,10 @@ export class TextRun {
     this.italic = from.italic;
     this.strike = from.strike;
     this.monospace = from.monospace;
+    this.caps = from.caps;
+    this.smallCaps = from.smallCaps;
+    this.verticalAlignment = from.verticalAlignment;
+    this.language = from.language;
     this.link = from.link;
     this.math = from.math;
     this.displayMath = from.displayMath;
@@ -455,6 +489,11 @@ export class TextBlock {
    * rows a line apart, their cells a tab apart. No list label, note number or comment.
    */
   get text(): string {
+    return this.textWith((r) => r.text);
+  }
+
+  /** `text` with each text run's text as the function gives it (`CaseMapping.written`). */
+  textWith(runText: (run: TextRun) => string): string {
     if (this.kind === 'CHART') {
       let out = this.chartTitle ?? '';
       if (this.chartHeader.length > 0) out += (out === '' ? '' : '\n') + this.chartHeader.join('\t');
@@ -462,10 +501,10 @@ export class TextBlock {
       return out;
     }
     if (this.kind === 'TABLE') {
-      return this.rows.map((row) => row.cells.map((cell) => cell.blocks.map((b) => b.text).join(' ')).join('\t')).join('\n');
+      return this.rows.map((row) => row.cells.map((cell) => cell.blocks.map((b) => b.textWith(runText)).join(' ')).join('\t')).join('\n');
     }
     let out = '';
-    for (const r of this.runs) if (r.kind === 'TEXT' || r.kind === 'FIELD_CODE') out += r.text;
+    for (const r of this.runs) if (r.kind === 'TEXT' || r.kind === 'FIELD_CODE') out += runText(r);
     return out;
   }
 
@@ -513,8 +552,10 @@ export class TextComment {
 /**
  * Where a result is not the whole document (WD section 8, REQ-801): a kind, the address it is at where
  * there is one, and its selector: for `mce.branches_differ` the name of the branch selected, for
- * `altchunk.not_expanded` the chunk's content type, for `content.not_read` and `image.not_described` the
- * part's name. Never the document's text (REQ-802). docx4j `TextWarning`.
+ * `altchunk.not_expanded`, `content.not_read` and `image.not_described` the part's name (the chunk's since
+ * CR-012 section 22.2 (a), WD 0.47; it was the chunk's content type, which the warning still carries), for
+ * `paragraph.drop_cap_joined` the name of the part the paragraphs are in. Never the document's text (REQ-802).
+ * docx4j `TextWarning`.
  */
 export class TextWarning {
   /** Both branches of an `mc:AlternateContent` hold text, and the texts differ (REQ-307). */
@@ -529,6 +570,11 @@ export class TextWarning {
   static readonly CONTENT_NOT_READ = 'content.not_read';
   /** An image the `ImageDescriber` failed to describe (REQ-514). */
   static readonly IMAGE_NOT_DESCRIBED = 'image.not_described';
+  /**
+   * A drop cap's frame paragraph joined to the paragraph after it, two `w:p` read as one (REQ-521): at the frame paragraph's
+   * address (CR-012 section 24.3).
+   */
+  static readonly DROP_CAP_JOINED = 'paragraph.drop_cap_joined';
 
   constructor(
     readonly kind: string,
@@ -538,13 +584,20 @@ export class TextWarning {
     readonly branch?: string,
     /** For `altchunk.not_expanded`, the chunk's content type as the package declares it. */
     readonly contentType?: string,
-    /** For `content.not_read` and `image.not_described`, the part's name. */
+    /**
+     * For `content.not_read`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
+     * the chunk's (`/word/afchunk.rtf`), so that a host can read it itself; for `paragraph.drop_cap_joined`, the part the
+     * paragraphs are in (`/word/document.xml`).
+     */
     readonly partName?: string,
   ) {}
 
-  /** The selector of REQ-801: the branch, the content type or the part's name, whichever the kind has. */
+  /**
+   * The selector of REQ-801: the branch, else the part's name, else the content type (a warning made without a part
+   * name). `altchunk.not_expanded`'s is its part name since CR-012 section 22.2 (a) (WD 0.47), its content type before.
+   */
   get selector(): string | undefined {
-    return this.branch ?? this.contentType ?? this.partName;
+    return this.branch ?? this.partName ?? this.contentType;
   }
 
   /** The identity a result keeps each warning once by. */

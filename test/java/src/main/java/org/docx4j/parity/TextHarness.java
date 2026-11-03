@@ -1,6 +1,7 @@
 /*
  * core-ts CR-012 phase 6 (its D8 c): the docx4j oracle for the text model, Texts.of and
- * PlainText.of (docx4j CR-046's org.docx4j.model.text, released in docx4j 17.3.4).
+ * PlainText.of (docx4j CR-046's org.docx4j.model.text, released in docx4j 17.3.4; since harness version 2,
+ * core-ts CR-012 section 24, docx4j CR-069's run members, released in 17.3.5).
  *
  * For every .docx, .docm and .dotx under each of the fixtures directories, at any depth, records
  * what docx4j's Texts.of answers in four readings (READINGS: the three views, and one with every
@@ -62,8 +63,11 @@ import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 
 public class TextHarness {
 
-	/** Raise when the shape of a golden changes; the test reads it. */
-	static final String HARNESS_VERSION = "1";
+	/**
+	 * Raise when the shape of a golden changes; the test reads it. Version 2 (core-ts CR-012 section 24, docx4j 17.3.5's
+	 * CR-069): a run's caps, smallCaps, verticalAlignment (where not BASELINE) and language.
+	 */
+	static final String HARNESS_VERSION = "2";
 
 	static final String TIME_ZONE = "UTC";
 
@@ -281,6 +285,10 @@ public class TextHarness {
 		put(m, "italic", r.isItalic());
 		put(m, "strike", r.isStrike());
 		put(m, "monospace", r.isMonospace());
+		put(m, "caps", r.isCaps());
+		put(m, "smallCaps", r.isSmallCaps());
+		if (r.getVerticalAlignment() != TextRun.VerticalAlignment.BASELINE) m.put("verticalAlignment", r.getVerticalAlignment().name());
+		put(m, "language", r.getLanguage());
 		put(m, "link", r.getLink());
 		put(m, "math", r.isMath());
 		put(m, "displayMath", r.isDisplayMath());
