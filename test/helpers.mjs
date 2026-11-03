@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { deflateSync } from 'node:zlib';
+import { parseXml } from '../dist/index.mjs';
 
 export const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -42,4 +43,49 @@ export function pngOf(width, height, [r, g, b]) {
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr), chunk('pHYs', phys), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0)),
   ]).toString('base64');
+}
+
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+/**
+ * docx4j BrOutsideARunTest's comparison over a story part's XML (CR-021): text, breaks with their type, field
+ * characters and paragraph ends, in order, each text and break with its run's bold, italic and size; a run's text
+ * joins the token before where the element and the properties are the same, so Word's run boundaries and ours may
+ * differ. Property elements (`w:pPr`, `w:sectPr`, ...) and anything outside WordprocessingML are passed over.
+ */
+export function breakTokens(xml) {
+  const doc = parseXml(xml);
+  const out = [];
+  const children = (n) => [...n.childNodes].filter((c) => c.nodeType === 1 && c.namespaceURI === W_NS);
+  const props = (r) => {
+    const rPr = children(r).find((c) => c.localName === 'rPr');
+    if (!rPr) return '';
+    const get = (name) => children(rPr).find((c) => c.localName === name);
+    const on = (name) => get(name) !== undefined && !['0', 'false', 'off'].includes(get(name).getAttributeNS(W_NS, 'val'));
+    const sz = get('sz');
+    const shown = [on('b') ? 'b' : '', on('i') ? 'i' : '', sz ? `sz${sz.getAttributeNS(W_NS, 'val')}` : ''].filter(Boolean).join(' ');
+    return shown === '' ? '' : `[${shown}]`;
+  };
+  const walk = (n) => {
+    for (const c of children(n)) {
+      if (c.localName === 'r') {
+        const p = props(c);
+        for (const item of children(c)) {
+          if (['t', 'instrText', 'delText', 'delInstrText'].includes(item.localName)) {
+            const head = `${item.localName}${p}:`;
+            if (out.length > 0 && out[out.length - 1].startsWith(head)) out[out.length - 1] += item.textContent;
+            else out.push(head + item.textContent);
+          } else if (item.localName === 'br') {
+            const type = item.getAttributeNS(W_NS, 'type');
+            out.push(`br${type ? `(${type})` : ''}${p}`);
+          } else if (item.localName === 'fldChar') out.push(`fld:${item.getAttributeNS(W_NS, 'fldCharType')}`);
+        }
+      } else if (!c.localName.endsWith('Pr') && c.localName !== 'tblGrid') {
+        walk(c);
+        if (c.localName === 'p') out.push('¶');
+      }
+    }
+  };
+  walk(doc.documentElement);
+  return out;
 }

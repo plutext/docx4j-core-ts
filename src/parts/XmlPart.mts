@@ -5,6 +5,7 @@ import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning, MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
+import { repairBreaksOutsideRuns } from '../opc/repair/breaks.mjs';
 import { rangeOf, describeReading, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
 /**
@@ -193,7 +194,8 @@ export class XmlPart<T = unknown> extends Part {
    * Word 365 reads it (`value.kept.exact`, `value.kept.invalid`, `value.truncated`, `value.refused`: CR-015 D8,
    * CR-017 P1), each integer attribute value past what Word stores, kept as written (`value.out_of_range`,
    * CR-017 P2), and each child its container never admits, kept as read but a string the runtime drops
-   * (`target.misplaced`, CR-016 D7). Empty until the part is parsed, by `getContents()` or a private read, and again
+   * (`target.misplaced`, CR-016 D7), and a w:br outside a w:r read as Word reads it (`br.outside_run`, CR-021).
+   * Empty until the part is parsed, by `getContents()` or a private read, and again
    * once its contents are set.
    */
   get warnings(): readonly PartWarning[] {
@@ -266,9 +268,14 @@ export class XmlPart<T = unknown> extends Part {
     return out;
   }
 
+  /**
+   * The DOM before unmarshalling: a w:br outside a w:r put in a run, as Word reads it (CR-021: a reading of the file,
+   * not an option, so ahead of the package's hook, which sees the repaired DOM), then the hook.
+   */
   private preprocess(doc: Document): void {
+    const repaired = repairBreaksOutsideRuns(doc, this.partName.name);
     const warnings = this.preprocessor?.(doc, this as XmlPart<unknown>);
-    this.parseWarnings = warnings ? [...warnings] : [];
+    this.parseWarnings = warnings ? [...repaired, ...warnings] : repaired;
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */

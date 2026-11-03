@@ -2,7 +2,8 @@
 
 **Status:** Proposed 2026-11-03, from docx4j CR-073's hand-off (its phase 2, D5), relayed by the portfolio session
 (docx4j-portfolio-10, registry `74da802`). Measured here the same day (section 1), and docx4j's three rules tried as a
-prototype outside `src/` (section 2). D1 to D6 for Jason (section 5). docx4j's CR-073 is complete (phase 1
+prototype outside `src/` (section 2). D1 to D6 decided 2026-11-03, all as recommended (Jason: "CR-021 as recommended";
+section 5). Implemented 2026-11-03 (section 10), unreleased (D6: with the next release). docx4j's CR-073 is complete (phase 1
 `95c6b42d3`, on `VERSION_17_3_6`, unreleased: its rules are in `mc-preprocessor.xslt`, `BrOutsideARunTest`); docx4j-python's
 and the editor's checks are their own entries.
 
@@ -100,7 +101,20 @@ The prototype is about 100 lines, in the session's scratchpad.
 - **Nothing else moves.** Over the 622 documents under `test/` (fixtures, `mc-fun`, the check saves, the text-extraction
   suite, ...), only 72e and 72j change, and no load fails.
 - **Cost.** The prototype makes five tag scans per WordprocessingML part. Over all 622 documents it took 235 ms of
-  `unmarshalAll`'s 7,363 ms (3%). One walk would do it.
+  `unmarshalAll`'s 7,363 ms (3%).
+  - **One walk is enough** (measured 2026-11-03, Node 22). A clean part pays only a detection walk over its DOM: one pass
+    over the nodes, looking for a `w:br` whose parent is a run container or `w:body`, and for a text element holding
+    an element. It allocates nothing unless something is found.
+  - Over all 1,883 story parts under `test/` (main, headers, footers, notes, comments), it took 8 ms, against 1,079 ms of
+    parsing and 923 ms of unmarshalling: 0.4%.
+  - On the largest part, a 1.9 MB `document.xml`, it took 1.25 ms against 95 ms to parse and 95 ms to unmarshal (0.7%).
+    The next seven took 0.3% to 0.5%.
+  - The rewrite runs only in a part where the walk finds something (2 of the 1,883), and changes only those elements.
+  - Nothing is paid by a part never unmarshalled (an untouched part isn't parsed), by a save, or by a reader after the
+    load.
+  - docx4j's own pass costs a clean part nothing, since its preprocessor runs only when the first unmarshal fails. The
+    same here would mean a second parse and unmarshal for each affected part, and, for a bare `w:br`, a re-unmarshal
+    keyed on the misplaced-child report (which raises no failure). 0.4% doesn't justify that.
 
 ## 3. Proposal
 
@@ -118,7 +132,8 @@ WordprocessingML namespace:
      `w:rPrChange`) where no earlier sibling on the break's path from its paragraph holds a `w:r`. Otherwise it has
      none (D1).
 2. **A `w:t`, `w:instrText`, `w:delText` or `w:delInstrText` holding elements** becomes its stretches of text, each
-   under the same name with `xml:space="preserve"`, and its `w:br`s, in order, in the same run.
+   under the same name with the nearest ancestor's `xml:space` (none where none is set; this line said `preserve` until
+   the implementation, section 10), and its `w:br`s, in order, in the same run.
    - A nested `w:t` gives its text.
    - Text in any other child element is kept.
    - Whitespace between children is kept only where `xml:space` preserves it.
@@ -198,7 +213,7 @@ Not here, as in docx4j:
 - **The gate in `misplaced-content.test.mjs`** stays as it is: no fixture warns.
 - **The full suite**, since other tests pin totals.
 
-## 5. Decisions (for Jason)
+## 5. Decisions (taken 2026-11-03, all as recommended)
 
 | # | Question | Options | Recommendation |
 |---|---|---|---|
@@ -246,3 +261,53 @@ It depends on nothing unreleased: docx4j's rules are the specification, and its 
   - `src/opc/mce/preprocessor.mts`;
   - CR-016 sections 7 and 7.1 (check 72);
   - CR-012 section 25 (`content.not_read`).
+
+## 10. Implementation (2026-11-03)
+
+Jason, 2026-11-03: "CR-021 as recommended". One phase, as section 6 has it.
+
+- **The pass**, `src/opc/repair/breaks.mts`: `repairBreaksOutsideRuns(doc, partName?)`, exported from `.` and `./opc` with
+  `BrOutsideRunWarning`. A part whose root isn't WordprocessingML's is left alone. One walk over the DOM finds the breaks
+  and text elements, allocating nothing in a clean part; only where it finds something are the three rules applied.
+  - **Decided on the tree as read**, as the stylesheet's templates are evaluated against the source: each break's run
+    properties and each body break's paragraph are settled before anything moves. The prototype wrapped in document
+    order, so a second stray break before any run saw the first's new run and took no properties; docx4j gives both the
+    mark's. Then rule 3, rule 1 and rule 2, in that order, so a paragraph's place for its body breaks is fixed before a
+    break in it is wrapped.
+  - **Rule 2's stretches are XPath's text nodes**: adjacent text and CDATA together, an element other than a `w:br`
+    giving its own text as a stretch of its own (the prototype joined them). Each carries the nearest ancestor's
+    `xml:space`, else none, as the stylesheet writes it; section 3.1 said `preserve`.
+  - **A break is moved, not copied.** It keeps its attributes and its place in the source for any later warning; any
+    content is dropped, as the stylesheet writes `@*` only. A run, a paragraph, run properties and a text element made
+    here take the part's own prefix for WordprocessingML.
+  - **docx4j's nested-paragraph exception is kept for rule 3.** A body break before a `w:p` holding a `w:p` in a
+    `w:hyperlink` or `w:r` is a paragraph of its own, as docx4j makes it, though this package doesn't port the rule that
+    splits such a paragraph (CR-016 refuses it at save).
+- **The counts are the stylesheet's** (D2): `breaks` every `w:br` whose parent is a run container or `w:body`,
+  `textElements` every text element holding an element, at any depth. So a `w:br` straight in a block-level
+  `w:sdtContent` is counted and left (its nearest block is the body, so rule 1 doesn't take it), and stays a
+  `target.misplaced` beside the report, as in docx4j; and a `w:t` nested in a `w:t` and holding a break counts twice.
+- **Where it runs (D1).** `XmlPart.preprocess`, ahead of the package's hook, on every parse: `getContents()`, the private
+  reads (`readContents`, `checkContent`), so every reader; `setBytes` and `setXml` reach it at the next parse. The
+  warning comes first among the part's. `insertOoxml` and `insertXml`'s fragment route run it before the package's hook in
+  `contentOf`, so a created package, which has none, repairs too; the flat OPC route loads a package, whose parts repair
+  as any. What either route's source reports is dropped with the source, as `mce.branches_differ` always was.
+- **Cost**, measured on the built pass (Node 22, section 2's script): over all 1,917 story parts under `test/`, 9 ms against
+  1,046 ms of parsing and 1,002 ms of unmarshalling (0.4%); 1.2 ms on the 1.9 MB `document.xml` (0.5%). It found
+  something in 15 parts, the thirteen probes' and 72e's and 72j's.
+- **The warning** (D2) joins the `PartWarning` union: `{ code: 'br.outside_run', partName, breaks, textElements, message }`,
+  the message docx4j's WARN after the part ("/word/document.xml: w:br outside a w:r: 1 outside a run, 0 text elements
+  holding elements; read as Word reads them").
+- **Tests.** `test/br-placement/`: docx4j's 26 files and its `README.md` from `95c6b42d3`, unedited, with a SHA-1 manifest
+  (the two Python builders not copied). `test/br-placement.test.mjs` (14 tests): each probe's warning, nothing misplaced,
+  and Word's saves warning of nothing; `Paragraph.text` equal to Word's save's in all thirteen, and the text model in
+  twelve, `br2-3`'s header D5's difference pinned; after `unmarshalAll` the save unrefused and every story part's tokens
+  (docx4j `BrOutsideARunTest`'s comparison, `breakTokens` in `test/helpers.mjs`) equal Word's save's, `br2-3`'s header
+  with `w:instrText` read as `w:t`, D1's properties pinned; untouched, every story part byte for byte after a private read;
+  docx4j's six edge tests mirrored; a part outside WordprocessingML, a clean part and a block-level `w:sdtContent` break;
+  two stray breaks before a run, and a nested text element's count; `insertOoxml`'s two routes into a created package;
+  and a caller's own hook seeing the repaired DOM. Check 72 (D4): 72e and 72j leave the misplaced tables of
+  `check72.test.mjs` and `misplaced-content.test.mjs`, and a test of their own holds the load (`br.outside_run`, nothing
+  misplaced), the readers (the break) and the save (unrefused, Word's save's tokens). The gate is unchanged: no fixture
+  warns. 1,688 tests, all passing; typecheck clean.
+

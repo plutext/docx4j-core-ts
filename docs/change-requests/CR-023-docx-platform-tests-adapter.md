@@ -42,6 +42,21 @@ The adapter is a small Node CLI over the content API, kept outside the published
 | tables (6) | `appendTableRow`, `deleteTableRowAtIndex`, `setTableCellText` | `table.addRows('End', 1, [cellTexts])`; `rows.items[i].delete()`; `getCell(r, c).value` |
 | | `mergeTableCellsInRow` | no merge API here (CR-002 section 42 adds and removes columns only): declined, as docx4j declines it |
 
+**The four content-control scenarios don't load here today** (measured 2026-11-03 on their `input.docx`, read as data):
+- Each holds an element in its `mc:Ignorable` namespace inside `w:sdtPr` (`ext:opaqueExtension`). The runtime's
+  unmarshal refuses it ("could not be unmarshalled as is not known in this context and the property does not allow
+  DOM content"), so the main part is unreadable. That holds by default, under `mcePreprocess`, and under CR-021's pass.
+- docx4j 17.3.5 failed the same four, for another reason; it was fixed in `86a203f16`.
+- The untouched save is byte for byte.
+- An ignorable attribute (`ext:opaqueAttribute` on `w:sdt`, or one on `w:p`) is dropped silently on a re-marshal, so
+  the scenarios' preservation rows would fail even once the part is read.
+- Both are load and preservation gaps of their own, not the adapter's: a finding for Jason, outside this CR. MCE lets a
+  consumer ignore what it doesn't understand, but this package refuses the part where Word reads it.
+
+`mc:Ignorable`'s private prefix stays declared on a re-marshal on every path (default, `mcePreprocess`, CR-021's pass,
+including a part CR-021 repaired), so docx4j's second finding, the declaration dropped after its preprocessor, doesn't
+occur here.
+
 The assertions are XPath counts and existence checks, text at offsets, numbering formats, a comment and its anchor, a
 hyperlink's target, a declared `mc:Ignorable` namespace, and `canonicalXmlEquals` (11, graded pass-divergent where only
 it fails).

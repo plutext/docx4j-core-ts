@@ -66,7 +66,9 @@ date rule of 2026-10-28: `pkg.dateTimeZone` for every instant's wall clock, a co
 save's `dcterms` times as opt-ins) is implemented, unreleased. So is CR-020 (bound controls as Word repairs and formats
 them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPath fits, docx4j's `StoreItemResolver`, by every
 reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
-date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). The editor's release requests are
+date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). So is CR-021 (a `w:br` outside a
+`w:r` read as Word reads it, docx4j CR-073's three rules as a DOM pass ahead of the package's hook, `br.outside_run` on the part; held
+to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -113,7 +115,8 @@ for behaviour. Layout and `exports` subpaths:
 
 ```
 src/xml/dom.mts   parse/serialize over Jsonix.DOM (typed since @docx4j/jsonix 3.2.1), text and base64 helpers
-src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink + Memory/Zip/FlatOpc, Load, Save, mce/, exceptions
+src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink + Memory/Zip/FlatOpc, Load, Save, mce/, exceptions;
+                  repair/breaks.mts: a w:br outside a w:r put in a run before unmarshalling, as Word reads it (CR-021)
 src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart (+CustomXmlDataStoragePart), RelationshipsPart,
                   Parts, Namespaces, PartRegistry; wml/ dml/ pml/ sml/ docProps/ customXml/ typed parts
 src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles and theme, body, outline, paragraphAt, getPropertyResolver/getNumberingEmulator/refresh), PresentationMLPackage, SpreadsheetMLPackage, registry
@@ -200,6 +203,13 @@ Key mechanics:
   notice of it). The builders (`p`, `r`, `tbl`, ...) refuse first. The facade's walk keys on the container's `TYPE_NAME`:
   `createPackage`'s document, body and `sectPr` carry theirs; a container built by hand without one escapes the walk (a
   known objects gap, asserted in `misplaced-content.test.mjs`). The gate: 806 corpus files save under the check unrefused.
+- **A `w:br` outside a `w:r` is read as Word 365 reads it** (CR-021, docx4j CR-073's rules from its `mc-preprocessor.xslt`).
+  `repairBreaksOutsideRuns` runs in `XmlPart.preprocess` on every parse, ahead of the package's hook (and before it on
+  `insertOoxml`'s fragment route): a break in a run container gets a run of its own, with the mark's run properties while no
+  run precedes it in its paragraph; a `w:t`, `w:instrText`, `w:delText` or `w:delInstrText` holding elements (which the runtime
+  refuses, failing the part) becomes its text and its breaks; a break in `w:body` goes into the next paragraph. Each is decided
+  on the tree as read. One `br.outside_run` warning a part, docx4j's counts; such a break is then no misplaced child. A clean
+  part pays one walk (0.4% of a load); an untouched part is still copied byte for byte.
 - **Dates are in the package's zone** (CR-018, the portfolio's date rule, docx4j CR-067 D12). A revision's or a comment's `w:date`
   is Word's local wall-clock time labelled `Z`, the true UTC beside it in `dateUtc` (CR-002 section 29); "local" is
   `pkg.dateTimeZone` (an IANA id, the client's for this package, never saved; copied by `clone()`), else the runtime's zone,
@@ -409,7 +419,8 @@ and check 71b's file (`check71bBytes`, `test/fixtures/check71b/`: the same sette
 snippet, a copy held equal; Word 365's run (its JSONs beside the build, its save in `test/check71b/`, with a SHA-1 manifest) pinned, and the shim's run held to
 it case for case, its one difference listed (section 65.9),
 `check72.test.mjs` CR-016 D5's: check 72's 18 files (`check72Files`, `test/fixtures/check72/`: one misplaced child each, per rule of docx4j CR-064's five sets, for
-Word's repairs), and each file's fate here (a `target.misplaced` warning at the load, the readers see two, the save refused but 72m's, whose string the runtime dropped at the read, and under the opt-out seventeen written back as held; CR-016 sections 7 and 8), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
+Word's repairs), and each file's fate here (a `target.misplaced` warning at the load, the readers see two, the save refused but 72m's, whose string the runtime dropped at the read, and under the opt-out fifteen written back as held; CR-016 sections 7 and 8;
+the bare breaks 72e and 72j, since CR-021, `br.outside_run`, nothing misplaced, and the save Word's save's structure), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
 `misplaced-content.test.mjs` CR-016 phase 2's: section 2's five direct edits refused at save with the part, the path and docx4j's fix, nothing written; the opt-out writing as held
 onto `pkg.lastSave.misplaced`; `checkContent()` on check 72's files leaving the part untouched and the untouched save unrefused; D7's warning fields per file; the gate over every
 fixture and `mc-fun` file; the facade's `TYPE_NAME` gap asserted as it stands,
@@ -423,6 +434,10 @@ path; no fixture holding one,
 `store-items.test.mjs` CR-020's: docx4j CR-058's five probes and Word 365's saves (`test/store-items/`, copied unedited with a SHA-1 manifest,
 outside `fixtures/`), docx4j's `StoreItemRepairTest` and `BoundDateFormatTest` mirrored, every control after `applyBindings` held to Word's save (the
 dates in Word's zone), the readers writing nothing, and check 73b's snippet through the shim held to Word's runs (checks 73 and 73b's JSONs),
+`br-placement.test.mjs` CR-021's: docx4j CR-073's br-placement probe and Word 365's saves (`test/br-placement/`, copied unedited with a SHA-1 manifest,
+outside `fixtures/`): each probe's `br.outside_run`, `Paragraph.text` and the text model held to Word's save (`br2-3`'s bare field code, D5, pinned), the save
+after unmarshalling unrefused and each story part's tokens (docx4j `BrOutsideARunTest`'s comparison, `breakTokens` in `helpers.mjs`) Word's save's, an untouched
+save byte for byte, docx4j's edge tests mirrored, `insertOoxml`'s two routes and a caller's own hook,
 `dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
 mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a

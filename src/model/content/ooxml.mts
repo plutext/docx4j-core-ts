@@ -7,6 +7,7 @@
 // `insertXml` takes; the two share this module.
 import { wml as parseFragment, walkAll } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { repairBreaksOutsideRuns } from '../../opc/repair/breaks.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import { ContentTypes } from '../../opc/ContentTypes.mjs';
 import { BinaryPart, ImagePart } from '../../parts/BinaryPart.mjs';
@@ -46,7 +47,9 @@ export interface OoxmlOptions {
  */
 export async function contentOf(ooxml: string, options: OoxmlOptions = {}): Promise<Element[]> {
   if (!isFlatOpc(ooxml)) {
-    return parseFragment(ooxml, { wrapper: 'body', preprocess: options.preprocess });
+    // a w:br outside a w:r read as Word reads it first, as on load (CR-021 D1): a created package has no hook
+    const preprocess = options.preprocess;
+    return parseFragment(ooxml, { wrapper: 'body', preprocess: (doc: Document) => { repairBreaksOutsideRuns(doc); preprocess?.(doc); } });
   }
   const target = options.target;
   if (!target) throw new Docx4JException('A pkg:package can only be inserted into a body that has a part');

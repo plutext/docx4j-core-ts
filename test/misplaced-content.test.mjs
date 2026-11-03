@@ -100,8 +100,11 @@ test('CR-016 D2: with pkg.checkContentOnSave = false the part is written as held
   assert.equal((await (await created()).pkg.clone()).checkContentOnSave, true);
 });
 
+/** Check 72's bare breaks, read as Word reads them since CR-021 (D4), in a run: no longer misplaced (check72.test.mjs). */
+const REPAIRED = ['72e-break-in-body', '72j-break-in-paragraph'];
+
 test("CR-016 D6: checkContent() on a part or the package finds what a save would refuse, changes nothing, and leaves an untouched part untouched; a document read and saved untouched is never refused", async () => {
-  for (const f of await check72Files()) {
+  for (const f of (await check72Files()).filter((file) => !REPAIRED.includes(file.name))) {
     const pkg = await WordprocessingMLPackage.load(f.bytes);
     const main = pkg.getMainDocumentPart();
     const found = await main.checkContent();
@@ -135,18 +138,21 @@ test("CR-016 D6: checkContent() on a part or the package finds what a save would
   assert.deepEqual(await (await created()).pkg.checkContent(), []);
 });
 
-/** D7's fields for each check 72 file's one warning: the container's class, the child's, its element and its place in the list. */
+/**
+ * D7's fields for each check 72 file's one warning: the container's class, the child's, its element and its place in the list. The
+ * bare breaks (72e, 72j) were `['Body', 'Br', 'w:br', 2]` and `['P', 'Br', 'w:br', 1]` until CR-021 put each in a run.
+ */
 const LOAD_WARNINGS = {
   '72a-run-in-body': ['Body', 'R', 'w:r', 2], '72b-text-in-body': ['Body', 'Text', 'w:t', 2], '72c-cell-in-body': ['Body', 'Tc', 'w:tc', 2],
-  '72d-row-in-body': ['Body', 'Tr', 'w:tr', 2], '72e-break-in-body': ['Body', 'Br', 'w:br', 2], '72f-run-in-cell': ['Tc', 'R', 'w:r', 0],
+  '72d-row-in-body': ['Body', 'Tr', 'w:tr', 2], '72f-run-in-cell': ['Tc', 'R', 'w:r', 0],
   '72g-table-in-paragraph': ['P', 'Tbl', 'w:tbl', 1], '72h-paragraph-in-paragraph': ['P', 'P', 'w:p', 1], '72i-text-in-paragraph': ['P', 'Text', 'w:t', 1],
-  '72j-break-in-paragraph': ['P', 'Br', 'w:br', 1], '72k-run-in-run': ['R', 'R', 'w:r', 0], '72l-paragraph-in-run': ['R', 'P', 'w:p', 1],
+  '72k-run-in-run': ['R', 'R', 'w:r', 0], '72l-paragraph-in-run': ['R', 'P', 'w:p', 1],
   '72m-string-in-run': ['R', undefined, undefined, 0], '72n-cell-in-table': ['Tbl', 'Tc', 'w:tc', 0], '72o-paragraph-in-table': ['Tbl', 'P', 'w:p', 0],
   '72p-table-in-table': ['Tbl', 'Tbl', 'w:tbl', 0], '72q-paragraph-in-row': ['Tr', 'P', 'w:p', 0], '72r-run-in-row': ['Tr', 'R', 'w:r', 0],
 };
 
 test("CR-016 D7: a target.misplaced warning per misplaced child read, docx4j-python's fields, docx4j's message after the part and the place, a string's text carried", async () => {
-  for (const f of await check72Files()) {
+  for (const f of (await check72Files()).filter((file) => !REPAIRED.includes(file.name))) {
     const pkg = await WordprocessingMLPackage.load(f.bytes);
     const main = pkg.getMainDocumentPart();
     await main.getContents();

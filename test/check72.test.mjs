@@ -3,7 +3,9 @@
 // test holds the build and records what this package does with each file: before CR-016 phase 2 (2026-10-27) the loads
 // never failed, the readers saw almost none of the misplaced content, and a save wrote most of it back as it was; since phase
 // 2 (2026-10-28) the load warns of each (target.misplaced, D7), the save is refused (D2) unless pkg.checkContentOnSave is
-// off, when it writes as before. misplaced-content.test.mjs holds the fields and the rules; this file the files' fates.
+// off, when it writes as before. Since CR-021 (2026-11-03) the two bare breaks (72e, 72j) are read as Word reads them, in a
+// run, and are no longer misplaced: the load reports br.outside_run, the readers see the break, and a save writes Word's
+// shape (CR-021 D4). misplaced-content.test.mjs holds the fields and the rules; this file the files' fates.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -13,6 +15,7 @@ import { createHash } from 'node:crypto';
 import { unzipSync, strFromU8 } from 'fflate';
 import { WordprocessingMLPackage, MisplacedContentException } from '../dist/index.mjs';
 import { FORMS, check72Files, documentOf } from './fixtures/check72/build.mjs';
+import { breakTokens } from './helpers.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -35,40 +38,59 @@ test("check 72's files: one misplaced child each, between BEFORE and AFTER, one 
  * the readers see the misplaced content (`read`), and whether a save under `checkContentOnSave = false` writes it back
  * (`saved`). Not what Word does: that is the check.
  *
- * A bare break (72e, 72j) carries no MISPLACED marker, so its `saved` is the `w:br` itself, kept where it was: both are (the facade
- * reads each typed, `Br`, and writes it as held; objects CR-017's finding of 2026-10-28, which corrected an earlier reading here).
+ * The bare breaks (72e, 72j) are not here since CR-021: read as Word reads them, each is in a run (below). Before it, both read
+ * `false` and saved `true`, the `w:br` written back where it was (the facade read each typed, `Br`, and wrote it as held).
  */
 const AS_HELD = {
   '72a-run-in-body': { read: false, saved: true }, '72b-text-in-body': { read: false, saved: true },
   '72c-cell-in-body': { read: true, saved: true }, '72d-row-in-body': { read: true, saved: true },
-  '72e-break-in-body': { read: false, saved: true }, '72f-run-in-cell': { read: false, saved: true },
+  '72f-run-in-cell': { read: false, saved: true },
   '72g-table-in-paragraph': { read: false, saved: true }, '72h-paragraph-in-paragraph': { read: false, saved: true },
-  '72i-text-in-paragraph': { read: false, saved: true }, '72j-break-in-paragraph': { read: false, saved: true },
+  '72i-text-in-paragraph': { read: false, saved: true },
   '72k-run-in-run': { read: false, saved: true }, '72l-paragraph-in-run': { read: false, saved: true },
   '72m-string-in-run': { read: false, saved: false }, '72n-cell-in-table': { read: false, saved: true },
   '72o-paragraph-in-table': { read: false, saved: true }, '72p-table-in-table': { read: false, saved: true },
   '72q-paragraph-in-row': { read: false, saved: true }, '72r-run-in-row': { read: false, saved: true },
 };
 
-test("every check 72 file loads with one target.misplaced warning, the readers see a misplaced child only in a cell or a row in the body, the save is refused but for the string in a run (gone at the read), and under the opt-out writes every one back but that string (CR-016 sections 7 and 8)", async () => {
+/** The bare breaks, read as Word reads them since CR-021 (D4). */
+const REPAIRED = ['72e-break-in-body', '72j-break-in-paragraph'];
+
+test("every check 72 file but the two bare breaks loads with one target.misplaced warning, the readers see a misplaced child only in a cell or a row in the body, the save is refused but for the string in a run (gone at the read), and under the opt-out writes every one back but that string (CR-016 sections 7 and 8)", async () => {
+  assert.deepEqual([...Object.keys(AS_HELD), ...REPAIRED].sort(), FORMS.map((f) => f.name).sort(), 'every file accounted for');
   for (const f of await check72Files()) {
+    if (REPAIRED.includes(f.name)) continue;
     const pkg = await WordprocessingMLPackage.load(f.bytes);
     const body = await pkg.getBody();
     const isString = f.name === '72m-string-in-run';
     assert.deepEqual(pkg.getMainDocumentPart().warnings.map((w) => w.code), ['target.misplaced'], `${f.name}: the load says what is wrong (D7)`);
     const isTable = f.name === '72g-table-in-paragraph';
-    const isBreak = f.name.includes('break');
-    const read = isTable ? body.tables.length > 0 : isBreak ? body.text.includes('\u000b') : body.text.includes('MISPLACED');
+    const read = isTable ? body.tables.length > 0 : body.text.includes('MISPLACED');
     if (isString) await pkg.save(); // the runtime dropped the string at the read: nothing misplaced is in the tree to refuse
     else await assert.rejects(pkg.save(), (e) => e instanceof MisplacedContentException && e.findings.length === 1, `${f.name}: refused (D2)`);
     pkg.checkContentOnSave = false;
     const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
     assert.equal(pkg.lastSave.misplaced.length, isString ? 0 : 1, `${f.name}: reported under the opt-out`);
-    const kept = isTable ? saved.includes('<w:tbl>')
-      : isBreak ? saved.includes(f.name === '72e-break-in-body' ? '</w:p><w:br/><w:p>' : '</w:r><w:br/><w:r>')
-      : saved.includes('MISPLACED');
+    const kept = isTable ? saved.includes('<w:tbl>') : saved.includes('MISPLACED');
     assert.deepEqual({ read, saved: kept }, AS_HELD[f.name], f.name);
     assert.ok(body.paragraphs.some((p) => p.text === 'BEFORE') && body.paragraphs.some((p) => p.text === 'AFTER'), `${f.name}: BEFORE and AFTER read`);
+  }
+});
+
+test("check 72's bare breaks (72e, 72j), since CR-021: the load reports br.outside_run and nothing misplaced, the readers see the break, and the save, unrefused, holds Word's save's structure (CR-021 D4)", async () => {
+  const files = (await check72Files()).filter((f) => REPAIRED.includes(f.name));
+  assert.equal(files.length, 2);
+  for (const f of files) {
+    const pkg = await WordprocessingMLPackage.load(f.bytes);
+    const body = await pkg.getBody();
+    const main = pkg.getMainDocumentPart();
+    assert.deepEqual(main.warnings.map((w) => [w.code, w.breaks, w.textElements]), [['br.outside_run', 1, 0]], f.name);
+    assert.ok(body.text.includes('\u000b'), `${f.name}: the break read`);
+    assert.deepEqual(await main.checkContent(), [], `${f.name}: nothing misplaced`);
+    const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
+    assert.deepEqual(pkg.lastSave.misplaced, []);
+    const word = strFromU8(unzipSync(new Uint8Array(await readFile(join(here, 'check72', `${f.name}-word365.docx`))))['word/document.xml']);
+    assert.deepEqual(breakTokens(saved), breakTokens(word), f.name);
   }
 });
 

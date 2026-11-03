@@ -2884,3 +2884,204 @@ CB4 and CB5 (`CB4_SECOND_ITEM`, `CB5_SECOND_ITEM`, as docx4j's generator, which 
 measured part of exception 1 at block level (CR-002 section 61.3): Word gave a bound explicit `w:richText` block control
 `<w:text/>` on save, Office JS reported it `PlainText`, and its repair of 56c refilled it from its node; that file's
 surfaces equalled their nodes, so a refresh on an ordinary open is what RX2 adds.
+
+## 28. A styles, numbering or settings part that cannot be read: `part.not_read` (WD 0.66 REQ-801; proposed 2026-11-03)
+
+This is the portfolio's hand-off (docx4j-portfolio-10, 2026-11-03). docx4j-python's CR-031 (Q4) raised the question:
+should a reading warn when a styles, numbering, settings or font-table part cannot be read? The WD carried it as 0.65's
+open item under REQ-801, and both docx4j and this package measured it the same day (this package's measurement is
+section 28.1). Jason ruled "part.not_read as recommended" (relayed through the python session), and WD 0.66
+(docx4j-portfolio `bfcd03a`) states the rule in REQ-801:
+- **When.** `part.not_read` is raised once per part, where a part that the reading consulted and needed for this
+  document, but does not emit, cannot be read.
+- **Which parts.** They are named by what they supply, not by a fixed list:
+  - a numbering part: the labels, and the clause addresses built from them;
+  - a styles part: what a style gives a paragraph or run (numbering, hidden text, `w:caps` and `w:smallCaps`, a frame,
+    a table style's header rows);
+  - a settings part: the caps language, `updateFields`, forms protection and the even header;
+  - the font table: only where a reading consults it, which this package's never does.
+- **What it says and what happens.** Its selector is the part's name. The reading proceeds as it would for a package
+  that lacks the part, and the result is marked by the warning, not refused.
+- **A part not needed.** One the document didn't need raises nothing: a numbering part in a document with no numbered
+  paragraph loses nothing. So an implementation that parses eagerly raises on first need, not on load.
+- `content.not_read` is not reused for it, since that one names content at an address.
+
+docx4j has the same hand-off, and python amends its CR-031 itself. The xmldom console noise measured below belongs to
+`@docx4j/jsonix` and is outside this section.
+
+### 28.1 Here today (measured 2026-11-03, `504dbb4` with CR-021 uncommitted)
+
+**The probe**, built in memory, a paragraph or run for each thing a part supplies:
+- a paragraph numbered by its style (`%1.`) and one numbered directly (`%1)`);
+- a run hidden by a character style, and one hidden directly;
+- a run in a character style with `w:caps`, and one with `w:caps` directly;
+- a `w:ins`;
+- a paragraph hidden by its paragraph style, and one framed by its style;
+- `w:lang` `tr-TR` in the document defaults;
+- settings with `w:updateFields` and `w:evenAndOddHeaders`, the section showing a default and an even header.
+
+Each of `styles.xml`, `numbering.xml` and `settings.xml` was cut to half its length (not well formed), one at a time,
+and each was also left out, for comparison. Each file was read by `Texts.of` with `list_labels: true` and headers
+included, in the three views (which differ only by the `w:ins` in every case).
+
+| The package | Labels | Hidden by a style | Hidden directly | Even header, `fields_update_on_open` |
+|---|---|---|---|---|
+| intact | `1.` and `a)` | left out | left out | shown, true |
+| styles not well formed | **none**: the direct `a)` lost too | shown | left out | shown, true |
+| styles absent | `a)` only | shown | left out | shown, true |
+| numbering not well formed | none | **shown**: the styles lost too | left out | shown, true |
+| numbering absent | none | left out | left out | shown, true |
+| settings not well formed | `1.` and `a)` | left out | left out | gone, false |
+| settings absent | the same as not well formed | | | |
+
+- **The two refused together.** `PropertyResolver.create` reads the styles and numbering parts together and refuses
+  if either cannot be read (`readOrRefuse`, CR-001 section 26). `pkg.getNumberingEmulator()` waits on that resolver.
+  `PackageTrees.read` catches each failure and silently drops the resolver, the numbering, or both. So a styles part
+  that cannot be read costs the direct labels too, and a numbering part that cannot be read costs the styles too.
+  Neither happens when the part is absent.
+- **Settings already reads as absent.** The resolver logs a warning (compatibility mode 12), and `readQuietly` passes
+  over the part.
+- **Nothing to compare for caps and frames.** `w:caps` is not applied yet (section 24 is not built), so the caps runs
+  read in lower case throughout, and the framed paragraph reads the same in every case. The text model consults no font
+  table and no theme.
+- **No warning anywhere.** There is none on the result, on `pkg.warnings` or on the part. `content.not_read` covers
+  only the story parts (section 25).
+- **The console.** xmldom prints two or three lines on every parse attempt. A failed parse isn't kept, so the part is
+  parsed again on each reading: 8 attempts, two in each of the three readings and one in each of the content API's two calls.
+- **Load and content API.** The load never refuses. The content API refuses a styles or numbering part at first use
+  (`getBody`, `getPropertyResolver`: "The document cannot be opened: its styles part could not be read, ...", CR-001
+  section 26, released in 0.5.0), and tolerates a settings part.
+- **docx4j's side finding (b) is not so here.** A package with no styles part gains none from a reading, and a save
+  afterwards writes only the relationships parts, as every save does.
+
+### 28.2 Proposed
+
+1. **The resolver without the unreadable part.** `PropertyResolver.create` gains an option, used by the text model
+   only, that leaves out a styles or numbering part that cannot be read, as for a package that lacks it, and says which
+   parts it left out. `PackageTrees.read` takes it where `pkg.getPropertyResolver()` refuses. The package's own resolver
+   is never set from it, so:
+   - the content API still refuses (CR-001 section 26);
+   - a part put right with `setXml` is read again on the next reading.
+2. **The numbering where the styles cannot be read.** The definitions are read directly (`getDefinitions()`), not
+   through `pkg.getNumberingEmulator()`, which waits on the package's resolver. The paragraphs are counted by the text
+   model's own `Emulator` over those definitions and its resolver. This keeps the direct labels, and keeps nothing on
+   the numbering part: its `getEmulator()` would otherwise keep an emulator built with no resolver. An intact package
+   reads exactly as now.
+3. **The warning.** `TextWarning.PART_NOT_READ` (`part.not_read`), its `partName` the part's name (the selector), no
+   address. It is raised once per part per result, and for no part unless the reading needs it:
+   - **numbering**: at the first paragraph the reading takes whose effective `w:numPr` names a `w:numId` other than 0
+     (directly, or by a style where the styles part could be read). This holds with labels off too, since the block's
+     `numbering` carries the level's format and text from the part;
+   - **styles**: at the first paragraph or table the reading takes, since each is resolved through the part's defaults
+     and its default paragraph style. A reading that takes no block raises nothing;
+   - **settings**: on every reading of a package whose settings part cannot be read, since every result's metadata
+     carries `fields_update_on_open` from it (REQ-801). The part also supplies the even header (REQ-502) when headers or
+     footers are included, and the caps language once section 24 lands;
+   - **never** for the font table or the theme, which the text model doesn't consult.
+
+   The part overloads (`Texts.of(part)`) follow the same rules for their own reading. The content overload with no
+   package reads no parts.
+4. **Not changed:**
+   - the load, and the content API's refusal (CR-001 section 26);
+   - the Office JS readers;
+   - `content.not_read`;
+   - the logged warnings;
+   - the xmldom console noise (a `@docx4j/jsonix` matter, `Jsonix.DOM.parse` giving xmldom no `onError`).
+5. **Tests** (`text-model.test.mjs`), on 28.1's probe built in memory:
+   - each part not well formed reads as that part absent, in the three views, with labels on and off, plus exactly one
+     `part.not_read` naming the part;
+   - a numbering part not well formed in a document with no numbered paragraph raises nothing;
+   - a settings part not well formed raises on every reading;
+   - the content API still refuses, and the package's resolver stays unbuilt;
+   - a part put right is read on the next reading;
+   - a save after the readings copies the untouched parts byte for byte.
+
+   docx4j's fixture (an intact file, three not well formed and three absent, proposed beside the compact probe) is
+   copied here as the companion when it lands. No golden and no suite row moves: none holds an unreadable part.
+
+### 28.3 Decisions for Jason
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | When it lands | On its own, now that Jason has ruled. It touches `TextContext.mts`, the extractor's warnings and an option on `PropertyResolver.create`; no golden or suite row moves |
+| D2 | When each part counts as needed | 28.2 item 3: numbering at the first numbered paragraph, styles at the first block, settings on every reading (the metadata always carries `fields_update_on_open`); docx4j's answers compared when its fixture lands, a difference taken to the WD |
+| D3 | Parts beyond the WD's three | The WD's three only, for now. Three other parts are consulted and not emitted: the comments' extended part (a comment's done state and its parent, when comments are included), the document properties (emitted as metadata, REQ-515) and the custom XML stores (bindings, REQ-509, whose NOTE has a binding that doesn't resolve keep its surface). Today each is passed over silently when it can't be read. These go to the WD's owner, and nothing is raised for them until the WD names them |
+
+**D3 is WD 0.67's open item under REQ-801** (docx4j-portfolio `f8a5489`, 2026-11-03), whose owner is Jason. The
+portfolio recommends:
+- **(a) The comments' extended part** raises `part.not_read` where comments are in scope (`include: comments`), since
+  the block model then emits a comment's done state and its parent and loses both. It raises nothing where they are out
+  of scope.
+- **(b) A document-properties part** raises it where the result carries metadata (REQ-515), or a property field is read
+  under `fields: update`. "Does not emit" is read as "is not a story part", and the properties have no address for
+  `content.not_read`. `fields: update` is phase 5a's here.
+- **(c) A custom XML store**, as WD 0.69 revises it (docx4j-portfolio `e641f62`, 2026-11-03), has no carve-out. Jason
+  ran docx4j's store-not-read probe in Word 365. Word repairs a document whose store is not well formed. It reads the
+  store as absent and drops it on save, and it binds a control naming that store to the store whose root the XPath
+  fits. That is REQ-509's repair for a `w:storeItemID` naming no part (CR-020 here). So:
+  - a store that cannot be read is read as absent;
+  - a binding naming it resolves under that repair, else to its surface;
+  - `part.not_read` is raised once, naming the store, where a binding in scope names it;
+  - `sdt.binding_differs` is raised as usual where the value shown differs from the surface.
+
+  With a single store the surface still shows, since nothing else fits. The WD leaves one question open: which store Word
+  takes when several fit. docx4j takes the first whose XPath selects a node, as CR-020's resolver does. The previous
+  recommendation (WD 0.67) kept the surface and raised no `sdt.binding_differs`; WD 0.69 replaces it.
+
+  Measured on 2026-11-03 against `504dbb4`, with CR-021 uncommitted. The probe was CR-020's `bind-plain-two-parts.docx`
+  with `item1.xml` made not well formed, built in memory:
+  - **B1.** Its binding names `item1` by its own ID. It shows its surface, `B1_STALE_SURFACE`, and raises no warning,
+    because the unreadable store is still a candidate in `PackageTrees.readStores`. The resolver matches the ID, then
+    finds no document to read. When `item2` is given a `b1` of its own (`B1_PART2`), B1 still shows its surface. WD 0.69
+    reads `B1_PART2` there, with `sdt.binding_differs`.
+  - **B7 and B11.** Their stale ID already resolves as WD 0.69 has it: the unreadable store fits nothing, so B7 moves
+    from part 1 to part 2.
+  - **Here, (c) needs two changes:** `readStores` leaves an unreadable store out of the resolver's candidates, and keeps
+    its ID so that `part.not_read` can be raised.
+  - **The content API.** `pkg.customXmlParts.load()` throws the parser's `ParseError` for the whole collection, so
+    `XmlMapping` and the bind cannot run. Word's repair suggests the content API should also read the store as absent.
+    That is outside the WD, and it goes to Jason as a question of its own; nothing is written for it here.
+
+D3 follows the ruling. If Jason takes the three, item 3 of 28.2 gains them with the same once-per-result rule, read
+through `PackageTrees.read`'s `readQuietly` and `readStores`, which pass over each such part silently today.
+
+### 28.4 docx4j's build and its fixture (2026-11-03)
+
+docx4j built the rule as its CR-046 section 10 (`3ad164bdf`, `VERSION_17_3_6`, unpushed). Its fixture is now WD 0.68's
+Appendix A.8 (docx4j-portfolio `6ffa998`): `docx4j-core-tests/src/test/resources/text-extraction/part-not-read/`, made
+by `build_part_not_read.py`.
+- **The eight files.** One intact file; styles, numbering and settings each not well formed (cut to two thirds) and
+  each absent; and `numbering-unneeded`, two plain paragraphs over a numbering part not well formed.
+- **The expected results.** The plain text in the three views (`expected/<fixture>.<view>.txt`), with
+  `list_labels: true` and `small_caps: upper`, and `expected-warnings.tsv`.
+- **What they say.** Each not-well-formed file reads as its absent twin, plus one `part.not_read` naming the part, and
+  `numbering-unneeded` raises nothing.
+
+The fixture is the companion for this section, not a dependency.
+
+**docx4j's "needed" agrees with D2:**
+- styles when a paragraph or run first asks for the resolver;
+- numbering for a paragraph with a `w:numId`;
+- settings for `fields_update_on_open`, so on every reading, as well as forms protection, the caps language and
+  `w:evenAndOddHeaders` where a section has an even header or footer;
+- never the font table.
+
+Whether a `w:numId` of 0 counts is not said. Here it would not (28.2 item 3), and the fixture holds none. docx4j's fix
+(a) is 28.2 item 2's: the numbering resolved with no property resolver where the styles part cannot be read, so a direct
+`w:numId` is counted.
+
+**The fixture read here today** (`504dbb4`, the files taken from `3ad164bdf` into a scratch directory; `Texts.of`,
+`PlainText`, `list_labels: true`): **3 of the 24 readings equal docx4j's**, `numbering-unneeded`'s three. The rest differ
+in two ways:
+- **Capitals: all 21.** Section 24 is not built, so `w:caps` is not applied and the `small_caps` option is refused. The
+  three caps lines read in lower case: `istanbul caps-by-style`, `small caps by style`, `istanbul direct caps`.
+- **The two defects of 28.1: six readings.** `numbering` shows `hidden-by-style` in its three views (the styles lost
+  with it). `styles` loses `1.` and `2.`, the direct labels, in its three views.
+
+Everything else equals docx4j's in every view: the labels by style (`Article I`, `Article II`), the direct labels, the
+hidden text and the revisions. No warning is raised anywhere. With this section built, every reading would equal
+docx4j's but for the caps lines, which wait on section 24.
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D4 | The fixture | Copied with the build (D1) into `test/part-not-read/`, outside `fixtures/` and `text-extraction/` so that no text golden is wanted, unedited, with a SHA-1 manifest naming `3ad164bdf`. Each reading held to docx4j's expected text and `expected-warnings.tsv`, the caps lines pending section 24, each pending line required to still differ, so that section 24's landing announces itself |

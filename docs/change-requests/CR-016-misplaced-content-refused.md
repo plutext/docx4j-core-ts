@@ -251,6 +251,10 @@ This package reads each of Word's saves as any file: BEFORE, AFTER and the moved
 no warning (`check72.test.mjs`, under the manifest). What this package does with the original files is unchanged from
 section 7: the eleven Word can't open are among the seventeen it saves back as they were.
 
+Since CR-021 (2026-11-03, the port of docx4j CR-073) the two bare breaks are read as Word reads them, each in a run, before
+unmarshalling: 72e and 72j load with `br.outside_run` and no `target.misplaced`, the readers see the break, and a save is
+not refused and holds the structure of Word's saves above (CR-021 D4). Fifteen of the files are now saved back as held.
+
 ## 8. Implemented (2026-10-28, phase 2)
 
 On objects 0.7.0 (its CR-017's `onMisplaced` on read and on save), raised here the same day (`4275c36`), at Jason's

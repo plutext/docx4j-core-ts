@@ -22,6 +22,7 @@
 //   removing did.
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { READ_UNDERSTOOD_NAMESPACES } from './understood.mjs';
+import type { BrOutsideRunWarning } from '../repair/breaks.mjs';
 
 export const MCE_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
 
@@ -163,7 +164,7 @@ export interface MisplacedContentWarning {
 }
 
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning;
+export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a
