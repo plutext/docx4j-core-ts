@@ -8,7 +8,7 @@ section 5), D3 to be held to check 73, that read (`test/README.md`). Check 73 ru
 binds two-parts' B7 to part 2 where its October save had part 1; check 73b the same day (section 5.2): in four fresh
 sessions part 1, as docx4j's rule, and Office JS's `customXmlPart` the repaired part (D3 stands). D7 (keep the
 part-name order) and D8 (`isMapped` false where the XPath selects nothing) decided the same day, as recommended (Jason:
-"CR-020's D7 and D8 as recommended"). Nothing implemented. docx4j's
+"CR-020's D7 and D8 as recommended"). Implemented 2026-11-02 (section 8), unreleased (D6: with the next release). docx4j's
 CR-058 is complete (phase 1 `FormattingSwitchHelper`, phase 2 `StoreItemResolver`, `35cdeaee6`), released in 17.3.5;
 docx4j-python's counterpart is `python/CR-014.1c`.
 
@@ -193,7 +193,7 @@ Jason, 2026-11-02: "CR-020's D7 and D8 as recommended".
 
 ## 6. Registry
 
-`core-ts/CR-020`, proposed, depending on `docx4j/CR-058` (done). The identifier's other two findings are already
+`core-ts/CR-020`, proposed, depending on `docx4j/CR-058` (done); done 2026-11-02 (section 8). The identifier's other two findings are already
 entries: CR-069's case mapping is `core-ts/CR-012.24` (proposed; CR-012 section 24), and `fields: update` is CR-012
 phase 5a.
 
@@ -204,3 +204,57 @@ phase 5a.
   `BoundDateFormatTest`.
 - Word 365's saves, `~/vbShares/Office 2016/bind-fun/*-word365.docx` and `README.txt` (Jason, 22 and 23 October 2026).
 - The scratch probes of 2026-11-02 (not committed): the store-item and date runs over the five probes.
+
+## 8. Implementation (2026-11-02)
+
+Jason, 2026-11-02: "start CR-020". One phase, as section 4 has it.
+
+- **The resolver**, `src/model/customxml/storeItems.mts`: `StoreItemResolver<P>` over candidates (a part, its itemID, its
+  part name, its document element, whether an XPath selects a node in it), docx4j's rule as section 2.1 has it; `firstStep`
+  docx4j's, a prefix the binding doesn't map read through the objects package's `NAMESPACE_PREFIXES`;
+  `isPropertiesStoreItem`, `normaliseStoreItemId` and the two properties IDs (moved here from `TextContext`). The memo is
+  keyed by the ID, the XPath and the prefix mappings (docx4j's by the first two: the mappings decide the first step's
+  namespace, so a key without them could give one binding another's part), and forgotten when the parts' IDs or names
+  change, by any route, not only `add` and `removePart`. All of it is exported from `.` and `./model`.
+- **Routing (D1).** `pkg.customXmlParts.resolveStoreItem(id, xpath, prefixMappings)` over the collection's views, and
+  `CustomXmlPartLookup` requires it (a public type: a lookup of one's own now implements it). `XmlMapping.customXmlPart`
+  and so `customXmlNode`, `setMapping`'s current part, `applyBindingTo` (every kind), `updateFromControl` (D2: the
+  resolved part, the ID left), the picture pass's mapped controls, and `selectEntryNode`, which the XHTML pass now calls
+  rather than its own copy of the lookup, all go through it. `TextContext.boundValue` (the text model) builds its own over
+  the stores it reads privately; nothing is written back.
+- **Write-back and notes (D2, D4).** Where `applyBindingTo` binds a control through a repair, it writes the part's ID,
+  upper-cased as Word and docx4j write it, over the stale one in `w:dataBinding` and `w15:dataBinding`
+  (`XmlMapping.repairStoreItemID`, internal), and `BindingResult.notes` says so: the control (its title, else its tag),
+  the stale ID, the part's name and ID, and how many fitted where several did. A stale ID nothing fits is a note too, the
+  control left as it is; one bound but whose kind is left (a container, a Flat OPC node) is neither written nor noted, as
+  docx4j's write-back follows the bind. An `od:xpath` entry is never rewritten: its repair is the outcome's note.
+- **`isMapped` (D8).** `true` only where the XPath selects a node in the resolved part (a binding to the core or application
+  properties, which are not custom XML parts here, stays `true`); so it evaluates the XPath, and **throws before
+  `pkg.customXmlParts.load()`**, as `customXmlPart` and `customXmlNode` always have. `dataBinding` is the synchronous "does
+  the control carry a binding"; the binding passes count `bound` by it, as before (a stale or nodeless binding is still
+  `bound` and `skipped`), and two `placeholders.test.mjs` assertions that meant "carries a binding" read it now.
+- **The dates (D5).** `formatDate` matches `am/pm` in any mix of cases (docx4j's `isAMPM`) before `M` and `m`, and writes the
+  locale's `dayPeriod` (`Intl`, 12-hour) upper-cased in the locale; `A/P` and `a/p` stay literal. A date control without
+  `w:lid` takes the document default language from the package's `PropertyResolver`
+  (`getDocumentDefaultRPr().lang`), else `en-US`; so **`applyBindings` now builds the resolver** (private reads, kept for
+  the package's life, as any effective read builds it; a styles part that can't be read leaves the date in `en-US`).
+- **Tests**: `test/store-items/` (the five probes from the 17.3.5 release under docx4j's names, Word's five saves under the
+  share's, a SHA-1 manifest, a README) and `test/store-items.test.mjs` (21 tests): section 3's list. Every control of the
+  five probes after `applyBindings`, in Word's zone for the dates, is Word's save: what it shows, its `w:storeItemID`,
+  `isMapped`, its placeholder flag (bind-plain's B1 excepted, typed into before the save). Check 73b's snippet through the
+  shim after `applyBindings` is Word's run after the open on all five runs, control by control (text, type, mapping,
+  `customXmlPart`, `customXmlNode`), and its body OOXML's IDs; check 73's runs' IDs too, but two-parts' B7 (section 5.1).
+  1,673 tests, all passing; typecheck clean.
+
+### 8.1 What the runs show beyond this CR (recorded, nothing changed)
+
+1. **B8's type at run level.** Word's Office JS reports `PlainText` for `bind-plain`'s B8, a run-level control with no kind
+   bound by `w:dataBinding` (check 73b, every run); here it is `RichText`, CR-002 section 61 H4's rule (a bound control is
+   plain text to Word) being implemented for block controls only (`isBoundBlockControl`). Recorded in CR-002 section 61.7.
+   Listed in the test.
+2. **The text model and B8.** The text model reads a binding only where the control has `w:text` (REQ-509, docx4j's
+   `BoundValues`), so B8 reads `B8_RICH_STALE_SURFACE` where Word shows `B10_XML_VALUE` (and its save gives B8 `w:text`).
+   docx4j's rule and this package's agree; Word reads such a control as plain text. For docx4j and the WD (REQ-509), through
+   the portfolio. Listed in the test.
+3. **The shim's `customXmlNode` with no node.** Word throws `GeneralException` for B4's; the shim's proxy hands the snippet
+   `undefined`, whose `load` then fails. Listed in the test; the shim's null-object handling is unchanged.

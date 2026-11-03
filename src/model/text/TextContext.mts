@@ -16,13 +16,10 @@ import { Body } from '../content/Body.mjs';
 import { ResolvedView } from '../content/ResolvedView.mjs';
 import type { XPathEngine } from '../customxml/xpath.mjs';
 import { parsePrefixMappings } from '../customxml/xpath.mjs';
+import { CORE_PROPERTIES_STOREITEMID, EXTENDED_PROPERTIES_STOREITEMID, StoreItemResolver, isPropertiesStoreItem, normaliseStoreItemId, type StoreItemCandidate } from '../customxml/storeItems.mjs';
 import { parseXml, decodeXmlText } from '../../xml/dom.mjs';
 import { walk } from '@docx4j/generated-objects-ts/builders/wml';
 import type { NoteType } from './TextResult.mjs';
-
-/** The `w:storeItemID`s of the core and application properties, which a control can be bound to (docx4j `BindingHandler`). */
-const CORE_PROPERTIES_STOREITEMID = '{6C3C8BC8-F283-45AE-878A-BAB7291924A1}';
-const EXTENDED_PROPERTIES_STOREITEMID = '{6668398D-A668-4E3E-A5EB-62B293D839F1}';
 
 /** As much of a `WordprocessingMLPackage` as a reading uses, so that this module does not import the package. */
 export interface TextPackage {
@@ -33,7 +30,7 @@ export interface TextPackage {
   readonly docPropsCorePart?: XmlPart<core.CoreProperties>;
   readonly docPropsExtendedPart?: XmlPart<extended.Properties>;
   readonly docPropsCustomPart?: XmlPart<custom.Properties>;
-  readonly customXmlDataStorageParts: ReadonlyMap<string, { parseDocument(): Promise<Document> }>;
+  readonly customXmlDataStorageParts: ReadonlyMap<string, { parseDocument(): Promise<Document>; readonly partName: { readonly name: string } }>;
   xpathEngine: XPathEngine;
 }
 
@@ -85,8 +82,11 @@ export class PackageTrees {
   resolver: PropertyResolver | undefined;
   numberingPart: NumberingPartLike | undefined;
   numbering: NumberingDefinitions | undefined;
-  /** Each binding store's DOM, by its upper-cased item id. */
+  /** The core and application properties' DOMs, by their normalised store item ids. */
   private readonly stores = new Map<string, Document | undefined>();
+  /** The custom XML parts' DOMs, in the package's order: what a binding resolves to (CR-020). */
+  private readonly customStores: StoreItemCandidate<Document | undefined>[] = [];
+  private readonly storeItems = new StoreItemResolver<Document | undefined>(() => this.customStores);
   private xpath: XPathEngine | undefined;
   private anchored: Set<string> | undefined;
 
@@ -167,23 +167,24 @@ export class PackageTrees {
   private async readStores(pkg: TextPackage): Promise<void> {
     let context: Node | undefined;
     for (const [id, part] of pkg.customXmlDataStorageParts) {
+      let doc: Document | undefined;
       try {
-        const doc = await part.parseDocument();
-        this.stores.set(id.toUpperCase(), doc);
+        doc = await part.parseDocument();
         context ??= doc;
       } catch {
-        this.stores.set(id.toUpperCase(), undefined);
+        doc = undefined;
       }
+      this.customStores.push({ part: doc, id, partName: part.partName.name, root: doc?.documentElement, selects: (xpath, mappings) => this.selectIn(doc, xpath, mappings).length > 0 });
     }
     for (const [id, part] of [[CORE_PROPERTIES_STOREITEMID, pkg.docPropsCorePart], [EXTENDED_PROPERTIES_STOREITEMID, pkg.docPropsExtendedPart]] as const) {
       if (!part) continue;
       try {
         // the part's XML as it would be saved, parsed apart from it: the part keeps its round trip
         const doc = parseXml(decodeXmlText(await part.getBytes()));
-        this.stores.set(id, doc);
+        this.stores.set(normaliseStoreItemId(id), doc);
         context ??= doc;
       } catch {
-        this.stores.set(id, undefined);
+        this.stores.set(normaliseStoreItemId(id), undefined);
       }
     }
     if (context === undefined) return;
@@ -197,23 +198,30 @@ export class PackageTrees {
 
   /**
    * A data binding's value, docx4j `BoundValues`: the binding's XPath, with its own prefix mappings,
-   * against the custom XML part its `w:storeItemID` names (or the core or application properties); the
-   * string value of the first node selected. Undefined where the binding does not resolve.
+   * against the custom XML part its `w:storeItemID` names (or the core or application properties), or,
+   * where it names none, the part its XPath fits, as Word repairs it (CR-020; nothing is written back);
+   * the string value of the first node selected. Undefined where the binding does not resolve.
    */
   boundValue(binding: wml.CTDataBinding): string | undefined {
     if (!binding.xpath || !binding.storeItemID || !this.xpath) return undefined;
-    const doc = this.stores.get(binding.storeItemID.toUpperCase());
-    if (!doc) return undefined;
+    const doc = isPropertiesStoreItem(binding.storeItemID)
+      ? this.stores.get(normaliseStoreItemId(binding.storeItemID))
+      : this.storeItems.resolve(binding.storeItemID, binding.xpath, binding.prefixMappings)?.part;
     try {
-      const mappings = parsePrefixMappings(binding.prefixMappings);
-      delete mappings[''];
-      const nodes = this.xpath.select(binding.xpath, doc, mappings);
-      const node = nodes[0];
+      const node = this.selectIn(doc, binding.xpath, binding.prefixMappings)[0];
       if (!node) return undefined;
       return node.nodeType === 2 ? (node as Attr).value : (node.textContent ?? '');
     } catch {
       return undefined;
     }
+  }
+
+  /** The nodes an XPath selects in a store, with a binding's prefix mappings (the default namespace's left out). */
+  private selectIn(doc: Document | undefined, xpath: string, prefixMappings: string | undefined): Node[] {
+    if (!doc || !this.xpath) return [];
+    const mappings = parsePrefixMappings(prefixMappings);
+    delete mappings[''];
+    return this.xpath.select(xpath, doc, mappings);
   }
 
   // --- the comments anchored in the document (REQ-504) -----------------------------------------------

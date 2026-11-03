@@ -829,6 +829,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
       },
       customXmlRelationshipSource: () => this.getMainDocumentPart(),
       xhtmlHost: this,
+      getPropertyResolver: () => this.getPropertyResolver(),
     }));
   }
   private customXmlPartCollection: CustomXmlPartCollection | undefined;

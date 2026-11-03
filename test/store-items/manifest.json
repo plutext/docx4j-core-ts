@@ -1,0 +1,55 @@
+{
+ "probe": "docx4j CR-058's store-item and bound-date probes (CR-020 section 3)",
+ "source": "docx4j-core-tests/src/test/resources/OpenDoPE/ at the 17.3.5 release (tag docx4j-17.3.5, 64fae4cd0), copied unedited; byte-identical to the share's Office 2016/bind-fun/ copies Word was given (typed-controls-dates.docx there as bind-typed-formats.docx, typed-controls-twelve.docx as bind-typed-twelve.docx)",
+ "word": "Word 365, PC at UTC+11 (Australia/Sydney), Jason Harrop, 22 and 23 October 2026: each probe opened and saved from the share's bind-fun/, as <name>-word365.docx; for bind-plain.docx only, something was typed into B1 before the save (bind-fun/README.txt step 3)",
+ "saves": {
+  "bind-plain.docx": "bind-plain-word365.docx",
+  "bind-plain-two-parts.docx": "bind-plain-two-parts-word365.docx",
+  "bind-plain-no-part.docx": "bind-plain-no-part-word365.docx",
+  "typed-controls-dates.docx": "bind-typed-formats-word365.docx",
+  "typed-controls-twelve.docx": "bind-typed-twelve-word365.docx"
+ },
+ "licence": "Apache-2.0",
+ "files": [
+  {
+   "name": "bind-plain.docx",
+   "sha1": "9474a395f652c84364d9744b556e6b11ff4aa19c"
+  },
+  {
+   "name": "bind-plain-two-parts.docx",
+   "sha1": "97bbb5b99907910f99f5e6d2477a1465d172a9e9"
+  },
+  {
+   "name": "bind-plain-no-part.docx",
+   "sha1": "11b7ff8a4b55b00882cf3eeb73c1ecee5092172e"
+  },
+  {
+   "name": "typed-controls-dates.docx",
+   "sha1": "a5757b34518ebbdc7c5a7a7632ad971046c724a4"
+  },
+  {
+   "name": "typed-controls-twelve.docx",
+   "sha1": "bd9337f323b2a4c114d3e9c48e6a363250bcd027"
+  },
+  {
+   "name": "bind-plain-word365.docx",
+   "sha1": "c271cffe5bf65ad5e8152583214af6b27f1d6563"
+  },
+  {
+   "name": "bind-plain-two-parts-word365.docx",
+   "sha1": "3db4b3d49fcbf4c79336ddd84b981bb4e32b0c03"
+  },
+  {
+   "name": "bind-plain-no-part-word365.docx",
+   "sha1": "897f2628ee48c6825b93ad2415a714edecfe32f2"
+  },
+  {
+   "name": "bind-typed-formats-word365.docx",
+   "sha1": "f6059b3fa638773f82a403b5814f73375be763d7"
+  },
+  {
+   "name": "bind-typed-twelve-word365.docx",
+   "sha1": "7493b1fe0e6b4deda631253533134dab4c23cfb7"
+  }
+ ]
+}

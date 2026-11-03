@@ -1051,7 +1051,11 @@ What is in:
   `/customXml/itemN.xml` with `/customXml/itemPropsN.xml`, a brace-wrapped upper-case random UUID
   as the `ds:itemID`, `ds:schemaRefs` from the document element's namespace, and the data part's
   relationship **from the main document part** (Word silently drops a custom XML part the main part
-  does not relate to).
+  does not relate to). Since CR-020 (2026-11-02): `customXmlPart` is the part the binding resolves
+  to, the one its `w:storeItemID` names or, where that names none, the one its XPath fits, as Word
+  repairs it; and `isMapped` is `true` only where the XPath selects a node there (CR-020 D8, as Office
+  JS reports check 73b's B4), so it needs the parts parsed (`await pkg.customXmlParts.load()`), as
+  `customXmlNode` does. `dataBinding` says whether the control carries a binding at all.
 - **The typed kinds**: `checkboxContentControl` (w14 `CTSdtCheckbox`), `datePickerContentControl`,
   `dropDownListContentControl` and `comboBoxContentControl` (`listItems`, `addListItem`,
   `deleteAllListItems`), `pictureContentControl`, `repeatingSectionContentControl` (w15
@@ -5901,6 +5905,21 @@ and 2 and 3 with it".*
 again; the refused mapping changes nothing, a one-paragraph control then binds, and an untyped control takes `w15`. A
 sweep of `applyBindings` over the 96 documents with bound controls, against `6285dfa`, moves only check 56's Word saves,
 whose case 5 holds two paragraphs.
+
+### 61.7 At run level (recorded 2026-11-02, CR-020 section 8.1)
+
+Check 73b (CR-020) measured H4 at run level: Word's Office JS reports `PlainText` for `bind-plain.docx`'s B8, a run-level
+control with no kind bound by `w:dataBinding`, in every run. Here it reads `RichText`, since the rule (`isBoundBlockControl`)
+covers block controls only. Not changed; `store-items.test.mjs` lists the difference.
+
+Docx4j CR-072's phase 0 probe (`bind-rich-explicit.docx`, Word 365's save on the share's `bind-fun/`, 2026-11-02; CR-012
+section 27) measured the bind at run level too: Word binds RX1, a run-level control with an explicit `w:richText` and a
+`w:dataBinding`, showing its node's value on an ordinary open and saving `w:text` in place of `w:richText`, as it does a
+block-level one (RX2). `applyBindings` here leaves RX1 (`applyBindingTo`'s deferral of explicit rich text, which section 61
+lifted for block controls only), and binds RX2 and the run-level untyped RX3 as Word does. So at run level, as at block
+level, Word reads a control bound by `w:dataBinding` as plain text, untyped or `w:richText`: its type (B8) and its bind
+(RX1). Not changed; for Jason, with the run-level `PlainText` type: section 61's H4 at run level, the type and the bind
+(no paragraph rule there, a run-level control holding no blocks).
 
 ## 62. A paragraph break inside a field's result, and a tracked delete of an equation (proposed and implemented 2026-10-23)
 

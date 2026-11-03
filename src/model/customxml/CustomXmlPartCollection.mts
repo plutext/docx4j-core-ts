@@ -21,6 +21,7 @@ import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
 import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
 import { applyPictureHandlersTo, updateFromPictureControls } from './pictures.mjs';
+import { StoreItemResolver, type StoreItemResolution } from './storeItems.mjs';
 import { inUnreadBranch, writingEveryBranch } from '../content/tree.mjs';
 
 /**
@@ -38,11 +39,20 @@ export interface CustomXmlHost {
   customXmlRelationshipSource(): Part;
   /** The package, for the XHTML pass (list definitions, styles, relationships); absent, XHTML controls are left and noted. */
   readonly xhtmlHost?: XhtmlHost;
+  /** The package's property resolver, made if need be: a date control without `w:lid` is shown in its document default language (CR-020 D5). */
+  getPropertyResolver?(): Promise<unknown>;
 }
 
 /** A subset of Office JS `Word.CustomXmlPartCollection`. */
 export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPartLookup {
   private readonly views = new Map<CustomXmlDataStoragePart, CustomXmlPart>();
+  private readonly storeItems = new StoreItemResolver<CustomXmlPart>(() => this.items.map((view) => ({
+    part: view,
+    id: view.id,
+    partName: view.part.partName.name,
+    root: view.document.documentElement,
+    selects: (xpath, prefixMappings) => view.selectSingleNode(xpath, prefixMappings) !== undefined,
+  })));
 
   constructor(private readonly host: CustomXmlHost) {}
 
@@ -88,6 +98,16 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
   getItem(id: string): CustomXmlPart | undefined {
     const key = normaliseId(id);
     return this.items.find((part) => normaliseId(part.id) === key);
+  }
+
+  /**
+   * The part a binding is evaluated against (CR-020, docx4j's `StoreItemResolver`): the one its `w:storeItemID` names,
+   * else, where that names no part, the one its XPath fits, as Word repairs such a binding on open; undefined where none
+   * is named and none fits, and for the core and application properties' IDs, which name no part here. `repaired` says
+   * which. Call `load()` once first, as for `items`.
+   */
+  resolveStoreItem(storeItemID: string, xpath: string, prefixMappings?: string): StoreItemResolution<CustomXmlPart> | undefined {
+    return this.storeItems.resolve(storeItemID, xpath, prefixMappings);
   }
 
   /**
@@ -170,6 +190,11 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    */
   async applyBindings(options: { html?: XhtmlBindingOptions } = {}): Promise<BindingResult> {
     await this.load();
+    try {
+      await this.host.getPropertyResolver?.();
+    } catch {
+      // a styles part that can't be read: a date control without w:lid is shown in en-US
+    }
     // every branch of a kept mc:AlternateContent is bound, as Word binds what it reads; the result counts
     // what a reader sees, the other branches' controls bound after them and not counted (CR-013 phase 3)
     const { read, unread } = this.controlsOf(await this.host.getBoundBodies());

@@ -58,15 +58,18 @@ export function xpathsEntriesOf(parts: CustomXmlPartLookup): Map<string, XPathsE
 
 /**
  * The node an `od:xpath` entry selects: the entry's XPath over the part its `storeItemID` names
- * (the id compared without braces or case, as `getItem` does). What a tag-bound control's pass
+ * (the id compared without braces or case, as `getItem` does), else, where it names none, the part
+ * its XPath fits, as a `w:dataBinding` is resolved (CR-020 D1, docx4j's `StoreItemResolver`; the
+ * entry is left as it is, and `repair` says which part was taken). What a tag-bound control's pass
  * starts from; the note says why there is no node.
  */
-export function selectEntryNode(entryId: string, parts: CustomXmlPartLookup): { node: CustomXmlNode } | { note: string } {
+export function selectEntryNode(entryId: string, parts: CustomXmlPartLookup): { node: CustomXmlNode; repair?: string } | { note: string } {
   const entry = xpathsEntriesOf(parts).get(entryId);
   if (!entry) return { note: `od:xpath=${entryId}: no such entry in the XPaths part` };
-  const part = parts.getItem(entry.storeItemID) ?? parts.items.find((p) => p.id.replace(/[{}]/g, '').toLowerCase() === entry.storeItemID.replace(/[{}]/g, '').toLowerCase());
-  if (!part) return { note: `od:xpath=${entryId}: no custom XML part ${entry.storeItemID}` };
-  const node = part.selectSingleNode(entry.xpath, entry.prefixMappings);
+  const resolved = entry.storeItemID === '' ? undefined : parts.resolveStoreItem(entry.storeItemID, entry.xpath, entry.prefixMappings);
+  if (!resolved) return { note: `od:xpath=${entryId}: no custom XML part ${entry.storeItemID}` };
+  const node = resolved.part.selectSingleNode(entry.xpath, entry.prefixMappings);
   if (!node) return { note: `od:xpath=${entryId}: ${entry.xpath} selects nothing` };
-  return { node };
+  if (!resolved.repaired) return { node };
+  return { node, repair: `od:xpath=${entryId}: store item ${entry.storeItemID} names no custom XML part; ${resolved.part.part.partName.name} ${resolved.part.id} fits ${entry.xpath} and is used` };
 }

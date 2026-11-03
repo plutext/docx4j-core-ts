@@ -22,7 +22,7 @@ import { wrappingCellOf, endWithParagraph } from '../content/tableRules.mjs';
 import { convertHtml, styleLookupOf, type PasteResult, type StyleNaming } from '../../html/convert.mjs';
 import { blocksToXml, needsOf, HYPERLINK_STYLE } from '../../html/elements.mjs';
 import type { CustomXmlPartLookup } from './XmlMapping.mjs';
-import { tagParamsOf, xpathsEntriesOf, XHTML_CONTENT_TYPE } from './opendope.mjs';
+import { tagParamsOf, selectEntryNode, XHTML_CONTENT_TYPE } from './opendope.mjs';
 import type { BindingResult } from './bindings.mjs';
 
 /** What the XHTML pass needs of the package. */
@@ -99,12 +99,9 @@ function inlineContentOf(paragraph: Element): Element[] {
 export async function applyXhtmlBindingTo(control: ContentControl, parts: CustomXmlPartLookup, host: XhtmlHost, options: XhtmlBindingOptions = {}): Promise<{ done: boolean; note?: string; dropped?: Record<string, number> }> {
   const params = tagParamsOf(control.tag);
   const entryId = params.get('od:xpath')!;
-  const entry = xpathsEntriesOf(parts).get(entryId);
-  if (!entry) return { done: false, note: `od:xpath=${entryId}: no such entry in the XPaths part` };
-  const part = parts.getItem(entry.storeItemID) ?? parts.items.find((p) => p.id.replace(/[{}]/g, '').toLowerCase() === entry.storeItemID.replace(/[{}]/g, '').toLowerCase());
-  if (!part) return { done: false, note: `od:xpath=${entryId}: no custom XML part ${entry.storeItemID}` };
-  const node = part.selectSingleNode(entry.xpath, entry.prefixMappings);
-  if (!node) return { done: false, note: `od:xpath=${entryId}: ${entry.xpath} selects nothing` };
+  const selected = selectEntryNode(entryId, parts);
+  if ('note' in selected) return { done: false, note: selected.note };
+  const { node, repair } = selected;
   const parser = options.parser ?? (typeof DOMParser === 'function' ? (h: string) => new DOMParser().parseFromString(h, 'text/html') : undefined);
   if (!parser) return { done: false, note: `od:xpath=${entryId}: XHTML needs an HTML parser (applyBindings({ html: { parser } }))` };
   const converted: PasteResult = convertHtml(node.text, await lookupFor(host), { parser });
@@ -152,7 +149,7 @@ export async function applyXhtmlBindingTo(control: ContentControl, parts: Custom
   }
   // a control in a branch of a kept mc:AlternateContent too: the pass reaches every branch (CR-013 phase 3)
   writingEveryBranch(() => { control.isShowingPlaceholder = false; });
-  return Object.keys(dropped).length > 0 ? { done: true, dropped } : { done: true };
+  return { done: true, ...(repair ? { note: repair } : {}), ...(Object.keys(dropped).length > 0 ? { dropped } : {}) };
 }
 
 /** The XHTML pass over the controls, after the text bindings: counted into the result, what was left said in its notes. */

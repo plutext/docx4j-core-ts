@@ -936,7 +936,7 @@ export class ContentControl {
    */
   syncBoundNode(): void {
     try {
-      if (this.xmlMapping.isMapped) updateFromControl(this);
+      updateFromControl(this);
     } catch {
       // the part is not parsed, or the engine is not ready: leave it to updateFromContentControls()
     }

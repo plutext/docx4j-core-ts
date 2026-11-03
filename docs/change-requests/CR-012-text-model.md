@@ -2565,13 +2565,14 @@ Word's `bisect/C02.txt` under `profile: word-text`).
    merges into the word's first run where the block model's formatting agrees (with section 24's four members among
    it), as runs merge throughout: Word's C02 gives one run, `The C02_ modern ...`; a bold or a cased letter stays its
    own run. The joined block takes the frame's place in the block list, so what the frame anchored (a text box) still
-   follows the joined paragraph (REQ-518). **Here the letter stays its own run** (D6, open): runs merge only where their
-   text and `Paragraph.text`'s agree character for character in one paragraph (section 4.4, the `officeOffset` rule), and
-   the frame is a paragraph of its own in Office JS, so its letter's run and the word's never meet that rule. The plain
-   text and the Markdown are docx4j's (`The C02_ modern ...`: the writers join the runs), and the text goldens compare
-   runs joined by docx4j's rule (section 15.5), so no golden differs; the block model does, one run where docx4j has the
-   letter merged. docx4j-python's CR-029 (decided 2026-11-02, `5c69b43`) takes the same departure, its Q3, under its
-   `office_offset` rule; REQ-521 constrains the text, not the runs, so all three conform.
+   follows the joined paragraph (REQ-518). **Here too the letter merges, as docx4j's `joinDropCap` merges it** (D6,
+   decided by Jason 2026-11-02, reversing the recommendation that it stay its own run): at this one join the runs merge
+   on docx4j's rule (the same kind, hidden and placeholder flags, revision and formatting), which replaces section 4.4's
+   `officeOffset` contiguity rule there, since the frame is a paragraph of its own in Office JS and the two runs' text
+   comes from two paragraphs' `Paragraph.text`. The merged run keeps the letter's source, and its `officeOffset` is
+   undefined, no single offset describing it (a run with no offset claims none, so section 4.4's invariant holds); a
+   bold or a cased letter, its formatting different, stays its own run with its offset. docx4j-python's CR-029 section
+   4.5 (`120c316`) writes the same rule, so the block models agree with docx4j's run for run.
 4. **No block, no join.** Where the paragraph next makes no block (wholly hidden under `hidden: false`, a table of
    contents' under `toc: false`), the frame stays a paragraph. A frame whose mark the view deletes is already one
    paragraph with the next (CR-043's join, at the first paragraph's address): no drop-cap join and no warning.
@@ -2648,11 +2649,13 @@ Jason, 2026-11-02: "CR-012 section 24, 56 & 26 decisions as recommended" (the 56
 | D4 | The Unicode version | 15.0, the version docx4j's tests run (JDK 21), so that a golden recut from docx4j agrees code point for code point; documented in `CaseMapping`'s doc comment as WD 0.52 asks; moved deliberately, never by the runtime |
 | D5 | The goldens | Recut with `TextHarness` writing the four members, from the 17.3.5 release, which holds `75b9bdb54` (`test/java/pom.xml` raised from 17.3.4 to it), in the same change; the parity workflow moved to `VERSION_17_3_6` ahead of it (Jason, 2026-11-02) |
 
-Added after them (2026-11-02, from docx4j-python's CR-029 Q3, through the portfolio session), open:
+Added after them (2026-11-02, from docx4j-python's CR-029 Q3, through the portfolio session), and decided the same day
+by Jason against the recommendation, in the docx4j-python session (relayed by docx4j-python-64): "you and core-ts should
+handle a drop-cap letter as docx4j does!"
 
-| # | Decision | Recommendation |
-|---|---|---|
-| D6 | A joined drop cap's letter in the block model (section 24.3, item 3) | Its own run, as section 4.4's `officeOffset` rule makes it and as docx4j-python's CR-029 Q3 decided: a run's text agrees with `Paragraph.text` within one paragraph, and the frame is its own paragraph in Office JS. A named departure from docx4j's merged run; the plain text, the Markdown and the goldens' joined runs unchanged. The case against: a block-model consumer comparing runs with docx4j's sees one more run |
+| # | Decision | Recommendation | Decided |
+|---|---|---|---|
+| D6 | A joined drop cap's letter in the block model (section 24.3, item 3) | Its own run, as section 4.4's `officeOffset` rule makes it and as docx4j-python's CR-029 Q3 had it: a run's text agrees with `Paragraph.text` within one paragraph, and the frame is its own paragraph in Office JS. A named departure from docx4j's merged run; the plain text, the Markdown and the goldens' joined runs unchanged. The case against: a block-model consumer comparing runs with docx4j's sees one more run | As docx4j: the letter's run merges into its word's first run on docx4j's rule, keeping the letter's source, `officeOffset` undefined; a letter whose formatting differs stays its own run with its offset (section 24.3, item 3; docx4j-python's CR-029 section 4.5, `120c316`) |
 
 ## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
 
@@ -2781,3 +2784,103 @@ and `SETTLE` (not a SET), in the three views, with `hidden` and with `field_code
 `OLD` on the probe. Before the change the SETs read `42` and `OLD`. No golden moved: no document with a text golden
 holds a `SET`; the two copies have none until section 24's recut (D5), and the weekly workflow reports them as new
 until then. 1,648 tests pass.
+
+## 27. REQ-509 as Word shows a bound control (WD 0.62, the behaviour model's D34; proposed 2026-11-02)
+
+The portfolio session's hand-off (docx4j-portfolio-10, 2026-11-02): Jason ruled D34 for Word ("i'd rule D34 for Word,
+unless it has any impact on our opendope processing???", then "yes"; the docx4j session checked it has none, since
+docx4j's OpenDoPE generator never calls the text model), and WD 0.62 (docx4j-portfolio `59a3ae0`) rewrites REQ-509. For a
+control bound by `w:dataBinding`, in a story, a header or footer, or any of the three property stores, the extractor
+returns the bound value where the binding resolves (a `w:storeItemID` naming no part resolved to the part the XPath fits),
+the surface where it does not, and the placeholder where the value is empty and the control shows one, read **as Word
+shows it**:
+- a control with no kind element, or with `w:text`, as plain text (Word treats a bound control as plain text either way);
+- a date (`w:date`) by its `w:dateFormat` in the DATE picture language (REQ-506), deterministically: without a `w:lid` the
+  document's default language, a stored time as stored, never in a machine's zone;
+- a drop-down list as the text of the item whose value matches; a combo box as its value (0.63: as a drop-down); a check box
+  as its checked or unchecked glyph;
+- a repeating section as one item per XML node its XPath selects, each item's controls bound within that node, the stored
+  items kept where it selects none.
+
+Two kept the surface until Word was measured: a control with an explicit `w:richText` and a binding (docx4j's generator
+leaves it unbound by design), and an OpenDoPE XHTML or Flat OPC control (`od:ContentType=application/xhtml+xml` or
+`od:progid=Word.Document` in its `w:tag`) that also carries a binding. **WD 0.63** (docx4j-portfolio `fc56772`, from Jason's
+Word 365 run of docx4j CR-072's phase 0 probe, docx4j `41cb2e433`) drops the first: Word binds an explicit `w:richText`
+control, inline (RX1) and block-level (RX2), refreshing a stale surface on an ordinary open and saving `w:text` in place of
+`w:richText`, so `w:text`, no kind element and `w:richText` all read the bound value as plain text. The OpenDoPE-tag
+exception stays. The same run settles a combo box (section 27.3, D3). Before 0.62 REQ-509 read a rich-text binding's and
+the typed controls' surface. docx4j's text-model CR is its CR-072 (`8166c82f9`, "Bound content controls in the text model,
+read as Word shows them": phase 0 Jason's Word probe of the explicit `w:richText` case, phases 1 and 2 docx4j's, phase 3 the
+hand-off here and to docx4j-python); `core-ts/CR-012.27` depends on it (docx4j-portfolio `b92f1bf`).
+
+### 27.1 Here today (measured 2026-11-02, with CR-020's build)
+
+Each of the share's `bind-fun/` probes read by `Texts.of` (headers and footers included), against Word 365's save of it
+read with `bindings: surface`, which is what Word showed:
+- **Already as 0.62 has it:** a header's binding (`bind-plain` B9); the three property stores (`bind-props` PR1 to PR4: core,
+  extended and the cover page properties' custom XML part); a stale `w:storeItemID` (CR-020: `bind-plain` B7, the two-parts
+  and no-part probes); an unprocessed OpenDoPE template (`opendope-template`, OD1 bound, the others their surfaces); a
+  repeating section whose XPath selects no node (`bind-repeating-zero`, the stored item kept).
+- **Differs, and 0.62 settles it as Word:** `bind-plain` B8, an untyped control (`B8_RICH_STALE_SURFACE`, Word
+  `B10_XML_VALUE`; CR-020 section 8.1); `bind-typed`'s four: DT1 `1 January 2001` (Word `22 October 2026`), DD2
+  `DD2_FIRST_ITEM` (`DD2_SECOND_ITEM`), CB3 `CB3_FIRST_ITEM` (`CB3_XML_FREE_TEXT`), CK4 `☐` (`☒`); every date control of
+  docx4j CR-058's two date probes (19, their `DFn_STALE` and `TWn_STALE` surfaces, where 0.62 gives the nominal forms
+  CR-020 measured: Word's on a machine at UTC+11 differ where a time is stored with a `Z` or an offset, by 0.62's design);
+  and `bind-repeating-ns0`, one item here (`RS_ITEM_A`) where Word shows three (`RS_ITEM_A` to `C`).
+- **`bind-rich-flatopc` RT1**, untyped and bound by `w:dataBinding` to a node holding escaped Flat OPC (no tag): Word showed the
+  markup as text and saved the control with `w:text`, so 0.62's plain-text rule is Word's there. `applyBindings` leaves
+  such a control alone (CR-002 section 40: a Flat OPC value is content, never a control's text); the bind is not the text
+  model's business, and stays.
+- `bind-repeating`, whose inner bindings Word rewrote to a prefix their mappings don't declare, shows three empty items in
+  Word: Word's own fault, not a reading to follow (the share's README).
+- `bind-rich-explicit` (docx4j CR-072 phase 0, Word's save `bind-rich-explicit-word365.docx` on the share): all five differ
+  here, each read as its surface; Word shows RX1 `RX1_XML_VALUE`, RX2 `RX2_XML_VALUE`, RX3 `RX3_XML_VALUE`, CB4
+  `CB4_SECOND_ITEM` (`w:lastValue="c2"`) and CB5 `CB5_SECOND_ITEM` (`w:lastValue` the same: no item's value matches).
+  `applyBindings` gives Word's four and leaves RX1, a run-level explicit `w:richText` control (CR-002 section 61.7).
+
+**What moves.** Of the 335 documents under `test/fixtures/` and `test/text-extraction/`, six hold a binding 0.62 reads
+differently: `invoice2013.docx` (a date, a check box, a repeating section), check 35's `35-input.docx` and `35d-editor.docx`
+(untyped controls; the second a repeating section), and three of check 56's files (untyped). The first three have text
+goldens (section 20), so their docx4j answers move with docx4j's CR. No suite row moves: case 23 is a `w:text` binding,
+case 67 the inspector's.
+
+### 27.2 Proposed
+
+In the extractor (`Extractor.bound`, `TextContext.boundValue`), as docx4j's text-model CR has it, held to its answers:
+1. **Which controls.** A `w:dataBinding` with no kind element, with `w:text` or with `w:richText` reads its bound value as
+   plain text (today `w:text` only; WD 0.63); one whose `w:tag` names `od:ContentType=application/xhtml+xml` or
+   `od:progid=Word.Document` keeps its surface. `w15:dataBinding` is not REQ-509's and keeps its surface.
+2. **The typed kinds**, through the bind's own readers, moved where both need them: a date by `formatDate` (CR-020's
+   `am/pm`) over the nominal date (`dateOf`), its language `w:lid`, else `w:docDefaults`' (the resolver's), else `en-US`; a
+   value that is no date as stored; a drop-down's or a combo box's matching item's display text, else the value (WD 0.63); a
+   check box's glyph from `w14:checkedState` or `w14:uncheckedState` (Word's `☒` and `☐` where they name none), true by the
+   bind's reading (`true`, `1`, `on`, `yes`). The empty value and the placeholder as today. `sdt.binding_differs` for each,
+   comparing the surface with the value **as shown** (the formatted date, the item's text, the glyph), never with the
+   stored XML value: docx4j's inspector compared the raw value and flagged a correctly bound date as stale
+   (`sdt.stored_surface`, fixed in its CR-072 phase 1). Today the comparison is safe, since only a `w:text` control's value
+   is read, and that is shown as stored.
+3. **Repeating sections**: one item per node, the inner bindings' XPaths taken within that node, the items beyond the stored
+   ones made from the first stored item; their addresses and runs as docx4j's CR gives them, with no `officeOffset` (their
+   text is in no `Paragraph.text`).
+4. **Not changed:** the Office JS readers (`Paragraph.text`, `search`, `ContentControl.text`), which read the document as
+   it is held, as section 26 left them, and `applyBindings`, which is the bind.
+
+### 27.3 Decisions for Jason
+
+| # | Decision | Recommendation |
+|---|---|---|
+| D1 | When it lands | After docx4j's text-model CR, held to it, with the three goldens recut from docx4j in the same change (section 24's D5 way), since parity is zero differences and `invoice2013` and check 35's two move; nothing before |
+| D2 | A bound date's zone in the text model | Nominal always, as 0.62 says ("one document gives one text everywhere"), whatever `pkg.boundDatesConvertedAsWord` asks of the bind (CR-018): the opt-in stays the bind's, and a reading's text never depends on the client's zone |
+| D3 | A combo box whose value matches an item | **Settled by Word, no decision** (WD 0.63, `bind-rich-explicit` CB4 and CB5): the display text of the item whose value is the bound value, else the bound value, as a drop-down and as `applyBindings` already writes both kinds (`bindings.mts`). The recommendation was the value, as 0.62 had it |
+| D4 | Repeating sections | In this section, after docx4j's CR has defined the items' addresses; if docx4j lands them in a later phase, so does this, the rest landing first |
+
+**D3's probe and exception 1's** (2026-11-02; Word's run of it is WD 0.63's, recorded above): docx4j CR-072 phase 0's `bind-rich-explicit.docx` (docx4j `6085bd9a2`, on the
+share in `bind-fun/`, awaiting Jason's Word run), each control with a stale surface: RX1 inline and RX2 block-level explicit
+`w:richText` bound to a plain value, RX3 B8's shape, CB4 a combo box bound to `c2` (the value of the item shown as
+`CB4_SECOND_ITEM`), CB5 bound to the display text `CB5_SECOND_ITEM` (its value `c2`). Here today the text model reads every
+surface (only a `w:text` binding is read). `applyBindings` leaves RX1 (run-level explicit `w:richText`: the bind's
+deferral) and binds RX2 (`RX2_XML_VALUE`: a bound block control is plain text, CR-002 section 61 H4), RX3 (`RX3_XML_VALUE`),
+CB4 and CB5 (`CB4_SECOND_ITEM`, `CB5_SECOND_ITEM`, as docx4j's generator, which leaves RX1 and RX2). Check 56 already
+measured part of exception 1 at block level (CR-002 section 61.3): Word gave a bound explicit `w:richText` block control
+`<w:text/>` on save, Office JS reported it `PlainText`, and its repair of 56c refilled it from its node; that file's
+surfaces equalled their nodes, so a refresh on an ordinary open is what RX2 adds.

@@ -4,6 +4,7 @@ export { type XPathEngine, type XPathValue, type BooleanConversionMode, booleanV
 export { CustomXmlPart, CustomXmlNode, CustomXmlPrefixMappingCollection, type CustomXmlNodeType, type CustomXmlPrefixMapping, type CustomXmlPartOwner } from './CustomXmlPart.mjs';
 export { CustomXmlPartCollection, type CustomXmlHost } from './CustomXmlPartCollection.mjs';
 export { XmlMapping, type CustomXmlPartLookup } from './XmlMapping.mjs';
+export { StoreItemResolver, firstStep, isPropertiesStoreItem, normaliseStoreItemId, CORE_PROPERTIES_STOREITEMID, EXTENDED_PROPERTIES_STOREITEMID, type StoreItemCandidate, type StoreItemResolution } from './storeItems.mjs';
 export {
   CheckboxContentControl, DatePickerContentControl, ListContentControl, ContentControlListItem,
   PictureContentControl, RepeatingSectionContentControl, GroupContentControl, checkboxRun,

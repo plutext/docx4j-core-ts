@@ -179,7 +179,9 @@ export function applyPictureHandlerTo(control: ContentControl, parts: CustomXmlP
   const entryId = params.get('od:xpath') ?? '';
   const selected = selectEntryNode(entryId, parts);
   if ('note' in selected) return { done: false, note: selected.note };
-  return bindPicture(control, selected.node.text, pictureWidthOf(params), `od:xpath=${entryId}`);
+  const outcome = bindPicture(control, selected.node.text, pictureWidthOf(params), `od:xpath=${entryId}`);
+  // a stale storeItemID resolved as Word would (CR-020): said where the outcome has nothing else to say
+  return selected.repair && outcome.done && !outcome.note ? { ...outcome, note: selected.repair } : outcome;
 }
 
 /** The picture pass over the tag-bound controls, after the text bindings: counted into the result, what was left said in its notes. */
@@ -205,7 +207,7 @@ export function applyPictureHandlersTo(controls: ContentControl[], parts: Custom
 export async function updateFromPictureControl(control: ContentControl): Promise<boolean> {
   const mapping = control.xmlMapping;
   // a control showing its placeholder picture holds no picture of its node's (CR-005 section 10)
-  if (!mapping.isMapped || control.type !== 'Picture' || control.isShowingPlaceholder) return false;
+  if (!mapping.dataBinding || control.type !== 'Picture' || control.isShowingPlaceholder) return false;
   const node = mapping.customXmlNode;
   if (!node) return false;
   const blip = firstBlipOf(control);
@@ -224,7 +226,7 @@ export async function updateFromPictureControl(control: ContentControl): Promise
 /** `updateFromContentControls`' picture pass: the mapped picture controls, counted into the result. */
 export async function updateFromPictureControls(controls: ContentControl[], result: BindingResult): Promise<void> {
   for (const control of controls) {
-    if (control.type !== 'Picture' || !control.xmlMapping.isMapped) continue;
+    if (control.type !== 'Picture' || !control.xmlMapping.dataBinding) continue;
     result.bound++;
     if (await updateFromPictureControl(control)) result.updated++; else result.skipped++;
   }

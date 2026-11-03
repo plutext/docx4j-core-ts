@@ -64,7 +64,7 @@ test("check 63's file and snippet agree: every case parses to the case it was bu
   const controls = body.contentControls;
   assert.deepEqual(controls.map((c) => c.tag), cases.map((c) => `c63-${c.n}`));
   assert.ok(controls.every((c) => c.isShowingPlaceholder), 'every control shows its placeholder');
-  assert.deepEqual(controls.filter((c) => c.xmlMapping.isMapped).map((c) => c.tag), cases.filter((c) => c.shape.endsWith('-bound')).map((c) => `c63-${c.n}`));
+  assert.deepEqual(controls.filter((c) => c.xmlMapping.dataBinding !== undefined).map((c) => c.tag), cases.filter((c) => c.shape.endsWith('-bound')).map((c) => `c63-${c.n}`));
   // the placeholder's text is Word's own, and reads as no text (CR-012 section 18); placeholderText reads null, as Word's
   // does, since the control names no glossary entry (CR-002 section 63, D8)
   assert.equal(controls[0].text, '');
@@ -417,7 +417,7 @@ test("check 65's files and snippet agree: every case parses to the case it was b
     // every control names its entry but the bare-form one Jason types into, which names none (docx4j CR-063's question)
     assert.deepEqual(named, withControl.filter((c) => c.shape !== 'bare-bound').map((c) => (c.shape === 'custom' ? check65.CUSTOM_ENTRY : c.shape === 'missing' ? check65.MISSING_ENTRY : check65.DEFAULT_ENTRY)), file.name);
     assert.equal(cases.at(-1).shape, 'bare-bound');
-    assert.ok(body.contentControls.at(-1).xmlMapping.isMapped, file.name);
+    assert.ok(body.contentControls.at(-1).xmlMapping.dataBinding, file.name);
     const glossary = Object.keys(zip).filter((k) => k.startsWith('word/glossary/'));
     if (file.glossary === 'none') assert.deepEqual(glossary, [], file.name);
     else {

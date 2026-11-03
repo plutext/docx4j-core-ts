@@ -11,6 +11,7 @@ import { NotSupportedError } from '../../office-js/errors.mjs';
 import type { CustomXmlPart, CustomXmlNode } from './CustomXmlPart.mjs';
 import { canonicalXPathOf } from './xpath.mjs';
 import { applyBindingTo } from './bindings.mjs';
+import { isPropertiesStoreItem, normaliseStoreItemId, type StoreItemResolution } from './storeItems.mjs';
 
 /** The Word 2012 (w15) namespace; not imported from `ContentControl`, which imports this module. */
 const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
@@ -20,14 +21,18 @@ const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 export interface CustomXmlPartLookup {
   readonly items: CustomXmlPart[];
   getItem(id: string): CustomXmlPart | undefined;
+  /** The part a binding is evaluated against: named by its ID, else the one its XPath fits (CR-020). */
+  resolveStoreItem(storeItemID: string, xpath: string, prefixMappings?: string): StoreItemResolution<CustomXmlPart> | undefined;
 }
 
 /**
- * A subset of Office JS `Word.XmlMapping`: the content control's data binding. `isMapped` is
- * whether the control has a `w:dataBinding` (or, on a rich text control or a repeating section,
- * the `w15:dataBinding` Word writes there, which is what `setMapping` writes on one: CR-002
- * section 40); `customXmlNode` evaluates the XPath now, so it needs
- * the XPath engine to be warm (`await pkg.customXmlParts.load()` once, CR-002 section 3.6).
+ * A subset of Office JS `Word.XmlMapping`: the content control's data binding, `w:dataBinding`
+ * (or, on a rich text control or a repeating section, the `w15:dataBinding` Word writes there,
+ * which is what `setMapping` writes on one: CR-002 section 40). `customXmlPart` is the part the
+ * binding is evaluated against, the one its `w:storeItemID` names or, where that names none, the
+ * one its XPath fits, as Word repairs it (CR-020); `customXmlNode` and `isMapped` evaluate the
+ * XPath there now, so they need the parts parsed and the XPath engine warm (`await
+ * pkg.customXmlParts.load()` once, CR-002 section 3.6).
  */
 export class XmlMapping {
   constructor(
@@ -45,8 +50,17 @@ export class XmlMapping {
     return item?.value as wml.CTDataBinding | undefined;
   }
 
+  /**
+   * Whether the binding names a node, as Office JS reports it (CR-020 D8, check 73b: a control bound to its part by ID
+   * with an XPath that selects nothing is not mapped): the node the XPath selects in the part the binding resolves to, so
+   * a stale `w:storeItemID` no part fits is not mapped either. A binding to the core or application properties, which are
+   * not custom XML parts here, is mapped. `dataBinding` says whether the control carries a binding at all.
+   */
   get isMapped(): boolean {
-    return this.dataBinding !== undefined;
+    const binding = this.dataBinding;
+    if (!binding) return false;
+    if (isPropertiesStoreItem(binding.storeItemID ?? '')) return true;
+    return this.customXmlNode !== undefined;
   }
 
   get xpath(): string {
@@ -57,15 +71,20 @@ export class XmlMapping {
     return this.dataBinding?.prefixMappings ?? '';
   }
 
-  /** `w:storeItemID`, the itemID of the custom XML part (extension: Office JS reports the part). */
+  /**
+   * `w:storeItemID`, the itemID of the custom XML part, as stored (extension: Office JS reports the part). A stale ID stays
+   * as it is until `applyBindings` writes the resolved part's back, as Word's save does (CR-020 D2 and D3).
+   */
   get storeItemID(): string {
     return this.dataBinding?.storeItemID ?? '';
   }
 
-  /** The part the binding names, when the package has it. */
+  /**
+   * The part the binding is evaluated against: the one its `w:storeItemID` names, else the one its XPath fits, as Word
+   * binds it (CR-020; check 73b: Office JS's `customXmlPart` for a stale ID is the part Word repaired it to).
+   */
   get customXmlPart(): CustomXmlPart | undefined {
-    const id = this.storeItemID;
-    return id === '' ? undefined : this.lookup?.getItem(id);
+    return this.resolution?.part;
   }
 
   /** The node the XPath selects now, or undefined when it selects nothing. */
@@ -74,6 +93,26 @@ export class XmlMapping {
     const binding = this.dataBinding;
     if (!part || !binding) return undefined;
     return part.selectSingleNode(binding.xpath, binding.prefixMappings);
+  }
+
+  /** @internal How the binding resolves (CR-020): its part, and whether that is Word's repair of a stale ID. */
+  get resolution(): StoreItemResolution<CustomXmlPart> | undefined {
+    const binding = this.dataBinding;
+    if (!binding?.storeItemID) return undefined;
+    return this.lookup?.resolveStoreItem(binding.storeItemID, binding.xpath, binding.prefixMappings);
+  }
+
+  /**
+   * @internal Writes a part's ID over a stale `w:storeItemID`, in `w:dataBinding` and `w15:dataBinding` alike, as Word's
+   * save writes the part it repaired the binding to (CR-020 D2): `applyBindings`' write-back, never a reader's.
+   */
+  repairStoreItemID(stale: string, id: string): void {
+    const key = normaliseStoreItemId(stale);
+    for (const item of (this.contentControl.sdt.sdtPr?.rPrOrAliasOrLock ?? []) as Element[]) {
+      if (item.name.localPart !== 'dataBinding') continue;
+      const binding = item.value as wml.CTDataBinding;
+      if (normaliseStoreItemId(binding.storeItemID ?? '') === key) binding.storeItemID = id;
+    }
   }
 
   /**

@@ -16,6 +16,7 @@ import { sdtProperty, textOf } from '@docx4j/generated-objects-ts/builders/wml';
 import type { Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
 import { bindPicture } from './pictures.mjs';
+import { isPropertiesStoreItem } from './storeItems.mjs';
 
 /**
  * The style Word gives placeholder text, and the text docx4j's placeholder.xml carries: Word 365's since docx4j's CR-063
@@ -32,7 +33,11 @@ export interface BindingResult {
   updated: number;
   /** Controls left alone: the part is missing, the XPath selects nothing, or the kind is not handled. */
   skipped: number;
-  /** What the XHTML and picture passes left or dropped, one line each (CR-005 sections 8.2 and 9; REQ-076). */
+  /**
+   * What the XHTML and picture passes left or dropped, one line each (CR-005 sections 8.2 and 9; REQ-076), and each
+   * control whose `w:storeItemID` names no part: bound to the part its XPath fits, as Word repairs it, or left as it is
+   * where none fits (CR-020 D4).
+   */
   notes?: string[];
 }
 
@@ -106,7 +111,9 @@ export function placeholderRun(rPr: wml.RPr | undefined, text = PLACEHOLDER_TEXT
  * A date in Word's `w:dateFormat` pattern (the .NET forms Word writes: `d MMMM yyyy`,
  * `dddd, d MMMM yyyy`, `d/MM/yyyy`), in the control's `w:lid` locale. Month and day names come
  * from `Intl`; text inside single or double quotes is literal. docx4j uses Java's
- * `SimpleDateFormat` with `dddd` mapped to `EEEE`; this is the same vocabulary.
+ * `SimpleDateFormat` with `dddd` mapped to `EEEE`; this is the same vocabulary. `am/pm` and
+ * `AM/PM` (any mix of cases, as docx4j's `isAMPM`) are the locale's day-period names upper-cased,
+ * as Word shows both (CR-020 D5, docx4j CR-058's `wordAmPm`): `h:mm am/pm` at 15:05 is `3:05 PM`.
  *
  * The date's **UTC fields** are formatted: a bound date is its nominal date, the fields as written,
  * which `w:fullDate` keeps with a `Z` and `DatePickerContentControl.fullDate` returns as a `Date` in
@@ -123,8 +130,25 @@ export function formatDate(pattern: string, date: Date, locale = 'en-US'): strin
   };
   const hours = date.getUTCHours();
   const hours12 = hours % 12 === 0 ? 12 : hours % 12;
-  return pattern.replace(/d{1,4}|M{1,4}|y{2,4}|H{1,2}|h{1,2}|m{1,2}|s{1,2}|tt|'[^']*'|"[^"]*"/g, (token) => {
+  const dayPeriod = (): string => {
+    const of = (tag: string): string | undefined => new Intl.DateTimeFormat(tag, { hour: 'numeric', hour12: true, timeZone: 'UTC' })
+      .formatToParts(date).find((part) => part.type === 'dayPeriod')?.value;
+    let value: string | undefined;
+    try {
+      value = of(locale);
+    } catch {
+      value = of('en-US');
+    }
+    value ??= hours < 12 ? 'AM' : 'PM';
+    try {
+      return value.toLocaleUpperCase(locale);
+    } catch {
+      return value.toUpperCase();
+    }
+  };
+  return pattern.replace(/[aA][mM]\/[pP][mM]|d{1,4}|M{1,4}|y{2,4}|H{1,2}|h{1,2}|m{1,2}|s{1,2}|tt|'[^']*'|"[^"]*"/g, (token) => {
     if (token.startsWith("'") || token.startsWith('"')) return token.slice(1, -1);
+    if (token.length === 5 && token[2] === '/') return dayPeriod();
     switch (token) {
       case 'd': return String(date.getUTCDate());
       case 'dd': return pad(date.getUTCDate(), 2);
@@ -206,14 +230,39 @@ function dateAsWordShows(value: string, zone: string): Date | undefined {
  * false when nothing was written: no binding, no part, an XPath that selects nothing, a kind
  * this phase does not handle (explicit rich text), a node holding a Flat OPC package, or a
  * picture control whose node holds no image (`notes` says which; CR-005 section 9).
+ *
+ * The part is the one the binding resolves to (CR-020): where its `w:storeItemID` names no part,
+ * the one its XPath fits, as Word repairs it on open; a control so bound gets that part's ID in
+ * its binding, as Word's save writes it (D2), and a note, as does a stale ID no part fits (D4).
  */
 export function applyBindingTo(control: ContentControl, notes?: string[]): boolean {
   const mapping = control.xmlMapping;
-  if (!mapping.isMapped) return false;
-  const node = mapping.customXmlNode;
+  const binding = mapping.dataBinding;
+  if (!binding) return false;
+  const resolved = mapping.resolution;
+  const label = control.title || control.tag || `content control ${control.id}`;
+  if (!resolved) {
+    if (binding.storeItemID && !isPropertiesStoreItem(binding.storeItemID)) {
+      notes?.push(`${label}: store item ${binding.storeItemID} names no custom XML part, and none fits ${binding.xpath}; left as it is`);
+    }
+    return false;
+  }
+  const node = resolved.part.selectSingleNode(binding.xpath, binding.prefixMappings);
   if (!node) return false;
-  const value = node.text.trim();
+  if (!bindValue(control, node.text.trim(), notes)) return false;
+  if (resolved.repaired) {
+    const stale = binding.storeItemID!;
+    const id = resolved.part.id.toUpperCase();
+    mapping.repairStoreItemID(stale, id);
+    notes?.push(`${label}: store item ${stale} names no custom XML part; ${resolved.part.part.partName.name} ${id}`
+      + (resolved.fitting > 1 ? `, the first of the ${resolved.fitting} that fit ${binding.xpath} to select a node,` : ` fits ${binding.xpath} and`)
+      + ' is bound, its ID written into the control, as Word repairs it');
+  }
+  return true;
+}
 
+/** `applyBindingTo`'s write of a node's value into the control, by the control's kind. */
+function bindValue(control: ContentControl, value: string, notes: string[] | undefined): boolean {
   // A picture control's node holds base64 image data: the picture's a:blip is pointed at a new
   // image part and the drawing kept, as docx4j's bind.xslt mode picture3 does (CR-005 section 9).
   if (control.type === 'Picture') {
@@ -245,12 +294,14 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
     }
   } else if (control.type === 'DatePicker') {
     const date = control.datePickerContentControl;
-    const pkg = control.parentBody.package_ as { boundDatesConvertedAsWord?: boolean; effectiveDateTimeZone?(): string } | undefined;
+    const pkg = control.parentBody.package_ as DatePackage | undefined;
     const parsed = pkg?.boundDatesConvertedAsWord && pkg.effectiveDateTimeZone ? dateAsWordShows(value, pkg.effectiveDateTimeZone()) : dateOf(value);
     if (date && parsed) {
       date.fullDate = parsed;
-      // Word shows the date in w:dateFormat, not the stored form (docx4j formats it the same way)
-      if (date.dateFormat !== '') display = formatDate(date.dateFormat, parsed, date.dateDisplayLocale || undefined);
+      // Word shows the date in w:dateFormat, not the stored form (docx4j formats it the same way), in w:lid's language,
+      // else the document's default language (CR-020 D5, docx4j CR-058 D2 revised), else en-US
+      const language = date.dateDisplayLocale || pkg?.propertyResolverOrUndefined?.getDocumentDefaultRPr().lang?.val || undefined;
+      if (date.dateFormat !== '') display = formatDate(date.dateFormat, parsed, language);
     }
   }
 
@@ -265,12 +316,19 @@ export function applyBindingTo(control: ContentControl, notes?: string[]): boole
   return true;
 }
 
+/** What a bound date reads of its package: the zone rule (CR-018) and the document's default language (CR-020 D5). */
+interface DatePackage {
+  boundDatesConvertedAsWord?: boolean;
+  effectiveDateTimeZone?(): string;
+  propertyResolverOrUndefined?: { getDocumentDefaultRPr(): wml.RPr };
+}
+
 /** `applyBindings` over a list of controls. */
 export function applyBindingsTo(controls: ContentControl[]): BindingResult {
   const result: BindingResult = { bound: 0, updated: 0, skipped: 0 };
   const notes: string[] = [];
   for (const control of controls) {
-    if (!control.xmlMapping.isMapped) continue;
+    if (!control.xmlMapping.dataBinding) continue;
     result.bound++;
     if (applyBindingTo(control, notes)) result.updated++; else result.skipped++;
   }
@@ -286,7 +344,7 @@ export function applyBindingsTo(controls: ContentControl[]): BindingResult {
  */
 export function updateFromControl(control: ContentControl): boolean {
   const mapping = control.xmlMapping;
-  if (!mapping.isMapped) return false;
+  // the node in the part the binding resolves to, a stale ID's too, its ID left as it is (CR-020 D2, docx4j's UpdateXmlFromDocumentSurface)
   const node = mapping.customXmlNode;
   if (!node) return false;
   // A picture control is the asynchronous pass's (updateFromPictureControl, CR-005 section 9): its
@@ -323,7 +381,7 @@ export function updateFromControl(control: ContentControl): boolean {
 export function updateFromControls(controls: ContentControl[]): BindingResult {
   const result: BindingResult = { bound: 0, updated: 0, skipped: 0 };
   for (const control of controls) {
-    if (!control.xmlMapping.isMapped) continue;
+    if (!control.xmlMapping.dataBinding) continue;
     // counted by the picture pass, which reads the image part (CR-005 section 9)
     if (control.type === 'Picture') continue;
     result.bound++;

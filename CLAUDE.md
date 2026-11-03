@@ -63,7 +63,10 @@ run again with Design Mode off, since Design Mode changes what a write into a pl
 in the objects package's CR-017: a save throws `MisplacedContentException` for a run in the body, a table in a paragraph, a string in a run, ..., unless `pkg.checkContentOnSave`
 is off; `checkContent()` on request; a `target.misplaced` part warning per child read; check 72 for Word's repairs) is implemented, unreleased. CR-018 (dates in the package's zone, the portfolio's
 date rule of 2026-10-28: `pkg.dateTimeZone` for every instant's wall clock, a comment stamped to the minute, Word's bound-date conversion and the
-save's `dcterms` times as opt-ins) is implemented, unreleased. The editor's release requests are
+save's `dcterms` times as opt-ins) is implemented, unreleased. So is CR-020 (bound controls as Word repairs and formats
+them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPath fits, docx4j's `StoreItemResolver`, by every
+reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
+date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -144,6 +147,8 @@ src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (
 src/model/customxml/ CustomXmlPart/CustomXmlNode over the custom XML DOM parts, XPathEngine (native document.evaluate, else the optional xpath package; await pkg.customXmlParts.load() once),
                   FontoXPathEngine on ./xpath-fonto (optional peer fontoxpath) for the OpenDoPE xpath2 boolean mode, with booleanValue() over any engine (CR-005 phase A),
                   XmlMapping over w:dataBinding, the typed content-control kinds, insertContentControl, applyBindings/updateFromContentControls (docx4j BindingHandler);
+                  storeItems.mts: the part a binding is evaluated against, docx4j's StoreItemResolver (CR-020): the part its w:storeItemID names, else the one
+                  its XPath fits, as Word repairs it; every reader (the text model's boundValue, XmlMapping, the od:xpath passes) and the bind go through it;
                   opendope.mts (the tag's parameters, the XPaths part's entries), xhtml.mts and pictures.mts: the tag-bound passes, od:ContentType=application/xhtml+xml and od:Handler=picture (CR-005 sections 8 and 9); picturePlaceholder.mts: Word's form for a picture control whose node is empty, the flag and docx4j's placeholder picture 1270000 EMU square (CR-005 section 10)
 src/model/content/tracking.mts, TrackedChange.mts: change tracking (pkg.changeTrackingMode; revision markup written by the paragraph primitives so every caller inherits it);
                   pkg.getAllTrackedChanges(filter?) lists every story in docx4j's order, TrackedChange.kind/part/pieces are docx4j's, and trackedChangeFilter.mts
@@ -415,6 +420,9 @@ every value written as held, Word's saves reporting nothing; round 2's 64 decima
 differences stated, strict both ways; the refused forms dropped and reported); `keptRange` held to the objects package's `wordIntegerReading` at every
 boundary of its 49 entries; `WORD_STORAGE`'s rows the objects table's, narrowed only where a row says why; a value set by code reported on save with its
 path; no fixture holding one,
+`store-items.test.mjs` CR-020's: docx4j CR-058's five probes and Word 365's saves (`test/store-items/`, copied unedited with a SHA-1 manifest,
+outside `fixtures/`), docx4j's `StoreItemRepairTest` and `BoundDateFormatTest` mirrored, every control after `applyBindings` held to Word's save (the
+dates in Word's zone), the readers writing nothing, and check 73b's snippet through the shim held to Word's runs (checks 73 and 73b's JSONs),
 `dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
 mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
