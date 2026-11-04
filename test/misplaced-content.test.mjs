@@ -190,7 +190,8 @@ test('CR-016 D6, the gate: every fixture loads, unmarshals every part and saves 
   };
   walk(fixturesDir);
   walk(join(fixturesDir, '..', 'mc-fun'));
-  assert.ok(files.length > 300, `${files.length} files`);
+  // that the walk found the fixtures: what a clean checkout holds (291), without the git-ignored files the check builders leave here
+  assert.ok(files.length > 280, `${files.length} files`);
   const refused = [];
   const found = [];
   for (const file of files) {
