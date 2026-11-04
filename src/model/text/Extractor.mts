@@ -25,7 +25,6 @@ import {
 } from './TextResult.mjs';
 import { type TextContext, type PackageTrees, calendarText } from './TextContext.mjs';
 import { normalize } from './normalize.mjs';
-import { CaseMapping } from './CaseMapping.mjs';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -1804,18 +1803,13 @@ export class Extractor {
     return f;
   }
 
-  /** The settings' `w:themeFontLang`, else docx4j's default: a cased run's language of last resort; undefined until asked. */
-  private themeFontLang: string | undefined;
-
   /**
    * The language a cased run's capitals are mapped by (WD REQ-607): its own `w:lang/@w:val`, else its styles' (with the
-   * document defaults'), else `w:themeFontLang`'s, else `CaseMapping.DEFAULT_LANGUAGE`.
+   * document defaults'), else the `default_language` option. `w:themeFontLang` is no link (WD 0.80, CR-012 section 24.8):
+   * it chooses among the theme's fonts, and Word cases such a run by its editing language, which the option stands in for.
    */
   private language(own: wml.RPr | undefined, styles: wml.RPr | undefined): string {
-    const lang = langOf(own?.lang) ?? langOf(styles?.lang);
-    if (lang !== undefined) return lang;
-    this.themeFontLang ??= langOf(this.trees.settings?.themeFontLang) ?? CaseMapping.DEFAULT_LANGUAGE;
-    return this.themeFontLang;
+    return langOf(own?.lang) ?? langOf(styles?.lang) ?? this.options.defaultLanguage;
   }
 
   /** The run's font for `monospace`: its own `w:rFonts/@w:ascii`, else its styles'. */

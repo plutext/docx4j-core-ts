@@ -154,19 +154,45 @@ test('the case is the text\'s whatever the paragraph style; caps over small caps
   assert.equal(PlainText.of(r), 'LOUD\nBOTH I İ off\n');
 });
 
-test('the language of last resort: w:themeFontLang, else en-US', async () => {
-  const pkg = await document('<w:p><w:r><w:rPr><w:caps/></w:rPr><w:t>istanbul</w:t></w:r></w:p>');
+test('the language of last resort: default_language, never w:themeFontLang (WD 0.80)', async () => {
+  const pkg = await document('<w:p><w:r><w:rPr><w:caps/></w:rPr><w:t>istanbul</w:t></w:r></w:p>'
+    + '<w:p><w:r><w:rPr><w:caps/><w:lang w:val="en-US"/></w:rPr><w:t>izmir</w:t></w:r></w:p>');
   const mdp = pkg.getMainDocumentPart();
   const styles = mdp.styleDefinitionsPart;
   styles.setXml((await styles.getXml()).replace(/<w:lang [^>]*\/>/, ''));
   await pkg.refresh();
   const settings = await mdp.documentSettingsPart.getContents();
   delete settings.themeFontLang;
-  assert.equal(PlainText.of(await Texts.of(pkg)), 'ISTANBUL\n');
+  assert.equal(PlainText.of(await Texts.of(pkg)), 'ISTANBUL\nIZMIR\n');
   assert.equal((await Texts.of(pkg)).blocks[0].runs[0].language, CaseMapping.DEFAULT_LANGUAGE);
+  // a w:themeFontLang tr-TR is no link: Word cases the run by its editing language, a file with and without it alike
   settings.themeFontLang = { TYPE_NAME: 'org_docx4j_wml.CTLanguage', val: 'tr-TR' };
-  // a tr-TR default, unmeasured in Word (docx4j CR-069 section 7): predicted as the run-level case
-  assert.equal(PlainText.of(await Texts.of(pkg)), 'İSTANBUL\n');
+  assert.equal(PlainText.of(await Texts.of(pkg)), 'ISTANBUL\nIZMIR\n');
+  // the option stands in for the editing language; the run's own w:lang still comes first
+  const tr = await Texts.of(pkg, { default_language: 'tr-TR' });
+  assert.equal(PlainText.of(tr), '\u0130STANBUL\nIZMIR\n');
+  assert.deepEqual(tr.blocks.map((b) => b.runs[0].language), ['tr-TR', 'en-US']);
+  // a profile leaves it, and a caller's value survives one
+  assert.equal(PlainText.of(await Texts.of(pkg, { profile: 'word-text', default_language: 'az' })), '\u0130STANBUL\nIZMIR\n');
+});
+
+test('default_language by name: its default, its place in WD section 10\'s order, a tag kept as given, a malformed one refused', () => {
+  assert.equal(new TextOptions().defaultLanguage, 'en-US');
+  assert.equal(new TextOptions().toMap().default_language, 'en-US');
+  assert.equal(TEXT_OPTION_NAMES.indexOf('small_caps') + 1, TEXT_OPTION_NAMES.indexOf('default_language'));
+  assert.equal(TEXT_OPTION_NAMES.indexOf('default_language') + 1, TEXT_OPTION_NAMES.indexOf('math'));
+  assert.equal(new TextOptions().profile('word-text').defaultLanguage, 'en-US');
+  assert.equal(TextOptions.of({ default_language: ' tr-TR ' }).defaultLanguage, 'tr-TR');
+  assert.equal(TextOptions.of({ default_language: 'az-Latn-AZ' }).copy().defaultLanguage, 'az-Latn-AZ');
+  for (const tag of ['tr', 'TR-tr', 'zh-Hant-TW', 'es-419', 'de-CH-1901', 'sl-rozaj-biske', 'en-US-u-ca-gregory', 'zh-min-nan',
+    'x-none', 'en-US-x-twain', 'i-klingon', 'en-GB-oed']) {
+    assert.equal(TextOptions.of({ default_language: tag }).defaultLanguage, tag, tag);
+  }
+  for (const bad of ['', ' ', 'tr_TR', 'english_us', 'e', 'en-', 'en--US', '-en', 'en-US-', 'tr TR', 'en-a', 'x', 'en-x', 'abcdefghi',
+    'en-US-a-b', 'i-xyz', 42, null, true]) {
+    assert.throws(() => new TextOptions().set('default_language', bad),
+      (e) => e instanceof TextOptionError && e.option === 'default_language' && e.statement === 'REQ-607' && e.reason === 'invalid', String(bad));
+  }
 });
 
 test('a note reference is a reference, not a superscript (REQ-710), whatever its style raises', async () => {
@@ -348,7 +374,7 @@ test('profile: word-text is Word\'s plain text as the options reach it', () => {
   assert.ok(o.comments);
   assert.ok(!o.textBoxes);
   assert.ok(o.notes && o.noteReferences);
-  assert.ok(!o.listLabels);
+  assert.ok(o.listLabels); // WD 0.75: Word's text save writes the labels
   assert.equal(o.fields, 'cached');
   assert.ok(!o.fieldCodes);
   assert.ok(o.toc);

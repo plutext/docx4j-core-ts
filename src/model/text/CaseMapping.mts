@@ -4,7 +4,7 @@ import { CASE_MAPPING_UNICODE_VERSION, UPPERCASE_RUNS } from './caseMapping.gene
 import type { TextOptions } from './TextOptions.mjs';
 import { TextBlock, TextComment, TextRun } from './TextResult.mjs';
 
-/** The language where a run, its styles, the document defaults and `w:themeFontLang` name none: docx4j's documented default (REQ-607 leaves it to the implementation). */
+/** `default_language`'s default, the language where a run, its styles and the document defaults name none (WD 0.80's REQ-607). */
 const DEFAULT_LANGUAGE = 'en-US';
 
 /** The code point's simple uppercase mapping, by binary search over the generated runs; itself where it has none. */

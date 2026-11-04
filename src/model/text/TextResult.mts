@@ -214,8 +214,8 @@ export class TextRun {
   verticalAlignment: TextVerticalAlignment = 'BASELINE';
   /**
    * For a caps or small-caps run, the language its capitals are mapped by (WD REQ-607, the WD's `lang`): its
-   * `w:lang/@w:val`, else its styles' or the document defaults', else the settings' `w:themeFontLang`, else
-   * `CaseMapping.DEFAULT_LANGUAGE`; undefined for any other run, so that a `w:lang` alone never splits runs.
+   * `w:lang/@w:val`, else its styles' or the document defaults', else the `default_language` option (`en-US` by default;
+   * `w:themeFontLang` is no link, WD 0.80); undefined for any other run, so that a `w:lang` alone never splits runs.
    */
   language: string | undefined;
   /** For text in a link: its target (a `w:hyperlink`'s, or a HYPERLINK field's, REQ-703). */

@@ -2469,6 +2469,21 @@ author-local-time and offset reading beside `revisionDateOf` (the instant, uncha
 preset has it, not D1's `unicodemath`: `math: unicodemath` is refused here, so a preset holding it would refuse every
 reading. 23.5 is not built; the recut text goldens hold its form, and `text-parity.test.mjs` masks it until it lands.
 
+WD 0.75 (portfolio `682aba9`) corrected the preset's `list_labels` to true. Word's Save As plain text writes list labels;
+0.41 had taken `false` from Office JS's `Range.Text`, which leaves them out. WD 0.79 measured what follows a label: the
+page draws the level's `w:suff`, and the text save writes one space after every label whatever the suffix. The WD keeps
+the page's form, and a comparison with Word's save splits at a tab and a space alike.
+
+Built 2026-11-04 (Jason: "change the list_labels preset"):
+- `WORD_TEXT_PROFILE` has `list_labels: true`.
+- Its doc comment lists the one space after a label among what the preset does not reproduce, since the level's suffix is
+  written here.
+- `text-caps.test.mjs`'s preset test asserts the new value.
+
+This departs from docx4j until docx4j follows: its `TextOptions.WORD_TEXT_VALUES` still has `list_labels` false
+(`VERSION_17_3_6` at `4f7128174`). Nothing committed moves. The suite's 22 Word text saves pass under the preset, but none
+of them holds a numbered paragraph.
+
 ## 24. `w:caps` in capitals by the run's language: docx4j CR-069 phase 1's hand-off (proposed 2026-10-31)
 
 From docx4j-12's hand-off of docx4j CR-069 phase 1 (`75b9bdb54`, `VERSION_17_3_5`, unpushed; its section 11; `c832243f9`
@@ -2757,7 +2772,7 @@ change with the suite copy (D1), section 22.2 (a) (D1), section 23.1 (D2) and th
 Not ported: docx4j's memo test under the preset, whose fixture this repository does not hold (a Word save under the
 preset stands in), and the inspector's `text.formatting_join`.
 
-### 24.8 WD 0.80: the chain ends at `default_language`, not `w:themeFontLang` (2026-11-04; proposed, nothing built)
+### 24.8 WD 0.80: the chain ends at `default_language`, not `w:themeFontLang` (proposed and implemented 2026-11-04)
 
 WD 0.80 (portfolio `df66c75`) rules WD 0.72's open item (1) (Jason: "Strike w:themeFontLang from REQ-607's chain; add
 a documented default-language option"). A cased run's language is now:
@@ -2829,10 +2844,38 @@ invalid option value, so a typo cannot select `en-US` without anyone noticing. T
 and ignores the region, which is what `CaseMapping` does already (`tr` and `az`). Once built, this section is
 registered as a new entry, `core-ts/CR-012.24.8`, depending on `core-ts/CR-012.24`.
 
-| # | Decision | Recommendation |
-|---|---|---|
-| D1 | When to build it | On its own, after section 24 is committed as it stands. Section 24 then matches the 17.3.5 release its goldens and suite are cut from, and this change matches docx4j's follow-on (CR-046 section 10). Nothing in this repository moves, so the order costs nothing. |
-| D2 | A `default_language` that is not a well-formed BCP 47 tag | Refused with `TextOptionError` (`invalid`), as this package refuses every other option value outside its domain. Java's `Locale.forLanguageTag` accepts any string, so docx4j would have to check explicitly. An open item in WD 0.81, this rule recommended for every port. |
+**Implemented (2026-11-04).** Built as proposed, items 1 to 4:
+- **The option.** `TextOptions.defaultLanguage` (`default_language`) sits in `TEXT_OPTION_NAMES` and `toMap()` between
+  `small_caps` and `math`. It defaults to `CaseMapping.DEFAULT_LANGUAGE`, and is kept as given, trimmed.
+- **The check.** `languageTag` refuses a value that RFC 5646's `Language-Tag` grammar (section 2.1) does not produce, with
+  `TextOptionError` (`invalid`, REQ-607). The grammar is a langtag, a private-use tag or one of the irregular
+  grandfathered tags; a non-string is refused too. It is checked by a regular expression, not by `Intl`:
+  `Intl.getCanonicalLocales` takes Unicode's locale identifiers, which refuse some well-formed BCP 47 tags (an extlang
+  such as `zh-min-nan`, `i-klingon`, a private-use `x-none`). The grammar admits `turkish` or `english` as a language
+  subtag (five to eight letters, a form the IANA registry reserves and holds none of), so such a word maps as `en-US`.
+  Refusing it would need validity against the registry, not well-formedness, and WD 0.81's open item asks only for the
+  latter.
+- **The chain.** `Extractor.language` is the run's `w:lang`, else its styles' with the document defaults', else
+  `options.defaultLanguage`. The settings tree is no longer read for it.
+- **The doc comments.** `TextRun.language` and `CaseMapping.DEFAULT_LANGUAGE` say the same.
+- **The preset.** `WORD_TEXT_PROFILE` does not hold the option, so a caller's value survives `profile: word-text`.
+- **Section 28's text** loses the caps language from the settings part's consults.
+- **Tests.** `text-caps.test.mjs`'s last-resort test is turned around:
+  - with no language anywhere, a caps run reads `ISTANBUL` with and without `w:themeFontLang` `tr-TR`;
+  - `default_language: tr-TR` gives `İSTANBUL` and the run's `language` `tr-TR`;
+  - a run's own `w:lang` `en-US` stays `IZMIR`;
+  - `default_language: az` survives `profile: word-text`.
+
+  A new test covers the option by name: its default, its place in the order, the preset leaving it, a tag kept as given,
+  twelve well-formed tags accepted and nineteen values refused.
+
+npm run typecheck passes, and npm test passes 1,779 of 1,779. The text goldens and the suite's counts are unchanged, as
+measured.
+
+| # | Decision | Recommendation | Decided (Jason, 2026-11-04) |
+|---|---|---|---|
+| D1 | When to build it | On its own, after section 24 is committed as it stands. Section 24 then matches the 17.3.5 release its goldens and suite are cut from, and this change matches docx4j's follow-on (CR-046 section 10). Nothing in this repository moves, so the order costs nothing. | "build it now", after section 24's commit (`46b2ce6`) |
+| D2 | A `default_language` that is not a well-formed BCP 47 tag | Refused with `TextOptionError` (`invalid`), as this package refuses every other option value outside its domain. Java's `Locale.forLanguageTag` accepts any string, so docx4j would have to check explicitly. An open item in WD 0.81, this rule recommended for every port. | As recommended |
 
 ## 25. A story part that cannot be read: `content.not_read`, docx4j `4fdd80063`'s hand-off (proposed 2026-11-02)
 
@@ -3075,7 +3118,8 @@ section 28.1). Jason ruled "part.not_read as recommended" (relayed through the p
   - a numbering part: the labels, and the clause addresses built from them;
   - a styles part: what a style gives a paragraph or run (numbering, hidden text, `w:caps` and `w:smallCaps`, a frame,
     a table style's header rows);
-  - a settings part: the caps language, `updateFields`, forms protection and the even header;
+  - a settings part: `updateFields`, forms protection and the even header (and the caps language until WD 0.80, section
+    24.8);
   - the font table: only where a reading consults it, which this package's never does.
 - **What it says and what happens.** Its selector is the part's name. The reading proceeds as it would for a package
   that lacks the part, and the result is marked by the warning, not refused.
@@ -3153,7 +3197,7 @@ included, in the three views (which differ only by the `w:ins` in every case).
      and its default paragraph style. A reading that takes no block raises nothing;
    - **settings**: on every reading of a package whose settings part cannot be read, since every result's metadata
      carries `fields_update_on_open` from it (REQ-801). The part also supplies the even header (REQ-502) when headers or
-     footers are included, and the caps language once section 24 lands;
+     footers are included. It no longer supplies the caps language (WD 0.80, section 24.8);
    - **never** for the font table or the theme, which the text model doesn't consult.
 
    The part overloads (`Texts.of(part)`) follow the same rules for their own reading. The content overload with no

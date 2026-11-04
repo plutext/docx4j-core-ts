@@ -5,6 +5,7 @@
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { ImageDescriber } from './TextResult.mjs';
 import { AltTextDescriber } from './TextResult.mjs';
+import { CaseMapping } from './CaseMapping.mjs';
 
 /**
  * The three revision views (WD section 4, REQ-401): the document as Word's Accept All leaves it, as
@@ -79,6 +80,8 @@ export interface TextOptionsInit {
   metadata?: Bool;
   symbols?: TextSymbols;
   small_caps?: TextSmallCaps;
+  /** A BCP 47 tag (REQ-607, WD 0.80): the language of last resort for a cased run's capitals. */
+  default_language?: string;
   math?: TextMath;
   tables?: TextTables;
   markup_detail?: TextMarkupDetail;
@@ -107,24 +110,26 @@ export class TextOptionError extends Docx4JException {
 export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
   'view', 'include', 'text_boxes', 'notes', 'note_references', 'comments', 'hidden', 'field_codes',
   'fields', 'toc', 'drop_caps', 'placeholders', 'bindings', 'list_labels', 'charts', 'smartart', 'embedded', 'altchunks',
-  'alt_text', 'metadata', 'symbols', 'small_caps', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
+  'alt_text', 'metadata', 'symbols', 'small_caps', 'default_language', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
   'warnings', 'profile',
 ]);
 
 /**
  * `profile: word-text`'s values by WD name, in WD order (REQ-1002; docx4j `TextOptions.WORD_TEXT_VALUES`): the accepted
- * view, hidden text in, headers, footers and comments in, text boxes out, notes and their references in, no list labels,
- * fields cached, no field codes, the table of contents in, a drop cap apart from its word, placeholders in, bound values,
- * chunks expanded, symbols as they are, small caps in capitals, tables as tab-separated rows, no page markers, no
- * indentation, no alt text, no metadata, no charts, SmartArt or embedded packages. What it does not reproduce: the notes'
- * and comments' forms, CR LF and CR cells, folded hyphens, Word's linear math (`math: unicodemath` is refused here, as in
- * docx4j, so the preset leaves math as LaTeX; CR-012 section 23.1), and three accidents of Word's own: the partial update
- * a DATE, TIME or SAVEDATE field triggers on open, the SYMBOL omission, and the stale PAGE number.
+ * view, hidden text in, headers, footers and comments in, text boxes out, notes and their references in, list labels
+ * (WD 0.75), fields cached, no field codes, the table of contents in, a drop cap apart from its word, placeholders in,
+ * bound values, chunks expanded, symbols as they are, small caps in capitals, tables as tab-separated rows, no page
+ * markers, no indentation, no alt text, no metadata, no charts, SmartArt or embedded packages. `default_language` keeps
+ * its default, since the saving installation's language is not in the file (WD 0.80). What it does not reproduce: the
+ * notes' and comments' forms, CR LF and CR cells, folded hyphens, the one space Word writes after every list label where
+ * the level's suffix is written here (WD 0.79), Word's linear math (`math: unicodemath` is refused here, as in docx4j, so
+ * the preset leaves math as LaTeX; CR-012 section 23.1), and three accidents of Word's own: the partial update a DATE,
+ * TIME or SAVEDATE field triggers on open, the SYMBOL omission, and the stale PAGE number.
  */
 export const WORD_TEXT_PROFILE: Readonly<Record<string, unknown>> = Object.freeze({
   view: 'accepted', include: 'headers,footers,comments', text_boxes: false, notes: true, note_references: true,
   comments: true, hidden: true, field_codes: false, fields: 'cached', toc: true, drop_caps: 'asis', placeholders: true,
-  bindings: 'bound', list_labels: false, charts: false, smartart: false, embedded: false, altchunks: true,
+  bindings: 'bound', list_labels: true, charts: false, smartart: false, embedded: false, altchunks: true,
   alt_text: false, metadata: false, symbols: 'asis', small_caps: 'upper', math: 'latex', tables: 'tsv',
   page_markers: false, layout: 'none',
 });
@@ -173,6 +178,13 @@ export class TextOptions {
   symbols: TextSymbols = 'asis';
   /** `small_caps` (REQ-607): `asis`, the default, or `upper`. */
   smallCaps: TextSmallCaps = 'asis';
+  /**
+   * `default_language` (REQ-607, WD 0.80): the language a cased run's capitals are mapped by where the run, its styles and
+   * the document defaults name none. It stands in for Word's editing language, which a library cannot know;
+   * `w:themeFontLang` plays no part. A BCP 47 tag, kept as given; `CaseMapping.DEFAULT_LANGUAGE` (`en-US`) by default.
+   * CR-012 section 24.8.
+   */
+  defaultLanguage: string = CaseMapping.DEFAULT_LANGUAGE;
   math: TextMath = 'latex';
   tables: TextTables = 'auto';
   markupDetail: TextMarkupDetail = 'type';
@@ -258,6 +270,7 @@ export class TextOptions {
       case 'metadata': this.metadata = bool(n, value, 'REQ-515'); break;
       case 'symbols': this.symbols = choice(n, value, ['asis', 'unicode'], 'REQ-601'); break;
       case 'small_caps': this.smallCaps = choice(n, value, ['asis', 'upper'], 'REQ-607'); break;
+      case 'default_language': this.defaultLanguage = languageTag(n, value, 'REQ-607'); break;
       case 'math': this.math = choice(n, value, ['latex', 'unicodemath'], 'REQ-604'); break;
       case 'tables': this.tables = choice(n, value, ['auto', 'tsv', 'grid'], 'REQ-605'); break;
       case 'markup_detail': this.markupDetail = choice(n, value, ['type', 'author', 'author_date'], 'REQ-702'); break;
@@ -317,7 +330,7 @@ export class TextOptions {
       field_codes: this.fieldCodes, fields: this.fields, toc: this.toc, drop_caps: this.dropCaps, placeholders: this.placeholders,
       bindings: this.bindings, list_labels: this.listLabels, charts: this.charts, smartart: this.smartart,
       embedded: this.embedded, altchunks: this.altchunks, alt_text: this.altText, metadata: this.metadata,
-      symbols: this.symbols, small_caps: this.smallCaps, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
+      symbols: this.symbols, small_caps: this.smallCaps, default_language: this.defaultLanguage, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
       page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, profile: this.profileName ?? null,
     };
   }
@@ -366,6 +379,32 @@ function bool(name: string, value: unknown, statement: string): boolean {
   if (s === 'true') return true;
   if (s === 'false') return false;
   throw new TextOptionError(`${name}: '${String(value)}' is not true or false (WD REQ-1001)`, name, statement, 'invalid');
+}
+
+/**
+ * RFC 5646's `Language-Tag` (section 2.1): a `langtag`, a private-use tag or a grandfathered one, case-insensitively. A
+ * tag this grammar accepts is well formed (section 2.2.9); whether its subtags are registered is not asked.
+ */
+const LANGUAGE_TAG = new RegExp('^(?:'
+  + '(?:[a-z]{2,3}(?:-[a-z]{3}){0,3}|[a-z]{4}|[a-z]{5,8})' // language, with up to three extlang
+  + '(?:-[a-z]{4})?' // script
+  + '(?:-(?:[a-z]{2}|[0-9]{3}))?' // region
+  + '(?:-(?:[a-z0-9]{5,8}|[0-9][a-z0-9]{3}))*' // variants
+  + '(?:-[a-wyz0-9](?:-[a-z0-9]{2,8})+)*' // extensions
+  + '(?:-x(?:-[a-z0-9]{1,8})+)?' // private use
+  + '|x(?:-[a-z0-9]{1,8})+'
+  + '|en-GB-oed|i-(?:ami|bnn|default|enochian|hak|klingon|lux|mingo|navajo|pwn|tao|tay|tsu)|sgn-(?:BE-FR|BE-NL|CH-DE)'
+  + ')$', 'i');
+
+/**
+ * A BCP 47 tag as given, trimmed; one RFC 5646's grammar refuses is refused, so that a mistyped tag cannot select the
+ * default unnoticed (CR-012 section 24.8, D2).
+ */
+function languageTag(name: string, value: unknown, statement: string): string {
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (LANGUAGE_TAG.test(s)) return s;
+  throw new TextOptionError(`${name}: '${String(value)}' is not a well-formed BCP 47 language tag, such as en-US or tr-TR (WD ${statement})`,
+    name, statement, 'invalid');
 }
 
 function choice<T extends string>(name: string, value: unknown, values: readonly T[], statement: string): T {
