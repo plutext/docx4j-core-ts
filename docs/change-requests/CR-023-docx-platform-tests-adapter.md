@@ -50,7 +50,7 @@ The adapter is a small Node CLI over the content API, kept outside the published
 - The untouched save is byte for byte.
 - An ignorable attribute (`ext:opaqueAttribute` on `w:sdt`, or one on `w:p`) is dropped silently on a re-marshal, so
   the scenarios' preservation rows would fail even once the part is read.
-- Both are load and preservation gaps of their own, not the adapter's: a finding for Jason, outside this CR. MCE lets a
+- Both are load and preservation gaps of their own, not the adapter's: outside this CR, proposed 2026-11-05 as CR-025 (the report and the save) and CR-026 (the read). MCE lets a
   consumer ignore what it doesn't understand, but this package refuses the part where Word reads it.
 
 `mc:Ignorable`'s private prefix stays declared on a re-marshal on every path (default, `mcePreprocess`, CR-021's pass,
