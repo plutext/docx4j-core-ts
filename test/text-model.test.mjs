@@ -879,3 +879,192 @@ test("the text-left probe's accepted view, its Accept All copy and Word's Accept
   for (const n of [1, 2, 3, 5]) assert.deepEqual(region(viewed, n), region(word, n), `case ${n}`);
   assert.deepEqual(region(viewed, 1)[0].rows[0][0], [{ kind: 'PARAGRAPH', style: undefined, text: 'HEAD1A T1R1C1' }]);
 });
+
+// ---------------------------------------------------------------- CR-012 section 28: a part that cannot be read (REQ-801)
+
+const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
+const WML = 'application/vnd.openxmlformats-officedocument.wordprocessingml.';
+const partRun = (text, rPr = '') => `<w:r>${rPr ? `<w:rPr>${rPr}</w:rPr>` : ''}<w:t xml:space="preserve">${text}</w:t></w:r>`;
+const PART_PROBE = `<w:p><w:pPr><w:pStyle w:val="ListHeading"/></w:pPr>${partRun('Numbered by its style')}</w:p>`
+  + `<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="2"/></w:numPr></w:pPr>${partRun('Numbered directly')}</w:p>`
+  + `<w:p>${partRun('visible ')}${partRun('style-hidden ', '<w:rStyle w:val="HiddenChar"/>')}${partRun('direct-hidden ', '<w:vanish/>')}`
+  + `${partRun('style caps', '<w:rStyle w:val="CapsChar"/>')}${partRun(' direct caps', '<w:caps/>')}<w:ins${DEL}>${partRun(' inserted')}</w:ins></w:p>`
+  + `<w:p><w:pPr><w:pStyle w:val="HiddenPara"/></w:pPr>${partRun('Paragraph hidden by its style')}</w:p>`
+  + '<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/><w:headerReference w:type="even" r:id="rIdH2"/></w:sectPr>';
+/** Heading, item, item, heading, item: the style's w:num and a direct one (WD 0.76's measurement). */
+const INTERLEAVED = ['heading one', 'item one', 'item two', 'heading two', 'item three'].map((text) => (text.startsWith('heading')
+  ? `<w:p><w:pPr><w:pStyle w:val="ListHeading"/></w:pPr>${partRun(text)}</w:p>`
+  : `<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="2"/></w:numPr></w:pPr>${partRun(text)}</w:p>`)).join('');
+const PART_STYLES = `${XML}<w:styles ${NS}>`
+  + '<w:docDefaults><w:rPrDefault><w:rPr><w:lang w:val="tr-TR"/></w:rPr></w:rPrDefault></w:docDefaults>'
+  + '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>'
+  + '<w:style w:type="paragraph" w:styleId="ListHeading"><w:name w:val="List Heading"/><w:pPr><w:numPr><w:numId w:val="1"/></w:numPr></w:pPr></w:style>'
+  + '<w:style w:type="paragraph" w:styleId="HiddenPara"><w:name w:val="Hidden Para"/><w:rPr><w:vanish/></w:rPr></w:style>'
+  + '<w:style w:type="character" w:styleId="HiddenChar"><w:name w:val="Hidden Char"/><w:rPr><w:vanish/></w:rPr></w:style>'
+  + '<w:style w:type="character" w:styleId="CapsChar"><w:name w:val="Caps Char"/><w:rPr><w:caps/></w:rPr></w:style></w:styles>';
+const PART_NUMBERING = `${XML}<w:numbering ${NS}>`
+  + '<w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl></w:abstractNum>'
+  + '<w:abstractNum w:abstractNumId="1"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="lowerLetter"/><w:lvlText w:val="%1)"/></w:lvl></w:abstractNum>'
+  + '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>';
+const PART_SETTINGS = `${XML}<w:settings ${NS}><w:updateFields w:val="true"/><w:evenAndOddHeaders/></w:settings>`;
+const PART_HEADER = (text) => `${XML}<w:hdr ${NS}><w:p>${partRun(text)}</w:p></w:hdr>`;
+
+/**
+ * CR-012 section 28.1's probe: a paragraph or run for each thing the styles, numbering and settings parts supply, and two
+ * headers; each part named in `broken` cut to half its length (not well formed), each in `absent` left out.
+ */
+function partProbe({ broken = [], absent = [], body = PART_PROBE } = {}) {
+  const doc = miniDocx(body);
+  for (const [name, type, rel, rId, xml] of [['styles.xml', 'styles', 'styles', 'rIdS', PART_STYLES],
+    ['numbering.xml', 'numbering', 'numbering', 'rIdN', PART_NUMBERING], ['settings.xml', 'settings', 'settings', 'rIdT', PART_SETTINGS]]) {
+    if (absent.includes(name)) continue;
+    doc.part(name, `${WML}${type}+xml`, REL + rel, rId, broken.includes(name) ? xml.slice(0, Math.floor(xml.length / 2)) : xml);
+  }
+  doc.part('header1.xml', `${WML}header+xml`, `${REL}header`, 'rIdH1', PART_HEADER('Default header'));
+  doc.part('header2.xml', `${WML}header+xml`, `${REL}header`, 'rIdH2', PART_HEADER('Even header'));
+  return doc;
+}
+
+test('CR-012 section 28: a styles, numbering or settings part not well formed reads as that part absent, with one part.not_read naming it', async () => {
+  const intact = await partProbe().load();
+  for (const name of ['styles.xml', 'numbering.xml', 'settings.xml']) {
+    const broken = await partProbe({ broken: [name] }).load();
+    const absent = await partProbe({ absent: [name] }).load();
+    for (const view of ['accepted', 'original', 'markup']) {
+      for (const list_labels of [true, false]) {
+        const options = { view, list_labels, include: ['headers'] };
+        const b = await Texts.of(broken, options);
+        const a = await Texts.of(absent, options);
+        assert.equal(PlainText.of(b), PlainText.of(a), `${name} ${view} ${list_labels}`);
+        assert.deepEqual(b.metadata, a.metadata);
+        assert.deepEqual(b.warnings.map((w) => [w.kind, w.selector, w.address]), [['part.not_read', `/word/${name}`, undefined]], `${name} ${view}`);
+        // an absent part loses as much and says nothing, but a numbered paragraph's numbering part (part.absent, WD 0.76)
+        assert.deepEqual(a.warnings.map(String), name === 'numbering.xml' ? ['part.absent (/word/numbering.xml)'] : []);
+        assert.deepEqual((await Texts.of(intact, options)).warnings, []);
+      }
+    }
+  }
+  // 28.1's two defects: the styles lost no longer cost the direct label, nor the numbering the styles
+  const labels = { list_labels: true };
+  assert.ok(PlainText.of(await Texts.of(await partProbe({ broken: ['styles.xml'] }).load(), labels)).includes('a)\tNumbered directly'));
+  const numbering = PlainText.of(await Texts.of(await partProbe({ broken: ['numbering.xml'] }).load(), labels));
+  assert.ok(!numbering.includes('style-hidden') && numbering.includes('STYLE CAPS'), numbering);
+  // the settings: no even header, and fields_update_on_open false
+  const settings = await Texts.of(await partProbe({ broken: ['settings.xml'] }).load(), { include: ['headers'] });
+  assert.ok(!PlainText.of(settings).includes('Even header'));
+  assert.equal(settings.metadata.fields_update_on_open, false);
+});
+
+test('CR-012 section 28.5: with the numbering part absent or not well formed, Word\'s default list: heading, item, item, heading, item reads 1, 1, 2, 3, 4 (WD 0.76)', async () => {
+  for (const [variant, kind] of [[{ absent: ['numbering.xml'] }, 'part.absent'], [{ broken: ['numbering.xml'] }, 'part.not_read']]) {
+    const pkg = await partProbe({ ...variant, body: INTERLEAVED }).load();
+    const r = await Texts.of(pkg, { list_labels: true });
+    assert.deepEqual(r.blocks.map((b) => b.listLabel), ['1.\t', '1.\t', '2.\t', '3.\t', '4.\t'], kind);
+    assert.deepEqual(r.blocks.map((b) => [b.numbering?.format, b.numbering?.levelText, b.numbering?.value]),
+      [['decimal', '%1.', 1], ['decimal', '%1.', 1], ['decimal', '%1.', 2], ['decimal', '%1.', 3], ['decimal', '%1.', 4]]);
+    assert.deepEqual(r.warnings.map(String), [`${kind} (/word/numbering.xml)`]);
+    // labels off: the block's numbering still comes from the definition, and the warning with it
+    assert.deepEqual((await Texts.of(pkg)).warnings.map(String), [`${kind} (/word/numbering.xml)`]);
+    // the default definition is the reading's: the package gains no numbering part, and its own part is left as it was
+    assert.equal(pkg.getMainDocumentPart().numberingDefinitionsPart?.isUnmarshalled ?? false, false);
+  }
+  // with the styles lost too, every w:numId is a direct one: each restarts at its first paragraph
+  const both = await partProbe({ absent: ['numbering.xml', 'styles.xml'], body: INTERLEAVED }).load();
+  assert.deepEqual((await Texts.of(both, { list_labels: true })).blocks.map((b) => b.listLabel), [undefined, '1.\t', '2.\t', undefined, '3.\t']);
+});
+
+test('CR-012 section 28: a part is raised only where the reading needs it (D2)', async () => {
+  const plain = '<w:p><w:r><w:t>plain</w:t></w:r></w:p>';
+  // a numbering part not well formed, or absent, where no paragraph is numbered: nothing
+  for (const variant of [{ broken: ['numbering.xml'] }, { absent: ['numbering.xml'] }]) {
+    assert.deepEqual((await Texts.of(await partProbe({ ...variant, body: plain }).load(), { list_labels: true })).warnings, []);
+  }
+  // the settings on every reading, since every result's metadata carries fields_update_on_open; once a result
+  const settings = await partProbe({ broken: ['settings.xml'], body: '' }).load();
+  assert.deepEqual((await Texts.of(settings)).warnings.map(String), ['part.not_read (/word/settings.xml)']);
+  assert.deepEqual((await Texts.of(settings, { include: ['headers', 'footers'] })).warnings.map(String), ['part.not_read (/word/settings.xml)']);
+  // the styles at the first block: a reading that takes none raises nothing
+  assert.deepEqual((await Texts.of(await partProbe({ broken: ['styles.xml'], body: '' }).load())).warnings, []);
+  assert.deepEqual((await Texts.of(await partProbe({ broken: ['styles.xml'], body: plain }).load())).warnings.map(String), ['part.not_read (/word/styles.xml)']);
+});
+
+test('CR-012 section 28: the content API still refuses the part, the package\'s resolver stays unbuilt, a part put right is read again, and the save copies the parts', async () => {
+  const pkg = await partProbe({ broken: ['styles.xml'] }).load();
+  await Texts.of(pkg, { list_labels: true });
+  assert.equal(pkg.propertyResolverOrUndefined, undefined);
+  await assert.rejects(pkg.getBody(), /styles part could not be read/);
+  pkg.getMainDocumentPart().styleDefinitionsPart.setXml(PART_STYLES);
+  const r = await Texts.of(pkg, { list_labels: true });
+  assert.deepEqual(r.warnings, []);
+  assert.ok(PlainText.of(r).includes('1.\tNumbered by its style'));
+  // a save after the readings copies every part the reading left untouched, the unreadable one too, byte for byte
+  for (const name of ['styles.xml', 'numbering.xml', 'settings.xml']) {
+    const bytes = partProbe({ broken: [name] }).bytes();
+    const source = unzipSync(bytes);
+    const loaded = await WordprocessingMLPackage.load(bytes);
+    for (const view of ['accepted', 'original', 'markup']) await Texts.of(loaded, { view, list_labels: true, include: ['headers'] });
+    const saved = unzipSync(await loaded.save());
+    for (const entry of Object.keys(source)) {
+      if (entry.endsWith('.rels') || entry === '[Content_Types].xml') continue;
+      assert.deepEqual(saved[entry], source[entry], `${name}: ${entry}`);
+    }
+  }
+});
+
+test('CR-012 section 28.5: a document-properties part that cannot be read raises part.not_read where the metadata is written, once with a binding to it (WD 0.76)', async () => {
+  const core = `${XML}<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/">`
+    + '<dc:title>CORE_TITLE</dc:title><dc:creator>CORE_AUTHOR</dc:creator></cp:coreProperties>';
+  const bound = '<w:p><w:sdt><w:sdtPr><w:dataBinding w:prefixMappings="xmlns:ns0=\'http://purl.org/dc/elements/1.1/\' xmlns:ns1=\'http://schemas.openxmlformats.org/package/2006/metadata/core-properties\'"'
+    + ' w:xpath="/ns1:coreProperties[1]/ns0:title[1]" w:storeItemID="{6C3C8BC8-F283-45AE-878A-BAB7291924A1}"/><w:text/></w:sdtPr>'
+    + `<w:sdtContent>${partRun('TITLE_SURFACE')}</w:sdtContent></w:sdt></w:p>`;
+  const make = (body, xml) => miniDocx(body).packagePart('docProps/core.xml', 'application/vnd.openxmlformats-package.core-properties+xml',
+    'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties', 'rIdCore', xml).load();
+  const plain = '<w:p><w:r><w:t>plain</w:t></w:r></w:p>';
+  const broken = core.slice(0, Math.floor(core.length * 2 / 3));
+  const intact = await Texts.of(await make(plain, core), { metadata: true });
+  assert.equal(intact.metadata.core.title, 'CORE_TITLE');
+  assert.deepEqual(intact.warnings, []);
+  const pkg = await make(plain, broken);
+  assert.deepEqual((await Texts.of(pkg)).warnings, []);                // the metadata not written: not needed
+  const r = await Texts.of(pkg, { metadata: true });
+  assert.equal(r.metadata.core, undefined);
+  assert.deepEqual(r.warnings.map(String), ['part.not_read (/docProps/core.xml)']);
+  // a control bound to the core title needs it too, with or without the metadata, and keeps its surface; one warning a part
+  const withBinding = await make(bound, broken);
+  for (const metadata of [false, true]) {
+    const b = await Texts.of(withBinding, { metadata });
+    assert.ok(PlainText.of(b).includes('TITLE_SURFACE'));
+    assert.deepEqual(b.warnings.map(String), ['part.not_read (/docProps/core.xml)']);
+  }
+  const ok = await Texts.of(await make(bound, core));
+  assert.ok(PlainText.of(ok).includes('CORE_TITLE'));
+  assert.ok(!ok.warnings.some((w) => w.kind === 'part.not_read'));
+});
+
+test('CR-012 section 28, D3: a custom XML store that cannot be read is read as absent, REQ-509\'s repair resolving a binding naming it (WD 0.69)', async () => {
+  const source = unzipSync(readFileSync(join(here, 'store-items', 'bind-plain-two-parts.docx')));
+  const variant = async (edits) => {
+    const files = { ...source };
+    for (const [k, v] of Object.entries(edits)) files[k] = strToU8(v);
+    return Texts.of(await WordprocessingMLPackage.load(zipSync(files)));
+  };
+  const broken = '<root xmlns="urn:probe:bind"><b1>B1_XML_VALUE</b1><b7>B7_XML_VALUE_PART1</b7>';
+  const notRead = (r) => r.warnings.filter((w) => w.kind === 'part.not_read').map((w) => w.selector);
+  const differs = (r) => r.warnings.filter((w) => w.kind === 'sdt.binding_differs').map((w) => w.address);
+  const intact = await variant({});
+  assert.deepEqual(notRead(intact), []);
+  assert.deepEqual(differs(intact), ['body/2', 'body/3', 'body/4']);
+  // B1 names part 1 by its own ID: no other store fits it, so its surface; B7 names no part, and only part 2 is left to fit
+  const r = await variant({ 'customXml/item1.xml': broken });
+  const text = PlainText.of(r);
+  assert.ok(text.includes('real ID: B1_STALE_SURFACE (end)'), text);
+  assert.ok(text.includes('): B7_XML_VALUE_PART2 (end)'), text);
+  assert.deepEqual(notRead(r), ['/customXml/item1.xml']);
+  assert.deepEqual(differs(r), ['body/3', 'body/4']);
+  // part 2 holding a b1 of its own: B1 is bound to it by the repair, and its surface differs
+  const repaired = await variant({ 'customXml/item1.xml': broken,
+    'customXml/item2.xml': '<root xmlns="urn:probe:bind"><b1>B1_PART2</b1><b7>B7_XML_VALUE_PART2</b7><b11>B11_XML_VALUE_PART2</b11></root>' });
+  assert.ok(PlainText.of(repaired).includes('real ID: B1_PART2 (end)'));
+  assert.deepEqual(notRead(repaired), ['/customXml/item1.xml']);
+  assert.deepEqual(differs(repaired), ['body/2', 'body/3', 'body/4']);
+});

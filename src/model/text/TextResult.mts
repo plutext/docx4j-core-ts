@@ -568,6 +568,19 @@ export class TextWarning {
   static readonly ALTCHUNK_NOT_EXPANDED = 'altchunk.not_expanded';
   /** A chart, a SmartArt data part, or an embedded package or a part inside it, that can't be read. */
   static readonly CONTENT_NOT_READ = 'content.not_read';
+  /**
+   * A part the reading consulted and needed for this document, but does not emit, that cannot be read (REQ-801, WD 0.66):
+   * a styles, numbering or settings part, a document-properties part where the metadata is written, or a custom XML store
+   * a binding names. The reading proceeds as for a package that lacks it; once per part, no address, the part's name the
+   * selector (CR-012 section 28).
+   */
+  static readonly PART_NOT_READ = 'part.not_read';
+  /**
+   * A part the reading needed that the package does not hold, where the reading supplies what it would have: the numbering
+   * part, for a numbered paragraph, counted as Word's default definition (REQ-510, WD 0.76). Once, no address, the name the
+   * package would have held the part under (`/word/numbering.xml`) the selector.
+   */
+  static readonly PART_ABSENT = 'part.absent';
   /** An image the `ImageDescriber` failed to describe (REQ-514). */
   static readonly IMAGE_NOT_DESCRIBED = 'image.not_described';
   /**
@@ -585,7 +598,7 @@ export class TextWarning {
     /** For `altchunk.not_expanded`, the chunk's content type as the package declares it. */
     readonly contentType?: string,
     /**
-     * For `content.not_read`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
+     * For `content.not_read`, `part.not_read` and `part.absent`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
      * the chunk's (`/word/afchunk.rtf`), so that a host can read it itself; for `paragraph.drop_cap_joined`, the part the
      * paragraphs are in (`/word/document.xml`).
      */

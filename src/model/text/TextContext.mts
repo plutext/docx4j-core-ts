@@ -8,9 +8,10 @@ import type * as extended from '@docx4j/generated-objects-ts/modules/org_docx4j_
 import type * as custom from '@docx4j/generated-objects-ts/modules/org_docx4j_docProps_custom';
 import type { Part } from '../../parts/Part.mjs';
 import type { XmlPart } from '../../parts/XmlPart.mjs';
-import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
-import type { NumberingDefinitions } from '../listnumbering/definitions.mjs';
-import type { NumberingPartLike } from '../listnumbering/Emulator.mjs';
+import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
+import { PropertyResolver } from '../properties/PropertyResolver.mjs';
+import { NumberingDefinitions } from '../listnumbering/definitions.mjs';
+import { Emulator, type NumberingPartLike } from '../listnumbering/Emulator.mjs';
 import { NumberingStates } from '../listnumbering/state.mjs';
 import { Body } from '../content/Body.mjs';
 import { ResolvedView } from '../content/ResolvedView.mjs';
@@ -48,6 +49,15 @@ export interface MainLike extends XmlPart<wml.Document> {
   readonly footerParts: XmlPart<wml.Ftr>[];
 }
 
+/**
+ * A part a reading may need that it could not read (CR-012 section 28, WD REQ-801): its role, by what it supplies. Each is
+ * raised as `part.not_read`, naming the part, where the reading needs it.
+ */
+export type UnreadPart = 'styles' | 'numbering' | 'settings' | 'core' | 'app' | 'custom';
+
+/** Where a package keeps its numbering part: what `part.absent` names where it has none (WD 0.76). */
+const NUMBERING_PART_NAME = '/word/numbering.xml';
+
 /** `readContents()`, undefined for a part that cannot be read. */
 async function readQuietly<T>(part: XmlPart<T> | undefined): Promise<T | undefined> {
   if (!part) return undefined;
@@ -78,10 +88,26 @@ export class PackageTrees {
   settings: wml.CTSettings | undefined;
   /** The document properties under `core`, `app` and `custom` (REQ-515). */
   properties: Record<string, unknown> | undefined;
-  /** The resolver, where the package has a styles part (docx4j makes none without one). */
+  /** The resolver, where the package has a styles part that can be read (docx4j makes none without one). */
   resolver: PropertyResolver | undefined;
-  numberingPart: NumberingPartLike | undefined;
+  /**
+   * What the numbering resolves a style's `w:numPr` through: the package's resolver, else, where a styles or numbering part
+   * cannot be read, the reading's own without it (CR-012 section 28); undefined where the package has neither part.
+   */
+  private numberingResolver: PropertyResolver | undefined;
   numbering: NumberingDefinitions | undefined;
+  /**
+   * The numbering this reading counts by: the numbering part's emulator, one of the reading's own where the styles cannot
+   * be read, or, where the numbering part is absent or cannot be read, one over Word's default definition, made at the
+   * first numbered paragraph (`numberingFor`).
+   */
+  emulator: Emulator | undefined;
+  /** Where the numbering part is absent or cannot be read: the warning the first numbered paragraph raises, and the part named. */
+  numberingMissing: { kind: 'part.absent' | 'part.not_read'; partName: string } | undefined;
+  /** The parts this reading could not read that it may need, by role, each with its part's name (CR-012 section 28). */
+  readonly notRead = new Map<UnreadPart, string>();
+  /** The custom XML stores and properties parts a binding could not be read against, by normalised store item id: their part names. */
+  private readonly unreadStores = new Map<string, string>();
   /** The core and application properties' DOMs, by their normalised store item ids. */
   private readonly stores = new Map<string, Document | undefined>();
   /** The custom XML parts' DOMs, in the package's order: what a binding resolves to (CR-020). */
@@ -103,39 +129,137 @@ export class PackageTrees {
     }
     if (main) {
       trees.main = { part: main, document: await main.readContents() };
-      if (main.styleDefinitionsPart) {
-        try {
-          trees.resolver = await pkg.getPropertyResolver();
-        } catch {
-          trees.resolver = undefined;                                  // hidden text and indents not resolved through styles
-        }
-      }
-      const numbering = main.numberingDefinitionsPart;
-      if (numbering) {
-        try {
-          await pkg.getNumberingEmulator();
-          trees.numbering = await numbering.getDefinitions();
-          trees.numberingPart = numbering;
-        } catch {
-          trees.numberingPart = undefined;
-        }
-      }
-      trees.settings = await readQuietly(main.documentSettingsPart);
+      await trees.readStylesAndNumbering(pkg, main);
+      trees.settings = await trees.readOrNote(main.documentSettingsPart, 'settings');
       const footnotes = await trees.readStory(main.footnotesPart);
       if (footnotes && main.footnotesPart) trees.footnotes = { part: main.footnotesPart, tree: footnotes };
       const endnotes = await trees.readStory(main.endnotesPart);
       if (endnotes && main.endnotesPart) trees.endnotes = { part: main.endnotesPart, tree: endnotes };
       const comments = await trees.readStory(main.commentsPart);
       if (comments && main.commentsPart) trees.comments = { part: main.commentsPart, tree: comments };
-      trees.commentsExtended = await readQuietly(main.commentsExtendedPart);
+      trees.commentsExtended = await readQuietly(main.commentsExtendedPart);   // passed over silently: CR-012 section 28's D3 (a), not ruled
       for (const part of [...main.headerParts, ...main.footerParts] as XmlPart<wml.Hdr | wml.Ftr>[]) {
         const content = await trees.readStory(part);
         if (content) trees.headersAndFooters.set(part, content);
       }
     }
-    trees.properties = await properties(pkg);
+    trees.properties = await properties(pkg, (part, role) => trees.readOrNote(part, role));
     await trees.readStores(pkg);
     return trees;
+  }
+
+  /**
+   * The resolver and the numbering (CR-012 section 28, WD REQ-801). The package's own where they can be built; where a
+   * styles or numbering part cannot be read, a resolver of the reading's own without it, as for a package that lacks the
+   * part, the part kept in `notRead`. The package's resolver is never set from it, so the content API still refuses the
+   * part (CR-001 section 26), and a part put right is read again by the next reading. Where the styles cannot be read the
+   * numbering's definitions are read directly and counted by an emulator of the reading's own, so that nothing is kept on
+   * the numbering part. A numbering part absent or unread is Word's default definition (`numberingFor`, WD 0.76).
+   */
+  private async readStylesAndNumbering(pkg: TextPackage, main: MainLike): Promise<void> {
+    const stylesPart = main.styleDefinitionsPart;
+    const numberingPart = main.numberingDefinitionsPart;
+    if (stylesPart || numberingPart) {
+      let packages = true;
+      try {
+        this.numberingResolver = await pkg.getPropertyResolver();
+      } catch {
+        packages = false;
+        try {
+          this.numberingResolver = await PropertyResolver.create(pkg as unknown as Parameters<typeof PropertyResolver.create>[0], {
+            onUnreadable: (role) => {
+              const part = role === 'styles' ? stylesPart : numberingPart;
+              if (part) this.notRead.set(role, part.partName.name);
+            },
+          });
+        } catch {
+          this.numberingResolver = undefined;                          // hidden text and indents not resolved through styles
+        }
+      }
+      if (stylesPart && !this.notRead.has('styles')) this.resolver = this.numberingResolver;
+      if (numberingPart && !this.notRead.has('numbering')) {
+        try {
+          if (packages) {
+            await pkg.getNumberingEmulator();
+            this.numbering = await numberingPart.getDefinitions();
+            this.emulator = numberingPart.getEmulator();
+          } else {
+            const resolver = this.numberingResolver;
+            this.numbering = new NumberingDefinitions(await numberingPart.readContents(), (id) => resolver?.getStyle(id));
+            this.emulator = new Emulator(this.numbering, resolver);
+          }
+        } catch {
+          this.numbering = undefined;
+          this.emulator = undefined;
+          this.notRead.set('numbering', numberingPart.partName.name);
+        }
+      }
+    }
+    if (this.emulator === undefined) {
+      this.numberingMissing = numberingPart
+        ? { kind: 'part.not_read', partName: numberingPart.partName.name }
+        : { kind: 'part.absent', partName: NUMBERING_PART_NAME };
+    }
+  }
+
+  /** `readContents()`, undefined for a part that cannot be read, which is then kept in `notRead` under its role. */
+  private async readOrNote<T>(part: XmlPart<T> | undefined, role: UnreadPart): Promise<T | undefined> {
+    if (!part) return undefined;
+    try {
+      return await part.readContents();
+    } catch {
+      this.notRead.set(role, part.partName.name);
+      return undefined;
+    }
+  }
+
+  /**
+   * The numbering a numbered paragraph is counted by. Where the numbering part is absent or cannot be read, Word's default
+   * definition (WD 0.76, REQ-510), made here once, at the first numbered paragraph, and never written to the package: one
+   * abstract definition of nine decimal levels, each `w:start` 1 and `w:lvlText` `%{level+1}.`, and one instance per
+   * `w:numId` other than 0 the document names, plain where a paragraph style's `w:numPr` names it, else with a
+   * `w:startOverride` of 1 at every level, so that the direct paragraphs restart at their first and then share the style's
+   * count.
+   */
+  numberingFor(): Emulator | undefined {
+    if (this.emulator !== undefined || this.numberingMissing === undefined) return this.emulator;
+    const resolver = this.numberingResolver;
+    const plain = new Set<number>();
+    for (const style of resolver?.getStylesInOrder() ?? []) {
+      const numId = Number(style.type === 'paragraph' ? style.pPr?.numPr?.numId?.val : undefined);
+      if (Number.isInteger(numId) && numId !== 0) plain.add(numId);
+    }
+    const direct = new Set<number>();
+    const roots: unknown[] = [this.main?.document, ...this.headersAndFooters.values(), this.footnotes?.tree, this.endnotes?.tree,
+      this.comments?.tree, this.glossary?.tree];
+    for (const root of roots) {
+      if (root === undefined) continue;
+      walk(root, (v) => {
+        if ((v as { TYPE_NAME?: string }).TYPE_NAME !== 'org_docx4j_wml.PPrBase.NumPr') return;
+        const numId = Number((v as wml.PPrBase.NumPr).numId?.val);
+        if (Number.isInteger(numId) && numId !== 0 && !plain.has(numId)) direct.add(numId);
+      });
+    }
+    const levels = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const num = (numId: number, restart: boolean): wml.Numbering.Num => f.createNumberingNum({
+      numId,
+      abstractNumId: f.createNumberingNumAbstractNumId({ val: 0 }),
+      lvlOverride: restart
+        ? levels.map((ilvl) => f.createNumberingNumLvlOverride({ ilvl, startOverride: f.createNumberingNumLvlOverrideStartOverride({ val: 1 }) }))
+        : [],
+    });
+    const tree = f.createNumbering({
+      abstractNum: [f.createNumberingAbstractNum({
+        abstractNumId: 0,
+        lvl: levels.map((ilvl) => f.createLvl({
+          ilvl, start: f.createLvlStart({ val: 1 }), numFmt: f.createNumFmt({ val: 'decimal' }), lvlText: f.createLvlLvlText({ val: `%${ilvl + 1}.` }),
+        })),
+      })],
+      num: [...[...plain].map((n) => num(n, false)), ...[...direct].map((n) => num(n, true))],
+    });
+    this.numbering = new NumberingDefinitions(tree, (id) => resolver?.getStyle(id));
+    this.emulator = new Emulator(this.numbering, resolver);
+    return this.emulator;
   }
 
   /** Trees with no package: content read as it stands (docx4j's planless `Texts.of(content)`). */
@@ -167,14 +291,17 @@ export class PackageTrees {
   private async readStores(pkg: TextPackage): Promise<void> {
     let context: Node | undefined;
     for (const [id, part] of pkg.customXmlDataStorageParts) {
-      let doc: Document | undefined;
+      let doc: Document;
       try {
         doc = await part.parseDocument();
         context ??= doc;
       } catch {
-        doc = undefined;
+        // read as absent (CR-012 section 28, D3; WD 0.69): no candidate for a binding, which REQ-509's repair resolves to the
+        // store its XPath fits, else its surface; its id kept, for the part.not_read a binding naming it raises
+        this.unreadStores.set(normaliseStoreItemId(id), part.partName.name);
+        continue;
       }
-      this.customStores.push({ part: doc, id, partName: part.partName.name, root: doc?.documentElement, selects: (xpath, mappings) => this.selectIn(doc, xpath, mappings).length > 0 });
+      this.customStores.push({ part: doc, id, partName: part.partName.name, root: doc.documentElement, selects: (xpath, mappings) => this.selectIn(doc, xpath, mappings).length > 0 });
     }
     for (const [id, part] of [[CORE_PROPERTIES_STOREITEMID, pkg.docPropsCorePart], [EXTENDED_PROPERTIES_STOREITEMID, pkg.docPropsExtendedPart]] as const) {
       if (!part) continue;
@@ -185,6 +312,7 @@ export class PackageTrees {
         context ??= doc;
       } catch {
         this.stores.set(normaliseStoreItemId(id), undefined);
+        this.unreadStores.set(normaliseStoreItemId(id), part.partName.name);
       }
     }
     if (context === undefined) return;
@@ -214,6 +342,14 @@ export class PackageTrees {
     } catch {
       return undefined;
     }
+  }
+
+  /**
+   * The name of the part a binding names that could not be read: a custom XML store, or the core or application
+   * properties (CR-012 section 28, D3); undefined where it names a part that was read, or none.
+   */
+  unreadStoreOf(binding: wml.CTDataBinding): string | undefined {
+    return binding.storeItemID ? this.unreadStores.get(normaliseStoreItemId(binding.storeItemID)) : undefined;
   }
 
   /** The nodes an XPath selects in a store, with a binding's prefix mappings (the default namespace's left out). */
@@ -369,14 +505,17 @@ export class TextContext {
 
 // --- the document properties (REQ-515; docx4j `Metadata`) --------------------------------------------
 
-/** The properties under `core`, `app` and `custom`, each where the package has that part. */
-async function properties(pkg: TextPackage): Promise<Record<string, unknown>> {
+/** How `properties` reads a part: undefined where it cannot be, the part noted under its role (CR-012 section 28.5). */
+type PartReader = <T>(part: XmlPart<T> | undefined, role: UnreadPart) => Promise<T | undefined>;
+
+/** The properties under `core`, `app` and `custom`, each where the package has that part and it can be read. */
+async function properties(pkg: TextPackage, read: PartReader): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = {};
-  const c = await readQuietly(pkg.docPropsCorePart);
+  const c = await read(pkg.docPropsCorePart, 'core');
   if (c) out.core = coreProperties(c);
-  const a = await readQuietly(pkg.docPropsExtendedPart);
+  const a = await read(pkg.docPropsExtendedPart, 'app');
   if (a) out.app = appProperties(a);
-  const x = await readQuietly(pkg.docPropsCustomPart);
+  const x = await read(pkg.docPropsCustomPart, 'custom');
   if (x) out.custom = customProperties(x);
   return out;
 }

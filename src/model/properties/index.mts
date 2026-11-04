@@ -12,7 +12,7 @@ export {
 } from './catalogue.mjs';
 export * from './styleUtil.mjs';
 export {
-  PropertyResolver, headingLevelByName, WORD_DEFAULT_CELL_MARGIN_TWIPS, type ResolverSource,
+  PropertyResolver, headingLevelByName, WORD_DEFAULT_CELL_MARGIN_TWIPS, type ResolverSource, type PropertyResolverCreateOptions,
 } from './PropertyResolver.mjs';
 export * as TableStyleConditions from './tableStyleConditions.mjs';
 export { type Condition, type Look } from './tableStyleConditions.mjs';

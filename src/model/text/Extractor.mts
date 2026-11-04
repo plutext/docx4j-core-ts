@@ -14,7 +14,7 @@ import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Part } from '../../parts/Part.mjs';
 import { AlternativeFormatInputPart } from '../../parts/BinaryPart.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
-import { Emulator, type NumberingResult, type NumberedPackageLike, type NumberingPartLike } from '../listnumbering/Emulator.mjs';
+import type { Emulator, NumberingResult } from '../listnumbering/Emulator.mjs';
 import type { NumberingState } from '../listnumbering/state.mjs';
 import { type Element, runItemsOf, selectedBranchOf, segmentsOf, hiddenRunsOf, SDT_TYPES } from '../content/tree.mjs';
 import type { ResolvedView } from '../content/ResolvedView.mjs';
@@ -23,7 +23,7 @@ import {
   TextBlock, TextRun, TextRow, TextCell, TextField, TextNumbering, TextRevision, TextWarning, TextComment, TextImage,
   TextResult, type TextStory, type TextRunKind, type NoteType,
 } from './TextResult.mjs';
-import { type TextContext, type PackageTrees, calendarText } from './TextContext.mjs';
+import { type TextContext, type PackageTrees, type UnreadPart, calendarText } from './TextContext.mjs';
 import { normalize } from './normalize.mjs';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -415,11 +415,21 @@ export class Extractor {
   private metadata(): Record<string, unknown> {
     const metadata: Record<string, unknown> = { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() };
     Object.assign(metadata, this.trees.properties ?? {});
+    // a properties part read for the metadata written (REQ-515), where it could not be read (WD 0.76)
+    if (this.options.metadata) for (const role of ['core', 'app', 'custom'] as const) this.consult(role);
     return metadata;
   }
 
+  /** `w:updateFields`, which every result's metadata carries: so a settings part that cannot be read is needed by every reading. */
   private fieldsUpdateOnOpen(): boolean {
+    this.consult('settings');
     return on(this.trees.settings?.updateFields);
+  }
+
+  /** A part the reading needs here: `part.not_read`, once, where it could not be read (REQ-801; CR-012 section 28). */
+  private consult(role: UnreadPart): void {
+    const partName = this.trees.notRead.get(role);
+    if (partName !== undefined) this.warn(new TextWarning(TextWarning.PART_NOT_READ, undefined, undefined, undefined, partName));
   }
 
   commentsIncluded(): boolean {
@@ -634,6 +644,7 @@ export class Extractor {
     const first = chain[0]!;
     const last = chain[chain.length - 1]!;
     const block = new TextBlock('PARAGRAPH', story.kind, addresses[0]!);
+    this.consult('styles');                                           // every block is resolved through the part's defaults
     if (this.fieldsOnly) {
       for (let c = 0; c < chain.length; c++) this.runs(chain[c]!.content as Element[] | undefined, new ParagraphState(block, chain[c]!, addresses[c]!, story), state);
       return undefined;
@@ -798,6 +809,9 @@ export class Extractor {
     if (this.trees.pkg === undefined || !pr || sdtPrChild(pr, 'text') === undefined) return undefined;
     const binding = sdtPrChild(pr, 'dataBinding')?.value as wml.CTDataBinding | undefined;
     if (!binding) return undefined;
+    // a store it names that could not be read: read as absent, the binding resolved by REQ-509's repair (CR-012 section 28, D3)
+    const unread = this.trees.unreadStoreOf(binding);
+    if (unread !== undefined) this.warn(new TextWarning(TextWarning.PART_NOT_READ, undefined, undefined, undefined, unread));
     const value = this.trees.boundValue(binding);
     if (value === undefined) return undefined;
     const placeholder = showingPlaceholder(pr);
@@ -888,16 +902,16 @@ export class Extractor {
     if (numIdValue === undefined || numIdValue === null) return undefined;
     const numId = String(numIdValue);
     if (Number(numIdValue) === 0) return undefined;
+    const emulator = this.numberingEmulator();
     const ilvlValue = numPr?.ilvl?.val;
     const ilvl = ilvlValue === undefined || ilvlValue === null ? 0 : Number(ilvlValue);
     let format: string | undefined;
     let text: string | undefined;
     let abstractNumId: string | undefined;
     let start = 1;
-    const part = this.trees.numberingPart;
     const definitions = this.trees.numbering;
     try {
-      if (part && !directNumId && this.linkedElsewhere(part, numId, String(ilvl), pStyle)) return undefined;
+      if (emulator && !directNumId && this.linkedElsewhere(emulator, numId, String(ilvl), pStyle)) return undefined;
       const list = definitions?.list(numId);
       abstractNumId = list?.abstractDefinition?.id;
       // the instance's level, its w:lvlOverride applied
@@ -915,9 +929,22 @@ export class Extractor {
     return numbering;
   }
 
+  /**
+   * The numbering a numbered paragraph is counted by (`PackageTrees.numberingFor`): where the numbering part is absent or
+   * cannot be read, Word's default definition, and `part.absent` or `part.not_read` naming the part, once (WD 0.76).
+   */
+  private numberingEmulator(): Emulator | undefined {
+    const missing = this.trees.numberingMissing;
+    if (missing !== undefined && this.trees.pkg !== undefined) {
+      this.warn(new TextWarning(missing.kind === 'part.absent' ? TextWarning.PART_ABSENT : TextWarning.PART_NOT_READ,
+        undefined, undefined, undefined, missing.partName));
+    }
+    return this.trees.numberingFor();
+  }
+
   /** Whether the level belongs to a paragraph style that is neither the paragraph's nor one its style is based on. */
-  private linkedElsewhere(part: NumberingPartLike, numId: string, ilvl: string, pStyle: string | undefined): boolean {
-    const linked = Emulator.levelStyleId(part, numId, ilvl);
+  private linkedElsewhere(emulator: Emulator, numId: string, ilvl: string, pStyle: string | undefined): boolean {
+    const linked = emulator.levelStyleId(numId, ilvl);
     if (linked === undefined || linked === '') return false;
     // a paragraph naming no style is in the default paragraph style, which can own a level
     let id = pStyle ?? this.resolver?.getDefaultParagraphStyleId();
@@ -932,10 +959,10 @@ export class Extractor {
 
   /** The paragraph counted in its story's numbering state; undefined where it is not numbered. */
   private count(p: wml.P, story: Story): NumberingResult | undefined {
-    const pkg = this.trees.pkg as NumberedPackageLike | undefined;
-    if (!pkg || !this.trees.numberingPart) return undefined;
+    const emulator = this.trees.emulator;
+    if (this.trees.pkg === undefined || !emulator) return undefined;
     try {
-      return Emulator.getNumber(pkg, p.pPr, story.numbering());
+      return emulator.getNumber(p.pPr, story.numbering());
     } catch {
       return undefined;
     }
@@ -945,6 +972,7 @@ export class Extractor {
 
   private table(tbl: wml.Tbl, address: string, story: Story, sink: TextBlock[], state: RunState): void {
     const block = new TextBlock('TABLE', story.kind, address);
+    this.consult('styles');
     block.section = story.sections?.length ?? 0;
     block.source = tbl;
     story.tableDepth++;
@@ -1604,6 +1632,7 @@ export class Extractor {
   // --- headers and footers by section (REQ-502) ---------------------------------------------------
 
   private sectionsWithHeaders(sections: (wml.SectPr | undefined)[], mainBlocks: TextBlock[], headers: boolean, footers: boolean, out: TextBlock[]): void {
+    this.consult('settings');
     const evenAndOdd = on(this.trees.settings?.evenAndOddHeaders);
     const emitted = new Set<string>();
     const lastHeader = new Map<string, string>();

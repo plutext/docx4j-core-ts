@@ -71,7 +71,7 @@ date's `am/pm` and the document's default language; held to Word 365's saves and
 to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-012
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
-`<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them),
+`<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept),
 with the suite copied at the 17.3.5 release (its `dpp/` rows, Word's 22 text saves among them) and the text goldens recut from it. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
@@ -361,7 +361,7 @@ or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, who
 generated table's version and source, `w:dstrike`, and a Word save under `profile: word-text`,
 `text-model.test.mjs` the text model itself (docx4j's `TextsTest`, `TextsTocTest` and `TextsPhase2Test` where phase 2 reaches, and
 this package's own: a byte-for-byte save after a reading, `officeOffset`, the part overloads under one `TextContext`;
-a `SET`'s result never shown, on docx4j's field probe and Word's save of it in `test/fixtures/fields/`, CR-012 section 26),
+a `SET`'s result never shown, on docx4j's field probe and Word's save of it in `test/fixtures/fields/`, CR-012 section 26; a part that cannot be read, on section 28.1's probe built in memory and CR-020's store probe, CR-012 section 28),
 `markdown.test.mjs` the Markdown (docx4j-markdown's `MarkdownTextModelTest`, `MarkdownExportTest`, `MarkdownExportExtensionsTest`,
 `MarkdownAlternateContentTest`, `MarkdownHostileLinksTest`, `MarkdownHostileMarkupTest` and `MarkdownVerticalAlignTest`, with docx4j's
 strings, docx4j-core's `LinkTargetsTest`, and `blocks()`),

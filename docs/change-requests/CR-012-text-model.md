@@ -2872,6 +2872,11 @@ registered as a new entry, `core-ts/CR-012.24.8`, depending on `core-ts/CR-012.2
 npm run typecheck passes, and npm test passes 1,779 of 1,779. The text goldens and the suite's counts are unchanged, as
 measured.
 
+WD 0.83 (2026-11-04) writes D2 into REQ-607: a value not well formed under BCP 47 is refused as an invalid option value.
+It records that the check is for well-formedness, not validity, so `turkish` maps as `en-US`. The portfolio recommends
+leaving it there, since only `tr` and `az` change the mapping. Registered as `core-ts/CR-012.24.8`, done (portfolio
+`e266b2d`).
+
 | # | Decision | Recommendation | Decided (Jason, 2026-11-04) |
 |---|---|---|---|
 | D1 | When to build it | On its own, after section 24 is committed as it stands. Section 24 then matches the 17.3.5 release its goldens and suite are cut from, and this change matches docx4j's follow-on (CR-046 section 10). Nothing in this repository moves, so the order costs nothing. | "build it now", after section 24's commit (`46b2ce6`) |
@@ -3222,6 +3227,10 @@ included, in the three views (which differ only by the `w:ins` in every case).
 
 ### 28.3 Decisions for Jason
 
+Jason, 2026-11-04: "section 28: D1 and D2 as recommended; D3 Custom XML data stores yes, can comment extras affect text
+output? D4: as recommended". D3's (b) was ruled in WD 0.76 (section 28.5); (a) is still open (section 28.6 has the answer to
+the question).
+
 | # | Decision | Recommendation |
 |---|---|---|
 | D1 | When it lands | On its own, now that Jason has ruled. It touches `TextContext.mts`, the extractor's warnings and an option on `PropertyResolver.create`; no golden or suite row moves |
@@ -3339,6 +3348,10 @@ unreadable one. Nothing moves until he rules.
 |---|---|---|
 | D4 | The fixture | Copied with the build (D1) into `test/part-not-read/`, outside `fixtures/` and `text-extraction/` so that no text golden is wanted, unedited, with a SHA-1 manifest naming `3ad164bdf`. Each reading held to docx4j's expected text and `expected-warnings.tsv`, the caps lines pending section 24, each pending line required to still differ, so that section 24's landing announces itself |
 
+D4 as revised on 2026-11-04 and decided the same day: the build is tested on 28.1's probe, built in memory, and docx4j's
+fixture is copied once docx4j has recut it. Its expected texts were behind on two rulings. The caps lines moved in docx4j
+`7af22e9dd` (WD 0.80). The default list (WD 0.76) waits on docx4j's CR-046 section 11.
+
 ### 28.5 WD 0.76's rulings (2026-11-04)
 
 Jason ruled three of the WD's open items (docx4j-portfolio `7c5ee35`, relayed by docx4j-portfolio-10). Each changes
@@ -3373,3 +3386,84 @@ Still open in the WD: 0.72's (1), the caps chain's last link (Jason asks what th
 and the one rule for every part that is not a story part. WD 0.80 (2026-11-04) rules the first: the chain ends at a
 `default_language` option, `w:themeFontLang` struck (section 24.8). The settings part is then no longer consulted for the
 caps language.
+
+### 28.6 Implemented (2026-11-04)
+
+Built as 28.2 has it, with 28.5's items 1 and 2 and D3's (c).
+
+- **`PropertyResolver.create(pkg, { onUnreadable })`.** A styles or numbering part that cannot be read is left out, as for
+  a package that lacks it, and reported to the callback. Without the option the resolver refuses the whole, as before.
+- **`PackageTrees.readStylesAndNumbering`.** The package's own resolver where it can be built. Where it can't, the
+  reading's own, built with `onUnreadable`, the parts it left out kept in `notRead`. `trees.resolver` is set only where
+  the styles part was read, as for a package without one.
+  - The package's resolver is never set from the reading's own. The content API still refuses (CR-001 section 26), and a
+    part put right with `setXml` is read by the next reading.
+  - Where the styles part cannot be read, the numbering's definitions are read directly (`readContents`) and counted by
+    an `Emulator` of the reading's own (`trees.emulator`), which keeps nothing on the numbering part. An intact package
+    is counted by the part's own emulator, as before.
+- **Word's default list** (`PackageTrees.numberingFor`, 28.5 item 2). Where the numbering part is absent or cannot be
+  read, a numbered paragraph is counted over one abstract definition of nine decimal levels (`w:start` 1, `w:lvlText`
+  `%{level+1}.`). It has one instance per `w:numId` other than 0 that the document names: plain where a paragraph style's
+  `w:numPr` names it, else with a `w:startOverride` of 1 at every level. It is built once, at the first numbered paragraph,
+  from the factories, and is never written to the package. `part.absent` (`/word/numbering.xml`) or `part.not_read` is
+  raised there, once.
+- **The warnings.** `TextWarning.PART_NOT_READ` and `PART_ABSENT`: once a part, no address, the part's name the selector.
+  Each is raised where the reading needs the part (D2):
+  - **numbering:** at the first paragraph whose effective `w:numPr` names a `w:numId` other than 0, with labels on or
+    off;
+  - **styles:** at the first paragraph or table;
+  - **settings:** on every reading, since `fields_update_on_open` reads it, and again where the even headers are
+    decided;
+  - **core, app or custom properties:** where the result's metadata is written (`metadata: true`), and for a core or app
+    part wherever a binding names its store;
+  - **a custom XML store:** where a plain-text control's binding names it.
+- **D3 (c), the stores.** `readStores` leaves a store that cannot be read out of the resolver's candidates, keeping its
+  part name by its store item ID (`unreadStoreOf`).
+  - A binding naming such a store resolves by REQ-509's repair: to the store its XPath fits, else its surface.
+  - `sdt.binding_differs` is raised as usual.
+  - Measured on CR-020's `bind-plain-two-parts.docx` with `item1.xml` not well formed: B1 keeps `B1_STALE_SURFACE`, with
+    no `sdt.binding_differs`, and B7 moves to part 2. With part 2 holding a `b1` of its own, B1 reads `B1_PART2` with
+    `sdt.binding_differs`, as WD 0.69 has it.
+  - On docx4j's `store-not-read.docx` this reading gives `STORE2_VALUE` three times and `STORE1_VALUE` none, as Word 365
+    did (docx4j's `expected-tokens.tsv`, case 121). docx4j refuses that file at load.
+  - The content API's `customXmlParts.load()` still throws for the whole collection: Jason's separate question, untouched.
+
+**Held to Word.** docx4j's broken-part family (`e2af12b74`) was read under `profile: word-text`, and the plain text compared
+line by line with Word 365's UTF-8 save of each file, once, not committed.
+- **The lists:** `numbering`, `numbering-absent`, `numbering-order` and `numbering-order-absent` give Word's labels line
+  for line, under the default list where the part is cut or absent.
+- **The capitals:** the theme-language caps line is Word's `ISTANBUL_THEME` (section 24.8).
+- **What differs, in every file, intact included:**
+  - three property fields (TITLE, Company, Custom1), which Word updated on opening and which `fields: update` (phase 5a)
+    would read;
+  - the comments' form: Word's `[AA1]` markers and a comments section, against this package's CriticMarkup.
+
+  Neither is this section's.
+
+**D3 (a), Jason's question: can the comment extras change the text?** Measured on the 108 documents here that hold a
+comments' extended part (76 with a reply, 22 with a resolved comment). Each was read in the accepted and markup views with
+comments on, once with the part and once with its tree emptied:
+- **plain text and Markdown:** 0 of 216 readings move. A reply is written after its parent at the parent's reference; with
+  no parent it is written at its own reference, which Word puts next to its parent's, so the text comes out the same;
+- **the block model:** 146 of 216 readings move (`TextComment.resolved`, `parentId`, `replies`).
+
+The text model reads neither `commentsIds` nor `commentsExtensible` today. `dateUtc` would matter only under section 23.5's
+date form, which is not built. The part stays passed over silently until (a) is ruled. The portfolio's recommendation
+(WD 0.85) stands: `part.not_read` where comments are in scope, since the warning belongs to the reading, not the
+serialization.
+
+**Tests** (`text-model.test.mjs`, six, on 28.1's probe built in memory by `partProbe`):
+- each of the three parts not well formed reads as that part absent, in the three views, with labels on and off, plus
+  exactly one `part.not_read`; the absent numbering raises `part.absent`; the intact probe raises nothing; 28.1's two
+  defects are gone;
+- Word's default list on the interleaved paragraphs, the part absent or not well formed, with labels on and off; with the
+  styles absent too, each direct `w:numId` restarts at its first paragraph;
+- D2: no warning for a numbering part a document does not need; the settings on every reading; the styles at the first
+  block only;
+- the content API's refusal, the package's resolver unbuilt, a part put right read again, and a save after the readings
+  copying every untouched part byte for byte, the unreadable one too;
+- a core properties part not well formed, under `metadata` and behind a binding to the core title, one warning;
+- D3 (c) on `bind-plain-two-parts.docx`, as measured above.
+
+npm run typecheck passes, and npm test passes 1,785 of 1,785. No golden and no suite row moved: none holds an unreadable
+part or a numbered paragraph without a numbering part.

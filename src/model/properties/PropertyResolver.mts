@@ -188,6 +188,29 @@ async function readOrRefuse<T>(part: { readContents(): Promise<T> }, role: 'styl
   }
 }
 
+/** How `create` reads the parts it is given. */
+export interface PropertyResolverCreateOptions {
+  /**
+   * Called with a styles or numbering part that cannot be read, which the resolver then leaves out, as for a package that
+   * lacks it, where `create` would otherwise refuse the whole (`readOrRefuse`). The text model's reading takes this
+   * (CR-012 section 28, WD REQ-801's `part.not_read`); the package's own resolver never does, so the content API still
+   * refuses such a part (CR-001 section 26).
+   */
+  onUnreadable?: (role: 'styles' | 'numbering', error: unknown) => void;
+}
+
+/** `readOrRefuse`, or, given `onUnreadable`, undefined for a part that cannot be read, reported to it. */
+async function readOrOmit<T>(part: { readContents(): Promise<T> }, role: 'styles' | 'numbering',
+  onUnreadable: PropertyResolverCreateOptions['onUnreadable']): Promise<T | undefined> {
+  if (onUnreadable === undefined) return readOrRefuse(part, role);
+  try {
+    return await part.readContents();
+  } catch (e) {
+    onUnreadable(role, e);
+    return undefined;
+  }
+}
+
 export class PropertyResolver {
 
   private documentDefaultPPr: wml.PPr = { TYPE_NAME: 'org_docx4j_wml.PPr' };
@@ -254,8 +277,11 @@ export class PropertyResolver {
    * document whose styles nobody has edited still saves byte for byte. Once something else
    * unmarshals the part - the comment styles, a caller's `getContents()` - `refresh()` picks
    * up that live tree instead of the private copy.
+   *
+   * A styles or numbering part that cannot be read refuses the whole, unless `options.onUnreadable` is given, when the part
+   * is left out and reported to it.
    */
-  static async create(pkg: PackageLike | ResolverSource): Promise<PropertyResolver> {
+  static async create(pkg: PackageLike | ResolverSource, options?: PropertyResolverCreateOptions): Promise<PropertyResolver> {
     if (typeof (pkg as PackageLike).getMainDocumentPart !== 'function') {
       const source = pkg as ResolverSource;
       return new PropertyResolver(() => source);
@@ -268,8 +294,8 @@ export class PropertyResolver {
     }
     const stylesPart = main.styleDefinitionsPart;
     const numberingPart = main.numberingDefinitionsPart;
-    const privateStyles = stylesPart === undefined ? undefined : await readOrRefuse(stylesPart, 'styles');
-    const privateNumbering = numberingPart === undefined ? undefined : await readOrRefuse(numberingPart, 'numbering');
+    const privateStyles = stylesPart === undefined ? undefined : await readOrOmit(stylesPart, 'styles', options?.onUnreadable);
+    const privateNumbering = numberingPart === undefined ? undefined : await readOrOmit(numberingPart, 'numbering', options?.onUnreadable);
     // the settings are read for two compatibility values (CR-007), privately, as the others are
     const settingsPart = main.documentSettingsPart;
     let privateSettings: wml.CTSettings | undefined;
