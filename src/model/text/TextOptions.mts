@@ -42,6 +42,12 @@ export type TextDropCaps = 'join' | 'asis';
  */
 export type TextSmallCaps = 'asis' | 'upper';
 /**
+ * `duplicate_entries` (REQ-206, WD 0.74): a package whose container holds two entries of one name refused (`refuse`), or
+ * read from the first of each (`first`). The load's option (`LoadOptions.duplicateEntries`, CR-024): a reading of a package
+ * already loaded doesn't decide again, and the load's setting holds.
+ */
+export type TextDuplicateEntries = 'refuse' | 'first';
+/**
  * `profile` (REQ-1002, WD 0.41): a preset of option values applied before the caller's own, so that an option the caller
  * sets by name, before or after the profile, overrides it. `word-text` is Word's Save As plain text as the options reach
  * it (`WORD_TEXT_PROFILE`). CR-012 section 23.1.
@@ -88,6 +94,7 @@ export interface TextOptionsInit {
   page_markers?: Bool;
   layout?: TextLayout;
   warnings?: Bool;
+  duplicate_entries?: TextDuplicateEntries;
   /** A preset applied before the other options, whichever came first (REQ-1002); `word-text` or `word_text`, in any case. */
   profile?: TextProfile | string | null;
   /** The describer images take their text from (REQ-514); `AltTextDescriber` by default. */
@@ -111,7 +118,7 @@ export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
   'view', 'include', 'text_boxes', 'notes', 'note_references', 'comments', 'hidden', 'field_codes',
   'fields', 'toc', 'drop_caps', 'placeholders', 'bindings', 'list_labels', 'charts', 'smartart', 'embedded', 'altchunks',
   'alt_text', 'metadata', 'symbols', 'small_caps', 'default_language', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
-  'warnings', 'profile',
+  'warnings', 'duplicate_entries', 'profile',
 ]);
 
 /**
@@ -196,6 +203,11 @@ export class TextOptions {
   pageMarkers = false;
   layout: TextLayout = 'none';
   warnings = true;
+  /**
+   * `duplicate_entries` (REQ-206): the load's option, accepted here by the WD's name (REQ-1001) and passed by a caller that
+   * loads, as the suite's adapter does, to `LoadOptions.duplicateEntries`; a reading of a loaded package doesn't use it.
+   */
+  duplicateEntries: TextDuplicateEntries = 'refuse';
   /** The describer images take their text from (REQ-514). */
   imageDescriber: ImageDescriber = AltTextDescriber.INSTANCE;
   /** The profile applied (REQ-1002), or undefined. */
@@ -277,6 +289,7 @@ export class TextOptions {
       case 'page_markers': this.pageMarkers = bool(n, value, 'REQ-708'); break;
       case 'layout': this.layout = choice(n, value, ['none', 'indent'], 'REQ-709'); break;
       case 'warnings': this.warnings = bool(n, value, 'REQ-801'); break;
+      case 'duplicate_entries': this.duplicateEntries = choice(n, value, ['refuse', 'first'], 'REQ-206'); break;
       default:
         throw new TextOptionError(`Unknown text option '${String(name)}'; the options are ${TEXT_OPTION_NAMES.join(', ')} (WD REQ-1001)`,
           String(name), 'REQ-1001', 'unknown');
@@ -331,7 +344,8 @@ export class TextOptions {
       bindings: this.bindings, list_labels: this.listLabels, charts: this.charts, smartart: this.smartart,
       embedded: this.embedded, altchunks: this.altchunks, alt_text: this.altText, metadata: this.metadata,
       symbols: this.symbols, small_caps: this.smallCaps, default_language: this.defaultLanguage, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
-      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, profile: this.profileName ?? null,
+      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, duplicate_entries: this.duplicateEntries,
+      profile: this.profileName ?? null,
     };
   }
 

@@ -581,6 +581,11 @@ export class TextWarning {
    * package would have held the part under (`/word/numbering.xml`) the selector.
    */
   static readonly PART_ABSENT = 'part.absent';
+  /**
+   * A name the package's container holds more than one entry of, read from the first under `duplicateEntries: 'first'`
+   * (REQ-206, CR-024): no address, the entry as its first copy spells it the selector, the number of entries `detail`.
+   */
+  static readonly PACKAGE_DUPLICATE_ENTRY = 'package.duplicate_entry';
   /** An image the `ImageDescriber` failed to describe (REQ-514). */
   static readonly IMAGE_NOT_DESCRIBED = 'image.not_described';
   /**
@@ -603,6 +608,8 @@ export class TextWarning {
      * paragraphs are in (`/word/document.xml`).
      */
     readonly partName?: string,
+    /** A count the warning carries (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name. */
+    readonly detail?: number,
   ) {}
 
   /**
@@ -619,7 +626,7 @@ export class TextWarning {
   }
 
   toJSON(): Record<string, unknown> {
-    return { kind: this.kind, address: this.address, selector: this.selector };
+    return { kind: this.kind, address: this.address, selector: this.selector, ...(this.detail === undefined ? {} : { detail: this.detail }) };
   }
 
   toString(): string {

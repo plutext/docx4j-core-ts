@@ -3,9 +3,9 @@
 **Status:** Proposed 2026-11-04, at Jason's "Duplicate zip entries (REQ-206): go", on the WD's REQ-206 (0.74, Jason's
 ruling "refuse the package, with an optional config option to read the first copy and warn", made in this session; its five
 details ruled as recommended in 0.77, portfolio `b0d333d`, from this session's suggestions). Measured here the same day
-(section 1). Nothing implemented. D1 to D7 decided 2026-11-04, all as recommended, subject to Word check 75 on a non-ASCII
-case pair, which decides the key's fold (section 5). docx4j-python's sibling is its CR-032 (proposed,
-`778b3bf`), whose names this CR follows where the two packages' shapes allow; docx4j has not built it.
+(section 1). D1 to D7 decided 2026-11-04, all as recommended, subject to Word check 75 on a non-ASCII case pair, which left
+the key as proposed (section 5). Implemented 2026-11-04 (section 8), unreleased (D7: with 0.7.0). docx4j-python's sibling is its CR-032 (proposed at
+`778b3bf`, done at `3a884a5`), whose names this CR follows where the two packages' shapes allow; docx4j has not built it.
 
 ## 0. Summary
 
@@ -227,3 +227,50 @@ repaired.
 - The docx-tool-identifier's `extraction-probe-dupmain` (81 configurations) and `extraction-probe-dupcase`, through the
   portfolio.
 - Measured here: section 1's seven zips, built by a scratch writer, not committed.
+
+## 8. Implemented (2026-11-04)
+
+Jason, 2026-11-04: "commit then Build CR-024". Built as section 2 proposes, with D1 to D7 as decided and the key as check 75
+left it.
+
+- **The index** (`PartStore.mts`): `EntryIndex<T>` keys each entry by `entryKey` (the name without a leading `/`,
+  lower-cased, as `PartName`'s equality compares). It keeps the first entry of a key, with its spelling and value, and counts
+  the rest. `PartStore` gains the optional `duplicates()`.
+- **Every store** reads its container into one:
+  - `ZipPartStore`: the central directory's order, its inflate cache keyed by the key;
+  - `FlatOpcPartStore`: the `pkg:part` order;
+  - `DirectoryPartStore`: the walk's order;
+  - `MemoryPartStore`: the constructor's entries; `put` replaces, a sink's write.
+
+  `has`, `load` and `size` look up without case, and `partNames()` lists each key's first spelling once.
+- **The refusal** (`Load.mts`, `duplicateEntriesOf`): `loadPackage` asks the store before it reads `[Content_Types].xml`.
+  It throws `DuplicateEntryException` (`InvalidFormatException`'s subclass, `code` and `entries`) unless
+  `LoadOptions.duplicateEntries` is `'first'`, and refuses any other value of the option, naming REQ-206.
+- **The warning.** Under `'first'`, `pkg.duplicateEntries` holds one `DuplicateEntryWarning` (`code`, `entry`, `count`,
+  `message`) per name. `pkg.warnings` lists them first, its type widened to `PackageWarning`. `Texts.of(pkg)` carries each
+  into `TextResult.warnings` as `package.duplicate_entry`, the selector the entry, with the new `TextWarning.detail` holding
+  the count; `toJSON` writes `detail` only where set.
+- **`TextOptions`** accepts `duplicate_entries` (`refuse`, `first`) between `warnings` and `profile`, the WD's order. The
+  suite's adapter passes it to the load, a package per fixture and setting.
+- **The save** is unchanged. Under `'first'` an untouched part's bytes are the first copy's, and an orphan is not
+  carried. `insertOoxml`'s flat OPC route and an embedded package refuse through their own loads, with no code of their own.
+- **The behaviour change for every package:** a relationship whose target differs from its entry only in case now finds
+  its part, where the load refused "cannot find part". No committed document holds one; the full suite is unchanged.
+
+**Tests** (`test/duplicate-entries.test.mjs`, nine; `storedZip` moved to `test/helpers.mjs`, check 75's builder now importing
+it, its files unchanged):
+- the main part twice: refused with the message, the code and the entries, the store's `partNames()` and `duplicates()`;
+  under `'first'`, the first read, the warning, the save and its reload;
+- three copies;
+- the case variant in both orders, the decoy first read as Word reads it (check 75a);
+- `[Content_Types].xml`, `_rels/.rels` and `word/_rels/document.xml.rels` twice;
+- a media part and an orphan twice, refused together, the media's first copy saved and the orphan dropped;
+- a target in another case;
+- flat OPC, `insertOoxml`, memory and a directory (on a case-sensitive file system);
+- the text model's warning, its `detail` and the option by name; the load's option refusing another value;
+- check 75: Word 365's saves (`test/check75/`, eleven saves and Jason's `results.txt`, a SHA-1 manifest). `75a` is refused
+  here, and read under `'first'` gives Word's header. `75j` loads clean. The non-ASCII files hold a pair or not, as the key
+  says. Word's saves of the non-ASCII files hold no header.
+
+`misplaced-content.test.mjs`'s gate leaves out check 75's built files, as it leaves out check 72's. npm run typecheck passes,
+and npm test passes 1,795 of 1,795.

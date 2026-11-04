@@ -19,6 +19,39 @@ export class InvalidFormatException extends Docx4JException {
 }
 
 /**
+ * A package whose container holds two entries of one name, OPC part names compared without case (WD REQ-206; CR-024),
+ * refused when it is loaded, before anything is read. Word reads such a file only after a repair, and the readers that
+ * don't refuse read different copies. `entries` gives each duplicated name, as its first entry spells it, with the
+ * number of entries; `LoadOptions.duplicateEntries: 'first'` reads the first copy of each instead.
+ */
+export class DuplicateEntryException extends InvalidFormatException {
+  /** The finding's code, shared with docx4j-python (its CR-032). */
+  readonly code = 'package.duplicate_entry';
+
+  constructor(readonly entries: Readonly<Record<string, number>>) {
+    const list = Object.entries(entries);
+    super(list.length === 1
+      ? `Duplicate entry ${list[0]![0]} in this package: ${list[0]![1]} entries (REQ-206). Load with { duplicateEntries: 'first' } to read the first`
+      : `Duplicate entries in this package: ${list.map(([name, n]) => `${name}, ${n} entries`).join('; ')} (REQ-206). `
+        + "Load with { duplicateEntries: 'first' } to read the first of each");
+    this.name = 'DuplicateEntryException';
+  }
+}
+
+/**
+ * Under `LoadOptions.duplicateEntries: 'first'`, a name the container holds more than one entry of (WD REQ-206; CR-024):
+ * the first entry in the container's order is read, the rest ignored, and a save writes only the copy read, as Word's
+ * repaired save does. On `pkg.warnings`, ahead of the parts' warnings. The code and the fields are docx4j-python's (its
+ * CR-032): `entry`, the name as the first entry spells it (no leading '/'), and `count`, the entries of that name.
+ */
+export interface DuplicateEntryWarning {
+  code: 'package.duplicate_entry';
+  entry: string;
+  count: number;
+  message: string;
+}
+
+/**
  * docx4j CyclicStylesException: a style's `w:basedOn` chain comes back to a style it already
  * holds, or goes deeper than docx4j's limit of 32. Thrown only when
  * `throwOnCyclicStyles(true)` is set (docx4j's

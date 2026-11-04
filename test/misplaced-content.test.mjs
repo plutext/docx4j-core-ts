@@ -181,10 +181,11 @@ test("CR-016 D7: a target.misplaced warning per misplaced child read, docx4j-pyt
 
 test('CR-016 D6, the gate: every fixture loads, unmarshals every part and saves under the check unrefused, and none warns at the load (the kept-branch fixtures included)', async () => {
   const files = [];
+  // not the git-ignored files checks 72 and 75 build, which hold a misplaced child, or two entries of one name (CR-024), by design
   const walk = (dir) => {
     for (const name of readdirSync(dir)) {
       const path = join(dir, name);
-      if (statSync(path).isDirectory()) { if (name !== 'check72') walk(path); } else if (/\.(docx|pptx|xlsx)$/i.test(name)) files.push(path);
+      if (statSync(path).isDirectory()) { if (name !== 'check72' && name !== 'check75') walk(path); } else if (/\.(docx|pptx|xlsx)$/i.test(name)) files.push(path);
     }
   };
   walk(fixturesDir);

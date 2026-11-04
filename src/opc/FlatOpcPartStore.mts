@@ -1,5 +1,5 @@
 import { marshalNode, type PackageElement } from '@docx4j/generated-objects-ts';
-import type { PartStore, PartSink, PutOptions } from './PartStore.mjs';
+import { EntryIndex, entryKey, type PartStore, type PartSink, type PutOptions } from './PartStore.mjs';
 import { ContentTypeManager } from './ContentTypeManager.mjs';
 import { ContentTypes, isXmlContentType } from './ContentTypes.mjs';
 import { CONTENT_TYPES_NAME } from './PartName.mjs';
@@ -23,10 +23,11 @@ interface FlatPart {
  * same job is done by `FlatOpcXmlImporter`). The content types are carried per part, so
  * `[Content_Types].xml` is synthesised. XML parts are serialised back to bytes on `load`; the
  * document loaded from them is therefore not byte-identical to what Office would have zipped.
+ * Parts are looked up as OPC part names, without case, and of two `pkg:part`s of one name the first
+ * is the one read, the rest counted in `duplicates()` (CR-024).
  */
 export class FlatOpcPartStore implements PartStore {
-  private readonly parts = new Map<string, FlatPart>();
-  private readonly order: string[] = [];
+  private readonly parts = new EntryIndex<FlatPart>();
   private readonly cache = new Map<string, Uint8Array>();
   private contentTypesXml?: Uint8Array;
 
@@ -34,7 +35,6 @@ export class FlatOpcPartStore implements PartStore {
   constructor(source: string | PackageElement) {
     if (typeof source === 'string') this.readString(source);
     else this.readPackageElement(source);
-    this.order.unshift(CONTENT_TYPES_NAME);
   }
 
   private readString(text: string): void {
@@ -71,8 +71,7 @@ export class FlatOpcPartStore implements PartStore {
   }
 
   private add(entry: FlatPart): void {
-    this.parts.set(entry.name, entry);
-    this.order.push(entry.name);
+    this.parts.add(entry.name, entry);
   }
 
   /** The content type of a part as carried by the flat package. */
@@ -81,16 +80,20 @@ export class FlatOpcPartStore implements PartStore {
   }
 
   partNames(): Iterable<string> {
-    return this.order;
+    return [CONTENT_TYPES_NAME, ...this.parts.names()];
   }
 
   has(partName: string): boolean {
     return partName === CONTENT_TYPES_NAME || this.parts.has(partName);
   }
 
+  duplicates(): ReadonlyMap<string, number> {
+    return this.parts.duplicates();
+  }
+
   async load(partName: string): Promise<Uint8Array> {
     if (partName === CONTENT_TYPES_NAME) return (this.contentTypesXml ??= encodeText(this.buildContentTypes().toXml()));
-    const cached = this.cache.get(partName);
+    const cached = this.cache.get(entryKey(partName));
     if (cached) return cached;
     const part = this.parts.get(partName);
     if (!part) throw new Error(`No part ${partName} in flat OPC package`);
@@ -103,7 +106,7 @@ export class FlatOpcPartStore implements PartStore {
     } else {
       bytes = new Uint8Array(0);
     }
-    this.cache.set(partName, bytes);
+    this.cache.set(entryKey(partName), bytes);
     return bytes;
   }
 

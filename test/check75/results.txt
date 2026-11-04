@@ -1,0 +1,33 @@
+
+- 75a: an ASCII pair, word/headerA.xml then word/headera.xml.
+unreadable content; repaired; header begins HEADER 1
+
+- 75b: a control, one non-ASCII name, word/headeré.xml, alone.
+unreadable content; repaired; no header!
+
+- 75c: the pair word/headerÉ.xml then word/headeré.xml.
+unreadable content; repaired; no header!
+
+- 75d: the same pair the other way round.
+unreadable content; repaired; no header!
+
+- 75e: a second control, 75b with the relationship's target written raw instead of percent-encoded.
+unreadable content; repaired; no header!
+
+- 75f:
+unreadable content; repaired; no header!
+
+- 75g:
+unreadable content; repaired; no header!
+
+- 75h:
+unreadable content; repaired; no header!
+
+- 75i:
+unreadable content; repaired; page 1: none; page 2: HEADER A
+
+- 75j:
+opened cleanly; HEADER A
+
+- 75k:
+unreadable content; repaired; no header!

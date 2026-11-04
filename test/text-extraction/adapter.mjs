@@ -51,9 +51,12 @@ export function textsAdapter() {
     implementedStatements: () => [...IMPLEMENTED, HTML_READER_ABSENT],
     async extract(fixture, view, scenario, format) {
       if (format !== 'txt' && format !== 'md') throw new Error(`format ${format}`);
-      let pkg = packages.get(fixture);
-      if (!pkg) packages.set(fixture, (pkg = await WordprocessingMLPackage.load(readFileSync(fixture))));
-      const result = await Texts.of(pkg, optionsOf(view, scenario));
+      const options = optionsOf(view, scenario);
+      // duplicate_entries is the load's (REQ-206, CR-024): a package per fixture and setting
+      const key = `${fixture}\u0000${options.duplicateEntries}`;
+      let pkg = packages.get(key);
+      if (!pkg) packages.set(key, (pkg = await WordprocessingMLPackage.load(readFileSync(fixture), { duplicateEntries: options.duplicateEntries })));
+      const result = await Texts.of(pkg, options);
       const findings = {};
       for (const w of result.warnings) {
         const key = `warning\t${w.kind}\t${w.selector ?? ''}`;

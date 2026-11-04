@@ -5758,3 +5758,6 @@ async function check() {
      - **So Word 365 reads no part whose name holds a non-ASCII character, raw or percent-encoded, in either writer: it
        reports unreadable content and its repair drops the part.** Round 2's reading stands, no longer provisional, and
        CR-024's key stands as proposed.
+   - **In the repository:** Word's eleven saves and Jason's `results.txt` are in `test/check75/`, with a SHA-1 manifest.
+     `duplicate-entries.test.mjs` holds CR-024's reading of the files to them: `75a` refused, and read under `'first'` as Word
+     reads it; `75j` clean; the non-ASCII saves holding no header.

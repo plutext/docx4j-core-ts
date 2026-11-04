@@ -3,7 +3,7 @@
 // only, never from `.` or `./opc`, so a browser or add-in bundle never sees them.
 import { readFile, readdir, stat, mkdir, writeFile } from 'node:fs/promises';
 import { join, dirname, sep } from 'node:path';
-import type { PartStore, PartSink, PutOptions } from './PartStore.mjs';
+import { EntryIndex, type PartStore, type PartSink, type PutOptions } from './PartStore.mjs';
 import { CONTENT_TYPES_NAME } from './PartName.mjs';
 import { Docx4JException } from './exceptions.mjs';
 
@@ -21,8 +21,11 @@ import { Docx4JException } from './exceptions.mjs';
  * zip to directory to zip reproduces every part.
  */
 export class DirectoryPartStore implements PartStore {
-  /** Store name (no leading '/') to [absolute file path, size]. */
-  private readonly entries = new Map<string, [path: string, size: number]>();
+  /**
+   * Store name (no leading '/') to [absolute file path, size], looked up without case; of two files whose names differ only
+   * in case (a case-sensitive file system), the first in the walk is read and the rest counted (CR-024).
+   */
+  private readonly entries = new EntryIndex<[path: string, size: number]>();
 
   private constructor(readonly dir: string) {}
 
@@ -48,16 +51,20 @@ export class DirectoryPartStore implements PartStore {
       const childPath = join(this.dir, childRelative);
       const info = await stat(childPath);
       if (info.isDirectory()) await this.scan(childRelative);
-      else if (info.isFile()) this.entries.set(childRelative, [childPath, info.size]);
+      else if (info.isFile()) this.entries.add(childRelative, [childPath, info.size]);
     }
   }
 
   partNames(): Iterable<string> {
-    return this.entries.keys();
+    return this.entries.names();
   }
 
   has(partName: string): boolean {
     return this.entries.has(normalize(partName));
+  }
+
+  duplicates(): ReadonlyMap<string, number> {
+    return this.entries.duplicates();
   }
 
   async load(partName: string): Promise<Uint8Array> {

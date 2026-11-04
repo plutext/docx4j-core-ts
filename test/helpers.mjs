@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { parseXml } from '../dist/index.mjs';
+import { strToU8 } from 'fflate';
 
 export const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -87,5 +88,47 @@ export function breakTokens(xml) {
     }
   };
   walk(doc.documentElement);
+  return out;
+}
+
+/**
+ * A stored zip of `[name, bytes]` entries in order, repeated names and case variants kept as given, each name in UTF-8 with
+ * the language encoding flag set: what fflate's writers refuse to make (CR-024's duplicate entries, Word check 75).
+ */
+export function storedZip(entries) {
+  const table = new Uint32Array(256).map((_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc32 = (b) => {
+    let c = 0xffffffff;
+    for (const x of b) c = table[(c ^ x) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const u16 = (v) => [v & 0xff, (v >>> 8) & 0xff];
+  const u32 = (v) => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff];
+  const chunks = [];
+  const central = [];
+  let offset = 0;
+  for (const [name, data] of entries) {
+    const n = strToU8(name);
+    const crc = crc32(data);
+    // version 2.0, flag 0x0800 (UTF-8 names), stored, no time
+    const local = Uint8Array.from([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(n.length), ...u16(0)]);
+    chunks.push(local, n, data);
+    central.push(Uint8Array.from([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0),
+      ...u32(offset)]), n);
+    offset += local.length + n.length + data.length;
+  }
+  const size = central.reduce((s, c) => s + c.length, 0);
+  const end = Uint8Array.from([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(entries.length), ...u16(entries.length), ...u32(size),
+    ...u32(offset), ...u16(0)]);
+  const all = [...chunks, ...central, end];
+  const out = new Uint8Array(all.reduce((s, c) => s + c.length, 0));
+  let p = 0;
+  for (const c of all) { out.set(c, p); p += c.length; }
   return out;
 }

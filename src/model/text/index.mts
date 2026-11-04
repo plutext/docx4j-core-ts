@@ -4,7 +4,7 @@ export { TextContext, PackageTrees, type TextPackage } from './TextContext.mjs';
 export {
   TextOptions, TextOptionError, TEXT_OPTION_NAMES,
   type TextOptionsInit, type TextModelView, type TextInclude, type TextFields, type TextBindings, type TextSymbols,
-  type TextMath, type TextTables, type TextMarkupDetail, type TextLayout, type TextDropCaps, type TextSmallCaps, type TextProfile,
+  type TextMath, type TextTables, type TextMarkupDetail, type TextLayout, type TextDropCaps, type TextSmallCaps, type TextDuplicateEntries, type TextProfile,
 } from './TextOptions.mjs';
 export {
   TextResult, TextBlock, TextRun, TextRow, TextCell, TextField, TextNumbering, TextRevision, TextWarning, TextComment,

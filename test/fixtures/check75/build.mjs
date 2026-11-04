@@ -13,51 +13,15 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync, zipSync, strToU8, strFromU8 } from 'fflate';
 import { WordprocessingMLPackage } from '../../../dist/index.mjs';
+import { storedZip } from '../../helpers.mjs';
+
+export { storedZip };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 const HEADER_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml';
 const declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-
-/** A stored zip of `[name, bytes]` entries in order, repeated names and case variants kept as given. */
-export function storedZip(entries) {
-  const table = new Uint32Array(256).map((_, n) => {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    return c >>> 0;
-  });
-  const crc32 = (b) => {
-    let c = 0xffffffff;
-    for (const x of b) c = table[(c ^ x) & 0xff] ^ (c >>> 8);
-    return (c ^ 0xffffffff) >>> 0;
-  };
-  const u16 = (v) => [v & 0xff, (v >>> 8) & 0xff];
-  const u32 = (v) => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff];
-  const chunks = [];
-  const central = [];
-  let offset = 0;
-  for (const [name, data] of entries) {
-    const n = strToU8(name);
-    const crc = crc32(data);
-    // version 2.0, flag 0x0800 (UTF-8 names), stored, no time
-    const local = Uint8Array.from([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
-      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(n.length), ...u16(0)]);
-    chunks.push(local, n, data);
-    central.push(Uint8Array.from([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
-      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0),
-      ...u32(offset)]), n);
-    offset += local.length + n.length + data.length;
-  }
-  const size = central.reduce((s, c) => s + c.length, 0);
-  const end = Uint8Array.from([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(entries.length), ...u16(entries.length), ...u32(size),
-    ...u32(offset), ...u16(0)]);
-  const all = [...chunks, ...central, end];
-  const out = new Uint8Array(all.reduce((s, c) => s + c.length, 0));
-  let p = 0;
-  for (const c of all) { out.set(c, p); p += c.length; }
-  return out;
-}
 
 const A_UPPER = 'headerÉ.xml';   // É, U+00C9
 const A_LOWER = 'headeré.xml';   // é, U+00E9
@@ -141,7 +105,8 @@ export async function check75Files(round) {
       else entries.push([name, bytes]);
     }
     for (const [entry, text] of f.headers) entries.push([`word/${entry}`, strToU8(`${declaration}<w:hdr xmlns:w="${W}">${p(text)}</w:hdr>`)]);
-    const bytes = f.writer === 'fflate' ? zipSync(Object.fromEntries(entries)) : storedZip(entries);
+    // fflate stamps each entry with the time; a fixed one makes the file the same on every build
+    const bytes = f.writer === 'fflate' ? zipSync(Object.fromEntries(entries), { mtime: new Date(Date.UTC(2026, 10, 4)) }) : storedZip(entries);
     return { name: f.name, asks: f.asks, round: f.round ?? 1, bytes };
   });
 }

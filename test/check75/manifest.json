@@ -1,0 +1,56 @@
+{
+ "check": 75,
+ "word": "Word 365, PC (Jason, 2026-11-04; three rounds; each file opened in a fresh session, no Script Lab)",
+ "source": "test/fixtures/check75/build.mjs (11 files: round 1 75a-75e, round 2 75f-75h, round 3 75i-75k; copied to the share's __tmp/75/)",
+ "results": "results.txt is Jason's record, unedited. Every file but 75j reported unreadable content and was repaired; 75j opened cleanly. 75a: HEADER 1, the first entry of an ASCII case pair, though the relationship names the second. 75b-75h and 75k: no header (a part name holding a non-ASCII character, raw or percent-encoded, dropped). 75i: page 1 none (the percent-encoded name), page 2 HEADER A (the ASCII one). Each save is <name>-word365.docx.",
+ "files": [
+  {
+   "name": "75a-ascii-pair-word365.docx",
+   "sha1": "3fbc43b35966d39f7dd20fa45497ecbae6d591b7"
+  },
+  {
+   "name": "75b-nonascii-single-word365.docx",
+   "sha1": "385c1c3a94a9be8ed74817dd8c1850c5b2135f85"
+  },
+  {
+   "name": "75c-nonascii-pair-word365.docx",
+   "sha1": "a2fe7847cebc9acd863ceb885eb05060ce040539"
+  },
+  {
+   "name": "75d-nonascii-pair-reversed-word365.docx",
+   "sha1": "5d0b08100fbd045af7815ea02a27dbf23a9fa0f8"
+  },
+  {
+   "name": "75e-nonascii-single-raw-word365.docx",
+   "sha1": "07ba00d052add4d428a9bb8e698c37c26653de88"
+  },
+  {
+   "name": "75f-encoded-single-word365.docx",
+   "sha1": "e84281e4d8072ce54ae2e547806f92cf232a89fb"
+  },
+  {
+   "name": "75g-encoded-pair-word365.docx",
+   "sha1": "6c7f9c999e9623241b7c3f47a6b2b0bbb1ca6116"
+  },
+  {
+   "name": "75h-hex-case-pair-word365.docx",
+   "sha1": "3c4033dbb03a382bfcfe066b4e454f3b5656d84f"
+  },
+  {
+   "name": "75i-writer-and-name-word365.docx",
+   "sha1": "5dd96502eedae82b9b7cb85e06ad3d98f5b2fc85"
+  },
+  {
+   "name": "75j-writer-ascii-only-word365.docx",
+   "sha1": "0a3eb40ea45678395b2748b81deb209e3ab68012"
+  },
+  {
+   "name": "75k-fflate-encoded-single-word365.docx",
+   "sha1": "46aa5ca4d90eef4cd30af175c21aab8064546647"
+  },
+  {
+   "name": "results.txt",
+   "sha1": "d9c63e53b9ea6c4ebe7f9d0a7f7038dc808aa032"
+  }
+ ]
+}

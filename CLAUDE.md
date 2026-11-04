@@ -68,7 +68,7 @@ them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPat
 reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
 date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). So is CR-021 (a `w:br` outside a
 `w:r` read as Word reads it, docx4j CR-073's three rules as a DOM pass ahead of the package's hook, `br.outside_run` on the part; held
-to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-012
+to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-024 (a package holding two entries of one name refused, WD REQ-206; `duplicateEntries: 'first'` as Word reads it). So is CR-012
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
 `<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept), and section 23.7 (REQ-702's date form, docx4j's `RevisionDates`: a revision's or comment's date as the author's local time with the offset `dateUtc` gives, its stored `Z` never written),
@@ -230,6 +230,10 @@ Key mechanics:
   zip (`fflate`; the central directory is parsed here, entries inflate lazily), flat OPC
   (`pkg:package`; content types are per part, so the store synthesises `[Content_Types].xml`),
   and memory. `OpcPackage.load` sniffs: string is flat OPC, bytes are a zip, else a store.
+  Each store keys its entries as OPC part names, without case (`EntryIndex`): a container holding
+  two entries of one name is refused at the load (`DuplicateEntryException`, WD REQ-206, CR-024),
+  unless `LoadOptions.duplicateEntries` is `'first'`, which reads the first of each, as Word does
+  after its repair, with `package.duplicate_entry` on `pkg.warnings` and in the text model's.
 - **`XmlPart<T>.getContents()` is async** because the facade builds its Jsonix context lazily;
   afterwards `contents` is synchronous. `OpcPackage.unmarshalAll()` does them all.
 - **Load follows relationships** from `/_rels/.rels`; unreachable parts are not loaded. The
@@ -452,6 +456,7 @@ after unmarshalling unrefused and each story part's tokens (docx4j `BrOutsideARu
 save byte for byte, docx4j's edge tests mirrored, `insertOoxml`'s two routes and a caller's own hook,
 `dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
 mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,
+`duplicate-entries.test.mjs` CR-024's: a package holding two entries of one name, each store, the option, the warning and the save, and Word check 75's saves (`test/check75/`, with a SHA-1 manifest; `test/fixtures/check75/build.mjs` builds the files, git-ignored),
 `table-rules.test.mjs` CR-002 section 55's: docx4j's `TableRulesTest` ported, and each edit that could leave a cell without a
 last paragraph, untracked and tracked, accepted and rejected (check 52's cases 86 to 95 are held to Word's in `ranges.test.mjs`),
 `examples.test.mjs` runs every example in a child process and asserts a line of its

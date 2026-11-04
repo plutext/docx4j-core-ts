@@ -35,6 +35,8 @@ export interface TextPackage {
   readonly docPropsCustomPart?: XmlPart<custom.Properties>;
   readonly customXmlDataStorageParts: ReadonlyMap<string, { parseDocument(): Promise<Document>; readonly partName: { readonly name: string } }>;
   xpathEngine: XPathEngine;
+  /** The names the container held twice, read from the first under `duplicateEntries: 'first'` (CR-024). */
+  readonly duplicateEntries?: readonly { readonly entry: string; readonly count: number }[];
 }
 
 /** As much of a `MainDocumentPart` as a reading uses. */

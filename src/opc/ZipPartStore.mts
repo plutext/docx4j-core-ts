@@ -1,5 +1,5 @@
 import { inflateSync, zipSync, type Zippable } from 'fflate';
-import type { PartStore, PartSink, PutOptions } from './PartStore.mjs';
+import { EntryIndex, entryKey, type PartStore, type PartSink, type PutOptions } from './PartStore.mjs';
 import { InvalidFormatException } from './exceptions.mjs';
 
 interface Entry {
@@ -13,11 +13,12 @@ interface Entry {
 /**
  * A zip container read from bytes (docx4j io3.stores.ZipPartStore). The central directory is
  * read once; an entry is inflated on first `load` and then cached. ZIP64 archives are rejected.
+ * Entries are looked up as OPC part names, without case, and of two entries of one name the first
+ * in the central directory is the one read, the rest counted in `duplicates()` (CR-024).
  */
 export class ZipPartStore implements PartStore {
   private readonly data: Uint8Array;
-  private readonly entries = new Map<string, Entry>();
-  private readonly order: string[] = [];
+  private readonly entries = new EntryIndex<Entry>();
   private readonly cache = new Map<string, Uint8Array>();
 
   constructor(source: Uint8Array | ArrayBuffer) {
@@ -26,7 +27,7 @@ export class ZipPartStore implements PartStore {
   }
 
   partNames(): Iterable<string> {
-    return this.order;
+    return this.entries.names();
   }
 
   has(partName: string): boolean {
@@ -37,12 +38,17 @@ export class ZipPartStore implements PartStore {
     return this.entries.get(partName)?.size;
   }
 
+  duplicates(): ReadonlyMap<string, number> {
+    return this.entries.duplicates();
+  }
+
   async load(partName: string): Promise<Uint8Array> {
     return this.loadSync(partName);
   }
 
   loadSync(partName: string): Uint8Array {
-    const cached = this.cache.get(partName);
+    const key = entryKey(partName);
+    const cached = this.cache.get(key);
     if (cached) return cached;
     const e = this.entries.get(partName);
     if (!e) throw new Error(`No entry ${partName} in zip`);
@@ -57,7 +63,7 @@ export class ZipPartStore implements PartStore {
     if (e.method === 0) bytes = raw.slice();
     else if (e.method === 8) bytes = inflateSync(raw);
     else throw new InvalidFormatException(`Unsupported compression method ${e.method} for ${partName}`);
-    this.cache.set(partName, bytes);
+    this.cache.set(key, bytes);
     return bytes;
   }
 
@@ -89,8 +95,7 @@ export class ZipPartStore implements PartStore {
       const name = decoder.decode(d.subarray(p + 46, p + 46 + nameLen));
       p += 46 + nameLen + extraLen + commentLen;
       if (name.endsWith('/')) continue; // directory entry
-      this.entries.set(name, { name, method, compressedSize, size, localHeaderOffset });
-      this.order.push(name);
+      this.entries.add(name, { name, method, compressedSize, size, localHeaderOffset });
     }
   }
 }

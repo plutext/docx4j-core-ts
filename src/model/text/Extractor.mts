@@ -380,6 +380,10 @@ export class Extractor {
   extract(): TextResult {
     const out: TextBlock[] = [];
     const comments = new Map<string, TextComment>();
+    // a name the container held twice, the first copy read (REQ-206, CR-024): the package's, so every reading of it says so
+    for (const d of this.trees.pkg?.duplicateEntries ?? []) {
+      this.warn(new TextWarning(TextWarning.PACKAGE_DUPLICATE_ENTRY, undefined, undefined, undefined, d.entry, d.count));
+    }
     const metadata = this.metadata();
     const main = this.trees.main;
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;

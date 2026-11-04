@@ -2,7 +2,7 @@ import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx
 import type { PartStore } from './PartStore.mjs';
 import { PartName, CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypeManager } from './ContentTypeManager.mjs';
-import { Docx4JException, InvalidFormatException } from './exceptions.mjs';
+import { Docx4JException, DuplicateEntryException, InvalidFormatException, type DuplicateEntryWarning } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import { XmlPart, type DomPreprocessor } from '../parts/XmlPart.mjs';
@@ -27,6 +27,13 @@ export interface LoadOptions {
   mcePreprocess?: boolean;
   /** Runs over every XML part's DOM before it is unmarshalled; set by the package from `mcePreprocess` (`mceKeep` or `mcePreprocess`). */
   preprocessor?: DomPreprocessor;
+  /**
+   * A container holding two entries of one name, OPC part names compared without case (WD REQ-206's `duplicate_entries`;
+   * CR-024): `'refuse'`, the default, throws `DuplicateEntryException` naming each before anything is read; `'first'` reads
+   * the first entry of each name in the container's order (a zip's central directory), as Word reads it after its repair,
+   * ignores the rest, and records a `DuplicateEntryWarning` per name on `pkg.warnings`. A save then writes only the copy read.
+   */
+  duplicateEntries?: 'refuse' | 'first';
 }
 
 /** Relationship types whose target is the main part (docx4j PackageRelsUtil.getNameOfMainPart). */
@@ -48,6 +55,7 @@ export async function loadPackage<P extends OpcPackage>(
   options: LoadOptions = {},
 ): Promise<P> {
   const registry = options.registry ?? defaultPartRegistry;
+  const duplicateEntries = duplicateEntriesOf(store, options.duplicateEntries);
   if (!store.has(CONTENT_TYPES_NAME)) throw new InvalidFormatException(`${CONTENT_TYPES_NAME} is missing from this package`);
   const ctm = ContentTypeManager.parse(decodeXmlText(await store.load(CONTENT_TYPES_NAME)));
 
@@ -63,6 +71,7 @@ export async function loadPackage<P extends OpcPackage>(
   pkg.contentTypeManager = ctm;
   pkg.sourcePartStore = store;
   pkg.relationshipsPart = packageRels;
+  pkg.duplicateEntries = duplicateEntries;
   packageRels.sourceP = pkg;
   packageRels.package = pkg;
 
@@ -70,6 +79,25 @@ export async function loadPackage<P extends OpcPackage>(
   await loader.addPartsFromRelationships(pkg, packageRels);
   await loader.registerCustomXmlDataStorageParts();
   return pkg;
+}
+
+/**
+ * The store's duplicated names (CR-024, WD REQ-206), refused under `'refuse'` before anything is read, else one warning each.
+ * A store without `duplicates()` is not checked.
+ */
+function duplicateEntriesOf(store: PartStore, mode: LoadOptions['duplicateEntries']): DuplicateEntryWarning[] {
+  if (mode !== undefined && mode !== 'refuse' && mode !== 'first') {
+    throw new Docx4JException(`duplicateEntries: '${String(mode)}' is not 'refuse' or 'first' (WD REQ-206)`);
+  }
+  const duplicates = store.duplicates?.();
+  if (!duplicates || duplicates.size === 0) return [];
+  if (mode !== 'first') throw new DuplicateEntryException(Object.fromEntries(duplicates));
+  return [...duplicates].map(([entry, count]) => ({
+    code: 'package.duplicate_entry' as const,
+    entry,
+    count,
+    message: `${entry}: ${count} entries of one name in this package; the first read, the rest ignored (REQ-206)`,
+  }));
 }
 
 class Loader {
