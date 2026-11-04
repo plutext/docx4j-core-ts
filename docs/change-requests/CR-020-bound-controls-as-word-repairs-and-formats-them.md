@@ -258,3 +258,27 @@ Jason, 2026-11-02: "start CR-020". One phase, as section 4 has it.
    the portfolio. Listed in the test.
 3. **The shim's `customXmlNode` with no node.** Word throws `GeneralException` for B4's; the shim's proxy hands the snippet
    `undefined`, whose `load` then fails. Listed in the test; the shim's null-object handling is unchanged.
+
+### 8.2 `isMapped` and `customXmlParts.load()` (decided and implemented 2026-11-04)
+
+Jason, 2026-11-04: "isMapped and customXmlParts.load() as recommended".
+
+1. **`isMapped` needs `load()`.** It stays as section 8 built it: `XmlMapping.isMapped` evaluates the binding's XPath in the
+   resolved part (D8), so it throws before `await pkg.customXmlParts.load()`, as `customXmlPart` and `customXmlNode`
+   always have. Office JS loads before it reads, and the content API reads the same way. `dataBinding` remains the
+   synchronous "does the control carry a binding". It is a change from 0.6.0, where `isMapped` meant "carries a binding"
+   and needed no load, so the 0.7.0 release notes say so under **Changed**.
+2. **`load()` reads a part it cannot parse as absent.** Before, `customXmlParts.load()` threw the parser's error for the
+   whole collection, so one store that was not well formed stopped `XmlMapping` and every bind. Word reads such a store as
+   absent when it repairs the document, and binds a control naming it to the store its XPath fits (WD 0.69, docx4j's
+   `store-not-read.docx`, Word 365's case 121). CR-012 section 28's D3 reads it so in the text model.
+   - **The collection.** `load()` keeps the part's error, and `notRead` lists such parts by name with their errors.
+   - **What reads it as absent.** The part is in no `items`, and `getItem` does not find it. A binding naming it resolves
+     as one naming no part (this CR's resolver), to the part its XPath fits, else to none.
+   - **What stays.** The part stays in the package, and an untouched save copies its bytes. A part put right is read by
+     the next `load()`.
+   - **The note.** `applyBindings` writes the resolved part's ID into each such control, as Word's repaired save binds
+     them all to the other store. Its note reads "names no custom XML part", true of the collection as loaded.
+   - **The test.** In `store-items.test.mjs`, on `bind-plain-two-parts.docx` with `item1.xml` cut and `item2.xml` given a
+     `b1`: `items`, `notRead`, `getItem`, each control's `customXmlPart`, `isMapped` and node, the bind's three notes, the
+     save, and the part put right.

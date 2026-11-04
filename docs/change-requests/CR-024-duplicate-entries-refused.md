@@ -3,7 +3,8 @@
 **Status:** Proposed 2026-11-04, at Jason's "Duplicate zip entries (REQ-206): go", on the WD's REQ-206 (0.74, Jason's
 ruling "refuse the package, with an optional config option to read the first copy and warn", made in this session; its five
 details ruled as recommended in 0.77, portfolio `b0d333d`, from this session's suggestions). Measured here the same day
-(section 1). Nothing implemented. D1 to D7 for Jason (section 5). docx4j-python's sibling is its CR-032 (proposed,
+(section 1). Nothing implemented. D1 to D7 decided 2026-11-04, all as recommended, subject to Word check 75 on a non-ASCII
+case pair, which decides the key's fold (section 5). docx4j-python's sibling is its CR-032 (proposed,
 `778b3bf`), whose names this CR follows where the two packages' shapes allow; docx4j has not built it.
 
 ## 0. Summary
@@ -58,7 +59,7 @@ names the package would treat as one part are one entry.
 - **A named departure from OPC's letter.** OPC [M1.12] compares part names as case-insensitive ASCII strings, but
   `toLowerCase()` folds non-ASCII letters too (`É` and `é`). The key is this package's equality (`PartName.equals`), so a
   pair it folds is one name here, and refusing it is the safe reading, as docx4j-python's CR-032 has it. Word's reading of
-  a non-ASCII case pair is unmeasured.
+  a non-ASCII case pair is unmeasured: check 75 measures it (section 5).
 - **Not folded.** Backslashes and percent-encoding are not in the key, as today: two spellings that differ only that way
   never confuse the store, and they are not refused.
 
@@ -171,7 +172,12 @@ Word's repair.
 About half a day: the stores' index (four classes, one shared helper), the check in `loadPackage`, the exception, the
 option, the warning through `pkg.warnings` and the text model, and the tests.
 
-## 5. Decisions (for Jason)
+## 5. Decisions (taken 2026-11-04, all as recommended, subject to check 75)
+
+Jason, 2026-11-04: "CR-024 decisions as recommended, subject to: Word's reading of a non-ASCII case pair is unmeasured -
+let's measure it". Check 75 (`test/README.md` item 75, `test/fixtures/check75/`, staged in the share's `__tmp/75/`) measures
+it, and with it section 2.7's decoy-first point. Its answer settles section 2.1's key: Word's reading of `É` and `é` as
+one name or two decides whether the key folds every letter, as proposed, or ASCII letters only, OPC's letter.
 
 | # | Decision | Recommendation |
 |---|---|---|
@@ -182,6 +188,31 @@ option, the warning through `pkg.warnings` and the text model, and the tests.
 | D5 | The option's name | `LoadOptions.duplicateEntries: 'refuse' \| 'first'` (camelCase, as `mcePreprocess`); `duplicate_entries` accepted by `TextOptions` as the WD's name, documented as the load's |
 | D6 | The warning | `DuplicateEntryWarning` (`code`, `entry`, `count`, python's fields), first in `pkg.warnings`; in the text model as `package.duplicate_entry` with `TextWarning.detail` |
 | D7 | Release | With 0.7.0: it changes what loads, and 0.7.0 already carries this repair policy's other behaviour changes (CR-016's refusing save, CR-012 section 28). The alternative is the release after |
+
+**Check 75, round 1** (Jason, 2026-11-04; `test/README.md` item 75). Every file reported unreadable content and was
+repaired.
+- **The ASCII pair (`75a`) is one name to Word, and Word reads the first entry.** It shows `headerA.xml`'s header though
+  the relationship names `headera.xml`, and saves that one as `word/header1.xml`. That answers section 2.7's decoy-first
+  point: `'first'` reads as Word does, by central-directory order. An exact-name reading, this package's today, shows
+  another part than Word.
+- **The non-ASCII files (`75b` to `75e`) answer nothing about the fold.** Word finds any zip entry named in raw UTF-8
+  unreadable, a single one too, by either form of target, and its repair drops the part. OPC maps a part name to a zip
+  item name as ASCII, a non-ASCII character percent-encoded, so for names in that form lower-casing folds ASCII letters
+  only: [M1.12]'s letter, and the key as proposed.
+- **Round 2** (Jason, 2026-11-04): `75f`, `75g` and `75h` each reported unreadable content and were repaired with no
+  header, the control `75f` too (one entry named `word/header%C3%A9.xml`, as OPC maps it). Word 365 reads no part whose
+  name holds a non-ASCII character, in either form, so a non-ASCII case pair is never read by Word, and the fold is not Word's
+  to decide. **The key stands as proposed** (section 2.1): for a percent-encoded name, which is ASCII, lower-casing folds
+  the ASCII letters only, [M1.12]'s letter; a raw UTF-8 pair, which it folds, is a package Word repairs anyway. 
+- **Round 3** (Jason, 2026-11-04) clears the writer:
+  - `75j`, one ASCII header through the check's writer, opened with no message, so `75a`'s prompt was the duplicate's;
+  - `75i`, one file from that writer, kept its ASCII header and dropped its percent-encoded one;
+  - `75k`, the name through fflate's writer, was dropped as well.
+
+  Round 2's reading stands, and with it the key (`test/README.md` item 75).
+- **Separately, Word repairs a part whose name holds a non-ASCII character by dropping it,** in raw UTF-8 or
+  percent-encoded alike, where this package reads it (`75b` to `75d`, `75f` to `75h`). That is a tier 2 repair of its own,
+  not REQ-206's, recorded for the portfolio (its repair policy, section 4.2); nothing changes in this CR.
 
 ## 6. Registry
 

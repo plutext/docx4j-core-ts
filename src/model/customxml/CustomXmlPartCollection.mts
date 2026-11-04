@@ -46,6 +46,8 @@ export interface CustomXmlHost {
 /** A subset of Office JS `Word.CustomXmlPartCollection`. */
 export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPartLookup {
   private readonly views = new Map<CustomXmlDataStoragePart, CustomXmlPart>();
+  /** The parts `load()` could not parse, with the parser's error: each read as absent (`notRead`). */
+  private readonly unread = new Map<CustomXmlDataStoragePart, unknown>();
   private readonly storeItems = new StoreItemResolver<CustomXmlPart>(() => this.items.map((view) => ({
     part: view,
     id: view.id,
@@ -63,10 +65,18 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
   /**
    * Parses every custom XML part's DOM and its properties part, and warms the XPath engine. One
    * await, and the collection and the node views are synchronous from then on (section 3.6).
+   * A part that cannot be parsed is read as absent (`notRead`), not refused for the whole collection.
    */
   async load(): Promise<CustomXmlPart[]> {
     for (const part of this.host.customXmlDataStorageParts.values()) {
-      await part.parseDocument();
+      try {
+        await part.parseDocument();
+      } catch (e) {
+        this.unread.set(part, e);
+        this.views.delete(part);
+        continue;
+      }
+      this.unread.delete(part);
       if (!this.views.has(part)) this.views.set(part, await this.viewFor(part));
     }
     // A parsed document, not the global one: whether a native `document.evaluate` can read these
@@ -76,10 +86,21 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     return this.items;
   }
 
-  /** The parts, in the order they were registered. Call `load()` once first: a DOM has to be parsed. */
+  /**
+   * The custom XML parts the last `load()` could not parse (not well formed), by part name, with the parser's error. Each
+   * is read as absent, as Word reads such a store when it repairs the document (CR-012 section 28's D3, WD 0.69; CR-020
+   * section 8.2): it is in no `items`, `getItem` does not find it, and a binding naming it resolves as one naming no part,
+   * to the part its XPath fits, else to none. The part stays in the package, and an untouched save copies its bytes.
+   */
+  get notRead(): ReadonlyMap<string, unknown> {
+    return new Map([...this.unread].map(([part, error]) => [part.partName.name, error]));
+  }
+
+  /** The parts, in the order they were registered, but those `load()` could not parse. Call `load()` once first: a DOM has to be parsed. */
   get items(): CustomXmlPart[] {
     const out: CustomXmlPart[] = [];
     for (const part of this.host.customXmlDataStorageParts.values()) {
+      if (this.unread.has(part)) continue;
       const view = this.views.get(part);
       if (!view) {
         throw new Docx4JException(`Custom XML part ${part.partName} is not parsed yet: await pkg.customXmlParts.load() once`);

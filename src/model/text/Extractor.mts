@@ -23,7 +23,8 @@ import {
   TextBlock, TextRun, TextRow, TextCell, TextField, TextNumbering, TextRevision, TextWarning, TextComment, TextImage,
   TextResult, type TextStory, type TextRunKind, type NoteType,
 } from './TextResult.mjs';
-import { type TextContext, type PackageTrees, type UnreadPart, calendarText } from './TextContext.mjs';
+import { type TextContext, type PackageTrees, type UnreadPart } from './TextContext.mjs';
+import { revisionDateText } from '../content/tracking.mjs';
 import { normalize } from './normalize.mjs';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -187,8 +188,9 @@ function asciiFont(rPr: wml.RPr | undefined): string | undefined {
   return rPr?.rFonts?.ascii;
 }
 
-function revisionOf(tc: { author?: string; date?: unknown }, type: 'INSERTION' | 'DELETION'): TextRevision {
-  return new TextRevision(type, tc.author, calendarText(tc.date));
+/** A revision with its author and its stamp as REQ-702 writes it: the author's local time, the offset where known (CR-012 section 23.7). */
+function revisionOf(tc: { author?: string; date?: wml.XmlCalendar; dateUtc?: wml.XmlCalendar }, type: 'INSERTION' | 'DELETION'): TextRevision {
+  return new TextRevision(type, tc.author, revisionDateText(tc.date, tc.dateUtc));
 }
 
 // --- where Office JS's paragraph.text puts a run's text (CR-012 section 4.4) -------------------------
@@ -1749,10 +1751,11 @@ export class Extractor {
       const comment = new TextComment(id);
       comment.author = c.author;
       comment.initials = c.initials;
-      comment.date = calendarText(c.date);
+      const paraId = lastParaId(c.content as Element[] | undefined);
+      // REQ-702's form: w:date's wall clock, the offset where the comments extensible part's w16cex:dateUtc gives it
+      comment.date = revisionDateText(c.date, paraId === undefined ? undefined : this.trees.commentDatesUtc.get(paraId.toUpperCase()));
       const prefix = `${this.root}comment:${id}`;
       this.blocks(c.content as Element[] | undefined, prefix, new Story(this, 'COMMENT', prefix, part.part), comment.blocks);
-      const paraId = lastParaId(c.content as Element[] | undefined);
       if (paraId !== undefined) {
         idByParaId.set(paraId.toUpperCase(), id);
         const ex = extended.get(paraId.toUpperCase());

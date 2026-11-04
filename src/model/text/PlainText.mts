@@ -219,7 +219,7 @@ class Writer {
   private detail(author: string | undefined, date: string | undefined): void {
     switch (this.options.markupDetail) {
       case 'author': this.out += `${author ?? ''}: `; break;
-      case 'author_date': this.out += `${author ?? ''}, ${date ?? ''}: `; break;
+      case 'author_date': this.out += `${author ?? ''}${date === undefined ? '' : `, ${date}`}: `; break;   // a mark with no date: its author alone (REQ-702)
       default:
     }
   }

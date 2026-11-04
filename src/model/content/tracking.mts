@@ -159,6 +159,91 @@ export function revisionDateOf(value: { date?: wml.XmlCalendar; dateUtc?: wml.Xm
   return instantOf({ year: cal.year, month: cal.month ?? 1, day: cal.day ?? 1, hour: cal.hour ?? 0, minute: cal.minute ?? 0, second: cal.second ?? 0 }, zone);
 }
 
+// --- the author's local time (WD REQ-702; docx4j `RevisionDates`, 17.3.5; CR-012 section 23.7) ---------------------
+
+/** A stamp's fields as written: an `XmlCalendar`, or its lexical form as a reader may hold it. */
+type Stamp = wml.XmlCalendar | string | null | undefined;
+
+const STAMP = /^(-?\d{4,})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(Z|[+-]\d{2}:\d{2})?$/;
+
+/** A stamp's date and time as written, its fields read as a UTC clock's (milliseconds), and its zone in minutes; undefined for no year. */
+function clockOf(stamp: Stamp): { ms: number; timezone: number | undefined } | undefined {
+  if (stamp === undefined || stamp === null) return undefined;
+  if (typeof stamp === 'string') {
+    const m = STAMP.exec(stamp.trim());
+    if (!m) return undefined;
+    const zone = m[7];
+    const timezone = zone === undefined ? undefined : zone === 'Z' ? 0
+      : (zone.startsWith('-') ? -1 : 1) * (Number(zone.slice(1, 3)) * 60 + Number(zone.slice(4, 6)));
+    return { ms: utcClock(Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4] ?? 0), Number(m[5] ?? 0), Number(m[6] ?? 0)), timezone };
+  }
+  if (stamp.year === undefined) return undefined;
+  return { ms: utcClock(stamp.year, stamp.month ?? 1, stamp.day ?? 1, stamp.hour ?? 0, stamp.minute ?? 0, stamp.second ?? 0), timezone: stamp.timezone };
+}
+
+function utcClock(year: number, month: number, day: number, hour: number, minute: number, second: number): number {
+  const d = new Date(Date.UTC(2000, month - 1, day, hour, minute, second));
+  d.setUTCFullYear(year);
+  return d.getTime();
+}
+
+/** The offsets clocks keep, in seconds: UTC-12:00 to UTC+14:00. */
+const MIN_OFFSET = -12 * 3600;
+const MAX_OFFSET = 14 * 3600;
+
+/**
+ * The author's local time of a revision's or comment's `w:date`: its date and time as stored, in ISO 8601's extended form
+ * with no designator (`2026-10-31T11:00:00`), any designator not read, a missing time 00:00:00, fractions of a second
+ * dropped; undefined for no date. Word writes the author's wall clock labelled `Z` (CR-002 section 29), and shows it as it
+ * is. docx4j `RevisionDates.localTime`.
+ */
+export function authorLocalTime(date: Stamp): string | undefined {
+  const clock = clockOf(date);
+  return clock === undefined ? undefined : clockText(clock.ms);
+}
+
+/**
+ * The author's UTC offset in minutes: `w:date` less `dateUtc` (`w16du:dateUtc`, or a comment's `w16cex:dateUtc`), where both
+ * are present and differ by a whole number of quarter hours from -12:00 to +14:00, as a clock's offset does; else
+ * undefined, so a pair a producer wrote inconsistently gives no offset rather than a wrong one. `dateUtc` without a zone is
+ * UTC, and one with an offset is moved by it. docx4j `RevisionDates.offset`.
+ */
+export function authorOffsetMinutes(date: Stamp, dateUtc: Stamp): number | undefined {
+  const local = clockOf(date);
+  const utc = clockOf(dateUtc);
+  if (local === undefined || utc === undefined) return undefined;
+  const seconds = Math.round((local.ms - (utc.ms - (utc.timezone ?? 0) * 60000)) / 1000);
+  if (seconds % 900 !== 0 || seconds < MIN_OFFSET || seconds > MAX_OFFSET) return undefined;
+  return seconds / 60;
+}
+
+/**
+ * A revision's or comment's stamp as WD REQ-702 writes it: the author's local time (`authorLocalTime`), with the author's
+ * offset after it where it is known (`2026-10-31T11:00:00+11:00`; `+00:00` for UTC, never `Z`); `dateUtc` with `Z` where
+ * there is no `w:date`; undefined where there is neither. The `Z` Word stores on `w:date` is never written, and nothing is
+ * converted to another zone. docx4j `RevisionDates.text`.
+ */
+export function revisionDateText(date: Stamp, dateUtc: Stamp): string | undefined {
+  const local = clockOf(date);
+  if (local === undefined) {
+    const utc = clockOf(dateUtc);
+    return utc === undefined ? undefined : `${clockText(utc.ms - (utc.timezone ?? 0) * 60000)}Z`;
+  }
+  const offset = authorOffsetMinutes(date, dateUtc);
+  if (offset === undefined) return clockText(local.ms);
+  const abs = Math.abs(offset);
+  return `${clockText(local.ms)}${offset < 0 ? '-' : '+'}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+}
+
+/** A UTC clock's milliseconds as `uuuu-MM-ddTHH:mm:ss`. */
+function clockText(ms: number): string {
+  const d = new Date(ms);
+  const p2 = (n: number): string => String(n).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  const y = year < 0 ? `-${String(-year).padStart(4, '0')}` : String(year).padStart(4, '0');
+  return `${y}-${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())}T${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}:${p2(d.getUTCSeconds())}`;
+}
+
 /** Properties compared as values: keys sorted, `PARENT`, `TYPE_NAME` and absent values left out. */
 export function canonical(value: unknown): string {
   return JSON.stringify(value, (key, v) => {

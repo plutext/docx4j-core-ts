@@ -222,37 +222,6 @@ function joinedBody(b) {
   return { ...b, blocks: b.blocks.map(joined), ...(b.comments ? { comments: b.comments.map((c) => ({ ...c, ...(c.blocks ? { blocks: c.blocks.map(joined) } : {}) })) } : {}) };
 }
 
-// ------------------------------------------------------------------ REQ-702's date form (CR-012 section 23.5)
-
-/**
- * docx4j 17.3.5 writes a revision's and a comment's date as REQ-702's form (its fc71f12e6 and 1a0b5315c: `w:date`'s wall
- * clock with the offset `w16cex:dateUtc` gives, `2026-10-09T08:35:00+11:00`, and a mark with no date its author alone),
- * where this package writes `w:date` as stored (`2026-10-09T08:35:00Z`) until CR-012 section 23.5 lands (its D2). On
- * both sides each date keeps its wall clock and loses its zone, in the block model and in the markup reading's
- * `author, date:` details, so that the digits are still compared; `DATE_FORM.differs` counts the readings where only
- * the form differed, which must be some until section 23.5 lands and this mask goes.
- */
-const DATE_FORM = { differs: 0 };
-const DATE = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:Z|[+-]\d{2}:\d{2})$/;
-const wallClock = (date) => (typeof date === 'string' ? date.replace(DATE, '$1') : date);
-
-function maskDatesInBlock(b) {
-  const m = { ...b };
-  if (b.runs) m.runs = b.runs.map((r) => (r.revision?.date === undefined ? r : { ...r, revision: { ...r.revision, date: wallClock(r.revision.date) } }));
-  if (b.rows) m.rows = b.rows.map((row) => ({ ...row, ...(row.cells ? { cells: row.cells.map((c) => ({ ...c, ...(c.blocks ? { blocks: c.blocks.map(maskDatesInBlock) } : {}) })) } : {}) }));
-  return m;
-}
-
-/** A body with every date's zone taken off, and a marker's empty date (`author, : `) written as its author alone. */
-function maskDates(body) {
-  const plainText = body.plainText
-    .replace(/(\{(?:\+\+|--|>>)[^{}\n]*?), (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:Z|[+-]\d{2}:\d{2}): /g, '$1, $2: ')
-    .replace(/(\{(?:\+\+|--|>>)[^{}\n,]*), : /g, '$1: ');
-  const out = { ...body, plainText, blocks: body.blocks.map(maskDatesInBlock) };
-  if (body.comments) out.comments = body.comments.map((c) => ({ ...c, ...(c.date === undefined ? {} : { date: wallClock(c.date) }), ...(c.blocks ? { blocks: c.blocks.map(maskDatesInBlock) } : {}) }));
-  return out;
-}
-
 // ------------------------------------------------------------------ what phase 5 and REQ-303 leave (CR-012 section 20)
 
 /**
@@ -271,9 +240,7 @@ function maskDates(body) {
  *   these addresses, check 50's rebound prefixes and the probe's case 6, and the warnings there;
  * - `nestedFields` (phase 5a, REQ-506; docx4j CR-067 D4, in 17.3.5): the blocks at these addresses, where a nested
  *   field's stored result, which Word writes as `w:instrText` after its `separate`, is the nested field's result and an
- *   operand of the outer instruction in docx4j's block model, and part of the outer instruction here (the text agrees);
- * - `dateFromUtc` (section 23.5, REQ-702's date form): the blocks at these addresses, a mark with a `w16du:dateUtc` and
- *   no `w:date`, whose date docx4j writes from the UTC instant and this package leaves out.
+ *   operand of the outer instruction in docx4j's block model, and part of the outer instruction here (the text agrees).
  * The plain text is compared with the equations masked, in each reading where nothing else set aside differs. Each
  * flag must still set aside something that differs, in some reading, so that a phase arriving fails here and its
  * entries are removed.
@@ -297,7 +264,6 @@ const PENDING = {
   'fixtures/revisions/python/artefact8/8-word-rejected.json': { math: true },
   'text-extraction/revisions/core-ts/check57/57-fields-equations-word365.json': { math: true },
   'text-extraction/revisions/core-ts/check57/57-fields-equations-word365-rejected.json': { math: true },
-  'text-extraction/revisions/cr068/manual-redline-dates.json': { dateFromUtc: ['body/2'] },
   // the probe in its eight copies: phase 5's cases, and case 6 where the copy keeps the rebound prefix
   'text-extraction/suite/extraction-probe.json': { ...PROBE, req303: PROBE_CASE_6 },
   'text-extraction/suite/extraction-probe.word-resave.json': PROBE,
@@ -311,7 +277,7 @@ const PENDING = {
 
 /** The flags that set blocks aside by their address's last segment, and the flags that set them aside by address. */
 const MARKERS = { charts: '/chart:', smartart: '/smartart:', altchunks: '/altchunk:' };
-const AT = ['latexOnly', 'req303', 'nestedFields', 'dateFromUtc'];
+const AT = ['latexOnly', 'req303', 'nestedFields'];
 
 /** Every block, its cells' blocks and its comments' blocks, in order. */
 function allBlocks(body) {
@@ -406,9 +372,8 @@ for (const name of goldens) {
       metadata ??= result.metadata;
       const oursRaw = joinedBody(body(result));
       const theirsRaw = joinedBody(goldenBody(golden, reading));
-      const oursWhole = maskDates(oursRaw);
-      const theirsWhole = maskDates(theirsRaw);
-      if (!isDeepStrictEqual(oursRaw, theirsRaw) && isDeepStrictEqual(oursWhole, theirsWhole)) DATE_FORM.differs++;
+      const oursWhole = oursRaw;
+      const theirsWhole = theirsRaw;
       const { kept: ours, aside: oursAside } = setAside(oursWhole, pending);
       const { kept: theirs, aside: theirsAside } = setAside(theirsWhole, pending);
       const at = `${name} ${reading}`;
@@ -437,6 +402,3 @@ for (const name of goldens) {
   });
 }
 
-test('REQ-702\'s date form (CR-012 section 23.5) still differs somewhere, so the date mask is still needed', () => {
-  assert.ok(DATE_FORM.differs > 0, 'no reading differs only in its dates\' form: if section 23.5 has landed, remove maskDates');
-});

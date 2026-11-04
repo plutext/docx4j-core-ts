@@ -53,3 +53,4 @@ node_modules
 # check 71b's file and check 72's files, built in memory by their tests (fixtures/check71b/build.mjs, fixtures/check72/build.mjs); Word reads the share's copies
 /test/fixtures/check71b/*.docx
 /test/fixtures/check72/*.docx
+/test/fixtures/check75/*.docx

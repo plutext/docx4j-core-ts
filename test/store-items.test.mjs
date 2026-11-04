@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { unzipSync, strFromU8 } from 'fflate';
+import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
 import { parseHTML } from 'linkedom';
 import {
   WordprocessingMLPackage, Texts, PlainText, StyleDefinitionsPart, XmlPart, firstStep, formatDate, selectEntryNode,
@@ -400,4 +400,36 @@ test("check 73's runs: the IDs Word's body OOXML held after the open are the shi
     }
     assert.deepEqual(shim, word, runName);
   }
+});
+
+test('customXmlParts.load() reads a part it cannot parse as absent, the bindings naming it resolved as Word repairs them (CR-020 section 8.2)', async () => {
+  const files = unzipSync(await readFile(join(dir, 'bind-plain-two-parts.docx')));
+  const broken = '<root xmlns="urn:probe:bind"><b1>B1_XML_VALUE</b1><b7>B7_XML_VALUE_PART1</b7>';
+  files['customXml/item1.xml'] = strToU8(broken);
+  files['customXml/item2.xml'] = strToU8('<root xmlns="urn:probe:bind"><b1>B1_PART2</b1><b7>B7_XML_VALUE_PART2</b7><b11>B11_XML_VALUE_PART2</b11></root>');
+  const pkg = await WordprocessingMLPackage.load(zipSync(files));
+  const items = await pkg.customXmlParts.load();
+  assert.deepEqual(items.map((p) => p.part.partName.name), ['/customXml/item2.xml']);
+  assert.deepEqual([...pkg.customXmlParts.notRead.keys()], ['/customXml/item1.xml']);
+  assert.equal(pkg.customXmlParts.getItem('{B1D0F00D-0000-4000-8000-000000000001}'), undefined);
+  // every binding, B1's by its own ID too, resolves to the part its XPath fits, as Word's repair binds them all to part 2
+  const mappings = {};
+  for (const c of (await pkg.getBody()).getContentControls()) {
+    const m = c.xmlMapping;
+    if (m.dataBinding) mappings[c.tag ?? c.title] = [m.customXmlPart?.part.partName.name, m.isMapped, m.customXmlNode?.text];
+  }
+  assert.deepEqual(mappings, {
+    B1: ['/customXml/item2.xml', true, 'B1_PART2'],
+    B7: ['/customXml/item2.xml', true, 'B7_XML_VALUE_PART2'],
+    B11: ['/customXml/item2.xml', true, 'B11_XML_VALUE_PART2'],
+  });
+  const result = await pkg.customXmlParts.applyBindings();
+  assert.equal(result.notes.length, 3);
+  // the part stays in the package, its bytes copied by a save
+  const saved = unzipSync(await pkg.save());
+  assert.equal(strFromU8(saved['customXml/item1.xml']), broken);
+  // put right, it is read by the next load()
+  pkg.customXmlDataStorageParts.get('{b1d0f00d-0000-4000-8000-000000000001}').setXml('<root xmlns="urn:probe:bind"><b1>B1_XML_VALUE</b1></root>');
+  assert.equal((await pkg.customXmlParts.load()).length, 2);
+  assert.equal(pkg.customXmlParts.notRead.size, 0);
 });

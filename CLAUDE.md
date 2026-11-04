@@ -71,7 +71,7 @@ date's `am/pm` and the document's default language; held to Word 365's saves and
 to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-012
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
-`<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept),
+`<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept), and section 23.7 (REQ-702's date form, docx4j's `RevisionDates`: a revision's or comment's date as the author's local time with the offset `dateUtc` gives, its stored `Z` never written),
 with the suite copied at the 17.3.5 release (its `dpp/` rows, Word's 22 text saves among them) and the text goldens recut from it. The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
@@ -482,8 +482,8 @@ fixture's; recorded from docx4j `VERSION_17_3_5` at `5163c2986`), compared by
 in four readings (the three views, and every story and optional item included), as the block model and the plain text
 (`TextHarness` version 2, cut from the 17.3.5 release, CR-012 section 24.7; `-Dfixtures=../fixtures,../text-extraction`; a golden's
 path is the directory's name and the document's), compared by `test/text-parity.test.mjs` with the runs joined by docx4j's rule
-(CR-012 section 15.5), its `PENDING` table setting aside what phase 5, REQ-303 and section 23.5 govern, and REQ-702's date form
-(section 23.5) masked on both sides, each required to still differ.
+(CR-012 section 15.5), its `PENDING` table setting aside what phase 5 and REQ-303 govern, each required to still differ;
+REQ-702's date form, masked until CR-012 section 23.7, now agrees with nothing masked.
 
 ## Rules
 

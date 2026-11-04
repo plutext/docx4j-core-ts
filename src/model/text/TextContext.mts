@@ -3,6 +3,8 @@
 // order, the numbering states per story, the bookmarks, and the views' plans.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as w15 from '@docx4j/generated-objects-ts/modules/org_docx4j_w15';
+import type * as w16cid from '@docx4j/generated-objects-ts/modules/org_docx4j_w16cid';
+import type * as w16cex from '@docx4j/generated-objects-ts/modules/org_docx4j_w16cex';
 import type * as core from '@docx4j/generated-objects-ts/modules/org_docx4j_docProps_core';
 import type * as extended from '@docx4j/generated-objects-ts/modules/org_docx4j_docProps_extended';
 import type * as custom from '@docx4j/generated-objects-ts/modules/org_docx4j_docProps_custom';
@@ -44,6 +46,8 @@ export interface MainLike extends XmlPart<wml.Document> {
   readonly endnotesPart?: XmlPart<wml.CTEndnotes>;
   readonly commentsPart?: XmlPart<wml.Comments>;
   readonly commentsExtendedPart?: XmlPart<w15.CTCommentsEx>;
+  readonly commentsIdsPart?: XmlPart<w16cid.CTCommentsIds>;
+  readonly commentsExtensiblePart?: XmlPart<w16cex.CTCommentsExtensible>;
   readonly glossaryDocumentPart?: XmlPart<wml.GlossaryDocument>;
   readonly headerParts: XmlPart<wml.Hdr>[];
   readonly footerParts: XmlPart<wml.Ftr>[];
@@ -80,6 +84,11 @@ export class PackageTrees {
   endnotes: { part: Part; tree: wml.CTEndnotes } | undefined;
   comments: { part: Part; tree: wml.Comments } | undefined;
   commentsExtended: w15.CTCommentsEx | undefined;
+  /**
+   * Each comment's `w16cex:dateUtc`, by its last paragraph's `w14:paraId` (upper case): the comments ids part gives the
+   * paragraph's durable id, the comments extensible part the durable id's date (REQ-702's offset; docx4j's `commentDatesUtc`).
+   */
+  readonly commentDatesUtc = new Map<string, wml.XmlCalendar>();
   /** Each header and footer part related from the main document part, with its content. */
   readonly headersAndFooters = new Map<Part, wml.Hdr | wml.Ftr>();
   glossary: { part: Part; tree: wml.GlossaryDocument } | undefined;
@@ -138,6 +147,7 @@ export class PackageTrees {
       const comments = await trees.readStory(main.commentsPart);
       if (comments && main.commentsPart) trees.comments = { part: main.commentsPart, tree: comments };
       trees.commentsExtended = await readQuietly(main.commentsExtendedPart);   // passed over silently: CR-012 section 28's D3 (a), not ruled
+      await trees.readCommentDates(main);
       for (const part of [...main.headerParts, ...main.footerParts] as XmlPart<wml.Hdr | wml.Ftr>[]) {
         const content = await trees.readStory(part);
         if (content) trees.headersAndFooters.set(part, content);
@@ -199,6 +209,22 @@ export class PackageTrees {
       this.numberingMissing = numberingPart
         ? { kind: 'part.not_read', partName: numberingPart.partName.name }
         : { kind: 'part.absent', partName: NUMBERING_PART_NAME };
+    }
+  }
+
+  /** `commentDatesUtc`, from the comments ids and extensible parts, read privately; neither read, as D3 (a) leaves them, nothing. */
+  private async readCommentDates(main: MainLike): Promise<void> {
+    const ids = await readQuietly(main.commentsIdsPart);
+    const extensible = await readQuietly(main.commentsExtensiblePart);
+    if (!ids || !extensible) return;
+    const byDurableId = new Map<string, wml.XmlCalendar>();
+    for (const ce of extensible.commentExtensible ?? []) {
+      if (ce.durableId && ce.dateUtc) byDurableId.set(ce.durableId.toUpperCase(), ce.dateUtc as wml.XmlCalendar);
+    }
+    for (const ci of ids.commentId ?? []) {
+      if (!ci.paraId || !ci.durableId) continue;
+      const utc = byDurableId.get(ci.durableId.toUpperCase());
+      if (utc) this.commentDatesUtc.set(ci.paraId.toUpperCase(), utc);
     }
   }
 

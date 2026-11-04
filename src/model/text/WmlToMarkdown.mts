@@ -703,7 +703,7 @@ export class WmlToMarkdown {
   private detail(author: string | undefined, date: string | undefined): string {
     switch (this.textOptions.markupDetail) {
       case 'author': return `${author ?? ''}: `;
-      case 'author_date': return `${author ?? ''}, ${date ?? ''}: `;
+      case 'author_date': return `${author ?? ''}${date === undefined ? '' : `, ${date}`}: `;   // a mark with no date: its author alone (REQ-702)
       default: return '';
     }
   }

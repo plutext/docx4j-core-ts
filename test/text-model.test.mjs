@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import {
   WordprocessingMLPackage, Texts, PlainText, TextOptions, TextOptionError, TextResult, TextContext, TEXT_OPTION_NAMES,
-  ImageDescription, Paragraph, XmlPart, PartUnmarshalException,
+  ImageDescription, Paragraph, XmlPart, PartUnmarshalException, MarkdownExporter,
 } from '../dist/index.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -351,12 +351,13 @@ test('REQ-702, REQ-706: CriticMarkup, the detail in the marker\'s opening; runs 
   assert.ok(type.includes('TC9_BASE {++TC9_INSERTED ++}{--TC9_DELETED--}'));
   assert.ok(!type.includes('{~~'));
   assert.ok((await text(probe, { view: 'markup', markup_detail: 'author' })).includes('{++Probe: TC9_INSERTED ++}{--Probe: TC9_DELETED--}'));
-  assert.ok((await text(probe, { view: 'markup', markup_detail: 'author_date' })).includes('{++Probe, 2026-10-17T00:00:00Z: TC9_INSERTED ++}'));
+  // w:date's Z not written (WD 0.46 REQ-702; docx4j TextsTest's string; CR-012 section 23.7)
+  assert.ok((await text(probe, { view: 'markup', markup_detail: 'author_date' })).includes('{++Probe, 2026-10-17T00:00:00: TC9_INSERTED ++}'));
   const block = blockWith(await Texts.of(probe, { view: 'markup' }), 'TC9_INSERTED');
   const inserted = block.runs.find((r) => r.text.includes('TC9_INSERTED')).revision;
   assert.equal(inserted.type, 'INSERTION');
   assert.equal(inserted.author, 'Probe');
-  assert.equal(inserted.date, '2026-10-17T00:00:00Z');
+  assert.equal(inserted.date, '2026-10-17T00:00:00');
   assert.equal(block.revisions, 2);
   for (const r of blockWith(await Texts.of(probe), 'TC9_INSERTED').runs) assert.equal(r.revision, undefined);
 });
@@ -1067,4 +1068,46 @@ test('CR-012 section 28, D3: a custom XML store that cannot be read is read as a
   assert.ok(PlainText.of(repaired).includes('real ID: B1_PART2 (end)'));
   assert.deepEqual(notRead(repaired), ['/customXml/item1.xml']);
   assert.deepEqual(differs(repaired), ['body/2', 'body/3', 'body/4']);
+});
+
+test('CR-012 section 23.7: REQ-702\'s date form, docx4j RevisionDates\' rules and its oracle file', async () => {
+  const { revisionDateText, authorLocalTime, authorOffsetMinutes } = await import('../dist/model/content/tracking.mjs');
+  const cal = (s) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2}))?(Z|[+-]\d{2}:\d{2})?$/.exec(s);
+    const c = { year: +m[1], month: +m[2], day: +m[3] };
+    if (m[4] !== undefined) Object.assign(c, { hour: +m[4], minute: +m[5], second: +m[6] });
+    if (m[7] !== undefined) c.timezone = m[7] === 'Z' ? 0 : (m[7][0] === '-' ? -1 : 1) * (Number(m[7].slice(1, 3)) * 60 + Number(m[7].slice(4)));
+    return c;
+  };
+  // w:date's wall clock, its Z never written; the offset w:date less dateUtc gives; +00:00, never Z, for UTC
+  assert.equal(revisionDateText(cal('2026-10-31T11:00:00Z'), undefined), '2026-10-31T11:00:00');
+  assert.equal(revisionDateText(cal('2026-10-31T11:00:00Z'), cal('2026-10-31T00:00:00Z')), '2026-10-31T11:00:00+11:00');
+  assert.equal(revisionDateText(cal('2026-10-31T00:00:00Z'), cal('2026-10-31T00:00:00Z')), '2026-10-31T00:00:00+00:00');
+  assert.equal(revisionDateText(cal('2026-10-30T19:30:00Z'), cal('2026-10-31T00:00:00Z')), '2026-10-30T19:30:00-04:30');
+  // dateUtc alone, with Z; neither, nothing
+  assert.equal(revisionDateText(undefined, cal('2026-10-31T00:00:00Z')), '2026-10-31T00:00:00Z');
+  assert.equal(revisionDateText(undefined, undefined), undefined);
+  // a dateUtc with an offset is moved by it; one without a zone is UTC
+  assert.equal(revisionDateText(cal('2026-10-31T11:00:00Z'), cal('2026-10-31T10:00:00+10:00')), '2026-10-31T11:00:00+11:00');
+  assert.equal(authorOffsetMinutes(cal('2026-10-31T11:00:00Z'), { year: 2026, month: 10, day: 31, hour: 0, minute: 0, second: 0 }), 660);
+  // no offset where the difference is not whole quarter hours, or beyond -12:00 to +14:00
+  assert.equal(revisionDateText(cal('2026-10-31T11:07:00Z'), cal('2026-10-31T00:00:00Z')), '2026-10-31T11:07:00');
+  assert.equal(revisionDateText(cal('2026-11-01T15:00:00Z'), cal('2026-10-31T00:00:00Z')), '2026-11-01T15:00:00');
+  assert.equal(revisionDateText(cal('2026-10-31T14:00:00Z'), cal('2026-10-31T00:00:00Z')), '2026-10-31T14:00:00+14:00');
+  // w:date's designator not read; a date alone is midnight; fractions of a second dropped; a lexical stamp read as written
+  assert.equal(authorLocalTime(cal('2026-10-31T11:00:00+05:00')), '2026-10-31T11:00:00');
+  assert.equal(authorLocalTime(cal('2026-10-31')), '2026-10-31T00:00:00');
+  assert.equal(authorLocalTime({ year: 2026, month: 10, day: 31, hour: 11, minute: 0, second: 0, fractionalSecond: 0.75 }), '2026-10-31T11:00:00');
+  assert.equal(revisionDateText('2026-10-31T11:00:00Z', '2026-10-31T00:00:00Z'), '2026-10-31T11:00:00+11:00');
+  // a mark with no date: its author alone, in the plain text and the Markdown
+  const dateless = await miniDocx('<w:p><w:ins w:id="1" w:author="A"><w:r><w:t>new</w:t></w:r></w:ins></w:p>').load();
+  const options = { view: 'markup', markup_detail: 'author_date' };
+  assert.ok(PlainText.of(await Texts.of(dateless, options)).includes('{++A: new++}'));
+  assert.ok((await MarkdownExporter.export(await Texts.of(dateless, options), dateless)).includes('{++A: new++}'));
+  // docx4j's oracle file: D1 to D4 as its CR-068 dates probe has them
+  const pkg = await WordprocessingMLPackage.load(readFileSync(join(here, 'text-extraction', 'revisions', 'cr068', 'manual-redline-dates.docx')));
+  const markup = PlainText.of(await Texts.of(pkg, { view: 'markup', markup_detail: 'author_date' }));
+  for (const date of ['2026-10-31T00:00:00', '2026-10-31T00:00:00Z', '2026-10-31T00:00:00+00:00', '2026-10-31T11:00:00+11:00']) {
+    assert.ok(markup.includes(`, ${date}: `), `${date} in ${markup}`);
+  }
 });

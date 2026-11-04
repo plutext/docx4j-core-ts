@@ -5649,3 +5649,112 @@ async function check() {
      - **Only `body.getContentControls()` (WordApi 1.5) finds these controls:** `document.contentControls`,
        `body.contentControls` and each paragraph's collections give none, in every file. The shim's
        `body.contentControls` gives them all.
+
+75. Whether Word 365 takes two zip entries whose names differ only in case as one name, for an ASCII and a non-ASCII pair
+   (CR-024, 2026-11-04; Jason: "CR-024 decisions as recommended, subject to: Word's reading of a non-ASCII case pair is
+   unmeasured - let's measure it").
+   - **Why:** CR-024 refuses a package whose zip holds two entries of one name, OPC part names compared without case. Its key
+     is this package's own equality, which lower-cases every letter, so `word/headerÉ.xml` and `word/headeré.xml` would be
+     one name here. OPC [M1.12] compares as ASCII, under which they are two. Word's own reading decides which is right. The
+     same files answer CR-024 section 2.7's open point too: which copy Word reads of a pair where the relationship names
+     the second entry.
+   - **The files** are on the share in `__tmp/75/`, five of them, as `fixtures/check75/build.mjs` writes them (git ignores
+     the `.docx`; `check75Files` gives a test the same bytes). Each document says on its page which file it is. Its one
+     header, at the top of the page, has a text beginning `HEADER 1` (an entry the relationship does not name) or `HEADER 2`
+     (the entry the relationship names):
+     - `75a-ascii-pair`: `word/headerA.xml` (HEADER 1) first, then `word/headera.xml` (HEADER 2), the relationship naming
+       `headera.xml`;
+     - `75b-nonascii-single`: only `word/headeré.xml` (HEADER 2), the relationship's target percent-encoded
+       (`header%C3%A9.xml`); the control: does Word find a non-ASCII part name at all?
+     - `75c-nonascii-pair`: `word/headerÉ.xml` (capital E acute, HEADER 1) first, then `word/headeré.xml` (small e acute,
+       HEADER 2), the target percent-encoded;
+     - `75d-nonascii-pair-reversed`: the same pair the other way round, `word/headeré.xml` (HEADER 2) first;
+     - `75e-nonascii-single-raw`: as `75b`, the target written raw (`headeré.xml`); a second control, in case `75b`'s
+       percent-encoding is what Word misses.
+   - **Steps, in Word 365 only.** No Script Lab, and nothing typed into any file. Close every Word window first, so that each
+     file opens in a fresh session.
+     1. File > Open `__tmp/75/75a-ascii-pair.docx`. Say which of these happens: it opens with no message; Word says it found
+        unreadable content and asks whether to recover it (click Yes, and say what it says next); or Word says it can't open
+        the file (say the message's words).
+     2. If it opened, look at the top of the page in Print Layout (View > Print Layout). Say which header it shows: the line
+        beginning `HEADER 1`, the line beginning `HEADER 2`, or no header.
+     3. If it opened, File > Save As `75a-ascii-pair-word365.docx` in `__tmp/75`. Then File > Close.
+     4. The same for `75b`, `75c`, `75d` and `75e`, each saved as its name with `-word365` before `.docx`.
+   - **What the answers say:**
+     - If `75b` and `75e` both show no header, Word finds no non-ASCII part name by either form of target, and `75c` and `75d`
+       answer nothing. Otherwise `75c` and `75d` are read against whichever of the two showed HEADER 2.
+     - `75c` or `75d` reporting unreadable content means Word takes É and é as one name. CR-024's key then is Word's reading.
+     - Both opening with no message and showing HEADER 2 means they are two names to Word. CR-024's key then folds ASCII
+       letters only, OPC's letter.
+     - In `75a` and `75c`, HEADER 1 after a repair means Word reads the first entry of a pair; HEADER 2 means it reads the one
+       the relationship names (CR-024 section 2.7's decoy-first point).
+   - **Here today** (2026-11-04, `5c4f3c4` and the working tree, before CR-024 is built): `75a` to `75d` load with no warning
+     and read HEADER 2, the entry the relationship names by its exact name. `75e` loads but reads no header: a raw
+     non-ASCII target is not resolved here, a separate finding to be read against Word's `75e`.
+   - **Round 1's result** (Jason, 2026-11-04, `__tmp/75/results.txt` and Word's five saves beside the files): every file
+     reported unreadable content and was repaired.
+     - **`75a`: the ASCII pair is one name to Word, and Word reads the first entry.** The header shows HEADER 1 (the first
+       entry, `headerA.xml`), though the relationship names the second, `headera.xml`. Word's save holds it as
+       `word/header1.xml`, without the other.
+     - **`75b` to `75e`: no header.** Word's saves keep none, with no header relationship or reference. Even a single entry
+       named in raw UTF-8 (`75b`, `75e`, by either form of target) is unreadable to Word, and its repair drops the part. So
+       `75c` and `75d` answer nothing, as the rule above says. The probe was at fault: OPC maps a part name to a zip item
+       name as ASCII, a non-ASCII character percent-encoded. Here today `75b` to `75d` read the header Word drops.
+   - **Round 2** (staged 2026-11-04 in `__tmp/75/`, `build.mjs [directory] 2`): the entries named as OPC maps a part name
+     to a zip item, percent-encoded:
+     - `75f-encoded-single`: only `word/header%C3%A9.xml` (HEADER 2), the target `header%C3%A9.xml`; the control;
+     - `75g-encoded-pair`: `word/header%C3%89.xml` (É, HEADER 1) then `word/header%C3%A9.xml` (é, HEADER 2), the target
+       naming the second;
+     - `75h-hex-case-pair`: one character in two hex cases, `word/header%c3%a9.xml` (HEADER 1) then
+       `word/header%C3%A9.xml` (HEADER 2), the target naming the second.
+     - **Steps:** the same four as round 1, for `75f`, `75g` and `75h`, each saved with `-word365`; add the answers to
+       `results.txt`.
+     - **What the answers say:**
+       - `75f` showing HEADER 2 with no message means the encoded form is right. Then:
+       - `75g` reporting unreadable content means Word decodes before it compares, and folds É and é. CR-024's key would then
+         decode, then lower-case.
+       - `75g` opening silently with HEADER 2 means É and é are two names to Word, compared as ASCII. That is CR-024's key as
+         proposed, since lower-casing an ASCII string folds ASCII letters only.
+       - `75h` reporting unreadable content means the hex digits' case is folded, as an ASCII comparison does.
+     - **Here today:** all three read HEADER 2 by exact name, with no warning.
+   - **Round 2's result** (Jason, 2026-11-04, `results.txt` and Word's three saves): `75f`, `75g` and `75h` each reported
+     unreadable content and were repaired with no header. Word's saves hold no header part, relationship or reference.
+     Even the control, `75f`'s single entry named as OPC maps it (`word/header%C3%A9.xml`, the target `header%C3%A9.xml`),
+     is dropped. **So Word 365 reads no part whose name holds a non-ASCII character, in either form of zip item name or
+     target, and a non-ASCII case pair is something Word never reads either way.** Nothing Word does can tell É from é in
+     a part name, so the fold is not Word's to decide.
+     - **What this leaves for CR-024's key:** a percent-encoded name is ASCII, where lower-casing folds the ASCII letters
+       only, OPC's letter (`%C3%89` and `%C3%A9` two names, `%c3%a9` and `%C3%A9` one). A raw UTF-8 pair, which
+       lower-casing folds, is a package Word repairs anyway.
+     - **Not ruled out:** an ASCII header written through this check's own zip writer, with no pair, was not among the
+       files, so the writer itself is not shown clean. `75a`'s HEADER 1 stands either way: Word read the first entry where
+       the relationship named the second, which an exact-name reading would not. A third round could settle the writer
+       with an ASCII single entry through `storedZip` and `75f` through fflate's writer.
+   - **Round 3** (staged 2026-11-04 in `__tmp/75/`, `build.mjs [directory] 3`; the portfolio's suggestion, a name and a
+     control in one file): it separates the zip writer from the name, since round 2 holds only if the writer is clean.
+     - `75i-writer-and-name`: two pages from one writer. Page 1's header is the percent-encoded entry
+       `word/header%C3%A9.xml` (`HEADER E`, a first-page header). Page 2's is the ASCII entry `word/header1.xml`
+       (`HEADER A`).
+     - `75j-writer-ascii-only`: one ASCII header, `word/header1.xml` (`HEADER A`), through the same writer. This is the
+       writer's control.
+     - `75k-fflate-encoded-single`: `75f` again, written by fflate (deflated), the writer this package's own saves use. This
+       is the name's control, in another writer.
+     - **Steps:** as before, for `75i`, `75j` and `75k`. For `75i`, scroll to page 2 and say which header each page shows:
+       page 1 HEADER E or none, page 2 HEADER A or none. Save each with `-word365`, and add the answers to `results.txt`.
+     - **What the answers say:**
+       - `75j` opening with no message and showing HEADER A clears the writer.
+       - Then `75i` showing HEADER A on page 2 and none on page 1 (after a repair) puts the loss on the name, in one file,
+         and `75k` dropping its header too shows it in a second writer. Round 2's reading then stands.
+       - `75j` reporting unreadable content means the writer is at fault, and rounds 1 and 2's non-ASCII results are
+         withdrawn. `75a`'s first-entry answer holds either way.
+   - **Round 3's result** (Jason, 2026-11-04, `results.txt` and Word's three saves). **The writer is clean, and the name is
+     the cause.**
+     - `75j` opened with no message and showed HEADER A. This writer makes a package Word opens cleanly, so `75a`'s prompt
+       was the duplicate's.
+     - `75i` reported unreadable content and was repaired: page 1 shows no header, page 2 HEADER A. Word's save keeps
+       `word/header1.xml` alone, its `w:titlePg` with no first-page header. One file, one writer: the percent-encoded name is
+       dropped and the ASCII one kept.
+     - `75k`, fflate's writer, reported unreadable content and was repaired with no header, as `75f` was.
+     - **So Word 365 reads no part whose name holds a non-ASCII character, raw or percent-encoded, in either writer: it
+       reports unreadable content and its repair drops the part.** Round 2's reading stands, no longer provisional, and
+       CR-024's key stands as proposed.

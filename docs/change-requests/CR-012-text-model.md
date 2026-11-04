@@ -2459,6 +2459,9 @@ author-local-time and offset reading beside `revisionDateOf` (the instant, uncha
 
 ### 23.6 Decisions (for Jason)
 
+Jason, 2026-11-04: "Section 23.6 D1, the preset's math value confirmed" (as built: `latex`, below) and "Section 23.6 D2, the
+23.5 date form lands now, for 0.7.0" (section 23.7). D3 is open.
+
 | # | Decision | Recommendation |
 |---|---|---|
 | D1 | `profile` and its `math` value | Build 23.1 as its own small item when asked (the preset, the recording of set names, `profile` last in `toMap`, the refusal); `math: unicodemath` as the WD says, since this package's `math` option has the value (section 4.4), docx4j's latex a documented difference there, not here |
@@ -2483,6 +2486,39 @@ Built 2026-11-04 (Jason: "change the list_labels preset"):
 This departs from docx4j until docx4j follows: its `TextOptions.WORD_TEXT_VALUES` still has `list_labels` false
 (`VERSION_17_3_6` at `4f7128174`). Nothing committed moves. The suite's 22 Word text saves pass under the preset, but none
 of them holds a numbered paragraph.
+
+### 23.7 REQ-702's date form, implemented (2026-11-04)
+
+Jason, 2026-11-04: "Section 23.6 D2, the 23.5 date form lands now, for 0.7.0". Built as 23.5 says, a port of docx4j's
+`RevisionDates` (`fc71f12e6`, released in 17.3.5).
+
+- **`tracking.mts`** gains three functions beside `revisionDateOf`, the instant, which is unchanged:
+  - `authorLocalTime(date)`: `w:date`'s fields as written, in ISO 8601's extended form, any designator not read, a date
+    alone midnight, fractions of a second dropped;
+  - `authorOffsetMinutes(date, dateUtc)`: `w:date` less `dateUtc` (`dateUtc` unzoned is UTC, else moved by its offset),
+    only where it is a whole number of quarter hours from -12:00 to +14:00;
+  - `revisionDateText(date, dateUtc)`: the local time with the offset after it (`+11:00`; `+00:00`, never `Z`), `dateUtc`
+    with `Z` where there is no `w:date`, undefined where there is neither.
+
+  Each takes an `XmlCalendar` or its lexical form. `TrackedChange.date` and `Comment.creationDate` keep CR-018's reading.
+- **The text model.** `TextRevision.date` is `revisionDateText(w:date, w16du:dateUtc)`. `TextComment.date` takes its
+  `dateUtc` from the comments extensible part, through the comments ids part's durable id for the comment's last paragraph
+  (`PackageTrees.commentDatesUtc`, both parts read privately and passed over silently where they cannot be read, as
+  section 28's D3 (a) leaves them).
+- **The writers.** Under `markup_detail: author_date`, a mark with no date writes its author alone (`{++A: new++}`), where
+  it wrote `A, : `. This applies in `PlainText` and the Markdown alike, as docx4j's do.
+- **The parity test.** `text-parity.test.mjs` loses its date mask and the `dateFromUtc` entry it set aside
+  (`manual-redline-dates`' D2, a mark with only `w16du:dateUtc`). All 338 text goldens equal docx4j 17.3.5's with nothing
+  masked for dates: the 204 readings of 112 documents that differed only in the form now agree.
+- **Tests** (`text-model.test.mjs`):
+  - the probe's `author_date` marker and its `TextRevision.date` take docx4j `TextsTest`'s strings
+    (`2026-10-17T00:00:00`, no `Z`);
+  - a new test holds the three functions to `RevisionDates`' rules (the quarter hours, the range, `+00:00`, a moved
+    `dateUtc`, the designator not read, a date alone, the fractions, a lexical stamp);
+  - docx4j's oracle file `revisions/cr068/manual-redline-dates.docx` gives D1 to D4 in its four forms;
+  - a dateless mark writes its author alone.
+
+npm run typecheck passes, and npm test passes 1,786 of 1,786.
 
 ## 24. `w:caps` in capitals by the run's language: docx4j CR-069 phase 1's hand-off (proposed 2026-10-31)
 
