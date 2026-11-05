@@ -13,10 +13,12 @@ import {
 import { CyclicStylesException } from '../../opc/exceptions.mjs';
 import { log } from './log.mjs';
 
-/** What the paragraph merge needs from the numbering part: a level's `w:ind`. */
+/** What the paragraph merge needs from the numbering part: a level's `w:ind`, and whether a list exists. */
 export interface NumberingIndents {
   /** The indent the level a `w:numPr` names contributes, or undefined. */
   getInd(numPr: wml.PPrBase.NumPr): wml.PPrBase.Ind | undefined;
+  /** The lists by `w:numId`, as a string. */
+  readonly instanceListDefinitions: ReadonlyMap<string, unknown>;
 }
 
 // ---------------------------------------------------------------- isEmpty
@@ -196,14 +198,16 @@ export function numberingOff(numPr: wml.PPrBase.NumPr | undefined): boolean {
   return numPr !== undefined && numPr.numId !== undefined && numPr.numId.val === 0;
 }
 
-/** Take out of an indent the components a numbering level contributed. */
-function dropNumberingInd(ind: wml.PPrBase.Ind, fromLevel: wml.PPrBase.Ind): void {
-  if (fromLevel.left !== undefined && fromLevel.left === ind.left) delete ind.left;
-  if (fromLevel.right !== undefined && fromLevel.right === ind.right) delete ind.right;
-  if (fromLevel.hanging !== undefined && fromLevel.hanging === ind.hanging) delete ind.hanging;
-  if (fromLevel.firstLine !== undefined && fromLevel.firstLine === ind.firstLine) delete ind.firstLine;
-  if (fromLevel.start !== undefined && fromLevel.start === ind.start) delete ind.start;
-  if (fromLevel.end !== undefined && fromLevel.end === ind.end) delete ind.end;
+/** What `w:numId 0` leaves of the indent it inherits: the right one. docx4j `dropLeftAndFirstLine`. */
+function dropLeftAndFirstLine(ind: wml.PPrBase.Ind): void {
+  delete ind.left;
+  delete ind.leftChars;
+  delete ind.start;
+  delete ind.startChars;
+  delete ind.hanging;
+  delete ind.hangingChars;
+  delete ind.firstLine;
+  delete ind.firstLineChars;
 }
 
 const IND_ONLY: ReadonlySet<string> = new Set([IND]);
@@ -226,18 +230,18 @@ export function applyPPrBase(source: wml.PPrBase | undefined, destination: wml.P
 
   applyCatalogue(PARAGRAPH, source, destination, IND_ONLY);
 
-  /* ECMA-376 17.9.18: w:numId w:val="0" takes the paragraph out of the list, so neither the
-   * level's label nor its w:ind applies - only the paragraph's own.  Only the components the
-   * inherited level contributed are dropped, so a w:ind the style states itself survives. */
+  /* ECMA-376 17.9.18: w:numId w:val="0" takes the paragraph out of the list, so neither the level's
+   * label nor any left, hanging or first-line indent inherited so far applies, wherever it was stated.
+   * The right indent stays, and a w:ind stated with the w:numId 0 or below it counts, since it is merged
+   * after this.  Where the inherited w:numPr names no list the rule doesn't apply.  docx4j 9e3100351,
+   * its probe numbering-off-style-ind, Word's goldens of 5 November 2026; CR-027. */
   if (numbering !== undefined && numberingOff(source.numPr)
     && inheritedNumPr !== undefined && inheritedNumPr.numId !== undefined
-    && !numberingOff(inheritedNumPr) && destination.ind !== undefined) {
-    const fromLevel = numbering.getInd(inheritedNumPr);
-    if (fromLevel !== undefined) {
-      const own = copyLeaf(destination.ind);
-      dropNumberingInd(own, fromLevel);
-      destination.ind = own;
-    }
+    && !numberingOff(inheritedNumPr) && destination.ind !== undefined
+    && numbering.instanceListDefinitions.has(String(inheritedNumPr.numId.val))) {
+    const own = copyLeaf(destination.ind);
+    dropLeftAndFirstLine(own);
+    destination.ind = own;
   }
 
   /* The indent of the level of the MERGED w:numPr, since a layer may state only w:ilvl (the

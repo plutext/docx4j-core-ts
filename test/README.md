@@ -5889,3 +5889,12 @@ async function check() {
        in it too. Jason's report doesn't say whether the message showed on it.
      - So fifteen content hosts read through, every one in CR-026 section 1's table, and CR-026 D7, decided 2026-11-06, reads them so. `w:ftr`,
        `w:endnote`, `w:del` and the property hosts past `w:pPr` and `w:rPr` aren't measured.
+   - **Round 6** (Jason, through the portfolio: "yes, have core-ts build two new files with text inside an unknown element in w:pPr and w:rPr"; CR-026 section 4.4). `76t5` and `76t6` hold a property, so nothing measured words in those hosts. Two more files in `__tmp/76/`, with `mc:Ignorable` as those two have it, each saying on its page what it holds:
+     - `76t27`: `w:madeUp` holding a run reading `HIDDEN WORDS`, in a `w:pPr`;
+     - `76t28`: the same, in a `w:rPr`.
+
+     Steps as round 2's. `HIDDEN WORDS` is in each file's title line too, so look for it below that line. If Word refuses a file, that's a result: say which.
+   - **Round 6 run 2026-11-06, Word 16.0.20326.20232, through the portfolio's Word bridge** (two runs each, the two agreeing; `76t27`'s save and PDF, each `-bridge-result.json` and `76t28-refused-dialog.png` in `test/check76/`):
+     - `76t27`: opened with no message, and **Word read the run**: `HIDDEN WORDSTARGET TEXT`, one run, at the head of the paragraph, in the save and the PDF. The save reads here with no warning. Its body is what to compare: beyond it a bridge save isn't a hand save.
+     - `76t28`: **refused**, no save: "Word experienced an error trying to open the file", an OK box.
+     - So "drops in `w:pPr` and `w:rPr`" holds only for a property. CR-026 D8, decided 2026-11-06, reads `76t27`'s shape as Word does.

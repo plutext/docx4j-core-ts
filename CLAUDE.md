@@ -68,7 +68,7 @@ them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPat
 reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
 date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). So is CR-021 (a `w:br` outside a
 `w:r` read as Word reads it, docx4j CR-073's three rules as a DOM pass ahead of the package's hook, `br.outside_run` on the part; held
-to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-024 (a package holding two entries of one name refused, WD REQ-206; `duplicateEntries: 'first'` as Word reads it). So is CR-012
+to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-024 (a package holding two entries of one name refused, WD REQ-206; `duplicateEntries: 'first'` as Word reads it). So is CR-027 (`w:numId 0` clearing every inherited left, hanging and first-line indent, docx4j `9e3100351`). So is CR-012
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
 `<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75, its `comments` the one setting since WD 0.91, section 29, `include: comments` a deprecated spelling; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept), and section 23.7 (REQ-702's date form, docx4j's `RevisionDates`: a revision's or comment's date as the author's local time with the offset `dateUtc` gives, its stored `Z` never written),
@@ -361,6 +361,7 @@ Key mechanics:
 suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here,
 the 17.3.5 release since section 24; the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails,
 or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, whose Word text saves `verifyWordSave` reads by encoding),
+`numid-zero-indent.test.mjs` CR-027's: docx4j's `NumIdZeroIndentTest` mirrored, `w:numId 0` through `getEffectivePPr` and `Paragraph`, no golden having the shape,
 `text-options-comments.test.mjs` CR-012 section 29's: one setting for comments (WD 0.91, python's CR-035), held as options and as text, the old `include: comments` spelling and the refusal of a call contradicting itself,
 `text-caps.test.mjs` CR-012 section 24's: docx4j's `CaseMappingTest`, `DropCapJoinTest` and `TextOptionsProfileTest` mirrored, the
 generated table's version and source, `w:dstrike`, and a Word save under `profile: word-text`,

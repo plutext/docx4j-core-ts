@@ -3527,7 +3527,7 @@ The extractor needed no change: it reads `options.comments`.
 
 - **The notice.** Python raises a `DeprecationWarning`. Here it's one `log.warn` a process: a string value can't carry `@deprecated`, and nothing outside `./node` may import a builtin.
 - **docx4j.** Its `WORD_TEXT_VALUES` still names comments under `include`, so the preset's oracle here is the WD. No golden moves: `TextHarness`'s `everything` reading states `include: comments` beside `comments: true`, and goes through the old spelling.
-- **A saved map.** 0.6.0's `toMap()` after `include: comments` reports `comments: false` beside it, the two held apart. Such a saved map is the shape the refusal refuses, and the message names the fix. Python's CR-035 says a mapping in the old form still loads (its section 3.4) and refuses this shape (its Q4, open), and its `to_dict()` reports the two apart too, so it's to be told.
+- **A saved map.** 0.6.0's `toMap()` after `include: comments` reports `comments: false` beside it, the two held apart. Such a saved map is the shape the refusal refuses, and the message names the fix. Python's `to_dict()` gives the same shape, measured there, and its CR-035 now recommends refusing with a message naming the fix, as here (`917d1e2`; its Q1 to Q4 still open).
 
 ### 29.3 Tests
 

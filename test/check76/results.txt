@@ -20,3 +20,6 @@ Round 5, 76t19 to 76t26:
 "round 5 done", with a screenshot of Word's message on 76t24, 76t24-customxml-message.png
 "76t26 missed - will do it later"
 "76t26 is done" (2026-11-06)
+
+Round 6, 76t27 and 76t28, the portfolio session's report of two runs each through its Word bridge, Word 16.0.20326.20232, 2026-11-06:
+76t27 opened silent, no message, no repair prompt. 76t28 refused, no save, the dialog in 76t28-refused-dialog.png.

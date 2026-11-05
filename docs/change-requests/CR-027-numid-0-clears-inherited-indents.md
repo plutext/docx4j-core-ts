@@ -1,7 +1,7 @@
 # CR-027: `w:numId 0` clears every inherited left, hanging and first-line indent, docx4j's rule of 2026-11-05
 
 **Status:** Proposed 2026-11-06, at Jason's "w:numId 0: CR", on the portfolio session's hand-off of docx4j `9e3100351` (`VERSION_17_3_6`, local and
-unpushed when this was written). Measured here 2026-11-05 and again 2026-11-06 (section 1). Docs only, nothing implemented. D1 open.
+unpushed when this was written). Measured here 2026-11-05 and again 2026-11-06 (section 1). Implemented 2026-11-06 (Jason: "commit then build CR-027 now"; section 8), unreleased.
 
 ## 0. Summary
 
@@ -12,7 +12,7 @@ docx4j took that rule on 2026-11-05 from Word's goldens on its probe `numbering-
 The fix is a few lines in `styleUtil.mts`. No golden moves, because no fixture has the shape, so parity would never have flagged it. docx4j's own test,
 mirrored here, has to hold it.
 
-## 1. Here today (measured on `33bae48`'s `src/`)
+## 1. Before this CR (measured on `33bae48`'s `src/`)
 
 docx4j's `NumIdZeroIndentTest` cases through `getEffectivePPr`, in twips. The level is left 1440, hanging 1152. `OwnInd` is a numbered style stating left
 454, hanging 454, right 57. `Switch` is a style based on it holding `w:numId 0`. `OnBase` is a numbered style based on one stating left 720, hanging 360.
@@ -55,7 +55,7 @@ Only what is inherited so far clears. A `w:ind` stated with the `w:numId 0` or b
 ## 3. Tests and oracles
 
 - `test/numid-zero-indent.test.mjs`: docx4j's `NumIdZeroIndentTest` mirrored, its styles and numbering built in memory, all nine cases through
-  `getEffectivePPr` and through `Paragraph.leftIndent`.
+  `getEffectivePPr`, and `Paragraph`'s reads in points.
 - Beside them: an inherited `w:numPr` naming no list leaves the indent alone, the `*Chars` forms clear, `w:right` and `w:end` stay, and a level with no `w:ind` clears as docx4j's does.
 - Parity: nothing moves. Over the full suite on the patched copy the branch ran 11 times, and the two rules agreed all 11. So a fixture of this
   shape joins the goldens when `test/java/pom.xml` moves to the docx4j release holding `9e3100351`, and docx4j's own answer then holds it. Until then the
@@ -69,14 +69,24 @@ One phase, ¼ day. It waits on nothing here. The rule is in docx4j's history, th
 
 | | Question | Recommendation |
 |---|---|---|
-| D1 | Which release? | With 0.7.0 if built before it. It's small, it moves no golden, and it corrects a wrong read. It shouldn't hold 0.7.0 up |
+| D1 | Which release? | With 0.7.0 if built before it. It's small, it moves no golden, and it corrects a wrong read. It shouldn't hold 0.7.0 up. Built 2026-11-06, ahead of that release, so it goes with 0.7.0 unless Jason says otherwise |
 
 ## 6. Registry
 
-`core-ts/CR-027`, proposed, no dependencies. Sent on commit.
+`core-ts/CR-027`, no dependencies. Sent as proposed at `80a4707`, and done follows this build's commit.
 
 ## 7. Sources
 
 - docx4j `9e3100351`: `StyleUtil.java`, `NumIdZeroIndentTest.java`, `docx4j-export-fo/docs/word-layout-rules.md` at `s28numid0`, `CHANGELOG.md`.
 - The portfolio session's hand-off of 2026-11-05.
 - `src/model/properties/styleUtil.mts`, `src/model/listnumbering/definitions.mts`, `src/parts/wml/index.mts`.
+
+## 8. Implemented (2026-11-06)
+
+`src/model/properties/styleUtil.mts` as section 2 says: `dropLeftAndFirstLine` in place of `dropNumberingInd`, and the branch in `applyPPrBase` asking
+`instanceListDefinitions`. That member is on `NumberingIndents` as `ReadonlyMap<string, unknown>`, so the interface needs nothing from `listnumbering`.
+
+`test/numid-zero-indent.test.mjs` holds docx4j's nine cases and section 3's others, and a `w:numId` written as a decimal, which python's CR-036 found failing there: here the objects package truncates it before the model sees it. On the old rule five of its seven tests fail. With the list check
+removed, the test of a `w:numPr` naming no list fails. The test of a paragraph with nothing inherited passes either way, as a guard.
+
+npm run typecheck passes, and npm test passes 1,813 of 1,813. No golden moved.

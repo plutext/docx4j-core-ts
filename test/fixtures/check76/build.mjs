@@ -184,6 +184,13 @@ export const FILES = [
     content: FOOTNOTED, footnote: inBlocks(made) },
   { name: '76t26-more-hosts-control', asks: 'nothing unknown: every host of 76t19 to 76t25, with HIDDEN WORDS standing bare in each', ignorable: false,
     content: Object.values(MORE_HOSTS).map((host) => host(bare)).join(p('NEXT HOST.')) + FOOTNOTED, footnote: inBlocks(bare) },
+  // Round 6 (2026-11-06; Jason, through the portfolio: "yes, have core-ts build two new files with text inside an unknown element in
+  // w:pPr and w:rPr"; CR-026 section 4.4): 76t5 and 76t6 hold a property, so nothing measured words in those hosts. These are those
+  // two with a run in place of the property, mc:Ignorable as theirs, so only what the element holds differs.
+  { name: '76t27-madeup-holding-a-run-in-pPr', asks: 'an unknown w: element in a w:pPr holding a run: do the words HIDDEN WORDS show?', ignorable: true,
+    content: `<w:p><w:pPr><w:madeUp>${run('HIDDEN WORDS')}</w:madeUp></w:pPr>${TARGET}</w:p>` },
+  { name: '76t28-madeup-holding-a-run-in-rPr', asks: 'an unknown w: element in a w:rPr holding a run: do the words HIDDEN WORDS show?', ignorable: true,
+    content: `<w:p><w:r><w:rPr><w:madeUp>${run('HIDDEN WORDS')}</w:madeUp></w:rPr><w:t>TARGET TEXT</w:t></w:r></w:p>` },
 ];
 
 /** A file's header, comments and footnotes parts, each in the content types and the main document's relationships; nothing for a file with none. */

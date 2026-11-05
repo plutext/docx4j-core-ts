@@ -1,8 +1,8 @@
 {
  "check": 76,
- "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected)",
- "source": "test/fixtures/check76/build.mjs (53 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, and round 5 76t19 to 76t26)",
- "results": "results.txt is Jason's record, unedited. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y, so they have no save or PDF. The other 44 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
+ "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected; round 6, 76t27 and 76t28, through the portfolio's Word bridge, 16.0.20326.20232, 06:19 to 06:21 on 2026-11-06, each result in its -bridge-result.json, a bridge save differing from a hand save beyond the body: the document's own compatibility mode, DocSecurity 4, no note parts or hdrShapeDefaults)",
+ "source": "test/fixtures/check76/build.mjs (55 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
+ "results": "results.txt is Jason's record, unedited, but for round 6's lines, the portfolio session's. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y and refused 76t28, so they have no save or PDF. The other 45 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote, and 76t27, in a w:pPr, the run at the head of its paragraph. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
  "files": [
   {
    "name": "76-control-word365.docx",
@@ -357,12 +357,32 @@
    "sha1": "797c48a9970670e5b485e0776146b82edf11f5fa"
   },
   {
+   "name": "76t27-madeup-holding-a-run-in-pPr-word365.docx",
+   "sha1": "f6360851e077480ebfc65aa6fae49e44f25a60a2"
+  },
+  {
+   "name": "76t27-madeup-holding-a-run-in-pPr.pdf",
+   "sha1": "75060da653d30ba93108c2be4af72256cd6b6ff7"
+  },
+  {
+   "name": "76t27-bridge-result.json",
+   "sha1": "9a1515809a93c3ff12e36f50fca49d3946c7ada3"
+  },
+  {
+   "name": "76t28-bridge-result.json",
+   "sha1": "81ec39969dc98c1ccbbce3ece9f02895cb64a03d"
+  },
+  {
+   "name": "76t28-refused-dialog.png",
+   "sha1": "e81a90be116d0cddf220975a3f8b1631cfc577bb"
+  },
+  {
    "name": "76t24-customxml-message.png",
    "sha1": "53baba5f3dc80c690a844f6677bda310cf286767"
   },
   {
    "name": "results.txt",
-   "sha1": "f9acda12fece262756126e72dc0e1fc65df9f5f4"
+   "sha1": "52fbf3be04530fe76e74bf615bce5cfbf188af59"
   }
  ]
 }

@@ -1,0 +1,59 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "refused",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord experienced an error trying to open the file.\nTry these suggestions.\n* Check the file permissions for the document or drive.\n* Make sure there is sufficient free memory and disk space.\n* Open the file with the Text Recovery converter.\r (C:\\...\\76t28-madeup-holding-a-run-in-...)",
+   "buttons": [
+    "OK"
+   ],
+   "at": 3.78,
+   "open": 1,
+   "kind": "error",
+   "screenshot": "dialog-1.png",
+   "pressed": "OK",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [],
+ "seconds": 4.7,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t28-madeup-holding-a-run-in-rPr.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "refused",
+   "error": {
+    "hresult": -2147352567,
+    "text": "Exception occurred.",
+    "description": "Word experienced an error trying to open the file.\nTry these suggestions.\n* Check the file permissions for the document or drive.\n* Make sure there is sufficient free memory and disk space.\n* Open the file with the Text Recovery converter.",
+    "scode": -2146823167
+   }
+  }
+ ],
+ "saves": [],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.94
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0dfdc31",
+  "installedAt": "2026-11-05T17:08:21"
+ }
+}
