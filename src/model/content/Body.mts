@@ -37,6 +37,7 @@ import { type ChangeTracker, trackerOf, trackInsertedBlock, markHolderInserted }
 import { type TrackedChange, type TrackedChangeToken, type Listing, trackedChangesOfRow, trackedChangeTokensOfParagraph, groupTouching, BREAK, tablePropertiesChangeOf, cellChangeOf, bodySectionChangeOf, resolveUnlisted, holderChangeAt, resolving, resolvePieces, alternateTokens, listedListing, pairTwins } from './TrackedChange.mjs';
 import { pieceMatcher, type TrackedChangeSelection } from './trackedChangeFilter.mjs';
 import { type List, type ListLabel, listsOf, listLabelsOf } from './List.mjs';
+import { assignParaIds } from './paraIds.mjs';
 
 /** Where a paragraph or table is, for agents and across tool calls (CR-002 section 3.3). */
 export type Address = string | { contains: string } | { paraId: string };
@@ -463,7 +464,7 @@ export class Body {
     for (const el of elements) {
       linkParents(el, owner);
       const tn = typeNameOf(el);
-      if (tn === 'org_docx4j_wml.P') this.assignParaId(el.value as wml.P);
+      assignParaIds(this.container, [el]); // whatever it holds: a table's rows and cells, a control's paragraphs
       // everything it holds is an insertion: the runs in its links and inline controls, the rows and
       // nested tables of a table, a block control's content and the control itself (CR-002 section 37)
       if (tracker) trackInsertedBlock(tracker, el, container);
@@ -515,8 +516,7 @@ export class Body {
       keepCellMarkLast(new Paragraph(end.element, content, this), content);
       return;
     }
-    const appended = endWithParagraph(cell);
-    if (appended) this.assignParaId(appended);
+    endWithParagraph(cell);
   }
 
   /** The package's DOM preprocessor (the MCE one), for fragments and incoming packages. */
@@ -1023,14 +1023,7 @@ export class Body {
    * @internal a paragraph split (CR-014 phase 2) gives its new first half one.
    */
   assignParaId(p: wml.P): void {
-    if (p.paraId) return;
-    const paragraphs = this.paragraphsIn('every');
-    if (!paragraphs.some((q) => q.paraId !== undefined)) return;
-    let id: string;
-    do {
-      id = Math.floor(Math.random() * 0x7fffffff).toString(16).toUpperCase().padStart(8, '0');
-    } while (paragraphs.some((q) => q.paraId === id));
-    p.paraId = id;
+    assignParaIds(this.container, [p]);
   }
 
   // --- comments (CR-002 phase G) ---

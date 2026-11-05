@@ -7773,3 +7773,24 @@ Check 71's difference list now has no D2 entry: the 20 cases Word refused below 
 refused here too, so of its 96 cases the shim refuses 80 (60 past storage, 20 within it). `integer-attributes.test.mjs`
 holds the 11 rows within `stored` and each narrowing to its reason. 1,630 tests pass.
 
+
+## 66. A w14:paraId on every paragraph and row the API adds (2026-11-06)
+
+Implemented at Jason's "commit, then Fix the table id gap". Word check 79 gave the rule: **Word 365 keeps a file's ids only if every paragraph and row holds one.** One without makes it renumber the whole of `document.xml` at the next open: a built table whose `w:tr` had no id kept 0 of 14, the same with an id on the row 14 of 14, and a plain file short of one paragraph's id 0 of 11. A file Word wrote kept all of its own through two more saves. That rule comes from one run of each file, `document.xml` only, and one table of one row.
+
+**The gap.** A `w14:` address (`Body.paragraphAt`) lasts only while the ids do, and `Body.assignParaId` gave one only to a paragraph inserted straight in a body. Measured on Word's save, `Table.addRows` left 17 of 19 paragraphs and 1 of 2 rows with an id, and `Body.insertTable` 17 of 18 and 1 of 2. The sweep below found more: `TableRow.insertRows`, the two column verbs, `insertXml` holding a table, a table or paragraph in a new cell, and a control's text over several paragraphs.
+
+**The change.** `paraIds.mts`'s `assignParaIds` gives every `w:p` and `w:tr` in what's added, at any depth, an id, where the story uses them. `Body.insertElement` calls it on each block it inserts, `Table.addRows`, `addColumns`, `TableRow.insertRows` and `TableCell.insertColumns` on what they add, and `endWithParagraph` and `ContentControl`'s four creators on theirs. `Body.assignParaId` now goes through it too.
+
+- **The whole story decides, not the `Body`.** It climbs `PARENT` to the top, because a cell's own `Body` sees only that cell: a new cell in a document full of ids would have read as a document with none. A row's id counts as well as a paragraph's.
+- **At creation, not on save.** A save reports and doesn't rewrite here (CR-017), and an id is wanted as soon as the content exists, for its `w14:` address.
+- **A document using no ids stays so,** as before. A created package gets none.
+- **`w14:paraId` only, no `w14:textId`,** as `assignParaId` has always done. Every file check 79 held had both, and check 80 shows Word doesn't need it.
+
+**Not here.** A header, footer, note or comment part: the rule is measured on `document.xml` alone, though `assignParaId` already serves those bodies. A file that arrives with a gap isn't repaired, since a save doesn't rewrite. Word renumbers it as it would have.
+
+`test/para-ids.test.mjs` runs 23 routes on Word's own save, each leaving every paragraph and row with an id, none repeated, and Word's ids in place. 19 of its 27 tests fail on the code before this section. npm test passes 1,873 of 1,873, and typecheck passes.
+
+**Check 80, run 2026-11-06, one run each, confirms it.** On this package's own output Word kept every id at open: 21 of 21 paragraphs and 3 of 3 rows with rows added, the same with a table, 18 and 1 with columns, 28 and 5 with all three, and those 28 and 5 through a save. The control, the same file with one new row's id taken off, kept 0 of 28 and 0 of 4. So the row's id is what decides it, on real output.
+
+The save holds one paragraph more: `Body.insertTable` at `End` leaves a table last in the body, and Word adds the empty paragraph it wants there, with an id of its own. That's Word's, and the ids around it stand.

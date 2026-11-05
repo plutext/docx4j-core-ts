@@ -3,6 +3,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import { type Element, typeNameOf, childrenOf, linkParents, selectedBranchOf, paragraphOf, rowsOf, cellsOf, ALTERNATE_CONTENT, BRANCH_TYPES } from './tree.mjs';
+import { assignParaIds } from './paraIds.mjs';
 
 const P = 'org_docx4j_wml.P';
 const TBL = 'org_docx4j_wml.Tbl';
@@ -57,6 +58,7 @@ export function endWithParagraph(tc: wml.Tc): wml.P | undefined {
   const p = paragraphOf([]);
   content.push(p as Element);
   linkParents(p, tc);
+  assignParaIds(tc, [p]);
   return p.value;
 }
 

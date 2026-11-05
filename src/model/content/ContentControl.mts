@@ -34,6 +34,7 @@ import type { Paragraph } from './Paragraph.mjs';
 import { Range } from './Range.mjs';
 import { Table } from './Table.mjs';
 import type { SearchOptions } from './search.mjs';
+import { assignParaIds } from './paraIds.mjs';
 
 /**
  * Office JS `Word.ContentControlType`, as Word reports it from w:sdtPr: the builders' `SdtKind`
@@ -259,6 +260,7 @@ export class ContentControl {
     const content = (this.sdt.sdtContent!.content ??= []);
     content.push(p);
     linkParents(p, this.sdt.sdtContent);
+    assignParaIds(this.sdt.sdtContent as object, [p]);
     return body.paragraphs[0]!;
   }
 
@@ -454,6 +456,7 @@ export class ContentControl {
       const p = el.p({ ...(pPr ? { pPr: deepCopy(pPr) } : {}), content: runs as never }) as Element;
       content.splice(at++, 0, p);
       linkParents(p, this.sdt.sdtContent);
+      assignParaIds(this.sdt.sdtContent as object, [p]);
     }
   }
 
@@ -884,6 +887,7 @@ export class ContentControl {
         const p = paragraphElementOf(runs);
         content.push(p);
         linkParents(p, sdt.sdtContent as object);
+        assignParaIds(sdt.sdtContent as object, [p]);
       }
     } else {
       // A bound block control holds one paragraph (CR-002 section 61): the value goes into its first paragraph and any
@@ -899,6 +903,7 @@ export class ContentControl {
         const p = paragraphElementOf(runs);
         content.push(p);
         linkParents(p, sdt.sdtContent as object);
+        assignParaIds(sdt.sdtContent as object, [p]);
       }
       const others = blocks.filter((e) => e !== paragraph);
       if (others.length > 0) this.removeBlocks(content, others);

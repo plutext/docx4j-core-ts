@@ -361,6 +361,7 @@ Key mechanics:
 suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit its `manifest.json` names, never edited here,
 the 17.3.5 release since section 24; the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails,
 or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, whose Word text saves `verifyWordSave` reads by encoding),
+`para-ids.test.mjs` CR-002 section 66's: every route that adds a paragraph or a row, on Word's own save, leaving each with a `w14:paraId`, as Word needs to keep a file's ids (check 79),
 `numid-zero-indent.test.mjs` CR-027's: docx4j's `NumIdZeroIndentTest` mirrored, `w:numId 0` through `getEffectivePPr` and `Paragraph`, no golden having the shape,
 `text-options-comments.test.mjs` CR-012 section 29's: one setting for comments (WD 0.91, python's CR-035), held as options and as text, the old `include: comments` spelling and the refusal of a call contradicting itself,
 `text-caps.test.mjs` CR-012 section 24's: docx4j's `CaseMappingTest`, `DropCapJoinTest` and `TextOptionsProfileTest` mirrored, the

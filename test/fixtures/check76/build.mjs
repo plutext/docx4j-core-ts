@@ -57,6 +57,21 @@ const MORE_HOSTS = {
 };
 const FOOTNOTED = `<w:p>${TARGET}<w:r><w:footnoteReference w:id="1"/></w:r></w:p>`;
 
+// Round 7's, apart again so that 76t18 and 76t26 stay as Word ran them. A w:del's run holds w:delText. A move is one pair under
+// one w:name with its range markers, which Word may refuse a file for lacking; the half without the element says MOVED WORDS, so
+// HIDDEN WORDS in a save can only have come from the half that held them.
+const stamped = (id) => `w:id="${id}" w:author="Check 76" w:date="2026-11-05T00:00:00Z"`;
+const deleted = (text) => `<w:r><w:delText xml:space="preserve">${text}</w:delText></w:r>`;
+const moveHalf = (kind, id, inner) => `<w:${kind}RangeStart ${stamped(id)} w:name="move76"/><w:${kind} ${stamped(id + 1)}>${inner}</w:${kind}><w:${kind}RangeEnd w:id="${id}"/>`;
+const moved = (from, to) => `<w:p>${run('TARGET TEXT, then ')}${moveHalf('moveFrom', 7610, from)}${run(' and the rest.')}</w:p><w:p>${moveHalf('moveTo', 7612, to)}</w:p>`;
+const MOVED_WORDS = run('MOVED WORDS');
+const LAST_HOSTS = {
+  del: (hold) => `<w:p>${run('TARGET TEXT, then ')}<w:del ${stamped(7614)}>${hold(deleted('HIDDEN WORDS'))}</w:del>${run(' and the rest.')}</w:p>`,
+  moveFrom: (hold) => moved(hold(run('HIDDEN WORDS')), MOVED_WORDS),
+  moveTo: (hold) => moved(MOVED_WORDS, hold(run('HIDDEN WORDS'))),
+};
+const ENDNOTED = `<w:p>${TARGET}<w:r><w:endnoteReference w:id="1"/></w:r></w:p>`;
+
 /** The files: `name`, what it holds (`asks`), whether `ext` is in `mc:Ignorable`, the content between the first and last paragraphs, and any `header`, `comment` or `footnote` content, in a part of its own. */
 export const FILES = [
   { name: '76-control', asks: 'nothing unknown: ext declared and ignorable, and used nowhere', ignorable: true,
@@ -191,12 +206,31 @@ export const FILES = [
     content: `<w:p><w:pPr><w:madeUp>${run('HIDDEN WORDS')}</w:madeUp></w:pPr>${TARGET}</w:p>` },
   { name: '76t28-madeup-holding-a-run-in-rPr', asks: 'an unknown w: element in a w:rPr holding a run: do the words HIDDEN WORDS show?', ignorable: true,
     content: `<w:p><w:r><w:rPr><w:madeUp>${run('HIDDEN WORDS')}</w:madeUp></w:rPr><w:t>TARGET TEXT</w:t></w:r></w:p>` },
+  // Round 7 (2026-11-06; Jason, on docx4j's CR-076 D1, through docx4j's session: "do a sixth Word round first, including w:ftr,
+  // w:endnote, w:del, w:moveFrom, w:moveTo"): the hosts CR-026 section 3.7 lists as unmeasured, framed as 76t15 to 76t17 and 76t25,
+  // no mc:Ignorable. 76t34 holds each with nothing unknown, so a refusal of the others is the element's and not these parts'.
+  { name: '76t29-madeup-in-ftr', asks: 'an unknown w: element in a w:ftr holding a w:p: does the footer read HIDDEN WORDS?', ignorable: false,
+    content: p('TARGET TEXT'), footer: inBlocks(made) },
+  { name: '76t30-madeup-in-endnote', asks: 'an unknown w: element in a w:endnote holding a w:p: does the endnote read HIDDEN WORDS?', ignorable: false,
+    content: ENDNOTED, endnote: inBlocks(made) },
+  { name: '76t31-madeup-in-del', asks: 'an unknown w: element in a w:del holding a run: do the words HIDDEN WORDS show, and still tracked as deleted?', ignorable: false,
+    content: LAST_HOSTS.del(made) },
+  { name: '76t32-madeup-in-moveFrom', asks: 'an unknown w: element in a w:moveFrom holding a run: do the words HIDDEN WORDS show, and still tracked as moved?', ignorable: false,
+    content: LAST_HOSTS.moveFrom(made) },
+  { name: '76t33-madeup-in-moveTo', asks: 'an unknown w: element in a w:moveTo holding a run: do the words HIDDEN WORDS show, and still tracked as moved?', ignorable: false,
+    content: LAST_HOSTS.moveTo(made) },
+  { name: '76t34-last-hosts-control', asks: 'nothing unknown: every host of 76t29 to 76t33, with HIDDEN WORDS standing bare in each', ignorable: false,
+    // one move, its two halves both bare: the two hosts' own files in one would repeat its ids and its w:name
+    content: [LAST_HOSTS.del(bare), moved(run('HIDDEN WORDS'), run('HIDDEN WORDS'))].join(p('NEXT HOST.')) + ENDNOTED, footer: inBlocks(bare), endnote: inBlocks(bare) },
 ];
 
 /** A file's header, comments and footnotes parts, each in the content types and the main document's relationships; nothing for a file with none. */
 function ownParts(f, base) {
   const parts = [];
   if (f.header) parts.push(['header1.xml', 'header', `<w:hdr xmlns:w="${W}">${f.header}</w:hdr>`]);
+  if (f.footer) parts.push(['footer1.xml', 'footer', `<w:ftr xmlns:w="${W}">${f.footer}</w:ftr>`]);
+  if (f.endnote) parts.push(['endnotes.xml', 'endnotes', `<w:endnotes xmlns:w="${W}"><w:endnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:endnote>`
+    + `<w:endnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:endnote><w:endnote w:id="1">${f.endnote}</w:endnote></w:endnotes>`]);
   if (f.comment) parts.push(['comments.xml', 'comments', `<w:comments xmlns:w="${W}"><w:comment w:id="0" w:author="Check 76" w:date="2026-11-05T00:00:00Z" w:initials="C">${f.comment}</w:comment></w:comments>`]);
   if (f.footnote) parts.push(['footnotes.xml', 'footnotes', `<w:footnotes xmlns:w="${W}"><w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote>`
     + `<w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote><w:footnote w:id="1">${f.footnote}</w:footnote></w:footnotes>`]);
@@ -218,6 +252,7 @@ export async function check76Files() {
     const document = `${declaration}<w:document xmlns:w="${W}" xmlns:mc="${MC}" xmlns:ext="${EXT}"${f.ignorable ? ' mc:Ignorable="ext"' : ''}><w:body>`
       + p(`Check 76, ${f.name}: ${f.asks}.`) + f.content + p('LAST LINE.')
       + `<w:sectPr>${f.header ? `<w:headerReference xmlns:r="${R}" w:type="default" r:id="rId76header"/>` : ''}`
+      + `${f.footer ? `<w:footerReference xmlns:r="${R}" w:type="default" r:id="rId76footer"/>` : ''}`
       + '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
       + '</w:body></w:document>';
     // a fixed time makes the file the same on every build

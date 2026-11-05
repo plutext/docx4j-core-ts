@@ -13,6 +13,7 @@ import type { Range } from './Range.mjs';
 import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
 import { insertGridColumns, deleteGridColumns, gridRangeOf, textWidthTwips, widthTypeOf, layoutModeOf, type TableLayoutMode } from './tableColumns.mjs';
 import { withinWord, WORD_STORAGE } from './wordRange.mjs';
+import { assignParaIds } from './paraIds.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -140,6 +141,7 @@ export class Table {
     const at = location === 'Start' && first && first.container === container ? container.indexOf(first.element) : location === 'Start' ? 0 : container.length;
     container.splice(at, 0, ...added);
     for (const row of added) linkParents(row, this.tbl);
+    assignParaIds(this.tbl, added);
     markRowsInserted(this.changeTracker, added);
     return added.map((element) => new TableRow(element, container, this));
   }
@@ -175,6 +177,7 @@ export class Table {
     this.assertWritable();
     const at = location === 'Start' ? 0 : this.columnWidths().length;
     const inserted = insertGridColumns(this.tbl, this.textWidth(), at, columnCount, values, this.changeTracker);
+    assignParaIds(this.tbl, inserted.cells);
     return this.cellViewsOf(inserted.cells);
   }
 
@@ -324,6 +327,7 @@ export class TableRow {
     this.container.splice(at, 0, ...added);
     const owner = ownerOfArray(this.container, this.parentTable.tbl) ?? this.parentTable.tbl;
     for (const row of added) linkParents(row, owner);
+    assignParaIds(this.parentTable.tbl, added);
     markRowsInserted(this.parentTable.changeTracker, added);
     return added.map((element) => new TableRow(element, this.container, this.parentTable));
   }
@@ -458,6 +462,7 @@ export class TableCell {
     if (!range) throw new Docx4JException('This cell is not in its row');
     const table = this.parentTable;
     const inserted = insertGridColumns(table.tbl, table.textWidth(), location === 'Before' ? range.start : range.end, columnCount, values, table.changeTracker);
+    assignParaIds(table.tbl, inserted.cells);
     return table.cellViewsOf(inserted.cells);
   }
 
