@@ -7,7 +7,7 @@ import {
   Part, unwrap, wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
   DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
 } from '@docx4j/core-ts';
-import { PartName, MisplacedContentException, type ValueOutOfRangeWarning, type MisplacedContentWarning } from '@docx4j/core-ts/opc';
+import { PartName, MisplacedContentException, type ValueOutOfRangeWarning, type MisplacedContentWarning, type ContentSkippedWarning } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
 import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
@@ -23,8 +23,9 @@ export async function consume(): Promise<string> {
   // CR-017: the out-of-range warning's shape and the range it was held to, by the package's name
   const outOfRange: ValueOutOfRangeWarning['code'] = 'value.out_of_range';
   const misplaced: MisplacedContentWarning['code'] = 'target.misplaced';
+  const skipped: ContentSkippedWarning['kind'] = 'element';
   const refused: MisplacedContentException['findings'] = [];
-  void misplaced; void refused;
+  void misplaced; void refused; void skipped;
   const range: model.KeptRange | null | undefined = model.keptRange('org_docx4j_wml.PPrBase.Ind', 'left');
   void [outOfRange, range];
   pkg.xpathEngine = new FontoXPathEngine();

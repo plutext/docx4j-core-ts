@@ -6,6 +6,7 @@ import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, ass
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning, MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
 import { repairBreaksOutsideRuns } from '../opc/repair/breaks.mjs';
+import { skippedAttribute, skippedElement, skippedText, type ContentSkippedWarning } from '../opc/skipped.mjs';
 import { rangeOf, describeReading, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
 /**
@@ -386,13 +387,29 @@ export class XmlPart<T = unknown> extends Part {
    */
   private async unmarshal(doc: Document): Promise<Jsonix.TypedNamedValue<T>> {
     const kept: PartWarning[] = [];
+    const partName = this.partName.name;
+    // A string CR-016's walk reports as misplaced isn't reported twice: that walk runs after the text's own callback.
+    const textHolders = new Map<ContentSkippedWarning, Node | null>();
+    const misplacedStrings = new Set<unknown>();
     try {
       const element = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {
-        onWordReading: (reading) => kept.push(valueKept(reading, this.partName.name)),
-        onOutOfRange: (report) => kept.push(valueOutOfRange(report, this.partName.name)),
-        onMisplaced: (report) => kept.push(misplacedContent(report, this.partName.name)),
+        onWordReading: (reading) => kept.push(valueKept(reading, partName)),
+        onOutOfRange: (report) => kept.push(valueOutOfRange(report, partName)),
+        onMisplaced: (report) => {
+          kept.push(misplacedContent(report, partName));
+          if (report.child === '#text') misplacedStrings.add(report.element);
+        },
+        // What the read drops (CR-025). These stay at this one call: objects CR-007 keeps them per call.
+        onUnexpectedElement: (_name, node, classInfo) => kept.push(skippedElement(node as Element, partName, classInfo.name)),
+        onUnexpectedAttribute: (name, node, classInfo) => kept.push(skippedAttribute(name, node as Element, partName, classInfo.name)),
+        onUnexpectedText: (text, node, classInfo) => {
+          const skipped = skippedText(text, node, partName, classInfo.name);
+          textHolders.set(skipped, node.parentNode);
+          kept.push(skipped);
+        },
       });
-      if (kept.length > 0) this.parseWarnings = [...this.parseWarnings, ...kept];
+      const reported = kept.filter((w) => !(w.code === 'part.skipped' && misplacedStrings.has(textHolders.get(w))));
+      if (reported.length > 0) this.parseWarnings = [...this.parseWarnings, ...reported];
       return element;
     } catch (cause) {
       type LocatedNode = { lineNumber?: number; columnNumber?: number; getAttributeNS?(ns: string | null, local: string): string | null };

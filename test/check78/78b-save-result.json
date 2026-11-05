@@ -1,0 +1,54 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "78b-wd001-at-200.txt",
+   "format": "txt",
+   "bytes": 223,
+   "sha256": "cdb71e7ac1c86b0e4dfe11e6fe9e4b1251f0295b8bce74921b5534fdb41dadad"
+  }
+ ],
+ "seconds": 3.5,
+ "timedOut": false,
+ "verb": "save",
+ "input": "78b-wd001-at-200.docx",
+ "opens": [
+  {
+   "format": "txt",
+   "opened": "silent",
+   "name": "78b-wd001-at-200.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.14
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 25.4,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

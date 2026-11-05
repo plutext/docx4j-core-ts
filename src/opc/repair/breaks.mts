@@ -20,6 +20,7 @@
 // A clean part pays one walk over its DOM, which allocates nothing (CR-021 section 2: 0.4% of a load).
 import { childElements } from '../../xml/dom.mjs';
 import { READ_UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
+import { skippedElement, type ContentSkippedWarning } from '../skipped.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const XML_NS = 'http://www.w3.org/XML/1998/namespace';
@@ -61,7 +62,7 @@ export interface BrOutsideRunWarning {
  * rules, above). A part whose root is not WordprocessingML's is left alone. Returns the part's warning, or nothing
  * where the part holds none.
  */
-export function repairBreaksOutsideRuns(doc: Document, partName?: string): BrOutsideRunWarning[] {
+export function repairBreaksOutsideRuns(doc: Document, partName?: string): (BrOutsideRunWarning | ContentSkippedWarning)[] {
   const root = doc.documentElement;
   if (!root || root.namespaceURI !== W) return [];
   let breaks: Element[] | undefined;
@@ -131,7 +132,8 @@ export function repairBreaksOutsideRuns(doc: Document, partName?: string): BrOut
     r.appendChild(bare(br));
   }
   // (2)
-  for (const t of texts ?? []) splitText(t);
+  const skipped: ContentSkippedWarning[] = [];
+  for (const t of texts ?? []) splitText(t, skipped, partName);
 
   const outside = breaks?.length ?? 0;
   return [{
@@ -140,7 +142,7 @@ export function repairBreaksOutsideRuns(doc: Document, partName?: string): BrOut
     breaks: outside,
     textElements,
     message: `${partName ?? 'a part'}: w:br outside a w:r: ${outside} outside a run, ${textElements} text elements holding elements; read as Word reads them`,
-  }];
+  }, ...skipped];
 }
 
 function holdsElement(e: Element): boolean {
@@ -235,7 +237,7 @@ function create(like: Element, local: string): Element {
  * stretch is XPath's text node (adjacent text and CDATA together), its `xml:space` the nearest ancestor's, and kept
  * only where that preserves it or it holds more than whitespace. Any other element gives its text only as `givesItsText` says.
  */
-function splitText(t: Element): void {
+function splitText(t: Element, skipped: ContentSkippedWarning[], partName: string | undefined): void {
   const out: Node[] = [];
   const visit = (holder: Element): void => {
     for (let c = holder.firstChild; c !== null;) {
@@ -255,6 +257,7 @@ function splitText(t: Element): void {
         const e = c as Element;
         if (e.namespaceURI === W && e.localName === 'br') out.push(bare(e));
         else if (givesItsText(e)) visit(e);
+        else skipped.push(skippedElement(e, partName)); // the runtime never sees it (CR-025 D9)
       }
       c = c.nextSibling;
     }

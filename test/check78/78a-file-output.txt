@@ -1,0 +1,58 @@
+Review file for Word (ED-005 section 9.2)
+Made by the docx4j editor in a room: its revisions by Author A and Author B through the editor, and by Claude through the companion's tools. Compare Word's Reviewing Pane with review-for-word.txt, save this file untouched, then Accept All and save, then Reject All and save. 
+1. Text inserted and deleted by two authors
+The quick brown fox jumps over the very lazy dog near the stone bridge.
+2. An insertion deleted by another author
+Cows graze in the field beside the river.
+3. Typed over a selection
+The notice period is 14 days from delivery.
+4. Run formatting changed
+The word alpha becomes bold and the word bravo becomes larger.
+5. Paragraph properties changed
+Centre this paragraph.
+Indent this paragraph.
+Give this paragraph the style Heading 2.
+A Heading 2 already in the file, for comparison
+6. Paragraph marks inserted and deleted
+Split this paragraph after the colon:
+ the rest becomes a paragraph of its own.
+Join this paragraph with the next one.This is the paragraph it joins.
+7. Table rows inserted and deleted
+RowActionNote1Keepstays2Keepa row goes below this onenewnewnewThe paragraph after the table.
+8. Inline items inserted and deleted
+Leftright: the tab between them is deleted. A tab goes after this colon:	 and a footnote at the end of this sentence1.
+The footnote on this sentence is deleted.
+9. A list started, and a link
+I. This paragraph becomes a numbered list item.
+The docx4j site is linked here.
+10. Replace all
+The color of the sky and the color of the sea.
+11. The parts, changed through the parts panel (untracked)
+The headings' color, the numbering format of the list below and the default tab stop were changed by an Apply, which Word does not track.
+I. The first item of a list the engine made.
+II. The second item.
+12. The agent's edits
+Rent
+The tenant pays rent monthly in advance, as the [C1]lease says.
+* The first obligation.
+* The second obligation.
+Notice must be given within 60 days.
+13. Comments
+Author A comments on this sentence, and Author B answers.[AA2][AB3] Author B comments on this sentence alone.[AB4] This sentence carries a comment that is deleted.
+A comment by Author A runs from here
+to here, over two paragraphs.[AA5]
+1 A tracked footnote.
+2 A footnote whose reference is deleted.
+[C1]Changed from arrears, as agreed.
+[AA2]A comment by Author A, replied to and resolved.
+[AB3R2]A reply by Author B.
+[AB4]A comment by Author B.
+[AA5]A comment by Author A over two paragraphs.
+---------------
+
+------------------------------------------------------------
+
+---------------
+
+------------------------------------------------------------
+

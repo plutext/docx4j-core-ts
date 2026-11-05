@@ -2,8 +2,8 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", from the finding of 2026-11-03 (CR-023 section
 1: an unknown element in `w:sdtPr`). Measured here the same day (section 1), and three routes compared, two tried as prototypes in
-memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7). Docs
-only, nothing implemented. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 Jason's). Word check 76 ran on 2026-11-05 and 2026-11-06, in six rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
+memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Docs
+only, nothing implemented. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in six rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
 
 ## 0. Summary
 
@@ -90,7 +90,7 @@ list can't say what the model holds.
 
 ## 3. Proposal
 
-### 3.1 The runtime (jsonix-CR-015, written 2026-11-05 at `34d2572`, its U1 to U3 Jason's)
+### 3.1 The runtime (jsonix-CR-015, written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1)
 
 In `Jsonix.Binding.Unmarshalls.Element.unmarshalElement`, where an element is neither typed nor allowed as DOM: if the caller set
 `onUnexpectedElement`, call it and skip the element; otherwise throw as today, and always for a document's root. A caller with no
@@ -146,12 +146,12 @@ docx4j's do.
 An unknown `w:` element in a content host loses its tags and keeps what it holds, as Word 365 reads it (section 4.4). A DOM pass does it, in
 `XmlPart.preprocess` ahead of CR-021's, before the runtime sees the part, so it asks nothing of jsonix. Running first, as python's CR-037 does, leaves a `w:br` the tags held to CR-021's rule 1, a shape no Word run holds.
 
-- **What it takes:** an element in the `w:` namespace whose name the model doesn't hold, in one of the fifteen measured hosts, at any depth (`76t7`). What it held takes its place.
-- **The hosts:** `w:p`, `w:body`, `w:tc`, `w:r`, `w:tbl`, `w:tr`, `w:sdtContent`, `w:hyperlink`, `w:ins`, `w:hdr`, `w:comment`, `w:fldSimple`, `w:smartTag`, `w:customXml` and `w:footnote`.
-- **The model's names:** they come from the mapping, and phase 2 has to derive them properly. Section 4.4's rough walk isn't complete.
+- **What it takes:** an element in the `w:` namespace whose name the model doesn't hold, in one of the fifteen measured hosts, at any depth. `76t7` measures that in a `w:p`, and every other host is python's choice (DI-024), matched here. What it held takes its place. The walk up from such an element stops at an element of another namespace, since Word drops an `ext:opaque` with all it holds (`76k`), and at `mc:Choice` and `mc:Fallback`, since no run measures a `w:madeUp` directly in a branch. What it stops at stays on route B.
+- **The hosts:** `w:p`, `w:body`, `w:tc`, `w:r`, `w:tbl`, `w:tr`, `w:sdtContent`, `w:hyperlink`, `w:ins`, `w:hdr`, `w:comment`, `w:fldSimple`, `w:smartTag`, `w:customXml` and `w:footnote`. The test is by more than the tag, as WD 0.92's REQ-308 now says: `w:ins` is the run-level one (`CT_RunTrackChange`) and `w:footnote` a footnotes part's. So `w:ins` under `w:numPr`, `w:rPr`, `w:trPr`, `m:r` or `m:ctrlPr` and `w:footnote` under `w:footnotePr` aren't hosts: nothing measures them. They aren't all empty, as the `m:r` one holds math run content and the `m:ctrlPr` one a `w:rPr` (`wml.xsd` lines 7745 and 7717). Phase 2 derives this list by following the schema's groups and types to what holds each name, not from where the name is declared. Python read where they're declared and so read through the `m:ctrlPr` shape until its `e7c553c`. Its `test_the_other_elements_parents_are_the_schemas` is the test to mirror.
+- **The model's names:** they come from the mapping, and phase 2 has to derive them properly. Section 4.4's rough walk isn't complete. Python's table is 605, equal to `wml.xsd`'s declarations. It holds `w:uniqueTag`, which has a simple type and no class, so a walk of classes alone misses it.
 - **The report:** one `part.skipped` for each element taken, so CR-025's 2.2 copies a part read and not changed, tags and all.
 - **The gate:** a changed part holding such tags is refused until `checkLossOnSave` is off, though no words go. What a re-marshal loses is the tags, and Word's own save drops them with no message. This is wider than CR-025's D9, which lists only what goes with its content. D9's first reason doesn't apply here, since Word opens these files, and none of the 720 packages holds such an element, so the wider report stands as D7 says.
-- **A run in a `w:pPr` (D8):** a `w:r` held directly by such an element in a paragraph's `w:pPr` goes to the head of the paragraph, straight after the `w:pPr`, and the tags are reported (`76t27`). A property there goes, as `76t5`'s does, and anything else the element holds stays on route B until it's measured.
+- **A run in a `w:pPr` (D8):** a `w:r` held directly by such an element in a paragraph's `w:pPr` goes to the head of the paragraph, straight after the `w:pPr`, and the tags are reported (`76t27`). A property there goes, as `76t5`'s does, and anything else the element holds stays on route B until it's measured. An element left holding something else stands, so it's reported once, by the read that skips it, and the pass adds no entry. Several such runs move in order, and a paragraph with no other run gets them too. A run in a `w:pPr` under a `w:pPrChange` stays dropped and reported. These last two are python's choices (DI-024), beyond what check 76 measures, and they follow D8 and this section's route B.
 - **Everything else stays on route B:** a property in `w:pPr` or `w:rPr`, and anything in `w:t`, are measured, and drop as route B does. A run in a `w:rPr` is a file Word refuses (`76t28`). A host not measured (`w:ftr`, `w:endnote`, `w:del`, `w:sdtPr`, `w:trPr`, `w:tcPr`, `w:tblPr`, `w:sectPr`) drops the element with all it holds until a check says otherwise, and adding one to the list is then the whole change.
 - **What its host doesn't admit:** unmeasured in a content host (section 4.4). The pass doesn't look, so a `w:p` left in a `w:p` is CR-016's misplaced child, reported on read and refused on save.
 - **`insertOoxml`:** whether the pass runs on the fragment route goes with section 3.2's tracing. Python's CR-037 Q2 recommends refusing such a fragment unless `lenient`, which fits section 3.2's leaning.
@@ -364,22 +364,55 @@ its tree back (CR-025 section 2.4). It's a new case for D3's tiers.
 - `test/unknown-elements.test.mjs`: section 1's hosts, both elements, each read, its warning's fields, `Paragraph.text`,
   `Texts.of` and a save; a module beyond WordprocessingML (a DrawingML and a SpreadsheetML host), since the prototype tested neither.
 - jsonix-CR-015 section 8's run, on its unreleased build before its release: the 52 files and the DrawingML and SpreadsheetML hosts,
-  the callback set and unset.
+  the callback set and unset. Done 2026-11-06, section 5.1.
 - docx4j's `UnexpectedElementInSdtPrTest` mirrored: inline and block, ignorable and not.
 - The docx4j oracle, once `VERSION_17_3_6` is released: the 52 files, every host read, every element dropped, but for an unknown `w:` element in section 3.7's hosts, which this package reads through (D7). That difference is listed, not fixed.
 - A caller with no callback still gets the runtime's refusal. No test here asserts today's message, so none has to change.
 - Check 76's saves under `test/check76/` (copied 2026-11-05 and 2026-11-06, round 6's from the Word bridge, with a SHA-1 manifest, which `br-placement.test.mjs` checks, holding `76m`, `76n`, `76u`, `76w` and `76z` to Word's text). With the build: each save read with no warning and its text Word's, each source file from `check76Files` held to section 4.1, and section 4.4's read through to Word's text, each with its `part.skipped`.
+
+### 5.1 jsonix-CR-015 section 8's run (2026-11-06)
+
+Run at jsonix's request on its checkout, uncommitted and still reporting 3.11.0, identified by `jsonix-factory.js` sha256 `c8070eaa...d34c9`, against 3.11.0 as locked. Section 3.7's pass isn't built, so everything reached the runtime. The callback was attached by wrapping the context's `createUnmarshaller`, since nothing here passes one until CR-025. It passes.
+
+| Check | Callback unset | Callback set |
+|---|---|---|
+| 1,001 packages (`test/` and docx4j's `charts/`), 15,679 saved entries, by hash | All equal to 3.11.0's | All equal to 3.11.0's unset, `onUnexpectedElement` alone and with all three callbacks. Reports as 3.11.0's: 0 elements, 17 attributes, 1 text |
+| 80 hosts, 3 elements each, through the facade, DrawingML, charts, PresentationML and SpreadsheetML among them | 240 of 240 as 3.11.0 | 228 read as the same document without the element, each reported once; 12 throw: `w:t`, `w:instrText`, `a:t`, `x:v` (U3) |
+| 119 files: section 1's 52, its 12 further, check 76's 55 | 119 of 119 as 3.11.0 | All read, where 77 failed. 101 report once. 18 report nothing: 12 reach CR-021's pass first, 3 hold an attribute, 3 are controls. Files that read before read the same |
+| The real load path, real packages: `a:srgbClr` in a theme (pptx, xlsx, docx) and a slide, `x:font`, `w:p`, `w:tc`, `w:sdtPr`; 60 cases | `PartUnmarshalException`, as 3.11.0 | Read, reported once, the saved part the control's, no other part differs. On 3.11.0 all 60 fail with the callback set too |
+
+**Outside WordprocessingML the branch is small.** Of the 40 such hosts tried, only `a:srgbClr`, `x:rPr` and `x:font` throw on 3.11.0 and now report; `a:t` and `x:v` keep their throw; the other 35 skip silently on both. No file here holds an `x:rPr` to try on the load path, so that one is the facade's result only.
+
+**Real parts.** 6,384 parts of up to 400 KB, every parent and child pair met (1,555), an unknown element first, in the middle and last in the child, of two kinds, 5,364 trials, each held to the part without it:
+
+| On 3.11.0 | On the checkout | Trials |
+|---|---|---|
+| Throw | Clean: reported once, the marshal the part's own | 1,866 |
+| Clean | Clean | 2,862 |
+| Kept by a wildcard, siblings intact | The same | 484 |
+| Throw | Throw: 19 hosts holding text, one message (U3) | 140 |
+| `a:ext`, see below | The same | 12 |
+
+Five `br-placement` parts were left out: they need CR-021's pass, which the facade doesn't run.
+
+**What stays after CR-026.** U3 leaves an element in a host holding text failing its part. CR-021's pass covers `w:t`, `w:instrText`, `w:delText` and `w:delInstrText`, and no others. So `m:t`, `wp:posOffset` and `wp:align` in a main part still fail it, and what Word does there is unmeasured.
+
+**`a:ext` holds one child.** The schema gives it a single wildcard, and given two the runtime keeps the last with nothing said, on 3.11.0 and on the checkout alike. That's one case of a wider rule, any single-valued child given twice, which isn't this CR's or jsonix-CR-015's. It's content a read drops that CR-025's report doesn't see (its section 2.6).
+
+**The floor.** This package gets jsonix through objects, whose `^3.11.0` admits 3.12.0 and doesn't require it. So the floor is an objects release raising its range, then the range here.
+
+`npm run typecheck` passes and `npm test` passes 1,813 of 1,813 on the checkout, parity included. The dependency was then restored (`npm ci`, 3.11.0, `package.json` and the lock unchanged). Not run: the strict-mode load, and anything on a published tarball, which follows 3.12.0's release, as the raise's own run.
 
 ## 6. Phases and size
 
 | Phase | What | Size | Waits on |
 |---|---|---|---|
 | 0 | Check 76: the files, Jason's five rounds and `76t8` of 2026-11-05, `76t26`, the last control, of 2026-11-06, and round 6, through the Word bridge, the same day | Done | |
-| 1 | jsonix-CR-015 (written) decided and released; the floor raised | ½ day there | Its U1 to U3 |
+| 1 | jsonix-CR-015 (decided and implemented 2026-11-06, unreleased) released; the floor raised, through an objects release (section 5.1) | ½ day there | Its section 8's runs: here done (section 5.1), objects' to come |
 | 2 | The read, section 3.7's pass and the model's `w:` names, `insertOoxml` traced, the tests | 1 day | CR-025 phases 1 and 2; phase 1 |
 | 3 | The records, CR-023's line | ¼ day | |
 
-## 7. Decisions (D1 to D5 taken 2026-11-05, all as recommended; D6 raised by check 76 and taken the same day; D7 raised by check 76 and taken 2026-11-06, as recommended; D8 raised by round 6 and taken the same day, as recommended)
+## 7. Decisions (D1 to D5 taken 2026-11-05, all as recommended; D6 raised by check 76 and taken the same day; D7 raised by check 76 and taken 2026-11-06, as recommended; D8 raised by round 6 and taken the same day, as recommended; D5 changed 2026-11-06)
 
 | | Question | Recommendation |
 |---|---|---|
@@ -387,7 +420,7 @@ its tree back (CR-025 section 2.4). It's a new case for D3's tiers.
 | D2 | Route A, B or C? | B |
 | D3 | Read an element whose namespace isn't ignorable, or an unknown `w:` name, or refuse it? | Read and report (`ignorable: false`): docx4j and python read it, and the policy's tier 3 reads so that a caller can fix it. Check 76 gives the tier: 3 for a foreign element that isn't ignorable and one in no namespace, in every host tried, and 1 for the rest. Round 6 adds one to tier 3: a run in an unknown `w:` element in a `w:rPr` (`76t28`). This stands |
 | D4 | Should the text model warn of an element dropped from a paragraph? | A question for the WD, sent on commit; nothing here until it rules. It goes with `76k`'s answer: Word shows nothing an ignorable element holds |
-| D5 | Which release? | With CR-025, after 0.7.0 |
+| D5 | Which release? | In 0.7.0, with CR-025 (Jason, 2026-11-06: "CR-025 D7 and CR-026 D5 both say 'after 0.7.0'; please correct to in 0.7.0"). Decided after 0.7.0 on 2026-11-05 |
 | D6 | Raised by check 76's `76n`: change CR-021's rule 2 so that an element Word doesn't know goes with all it holds, as Word does (section 4.2)? In which release? | Yes, before 0.7.0, CR-021's first release (Jason: "we should fix the bug (76n)"). Fixed the same day, and for an unknown `w:` name after round 2's `76u` (CR-021 section 11). docx4j and python to be told, the rule being theirs too |
 | D7 | Raised by `76t`: an unknown `w:` element in a content host, whose content Word shows. Drop and report as decided, or read it as Word does (section 4.4)? | Read it as Word does. Five rounds give a clear rule: fifteen content hosts read through, three of properties or text don't (round 6 qualifies that for a run, D8), and `mc:Ignorable` plays no part where tested. A DOM pass in phase 2 over the measured hosts, the rest left to route B until they're measured. Round 4 was Jason's condition for deciding ("CR-026 D7 we need to measure w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr and w:comment before making any decision") and is back. So is round 5, asked for after it (Jason: "measure w:fldSimple, w:smartTag, w:customXml and w:footnote"), its control run on 2026-11-06 (Jason: "76t26 is done"). Decided 2026-11-06 as recommended (Jason: "CR-026 D7: read as Word does"). Section 3.7 is the pass. A departure from docx4j and python, to be told on commit |
 | D8 | Raised by round 6's `76t27`: Word reads a run in an unknown `w:` element in a `w:pPr`, at the head of its paragraph. Extend section 3.7's pass to it, or leave it on route B, the words gone and reported? | Extend it, for a run, the shape measured. D7's point is not to lose words Word shows, and the step is small: the run goes to the head of the paragraph and the tags are reported. A property goes as `76t5`'s does, and anything else such an element holds stays on route B until it's measured. None of the 720 packages holds an unknown element, so it waits for phase 2 either way. Decided 2026-11-06 as recommended (Jason, on the portfolio's paper, section 7.14: "we adopt 'as word'"; here: "CR-026 D8: yes"). WD 0.92's REQ-311, uncommitted there, says the same |

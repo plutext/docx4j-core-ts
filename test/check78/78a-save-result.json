@@ -1,0 +1,90 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "78a-file-output.word.docx",
+   "format": "docx",
+   "bytes": 23829,
+   "sha256": "2636e68ea4c1335f7e7a1ea94d42531d17908e5640eb7157d826dc74c1b0c0af"
+  },
+  {
+   "name": "78a-file-output.txt",
+   "format": "txt",
+   "bytes": 2707,
+   "sha256": "82f3dead43525060bb2c0bcd115aedd6846dc716eaefd1d4a0ab8e2ad80093cc"
+  },
+  {
+   "name": "78a-file-output.pdf",
+   "format": "pdf",
+   "bytes": 110921,
+   "sha256": "59d527b8ff23bbcd0f09351a847767d38f7b410620bfbfb83733f77ff497da31"
+  }
+ ],
+ "seconds": 5.8,
+ "timedOut": false,
+ "verb": "save",
+ "input": "78a-file-output.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "78a-file-output.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "txt",
+   "opened": "silent",
+   "name": "78a-file-output.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "78a-file-output.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.14
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

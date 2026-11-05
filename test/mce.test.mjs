@@ -265,7 +265,8 @@ test('mce.branches_differ: a text box whose Fallback says something else', async
   const back = await WordprocessingMLPackage.load(await pkg.save());
   assert.deepEqual(back.warnings, [], 'nothing parsed yet');
   await back.getBody();
-  const warnings = back.getMainDocumentPart().warnings;
+  // this file's w:txbxContent straight in a w:drawing has no place in the model, which CR-025's part.skipped says of each box
+  const warnings = back.getMainDocumentPart().warnings.filter((w) => w.code !== 'part.skipped');
   assert.equal(warnings.length, 1, 'whitespace aside, the second box\'s branches agree');
   const [w] = warnings;
   assert.equal(w.code, 'mce.branches_differ');
@@ -275,7 +276,7 @@ test('mce.branches_differ: a text box whose Fallback says something else', async
   assert.equal(typeof w.line, 'number');
   assert.equal(typeof w.column, 'number');
   assert.match(w.message, /^\/word\/document\.xml \(line \d+, column \d+\): .*Choice\(wps\) was read \("Current text"\), not Fallback "Stale text"$/);
-  assert.deepEqual(back.warnings, warnings, 'the package gathers its parts\'');
+  assert.deepEqual(back.warnings, back.getMainDocumentPart().warnings, 'the package gathers its parts\'');
   back.getMainDocumentPart().setContents(back.getMainDocumentPart().contents);
   assert.deepEqual(back.getMainDocumentPart().warnings, [], 'contents set: the source\'s warnings no longer apply');
 });
@@ -459,7 +460,8 @@ test('phase 4: over the fixtures, a kept load reports the warnings a resolved lo
     for (const options of [{ mcePreprocess: true }, { mcePreprocess: false }]) {
       const pkg = await OpcPackage.load(input, options);
       for (const part of pkg.parts) if (typeof part.readContents === 'function') await part.readContents();
-      loads.push(pkg.warnings);
+      // not part.skipped: taking a Choice types content the model may bind only partly (CR-004 section 7), and the kept load has lost nothing
+      loads.push(pkg.warnings.filter((w) => w.code !== 'part.skipped'));
     }
     const where = path.slice(fixturesDir.length + 1);
     assert.deepEqual(loads[1], loads[0], where);

@@ -216,7 +216,12 @@ test("an element Word doesn't know goes from a w:t with all it holds, as Word 36
     assert.equal(ours.text[1], middle, name);
     assert.deepEqual(ours.text, word.text, name);
     assert.equal(ours.plain, word.plain, name);
-    assert.deepEqual(ours.main.warnings.map((w) => [w.code, w.breaks, w.textElements]), [['br.outside_run', 0, 1]], name);
+    assert.deepEqual(ours.main.warnings.filter((w) => w.code === 'br.outside_run').map((w) => [w.breaks, w.textElements]), [[0, 1]], name);
+    // what went with all it held, named: CR-025 D9
+    const skipped = ours.main.warnings.filter((w) => w.code === 'part.skipped');
+    assert.equal(skipped.length, 1, name);
+    assert.equal(skipped[0].parentName, 'w:t', name);
+    assert.equal(ours.main.warnings.length, 2, name);
     assert.ok(!/ext:opaque|w:madeUp/.test(await ours.main.getXml()), name);
   }
 });

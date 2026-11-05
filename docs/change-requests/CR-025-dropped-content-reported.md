@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
 recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
-shapes allow. CR-026 depends on this CR.
+shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Phase 1 built 2026-11-06 (section 2.8), phases 2 and 3 not. CR-026 depends on this CR.
 
 ## 0. Summary
 
@@ -97,11 +97,12 @@ interface ContentSkippedWarning {
   kind: 'element' | 'attribute' | 'text';
   name: string;         // 'ext:opaque'; for text, its first 80 characters
   parentName: string;   // 'w:sdtPr'
-  parentClass: string;  // 'org_docx4j_wml.SdtPr'
+  parentClass?: string; // 'org_docx4j_wml.SdtPr'; absent for what CR-021's pass removes
   path: string;         // '/w:document/w:body/w:sdt/w:sdtPr/ext:opaque'; an attribute's last step '@ext:a'
   ignorable: boolean;   // its namespace is listed in the part's mc:Ignorable
   line?: number;        // where the parser gives one, as target.misplaced
   column?: number;
+  message: string;
 }
 ```
 
@@ -181,6 +182,7 @@ would last only until the next Word save, so it stays dropped (D4, decided 2026-
 ### 2.6 Not here
 
 - An element that fails its part today: CR-026.
+- A single-valued child given twice in one parent: the runtime keeps the last with no callback, so the report can't see the first, and the gate can't refuse its loss. It isn't only a wildcard such as `a:ext`. Measured on the model 2026-11-06, `w:jc`, `w:b`, `w:sz`, `w:pPr`, `w:rPr`, `w:sectPr` and `w:tblPr` go the same way, and so do `w:sdtContent`, `w:txbxContent` and `w:body`, which take the first's words with them. jsonix traces it to each child being its own `unmarshalProperty` call, so its `Value already set.` never meets the second. It's outside the schema, and none of the 997 packages read here holds it: comparing each source with its save, the only children lost are CR-021's repairs. What Word does with it is unmeasured. A report would need the runtime, a later jsonix CR if Jason wants one.
 - `w:stylePaneFormatFilter`'s attributes in the model: objects CR-019 (D6), docx4j first, with the other gaps in section 1 left to
   its D4.
 - `mc:MustUnderstand` and `mc:ProcessContent`: nothing under `src/` reads them, and neither of this CR's measurements involves them.
@@ -193,6 +195,20 @@ would last only until the next Word save, so it stays dropped (D4, decided 2026-
   where it holds such content.
 - **Added:** `ContentSkippedWarning` (`part.skipped`) on the part and on `pkg.warnings`; `pkg.checkLossOnSave`,
   `pkg.lastSave.lost`; `SaveLossException`.
+
+### 2.8 Phase 1 as built (2026-11-06)
+
+Built at Jason's "after checks 78 and 79, you can start CR-025 phase 1": `src/opc/skipped.mts` holds the warning and its three makers, `XmlPart.unmarshal` passes the three callbacks, and CR-021's pass reports what goes with all it holds. A save is unchanged, since the gate is phase 2.
+
+Five things the build settled:
+
+- **`parentClass` is optional.** No class meets what CR-021's pass removes, so it's absent there, as in python's `skipped_node`. Every other warning has a `message`, so this one does too.
+- **A text's path ends `text()`,** which 2.1 left open.
+- **`mc:Ignorable` off a root** is itself reported, where its class has no place for it, because a re-marshal loses it. That includes a chartsheet's root (`p2-chartsheet.xlsx` in docx4j's `charts/`, with its `xr:uid`, both measured lost).
+- **A prefix that no longer resolves counts by its name.** `mcePreprocess` takes content out of the `mc:Choice` declaring its prefix, and such content would otherwise read `ignorable: false`.
+- **A Choice taken can report what a kept load doesn't.** `cr022-checkbox-linked.xlsx` under `mcePreprocess: true` reports `a14:legacySpreadsheetColorIndex` and `mc:Ignorable` on two `a:srgbClr`, which is CR-004 section 7's binding gap, silent until now. Phase 2's gate will refuse such a part if it's changed.
+
+`test/content-skipped.test.mjs` holds it. Three tests that pinned a whole warning list were narrowed: `br-placement.test.mjs`'s `w:t` files, as D9 said they would be, which now name what went, and two in `mce.test.mjs`, one of whose files puts a `w:txbxContent` straight in a `w:drawing`.
 
 ## 3. Tests and oracles
 
@@ -220,7 +236,7 @@ the new types. The oracle for the fields is python's `SkippedNode` output on the
 
 No dependency on another repository. Phase 1 is additive and could ship alone.
 
-## 5. Decisions (taken 2026-11-05, all as recommended)
+## 5. Decisions (taken 2026-11-05, all as recommended; D7 changed 2026-11-06)
 
 | | Question | Recommendation |
 |---|---|---|
@@ -230,7 +246,7 @@ No dependency on another repository. Phase 1 is additive and could ship alone.
 | D4 | Keep the content rather than drop it (2.5)? | Not now: decide after check 76. Check 76 is in and Word drops it, so: no, drop. Decided 2026-11-05 as recommended (Jason: "CR-025 D4 as recommended") |
 | D5 | The `text` kind: python reports elements and attributes only. | Keep it. Only `72m`'s string is dropped in the corpus, and CR-016 already reports that, so it costs nothing and closes the gap for text elsewhere |
 | D6 | An objects CR to map `w:stylePaneFormatFilter`'s attributes? It's the only real loss measured. | Yes, small, and separate from this CR. Written as objects CR-019 (2026-11-05, proposed): its route is docx4j first |
-| D7 | Which release? | After 0.7.0: that release is ready, and this changes what `save()` does. Phase 1 alone could join it, but there's no need |
+| D7 | Which release? | In 0.7.0, with CR-026 (Jason, 2026-11-06: "CR-025 D7 and CR-026 D5 both say 'after 0.7.0'; please correct to in 0.7.0"). Decided after 0.7.0 on 2026-11-05, because this changes what `save()` does. 0.7.0 holds CR-016's refusal already, so a caller meets both in one release |
 | D8 | The way past the gate: this package's own `pkg.checkLossOnSave`, or python's `repair: 'word'`? | Its own (2.4), reported on `lastSave.lost`. A caller who doesn't care is accepting a loss, not a Word repair, and the policy's switch is wider than this one question |
 | D9 | Raised after D1 to D8: should CR-021's pass report what it removes as `part.skipped` (2.1)? | Yes. Otherwise this CR's report and gate have a hole at `w:t`, the one place an element can go with only a count to show for it. Since CR-026's D6 its text goes too. Decided 2026-11-05 as recommended (Jason: "CR-025 D9 as recommended"). Which elements: only what goes with its content, python's reading (its CR-030 section 11), since `part.skipped` is shared. The first wording, every element but a `w:br` or a nested text element, also listed what gives its text, which would have left a file Word refuses (`76x`, `76y`) as it was and refused a changed part though no words went. Decided 2026-11-06 (Jason: "CR-025 D9's wording: take python's narrower version") |
 
