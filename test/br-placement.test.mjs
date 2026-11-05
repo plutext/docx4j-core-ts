@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { unzipSync, strFromU8 } from 'fflate';
 import { WordprocessingMLPackage, MainDocumentPart, Texts, PlainText, repairBreaksOutsideRuns, mceKeep, parseXml } from '../dist/index.mjs';
 import { breakTokens } from './helpers.mjs';
+import { check76Files } from './fixtures/check76/build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, 'br-placement');
@@ -128,7 +129,7 @@ test('untouched, the part is copied from the source byte for byte; a private rea
 async function bodyOf(content) {
   const pkg = new WordprocessingMLPackage();
   const main = new MainDocumentPart();
-  main.setXml(`<w:document xmlns:w="${W}" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body>${content}</w:body></w:document>`);
+  main.setXml(`<w:document xmlns:w="${W}" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:ext="urn:docx4j:check76"><w:body>${content}</w:body></w:document>`);
   pkg.addTargetPart(main);
   await main.getContents();
   const xml = await main.getXml();
@@ -186,6 +187,57 @@ test('two stray breaks before any run both take the mark\'s properties, decided 
   const nested = await bodyOf('<w:p><w:r><w:t>a<w:t>b<w:br/>c</w:t>d</w:t></w:r></w:p>');
   assert.deepEqual(nested.tokens, ['t:ab', 'br', 't:cd', '¶']);
   assert.deepEqual(nested.main.warnings.map((w) => [w.breaks, w.textElements]), [[0, 2]]);
+});
+
+// Word check 76 (CR-026 sections 4.2 and 4.3, D6): rule 2 was measured for a nested w:t, and docx4j gives every other element's text
+// too. Word drops any other element it reads there with all it holds, so this package does: a departure (CR-021 section 11).
+test("an element Word doesn't know goes from a w:t with all it holds, as Word 365's saves of 76m, 76n, 76u, 76w and 76z read", async () => {
+  const dir76 = join(here, 'check76');
+  const manifest76 = JSON.parse(await readFile(join(dir76, 'manifest.json'), 'utf8'));
+  for (const f of manifest76.files) assert.equal(createHash('sha1').update(await readFile(join(dir76, f.name))).digest('hex'), f.sha1, f.name);
+  const paragraphs = async (bytes) => {
+    const pkg = await WordprocessingMLPackage.load(bytes);
+    const main = pkg.getMainDocumentPart();
+    await main.getContents();
+    return { pkg, main, text: pkg.body.paragraphs.map((p) => p.text), plain: PlainText.of(await Texts.of(pkg)) };
+  };
+  const files = await check76Files();
+  const read = {
+    '76m-ignorable-in-t': 'TARGET TEXT',
+    '76n-ignorable-with-text-in-t': 'TARGET TEXT',
+    '76u-madeup-with-text-in-t': 'TARGET TEXT',
+    '76w-ignorable-holding-a-break-in-t': 'TARGET TEXT',
+    '76z-tab-in-t': 'TARGETTEXT',
+  };
+  for (const [name, middle] of Object.entries(read)) {
+    const word = await paragraphs(new Uint8Array(await readFile(join(dir76, `${name}-word365.docx`))));
+    assert.deepEqual(word.main.warnings, [], name);
+    const ours = await paragraphs(files.find((f) => f.name === name).bytes);
+    assert.equal(ours.text[1], middle, name);
+    assert.deepEqual(ours.text, word.text, name);
+    assert.equal(ours.plain, word.plain, name);
+    assert.deepEqual(ours.main.warnings.map((w) => [w.code, w.breaks, w.textElements]), [['br.outside_run', 0, 1]], name);
+    assert.ok(!/ext:opaque|w:madeUp/.test(await ours.main.getXml()), name);
+  }
+});
+
+test("all it holds: a w:br and a nested w:t in such an element go with it, in a field code and deleted text too", async () => {
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<ext:o>b<w:br/><w:t>c</w:t><ext:deeper>d</ext:deeper></ext:o>e</w:t></w:r></w:p>')).tokens, ['t:ae', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<ext:o>b</ext:o><w:br/>c</w:t></w:r></w:p>')).tokens, ['t:a', 'br', 't:c', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<w:madeUp>b<w:br/><w:t>c</w:t></w:madeUp>d</w:t></w:r></w:p>')).tokens, ['t:ad', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<w:tab/>b</w:t></w:r></w:p>')).tokens, ['t:ab', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t><ext:o>only</ext:o></w:t></w:r></w:p>')).tokens, ['¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<w:t>b<ext:o>c</ext:o>d</w:t>e</w:t></w:r></w:p>')).tokens, ['t:abde', '¶']);
+  const held = await bodyOf('<w:p><w:del w:id="1" w:author="a"><w:r><w:delText>a<ext:o>b</ext:o>c</w:delText></w:r></w:del></w:p>');
+  assert.deepEqual(held.tokens, ['delText:ac', '¶']);
+  assert.ok(!(await bodyOf('<w:p><w:r><w:instrText>a<ext:o>b</ext:o>c</w:instrText></w:r></w:p>')).xml.includes('>b<'));
+});
+
+test('an element in no namespace, which Word refuses, and one in a namespace Word knows, unmeasured, give their text as docx4j has them (CR-021 section 11)', async () => {
+  // no namespace is docx4j's survey sample 01af91808eac's shape; Word could not repair 76x or 76y
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<span>b</span>c</w:t></w:r></w:p>')).tokens, ['t:abc', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<br/>c</w:t></w:r></w:p>')).tokens, ['t:ac', '¶']);
+  assert.deepEqual((await bodyOf('<w:p><w:r><w:t>a<m:t>b</m:t>c</w:t></w:r></w:p>')).tokens, ['t:abc', '¶']);
 });
 
 test('insertOoxml: a fragment with a w:br outside a run, into a created package (no hook), and a pkg:package whose w:t holds one', async () => {

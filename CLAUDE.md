@@ -216,7 +216,7 @@ Key mechanics:
   `repairBreaksOutsideRuns` runs in `XmlPart.preprocess` on every parse, ahead of the package's hook (and before it on
   `insertOoxml`'s fragment route): a break in a run container gets a run of its own, with the mark's run properties while no
   run precedes it in its paragraph; a `w:t`, `w:instrText`, `w:delText` or `w:delInstrText` holding elements (which the runtime
-  refuses, failing the part) becomes its text and its breaks; a break in `w:body` goes into the next paragraph. Each is decided
+  refuses, failing the part) becomes its text and its breaks, a nested text element giving its text and any other `w:` element or one in a namespace Word doesn't know going with all it holds (check 76, CR-021 section 11, where docx4j gives its text); a break in `w:body` goes into the next paragraph. Each is decided
   on the tree as read. One `br.outside_run` warning a part, docx4j's counts; such a break is then no misplaced child. A clean
   part pays one walk (0.4% of a load); an untouched part is still copied byte for byte.
 - **Dates are in the package's zone** (CR-018, the portfolio's date rule, docx4j CR-067 D12). A revision's or a comment's `w:date`
@@ -453,7 +453,7 @@ dates in Word's zone), the readers writing nothing, and check 73b's snippet thro
 `br-placement.test.mjs` CR-021's: docx4j CR-073's br-placement probe and Word 365's saves (`test/br-placement/`, copied unedited with a SHA-1 manifest,
 outside `fixtures/`): each probe's `br.outside_run`, `Paragraph.text` and the text model held to Word's save (`br2-3`'s bare field code, D5, pinned), the save
 after unmarshalling unrefused and each story part's tokens (docx4j `BrOutsideARunTest`'s comparison, `breakTokens` in `helpers.mjs`) Word's save's, an untouched
-save byte for byte, docx4j's edge tests mirrored, `insertOoxml`'s two routes and a caller's own hook,
+save byte for byte, docx4j's edge tests mirrored, `insertOoxml`'s two routes and a caller's own hook, and check 76's `76m`, `76n`, `76u`, `76w` and `76z` (`check76Files`, `test/fixtures/check76/`) held to Word's saves (`test/check76/`, with a SHA-1 manifest), the shapes Word refuses or nothing measures pinned,
 `dates.test.mjs` CR-018's: the zone option and its refusals, a revision stamped and a `w:date` without `dateUtc` read in five zones (docx4j's `PackageDateTimeZoneTest`
 mirrored), a comment to the minute, the bound-date opt-in off and on, `writeTimesOnSave` on a created, a loaded and a stripped package, `clone()`,
 `duplicate-entries.test.mjs` CR-024's: a package holding two entries of one name, each store, the option, the warning and the save, and Word check 75's saves (`test/check75/`, with a SHA-1 manifest; `test/fixtures/check75/build.mjs` builds the files, git-ignored),

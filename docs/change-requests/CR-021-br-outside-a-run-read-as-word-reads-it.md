@@ -135,7 +135,7 @@ WordprocessingML namespace:
    under the same name with the nearest ancestor's `xml:space` (none where none is set; this line said `preserve` until
    the implementation, section 10), and its `w:br`s, in order, in the same run.
    - A nested `w:t` gives its text.
-   - Text in any other child element is kept.
+   - Text in an element in no namespace, or in a namespace Word knows other than `w:`, is kept. Any other element goes with all it holds (section 11).
    - Whitespace between children is kept only where `xml:space` preserves it.
    - A `br` in no namespace is not a break, and only its text is kept: docx4j's survey sample `01af91808eac`.
 3. **A `w:br` directly in `w:body`** goes into the next `w:p` as its first run, after its `w:pPr`, with that mark's
@@ -311,3 +311,31 @@ Jason, 2026-11-03: "CR-021 as recommended". One phase, as section 6 has it.
   misplaced), the readers (the break) and the save (unrefused, Word's save's tokens). The gate is unchanged: no fixture
   warns. 1,688 tests, all passing; typecheck clean.
 
+## 11. An element Word doesn't know in a text element (2026-11-05)
+
+Word check 76 (CR-026 sections 4.2 and 4.3). `76n` has `<ext:opaque>HIDDEN WORDS</ext:opaque>` in a `w:t`, `ext` in `mc:Ignorable`, and
+`76u` the same with `w:madeUp`. Word reads `TARGET TEXT` in both. Rule 2 read `TARGET HIDDEN WORDSTEXT`, under a warning saying "read
+as Word reads them". It had been measured for a nested `w:t`, which Word knows. Jason, 2026-11-05: "we should fix the bug (76n)".
+
+`splitText` now takes an element in a text element by `givesItsText`:
+
+| The element | Word 365 | Here |
+|---|---|---|
+| `w:br` | A break (`br-3-t-mixed`) | A break |
+| A nested text element | Its text (`br-4-t-nested`) | Its text |
+| `w:madeUp`, `w:tab` | Gone with all it holds (`76u`, `76z`) | Gone, as any other `w:` element |
+| In a namespace Word doesn't know, ignorable | Gone with all it holds, a `w:br` included (`76n`, `76w`) | Gone |
+| The same, not ignorable | Could not repair it (`76v`) | Gone, as `76n` |
+| In no namespace | Could not repair it (`76x`, `76y`) | Its text, as docx4j |
+| In a namespace Word knows, not `w:` | Unmeasured | Its text, as docx4j |
+
+Two rows go beyond what was measured. A known `w:` name holding text, a `w:r` say, goes with `w:madeUp`, since nothing here can tell
+them apart and `w:tab` is the one known name measured. And Word gives no reading to match in the rows it refuses, so a caller who means
+to fix such a file gets what docx4j gives where the text might be wanted, and `76n`'s reading where it's a foreign element.
+`textElements` still counts the text element. No probe, fixture or golden holds any of these, so nothing moved.
+
+**A departure from docx4j,** whose `split-text` template gives every element's text, and from python's `_split`, the same by reading
+them. Both are to be told.
+
+`76m`, `76n`, `76u`, `76w` and `76z` are held to Word's saves in `br-placement.test.mjs`. The new tests fail on the old condition, and on
+`76n`'s fix alone; the pin for no namespace and a known namespace fails on a wider one, every namespace but `w:`.

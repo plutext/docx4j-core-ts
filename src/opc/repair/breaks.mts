@@ -12,12 +12,14 @@
 // 1. a w:br in a run container gets a w:r of its own, with the paragraph mark's run properties while no
 //    run precedes it in its paragraph, none after one;
 // 2. a w:t, w:instrText, w:delText or w:delInstrText holding elements becomes its stretches of text and
-//    its breaks, in order, in the same run, a w:t nested in it giving its text;
+//    its breaks, in order, in the same run, a w:t nested in it giving its text, any other w: element and
+//    one in a namespace Word doesn't know going with all it holds (Word check 76, CR-021 section 11; docx4j gives its text);
 // 3. a w:br directly in w:body goes into the next paragraph as its first run, with that mark's
 //    properties, else becomes a paragraph of its own.
 // Each rule is decided on the tree as read, as the stylesheet's templates are, before anything moves.
 // A clean part pays one walk over its DOM, which allocates nothing (CR-021 section 2: 0.4% of a load).
 import { childElements } from '../../xml/dom.mjs';
+import { READ_UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const XML_NS = 'http://www.w3.org/XML/1998/namespace';
@@ -231,7 +233,7 @@ function create(like: Element, local: string): Element {
 /**
  * Rule 2: the text element's stretches of text, each under its name, and its w:brs, in order, in its place. A
  * stretch is XPath's text node (adjacent text and CDATA together), its `xml:space` the nearest ancestor's, and kept
- * only where that preserves it or it holds more than whitespace; an element other than a w:br gives its own.
+ * only where that preserves it or it holds more than whitespace. Any other element gives its text only as `givesItsText` says.
  */
 function splitText(t: Element): void {
   const out: Node[] = [];
@@ -252,7 +254,7 @@ function splitText(t: Element): void {
       if (c.nodeType === 1) {
         const e = c as Element;
         if (e.namespaceURI === W && e.localName === 'br') out.push(bare(e));
-        else visit(e);
+        else if (givesItsText(e)) visit(e);
       }
       c = c.nextSibling;
     }
@@ -261,6 +263,17 @@ function splitText(t: Element): void {
   const parent = t.parentNode as Node;
   for (const piece of out) parent.insertBefore(piece, t);
   parent.removeChild(t);
+}
+
+/**
+ * Whether an element in a text element gives its text (CR-021 section 11). As Word 365 reads it, a nested text element does, and
+ * any other w: element and one in a namespace Word doesn't know go with all they hold (check 76's `76n`, `76u`, `76w`, `76z`). Word
+ * refuses an element in no namespace (`76x`, `76y`), so docx4j's reading stands there; a namespace Word knows is unmeasured.
+ */
+function givesItsText(e: Element): boolean {
+  const namespace = e.namespaceURI;
+  if (namespace === W) return TEXTS.has(e.localName);
+  return !namespace || READ_UNDERSTOOD_NAMESPACES.has(namespace);
 }
 
 function spaceOf(holder: Element): string {

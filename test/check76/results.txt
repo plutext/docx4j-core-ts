@@ -1,0 +1,8 @@
+Jason, 2026-11-05, Word 365 on a PC, each file opened, saved -word365.docx and exported to .pdf.
+
+Round 1, 76-control to 76n:
+"check 76 all opened ok except 76e which word could not repair.  see -word365.docx and .pdf in the dir"
+
+Round 2, 76o to 76z:
+"check 76 word could not repair p q r s v x y. for others  see -word365.docx and .pdf in the dir"
+"76o is a could not repair"

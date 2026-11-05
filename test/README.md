@@ -5761,3 +5761,77 @@ async function check() {
    - **In the repository:** Word's eleven saves and Jason's `results.txt` are in `test/check75/`, with a SHA-1 manifest.
      `duplicate-entries.test.mjs` holds CR-024's reading of the files to them: `75a` refused, and read under `'first'` as Word
      reads it; `75j` clean; the non-ASCII saves holding no header.
+
+76. What Word 365 does with an element or attribute it can't know (CR-026 section 4, 2026-11-05; Jason: "walk me through word
+   check 76").
+   - **Why:** an unknown element fails its part here in 20 of 32 hosts, and is dropped or read past by docx4j and python. Check
+     36 is the only measurement of Word against a namespace it doesn't know, one element in Word 2010. CR-026 D1 and D3 and CR-025
+     D4 were decided subject to this: keep or drop, and each shape's tier in the repair policy.
+   - **The files** are on the share in `__tmp/76/`, fifteen of them in round 1, as `fixtures/check76/build.mjs` writes them (written only to
+     the directory it's given, since CR-016's gate walks `fixtures/`; `check76Files` gives a test the same bytes). Each says on
+     its page what it holds. Its middle paragraph reads `TARGET TEXT` and its last `LAST LINE.`:
+     - `76-control`: nothing unknown, `ext` declared and ignorable and used nowhere; the control for the writer, which check 75
+       needed a round to establish;
+     - `76a` to `76d`: `ext:opaque`, `ext` in `mc:Ignorable`, in a `w:sdtPr`, a `w:p`, a `w:r` and a `w:tc`;
+     - `76e`: `ext:opaque` in a `w:p`, `ext` declared and not ignorable;
+     - `76f`, `76g`: `w:madeUp` in a `w:p` and in a `w:pPr`;
+     - `76h`, `76i`: the attribute `ext:note` on a `w:p`, ignorable and not;
+     - `76j`: the attribute `w:madeUp` on a `w:p`;
+     - `76k`: `ext:opaque` in a `w:p`, ignorable, holding a run reading `HIDDEN WORDS`;
+     - `76l`: `ext:opaque` in a `w:b`, ignorable, on bold text;
+     - `76m`: an empty `ext:opaque` inside a `w:t`, between `TARGET` and `TEXT`, ignorable;
+     - `76n`: `ext:opaque` inside a `w:t`, ignorable, holding the text `HIDDEN WORDS`.
+   - **Steps, in Word 365 only.** No Script Lab, and nothing typed into any file. Close every Word window first.
+     1. File > Open `__tmp/76/76-control.docx`. Say which of these happens: it opens with no message; Word says it found
+        unreadable content and asks whether to recover it (click Yes, and say what it says next); or Word says it can't open the
+        file (say the message's words).
+     2. If it opened, see that all three paragraphs are there, the middle one reading `TARGET TEXT`. In `76k` and `76n`, say
+        whether `HIDDEN WORDS` shows in that middle paragraph (the first line names the words). In `76l`, say whether the text is bold.
+     3. If it opened, File > Save As its name with `-word365` before `.docx`, in `__tmp/76`. Then File > Close.
+     4. The same for `76a` to `76n`, in order.
+   - **What the answers say:**
+     - `76-control` must open with no message, or nothing else here counts.
+     - Each file's prompt is its tier: no message 1, a repair 2, a refusal 3. CR-026 D3 reads all three; the tier says what the
+       `part.skipped` warning means there.
+     - `76a` to `76d` and `76h` opening with no message is what markup compatibility asks of an ignorable namespace.
+     - What `ext:opaque` and `ext:note` do in Word's saves answers keep or drop: dropped, and CR-026 D1 and CR-025 D4 stand; kept,
+       and they're to be looked at again.
+     - `76k`: `HIDDEN WORDS` not showing means dropping the element drops nothing Word shows. Showing means it does, and CR-026 D4
+       has to say so.
+     - `76l` opening tells jsonix-CR-015's U2 what Word does with a host its branch doesn't reach; `76m` and `76n` tell CR-021's rule
+       whether an element Word doesn't know inside a `w:t` is read past, and its text with it. Here `76n`'s words read as text, until CR-026's D6.
+   - **Run 2026-11-05, Word 365** (Jason: "check 76 all opened ok except 76e which word could not repair"; the saves and Word's PDFs
+     in `test/check76/`, with a SHA-1 manifest and those words in `results.txt`; CR-026 section 4.1 has the table):
+     - `76-control` opened with no message, so the rest count, and so did every other file but `76e`: tier 1.
+     - `76e` didn't open: Word could not repair it. Tier 3, with no save, in the one host tried.
+     - Every save has dropped what Word didn't know: the element with all it held, the attribute, and the namespace's declaration
+       and `mc:Ignorable` entry. All 14 read here with no warning. Word repaired nothing, so nothing is tier 2.
+     - `76k`: `HIDDEN WORDS` not shown or saved, the runs either side joined.
+     - `76l`: `<w:b/>` in the save, the text bold in the PDF.
+     - `76m`: one `w:t` reading `TARGET TEXT`, the same text as here.
+     - `76n`: `TARGET TEXT`, the words gone with the element. Here it read `TARGET HIDDEN WORDSTEXT`, CR-021's rule 2 being wrong
+       for an element Word doesn't know. Fixed the same day (CR-026 section 4.2, D6; CR-021 section 11).
+     - What Word refused was an element in a namespace it doesn't know. An attribute in one it read past (`76i`), and an unknown
+       name in `w:` too (`76f`, `76g`, `76j`), though none of these is ignorable.
+   - **Round 2** (Jason: "let's do the second round of files"; CR-026 section 4.3). Twelve more files
+     in `__tmp/76/`, each saying on its page what it holds:
+     - `76o` to `76s`: `76e`'s `ext:opaque`, not ignorable, in a `w:sdtPr`, a `w:pPr`, a `w:r`, a `w:tc` and a `w:b`;
+     - `76t`: `w:madeUp` in a `w:p`, holding a run reading `HIDDEN WORDS`;
+     - `76u`, `76v`: inside a `w:t`, holding the text `HIDDEN WORDS`: `w:madeUp`, and `ext:opaque` not ignorable;
+     - `76w`: `ext:opaque`, ignorable, inside a `w:t`, holding a `w:br`;
+     - `76x`, `76y`: inside a `w:t`, in no namespace: a `span` holding `HIDDEN WORDS`, and an empty `br`, the shape of docx4j's survey
+       sample `01af91808eac`;
+     - `76z`: a `w:tab` inside a `w:t`.
+
+     Steps 1 and 3 above, for each in order from `76o`, with Word's PDF as in round 1: File > Save As, PDF, `<name>.pdf`. Close every
+     Word window first. The saves and PDFs answer what shows, so only a message needs reporting, with its words.
+   - **Round 2 run 2026-11-05, Word 365** (Jason: "word could not repair p q r s v x y. for others see -word365.docx and .pdf in the
+     dir"; "76o is a could not repair"; saves and PDFs in `test/check76/`):
+     - `76o` to `76s`, `76v`: could not repair them, so a foreign element that isn't ignorable is refused in all seven hosts tried, with
+       `76e`.
+     - `76x`, `76y`: could not repair them, so an element in no namespace is refused too.
+     - `76t`: no message, and **`HIDDEN WORDS` shows**: the run inside `w:madeUp` read and saved, the element gone. Dropping it, as CR-026
+       decided, would lose words Word shows (section 4.4, D7).
+     - `76u`: no message, `TARGET TEXT`, the words gone. Here it read `TARGET HIDDEN WORDSTEXT`, `76n`'s bug again, fixed the same day
+       (CR-021 section 11).
+     - `76w`: no message, `TARGET TEXT`, no break. `76z`: no message, `TARGETTEXT`, no tab. Both as here.

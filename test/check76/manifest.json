@@ -1,0 +1,156 @@
+{
+ "check": 76,
+ "word": "Word 365, PC (Jason, 2026-11-05; two rounds; no Script Lab, nothing typed; saved 11:19 to 11:55 and 12:25 to 12:31, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected)",
+ "source": "test/fixtures/check76/build.mjs (27 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z)",
+ "results": "results.txt is Jason's record, unedited. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y, so they have no save or PDF. The other 18 opened with no message (results.txt names none). Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but in 76t, where Word read the run inside w:madeUp.",
+ "files": [
+  {
+   "name": "76-control-word365.docx",
+   "sha1": "29fc474e0f3d3e38eea2327c55205a5445d42e1d"
+  },
+  {
+   "name": "76a-ignorable-in-sdtPr-word365.docx",
+   "sha1": "e1b1ad1fe5ff9d38c617d81142d8069e02089ec0"
+  },
+  {
+   "name": "76b-ignorable-in-p-word365.docx",
+   "sha1": "8c45b3ab187edb72a89551c9c2ebc6342e6c41f1"
+  },
+  {
+   "name": "76c-ignorable-in-r-word365.docx",
+   "sha1": "b43eaced63ddbfebab2043aa446c613a63cbb4e1"
+  },
+  {
+   "name": "76d-ignorable-in-tc-word365.docx",
+   "sha1": "314a0b159d828b2c2c04a421bc854a6b8c249e8a"
+  },
+  {
+   "name": "76f-madeup-in-p-word365.docx",
+   "sha1": "dc39a0ec0f3dff5fbc5ca1eeeac634cd3509eb92"
+  },
+  {
+   "name": "76g-madeup-in-pPr-word365.docx",
+   "sha1": "e3130b7c2c43bd32c84cd4984c80f2c38f3e1e64"
+  },
+  {
+   "name": "76h-ignorable-attribute-word365.docx",
+   "sha1": "15caf8741b58f6f20f35aecbc0bbc81735edc85f"
+  },
+  {
+   "name": "76i-not-ignorable-attribute-word365.docx",
+   "sha1": "594e89554feda4cacfc1e017adcaf01c193461a3"
+  },
+  {
+   "name": "76j-madeup-attribute-word365.docx",
+   "sha1": "e102a7ed5234b83ba8c9c00af71fedb64a58e2be"
+  },
+  {
+   "name": "76k-ignorable-holding-a-run-word365.docx",
+   "sha1": "25e39b3045fbe39acd8c093cba132d56676e8372"
+  },
+  {
+   "name": "76l-ignorable-in-b-word365.docx",
+   "sha1": "7e49c3d86410643217f1e985e10751e641b56c8e"
+  },
+  {
+   "name": "76m-ignorable-in-t-word365.docx",
+   "sha1": "d9bba7b71fff4855a046ee9bd25a65eb4757b075"
+  },
+  {
+   "name": "76n-ignorable-with-text-in-t-word365.docx",
+   "sha1": "d0366627e7b508d3baf5fac21b4389d387157f88"
+  },
+  {
+   "name": "76t-madeup-holding-a-run-word365.docx",
+   "sha1": "54c33f117654999a97052e7baba9c3c0edfbfcf0"
+  },
+  {
+   "name": "76u-madeup-with-text-in-t-word365.docx",
+   "sha1": "8f4e8bdeb21ec1e1c27413b259c0f06327573832"
+  },
+  {
+   "name": "76w-ignorable-holding-a-break-in-t-word365.docx",
+   "sha1": "a307adb3704418a079f5a4431366045e3594b659"
+  },
+  {
+   "name": "76z-tab-in-t-word365.docx",
+   "sha1": "9d62f2499aa6908b624514200a2c72cf5634a438"
+  },
+  {
+   "name": "76-control.pdf",
+   "sha1": "39263a51e6b096fd61261188f6e612d6472fe896"
+  },
+  {
+   "name": "76a-ignorable-in-sdtPr.pdf",
+   "sha1": "62fd24f7fa587184c0ff0fee47f88773d2bc4c62"
+  },
+  {
+   "name": "76b-ignorable-in-p.pdf",
+   "sha1": "0fe04dec0d423777842649b456a7b0057b873cc1"
+  },
+  {
+   "name": "76c-ignorable-in-r.pdf",
+   "sha1": "e90b762296dcffc180e9664ab86a262ec00d913e"
+  },
+  {
+   "name": "76d-ignorable-in-tc.pdf",
+   "sha1": "fe42a7d519abf57c967e7b44522e4cb7fb469c2f"
+  },
+  {
+   "name": "76f-madeup-in-p.pdf",
+   "sha1": "ef23e3007e7b0b3fd5de90da4f99fbb44c81c925"
+  },
+  {
+   "name": "76g-madeup-in-pPr.pdf",
+   "sha1": "a1c9e102f968c91ec48e23ae4d69f03a93e062a0"
+  },
+  {
+   "name": "76h-ignorable-attribute.pdf",
+   "sha1": "d6bbe40b0ed6d585b4d5953bd0c6484a215aedcb"
+  },
+  {
+   "name": "76i-not-ignorable-attribute.pdf",
+   "sha1": "c3ba06b609d5fda7a553f2839dd795688ba32331"
+  },
+  {
+   "name": "76j-madeup-attribute.pdf",
+   "sha1": "a5cd275442f07e9dd54677e4d4253cc93c68e95d"
+  },
+  {
+   "name": "76k-ignorable-holding-a-run.pdf",
+   "sha1": "b53899494faa7a540919ae7d12c9af0df594d494"
+  },
+  {
+   "name": "76l-ignorable-in-b.pdf",
+   "sha1": "3b29ad695a69ecca67cc3af0512dbb35cd39b09f"
+  },
+  {
+   "name": "76m-ignorable-in-t.pdf",
+   "sha1": "631bc2e2acb0e64262fdf123f70a27dd665cd344"
+  },
+  {
+   "name": "76n-ignorable-with-text-in-t.pdf",
+   "sha1": "58cb566ab236da74fb720e502a35d932868c4bfb"
+  },
+  {
+   "name": "76t-madeup-holding-a-run.pdf",
+   "sha1": "de88f9c49bdc478aaef53aaffc8a8611d1652b2b"
+  },
+  {
+   "name": "76u-madeup-with-text-in-t.pdf",
+   "sha1": "9ea755925016a097da229a89945608f77d790ce8"
+  },
+  {
+   "name": "76w-ignorable-holding-a-break-in-t.pdf",
+   "sha1": "1f7991d4316b24e34f1467be48062dbdcf153999"
+  },
+  {
+   "name": "76z-tab-in-t.pdf",
+   "sha1": "797c48a9970670e5b485e0776146b82edf11f5fa"
+  },
+  {
+   "name": "results.txt",
+   "sha1": "ba79324e12d001333c5207aed5ff773f121b0aa0"
+  }
+ ]
+}

@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
-recommended"; section 5), D1's code subject to python's agreement; D2 is P7 for this package. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
+recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D9, raised afterwards, and D4, which waited for Word check 76 (run 2026-11-05), are for Jason. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
 shapes allow. CR-026 depends on this CR.
 
 ## 0. Summary
@@ -20,7 +20,7 @@ jsonix has been able to report all of this since its CR-006. This package has ne
    the caller has said the loss doesn't matter (`pkg.checkLossOnSave = false`).
 
 The case is rare in what we hold: 1 package of 720, one Word 2010 setting. Step 2 is what stops that file's readers being
-refused.
+refused. The model can lose more than that corpus shows, a password hash among it (section 1).
 
 ## 1. Here today (measured 2026-11-05, `b07134f`, objects 0.7.0, `@docx4j/jsonix` 3.11.0)
 
@@ -39,7 +39,8 @@ refused.
 
 **A real file.** `test/fixtures/parity/NumberingImplicitNumId.docx` (Word 2010, `AppVersion` 14.0000) has a
 `w:stylePaneFormatFilter` holding `w:val="3F01"` and 15 more attributes (`w:allStyles`, `w:customStyles`, ...). The model maps
-only `w:val`, so a re-marshal writes `<w:stylePaneFormatFilter w:val="3F01"/>`.
+only `w:val`, so a re-marshal writes `<w:stylePaneFormatFilter w:val="3F01"/>`. Objects CR-019 finds the 15 repeat `w:val`'s bits,
+so this is a loss of form rather than state.
 
 **The corpus.** Every package committed under `test/`, through the real load path with the callbacks attached in memory:
 
@@ -53,6 +54,19 @@ only `w:val`, so a re-marshal writes `<w:stylePaneFormatFilter w:val="3F01"/>`.
 This corpus was gathered for other reasons, so it says the case is rare in what we hold and no more. docx-platform-tests' four
 content-control inputs, read as data (CR-023 section 1), hold both shapes. python reports its samples' `part.skipped` empty too.
 
+**What the model can lose beyond the corpus.** Objects CR-019 compared `wml.xsd` with ISO 29500's transitional schema. Each of
+these was then measured through the facade here. None is in the 724 packages, and how often they occur in the wild isn't known:
+
+| Element | Dropped | What's left |
+|---|---|---|
+| `w:documentProtection` | `w:algorithmName`, `w:hashValue`, `w:saltValue`, `w:spinCount` | `w:edit` and `w:enforcement`: **the restriction stays and the password hash goes**, a loss of state |
+| `w:writeProtection` | The same four | An empty element |
+| `w:cnfStyle` | Its on/off attributes | `w:val` |
+| `w:numFmt` | `w:format`, and `w:val="custom"` is refused too | `<w:numFmt/>` |
+| `w:tc` | `w:id` | The cell |
+
+The older `w:hash`, `w:salt` and `w:crypt*` attributes round trip.
+
 **The other ports.**
 
 | | The read | Reported | A re-marshal |
@@ -62,8 +76,9 @@ content-control inputs, read as data (CR-023 section 1), hold both shapes. pytho
 | this package | drops | nothing | loses it |
 
 **Word.** Check 36: Word 2010's saves drop what it doesn't know, declared or not (`w15:appearance`, `w16du:dateUtc`), and Word
-365's saves keep those two, which it knows. What Word 365 does with a namespace it doesn't know is unmeasured; CR-026's check 76
-asks.
+365's saves keep those two, which it knows. Check 76 (CR-026 section 4) has Word 365 the same: its saves drop what it doesn't know,
+attribute or element and all the element held, with no message, or it refuses the file. The exception is a run inside an unknown `w:`
+element, which it reads (`76t`, CR-026 D7).
 
 ## 2. Proposal
 
@@ -94,12 +109,19 @@ interface ContentSkippedWarning {
 `ignorable`, `column` and the `text` kind are this package's. A string CR-016's walk already reports as `target.misplaced` isn't
 reported twice. Parts are unmarshalled lazily, so a part never read reports nothing, and has lost nothing.
 
+**One route doesn't reach the callbacks (D9).** CR-021's pass runs first, so an element in a `w:t`, `w:instrText`, `w:delText` or
+`w:delInstrText` is gone before the runtime sees it: `<w:t>a<ext:opaque/>b</w:t>` becomes `<w:t>a</w:t><w:t>b</w:t>`. All that shows
+is `br.outside_run`'s `textElements` count, which names nothing, and the gate can't see it. Phase 1 has the pass add a `part.skipped`
+for each element it removes that isn't a `w:br` or a nested text element, so the report and the gate cover it. Check 76 raises the
+stakes: Word drops such an element with its text, and since CR-026's D6 so does the pass, so words go here with only a count to show for them.
+
 ### 2.2 A part read and not changed is copied (D3)
 
 The save re-marshals every unmarshalled part because it can't tell a part that was read from one that was changed. For a part
 holding `part.skipped` warnings, and only such a part, it can afford to find out: unmarshal the source bytes again and compare
 that tree's marshal with the current tree's. If they're equal, nothing changed, so the source bytes are copied as for an untouched
-part, with nothing lost and nothing refused.
+part, with nothing lost and nothing refused. Like an untouched part it then skips what a marshal does: the normalising (CR-015) and
+the checks for values past Word's range and for misplaced content, so `lastSave` lists nothing for it.
 
 Tried on the settings part of the real file above: equal after a read, unequal after setting `zoom`, about 15 ms including a
 package load. That is one part. Phase 2 has to hold it over every fixture with skipped content injected.
@@ -115,6 +137,9 @@ python's message and this package's way out:
 What the gate never refuses: a part not re-marshalled, a part 2.2 copies, a part given new contents with `setContents` (the caller
 replaced the tree).
 
+The gate asks more than Word does. Where Word 365 opens such a file, its own save drops this content with no message (check 76). `checkLossOnSave` is
+how a caller takes Word's behaviour.
+
 ### 2.4 Saving anyway (D8)
 
 A caller who doesn't care about the loss sets `pkg.checkLossOnSave = false` (on by default). The part is written without the items,
@@ -123,22 +148,37 @@ and each goes to a new `pkg.lastSave.lost`, so the save still says what went. It
 `saveTo` alike, where a per-call flag would have to go on all three. 2.2 still runs, so a part read and not changed is copied
 whatever the setting: the switch only decides what happens to a part that really would lose something.
 
-It is deliberately not the repair policy's `repair` switch, which python's CR-033 uses here. That switch changes how a file is
-read (R3: a part reads as Word's repair gives it, and `duplicateEntries: 'first'` would become its alias if the WD folds it in, CR-024 section 2.7). A
-caller who only wants this save to go through shouldn't have to take repaired readings with it. So this CR builds no `repair`; if
-core-ts builds that switch, turning it on turns this check off too. python may want the same split.
+It is deliberately not the `repair` switch python's CR-033 uses here. In CR-033 section 4.4 that switch is the caller's Yes to Word's
+prompt, given in advance, and decides only whether a lossy save may be written, the load reading the same either way. This package
+has its own switch for three reasons:
+- A caller here is accepting a loss, not a Word repair. Check 76 bears this out: Word repaired none of this content. It dropped it
+  with no message, or refused the file and couldn't repair it (`76e`), so in no case measured is there a prompt for a Yes to stand for.
+- The policy's switch is wider than this one question: R2 leaves `duplicate_entries: first` to fold into it, which would change what
+  a load reads (CR-024 section 2.7).
+- `...OnSave` is this package's form for what a save does.
+
+So this CR builds no `repair`; if core-ts builds that switch, turning it on turns this check off too. It's a recorded difference
+between the ports: python keeps `repair` (its CR-033 Q5, Jason's ruling of 2026-11-05), to be looked at again if P4 folds
+`duplicate_entries` into that switch.
+
+**A file Word refuses.** `76e` will read here under CR-026, and a read and a save leave it as it was: 2.2 copies the part, element and
+all, so Word goes on refusing it. Nothing is made worse, and `part.skipped` has said what's there. For the save to be the fix, the
+caller gives the part its tree back, `part.setContents(await part.getContents())`, and the part is written without the element. So 2.2
+has to pass over a part given new contents, as 2.3 does.
 
 ### 2.5 Keeping instead of dropping (D4)
 
 An attribute could be kept: recorded against its typed object on the read and written back on the marshal, which the facade's
 source-binding records and CR-006's binder suggest is possible, though nothing here has tried it. The portfolio's
-`benchmarking.md` has this as an open question for Jason (keep, or drop as Word drops unknown ignorable content on save), and Word
-365 is unmeasured. Kept content would give the gate nothing to refuse, so this CR doesn't close the door, but it waits for check 76.
+`benchmarking.md` has this as an open question for Jason (keep, or drop as Word drops unknown ignorable content on save). Check 76
+answers the second half for Word 365: it drops the markup, ignorable or not, or refuses the file. Kept content would give the gate nothing to refuse, but it
+would last only until the next Word save, so D4 now recommends leaving it dropped.
 
 ### 2.6 Not here
 
 - An element that fails its part today: CR-026.
-- `w:stylePaneFormatFilter`'s attributes in the model: an objects CR if Jason wants it (D6).
+- `w:stylePaneFormatFilter`'s attributes in the model: objects CR-019 (D6), docx4j first, with the other gaps in section 1 left to
+  its D4.
 - `mc:MustUnderstand` and `mc:ProcessContent`: nothing under `src/` reads them, and neither of this CR's measurements involves them.
 - A `DefaultXmlPart`, which has no model to drop anything.
 
@@ -158,8 +198,10 @@ source-binding records and CR-006's binder suggest is possible, though nothing h
 - an untouched save byte for byte; a part read and not changed copied byte for byte, attributes kept;
 - a part changed: refused with nothing written, the message and `losses`; with `checkLossOnSave` off written, with
   `lastSave.lost`, through `save`, `saveFlatOpc` and `saveTo`; `clone()` carrying it; a part read and not changed copied with it off too;
+- an element in a `w:t` reported by CR-021's pass, the gate counting it (D9);
 - `NumberingImplicitNumId.docx` reporting its 15 and no other fixture reporting any, a count guard that holds on a clean checkout,
-  since git-ignored built fixtures aren't on CI.
+  since git-ignored built fixtures aren't on CI. Objects CR-019 takes those 15 to 0 when it lands, so this is the only test that may
+  rest on that file: the fields and the gate use injected attributes.
 
 The gate re-runs CR-016's corpus: every file saves unrefused after unmarshalling, the real file through 2.2. `test/nodenext` names
 the new types. The oracle for the fields is python's `SkippedNode` output on the same files, compared once by hand.
@@ -178,14 +220,15 @@ No dependency on another repository. Phase 1 is additive and could ship alone.
 
 | | Question | Recommendation |
 |---|---|---|
-| D1 | The warning's code. `part.skipped` is python's member name, not yet a shared code. | `part.skipped`, settled with python first, as `target.misplaced` was |
+| D1 | The warning's code. `part.skipped` is python's member name, not yet a shared code. | `part.skipped`, settled with python first, as `target.misplaced` was. Agreed: python's CR-033 Q9 (`f96f463`) |
 | D2 | P7 for this package: does a save refuse, or only report? | Refuse, as python's CR-033 does and CR-016 does for misplaced content. With 2.2 only a changed part can be refused. The cost is a `Changed` line: a save that worked today throws |
-| D3 | Copy a part read but not changed (2.2)? python's gate has no such step. | Yes, and tell python. Without it the real file's readers are refused for a style pane filter they never touched |
-| D4 | Keep the content rather than drop it (2.5)? | Not now: decide after check 76 |
+| D3 | Copy a part read but not changed (2.2)? python's gate had no such step. | Yes, and python took it too (its CR-033 Q8). Without it the real file's readers are refused for a style pane filter they never touched |
+| D4 | Keep the content rather than drop it (2.5)? | Not now: decide after check 76. Check 76 is in and Word drops it, so: no, drop. Open for Jason |
 | D5 | The `text` kind: python reports elements and attributes only. | Keep it. Only `72m`'s string is dropped in the corpus, and CR-016 already reports that, so it costs nothing and closes the gap for text elsewhere |
-| D6 | An objects CR to map `w:stylePaneFormatFilter`'s attributes? It's the only real loss measured. | Yes, small, and separate from this CR |
+| D6 | An objects CR to map `w:stylePaneFormatFilter`'s attributes? It's the only real loss measured. | Yes, small, and separate from this CR. Written as objects CR-019 (2026-11-05, proposed): its route is docx4j first |
 | D7 | Which release? | After 0.7.0: that release is ready, and this changes what `save()` does. Phase 1 alone could join it, but there's no need |
-| D8 | The way past the gate: this package's own `pkg.checkLossOnSave`, or python's `repair: 'word'`? | Its own (2.4), reported on `lastSave.lost`. `repair` changes how a file is read, which a caller who just wants to save hasn't asked for |
+| D8 | The way past the gate: this package's own `pkg.checkLossOnSave`, or python's `repair: 'word'`? | Its own (2.4), reported on `lastSave.lost`. A caller who doesn't care is accepting a loss, not a Word repair, and the policy's switch is wider than this one question |
+| D9 | Open, raised after D1 to D8: should CR-021's pass report what it removes as `part.skipped` (2.1)? | Yes. Otherwise this CR's report and gate have a hole at `w:t`, the one place an element can go with only a count to show for it. Since CR-026's D6 its text goes too |
 
 ## 6. Registry
 
