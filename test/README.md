@@ -5835,3 +5835,57 @@ async function check() {
      - `76u`: no message, `TARGET TEXT`, the words gone. Here it read `TARGET HIDDEN WORDSTEXT`, `76n`'s bug again, fixed the same day
        (CR-021 section 11).
      - `76w`: no message, `TARGET TEXT`, no break. `76z`: no message, `TARGETTEXT`, no tab. Both as here.
+   - **Round 3** (Jason: "commit, then let's do the third round of files"; CR-026 section 4.4, D7). Does
+     Word read what an unknown `w:` element holds anywhere but a `w:p`? Seven more files in `__tmp/76/`, each saying on its page what it
+     holds, the host valid with or without `w:madeUp`:
+     - `76t1`, `76t2`: holding a `w:p` reading `HIDDEN WORDS`, in `w:body` and in a `w:tc`;
+     - `76t3`: holding a `w:t` reading `HIDDEN WORDS`, in a `w:r`;
+     - `76t4`: holding a `w:tr` reading `HIDDEN WORDS`, in a `w:tbl`;
+     - `76t5`, `76t6`: holding a `w:jc`, centred, in a `w:pPr`, and a `w:b` in a `w:rPr`;
+     - `76t7`: holding another `w:madeUp` holding a run, in a `w:p`.
+
+     Steps as round 2's, from `76t1` to `76t7`. Say which files Word could not open, so that no file is left without an answer.
+   - **Round 3 run 2026-11-05, Word 365** (Jason: "run of 76t1 to 76t7 done"; saves and PDFs in `test/check76/`). All seven opened with no
+     message, and all seven saves read here with no warning:
+     - `76t1` to `76t4`, `76t7`: **Word read what `w:madeUp` held**, a paragraph in `w:body` and in a `w:tc`, a `w:t` in a `w:r`, a row in a
+       `w:tbl`, and through two levels, as `76t` in a `w:p`.
+     - `76t5`, `76t6`: **Word dropped it with what it held**, no `w:jc` and not centred, no `w:b` and not bold, as `76u` in a `w:t`.
+     - So the host decides: content is read through, and properties and text aren't. CR-026 D7 recommends reading it so.
+   - **`76t8`** (Jason: "do That one extra file"): `76t`'s content with no `mc:Ignorable` on the root, since every other `w:madeUp` file has
+     it. `HIDDEN WORDS` showing means the attribute has nothing to do with round 3's rule. Steps as round 2's.
+   - **`76t8` run 2026-11-05, Word 365** (Jason: "76t8 done"; save and PDF in `test/check76/`). No message, `HIDDEN WORDS` shown, and the save's
+     body is `76t`'s exactly; the save reads here with no warning. So `mc:Ignorable` plays no part in a `w:p`, the only host of round 3 repeated without it.
+   - **Round 4** (Jason: "CR-026 D7 we need to measure w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr and w:comment before making any decision"; CR-026 section 4.4, D7). The hosts round 3 left, ten more files in `__tmp/76/`, none with `mc:Ignorable`, each
+     saying on its page what it holds:
+     - `76t9`: holding a `w:tc` reading `HIDDEN WORDS`, in a `w:tr`;
+     - `76t10` to `76t13`: in a `w:sdtContent`, of a block, run-level, row-level and cell-level control, holding a `w:p`, a run, a `w:tr` and a `w:tc`;
+     - `76t14`, `76t15`: holding a run, in a `w:hyperlink` and a `w:ins`;
+     - `76t16`, `76t17`: holding a `w:p`, in a `w:hdr` and a `w:comment`, in parts of their own;
+     - `76t18`: the control, every host above with nothing unknown and `HIDDEN WORDS` standing bare, so a refusal of the others is the element's.
+
+     Steps as round 2's, from `76t9` to `76t18`. Say which files Word could not open, so that no file is left without an answer.
+   - **Round 4 run 2026-11-05, Word 365** (Jason: "anyway, round 4 now done :-)"; saves and PDFs in `test/check76/`). All ten opened with no
+     message, and all ten saves read here with no warning:
+     - `76t9` to `76t17`: **Word read what `w:madeUp` held** in all nine, and the words stayed in their host: in the control, in the link, tracked
+       as inserted, in the header, in the comment. `76t17`'s PDF shows no comment; its save has both paragraphs.
+     - `76t18`, the control, opened, and each of the nine saves matches its host in `76t18`'s save exactly.
+     - Word saved the row-level and cell-level controls wrapped round the whole table, in `76t18` too, so that isn't the element's doing.
+     - So eleven content hosts read through, before round 5. CR-026 D7 recommends reading it so in the hosts measured.
+   - **Round 5** (Jason: "measure w:fldSimple, w:smartTag, w:customXml and w:footnote"; CR-026 section 4.4, D7). Eight more files in `__tmp/76/`, none with `mc:Ignorable`, each saying on its page what it holds:
+     - `76t19`, `76t20`: holding a run reading `HIDDEN WORDS`, in a `w:fldSimple` and a `w:smartTag`;
+     - `76t21` to `76t24`: in a block, run-level, row-level and cell-level `w:customXml`, holding a `w:p`, a run, a `w:tr` and a `w:tc`;
+     - `76t25`: holding a `w:p`, in a `w:footnote`, in a part of its own;
+     - `76t26`: the control, every host above with nothing unknown and `HIDDEN WORDS` standing bare, so a refusal of the others is the element's.
+
+     Steps as round 2's, `76t26` first, then `76t19` to `76t25`. Say which files Word could not open, so that no file is left without an answer.
+   - **Round 5 run 2026-11-05, Word 365** (Jason: "round 5 done"; saves, PDFs and `76t24-customxml-message.png` in `test/check76/`). All eight saves
+     read here with no warning:
+     - `76t19` to `76t25`: **Word read what `w:madeUp` held** in all seven. The words are in the field's result, saved as a complex field; in the
+       `w:smartTag`, which stays; in the note. All four `w:customXml` have lost their tags and kept the words.
+     - `76t24`: Word's message, an OK box: "This file has custom XML elements that are no longer supported in Word. Saving the file will remove
+       these elements permanently." Which other files showed it isn't recorded.
+     - `76t26`, the control, run 2026-11-06 (Jason: "76t26 missed - will do it later"; "76t26 is done"): it opened, and each of the seven saves matches its
+       host in `76t26`'s save exactly. So the complex field is Word's way with a `w:fldSimple`, and a `w:customXml` loses its tags with nothing unknown
+       in it too. Jason's report doesn't say whether the message showed on it.
+     - So fifteen content hosts read through, every one in CR-026 section 1's table, and CR-026 D7, decided 2026-11-06, reads them so. `w:ftr`,
+       `w:endnote`, `w:del` and the property hosts past `w:pPr` and `w:rPr` aren't measured.

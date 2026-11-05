@@ -6,6 +6,7 @@ import { Docx4JException } from '../../opc/exceptions.mjs';
 import type { ImageDescriber } from './TextResult.mjs';
 import { AltTextDescriber } from './TextResult.mjs';
 import { CaseMapping } from './CaseMapping.mjs';
+import { log } from '../properties/log.mjs';
 
 /**
  * The three revision views (WD section 4, REQ-401): the document as Word's Accept All leaves it, as
@@ -15,7 +16,10 @@ import { CaseMapping } from './CaseMapping.mjs';
  */
 export type TextModelView = 'accepted' | 'original' | 'markup';
 
-/** The stories `include` adds (REQ-501, REQ-502). */
+/**
+ * The stories `include` adds (REQ-501, REQ-502): `headers`, `footers` and `glossary`. Comments are `comments` (REQ-504, WD 0.91).
+ * `comments` here is deprecated, a spelling of `comments: true` kept because 0.6.0 released it (CR-012 section 29).
+ */
 export type TextInclude = 'headers' | 'footers' | 'comments' | 'glossary';
 /** `fields` (REQ-506). */
 export type TextFields = 'cached' | 'update';
@@ -59,7 +63,8 @@ type Bool = boolean | 'true' | 'false';
 
 /**
  * The options by the specification's names (WD section 10), every one optional, each absent one at its
- * default. `include` takes a list of story names or a string of them separated by commas or spaces;
+ * default. `include` takes a list of story names or a string of them separated by commas or spaces,
+ * and naming `comments` in it is a deprecated spelling of `comments: true`, refused beside `comments: false`;
  * a boolean takes `"true"` or `"false"` as well; any other value is its name, in any case.
  * `imageDescriber` is the host's (REQ-514), not one of the specification's options.
  */
@@ -123,7 +128,7 @@ export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
 
 /**
  * `profile: word-text`'s values by WD name, in WD order (REQ-1002; docx4j `TextOptions.WORD_TEXT_VALUES`): the accepted
- * view, hidden text in, headers, footers and comments in, text boxes out, notes and their references in, list labels
+ * view, hidden text in, headers and footers in, comments in through `comments` alone (WD 0.91), text boxes out, notes and their references in, list labels
  * (WD 0.75), fields cached, no field codes, the table of contents in, a drop cap apart from its word, placeholders in,
  * bound values, chunks expanded, symbols as they are, small caps in capitals, tables as tab-separated rows, no page
  * markers, no indentation, no alt text, no metadata, no charts, SmartArt or embedded packages. `default_language` keeps
@@ -134,7 +139,7 @@ export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
  * TIME or SAVEDATE field triggers on open, the SYMBOL omission, and the stale PAGE number.
  */
 export const WORD_TEXT_PROFILE: Readonly<Record<string, unknown>> = Object.freeze({
-  view: 'accepted', include: 'headers,footers,comments', text_boxes: false, notes: true, note_references: true,
+  view: 'accepted', include: 'headers,footers', text_boxes: false, notes: true, note_references: true,
   comments: true, hidden: true, field_codes: false, fields: 'cached', toc: true, drop_caps: 'asis', placeholders: true,
   bindings: 'bound', list_labels: true, charts: false, smartart: false, embedded: false, altchunks: true,
   alt_text: false, metadata: false, symbols: 'asis', small_caps: 'upper', math: 'latex', tables: 'tsv',
@@ -142,6 +147,16 @@ export const WORD_TEXT_PROFILE: Readonly<Record<string, unknown>> = Object.freez
 });
 
 const INCLUDES: readonly TextInclude[] = ['headers', 'footers', 'comments', 'glossary'];
+
+/** `include`'s stories: a list of names, or a string of them separated by commas or spaces. */
+function includeItems(value: unknown): TextInclude[] {
+  const items: unknown[] = Array.isArray(value) ? value
+    : value === undefined || value === null ? [] : String(value).split(/[,\s]+/).filter((s) => s !== '');
+  return items.map((item) => choice('include', item, INCLUDES, 'REQ-501'));
+}
+
+/** Whether the deprecated spelling's notice has been written: once a process, since a caller's code is what has to change. */
+let includeCommentsNoticed = false;
 
 /**
  * What a text includes and how it is written: the specification's section 10 options (REQ-1001), as
@@ -220,6 +235,11 @@ export class TextOptions {
     if (init instanceof TextOptions) return init;
     const o = new TextOptions();
     if (init === undefined || init === null) return o;
+    if (init.comments !== undefined && init.include !== undefined && !bool('comments', init.comments, 'REQ-504')
+      && includeItems(init.include).includes('comments')) {
+      throw new TextOptionError(`comments: false and an include naming comments say opposite things; drop comments from include, `
+        + `which is a deprecated spelling of comments: true (WD REQ-504)`, 'comments', 'REQ-504', 'invalid');
+    }
     for (const [name, value] of Object.entries(init)) {
       if (value === undefined) continue;
       if (name === 'imageDescriber') o.imageDescriber = (value as ImageDescriber | null) ?? AltTextDescriber.INSTANCE;
@@ -298,28 +318,40 @@ export class TextOptions {
 
   private setInclude(value: unknown): void {
     this.includeSet.clear();
-    const items: unknown[] = Array.isArray(value) ? value
-      : value === undefined || value === null ? [] : String(value).split(/[,\s]+/).filter((s) => s !== '');
-    for (const item of items) this.includeSet.add(choice('include', item, INCLUDES, 'REQ-501'));
+    this.addStories(includeItems(value));
+  }
+
+  /** `comments` never stays in `include`: it is the deprecated spelling of `comments: true`, and the caller's option as that is. */
+  private addStories(stories: readonly TextInclude[]): void {
+    for (const s of stories) {
+      if (s !== 'comments') {
+        this.includeSet.add(s);
+        continue;
+      }
+      this.commentsOption = true;
+      this.explicit.add('comments');
+      if (!includeCommentsNoticed) log.warn('The text option include: comments is deprecated: use comments: true (WD 0.91, CR-012 section 29)');
+      includeCommentsNoticed = true;
+    }
   }
 
   /** Adds stories to `include` (docx4j's builder `include(Include...)`). */
   include(...stories: TextInclude[]): this {
-    for (const s of stories) this.includeSet.add(choice('include', s, INCLUDES, 'REQ-501'));
+    this.addStories(stories.map((s) => choice('include', s, INCLUDES, 'REQ-501')));
     this.explicit.add('include');
     return this;
   }
 
-  /** The stories `include` names; `comments: true` adds `comments`. */
+  /** The stories in scope: those `include` names, and `comments` where `comments` is true. */
   get includes(): ReadonlySet<TextInclude> {
     const out = new Set(this.includeSet);
     if (this.commentsOption) out.add('comments');
     return out;
   }
 
-  /** `comments: true` or `include: comments`. */
+  /** `comments: true`, the one setting (REQ-504, WD 0.91). */
   get comments(): boolean {
-    return this.commentsOption || this.includeSet.has('comments');
+    return this.commentsOption;
   }
 
   set comments(value: boolean) {

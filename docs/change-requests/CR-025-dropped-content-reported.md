@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
-recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D9, raised afterwards, and D4, which waited for Word check 76 (run 2026-11-05), are for Jason. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
+recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
 shapes allow. CR-026 depends on this CR.
 
 ## 0. Summary
@@ -77,8 +77,8 @@ The older `w:hash`, `w:salt` and `w:crypt*` attributes round trip.
 
 **Word.** Check 36: Word 2010's saves drop what it doesn't know, declared or not (`w15:appearance`, `w16du:dateUtc`), and Word
 365's saves keep those two, which it knows. Check 76 (CR-026 section 4) has Word 365 the same: its saves drop what it doesn't know,
-attribute or element and all the element held, with no message, or it refuses the file. The exception is a run inside an unknown `w:`
-element, which it reads (`76t`, CR-026 D7).
+attribute or element and all the element held, with no message, or it refuses the file. The exception is what an unknown `w:` element
+holds in a content host, which it reads (CR-026 section 4.4, D7).
 
 ## 2. Proposal
 
@@ -112,8 +112,12 @@ reported twice. Parts are unmarshalled lazily, so a part never read reports noth
 **One route doesn't reach the callbacks (D9).** CR-021's pass runs first, so an element in a `w:t`, `w:instrText`, `w:delText` or
 `w:delInstrText` is gone before the runtime sees it: `<w:t>a<ext:opaque/>b</w:t>` becomes `<w:t>a</w:t><w:t>b</w:t>`. All that shows
 is `br.outside_run`'s `textElements` count, which names nothing, and the gate can't see it. Phase 1 has the pass add a `part.skipped`
-for each element it removes that isn't a `w:br` or a nested text element, so the report and the gate cover it. Check 76 raises the
+for each element that goes with all it holds, where `givesItsText` says no, so the report and the gate cover it. An element that gives its text
+isn't listed, as in python's report, since `part.skipped` is shared: no words go with it. Check 76 raises the
 stakes: Word drops such an element with its text, and since CR-026's D6 so does the pass, so words go here with only a count to show for them.
+Reported so, such a part comes under 2.2: read and not changed, it's copied with the element still in it, where a save today writes it
+repaired. If Word refuses that file (`76v`), it stays refused until the caller gives the part its tree back, as 2.4 says of `76e`.
+An element in no namespace gives its text and isn't listed, so a read part holding one is written without it, as a save does today.
 
 ### 2.2 A part read and not changed is copied (D3)
 
@@ -172,7 +176,7 @@ An attribute could be kept: recorded against its typed object on the read and wr
 source-binding records and CR-006's binder suggest is possible, though nothing here has tried it. The portfolio's
 `benchmarking.md` has this as an open question for Jason (keep, or drop as Word drops unknown ignorable content on save). Check 76
 answers the second half for Word 365: it drops the markup, ignorable or not, or refuses the file. Kept content would give the gate nothing to refuse, but it
-would last only until the next Word save, so D4 now recommends leaving it dropped.
+would last only until the next Word save, so it stays dropped (D4, decided 2026-11-05; Jason: "CR-025 D4 as recommended").
 
 ### 2.6 Not here
 
@@ -198,7 +202,7 @@ would last only until the next Word save, so D4 now recommends leaving it droppe
 - an untouched save byte for byte; a part read and not changed copied byte for byte, attributes kept;
 - a part changed: refused with nothing written, the message and `losses`; with `checkLossOnSave` off written, with
   `lastSave.lost`, through `save`, `saveFlatOpc` and `saveTo`; `clone()` carrying it; a part read and not changed copied with it off too;
-- an element in a `w:t` reported by CR-021's pass, the gate counting it (D9);
+- an element in a `w:t` that goes with all it holds reported by CR-021's pass, the gate counting it, and one that gives its text not reported (D9);
 - `NumberingImplicitNumId.docx` reporting its 15 and no other fixture reporting any, a count guard that holds on a clean checkout,
   since git-ignored built fixtures aren't on CI. Objects CR-019 takes those 15 to 0 when it lands, so this is the only test that may
   rest on that file: the fields and the gate use injected attributes.
@@ -223,12 +227,12 @@ No dependency on another repository. Phase 1 is additive and could ship alone.
 | D1 | The warning's code. `part.skipped` is python's member name, not yet a shared code. | `part.skipped`, settled with python first, as `target.misplaced` was. Agreed: python's CR-033 Q9 (`f96f463`) |
 | D2 | P7 for this package: does a save refuse, or only report? | Refuse, as python's CR-033 does and CR-016 does for misplaced content. With 2.2 only a changed part can be refused. The cost is a `Changed` line: a save that worked today throws |
 | D3 | Copy a part read but not changed (2.2)? python's gate had no such step. | Yes, and python took it too (its CR-033 Q8). Without it the real file's readers are refused for a style pane filter they never touched |
-| D4 | Keep the content rather than drop it (2.5)? | Not now: decide after check 76. Check 76 is in and Word drops it, so: no, drop. Open for Jason |
+| D4 | Keep the content rather than drop it (2.5)? | Not now: decide after check 76. Check 76 is in and Word drops it, so: no, drop. Decided 2026-11-05 as recommended (Jason: "CR-025 D4 as recommended") |
 | D5 | The `text` kind: python reports elements and attributes only. | Keep it. Only `72m`'s string is dropped in the corpus, and CR-016 already reports that, so it costs nothing and closes the gap for text elsewhere |
 | D6 | An objects CR to map `w:stylePaneFormatFilter`'s attributes? It's the only real loss measured. | Yes, small, and separate from this CR. Written as objects CR-019 (2026-11-05, proposed): its route is docx4j first |
 | D7 | Which release? | After 0.7.0: that release is ready, and this changes what `save()` does. Phase 1 alone could join it, but there's no need |
 | D8 | The way past the gate: this package's own `pkg.checkLossOnSave`, or python's `repair: 'word'`? | Its own (2.4), reported on `lastSave.lost`. A caller who doesn't care is accepting a loss, not a Word repair, and the policy's switch is wider than this one question |
-| D9 | Open, raised after D1 to D8: should CR-021's pass report what it removes as `part.skipped` (2.1)? | Yes. Otherwise this CR's report and gate have a hole at `w:t`, the one place an element can go with only a count to show for it. Since CR-026's D6 its text goes too |
+| D9 | Raised after D1 to D8: should CR-021's pass report what it removes as `part.skipped` (2.1)? | Yes. Otherwise this CR's report and gate have a hole at `w:t`, the one place an element can go with only a count to show for it. Since CR-026's D6 its text goes too. Decided 2026-11-05 as recommended (Jason: "CR-025 D9 as recommended"). Which elements: only what goes with its content, python's reading (its CR-030 section 11), since `part.skipped` is shared. The first wording, every element but a `w:br` or a nested text element, also listed what gives its text, which would have left a file Word refuses (`76x`, `76y`) as it was and refused a changed part though no words went. Decided 2026-11-06 (Jason: "CR-025 D9's wording: take python's narrower version") |
 
 ## 6. Registry
 

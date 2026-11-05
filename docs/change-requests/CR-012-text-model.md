@@ -3275,7 +3275,7 @@ the question).
 
 **D3 is WD 0.67's open item under REQ-801** (docx4j-portfolio `f8a5489`, 2026-11-03), whose owner is Jason. The
 portfolio recommends:
-- **(a) The comments' extended part** raises `part.not_read` where comments are in scope (`include: comments`), since
+- **(a) The comments' extended part** raises `part.not_read` where comments are in scope (`comments: true`), since
   the block model then emits a comment's done state and its parent and loses both. It raises nothing where they are out
   of scope.
 - **(b) A document-properties part** raises it where the result carries metadata (REQ-515), or a property field is read
@@ -3503,3 +3503,34 @@ serialization.
 
 npm run typecheck passes, and npm test passes 1,785 of 1,785. No golden and no suite row moved: none holds an unreadable
 part or a numbered paragraph without a numbering part.
+
+## 29. One setting for comments (WD 0.91, docx4j-python CR-035; implemented 2026-11-06)
+
+Comments could be turned on in two places, `comments: true` (REQ-504) and `include: comments` (REQ-501), and either was enough. `word-text` set both, so
+`{ profile: 'word-text', comments: false }` still gave comments: measured here on 2026-11-05 and again before this change. Jason, in the python session: "why do
+we have both comments: true and include: comments? could we have just a single setting?", then "yes". WD 0.91 took it, and it was in the portfolio's working
+copy, uncommitted, when this was built. Here at Jason's "implement the comments change".
+
+### 29.1 What changed
+
+In `src/model/text/TextOptions.mts`, on python CR-035's design:
+
+- `comments` is the only state. `include` never holds comments, and `toMap().include` never lists them. `includes` still does where `comments` is true, since it answers which stories are in scope.
+- `word-text` is `include: headers,footers`, `comments: true`, as REQ-1002 has it. A plain `word-text` read gives the same text, and a caller's `comments: false` now holds, before or after the profile.
+- `include` no longer speaks for comments, so a later `include` leaves them as they were.
+- `include: comments`, released in 0.6.0, stays as a deprecated spelling of `comments: true`, in every form `include` takes. It's the caller's option, as `comments: true` is.
+- One `TextOptions.of` call saying `comments: false` with an `include` naming comments is refused (`TextOptionError`, `invalid`, REQ-504). Sequential calls aren't a contradiction: the last one stands.
+
+The extractor needed no change: it reads `options.comments`.
+
+### 29.2 Differences
+
+- **The notice.** Python raises a `DeprecationWarning`. Here it's one `log.warn` a process: a string value can't carry `@deprecated`, and nothing outside `./node` may import a builtin.
+- **docx4j.** Its `WORD_TEXT_VALUES` still names comments under `include`, so the preset's oracle here is the WD. No golden moves: `TextHarness`'s `everything` reading states `include: comments` beside `comments: true`, and goes through the old spelling.
+- **A saved map.** 0.6.0's `toMap()` after `include: comments` reports `comments: false` beside it, the two held apart. Such a saved map is the shape the refusal refuses, and the message names the fix. Python's CR-035 says a mapping in the old form still loads (its section 3.4) and refuses this shape (its Q4, open), and its `to_dict()` reports the two apart too, so it's to be told.
+
+### 29.3 Tests
+
+`test/text-options-comments.test.mjs`: python's contract table as options and as text on the suite's `extraction-probe.docx`, every route to `comments: false`, the old spelling in every form, the refusal, a later `include`, the notice once, the preset, and round trips.
+
+npm run typecheck passes, and npm test passes 1,806 of 1,806. No golden and no suite row moved.

@@ -1,5 +1,5 @@
-// The one place property resolution writes a diagnostic, and the Markdown export a refused link
-// target (CR-012 section 21). docx4j logs through SLF4J; this package has no logging framework, so
+// The one place property resolution writes a diagnostic, the Markdown export a refused link
+// target (CR-012 section 21), and the text options a deprecated spelling (section 29). docx4j logs through SLF4J; this package has no logging framework, so
 // a missing style, a style cycle or a refused link goes to `console.warn` behind a settable sink
 // (an add-in that must stay silent, or a test that wants to assert what was logged, replaces it).
 //

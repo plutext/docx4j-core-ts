@@ -1,8 +1,8 @@
 {
  "check": 76,
- "word": "Word 365, PC (Jason, 2026-11-05; two rounds; no Script Lab, nothing typed; saved 11:19 to 11:55 and 12:25 to 12:31, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected)",
- "source": "test/fixtures/check76/build.mjs (27 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z)",
- "results": "results.txt is Jason's record, unedited. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y, so they have no save or PDF. The other 18 opened with no message (results.txt names none). Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but in 76t, where Word read the run inside w:madeUp.",
+ "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected)",
+ "source": "test/fixtures/check76/build.mjs (53 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, and round 5 76t19 to 76t26)",
+ "results": "results.txt is Jason's record, unedited. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y, so they have no save or PDF. The other 44 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
  "files": [
   {
    "name": "76-control-word365.docx",
@@ -63,6 +63,110 @@
   {
    "name": "76t-madeup-holding-a-run-word365.docx",
    "sha1": "54c33f117654999a97052e7baba9c3c0edfbfcf0"
+  },
+  {
+   "name": "76t1-madeup-holding-p-in-body-word365.docx",
+   "sha1": "335025707a0ce749f2baa18a4371cb5e041228a4"
+  },
+  {
+   "name": "76t10-madeup-in-block-control-word365.docx",
+   "sha1": "1947adbcc0a06ea7133728d9d950ad4c751fd73c"
+  },
+  {
+   "name": "76t11-madeup-in-run-control-word365.docx",
+   "sha1": "7e8b757ef8793b8011a7168e919bd52af1150716"
+  },
+  {
+   "name": "76t12-madeup-in-row-control-word365.docx",
+   "sha1": "8f8cc74da77c545d80b39d60182f30a05a69d75f"
+  },
+  {
+   "name": "76t13-madeup-in-cell-control-word365.docx",
+   "sha1": "8acab686a1614b512dc5afcbd5f7c6af245b8c8f"
+  },
+  {
+   "name": "76t14-madeup-in-hyperlink-word365.docx",
+   "sha1": "0225addf04f4c4c18482c3b46403fd7710956bd3"
+  },
+  {
+   "name": "76t15-madeup-in-ins-word365.docx",
+   "sha1": "10d58b21981578e1bf52a7d711139614d72b9238"
+  },
+  {
+   "name": "76t16-madeup-in-hdr-word365.docx",
+   "sha1": "54158ebc4ccc35309f231c818ce3fe691396fff2"
+  },
+  {
+   "name": "76t17-madeup-in-comment-word365.docx",
+   "sha1": "f57ed8a5cf92a25f3c8d47cc3635d955bf7a58a1"
+  },
+  {
+   "name": "76t18-hosts-control-word365.docx",
+   "sha1": "30cdc440bcebc2d1a6af05cf204ca4f2ec024589"
+  },
+  {
+   "name": "76t19-madeup-in-fldSimple-word365.docx",
+   "sha1": "1a85a11123a19223e13c8b479df296432343f67a"
+  },
+  {
+   "name": "76t2-madeup-holding-p-in-tc-word365.docx",
+   "sha1": "ad22e41f7cbeec39dfd11da205dd20001ec23706"
+  },
+  {
+   "name": "76t20-madeup-in-smartTag-word365.docx",
+   "sha1": "37a8feadf3154748018845ba43f6ab8ddd2a860d"
+  },
+  {
+   "name": "76t21-madeup-in-block-customXml-word365.docx",
+   "sha1": "416e2327074b5d6e8b355e54de32a75702e81e68"
+  },
+  {
+   "name": "76t22-madeup-in-run-customXml-word365.docx",
+   "sha1": "3c7ebf5b37aa59f050f2ecf97d459d52bf730ea2"
+  },
+  {
+   "name": "76t23-madeup-in-row-customXml-word365.docx",
+   "sha1": "aeb0fe7866ae18e5c05fb484d824bd297cc6a152"
+  },
+  {
+   "name": "76t24-madeup-in-cell-customXml-word365.docx",
+   "sha1": "56f41788e7c7af11bb21ad14e13b727b426af8e3"
+  },
+  {
+   "name": "76t25-madeup-in-footnote-word365.docx",
+   "sha1": "f93a64f1645f8392131059b388edef71a6e3e064"
+  },
+  {
+   "name": "76t26-more-hosts-control-word365.docx",
+   "sha1": "ee1352df67e1b6928a0fb1c5a0075d08c0cdd66c"
+  },
+  {
+   "name": "76t3-madeup-holding-t-in-r-word365.docx",
+   "sha1": "7b63e91910c567dbd7742c231da51194c47772bd"
+  },
+  {
+   "name": "76t4-madeup-holding-tr-in-tbl-word365.docx",
+   "sha1": "e8e08298c077438bd2732651dc57aedd48499498"
+  },
+  {
+   "name": "76t5-madeup-holding-jc-in-pPr-word365.docx",
+   "sha1": "e2ef07e38d7663758b1b9712354b02b62d7a133d"
+  },
+  {
+   "name": "76t6-madeup-holding-b-in-rPr-word365.docx",
+   "sha1": "704b0ddfead3fa71f3ea545fe447445aacd49bae"
+  },
+  {
+   "name": "76t7-madeup-in-madeup-word365.docx",
+   "sha1": "c5f7eda97e37506ffc12e54a4dc2b992b51749f1"
+  },
+  {
+   "name": "76t8-madeup-with-no-ignorable-word365.docx",
+   "sha1": "5c1dcaf911295a8ceac739258f28de6262f18172"
+  },
+  {
+   "name": "76t9-madeup-holding-tc-in-tr-word365.docx",
+   "sha1": "06c7e2f5bf0dcf855c3a6d737f33f33f18808bbe"
   },
   {
    "name": "76u-madeup-with-text-in-t-word365.docx",
@@ -137,6 +241,110 @@
    "sha1": "de88f9c49bdc478aaef53aaffc8a8611d1652b2b"
   },
   {
+   "name": "76t1-madeup-holding-p-in-body.pdf",
+   "sha1": "50a61d91e7e201c79bbfa1b639fe048d779845ab"
+  },
+  {
+   "name": "76t10-madeup-in-block-control.pdf",
+   "sha1": "1e329d5e756db3678a3a137df13e112229f73775"
+  },
+  {
+   "name": "76t11-madeup-in-run-control.pdf",
+   "sha1": "636ec886b7d22e8f0af2df71b1c4d3e9c8c81894"
+  },
+  {
+   "name": "76t12-madeup-in-row-control.pdf",
+   "sha1": "0d7a11cdfa47527f2f9ed0d54f4b54a66211015e"
+  },
+  {
+   "name": "76t13-madeup-in-cell-control.pdf",
+   "sha1": "cd30c1d6dfb5eee343bf054ede0471e3b80b0643"
+  },
+  {
+   "name": "76t14-madeup-in-hyperlink.pdf",
+   "sha1": "933ee81df046745302421e8885c46ac3c1586919"
+  },
+  {
+   "name": "76t15-madeup-in-ins.pdf",
+   "sha1": "0292f928b44c3911be1196879fc5533c55628c27"
+  },
+  {
+   "name": "76t16-madeup-in-hdr.pdf",
+   "sha1": "781554d6e0fc7467170aa8dfd73d00e851f4abeb"
+  },
+  {
+   "name": "76t17-madeup-in-comment.pdf",
+   "sha1": "f9b892578552b00de12c76bd13aed451a195eb36"
+  },
+  {
+   "name": "76t18-hosts-control.pdf",
+   "sha1": "281c758f4a17d60c7b1852c91e745f2247b112cd"
+  },
+  {
+   "name": "76t19-madeup-in-fldSimple.pdf",
+   "sha1": "0fa53ef703a744a1498f79e76d87f43ca7337cac"
+  },
+  {
+   "name": "76t2-madeup-holding-p-in-tc.pdf",
+   "sha1": "64bebb664b00260e41de868661ea7ec2598a60c2"
+  },
+  {
+   "name": "76t20-madeup-in-smartTag.pdf",
+   "sha1": "dfe7c15cc466991825ce74e30a01169d6333a60f"
+  },
+  {
+   "name": "76t21-madeup-in-block-customXml.pdf",
+   "sha1": "9ea97e4248cfa40c879f23b1b548d021a2ee73f1"
+  },
+  {
+   "name": "76t22-madeup-in-run-customXml.pdf",
+   "sha1": "10a1ba5a730e897555e46428720ecc5c94d32905"
+  },
+  {
+   "name": "76t23-madeup-in-row-customXml.pdf",
+   "sha1": "21098f370eaba89d049527a460deef4ad73c8142"
+  },
+  {
+   "name": "76t24-madeup-in-cell-customXml.pdf",
+   "sha1": "38e397fa1d20c7c8b940846a18fed0d85006e8af"
+  },
+  {
+   "name": "76t25-madeup-in-footnote.pdf",
+   "sha1": "6bd3306f85db77fb5b174f07721bb1c7e3a6c612"
+  },
+  {
+   "name": "76t26-more-hosts-control.pdf",
+   "sha1": "2f96d0f8014dd05e0f824a1b11281ba1366f50c0"
+  },
+  {
+   "name": "76t3-madeup-holding-t-in-r.pdf",
+   "sha1": "baa74a6df29ddca288bb84b1568505363d70e4e3"
+  },
+  {
+   "name": "76t4-madeup-holding-tr-in-tbl.pdf",
+   "sha1": "a649bc0f5bb561fe096b878c89addd4017c22563"
+  },
+  {
+   "name": "76t5-madeup-holding-jc-in-pPr.pdf",
+   "sha1": "f0531d0076a12347b6fb4c5e89f68aeabbe2b381"
+  },
+  {
+   "name": "76t6-madeup-holding-b-in-rPr.pdf",
+   "sha1": "0c9f7ce03e63963d8ac289a4180e754ca054a497"
+  },
+  {
+   "name": "76t7-madeup-in-madeup.pdf",
+   "sha1": "bf1dea5ae76423db407b35ab2bff73d2ac47fc57"
+  },
+  {
+   "name": "76t8-madeup-with-no-ignorable.pdf",
+   "sha1": "328d4c622b04edf2c04fb47ce86a23af6505fb7d"
+  },
+  {
+   "name": "76t9-madeup-holding-tc-in-tr.pdf",
+   "sha1": "c2f8a12eb9a79a7efdc12c183f75faef376a2f00"
+  },
+  {
    "name": "76u-madeup-with-text-in-t.pdf",
    "sha1": "9ea755925016a097da229a89945608f77d790ce8"
   },
@@ -149,8 +357,12 @@
    "sha1": "797c48a9970670e5b485e0776146b82edf11f5fa"
   },
   {
+   "name": "76t24-customxml-message.png",
+   "sha1": "53baba5f3dc80c690a844f6677bda310cf286767"
+  },
+  {
    "name": "results.txt",
-   "sha1": "ba79324e12d001333c5207aed5ff773f121b0aa0"
+   "sha1": "f9acda12fece262756126e72dc0e1fc65df9f5f4"
   }
  ]
 }

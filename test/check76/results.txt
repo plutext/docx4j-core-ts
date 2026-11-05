@@ -6,3 +6,17 @@ Round 1, 76-control to 76n:
 Round 2, 76o to 76z:
 "check 76 word could not repair p q r s v x y. for others  see -word365.docx and .pdf in the dir"
 "76o is a could not repair"
+
+Round 3, 76t1 to 76t7:
+"run of 76t1 to 76t7 done"
+
+76t8:
+"76t8 done"
+
+Round 4, 76t9 to 76t18:
+"anyway, round 4 now done :-)"
+
+Round 5, 76t19 to 76t26:
+"round 5 done", with a screenshot of Word's message on 76t24, 76t24-customxml-message.png
+"76t26 missed - will do it later"
+"76t26 is done" (2026-11-06)
