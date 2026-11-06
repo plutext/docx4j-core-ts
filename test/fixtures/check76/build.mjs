@@ -320,6 +320,16 @@ export const FILES = [
     content: HOSTS.blockControl(() => '<w:madeUp>HIDDEN WORDS</w:madeUp>') },
   { name: '76t67-text-and-a-run-in-madeup', asks: 'text and a run together in an unknown w: element in a w:p: do LOOSE WORDS show, and HIDDEN WORDS?', ignorable: false,
     content: `<w:p>${TARGET}<w:madeUp>LOOSE WORDS${hidden}</w:madeUp></w:p>` },
+  // Round 11 (2026-11-06; Jason, through docx4j's session: "CR-076 D10 fix to match word as far as possible"): what round 9 leaves
+  // open of a held w:p, each in the shape Word opens, a run before the element and nothing after it. 76t60 and 76t26 hold the frames.
+  { name: '76t68-host-right-held-centred', asks: 'a right-aligned w:p holding a centred w:p in an unknown w: element, last: which alignment has the joined paragraph, and the empty one after it?', ignorable: false,
+    content: aligned('right', `${TARGET}${held(aligned('center', hidden))}`) },
+  { name: '76t69-host-right-held-plain', asks: 'a right-aligned w:p holding a plain w:p in an unknown w: element, last: does the joined paragraph keep right, or does the empty one after it take it?', ignorable: false,
+    content: aligned('right', `${TARGET}${held(p('HIDDEN WORDS'))}`) },
+  { name: '76t70-held-paragraph-two-deep', asks: 'a w:p in an unknown w: element in another, last in a w:p: does depth change anything?', ignorable: false,
+    content: `<w:p>${TARGET}${twice(p('HIDDEN WORDS'))}</w:p>` },
+  { name: '76t71-held-paragraph-in-hyperlink', asks: 'a w:p in an unknown w: element, last in a w:hyperlink in a w:p: does the rule hold in a host other than a w:p?', ignorable: false,
+    content: `<w:p><w:hyperlink w:anchor="check76">${TARGET}${held(p('HIDDEN WORDS'))}</w:hyperlink></w:p>` },
 ];
 
 /** A file's header, comments and footnotes parts, each in the content types and the main document's relationships; nothing for a file with none. */

@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
 recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
-shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Phases 1 and 2 built 2026-11-06 (sections 2.8 and 2.9), phase 3 not. CR-026 depends on this CR.
+shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Implemented 2026-11-06, phases 1 to 3 (sections 2.8 to 2.10), unreleased. CR-026 depends on this CR.
 
 ## 0. Summary
 
@@ -193,8 +193,10 @@ would last only until the next Word save, so it stays dropped (D4, decided 2026-
 - **Changed:** a save that would lose content the read dropped is refused with `SaveLossException` (`save.content_lost`) unless
   `pkg.checkLossOnSave` is false. Previously the content was lost with nothing said. A part read but not changed is now copied byte for byte
   where it holds such content.
+- **Changed:** `clone()` is refused the same way, since it goes through a save. Under `mcePreprocess: true`, a part read and not changed that holds such content is saved in its source form, its `mc:AlternateContent` kept.
 - **Added:** `ContentSkippedWarning` (`part.skipped`) on the part and on `pkg.warnings`; `pkg.checkLossOnSave`,
-  `pkg.lastSave.lost`; `SaveLossException`.
+  `pkg.lastSave.lost`; `SaveLossException`, `ContentLoss`.
+- **To expect:** a changed part holding attributes the model doesn't map is refused, so a Word 2010 file's `settings.xml` with `w:stylePaneFormatFilter`'s extra attributes refuses a save once `changeTrackingMode` is set, until objects CR-019 lands. `checkLossOnSave` is the way past it.
 
 ### 2.8 Phase 1 as built (2026-11-06)
 
@@ -224,6 +226,10 @@ Six things the build settled:
 - **A package setting on `settings.xml` is the case to expect.** `NumberingImplicitNumId.docx` with `changeTrackingMode` set is refused for its 15 `w:stylePaneFormatFilter` attributes, which repeat `w:val`'s bits, until objects CR-019 lands. The way past is `checkLossOnSave`. It's pinned in the test.
 
 Over all the fixtures, each with an attribute injected into its first paragraph, unmarshalled, its paragraphs read and `Texts.of` run, the part is copied byte for byte, so a read changes nothing a marshal shows. Made to answer "unchanged" always, six tests fail. Made to answer "changed" always, six more do. npm test passes 1,884 of 1,884.
+
+### 2.10 Phase 3 as built (2026-11-06)
+
+The records, at Jason's "commit, then CR-025 phase 3: go": CLAUDE.md's status, key mechanics, layout and tests list, `test/README.md`, and the index. This repository keeps no CHANGELOG file, so section 2.7's lines are for the 0.7.0 release's notes, which go on the GitHub release.
 
 ## 3. Tests and oracles
 
@@ -267,8 +273,8 @@ No dependency on another repository. Phase 1 is additive and could ship alone.
 
 ## 6. Registry
 
-`core-ts/CR-025`, proposed, no dependency on another repository. docx4j-python's CR-033 is its sibling; the repair policy's P7 and
-P4 are the portfolio's. Sent on commit.
+`core-ts/CR-025`, no dependency on another repository. docx4j-python's CR-033 is its sibling; the repair policy's P7 and
+P4 are the portfolio's. Done follows phase 3's commit.
 
 ## 7. Sources
 
