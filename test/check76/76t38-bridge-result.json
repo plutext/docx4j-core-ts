@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t38-run-and-property-in-pPr.word.docx",
+   "format": "docx",
+   "bytes": 13177,
+   "sha256": "cb072202bf1ba2d2a9bfc75eb331386f3e2862cceede7e90c5d0382ddba066a5"
+  },
+  {
+   "name": "76t38-run-and-property-in-pPr.pdf",
+   "format": "pdf",
+   "bytes": 18920,
+   "sha256": "e23d04e7c5e833725f9f98d7815b65ce3e1e08dcce5ebae47e4470b65d0e45e0"
+  }
+ ],
+ "seconds": 4.6,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t38-run-and-property-in-pPr.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t38-run-and-property-in-pPr.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t38-run-and-property-in-pPr.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.33
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

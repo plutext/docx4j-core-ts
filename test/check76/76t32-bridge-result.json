@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t32-madeup-in-moveFrom.word.docx",
+   "format": "docx",
+   "bytes": 13321,
+   "sha256": "5b78ba86d56ff382927ef71b48c97a9fb2eea16d6de9d6fcb01fce2c4fefd467"
+  },
+  {
+   "name": "76t32-madeup-in-moveFrom.pdf",
+   "format": "pdf",
+   "bytes": 18947,
+   "sha256": "52f1809148620608b9153f28cdefe3565a8a4ce6908ab6e2b26238e2d389f516"
+  }
+ ],
+ "seconds": 3.9,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t32-madeup-in-moveFrom.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t32-madeup-in-moveFrom.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t32-madeup-in-moveFrom.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.15
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

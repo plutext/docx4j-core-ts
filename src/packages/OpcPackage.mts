@@ -71,6 +71,13 @@ export class OpcPackage implements RelationshipSource {
    * check on request. A misplaced child read from a file is a `target.misplaced` warning on its part (D7).
    */
   checkContentOnSave = true;
+  /**
+   * Whether a save refuses to lose what a read dropped (CR-025 sections 2.3 and 2.4, D8): a part holding `part.skipped` content
+   * that was changed throws `SaveLossException` and nothing is written. Off, the part is written without those items, each on
+   * `lastSave.lost`. A part read and not changed is copied either way, so nothing is lost there. Word's own save drops such
+   * content with no message (check 76), so off is Word's behaviour.
+   */
+  checkLossOnSave = true;
   private dateTimeZone_: string | undefined;
   /**
    * The client's time zone for this package, an IANA id (`Australia/Sydney`), or undefined for the runtime's (CR-018; the
@@ -233,6 +240,7 @@ export class OpcPackage implements RelationshipSource {
     }
     copy.normaliseOnSave = this.normaliseOnSave;
     copy.checkContentOnSave = this.checkContentOnSave;
+    copy.checkLossOnSave = this.checkLossOnSave;
     copy.dateTimeZone = this.dateTimeZone;
     copy.boundDatesConvertedAsWord = this.boundDatesConvertedAsWord;
     copy.writeTimesOnSave = this.writeTimesOnSave;

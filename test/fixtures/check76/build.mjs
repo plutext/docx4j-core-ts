@@ -72,6 +72,24 @@ const LAST_HOSTS = {
 };
 const ENDNOTED = `<w:p>${TARGET}<w:r><w:endnoteReference w:id="1"/></w:r></w:p>`;
 
+// Round 8's, apart again. `twice` nests the element in itself. A cell ends with a paragraph whatever Word does with the element, so
+// the element goes first. A w:pPrChange records a real change, so the paragraph is centred and the old properties hold the
+// element. An unknown namespace for the Choice Word doesn't take is ext, which the root declares and Word can't know.
+const twice = (inner) => made(made(inner));
+const W14 = 'http://schemas.microsoft.com/office/word/2010/wordml';
+const hidden = run('HIDDEN WORDS');
+const inACell = (hold) => table(1, `<w:tr>${cell(`${hold(p('HIDDEN WORDS'))}${p('TARGET TEXT')}`)}</w:tr>`);
+const pPrHolding = (inner) => `<w:pPr><w:madeUp>${inner}</w:madeUp></w:pPr>`;
+const pPrChanged = (old) => `<w:p><w:pPr><w:jc w:val="center"/><w:pPrChange ${stamped(7620)}><w:pPr>${old}</w:pPr></w:pPrChange></w:pPr>${TARGET}</w:p>`;
+const branch = (choice, fallback, requires) => `<w:p>${run('TARGET TEXT, then ')}<mc:AlternateContent><mc:Choice ${requires}>${choice}</mc:Choice><mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent>${run(' and the rest.')}</w:p>`;
+const TAKEN = `xmlns:w14="${W14}" Requires="w14"`;
+const NOT_TAKEN = 'Requires="ext"';
+const sdtPrHolding = (inner) => `<w:sdt><w:sdtPr><w:id w:val="7621"/>${inner}</w:sdtPr><w:sdtContent>${p('TARGET TEXT')}</w:sdtContent></w:sdt>`;
+const trPrHolding = (inner) => table(1, `<w:tr><w:trPr>${inner}</w:trPr>${cell(p('TARGET TEXT'))}</w:tr>`);
+const tcPrHolding = (inner) => table(1, `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/>${inner}</w:tcPr>${p('TARGET TEXT')}</w:tc></w:tr>`);
+const tblPrHolding = (inner) => `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${inner}</w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid><w:tr>${cell(p('TARGET TEXT'))}</w:tr></w:tbl>`;
+const sectPrHolding = (inner) => `<w:p><w:pPr><w:sectPr>${inner}<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:pPr>${TARGET}</w:p>`;
+
 /** The files: `name`, what it holds (`asks`), whether `ext` is in `mc:Ignorable`, the content between the first and last paragraphs, and any `header`, `comment` or `footnote` content, in a part of its own. */
 export const FILES = [
   { name: '76-control', asks: 'nothing unknown: ext declared and ignorable, and used nowhere', ignorable: true,
@@ -222,6 +240,46 @@ export const FILES = [
   { name: '76t34-last-hosts-control', asks: 'nothing unknown: every host of 76t29 to 76t33, with HIDDEN WORDS standing bare in each', ignorable: false,
     // one move, its two halves both bare: the two hosts' own files in one would repeat its ids and its w:name
     content: [LAST_HOSTS.del(bare), moved(run('HIDDEN WORDS'), run('HIDDEN WORDS'))].join(p('NEXT HOST.')) + ENDNOTED, footer: inBlocks(bare), endnote: inBlocks(bare) },
+  // Round 8 (2026-11-06; Jason, through docx4j's session: "The five extra shape groups from the portfolio: run them as another
+  // round"): what a port chose beyond the measurements, what REQ-308 leaves open, a branch, the property hosts and a second name.
+  // One shape a file, so a refusal (76t28) costs one reading. No mc:Ignorable, as 76t8. 76t52 holds the frames with nothing unknown.
+  { name: '76t35-madeup-in-madeup-in-tc', asks: 'an unknown w: element in another, in a w:tc, holding a w:p: do the words HIDDEN WORDS show?', ignorable: false,
+    content: inACell(twice) },
+  { name: '76t36-madeup-in-madeup-in-hyperlink', asks: 'an unknown w: element in another, in a w:hyperlink, holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: HOSTS.hyperlink(twice) },
+  { name: '76t37-two-runs-in-pPr', asks: 'an unknown w: element in a w:pPr holding two runs: do HIDDEN WORDS and SECOND WORDS show, in that order?', ignorable: false,
+    content: `<w:p>${pPrHolding(`${hidden}${run(' SECOND WORDS')}`)}${TARGET}</w:p>` },
+  { name: '76t38-run-and-property-in-pPr', asks: 'an unknown w: element in a w:pPr holding a run and a w:jc: do the words HIDDEN WORDS show, and is the paragraph centred?', ignorable: false,
+    content: `<w:p>${pPrHolding(`${hidden}<w:jc w:val="center"/>`)}${TARGET}</w:p>` },
+  { name: '76t39-run-in-pPr-no-other-run', asks: 'an unknown w: element in a w:pPr holding a run, in a paragraph with no other run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `<w:p>${pPrHolding(hidden)}</w:p>${p('TARGET TEXT')}` },
+  { name: '76t40-run-in-pPrChange', asks: 'an unknown w: element in the w:pPr of a w:pPrChange holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: pPrChanged(`<w:madeUp>${hidden}</w:madeUp>`) },
+  { name: '76t41-text-in-madeup', asks: 'text standing directly in an unknown w: element in a w:p: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `<w:p>${TARGET}<w:madeUp>HIDDEN WORDS</w:madeUp></w:p>` },
+  { name: '76t42-break-in-madeup', asks: 'a w:br directly in an unknown w: element in a w:p: does TEXT start a new line?', ignorable: false,
+    content: `<w:p>${run('TARGET')}<w:madeUp><w:br/></w:madeUp>${run('TEXT')}</w:p>` },
+  { name: '76t43-paragraph-in-madeup-in-p', asks: 'a w:p in an unknown w: element in a w:p, which the host does not admit: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `<w:p>${TARGET}<w:madeUp>${p('HIDDEN WORDS')}</w:madeUp></w:p>` },
+  { name: '76t44-madeup-in-choice', asks: 'an unknown w: element holding a run, directly in an mc:Choice Word takes: do the words HIDDEN WORDS show, and not FALLBACK WORDS?', ignorable: false,
+    content: branch(made(hidden), run('FALLBACK WORDS'), TAKEN) },
+  { name: '76t45-madeup-in-fallback', asks: 'an unknown w: element holding a run, directly in the mc:Fallback of a Choice Word does not take: do the words HIDDEN WORDS show, and not CHOICE WORDS?', ignorable: false,
+    content: branch(run('CHOICE WORDS'), made(hidden), NOT_TAKEN) },
+  { name: '76t46-run-in-sdtPr', asks: 'an unknown w: element in a w:sdtPr holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: sdtPrHolding(made(hidden)) },
+  { name: '76t47-run-in-trPr', asks: 'an unknown w: element in a w:trPr holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: trPrHolding(made(hidden)) },
+  { name: '76t48-run-in-tcPr', asks: 'an unknown w: element in a w:tcPr holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: tcPrHolding(made(hidden)) },
+  { name: '76t49-run-in-tblPr', asks: 'an unknown w: element in a w:tblPr holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: tblPrHolding(made(hidden)) },
+  { name: '76t50-run-in-sectPr', asks: 'an unknown w: element in a w:sectPr holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: sectPrHolding(made(hidden)) },
+  { name: '76t51-second-name-in-p', asks: 'a second unknown w: name in a w:p holding a run: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `<w:p>${inRuns((inner) => `<w:neverDeclared>${inner}</w:neverDeclared>`)}</w:p>` },
+  { name: '76t52-round-8-control', asks: 'nothing unknown: the frames of 76t35 to 76t51 that are legal, with HIDDEN WORDS standing bare where it can', ignorable: false,
+    content: [inACell(bare), HOSTS.hyperlink(bare), `<w:p>${hidden}</w:p>`, pPrChanged('<w:jc w:val="left"/>'), branch(hidden, run('FALLBACK WORDS'), TAKEN), branch(run('CHOICE WORDS'), hidden, NOT_TAKEN),
+      sdtPrHolding(''), trPrHolding('<w:cantSplit/>'), tcPrHolding('<w:vAlign w:val="top"/>'), tblPrHolding(''), sectPrHolding('')].join(p('NEXT HOST.')) },
 ];
 
 /** A file's header, comments and footnotes parts, each in the content types and the main document's relationships; nothing for a file with none. */

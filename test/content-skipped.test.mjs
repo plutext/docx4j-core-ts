@@ -1,11 +1,11 @@
-// CR-025 phase 1: what a read drops, reported as `part.skipped` on the part and on pkg.warnings. Nothing here changes what a
-// save does: the gate is phase 2.
+// CR-025: what a read drops, reported as `part.skipped` on the part and on pkg.warnings (phase 1); a part read and not changed
+// copied, and a save that would lose such content refused (phase 2).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { unzipSync, zipSync, strToU8 } from 'fflate';
-import { OpcPackage, WordprocessingMLPackage } from '../dist/index.mjs';
+import { MemoryPartSink, OpcPackage, PlainText, SaveLossException, Texts, WordprocessingMLPackage } from '../dist/index.mjs';
 import { bytesEqual, fixturesDir } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -208,4 +208,177 @@ test('CR-025 section 1: NumberingImplicitNumId.docx reports its 15 and no other 
   assert.equal(skipped.length, 15);
   assert.ok(skipped.every((w) => w.kind === 'attribute' && w.partName === '/word/settings.xml' && w.parentName === 'w:stylePaneFormatFilter'));
   assert.ok(skipped.some((w) => w.name === 'w:allStyles' && w.path === '/w:settings/w:stylePaneFormatFilter/@w:allStyles'));
+});
+
+// Phase 2. The element is one the read drops today, in a host that reads: w:pPr.
+const DROPPED = '<w:p><w:pPr><ext:opaque/></w:pPr><w:r><w:t>a</w:t></w:r></w:p>';
+const bytesOfDocument = (zipped) => unzipSync(zipped)['word/document.xml'];
+
+test('CR-025 section 2.2: a part read and not changed is copied byte for byte, what the read dropped still in it', async () => {
+  const bytes = await (await documentOf(DROPPED)).save();
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  await pkg.getMainDocumentPart().getContents();
+  assert.equal(skippedIn(pkg.getMainDocumentPart()).length, 1);
+  const saved = await pkg.save();
+  assert.ok(bytesEqual(bytesOfDocument(saved), bytesOfDocument(bytes)));
+  assert.match(new TextDecoder().decode(bytesOfDocument(saved)), /ext:opaque/);
+  assert.deepEqual(pkg.lastSave.lost, []);
+  assert.deepEqual(pkg.lastSave.normalised, [], 'copied, so no marshal to report on');
+});
+
+test('CR-025 section 2.3: a part changed is refused, nothing written, with python\'s message and this package\'s way out', async () => {
+  const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+  await pkg.getBody();
+  pkg.body.paragraphs[0].insertText(' more', 'End');
+  const puts = [];
+  const sink = { put: (name) => { puts.push(name); }, finish: async () => { puts.push('finished'); } };
+  await assert.rejects(pkg.saveTo(sink), (e) => {
+    assert.ok(e instanceof SaveLossException);
+    assert.equal(e.code, 'save.content_lost');
+    assert.deepEqual(e.losses, [{ partName: '/word/document.xml', kind: 'skipped', count: 1 }]);
+    assert.equal(e.message, 'Saving would lose content: /word/document.xml holds 1 item the load skipped (part.skipped). Set pkg.checkLossOnSave = false to write the part without it.');
+    return true;
+  });
+  assert.deepEqual(puts, [], 'nothing written, whatever the sink: a directory sink writes as it goes');
+});
+
+test('CR-025 section 2.3: every part that would lose content is listed at once', async () => {
+  const pkg = await loaded({
+    'word/document.xml': inBody(DROPPED),
+    'word/settings.xml': `<w:settings ${roots}><ext:one/><ext:two/></w:settings>`,
+  });
+  await pkg.getBody();
+  const settings = partOf(pkg, '/word/settings.xml');
+  await settings.getContents();
+  pkg.body.paragraphs[0].insertText(' more', 'End');
+  settings.contents.zoom = { percent: 150 };
+  await assert.rejects(pkg.save(), (e) => {
+    assert.deepEqual([...e.losses].sort((a, b) => a.partName.localeCompare(b.partName)), [
+      { partName: '/word/document.xml', kind: 'skipped', count: 1 },
+      { partName: '/word/settings.xml', kind: 'skipped', count: 2 },
+    ]);
+    assert.match(e.message, /write the parts without them\.$/);
+    return true;
+  });
+});
+
+test('CR-025 section 2.4: with checkLossOnSave off the part is written without the items, each on lastSave.lost, through every route', async () => {
+  const changed = async () => {
+    const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+    await pkg.getBody();
+    pkg.body.paragraphs[0].insertText(' more', 'End');
+    pkg.checkLossOnSave = false;
+    return pkg;
+  };
+  const viaZip = await changed();
+  assert.doesNotMatch(new TextDecoder().decode(bytesOfDocument(await viaZip.save())), /ext:opaque/);
+  assert.deepEqual(viaZip.lastSave.lost.map((w) => [w.code, w.name]), [['part.skipped', 'ext:opaque']]);
+  const viaFlat = await changed();
+  assert.doesNotMatch(await viaFlat.saveFlatOpc(), /ext:opaque/);
+  assert.equal(viaFlat.lastSave.lost.length, 1);
+  const viaSink = await changed();
+  await viaSink.saveTo(new MemoryPartSink());
+  assert.equal(viaSink.lastSave.lost.length, 1);
+});
+
+test('CR-025 section 2.4: clone() carries the setting, and a changed part refuses a clone as it does a save', async () => {
+  const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+  await pkg.getBody();
+  pkg.body.paragraphs[0].insertText(' more', 'End');
+  await assert.rejects(pkg.clone(), SaveLossException);
+  pkg.checkLossOnSave = false;
+  assert.equal((await pkg.clone()).checkLossOnSave, false);
+});
+
+test('CR-025 section 2.4: a part read and not changed is copied with the setting off too', async () => {
+  const bytes = await (await documentOf(DROPPED)).save();
+  const pkg = await WordprocessingMLPackage.load(bytes);
+  await pkg.getMainDocumentPart().getContents();
+  pkg.checkLossOnSave = false;
+  assert.ok(bytesEqual(bytesOfDocument(await pkg.save()), bytesOfDocument(bytes)));
+  assert.deepEqual(pkg.lastSave.lost, []);
+});
+
+test('CR-025 section 2.3: a part given new contents is never refused, and is written without the element: the way to mend a file', async () => {
+  const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+  const main = pkg.getMainDocumentPart();
+  main.setContents(await main.getContents());
+  const saved = new TextDecoder().decode(bytesOfDocument(await pkg.save()));
+  assert.doesNotMatch(saved, /ext:opaque/);
+  assert.deepEqual(pkg.lastSave.lost, []);
+});
+
+test('CR-025 section 2.2: a part given bytes is held to those bytes, not to its source', async () => {
+  const pkg = await WordprocessingMLPackage.load(await (await documentOf('<w:p/>')).save());
+  const main = pkg.getMainDocumentPart();
+  const given = inBody(DROPPED);
+  main.setXml(given);
+  await main.getContents();
+  assert.equal(skippedIn(main).length, 1);
+  assert.match(new TextDecoder().decode(bytesOfDocument(await pkg.save())), /ext:opaque/);
+});
+
+test('CR-025 D9: what CR-021\'s pass takes counts: read and not changed the part is copied, changed it\'s refused', async () => {
+  const bytes = await (await documentOf('<w:p><w:r><w:t>a<ext:opaque>lost</ext:opaque>b</w:t></w:r></w:p>')).save();
+  const read = await WordprocessingMLPackage.load(bytes);
+  await read.getMainDocumentPart().getContents();
+  assert.ok(bytesEqual(bytesOfDocument(await read.save()), bytesOfDocument(bytes)));
+  const changed = await WordprocessingMLPackage.load(bytes);
+  await changed.getBody();
+  changed.body.paragraphs[0].insertText(' more', 'End');
+  await assert.rejects(changed.save(), SaveLossException);
+});
+
+test('CR-025 section 1: the real file: its readers aren\'t refused for a style pane filter they never touched, and a change to its settings is', async () => {
+  const bytes = new Uint8Array(readFileSync(join(fixturesDir, 'parity', 'NumberingImplicitNumId.docx')));
+  const reader = await WordprocessingMLPackage.load(bytes);
+  await reader.unmarshalAll();
+  const saved = unzipSync(await reader.save());
+  assert.ok(bytesEqual(saved['word/settings.xml'], unzipSync(bytes)['word/settings.xml']));
+  const writer = await WordprocessingMLPackage.load(bytes);
+  await writer.getBody();
+  writer.changeTrackingMode = 'TrackAll';
+  await assert.rejects(writer.save(), (e) => e instanceof SaveLossException && e.losses[0].partName === '/word/settings.xml');
+  writer.checkLossOnSave = false;
+  await writer.save();
+  assert.equal(writer.lastSave.lost.length, 15);
+});
+
+test('CR-025 section 2.2 over every fixture: skipped content injected, the part read every way a reader does, and copied byte for byte', async () => {
+  const files = [];
+  const walk = (dir) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) { if (name !== 'check72' && name !== 'check75') walk(path); } else if (/\.docx$/i.test(name)) files.push(path);
+    }
+  };
+  walk(fixturesDir);
+  walk(join(fixturesDir, '..', 'mc-fun'));
+  assert.ok(files.length > 250, `${files.length} files`);
+  const refused = [];
+  let held = 0;
+  for (const file of files) {
+    const parts = unzipSync(new Uint8Array(readFileSync(file)));
+    const name = 'word/document.xml';
+    if (!parts[name]) continue;
+    const xml = new TextDecoder().decode(parts[name]);
+    const at = /<w:p[ >]/.exec(xml);
+    if (!at) continue;
+    const injected = `${xml.slice(0, at.index + 4)} xmlns:zz="urn:docx4j:cr025:zz" zz:mark="1"${xml.slice(at.index + 4)}`;
+    const bytes = zipSync({ ...parts, [name]: strToU8(injected) });
+    const pkg = await WordprocessingMLPackage.load(bytes);
+    await pkg.unmarshalAll();
+    const main = pkg.getMainDocumentPart();
+    if (!skippedIn(main).some((w) => w.name === 'zz:mark')) continue;
+    try {
+      const body = await pkg.getBody();
+      for (const p of body.paragraphs) void p.text;
+      PlainText.of(await Texts.of(pkg));
+      const saved = await pkg.save();
+      if (!bytesEqual(bytesOfDocument(saved), strToU8(injected))) refused.push(`${file}: not copied`);
+      held++;
+    } catch (e) { refused.push(`${file}: ${e.message.split('\n')[0]}`); }
+  }
+  assert.deepEqual(refused, [], 'a read changes nothing a marshal shows');
+  assert.ok(held > 200, `${held} files held`);
 });

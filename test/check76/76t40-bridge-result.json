@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t40-run-in-pPrChange.word.docx",
+   "format": "docx",
+   "bytes": 13209,
+   "sha256": "b742c9e28689eef15186298947b218eb88d1aea908795f8b72e5d9bcd7c788ee"
+  },
+  {
+   "name": "76t40-run-in-pPrChange.pdf",
+   "format": "pdf",
+   "bytes": 18887,
+   "sha256": "98b7b6bfd990969867028b2a71b771c4322b8eeddecca684ec7d89896415b6a4"
+  }
+ ],
+ "seconds": 4.5,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t40-run-in-pPrChange.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t40-run-in-pPrChange.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t40-run-in-pPrChange.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.55
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t45-madeup-in-fallback.word.docx",
+   "format": "docx",
+   "bytes": 13197,
+   "sha256": "31d2868775432796503e31c2987b22301e12f5f1f6a7b06cd1905226990c17d5"
+  },
+  {
+   "name": "76t45-madeup-in-fallback.pdf",
+   "format": "pdf",
+   "bytes": 18914,
+   "sha256": "b0a743c1b967bb0f934df1bb99427d881c2508583eb7588e73c2339f2ca25257"
+  }
+ ],
+ "seconds": 5.8,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t45-madeup-in-fallback.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t45-madeup-in-fallback.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t45-madeup-in-fallback.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.75
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

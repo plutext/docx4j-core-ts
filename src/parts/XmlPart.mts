@@ -165,6 +165,8 @@ export class XmlPart<T = unknown> extends Part {
   /** Runs over the DOM before unmarshalling; the package sets its MCE preprocessor here. */
   preprocessor: DomPreprocessor | undefined;
   private parseWarnings: readonly PartWarning[] = [];
+  /** The bytes given to `setBytes` that the tree was read from; undefined where it came from the source container. */
+  private parsedBytes: Uint8Array | undefined;
 
   constructor(partName: PartName | string, contentType: string, relationshipType: string, rootName?: RootName) {
     super(partName, contentType, relationshipType);
@@ -218,6 +220,7 @@ export class XmlPart<T = unknown> extends Part {
   async getContents(): Promise<T> {
     if (this.element === undefined) {
       const bytes = this.bytes ?? (await this.loadSourceBytes());
+      this.parsedBytes = this.bytes;
       if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set contents or load it from a container`);
       const doc = this.parse(bytes);
       this.preprocess(doc);
@@ -274,9 +277,13 @@ export class XmlPart<T = unknown> extends Part {
    * not an option, so ahead of the package's hook, which sees the repaired DOM), then the hook.
    */
   private preprocess(doc: Document): void {
+    this.parseWarnings = this.preprocessed(doc);
+  }
+
+  private preprocessed(doc: Document): readonly PartWarning[] {
     const repaired = repairBreaksOutsideRuns(doc, this.partName.name);
     const warnings = this.preprocessor?.(doc, this as XmlPart<unknown>);
-    this.parseWarnings = warnings ? [...repaired, ...warnings] : repaired;
+    return warnings ? [...repaired, ...warnings] : repaired;
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */
@@ -285,6 +292,7 @@ export class XmlPart<T = unknown> extends Part {
     if (!name) throw new Docx4JException(`Part ${this.partName}: no root element name; pass one`);
     this.element = { name: { namespaceURI: name.namespaceURI, localPart: name.localPart }, value };
     this.bytes = undefined;
+    this.parsedBytes = undefined;
     this.parseWarnings = [];
   }
 
@@ -292,6 +300,41 @@ export class XmlPart<T = unknown> extends Part {
   setBytes(bytes: Uint8Array): void {
     this.bytes = bytes;
     this.element = undefined;
+    this.parsedBytes = undefined;
+  }
+
+  /** What the read of the tree held now dropped (CR-025): nothing for a part not unmarshalled, or given contents. */
+  get skippedByRead(): readonly ContentSkippedWarning[] {
+    if (this.element === undefined) return [];
+    return this.parseWarnings.filter((w): w is ContentSkippedWarning => w.code === 'part.skipped');
+  }
+
+  /** The bytes the tree held now was read from. */
+  async bytesRead(): Promise<Uint8Array | undefined> {
+    return this.parsedBytes ?? this.loadSourceBytes();
+  }
+
+  /**
+   * Whether the tree is still what its source reads as (CR-025 section 2.2): the source read again and the two marshalled
+   * alike. The save has no change log to ask, so this is for a part that holds skipped content, and only that: such a part,
+   * read and not changed, is copied, where a marshal would lose what the read dropped. What can't be compared counts as changed.
+   */
+  async isUnchangedSinceRead(): Promise<boolean> {
+    if (this.element === undefined) return true;
+    const bytes = await this.bytesRead();
+    if (bytes === undefined) return false;
+    const marshal: MarshalOptions = {};
+    const normalise = this.package?.normaliseOnSave;
+    if (normalise !== undefined) marshal.normaliseOnSave = normalise;
+    try {
+      const doc = this.parse(bytes);
+      this.preprocessed(doc);
+      const source = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {});
+      return serializeXml(await marshalNode(source as Jsonix.TypedNamedValue, marshal))
+        === serializeXml(await marshalNode(this.element as Jsonix.TypedNamedValue, marshal));
+    } catch {
+      return false;
+    }
   }
 
   /** Replaces the contents with XML text (docx4j setContents from a string). */

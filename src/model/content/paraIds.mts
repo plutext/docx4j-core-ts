@@ -1,6 +1,7 @@
-// w14:paraId on what the content API adds. Word 365 keeps a file's ids only if every paragraph and row holds one: one
-// without makes it renumber the whole part at the next open (check 79: 79d-table, 79f-one-missing, 79f-row-ids), which breaks
-// a `w14:` address held across that open. So a new paragraph or row takes one wherever the story already uses them.
+// w14:paraId on what the content API adds. In a compatibility mode 15 file, one paragraph or row without an id makes Word 365
+// renumber the whole part at the next open (check 79: 79d-table, 79f-one-missing, 79f-row-ids; check 80), which breaks a `w14:`
+// address held across that open. Mode 12 files behaved otherwise (CR-002 section 66). Word's own saves hold an id on everything,
+// so a new paragraph or row takes one wherever the story already uses them.
 import { walk } from '@docx4j/generated-objects-ts/builders/wml';
 
 const P = 'org_docx4j_wml.P';

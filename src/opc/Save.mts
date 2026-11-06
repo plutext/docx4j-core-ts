@@ -1,12 +1,13 @@
 import type { PartSink } from './PartStore.mjs';
 import { CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypes } from './ContentTypes.mjs';
-import { Docx4JException, MisplacedContentException } from './exceptions.mjs';
+import { Docx4JException, MisplacedContentException, SaveLossException, type ContentLoss } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import type { Part } from '../parts/Part.mjs';
-import { valueOutOfRange, misplacedContent } from '../parts/XmlPart.mjs';
+import { XmlPart, valueOutOfRange, misplacedContent } from '../parts/XmlPart.mjs';
 import type { ValueOutOfRangeWarning, MisplacedContentWarning } from './mce/preprocessor.mjs';
+import type { ContentSkippedWarning } from './skipped.mjs';
 import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
 import { encodeText } from '../xml/dom.mjs';
@@ -28,13 +29,15 @@ export interface ValueNormalised {
 
 /**
  * What the last save of a package did beyond writing it: each value it normalised (CR-015 D8), each integer
- * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), and, with
- * `checkContentOnSave` off, each child it wrote where its container never admits one (CR-016 D2), each with its path.
+ * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), with
+ * `checkContentOnSave` off, each child it wrote where its container never admits one (CR-016 D2), each with its path,
+ * and, with `checkLossOnSave` off, each item the read dropped that a changed part was written without (CR-025 D8).
  */
 export interface SaveReport {
   normalised: ValueNormalised[];
   outOfRange: ValueOutOfRangeWarning[];
   misplaced: MisplacedContentWarning[];
+  lost: ContentSkippedWarning[];
 }
 
 function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
@@ -76,10 +79,11 @@ async function writeTimes(pkg: OpcPackage): Promise<void> {
 export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promise<R> {
   if (pkg.writeTimesOnSave) await writeTimes(pkg);
   const saver = new Saver(pkg, sink);
+  await saver.settleLosses(); // before anything is written, whatever the sink
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
-  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced };
+  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, lost: saver.lost };
   return result;
 }
 
@@ -88,8 +92,40 @@ class Saver {
   readonly normalised: ValueNormalised[] = [];
   readonly outOfRange: ValueOutOfRangeWarning[] = [];
   readonly misplaced: MisplacedContentWarning[] = [];
+  readonly lost: ContentSkippedWarning[] = [];
+  /** Parts holding skipped content, read and not changed: written from their source (CR-025 section 2.2). */
+  private readonly copied = new Set<string>();
 
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
+
+  /**
+   * CR-025 sections 2.2 and 2.3, over the parts this save reaches: one holding what its read dropped is copied if it hasn't
+   * changed, and if it has, the save is refused for all of them at once, or, with `checkLossOnSave` off, says what went.
+   */
+  async settleLosses(): Promise<void> {
+    const losses: ContentLoss[] = [];
+    const seen = new Set<string>();
+    const visit = async (rp: RelationshipsPart): Promise<void> => {
+      for (const r of rp.list) {
+        if (r.type === Namespaces.HYPERLINK || isExternal(r)) continue;
+        const part = this.pkg.getPart(rp.resolveTarget(r));
+        if (!part || seen.has(part.partName.key)) continue;
+        seen.add(part.partName.key);
+        if (part instanceof XmlPart) {
+          const skipped = part.skippedByRead;
+          if (skipped.length > 0) {
+            if (await part.isUnchangedSinceRead()) this.copied.add(part.partName.key);
+            else if (this.pkg.checkLossOnSave) losses.push({ partName: part.partName.name, kind: 'skipped', count: skipped.length });
+            else this.lost.push(...skipped);
+          }
+        }
+        const rrp = part.relationshipsPart;
+        if (rrp && rrp.size > 0) await visit(rrp);
+      }
+    };
+    await visit(this.pkg.relationshipsPart);
+    if (losses.length > 0) throw new SaveLossException(losses);
+  }
 
   async saveRels(rp: RelationshipsPart): Promise<void> {
     this.sink.put(rp.partName.storeName, await rp.getBytes(), { contentType: ContentTypes.RELATIONSHIPS_PART });
@@ -104,6 +140,12 @@ class Saver {
   private async savePart(part: Part): Promise<void> {
     if (this.handled.has(part.partName.key)) return;
     this.handled.add(part.partName.key);
+    if (this.copied.has(part.partName.key)) {
+      this.sink.put(part.partName.storeName, (await (part as XmlPart<unknown>).bytesRead()) as Uint8Array, { compress: part.compress, contentType: part.contentType });
+      const held = part.relationshipsPart;
+      if (held && held.size > 0) await this.saveRels(held);
+      return;
+    }
     let bytes: Uint8Array;
     // CR-016 D2: a child its container never admits refuses the save, every one in the part listed, unless
     // pkg.checkContentOnSave is off, when each is written as held and reported; the runtime's own refusal (a string in a

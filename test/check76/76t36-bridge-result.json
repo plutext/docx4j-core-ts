@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t36-madeup-in-madeup-in-hyperlink.word.docx",
+   "format": "docx",
+   "bytes": 13192,
+   "sha256": "061a6d9783f35912abcc79d82f633ef85dc872cfe73bd33bcd3f4ece90e6317d"
+  },
+  {
+   "name": "76t36-madeup-in-madeup-in-hyperlink.pdf",
+   "format": "pdf",
+   "bytes": 18468,
+   "sha256": "5171269e78220f0ace10f13e27fbbf961183765cd4f9d19dce7d0e443898716d"
+  }
+ ],
+ "seconds": 4.2,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t36-madeup-in-madeup-in-hyperlink.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t36-madeup-in-madeup-in-hyperlink.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t36-madeup-in-madeup-in-hyperlink.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.46
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

@@ -1,7 +1,7 @@
 {
  "check": 76,
  "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected; round 6, 76t27 and 76t28, through the portfolio's Word bridge, 16.0.20326.20232, 06:19 to 06:21 on 2026-11-06, each result in its -bridge-result.json, a bridge save differing from a hand save beyond the body: the document's own compatibility mode, DocSecurity 4, no note parts or hdrShapeDefaults)",
- "source": "test/fixtures/check76/build.mjs (55 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
+ "source": "test/fixtures/check76/build.mjs (79 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
  "results": "results.txt is Jason's record, unedited, but for round 6's lines, the portfolio session's. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y and refused 76t28, so they have no save or PDF. The other 45 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote, and 76t27, in a w:pPr, the run at the head of its paragraph. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
  "files": [
   {
@@ -382,7 +382,267 @@
   },
   {
    "name": "results.txt",
-   "sha1": "52fbf3be04530fe76e74bf615bce5cfbf188af59"
+   "sha1": "03221763cff4a223af8f41d670235cacd2651be8"
+  },
+  {
+   "name": "76t29-madeup-in-ftr-word365.docx",
+   "sha1": "906ee8a29730ead4f535a87994c6331b38278d91"
+  },
+  {
+   "name": "76t29-madeup-in-ftr.pdf",
+   "sha1": "15722675f81348eb8c69ea2f012a283414a4633f"
+  },
+  {
+   "name": "76t29-bridge-result.json",
+   "sha1": "a66e9bf82239cf81294aa5aeb77ca35d73141965"
+  },
+  {
+   "name": "76t30-madeup-in-endnote-word365.docx",
+   "sha1": "2b7f12cbb4deb9791e6600c30051d25869fc00dd"
+  },
+  {
+   "name": "76t30-madeup-in-endnote.pdf",
+   "sha1": "10469073e06bb6f9c164725d4396414ed95ff146"
+  },
+  {
+   "name": "76t30-bridge-result.json",
+   "sha1": "c9ddd8b13f2e65f979206e25393b9fd76ee24f9b"
+  },
+  {
+   "name": "76t31-madeup-in-del-word365.docx",
+   "sha1": "ca5845e0b1bb0b0259b82f03e968cc41c3c26558"
+  },
+  {
+   "name": "76t31-madeup-in-del.pdf",
+   "sha1": "7fc1bf8608fbdea5ee9ee2e358106eed375d4d37"
+  },
+  {
+   "name": "76t31-bridge-result.json",
+   "sha1": "38988dfad9b92d973cadd5ba66fa1a58cc73c5bc"
+  },
+  {
+   "name": "76t32-madeup-in-moveFrom-word365.docx",
+   "sha1": "c6344139184c211335ce8962bea9b7646f5e7f00"
+  },
+  {
+   "name": "76t32-madeup-in-moveFrom.pdf",
+   "sha1": "9aff532b32f9676f080c8c6a0111dbe3caf41ec5"
+  },
+  {
+   "name": "76t32-bridge-result.json",
+   "sha1": "3fdc8c8394f5d55607f10d915286873b5cc0187a"
+  },
+  {
+   "name": "76t33-madeup-in-moveTo-word365.docx",
+   "sha1": "612bdcfe7fdcddddc0106faa4c22e2c38c8e4dcd"
+  },
+  {
+   "name": "76t33-madeup-in-moveTo.pdf",
+   "sha1": "131cdf60b5f66bd8a2d25fdbf662a1b476dfb204"
+  },
+  {
+   "name": "76t33-bridge-result.json",
+   "sha1": "5086e8bbba114a1a5e6a297ebb76996c30523326"
+  },
+  {
+   "name": "76t34-last-hosts-control-word365.docx",
+   "sha1": "24ee6eea9fa59df1f48c3262fd4a5045cd344d7c"
+  },
+  {
+   "name": "76t34-last-hosts-control.pdf",
+   "sha1": "58d766076bec67b334c783400b04270ef74759b2"
+  },
+  {
+   "name": "76t34-bridge-result.json",
+   "sha1": "08483e856c6dc9808391ff15a110b403e85c986d"
+  },
+  {
+   "name": "76t52-bridge-result.json",
+   "sha1": "0980aa76d44fe7eb18ddf0844535a8d649ee1c0e"
+  },
+  {
+   "name": "76t52-round-8-control-word365.docx",
+   "sha1": "2211009a8f293bc04b1e9a2bbe5860d9ffb97af2"
+  },
+  {
+   "name": "76t52-round-8-control.pdf",
+   "sha1": "f7556225226b5b0fd8c17ebcfb3fdcdc96d528f2"
+  },
+  {
+   "name": "76t35-bridge-result.json",
+   "sha1": "4a399aa3ab25db0b11ba6fa674267b9f844ac53e"
+  },
+  {
+   "name": "76t35-madeup-in-madeup-in-tc-word365.docx",
+   "sha1": "9a19c7f4b45dce9324f0caa17b44679863a78643"
+  },
+  {
+   "name": "76t35-madeup-in-madeup-in-tc.pdf",
+   "sha1": "717380d23ff5f6dacd0d3df4cbe6007429f875d4"
+  },
+  {
+   "name": "76t36-bridge-result.json",
+   "sha1": "b4bd8e8c16cf1f6fbc09e2d14f576668fc2f652f"
+  },
+  {
+   "name": "76t36-madeup-in-madeup-in-hyperlink-word365.docx",
+   "sha1": "c0412eb1399d880da2491493f6a1173ddc68d1c5"
+  },
+  {
+   "name": "76t36-madeup-in-madeup-in-hyperlink.pdf",
+   "sha1": "01bd6fd4b2c78ac0a6d0223d6ec087a817d156c0"
+  },
+  {
+   "name": "76t37-bridge-result.json",
+   "sha1": "872e26427ecd37dfd9622aa33e554a7be6fe4f84"
+  },
+  {
+   "name": "76t37-two-runs-in-pPr-word365.docx",
+   "sha1": "c6a6dce2ce82c580ca554132b31faff9d4421b19"
+  },
+  {
+   "name": "76t37-two-runs-in-pPr.pdf",
+   "sha1": "05859fcb5bd96a16b2095bfa3e997ee841f0615e"
+  },
+  {
+   "name": "76t38-bridge-result.json",
+   "sha1": "217bf413837aec7befaab2e5cda672b70be331d8"
+  },
+  {
+   "name": "76t38-run-and-property-in-pPr-word365.docx",
+   "sha1": "0edd59a6a049a2a3110955b397d69acb553c4f63"
+  },
+  {
+   "name": "76t38-run-and-property-in-pPr.pdf",
+   "sha1": "e8960f0d82e636e94a160dbdd8af80c26d9cb2fd"
+  },
+  {
+   "name": "76t39-bridge-result.json",
+   "sha1": "b14cc9a160cdc452d8d55b48ddc51b426db76a11"
+  },
+  {
+   "name": "76t39-run-in-pPr-no-other-run-word365.docx",
+   "sha1": "2aa1d73dfdd1ed0b941e59ab2310fd9538f01ac7"
+  },
+  {
+   "name": "76t39-run-in-pPr-no-other-run.pdf",
+   "sha1": "027083ce8986ddb5ae7669b302d92ff3d88a47f4"
+  },
+  {
+   "name": "76t40-bridge-result.json",
+   "sha1": "fa2c45f123ca7fdcc21c22625e2c27e84e5f2d0a"
+  },
+  {
+   "name": "76t40-run-in-pPrChange-word365.docx",
+   "sha1": "3912a3156c07042f67277a557be345799f9ee160"
+  },
+  {
+   "name": "76t40-run-in-pPrChange.pdf",
+   "sha1": "ab4221a41502db3574453013650224cd36c7e950"
+  },
+  {
+   "name": "76t41-bridge-result.json",
+   "sha1": "634295f9d3496d85540fc27dec6a73b60aef31cd"
+  },
+  {
+   "name": "76t41-text-in-madeup-word365.docx",
+   "sha1": "e98a1fd2080d7fb8b50498a7b4b63ce96d4e51b4"
+  },
+  {
+   "name": "76t41-text-in-madeup.pdf",
+   "sha1": "d77c832f4dd84dea08c83d1cde857951925baa90"
+  },
+  {
+   "name": "76t42-bridge-result.json",
+   "sha1": "1fd715cfa9ab152a0b9e2af2c74b53d54dfe06c7"
+  },
+  {
+   "name": "76t42-break-in-madeup-word365.docx",
+   "sha1": "cd6c2ace664f26dd5d7a833fd296d5c918c11eaf"
+  },
+  {
+   "name": "76t42-break-in-madeup.pdf",
+   "sha1": "6295278652239a74534f93e94bb5e26f442b04b6"
+  },
+  {
+   "name": "76t43-bridge-result.json",
+   "sha1": "7c825c239f32802f549bce1904728fb943759d32"
+  },
+  {
+   "name": "76t43-paragraph-in-madeup-in-p-word365.docx",
+   "sha1": "d09c9397e4af61cd4e51813fba0845d498addeb3"
+  },
+  {
+   "name": "76t43-paragraph-in-madeup-in-p.pdf",
+   "sha1": "321c93fe7f191c7296581dbb9c45bb69ad6d9cd6"
+  },
+  {
+   "name": "76t44-bridge-result.json",
+   "sha1": "9d1a1bbb42e97075c41b92359298a51d9d62f6fc"
+  },
+  {
+   "name": "76t44-madeup-in-choice-word365.docx",
+   "sha1": "cf00f437fc9cb458c41585512051f29301d7684b"
+  },
+  {
+   "name": "76t44-madeup-in-choice.pdf",
+   "sha1": "0f8e7b5909f3011f98e820d25fee261d3c54bce4"
+  },
+  {
+   "name": "76t45-bridge-result.json",
+   "sha1": "627cd784f842ffc0ded47aae268276c8cec5159e"
+  },
+  {
+   "name": "76t45-madeup-in-fallback-word365.docx",
+   "sha1": "4b5f523e03587031b00b3542104737daeb601e62"
+  },
+  {
+   "name": "76t45-madeup-in-fallback.pdf",
+   "sha1": "d4cf6cb1842c8c24e563290038cd592ab4677c8a"
+  },
+  {
+   "name": "76t46-bridge-result.json",
+   "sha1": "c2475c1657b60417a8c15758e9970a4925c3da8e"
+  },
+  {
+   "name": "76t46-refused-dialog.png",
+   "sha1": "acb749ebe74a65039f52f65778247f721aea07c0"
+  },
+  {
+   "name": "76t47-bridge-result.json",
+   "sha1": "987130cfd6f3070b4969c882c094e65387954936"
+  },
+  {
+   "name": "76t48-bridge-result.json",
+   "sha1": "3eac57e51c56bedc34483fec3afad638a9ec2065"
+  },
+  {
+   "name": "76t49-bridge-result.json",
+   "sha1": "a2aa676c1e78fa93f996767fb7cb89e3eb70f65d"
+  },
+  {
+   "name": "76t50-bridge-result.json",
+   "sha1": "39fe52c82a4ef109c67069fb28c07fd8203c8b38"
+  },
+  {
+   "name": "76t50-run-in-sectPr-word365.docx",
+   "sha1": "219aa08366500227174a7c5c3f967981db4e5a4c"
+  },
+  {
+   "name": "76t50-run-in-sectPr.pdf",
+   "sha1": "4bb3e4b438f1e3512b63a8ec2e6528550b92490a"
+  },
+  {
+   "name": "76t51-bridge-result.json",
+   "sha1": "7b31d087033b777f91a3c1c9044fde4d9ce0727b"
+  },
+  {
+   "name": "76t51-second-name-in-p-word365.docx",
+   "sha1": "e7e6c3448afd0436f536902f8608e4c58d7f7c67"
+  },
+  {
+   "name": "76t51-second-name-in-p.pdf",
+   "sha1": "d16912b1d293d04403cc067b165725a0e27c26fc"
   }
  ]
 }

@@ -7,7 +7,7 @@ import {
   Part, unwrap, wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
   DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
 } from '@docx4j/core-ts';
-import { PartName, MisplacedContentException, type ValueOutOfRangeWarning, type MisplacedContentWarning, type ContentSkippedWarning } from '@docx4j/core-ts/opc';
+import { PartName, MisplacedContentException, SaveLossException, type ValueOutOfRangeWarning, type MisplacedContentWarning, type ContentSkippedWarning } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
 import { WordprocessingMLPackage } from '@docx4j/core-ts/packages';
 import { DirectoryPartStore, DirectoryPartSink } from '@docx4j/core-ts/node';
@@ -25,7 +25,8 @@ export async function consume(): Promise<string> {
   const misplaced: MisplacedContentWarning['code'] = 'target.misplaced';
   const skipped: ContentSkippedWarning['kind'] = 'element';
   const refused: MisplacedContentException['findings'] = [];
-  void misplaced; void refused; void skipped;
+  const losses: SaveLossException['losses'] = [];
+  void misplaced; void refused; void skipped; void losses;
   const range: model.KeptRange | null | undefined = model.keptRange('org_docx4j_wml.PPrBase.Ind', 'left');
   void [outOfRange, range];
   pkg.xpathEngine = new FontoXPathEngine();

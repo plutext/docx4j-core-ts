@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t43-paragraph-in-madeup-in-p.word.docx",
+   "format": "docx",
+   "bytes": 13182,
+   "sha256": "9bbf3871420ee4b500df938c1d1881585590d5255985d58a2c4d87e064efe5d8"
+  },
+  {
+   "name": "76t43-paragraph-in-madeup-in-p.pdf",
+   "format": "pdf",
+   "bytes": 18638,
+   "sha256": "8aa5afa668906382c3e17dff656d884517ce14a12035698c7ef9afcc5d1c2137"
+  }
+ ],
+ "seconds": 4.9,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t43-paragraph-in-madeup-in-p.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t43-paragraph-in-madeup-in-p.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t43-paragraph-in-madeup-in-p.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.74
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

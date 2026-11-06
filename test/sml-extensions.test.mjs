@@ -268,12 +268,12 @@ test('the linked check box: fmlaLink and the VML survive a whole-package re-mars
     assert.equal(control.shapeId, 1025);
     assert.equal(sheet.relationshipsPart.getPart(control.id), sheet.controlPropertiesParts[0]);
     assert.ok(entry(saved, 'xl/drawings/drawing1.xml').includes('spid="_x0000_s1025"'));
-    // CR-001 section 21's kind (a): resolving the drawing's a14 Choice types its hidden colours, and
-    // a:srgbClr does not bind a14:legacySpreadsheetColorIndex, so both go; kept, the Choice is DOM and
-    // writes them back (CR-010 phase 4)
+    // CR-001 section 21's kind (a): resolving the drawing's a14 Choice types its hidden colours, and a:srgbClr does not bind
+    // a14:legacySpreadsheetColorIndex, so a marshal of that tree loses both; kept, the Choice is DOM and writes them back (CR-010
+    // phase 4). Since CR-025 the resolved read reports them, and the part, read and not changed, is copied from its source
     const legacy = (xml) => xml.split('a14:legacySpreadsheetColorIndex=').length - 1;
     assert.equal(legacy(entry(source, 'xl/drawings/drawing1.xml')), 2);
-    assert.equal(legacy(entry(saved, 'xl/drawings/drawing1.xml')), options === RESOLVED ? 0 : 2);
+    assert.equal(legacy(entry(saved, 'xl/drawings/drawing1.xml')), 2);
   }
 });
 

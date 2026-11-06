@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t50-run-in-sectPr.word.docx",
+   "format": "docx",
+   "bytes": 13144,
+   "sha256": "7054219d89d4c7e616c373f82aad58f623eded448e971ba6d1b34df6e71a2cee"
+  },
+  {
+   "name": "76t50-run-in-sectPr.pdf",
+   "format": "pdf",
+   "bytes": 18598,
+   "sha256": "3ba5fecfb14ba9ffadc2ee8b63184a3b6f93cd8539dee98c88e1a463ff09baf0"
+  }
+ ],
+ "seconds": 4.0,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t50-run-in-sectPr.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t50-run-in-sectPr.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t50-run-in-sectPr.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.48
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

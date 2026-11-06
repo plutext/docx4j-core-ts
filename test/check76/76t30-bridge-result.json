@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t30-madeup-in-endnote.word.docx",
+   "format": "docx",
+   "bytes": 14998,
+   "sha256": "3ce8a359bf5e6f24e08487a4b35dcdd513af7cbea769b909a0af0d06e9a99aad"
+  },
+  {
+   "name": "76t30-madeup-in-endnote.pdf",
+   "format": "pdf",
+   "bytes": 19289,
+   "sha256": "58f39dcb3fabad8bd743d7cde1178d51b675c885a347ea2445816544eaaaaccb"
+  }
+ ],
+ "seconds": 5.6,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t30-madeup-in-endnote.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t30-madeup-in-endnote.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t30-madeup-in-endnote.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.57
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

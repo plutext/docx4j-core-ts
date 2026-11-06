@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t34-last-hosts-control.word.docx",
+   "format": "docx",
+   "bytes": 16063,
+   "sha256": "590c8ef82ba1a2c04d94413754ddf6384249b7fb28ce99335a37bf8c9789488a"
+  },
+  {
+   "name": "76t34-last-hosts-control.pdf",
+   "format": "pdf",
+   "bytes": 20169,
+   "sha256": "ad02858e79b712e5616be34bbc1af5b2ac453d6238f7f547fbe0d0b644bbf805"
+  }
+ ],
+ "seconds": 4.1,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t34-last-hosts-control.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t34-last-hosts-control.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t34-last-hosts-control.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.28
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

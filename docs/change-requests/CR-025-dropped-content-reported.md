@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
 recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
-shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Phase 1 built 2026-11-06 (section 2.8), phases 2 and 3 not. CR-026 depends on this CR.
+shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Phases 1 and 2 built 2026-11-06 (sections 2.8 and 2.9), phase 3 not. CR-026 depends on this CR.
 
 ## 0. Summary
 
@@ -209,6 +209,21 @@ Five things the build settled:
 - **A Choice taken can report what a kept load doesn't.** `cr022-checkbox-linked.xlsx` under `mcePreprocess: true` reports `a14:legacySpreadsheetColorIndex` and `mc:Ignorable` on two `a:srgbClr`, which is CR-004 section 7's binding gap, silent until now. Phase 2's gate will refuse such a part if it's changed.
 
 `test/content-skipped.test.mjs` holds it. Three tests that pinned a whole warning list were narrowed: `br-placement.test.mjs`'s `w:t` files, as D9 said they would be, which now name what went, and two in `mce.test.mjs`, one of whose files puts a `w:txbxContent` straight in a `w:drawing`.
+
+### 2.9 Phase 2 as built (2026-11-06)
+
+Built at Jason's "commit then do CR-025 phase 2". `XmlPart.isUnchangedSinceRead` is 2.2's test, and `bytesRead` the bytes it holds the tree to. `Saver.settleLosses` is the gate, `SaveLossException` its refusal, and `pkg.checkLossOnSave` the way past it.
+
+Six things the build settled:
+
+- **The gate runs before anything is written, over the parts the save reaches.** `sink.put` writes as it goes on a directory sink, so a refusal in the middle of the walk wouldn't have held to "nothing written". So the gate walks the relationships first, which is also how `losses` can name every part at once, and how a part no longer reached can't refuse a save.
+- **A part given bytes is held to those bytes.** `getContents` drops `this.bytes`, so the part keeps them for 2.2 (`parsedBytes`). `setBytes` leaves the old warnings in place until the next read, so the gate reads `skippedByRead`, which is empty for a part not unmarshalled.
+- **`clone()` is refused as a save is,** since it goes through one. That's CR-016's behaviour too.
+- **What can't be compared counts as changed,** so the gate decides it. A tree that won't marshal is CR-016's anyway.
+- **A part `mcePreprocess` resolved, read and not changed, is saved in its source form,** `mc:AlternateContent` and all, if it holds skipped content. `cr022-checkbox-linked.xlsx`'s drawing keeps its two `a14:legacySpreadsheetColorIndex` attributes through a resolved load, where they used to go with nothing said, and `sml-extensions.test.mjs` pinned that loss. Parts with nothing skipped are resolved as before.
+- **A package setting on `settings.xml` is the case to expect.** `NumberingImplicitNumId.docx` with `changeTrackingMode` set is refused for its 15 `w:stylePaneFormatFilter` attributes, which repeat `w:val`'s bits, until objects CR-019 lands. The way past is `checkLossOnSave`. It's pinned in the test.
+
+Over all the fixtures, each with an attribute injected into its first paragraph, unmarshalled, its paragraphs read and `Texts.of` run, the part is copied byte for byte, so a read changes nothing a marshal shows. Made to answer "unchanged" always, six tests fail. Made to answer "changed" always, six more do. npm test passes 1,884 of 1,884.
 
 ## 3. Tests and oracles
 

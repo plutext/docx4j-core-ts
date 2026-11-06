@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t42-break-in-madeup.word.docx",
+   "format": "docx",
+   "bytes": 13146,
+   "sha256": "73b911b412ccf15a6051b030c94469892d535f9cfcfb47b4a10476634759b024"
+  },
+  {
+   "name": "76t42-break-in-madeup.pdf",
+   "format": "pdf",
+   "bytes": 18063,
+   "sha256": "7323b7be868037e9639c61f9378f1c15627b616e2f45451ebede421197824bec"
+  }
+ ],
+ "seconds": 4.3,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t42-break-in-madeup.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t42-break-in-madeup.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t42-break-in-madeup.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.55
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "0d82718",
+  "installedAt": "2026-11-06T09:05:20"
+ }
+}

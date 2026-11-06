@@ -157,3 +157,25 @@ export class MisplacedContentException extends Docx4JException {
     this.name = 'MisplacedContentException';
   }
 }
+
+/** One part a save would lose content from (CR-025 section 2.3). */
+export interface ContentLoss {
+  partName: string;
+  kind: 'skipped';
+  /** The items its read dropped: `part.skipped`, one each. */
+  count: number;
+}
+
+/**
+ * A save refused because a part holding what its read dropped was changed, so a marshal would lose that (CR-025 section 2.3, the
+ * repair policy's P7). Nothing is written. The code and the wording are docx4j-python's, with this package's way past it.
+ */
+export class SaveLossException extends Docx4JException {
+  readonly code = 'save.content_lost';
+
+  constructor(readonly losses: readonly ContentLoss[]) {
+    super(`Saving would lose content: ${losses.map((l) => `${l.partName} holds ${l.count} item${l.count === 1 ? '' : 's'} the load skipped (part.skipped)`).join(', ')}. `
+      + `Set pkg.checkLossOnSave = false to write ${losses.length === 1 ? 'the part without it' : 'the parts without them'}.`);
+    this.name = 'SaveLossException';
+  }
+}
