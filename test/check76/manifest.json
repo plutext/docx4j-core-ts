@@ -1,7 +1,7 @@
 {
  "check": 76,
  "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected; round 6, 76t27 and 76t28, through the portfolio's Word bridge, 16.0.20326.20232, 06:19 to 06:21 on 2026-11-06, each result in its -bridge-result.json, a bridge save differing from a hand save beyond the body: the document's own compatibility mode, DocSecurity 4, no note parts or hdrShapeDefaults)",
- "source": "test/fixtures/check76/build.mjs (94 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
+ "source": "test/fixtures/check76/build.mjs (98 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
  "results": "results.txt is Jason's record, unedited, but for round 6's lines, the portfolio session's. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y and refused 76t28, so they have no save or PDF. The other 45 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote, and 76t27, in a w:pPr, the run at the head of its paragraph. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
  "files": [
   {
@@ -382,7 +382,7 @@
   },
   {
    "name": "results.txt",
-   "sha1": "9a695b8eb88eedb6b7c94cb4f1290e5736cf4811"
+   "sha1": "ec18b395cf30d013397e47ede739242ea9d9928a"
   },
   {
    "name": "76t29-madeup-in-ftr-word365.docx",
@@ -783,6 +783,54 @@
   {
    "name": "76t67-text-and-a-run-in-madeup.pdf",
    "sha1": "5627631e7b93f77301e728469af3ce61970f878f"
+  },
+  {
+   "name": "76t68-host-right-held-centred-word365.docx",
+   "sha1": "b31f1faad752e4d349b39fdf46dde6cc16d3711d"
+  },
+  {
+   "name": "76t68-host-right-held-centred.pdf",
+   "sha1": "1de7642c5a346bf63a5524132ff9040d635b5fa4"
+  },
+  {
+   "name": "76t68-bridge-result.json",
+   "sha1": "9f1beb45f307811f7f2950fd4bd69de3e3bb3619"
+  },
+  {
+   "name": "76t69-host-right-held-plain-word365.docx",
+   "sha1": "99c69a7c9d5568883dde9f489164b504df3358f7"
+  },
+  {
+   "name": "76t69-host-right-held-plain.pdf",
+   "sha1": "db37cb76f2b028a333192e20845ee7e6e4a986b2"
+  },
+  {
+   "name": "76t69-bridge-result.json",
+   "sha1": "0085333f02ad48b72107db23741274d07f99bd62"
+  },
+  {
+   "name": "76t70-held-paragraph-two-deep-word365.docx",
+   "sha1": "8f3805e8e4788bb33717e2ff1d79fde9ab922d8b"
+  },
+  {
+   "name": "76t70-held-paragraph-two-deep.pdf",
+   "sha1": "c6f6996a9273fe20f53f34df740143a05021ae19"
+  },
+  {
+   "name": "76t70-bridge-result.json",
+   "sha1": "8cc4afc41b9c448ce5df7c0642120d0a0c5a7e51"
+  },
+  {
+   "name": "76t71-held-paragraph-in-hyperlink-word365.docx",
+   "sha1": "a61d0116f75f76a9d314d9cdbafd5d51e84a7264"
+  },
+  {
+   "name": "76t71-held-paragraph-in-hyperlink.pdf",
+   "sha1": "967aec7700de0940123345e10b07202845d12e7a"
+  },
+  {
+   "name": "76t71-bridge-result.json",
+   "sha1": "1f4965859c859789e14feabff1227a2bc1e50f09"
   }
  ]
 }

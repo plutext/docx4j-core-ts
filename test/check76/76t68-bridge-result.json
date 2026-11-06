@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t68-host-right-held-centred.word.docx",
+   "format": "docx",
+   "bytes": 13242,
+   "sha256": "e2724837e2cd3d357ccbe41abf39386148a7659a287a9610318c5187ec30b4e5"
+  },
+  {
+   "name": "76t68-host-right-held-centred.pdf",
+   "format": "pdf",
+   "bytes": 18776,
+   "sha256": "648edbce72d1c0d96975121e45defc1a4e98c6356f42e0609cd0671d2681f129"
+  }
+ ],
+ "seconds": 4.3,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t68-host-right-held-centred.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t68-host-right-held-centred.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t68-host-right-held-centred.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.08
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "66c4038",
+  "installedAt": "2026-11-06T14:27:55"
+ }
+}

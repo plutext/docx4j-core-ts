@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t71-held-paragraph-in-hyperlink.word.docx",
+   "format": "docx",
+   "bytes": 13261,
+   "sha256": "b18ed58a11376b23b25312f7688ed567377df94ed5a0bd5d9ea3f9fc0039ca10"
+  },
+  {
+   "name": "76t71-held-paragraph-in-hyperlink.pdf",
+   "format": "pdf",
+   "bytes": 18542,
+   "sha256": "a8c499d2d5f3d8e0d77e42be6a82c2f9e74091e3e83b75915f78bf24952ed1a0"
+  }
+ ],
+ "seconds": 4.6,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t71-held-paragraph-in-hyperlink.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t71-held-paragraph-in-hyperlink.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t71-held-paragraph-in-hyperlink.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.42
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "66c4038",
+  "installedAt": "2026-11-06T14:27:55"
+ }
+}

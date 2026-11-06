@@ -2,8 +2,8 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", from the finding of 2026-11-03 (CR-023 section
 1: an unknown element in `w:sdtPr`). Measured here the same day (section 1), and three routes compared, two tried as prototypes in
-memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, and D4 decided as recommended the same day. Docs
-only, nothing implemented. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in ten rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
+memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, D4 and D12 decided as recommended the same day. Docs
+only, nothing implemented. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in eleven rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
 
 ## 0. Summary
 
@@ -103,9 +103,7 @@ With CR-025's callback in place, the read needs no code of its own: a skipped el
 copies, refuses or repairs as CR-025 says. What changes is that a main part which failed on this cause now reads. Every other cause
 of `PartUnmarshalException` stays, and CR-012 section 25's rule that a main part which can't be read is refused stands.
 
-`insertOoxml` needs tracing in phase 2: a caller's own fragment holding an unknown element is arguably better refused than read
-with a warning on a package the caller never sees. The same goes for CR-025's D9. The fragment route runs CR-021's pass and discards its
-report (`ooxml.mts`), so what the pass removes from a fragment's `w:t` reaches no warning. Python refuses such a fragment (its CR-030 section 11).
+`insertOoxml` refuses a caller's own fragment holding an unknown element (D12), rather than reading it with a warning on a package the caller never sees. Phase 2 traces the route. That covers CR-025's D9 too: the fragment route runs CR-021's pass and discards its report (`ooxml.mts`), so what the pass removes from a fragment's `w:t` would reach no warning, and that has to refuse as well. Python refuses such a fragment (its CR-030 section 11).
 
 ### 3.3 Reading without the element
 
@@ -153,8 +151,8 @@ An unknown `w:` element in a content host loses its tags and keeps what it holds
 - **The gate:** a changed part holding such tags is refused until `checkLossOnSave` is off, though no words go. What a re-marshal loses is the tags, and Word's own save drops them with no message. This is wider than CR-025's D9, which lists only what goes with its content. D9's first reason doesn't apply here, since Word opens these files, and none of the 720 packages holds such an element, so the wider report stands as D7 says.
 - **A run in a `w:pPr` (D8):** a `w:r` held directly by such an element in a paragraph's `w:pPr` goes to the head of the paragraph, straight after the `w:pPr`, and the tags are reported (`76t27`). A property there goes, as `76t5`'s does, and anything else the element holds stays on route B until it's measured. An element left holding something else stands, so it's reported once, by the read that skips it, and the pass adds no entry. Several such runs move in order (`76t37`), and a paragraph with no other run gets them too (`76t39`). A property beside such a run goes (`76t38`). Round 8 corrects the hand-off on one point: a run in a `w:pPr` under a `w:pPrChange` is read, not dropped (`76t40`), and so is one in a `w:sectPr` in a `w:pPr` (`76t50`). Under a `w:pPrChange` the words are read and the change keeps the author and date it holds, where Word's are lost (D9). In a `w:sectPr` the words are read and the `w:sectPr` goes, reported, as Word does (D10).
 - **Everything else stays on route B:** a property in `w:pPr` or `w:rPr`, and anything in `w:t`, are measured, and drop as route B does. A run in a `w:rPr`, and in a block `w:sdtPr`, a `w:trPr`, a `w:tcPr` or a `w:tblPr`, is a file Word refuses (`76t28`, `76t46` to `76t49`). A host not measured drops the element with all it holds until a check says otherwise, and adding one to the list is then the whole change.
-- **What its host doesn't admit:** a `w:p` in such an element ends its host, where the element is last in the host and a run comes before it (`76t43`, `76t56`, `76t58`), and the pass does the same (D11): the held `w:p`'s runs join the host, which takes the held `w:p`'s properties, each further held `w:p` is a paragraph of its own, and an empty `w:p` follows. Anywhere else in its host Word refuses the file (`76t53` to `76t55`, `76t57`, `76t59`), so those stay on route B. Text straight in the element goes, in all seven hosts tried, a run beside it still read (`76t41`, `76t61` to `76t67`), and is reported. A `w:br` straight in it is read (`76t42`): the pass leaves it bare in the host, and CR-021's rule 1, which runs next, gives it a run, as Word does.
-- **`insertOoxml`:** whether the pass runs on the fragment route goes with section 3.2's tracing. Python's CR-037 Q2 recommends refusing such a fragment unless `lenient`, which fits section 3.2's leaning.
+- **What its host doesn't admit:** a `w:p` in such an element ends its host, where the element is last in the host and a run comes before it (`76t43`, `76t56`, `76t58`), and the pass does the same (D11): the held `w:p`'s runs join the host, each further held `w:p` is a paragraph of its own, and an empty `w:p` follows. The joined paragraph takes the held `w:p`'s properties where it has any, else keeps the host's, and the empty `w:p` takes the host's (`76t58`, `76t68`, `76t69`). Depth changes nothing (`76t70`). Anywhere else in its host Word refuses the file (`76t53` to `76t55`, `76t57`, `76t59`), so those stay on route B. Text straight in the element goes, in all seven hosts tried, a run beside it still read (`76t41`, `76t61` to `76t67`), and is reported. A `w:br` straight in it is read (`76t42`): the pass leaves it bare in the host, and CR-021's rule 1, which runs next, gives it a run, as Word does.
+- **`insertOoxml`:** a caller's own fragment holding such an element is refused, with no option past it (D12). The pass doesn't run on the fragment route. Python's `insert_ooxml` refuses too, unless `lenient`, which this package has no equivalent of.
 
 This departs from docx4j and python, which drop the element with all it holds. Both were told at `80a4707`, and the measurements are theirs to use. docx4j's session loaded check 76's sources on 2026-11-06: all 23 read-through files lose the words, with only a log warning and nothing reported to the caller, and the controls keep them. Python's session read the 27 `76t` sources and Word's saves the same day: 23 differ from Word's text, each loss in its `part.skipped`, and `76t5`, `76t6`, `76t18` and `76t26` agree. If python follows it will list the tags as above. Whether either follows is Jason's.
 
@@ -391,9 +389,24 @@ Two of these contradict what python built and this section matched: the `w:pPrCh
 
 Jason: "do additional measurements to settle REQ-316"; "REQ-314: do other measurements via word-bridge". Word 16.0.20326.20232, through the Word bridge, two runs each, the two agreeing. `test/README.md` item 76 has each file.
 
-**Round 9 settles `76t43`: the held `w:p`'s mark ends the host.** `76t58`'s first paragraph took the held `w:p`'s `w:jc`, and `76t56`'s second held `w:p` is a paragraph of its own. The empty `w:p` is what's left of the host. A run after the element is refused (`76t53`, `76t54`, `76t57`, `76t59`), which fits section 4.6's reading: the host has ended, so nothing can hold the run. `76t55`, the element alone in its host, is refused too, with no run after it, and that reading doesn't explain it. So "a run before it" rests on that one file. A host's own `w:pPr` beside a held one isn't measured, since `76t59` was refused.
+**Round 9 settles `76t43`: the held `w:p`'s mark ends the host.** `76t58`'s first paragraph took the held `w:p`'s `w:jc`, and `76t56`'s second held `w:p` is a paragraph of its own. The empty `w:p` is what's left of the host. A run after the element is refused (`76t53`, `76t54`, `76t57`, `76t59`), which fits section 4.6's reading: the host has ended, so nothing can hold the run. `76t55`, the element alone in its host, is refused too, with no run after it, and that reading doesn't explain it. So "a run before it" rests on that one file. `76t59` was refused, so a host's own `w:pPr` beside a held one waited for round 11.
 
 **Round 10 widens REQ-314's ground.** Text straight in the element went in `w:body`, `w:tc`, `w:r`, `w:hyperlink`, `w:ins` and a block control, none refused, and in `76t67` the text went while a run beside it was read.
+
+### 4.8 Round 11 (2026-11-06)
+
+Jason, through docx4j's session: "CR-076 D10 fix to match word as far as possible". Two runs each, the two agreeing, all opened.
+
+| File | Word |
+|---|---|
+| `76t68`, host right, held centred | The joined paragraph centred, the empty `w:p` right |
+| `76t69`, host right, held with no `w:pPr` | Both right |
+| `76t70`, two deep | As one deep |
+| `76t71`, in a `w:hyperlink` last in its `w:p` | The words joined, the second paragraph after, and the link a complex field across the two |
+
+So the mark ending the host carries the held `w:p`'s properties, and what's left carries the host's. All on `w:jc`.
+
+**A reader to fix in phase 2.** With jsonix's 3.12.0 candidate installed, 96 of the 98 sources read, where 30 do on 3.11.0. `76t44` and `76t45` throw a `TypeError` from `Texts.of`, on either version: `mc:Choice` and `mc:Fallback` hold a wildcard, so `w:madeUp` stays a DOM element, and `tokensOfRunLevel` (`TrackedChange.mts`) takes it for a typed one. Section 3.7's pass removes `w:madeUp`, but an `ext:opaque` in a branch would still reach that line, so the reader needs the fix either way.
 
 ## 5. Tests and oracles
 
@@ -448,7 +461,7 @@ Five `br-placement` parts were left out: they need CR-021's pass, which the faca
 | 2 | The read, section 3.7's pass and the model's `w:` names, `insertOoxml` traced, the tests | 1 day | CR-025 phases 1 and 2; phase 1 |
 | 3 | The records, CR-023's line | ¼ day | |
 
-## 7. Decisions (D1 to D5 taken 2026-11-05, all as recommended; D6 raised by check 76 and taken the same day; D7 raised by check 76 and taken 2026-11-06, as recommended; D8 raised by round 6 and taken the same day, as recommended; D5 changed 2026-11-06; D9 to D11 raised by round 8 and taken the same day, as recommended; D4 taken the same day, as recommended)
+## 7. Decisions (D1 to D5 taken 2026-11-05, all as recommended; D6 raised by check 76 and taken the same day; D7 raised by check 76 and taken 2026-11-06, as recommended; D8 raised by round 6 and taken the same day, as recommended; D5 changed 2026-11-06; D9 to D11 raised by round 8 and taken the same day, as recommended; D4 and D12 taken the same day, as recommended)
 
 | | Question | Recommendation |
 |---|---|---|
@@ -463,6 +476,7 @@ Five `br-placement` parts were left out: they need CR-021's pass, which the faca
 | D9 | Raised by `76t40`: Word reads a run under a `w:pPrChange`, and the change loses its author and date. Read it, and what of the change? | Read the words, as D7 says, and leave the change's author and date as held. They're no reading of the text, and "Unknown" would destroy what the file says. Decided 2026-11-06 as recommended (Jason: "CR-026 D9, D10 and D11 as recommended") |
 | D10 | Raised by `76t50`: Word reads a run in a `w:sectPr` in a `w:pPr`, and the section break goes. Follow it? | Read the words, and drop the `w:sectPr`, reported, as Word does. D7's rule, and pagination follows it. Decided 2026-11-06 as recommended (Jason: "CR-026 D9, D10 and D11 as recommended") |
 | D11 | Raised by `76t43`: a `w:p` in such an element in a `w:p`. Word joins its runs to the host and adds an empty paragraph. Follow it? | Yes, D7's rule, the runs joined and the empty paragraph made, and since round 9 the host taking the held `w:p`'s properties (section 4.7). Decided 2026-11-06 as recommended (Jason: "CR-026 D9, D10 and D11 as recommended") |
+| D12 | A caller's own fragment holding an unknown element, through `insertOoxml` (section 3.2)? | Refuse it: a caller writing a fragment wants to know, where a file arriving is what it is. Decided 2026-11-06 as recommended (Jason: "insertOoxml fragments: refuse, as you recommend") |
 
 ## 8. Registry
 

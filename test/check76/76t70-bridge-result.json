@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t70-held-paragraph-two-deep.word.docx",
+   "format": "docx",
+   "bytes": 13175,
+   "sha256": "ed3adf138d9ab50cdf8d34be960a149f09aea17fc74b320e632698a762ca292a"
+  },
+  {
+   "name": "76t70-held-paragraph-two-deep.pdf",
+   "format": "pdf",
+   "bytes": 18572,
+   "sha256": "951a71302164e78e23f86bdbf02fdc288ec27b717904ae7b2fa3feb4bab5c767"
+  }
+ ],
+ "seconds": 4.4,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t70-held-paragraph-two-deep.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t70-held-paragraph-two-deep.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t70-held-paragraph-two-deep.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.14
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.4,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "66c4038",
+  "installedAt": "2026-11-06T14:27:55"
+ }
+}

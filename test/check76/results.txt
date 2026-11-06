@@ -32,3 +32,6 @@ Round 8, 76t35 to 76t52, the portfolio session's report of two runs each through
 
 Rounds 9 and 10, 76t53 to 76t67, the portfolio session's report of two runs each through its Word bridge, Word 16.0.20326.20232, 2026-11-06:
 76t53, 76t54, 76t55, 76t57 and 76t59 refused, no save, 76t28's dialog. The other ten opened silent, no message, no repair prompt. The two runs of each agree, rsids and ids aside.
+
+Round 11, 76t68 to 76t71, the portfolio session's report of two runs each through its Word bridge, Word 16.0.20326.20232, 2026-11-06:
+All eight jobs opened silent, no message, no repair prompt. The two runs of each agree, rsids and ids aside.
