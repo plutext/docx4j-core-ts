@@ -2,8 +2,7 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", from the finding of 2026-11-03 (CR-023 section
 1: an unknown element in `w:sdtPr`). Measured here the same day (section 1), and three routes compared, two tried as prototypes in
-memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, D4 and D12 decided as recommended the same day. Docs
-only, nothing implemented. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in eleven rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
+memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, D4 and D12 decided as recommended the same day. Phase 2 built 2026-11-06 (section 5.2): the read, on the locked runtime for what the pass takes, and on jsonix's commit for route B. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in eleven rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
 
 ## 0. Summary
 
@@ -451,6 +450,23 @@ Five `br-placement` parts were left out: they need CR-021's pass, which the faca
 **The floor.** This package gets jsonix through objects, whose `^3.11.0` admits 3.12.0 and doesn't require it. So the floor is an objects release raising its range, then the range here.
 
 `npm run typecheck` passes and `npm test` passes 1,813 of 1,813 on the checkout, parity included. The dependency was then restored (`npm ci`, 3.11.0, `package.json` and the lock unchanged). Not run: the strict-mode load, and anything on a published tarball, which follows 3.12.0's release, as the raise's own run.
+
+### 5.2 Phase 2 as built (2026-11-06)
+
+Built at Jason's "commit, then go for CR-026 phase 2". `src/opc/repair/unknownElements.mts` is section 3.7's pass, in `XmlPart.preprocess` ahead of CR-021's. `wmlNames.generated.mts` holds the schema's 605 names, from `scripts/generate-wml-names.mjs`, since a walk of the model's classes would miss `w:uniqueTag`. `ooxml.mts` refuses a fragment (D12), on both routes. `tokensOfRunLevel` steps over a DOM element in a kept branch (section 4.8).
+
+What the build settled:
+
+- **Text in the element goes in the pass, not the runtime.** Left in the host, text in a `w:r` would be CR-016's misplaced string, and refuse a save for something Word just drops. It's reported as `part.skipped` of kind `text`.
+- **The refusal reaches CR-021's ground.** `unknownElementsIn` looks inside a `w:t` too, before that pass runs, since it discards its report on this route. A foreign element counts only under a `w:` element, so a drawing's own extensions aren't refused.
+- **A `w:p` held anywhere Word refuses is left whole,** for route B, rather than unwrapped into CR-016's misplaced child.
+- **The excluded parents are a table.** `test/unknown-elements.test.mjs` holds all eleven shapes to the pass leaving them alone.
+
+**Results.** On the locked `@docx4j/jsonix` 3.11.0, npm test passes 1,899 of 1,899, and 72 of the 79 sources Word saved read with Word's text exactly, none differing. The other seven fail their part until route B, and are pinned as they stand, so the floor's raise announces itself.
+
+On a tarball of jsonix `0936c2f`, 78 of the 79 match Word and none fails. The one difference is `76t71`, in a `w:hyperlink`, where this package drops the held words and Word keeps them, making the link a field. REQ-316 requires nothing of it. There, the pinned test is the suite's one failure, as it should be.
+
+**Still to do:** phase 1, the floor, when jsonix 3.12.0 and objects are out, which flips that test. Phase 3, the records.
 
 ## 6. Phases and size
 

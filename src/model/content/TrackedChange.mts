@@ -1987,6 +1987,7 @@ function sectionText(items: Element[], end: number): string {
 function tokensOfRunLevel(paragraph: Paragraph, items: Element[], out: TrackedChangeToken[], listing: Listing): void {
   for (let i = 0; i < items.length; i++) {
     const el = items[i]!;
+    if (el.value === undefined) continue; // a DOM element a branch's wildcard keeps: no change in it to list (CR-026 section 4.8)
     // an inline control or custom XML element that is itself an insertion: a piece, then what is in it
     const inserted = holderChangeAt(items, i, paragraph);
     if (inserted) {

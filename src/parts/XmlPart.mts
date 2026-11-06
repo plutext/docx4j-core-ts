@@ -6,6 +6,7 @@ import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, ass
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning, MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
 import { repairBreaksOutsideRuns } from '../opc/repair/breaks.mjs';
+import { readThroughUnknownElements } from '../opc/repair/unknownElements.mjs';
 import { skippedAttribute, skippedElement, skippedText, type ContentSkippedWarning } from '../opc/skipped.mjs';
 import { rangeOf, describeReading, UNMEASURED_RANGE } from '../model/wordIntegers.mjs';
 
@@ -281,9 +282,11 @@ export class XmlPart<T = unknown> extends Part {
   }
 
   private preprocessed(doc: Document): readonly PartWarning[] {
+    // ahead of CR-021's, which then gives a w:br the element held a run, as Word does (`76t42`)
+    const read = readThroughUnknownElements(doc, this.partName.name);
     const repaired = repairBreaksOutsideRuns(doc, this.partName.name);
     const warnings = this.preprocessor?.(doc, this as XmlPart<unknown>);
-    return warnings ? [...repaired, ...warnings] : repaired;
+    return [...read, ...repaired, ...(warnings ?? [])];
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */

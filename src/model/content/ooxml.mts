@@ -8,6 +8,7 @@
 import { wml as parseFragment, walkAll } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
 import { repairBreaksOutsideRuns } from '../../opc/repair/breaks.mjs';
+import { unknownElementsIn } from '../../opc/repair/unknownElements.mjs';
 import { PartName } from '../../opc/PartName.mjs';
 import { ContentTypes } from '../../opc/ContentTypes.mjs';
 import { BinaryPart, ImagePart } from '../../parts/BinaryPart.mjs';
@@ -41,6 +42,12 @@ export interface OoxmlOptions {
   target?: Part;
 }
 
+/** CR-026 D12: a caller's own fragment holding an element Word doesn't know is refused, where a file arriving is read as Word reads it. */
+function refuseUnknown(names: readonly string[]): void {
+  if (names.length === 0) return;
+  throw new Docx4JException(`insertOoxml refused: the content holds ${names.length === 1 ? 'an element' : 'elements'} Word doesn't know (${[...new Set(names)].join(', ')})`);
+}
+
 /**
  * The block-level content of `ooxml`, ready to insert: a flat OPC package's body content with
  * its parts copied and its references rewritten, or a fragment's elements.
@@ -49,7 +56,7 @@ export async function contentOf(ooxml: string, options: OoxmlOptions = {}): Prom
   if (!isFlatOpc(ooxml)) {
     // a w:br outside a w:r read as Word reads it first, as on load (CR-021 D1): a created package has no hook
     const preprocess = options.preprocess;
-    return parseFragment(ooxml, { wrapper: 'body', preprocess: (doc: Document) => { repairBreaksOutsideRuns(doc); preprocess?.(doc); } });
+    return parseFragment(ooxml, { wrapper: 'body', preprocess: (doc: Document) => { refuseUnknown(unknownElementsIn(doc).map((e) => e.nodeName)); repairBreaksOutsideRuns(doc); preprocess?.(doc); } });
   }
   const target = options.target;
   if (!target) throw new Docx4JException('A pkg:package can only be inserted into a body that has a part');
@@ -59,6 +66,7 @@ export async function contentOf(ooxml: string, options: OoxmlOptions = {}): Prom
   const source = await WordprocessingMLPackage.load(ooxml, options.preprocess ? { preprocessor: options.preprocess } : {});
   const main = source.getMainDocumentPart();
   const document = await main.getContents();
+  refuseUnknown(main.warnings.flatMap((w) => (w.code === 'part.skipped' && w.kind === 'element' ? [w.name] : [])));
   const content = (document.body?.content ?? []) as Element[];
   if (content.length === 0) return [];
   const rewrites = await copyReferencedParts(content, main, target);

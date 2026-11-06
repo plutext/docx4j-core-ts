@@ -96,6 +96,7 @@ node --test test/roundtrip.test.mjs   # one file, after npm run build
 node examples/node/report.mjs test/fixtures/loadAndSave.docx   # the examples run against dist/
 
 npm run generate:fonts   # src/model/fonts/*.generated.mts from ../docx4j's font tables and themes; committed output
+node scripts/generate-wml-names.mjs ../docx4j/xsd/wml/wml.xsd   # src/opc/repair/wmlNames.generated.mts, the schema's element names (CR-026); --check compares
 node scripts/generate-case-mapping.mjs <UnicodeData.txt> 15.0.0   # src/model/text/caseMapping.generated.mts (CR-012 section 24.1);
                     # the file from unicode.org/Public/15.0.0/ucd/, its SHA-256 in the output's header; --check compares
 ```
@@ -363,6 +364,7 @@ suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit 
 the 17.3.5 release since section 24; the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails,
 or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, whose Word text saves `verifyWordSave` reads by encoding),
 `content-skipped.test.mjs` CR-025's: each host and attribute's `part.skipped` held to the source, a part read and not changed copied, over every fixture with skipped content injected, the gate, `checkLossOnSave`, `clone()`, CR-021's pass and the real file,
+`unknown-elements.test.mjs` CR-026's: every check 76 source Word saved held to Word's text, section 3.7's pass by shape (D7 to D11), the hosts by parent, a fragment refused (D12), and the files waiting on the runtime pinned as they stand,
 `para-ids.test.mjs` CR-002 section 66's: every route that adds a paragraph or a row, on Word's own save, leaving each with a `w14:paraId`, as Word needs to keep a file's ids (check 79),
 `numid-zero-indent.test.mjs` CR-027's: docx4j's `NumIdZeroIndentTest` mirrored, `w:numId 0` through `getEffectivePPr` and `Paragraph`, no golden having the shape,
 `text-options-comments.test.mjs` CR-012 section 29's: one setting for comments (WD 0.91, python's CR-035), held as options and as text, the old `include: comments` spelling and the refusal of a call contradicting itself,
