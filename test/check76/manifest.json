@@ -1,7 +1,7 @@
 {
  "check": 76,
  "word": "Word 365, PC (Jason, 2026-11-05; five rounds and 76t8; no Script Lab, nothing typed; saved 11:19 to 11:55, 12:25 to 12:31, at 12:47, 76t8 at 13:19, 17:45 to 17:46 and 18:25 to 18:27, and 76t26 at 05:01 on 2026-11-06, some saves holding empty footnotes and endnotes parts others don't, the bodies unaffected; round 6, 76t27 and 76t28, through the portfolio's Word bridge, 16.0.20326.20232, 06:19 to 06:21 on 2026-11-06, each result in its -bridge-result.json, a bridge save differing from a hand save beyond the body: the document's own compatibility mode, DocSecurity 4, no note parts or hdrShapeDefaults)",
- "source": "test/fixtures/check76/build.mjs (79 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
+ "source": "test/fixtures/check76/build.mjs (94 files, written to the share's __tmp/76/, not kept here: most fail their part until CR-026 is built; round 1 76-control to 76n, round 2 76o to 76z, round 3 76t1 to 76t7, then 76t8, round 4 76t9 to 76t18, round 5 76t19 to 76t26, and round 6 76t27 and 76t28)",
  "results": "results.txt is Jason's record, unedited, but for round 6's lines, the portfolio session's. Word could not repair 76e, 76o, 76p, 76q, 76r, 76s, 76v, 76x or 76y and refused 76t28, so they have no save or PDF. The other 45 opened, and results.txt names no message but Word's on w:customXml, 76t24-customxml-message.png. Each save is <name>-word365.docx, each PDF <name>.pdf, Word's own export. Every save has dropped the unknown element or attribute, and the namespace's declaration and mc:Ignorable entry, and all the element held, but where Word read what w:madeUp held: 76t, 76t1 to 76t4, 76t7, 76t8, 76t9 to 76t17 and 76t19 to 76t25, in w:p, w:body, w:tc, w:r, w:tbl, w:tr, w:sdtContent, w:hyperlink, w:ins, w:hdr, w:comment, w:fldSimple, w:smartTag, w:customXml and w:footnote, and 76t27, in a w:pPr, the run at the head of its paragraph. 76t18 is the control of 76t9 to 76t17, and 76t26 of 76t19 to 76t25, with nothing unknown.",
  "files": [
   {
@@ -382,7 +382,7 @@
   },
   {
    "name": "results.txt",
-   "sha1": "03221763cff4a223af8f41d670235cacd2651be8"
+   "sha1": "9a695b8eb88eedb6b7c94cb4f1290e5736cf4811"
   },
   {
    "name": "76t29-madeup-in-ftr-word365.docx",
@@ -643,6 +643,146 @@
   {
    "name": "76t51-second-name-in-p.pdf",
    "sha1": "d16912b1d293d04403cc067b165725a0e27c26fc"
+  },
+  {
+   "name": "76t60-bridge-result.json",
+   "sha1": "aaf53d294bad006e1d6e8cf753290a6b68d6d5d9"
+  },
+  {
+   "name": "76t60-round-9-control-word365.docx",
+   "sha1": "cc57237069f6712d03b6af0c93961043a5fc2885"
+  },
+  {
+   "name": "76t60-round-9-control.pdf",
+   "sha1": "5ab94a5435f7a8e66ab779d0552bcf75ce0ee2ad"
+  },
+  {
+   "name": "76t53-bridge-result.json",
+   "sha1": "cf470330b49e0755cb98a05231a4a089e6b3d6f7"
+  },
+  {
+   "name": "76t54-bridge-result.json",
+   "sha1": "54048831078590c94c62069cd66004edb13eb55c"
+  },
+  {
+   "name": "76t55-bridge-result.json",
+   "sha1": "9c034144287a2dadebd2e8297b221ab44ec76935"
+  },
+  {
+   "name": "76t56-bridge-result.json",
+   "sha1": "0fc9c16e7088984fdaf5ef94971f8256068b1d4c"
+  },
+  {
+   "name": "76t56-two-held-paragraphs-word365.docx",
+   "sha1": "7077d2230f473c6347f634269bda591d03faca42"
+  },
+  {
+   "name": "76t56-two-held-paragraphs.pdf",
+   "sha1": "d902fed3811275c42ae40ae6562b045f90eed8f0"
+  },
+  {
+   "name": "76t57-bridge-result.json",
+   "sha1": "16e5603b2492189e616c63dc18f12115cdbb97cb"
+  },
+  {
+   "name": "76t58-bridge-result.json",
+   "sha1": "6f12a346ed0999601103dcb3e1f0e594aa75a250"
+  },
+  {
+   "name": "76t58-held-paragraph-centred-word365.docx",
+   "sha1": "27ba0b325eb45dc3f249276eeb3d0084eaf98f75"
+  },
+  {
+   "name": "76t58-held-paragraph-centred.pdf",
+   "sha1": "31656080b0050b9de4af2138e2853a9d957c421c"
+  },
+  {
+   "name": "76t59-bridge-result.json",
+   "sha1": "3bea26b83860792f202dadce7a737736c6f10aa5"
+  },
+  {
+   "name": "76t61-bridge-result.json",
+   "sha1": "f5834973e4657055f007ab02facf05a65ed3b183"
+  },
+  {
+   "name": "76t61-text-in-madeup-in-body-word365.docx",
+   "sha1": "c510eb138bed2c6eb34538f72a4d0552605fe672"
+  },
+  {
+   "name": "76t61-text-in-madeup-in-body.pdf",
+   "sha1": "2a53af951a9bfce4622f9cb687b077d1a3cafc04"
+  },
+  {
+   "name": "76t62-bridge-result.json",
+   "sha1": "6407d8fbf7663cf97831aec8cf00f4835780a6d9"
+  },
+  {
+   "name": "76t62-text-in-madeup-in-tc-word365.docx",
+   "sha1": "6ddf9f6109c35031b023c4b75f7b921d4514dd93"
+  },
+  {
+   "name": "76t62-text-in-madeup-in-tc.pdf",
+   "sha1": "004755bf6cab6707c2a72da7474cb6dcbf19113f"
+  },
+  {
+   "name": "76t63-bridge-result.json",
+   "sha1": "37c890fa353684ebfd5575c781d1e43c44fcb675"
+  },
+  {
+   "name": "76t63-text-in-madeup-in-r-word365.docx",
+   "sha1": "adb662d0b2e6b1a19be52a2bd34f4885142098c8"
+  },
+  {
+   "name": "76t63-text-in-madeup-in-r.pdf",
+   "sha1": "616e0b4d79c53e8ff8bbc49d722b9ecd8f01ee60"
+  },
+  {
+   "name": "76t64-bridge-result.json",
+   "sha1": "aec981d94e50836b14266d8a5b369d73ff386582"
+  },
+  {
+   "name": "76t64-text-in-madeup-in-hyperlink-word365.docx",
+   "sha1": "d63a1b04da63f2b5b3d21911bd9d14ab4e304a80"
+  },
+  {
+   "name": "76t64-text-in-madeup-in-hyperlink.pdf",
+   "sha1": "ff3e4d1d4e58e29d32db29c8d1b0b601be7671d3"
+  },
+  {
+   "name": "76t65-bridge-result.json",
+   "sha1": "6e053eff89e713685bc7d9549fd269d0c73eec0e"
+  },
+  {
+   "name": "76t65-text-in-madeup-in-ins-word365.docx",
+   "sha1": "95abc522e2f9cef2afc8b901dec3c81f5da579a1"
+  },
+  {
+   "name": "76t65-text-in-madeup-in-ins.pdf",
+   "sha1": "e67bf7e0c36d207d4cecb4a6ca427746a6814e35"
+  },
+  {
+   "name": "76t66-bridge-result.json",
+   "sha1": "4030bd3ae71c93e3d461b1c4f673aa768c597aa4"
+  },
+  {
+   "name": "76t66-text-in-madeup-in-block-control-word365.docx",
+   "sha1": "5cd714df84402acff752bd7dcd525b3fd41131d6"
+  },
+  {
+   "name": "76t66-text-in-madeup-in-block-control.pdf",
+   "sha1": "fa658ab80db6274caf2639ad8d5446e5057a2b57"
+  },
+  {
+   "name": "76t67-bridge-result.json",
+   "sha1": "dd464d80888fb2cc4290642206182b42e37b32fd"
+  },
+  {
+   "name": "76t67-text-and-a-run-in-madeup-word365.docx",
+   "sha1": "74f2269e966748b5d37d5ba9b8e26c4d2c9f9ea6"
+  },
+  {
+   "name": "76t67-text-and-a-run-in-madeup.pdf",
+   "sha1": "5627631e7b93f77301e728469af3ce61970f878f"
   }
  ]
 }

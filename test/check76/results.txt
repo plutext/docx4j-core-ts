@@ -29,3 +29,6 @@ All twelve jobs opened silent, no message, no repair prompt. The two runs of eac
 
 Round 8, 76t35 to 76t52, the portfolio session's report of two runs each through its Word bridge, Word 16.0.20326.20232, 2026-11-06:
 76t46, 76t47, 76t48 and 76t49 refused, no save, the dialog in 76t46-refused-dialog.png, as 76t28's. The other fourteen opened silent, no message, no repair prompt. The two runs of each agree, rsids and ids aside.
+
+Rounds 9 and 10, 76t53 to 76t67, the portfolio session's report of two runs each through its Word bridge, Word 16.0.20326.20232, 2026-11-06:
+76t53, 76t54, 76t55, 76t57 and 76t59 refused, no save, 76t28's dialog. The other ten opened silent, no message, no repair prompt. The two runs of each agree, rsids and ids aside.

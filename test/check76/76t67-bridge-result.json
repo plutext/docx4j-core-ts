@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t67-text-and-a-run-in-madeup.word.docx",
+   "format": "docx",
+   "bytes": 13162,
+   "sha256": "fc04ce685b418846d2d8caf2e534791ebfdda478e389c719ee3f3f5969403351"
+  },
+  {
+   "name": "76t67-text-and-a-run-in-madeup.pdf",
+   "format": "pdf",
+   "bytes": 18136,
+   "sha256": "bd3f0ece86c5ca9ae5d138b85a304c618c8c568a15e0ef50613fcfcb37836319"
+  }
+ ],
+ "seconds": 5.3,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t67-text-and-a-run-in-madeup.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t67-text-and-a-run-in-madeup.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t67-text-and-a-run-in-madeup.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.5
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "7a46241",
+  "installedAt": "2026-11-06T12:36:00"
+ }
+}

@@ -1,6 +1,6 @@
-// CR-002 section 66: what the content API adds takes a w14:paraId, so a file Word wrote keeps its ids. In a mode 15 file one
-// paragraph or row without an id makes Word 365 renumber the part (checks 79, 80): each route here runs on Word's own save and
-// leaves none without.
+// CR-002 section 66: what the content API adds takes a w14:paraId, so a file Word wrote keeps its ids. In some files one paragraph
+// or row without an id makes Word 365 renumber the part (checks 79, 80): each route here runs on Word's own save, one such file,
+// and leaves none without.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

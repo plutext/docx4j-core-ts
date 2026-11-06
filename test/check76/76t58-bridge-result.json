@@ -1,0 +1,72 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "76t58-held-paragraph-centred.word.docx",
+   "format": "docx",
+   "bytes": 13199,
+   "sha256": "78446c09c3b08c66403454d9c6c9fcb43a27507895d03f2b433c4a5da6b61997"
+  },
+  {
+   "name": "76t58-held-paragraph-centred.pdf",
+   "format": "pdf",
+   "bytes": 18614,
+   "sha256": "9cfce14666692526731f0f3c1e5958d47900df6ffd051348be1d697aeb42c861"
+  }
+ ],
+ "seconds": 4.7,
+ "timedOut": false,
+ "verb": "save",
+ "input": "76t58-held-paragraph-centred.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "76t58-held-paragraph-centred.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "76t58-held-paragraph-centred.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.1
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "installed": {
+  "version": "7a46241",
+  "installedAt": "2026-11-06T12:36:00"
+ }
+}

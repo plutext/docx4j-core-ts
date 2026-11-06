@@ -88,6 +88,12 @@ const sdtPrHolding = (inner) => `<w:sdt><w:sdtPr><w:id w:val="7621"/>${inner}</w
 const trPrHolding = (inner) => table(1, `<w:tr><w:trPr>${inner}</w:trPr>${cell(p('TARGET TEXT'))}</w:tr>`);
 const tcPrHolding = (inner) => table(1, `<w:tr><w:tc><w:tcPr><w:tcW w:w="4000" w:type="dxa"/>${inner}</w:tcPr>${p('TARGET TEXT')}</w:tc></w:tr>`);
 const tblPrHolding = (inner) => `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${inner}</w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid><w:tr>${cell(p('TARGET TEXT'))}</w:tr></w:tbl>`;
+// Round 9's. 76t43 had the element last in its host, so it can't tell the held w:p's runs joining the host from the held w:p's mark
+// ending it, what's left of the host being the empty paragraph. A run after the element tells them apart, and so do the two
+// paragraphs' properties: under the second reading the first takes the held w:p's, and what's left the host's.
+const held = (inner) => made(inner);
+const aligned = (jc, inner) => `<w:p><w:pPr><w:jc w:val="${jc}"/></w:pPr>${inner}</w:p>`;
+const AFTER = run('AFTER WORDS');
 const sectPrHolding = (inner) => `<w:p><w:pPr><w:sectPr>${inner}<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:pPr>${TARGET}</w:p>`;
 
 /** The files: `name`, what it holds (`asks`), whether `ext` is in `mc:Ignorable`, the content between the first and last paragraphs, and any `header`, `comment` or `footnote` content, in a part of its own. */
@@ -280,6 +286,40 @@ export const FILES = [
   { name: '76t52-round-8-control', asks: 'nothing unknown: the frames of 76t35 to 76t51 that are legal, with HIDDEN WORDS standing bare where it can', ignorable: false,
     content: [inACell(bare), HOSTS.hyperlink(bare), `<w:p>${hidden}</w:p>`, pPrChanged('<w:jc w:val="left"/>'), branch(hidden, run('FALLBACK WORDS'), TAKEN), branch(run('CHOICE WORDS'), hidden, NOT_TAKEN),
       sdtPrHolding(''), trPrHolding('<w:cantSplit/>'), tcPrHolding('<w:vAlign w:val="top"/>'), tblPrHolding(''), sectPrHolding('')].join(p('NEXT HOST.')) },
+  // Round 9 (2026-11-06; Jason: "do additional measurements to settle REQ-316"): a w:p in the element in a w:p, 76t43's shape, the
+  // element no longer last. 76t60 holds the same words and alignments with nothing unknown.
+  { name: '76t53-held-paragraph-then-a-run', asks: 'a w:p in an unknown w: element in a w:p, a run after it: is AFTER WORDS in the paragraph with HIDDEN WORDS, or the next?', ignorable: false,
+    content: `<w:p>${TARGET}${held(p('HIDDEN WORDS'))}${AFTER}</w:p>` },
+  { name: '76t54-held-paragraph-first', asks: 'a w:p in an unknown w: element first in a w:p: does HIDDEN WORDS come before TARGET TEXT, and in which paragraph?', ignorable: false,
+    content: `<w:p>${held(p('HIDDEN WORDS'))}${TARGET}</w:p>` },
+  { name: '76t55-held-paragraph-alone', asks: 'a w:p in an unknown w: element, alone in a w:p: is there one paragraph or two?', ignorable: false,
+    content: `<w:p>${held(p('HIDDEN WORDS'))}</w:p>${p('TARGET TEXT')}` },
+  { name: '76t56-two-held-paragraphs', asks: 'two w:p in an unknown w: element, last in a w:p: how many paragraphs, and which words in each?', ignorable: false,
+    content: `<w:p>${TARGET}${held(`${p('HIDDEN WORDS')}${p('SECOND WORDS')}`)}</w:p>` },
+  { name: '76t57-two-held-paragraphs-then-a-run', asks: 'two w:p in an unknown w: element in a w:p, a run after them: how many paragraphs, and where is AFTER WORDS?', ignorable: false,
+    content: `<w:p>${TARGET}${held(`${p('HIDDEN WORDS')}${p('SECOND WORDS')}`)}${AFTER}</w:p>` },
+  { name: '76t58-held-paragraph-centred', asks: 'a centred w:p in an unknown w: element, last in a plain w:p: is the paragraph holding TARGET TEXT centred?', ignorable: false,
+    content: `<w:p>${TARGET}${held(aligned('center', hidden))}</w:p>` },
+  { name: '76t59-both-aligned-then-a-run', asks: 'a right-aligned w:p holding a centred w:p in an unknown w: element, a run after it: which alignment has each paragraph?', ignorable: false,
+    content: aligned('right', `${TARGET}${held(aligned('center', hidden))}${AFTER}`) },
+  { name: '76t60-round-9-control', asks: 'nothing unknown: the words and alignments of 76t53 to 76t59 as plain paragraphs', ignorable: false,
+    content: `${p('TARGET TEXT')}${p('HIDDEN WORDS')}${p('SECOND WORDS')}${p('AFTER WORDS')}${aligned('center', hidden)}${aligned('right', AFTER)}` },
+  // Held for Jason's word on REQ-314 ("shall we do other measurements?"): text straight in the element, beyond 76t41's w:p. Each frame
+  // is one Word has run, so a refusal is the text's. 76t67 asks whether text goes and a run beside it stays in one element.
+  { name: '76t61-text-in-madeup-in-body', asks: 'text straight in an unknown w: element in a w:body: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `${p('TARGET TEXT')}<w:madeUp>HIDDEN WORDS</w:madeUp>` },
+  { name: '76t62-text-in-madeup-in-tc', asks: 'text straight in an unknown w: element in a w:tc: do the words HIDDEN WORDS show?', ignorable: false,
+    content: inACell(() => '<w:madeUp>HIDDEN WORDS</w:madeUp>') },
+  { name: '76t63-text-in-madeup-in-r', asks: 'text straight in an unknown w: element in a w:r: do the words HIDDEN WORDS show?', ignorable: false,
+    content: `<w:p><w:r><w:madeUp>HIDDEN WORDS</w:madeUp><w:t>TARGET TEXT</w:t></w:r></w:p>` },
+  { name: '76t64-text-in-madeup-in-hyperlink', asks: 'text straight in an unknown w: element in a w:hyperlink: do the words HIDDEN WORDS show?', ignorable: false,
+    content: HOSTS.hyperlink(() => '<w:madeUp>HIDDEN WORDS</w:madeUp>') },
+  { name: '76t65-text-in-madeup-in-ins', asks: 'text straight in an unknown w: element in a w:ins: do the words HIDDEN WORDS show?', ignorable: false,
+    content: HOSTS.ins(() => '<w:madeUp>HIDDEN WORDS</w:madeUp>') },
+  { name: '76t66-text-in-madeup-in-block-control', asks: 'text straight in an unknown w: element in a block control: do the words HIDDEN WORDS show?', ignorable: false,
+    content: HOSTS.blockControl(() => '<w:madeUp>HIDDEN WORDS</w:madeUp>') },
+  { name: '76t67-text-and-a-run-in-madeup', asks: 'text and a run together in an unknown w: element in a w:p: do LOOSE WORDS show, and HIDDEN WORDS?', ignorable: false,
+    content: `<w:p>${TARGET}<w:madeUp>LOOSE WORDS${hidden}</w:madeUp></w:p>` },
 ];
 
 /** A file's header, comments and footnotes parts, each in the content types and the main document's relationships; nothing for a file with none. */
