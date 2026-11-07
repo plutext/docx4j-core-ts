@@ -55,9 +55,9 @@ export interface DuplicateEntryWarning {
  * A package whose package relationships hold more than one officeDocument relationship (WD REQ-206's statement, WD 0.100;
  * CR-024 section 9), refused when it is loaded, as a duplicated entry is and for the same reason: Word reads such a file
  * only through a repair, and which target it reads then alternates with each repaired open in a Word session. A
- * transitional and a strict relationship are two, and so are two naming one target. `targets` gives each as a part name
- * (`/word/document.xml`), in the relationships' order, an external target as written. `LoadOptions.duplicateEntries:
- * 'first'` reads the last relationship's target instead, as a fresh Word does.
+ * transitional and a strict relationship are two, and so are two naming one target. An External one names no part and
+ * isn't counted. `targets` gives each as a part name (`/word/document.xml`), in the relationships' order.
+ * `LoadOptions.duplicateEntries: 'first'` reads the last relationship's target instead, as a fresh Word does.
  */
 export class MultipleMainPartsException extends InvalidFormatException {
   /** The finding's code, the WD's, shared with docx4j and docx4j-python. */

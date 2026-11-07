@@ -296,8 +296,7 @@ read, dropped on save.
 ### 9.1 What landed
 
 - **The refusal.** `MultipleMainPartsException`, an `InvalidFormatException`, with `code` and `targets`, python's. `targets`
-  gives each as a part name in the relationships' order, an external target as written, since `PartName.resolve` would make
-  a part name of a URL.
+  gives each as a part name in the relationships' order.
 - **The switch.** `oneMainPart` in `Load.mts` runs once the package relationships are read, before the package's class is
   chosen. Under `'first'` the other relationships go there, so the class, the walk, `getMainPart()` and
   `getMainDocumentPart()` all find one main part. Section 2.7's split needed nothing else.
@@ -313,9 +312,17 @@ read, dropped on save.
 - **The switch's name reads oddly.** `duplicateEntries: 'first'` reads the **last** relationship. It's the WD's one switch and
   its value, as in python, so the name stays, and the option's doc and the refusal's message say which.
 - **What counts.** A transitional and a strict relationship are two, and two naming one target are two, as python's and
-  docx4j's count. An external one counts. `graphicFrameDoc` and the diagram layout type, which `MAIN_PART_RELATIONSHIPS` holds,
-  don't, as they aren't officeDocument relationships. That's docx4j's `isMainPart`. Python counts all four types, so the
-  two differ on a package holding an officeDocument relationship beside one of those, and no file measures that.
+  docx4j's count (`e2d51d1e2`, which excludes an External one too). Word's `one-target` round fits that: two and three relationships to one part, and two spelling
+  it differently, are each repaired, where the control opens silently (`ot-00` to `ot-03`, twice each). `graphicFrameDoc` and
+  the diagram layout type, which `MAIN_PART_RELATIONSHIPS` holds, don't count, as they aren't officeDocument relationships.
+  That's docx4j's `isMainPart`. Python counts all four types, so the two differ on a package holding an officeDocument
+  relationship beside one of those, and no file measures that.
+- **An External relationship isn't counted** (Jason, 2026-11-07: "stop counting External relationships"). It names no part. As
+  first committed at `4003051` it counted, which python's check at `9077b95` showed was wrong: with one last, the switch kept
+  the URL and dropped the only main part, and the default refused a package that had loaded. Now such a relationship is left
+  alone: not named, not dropped, and a save keeps it. `loadPackage` and `getMainPart()` pass over it to a part, which also
+  mends a package with one first, read as having no main part before this phase. Only External relationships read as they did,
+  with no main part and nothing refused.
 - **An Override goes after the walk, and only for a part not loaded.** A dropped target that a second relationship names, or
   the kept part reaches by a relationship of its own, stays and keeps its type. Python removes the Override before its walk,
   so it agrees on the first of those and not the second.
@@ -333,12 +340,15 @@ read, dropped on save.
 - **A last target the package doesn't hold.** Under the switch the load refuses it, `cannot find part`, as it refuses one
   relationship naming an absent part, even where an earlier relationship's part is there. An absent earlier target goes with
   its relationship, and the last is read. No file section 9.4 rests on has either shape, so Word's reading of them isn't measured.
+- **A package holding only an External relationship, its URL holding a `?`.** `PartName.resolve` refuses it, with a message about
+  a segment's characters, where a plain URL loads with no main part. It did before this phase too.
 
 ### 9.4 Tests and oracles
 
-`test/duplicate-entries.test.mjs`, seven tests after section 3's, zips built in the test as before:
-- the refusal, its message and order, a strict and a transitional pair, two to one target, an external target, an xlsx;
+`test/duplicate-entries.test.mjs`, eight tests after section 3's, zips built in the test as before:
+- the refusal, its message and order, a strict and a transitional pair, two to one target, an xlsx;
 - under the switch, the order deciding over entries and Overrides, three relationships, the record;
+- an External relationship beside one part in either order, beside two, and alone;
 - every route agreeing, the class coming from the part read, the other part not loaded;
 - the save, what only the other part reached, the reload saying nothing, `clone()`, and the two cases where an Override stays;
 - the text model once, both faults at once, one relationship saying nothing, `graphicFrameDoc` not counted;
@@ -354,8 +364,9 @@ alternates, so those saves are what a fresh Word reads, which is the WD's statem
 **The corpus.** Of 1,880 packages, this repository's `test/` tree and docx4j's test resources, the only ones holding two
 officeDocument relationships are docx4j's five probes, so none of the others that load today is refused.
 
-Nine deliberate breaks of the build were each caught by these tests: the first relationship kept, the Override left, the
-Override always dropped, strict not counted, all four types counted, an external target resolved, the relationships kept, the
-record missing from `pkg.warnings`, and the text model silent.
+Twelve deliberate breaks of the build were each caught by these tests: the first relationship kept, the Override left, the
+Override always dropped, strict not counted, all four types counted, the relationships kept, the record missing from
+`pkg.warnings`, the text model silent, an External relationship counted, the load or `getMainPart()` taking an External one
+over a part, and one alone refused.
 
-npm run typecheck passes, and npm test passes 1,906 of 1,906 on Node 22.
+npm run typecheck passes, and npm test passes 1,907 of 1,907 on Node 22.

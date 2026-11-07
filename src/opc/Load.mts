@@ -49,7 +49,10 @@ const MAIN_PART_RELATIONSHIPS = [
   Namespaces.DOCUMENT_STRICT,
 ];
 
-/** What REQ-206's statement counts (docx4j PackageRelsUtil.isMainPart): a transitional and a strict relationship are two. */
+/**
+ * What REQ-206's statement counts (docx4j PackageRelsUtil.isMainPart): a transitional and a strict relationship are two. An
+ * External one isn't counted (CR-024 section 9.2): it names no part, so it can't be what the package reads.
+ */
 const OFFICE_DOCUMENT_RELATIONSHIPS: readonly string[] = [Namespaces.DOCUMENT, Namespaces.DOCUMENT_STRICT];
 
 /**
@@ -73,7 +76,9 @@ export async function loadPackage<P extends OpcPackage>(
   await packageRels.getContents();
   const mainParts = oneMainPart(packageRels, options.duplicateEntries);
 
-  const mainRel = packageRels.list.find((r) => MAIN_PART_RELATIONSHIPS.includes(r.type));
+  // an External relationship names no part, so it gives way to one that does
+  const mainRels = packageRels.list.filter((r) => MAIN_PART_RELATIONSHIPS.includes(r.type));
+  const mainRel = mainRels.find((r) => !isExternal(r)) ?? mainRels[0];
   if (!mainRel) throw new InvalidFormatException('No relationship of type officeDocument');
   const mainPartName = PartName.resolve(PartName.ROOT, mainRel.target);
   const pkg = createPackage(ctm.getContentType(mainPartName));
@@ -100,14 +105,12 @@ export async function loadPackage<P extends OpcPackage>(
  * names they gave, whose Overrides `loadPackage` settles after the walk.
  */
 function oneMainPart(rels: RelationshipsPart, mode: LoadOptions['duplicateEntries']): { warning: MultipleMainPartsWarning; dropped: PartName[] } | undefined {
-  const mains = rels.list.filter((r) => OFFICE_DOCUMENT_RELATIONSHIPS.includes(r.type));
+  const mains = rels.list.filter((r) => OFFICE_DOCUMENT_RELATIONSHIPS.includes(r.type) && !isExternal(r));
   if (mains.length < 2) return undefined;
-  // `PartName.resolve` would make a part name of a URL
-  const named = (r: Relationship) => (isExternal(r) ? r.target : PartName.resolve(PartName.ROOT, r.target).name);
-  if (mode !== 'first') throw new MultipleMainPartsException(mains.map(named));
-  const others = mains.slice(0, -1);
-  for (const r of others) rels.removeRelationship(r);
-  const partName = named(mains[mains.length - 1]!);
+  const names = mains.map((r) => PartName.resolve(PartName.ROOT, r.target));
+  if (mode !== 'first') throw new MultipleMainPartsException(names.map((name) => name.name));
+  for (const r of mains.slice(0, -1)) rels.removeRelationship(r);
+  const partName = names[names.length - 1]!.name;
   return {
     warning: {
       code: 'package.multiple_main_parts',
@@ -115,7 +118,7 @@ function oneMainPart(rels: RelationshipsPart, mode: LoadOptions['duplicateEntrie
       count: mains.length,
       message: `${mains.length} officeDocument relationships in this package (REQ-206); the last's target read, ${partName}`,
     },
-    dropped: others.filter((r) => !isExternal(r)).map((r) => PartName.resolve(PartName.ROOT, r.target)),
+    dropped: names.slice(0, -1),
   };
 }
 

@@ -255,9 +255,6 @@ test('CR-024 section 9: two officeDocument relationships are refused, naming the
   await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships })), refusedNaming(['/word/document.xml', '/word/other.xml']));
   const same = mains(['word/document.xml', 'word/document.xml']);
   await assert.rejects(WordprocessingMLPackage.load(same), refusedNaming(['/word/document.xml', '/word/document.xml']));
-  // an external target is named as written, and not made a part name
-  const external = [['rId1', 'officeDocument', 'http://example.com/a?b=1', 'External'], ['rId2', 'officeDocument', TWO[0]]];
-  await assert.rejects(WordprocessingMLPackage.load(mains([TWO[0]], { relationships: external })), refusedNaming(['http://example.com/a?b=1', '/word/document.xml']));
   // every package type, the rule being the load's (measured on Word alone)
   const sheet = unzipSync(await (await SpreadsheetMLPackage.createPackage()).save());
   const workbook = strFromU8(sheet['_rels/.rels']).match(/Target="([^"]+)"[^>]*officeDocument|officeDocument"[^>]*Target="([^"]+)"/).slice(1).find(Boolean);
@@ -284,11 +281,35 @@ test("CR-024 section 9: under duplicateEntries: 'first' the last relationship's 
   const strict = await WordprocessingMLPackage.load(mains(TWO, { relationships: [['rId1', STRICT, TWO[0]], ['rId2', 'officeDocument', TWO[1]]] }), first);
   assert.equal(await text(strict), 'OTHER');
   assert.equal(strict.multipleMainParts.count, 2);
-  // an external one goes like any other
-  const external = [['rId1', 'officeDocument', 'http://example.com/a?b=1', 'External'], ['rId2', 'officeDocument', TWO[0]]];
-  const kept = await WordprocessingMLPackage.load(mains([TWO[0]], { relationships: external }), first);
-  assert.equal(await text(kept), 'DOCUMENT');
-  assert.equal(kept.multipleMainParts.partName, '/word/document.xml');
+});
+
+test('CR-024 section 9: an External officeDocument relationship isn\'t counted, since it names no part (Jason: "stop counting External relationships")', async () => {
+  const external = (id) => [id, 'officeDocument', 'http://example.com/a?b=1', 'External'];
+  const part = (id, target = TWO[0]) => [id, 'officeDocument', target];
+  // beside one part, either way round: nothing refused or said, every route finds the part, and a save keeps the relationship
+  for (const relationships of [[part('rId1'), external('rId2')], [external('rId1'), part('rId2')]]) {
+    for (const options of [undefined, first]) {
+      const pkg = await OpcPackage.load(mains([TWO[0]], { relationships }), options);
+      assert.ok(pkg instanceof WordprocessingMLPackage);
+      assert.equal(pkg.getMainPart(), pkg.getMainDocumentPart());
+      assert.equal(await text(pkg), 'DOCUMENT');
+      assert.deepEqual(pkg.warnings, []);
+      assert.match(strFromU8(unzipSync(await pkg.save())['_rels/.rels']), /TargetMode="External"/);
+    }
+  }
+  // beside two parts it isn't named or counted, and the last of the two is read wherever it stands
+  const three = [part('rId1'), part('rId2', TWO[1]), external('rId3')];
+  await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships: three })), refusedNaming(['/word/document.xml', '/word/other.xml']));
+  const pkg = await WordprocessingMLPackage.load(mains(TWO, { relationships: three }), first);
+  assert.equal(await text(pkg), 'OTHER');
+  assert.equal(pkg.multipleMainParts.count, 2);
+  // only External ones are no case, and read as they did: no main part, nothing refused
+  const plain = (id) => [id, 'officeDocument', 'http://example.com/a.docx', 'External'];
+  for (const relationships of [[plain('rId1')], [plain('rId1'), plain('rId2')]]) {
+    const none = await OpcPackage.load(mains([], { relationships }));
+    assert.equal(none.getMainPart(), undefined);
+    assert.deepEqual(none.warnings, []);
+  }
 });
 
 test('CR-024 section 9: every route to the main part agrees, the part read chooses the package\'s class, and the other part is not loaded', async () => {

@@ -11,7 +11,7 @@ import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
 import { Parts } from '../parts/Parts.mjs';
 import { XmlPart } from '../parts/XmlPart.mjs';
-import { RelationshipsPart, type AddPartBehaviour } from '../parts/RelationshipsPart.mjs';
+import { RelationshipsPart, isExternal, type AddPartBehaviour } from '../parts/RelationshipsPart.mjs';
 import type { CustomXmlDataStoragePart } from '../parts/DefaultXmlPart.mjs';
 import { DocPropsCorePart, DocPropsExtendedPart, DocPropsCustomPart } from '../parts/docProps/index.mjs';
 import { assertTimeZone, runtimeTimeZone } from '../model/dateZone.mjs';
@@ -168,10 +168,11 @@ export class OpcPackage implements RelationshipSource {
     }
   }
 
-  /** The main part: the target of the officeDocument relationship. */
+  /** The main part: the target of the officeDocument relationship, an External one naming none. */
   getMainPart(): Part | undefined {
-    const rel = this.relationshipsPart.getRelationshipByType(Namespaces.DOCUMENT) ?? this.relationshipsPart.getRelationshipByType(Namespaces.DOCUMENT_STRICT);
-    return rel ? this.relationshipsPart.getPart(rel) : undefined;
+    const rels = this.relationshipsPart;
+    const rel = [...rels.getRelationshipsByType(Namespaces.DOCUMENT), ...rels.getRelationshipsByType(Namespaces.DOCUMENT_STRICT)].find((r) => !isExternal(r));
+    return rel ? rels.getPart(rel) : undefined;
   }
 
   /**
