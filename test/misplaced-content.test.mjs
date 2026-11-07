@@ -211,18 +211,18 @@ test('CR-016 D6, the gate: every fixture loads, unmarshals every part and saves 
 // the marshal still writes it by its element's declared class. This asserts the gap as it stands (CR-001 section 19): the
 // facade's fix announces itself here by failing, and the assertion then flips. createPackage's document and body are typed
 // since phase 2 so that a created document's body is a container the walk sees.
-test("the objects facade's walk skips a container built without its TYPE_NAME (known gap, asserted as it stands)", async () => {
-  const made = await created();
+test("the objects facade's walk reaches a container built without its TYPE_NAME, as it does a typed one", async () => {
   const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const path = ['/w:document/w:body[1]/w:p[2]/w:tbl[1]'];
+  const made = await created();
   made.content.push({ name: { namespaceURI: W, localPart: 'p' }, value: { content: [r('x'), tbl([['MISPLACED']])] } });
-  assert.deepEqual(await made.pkg.checkContent(), [], 'the untyped paragraph is not tested (objects 0.7.0)');
-  const xml = documentXml(await made.pkg.save());
-  assert.ok(xml.includes('<w:p><w:r><w:t>x</w:t></w:r><w:tbl>'), 'written by the element\'s declared class, as held');
-  // typed, the same paragraph is refused (the builder itself refuses the table, objects CR-017, so the push goes past it)
+  assert.deepEqual((await made.pkg.checkContent()).map((f) => f.path), path);
+  await assert.rejects(made.pkg.save(), MisplacedContentException);
+  // typed, the same (the builder itself refuses the table, objects CR-017, so the push goes past it)
   const typed = await created();
   const paragraph = p([r('x')]);
   assert.throws(() => p([r('x'), tbl([['MISPLACED']])]), TypeError, 'the builder refuses it first');
   paragraph.value.content.push(tbl([['MISPLACED']]));
   typed.content.push(paragraph);
-  assert.deepEqual((await typed.pkg.checkContent()).map((f) => f.path), ['/w:document/w:body[1]/w:p[2]/w:tbl[1]']);
+  assert.deepEqual((await typed.pkg.checkContent()).map((f) => f.path), path);
 });

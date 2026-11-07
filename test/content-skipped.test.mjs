@@ -183,7 +183,7 @@ test('CR-025 section 2.1: setting a part\'s contents clears what its read report
   assert.deepEqual(skippedIn(main), []);
 });
 
-test('CR-025 section 1: NumberingImplicitNumId.docx reports its 15 and no other fixture reports any', async () => {
+test('CR-025 section 1: no fixture reports any, the objects package\'s CR-019 having kept NumberingImplicitNumId.docx\'s 15', async () => {
   const files = [];
   // not the git-ignored files checks 72 and 75 build, which hold what they hold by design
   const walk = (dir) => {
@@ -203,11 +203,7 @@ test('CR-025 section 1: NumberingImplicitNumId.docx reports its 15 and no other 
     const skipped = pkg.warnings.filter((w) => w.code === 'part.skipped');
     if (skipped.length > 0) found.set(file.slice(fixturesDir.length + 1), skipped);
   }
-  assert.deepEqual([...found.keys()], [join('parity', 'NumberingImplicitNumId.docx')]);
-  const [skipped] = found.values();
-  assert.equal(skipped.length, 15);
-  assert.ok(skipped.every((w) => w.kind === 'attribute' && w.partName === '/word/settings.xml' && w.parentName === 'w:stylePaneFormatFilter'));
-  assert.ok(skipped.some((w) => w.name === 'w:allStyles' && w.path === '/w:settings/w:stylePaneFormatFilter/@w:allStyles'));
+  assert.deepEqual([...found.keys()], []);
 });
 
 // Phase 2. The element is one the read drops today, in a host that reads: w:pPr.
@@ -329,19 +325,17 @@ test('CR-025 D9: what CR-021\'s pass takes counts: read and not changed the part
   await assert.rejects(changed.save(), SaveLossException);
 });
 
-test('CR-025 section 1: the real file: its readers aren\'t refused for a style pane filter they never touched, and a change to its settings is', async () => {
+test('CR-025 section 1: the real file: nothing is lost from its style pane filter, read or changed, since the objects package\'s CR-019', async () => {
   const bytes = new Uint8Array(readFileSync(join(fixturesDir, 'parity', 'NumberingImplicitNumId.docx')));
-  const reader = await WordprocessingMLPackage.load(bytes);
-  await reader.unmarshalAll();
-  const saved = unzipSync(await reader.save());
-  assert.ok(bytesEqual(saved['word/settings.xml'], unzipSync(bytes)['word/settings.xml']));
+  const filter = (settings) => new TextDecoder().decode(settings).match(/<w:stylePaneFormatFilter[^>]*>/)[0];
+  const attributes = (element) => [...element.matchAll(/w:(\w+)="/g)].map((m) => m[1]).sort();
   const writer = await WordprocessingMLPackage.load(bytes);
   await writer.getBody();
   writer.changeTrackingMode = 'TrackAll';
-  await assert.rejects(writer.save(), (e) => e instanceof SaveLossException && e.losses[0].partName === '/word/settings.xml');
-  writer.checkLossOnSave = false;
-  await writer.save();
-  assert.equal(writer.lastSave.lost.length, 15);
+  const saved = unzipSync(await writer.save());
+  assert.deepEqual(writer.lastSave.lost, []);
+  assert.equal(attributes(filter(saved['word/settings.xml'])).length, 16);
+  assert.deepEqual(attributes(filter(saved['word/settings.xml'])), attributes(filter(unzipSync(bytes)['word/settings.xml'])));
 });
 
 test('CR-025 section 2.2 over every fixture: skipped content injected, the part read every way a reader does, and copied byte for byte', async () => {

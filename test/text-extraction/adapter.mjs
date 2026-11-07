@@ -7,15 +7,13 @@ import { HTML_READER_ABSENT } from './conformance.mjs';
 
 /**
  * The statements CR-012 phases 2 and 3 implement (its sections 15 and 16). Not among them: REQ-203 (Strict,
- * CR-001 section 17.6); REQ-303, which matches `Requires` by prefix as REQ-303 permits (case 6 rebinds wps's
- * namespace to another prefix and expects the URI to decide); REQ-506, REQ-511, REQ-512, REQ-513 and
- * REQ-604, phase 5's; REQ-705, HTML, which this package doesn't write; REQ-1203, the whole-document goldens,
+ * CR-001 section 17.6); REQ-506, REQ-511, REQ-512, REQ-513 and REQ-604, phase 5's; REQ-705, HTML, which this package doesn't write; REQ-1203, the whole-document goldens,
  * which hold phase 5's content; and the inspector's (REQ-901 to 907, REQ-1204, and docx4j CR-069 phase 4's
  * text.formatting_join).
  */
 export const IMPLEMENTED = Object.freeze([
   'REQ-201', 'REQ-202', 'REQ-204',
-  'REQ-301', 'REQ-302', 'REQ-304', 'REQ-305', 'REQ-306', 'REQ-307',
+  'REQ-301', 'REQ-302', 'REQ-303', 'REQ-304', 'REQ-305', 'REQ-306', 'REQ-307',
   'REQ-401', 'REQ-402', 'REQ-403', 'REQ-404', 'REQ-405', 'REQ-406',
   'REQ-501', 'REQ-502', 'REQ-503', 'REQ-504', 'REQ-505', 'REQ-507', 'REQ-508', 'REQ-509', 'REQ-510',
   'REQ-514', 'REQ-515', 'REQ-516', 'REQ-517', 'REQ-518', 'REQ-520',

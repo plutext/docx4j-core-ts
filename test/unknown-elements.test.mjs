@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
-import { PartUnmarshalException, PlainText, SaveLossException, Texts, WordprocessingMLPackage } from '../dist/index.mjs';
+import { PlainText, SaveLossException, Texts, WordprocessingMLPackage } from '../dist/index.mjs';
 import { WML_ELEMENT_NAMES } from '../dist/opc/repair/wmlNames.generated.mjs';
 import { readThroughUnknownElements } from '../dist/opc/repair/unknownElements.mjs';
 import { parseXml, serializeXml } from '../dist/xml/dom.mjs';
@@ -41,10 +41,9 @@ test('the schema\'s names: 605, a name with no class among them', () => {
   assert.ok(!WML_ELEMENT_NAMES.has('madeUp'));
 });
 
-// Route B: the runtime's skip for an element in a list, jsonix-CR-015. On @docx4j/jsonix 3.11.0 these fail their part. Asserted as
-// they stand, so the floor's raise announces itself here (CR-001 section 19). 76t71 will then read without the held w:p's words, where
-// Word keeps them and makes the link a field: REQ-316 requires nothing of it.
-const WAITS_ON_THE_RUNTIME = ['76a-ignorable-in-sdtPr', '76b-ignorable-in-p', '76c-ignorable-in-r', '76d-ignorable-in-tc', '76k-ignorable-holding-a-run', '76l-ignorable-in-b', '76t71-held-paragraph-in-hyperlink'];
+// Route B: the runtime's skip for an element in a list, jsonix-CR-015, since the floor's raise. 76t71 reads without the held w:p's
+// words, where Word keeps them and makes the link a field: REQ-316 requires nothing of it, so it's pinned as a known difference.
+const KNOWN_DIFFERENCE = '76t71-held-paragraph-in-hyperlink';
 
 test('check 76: every source Word saved reads as Word\'s save of it does, the text the same', async () => {
   const dir = join(here, 'check76');
@@ -52,8 +51,8 @@ test('check 76: every source Word saved reads as Word\'s save of it does, the te
   for (const f of await check76Files()) {
     const save = join(dir, `${f.name}-word365.docx`);
     if (!existsSync(save)) continue;
-    if (WAITS_ON_THE_RUNTIME.includes(f.name)) {
-      await assert.rejects(textOf(f.bytes), PartUnmarshalException, f.name);
+    if (f.name === KNOWN_DIFFERENCE) {
+      assert.notEqual(await textOf(f.bytes), await textOf(readFileSync(save)), f.name);
       continue;
     }
     assert.equal(await textOf(f.bytes), await textOf(readFileSync(save)), f.name);

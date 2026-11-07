@@ -2,7 +2,7 @@
 
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", from the finding of 2026-11-03 (CR-023 section
 1: an unknown element in `w:sdtPr`). Measured here the same day (section 1), and three routes compared, two tried as prototypes in
-memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, D4 and D12 decided as recommended the same day. Phase 2 built 2026-11-06 (section 5.2): the read, on the locked runtime for what the pass takes, and on jsonix's commit for route B. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in eleven rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6).
+memory (section 2). D1 to D5 decided 2026-11-05, all as recommended (Jason: "CR-026's decisions as recommended"; section 7), D5 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. D9 to D11, raised by round 8, D4 and D12 decided as recommended the same day. Phase 2 built 2026-11-06 (section 5.2): the read, on the locked runtime for what the pass takes, and on jsonix's commit for route B. It depends on CR-025 and on jsonix-CR-015 (D2; written 2026-11-05 at `34d2572`, its U1 to U3 decided as recommended at `481a923`, its section 8's run here passed, section 5.1). Word check 76 ran on 2026-11-05 and 2026-11-06, in eleven rounds and one further file (section 4). Word 365 dropped what it didn't know or refused the file, which supports D1 and D3, but for what an unknown `w:` element holds in a content host, which it reads (section 4.4). D7, decided 2026-11-06, reads it so in the fifteen hosts measured (Jason: "CR-026 D7: read as Word does"; section 3.7). Round 6 found a run in such an element read in a `w:pPr` and the file refused in a `w:rPr`, and D8, decided the same day, reads the first as Word does. Check 76 also showed CR-021's rule 2 reading words Word doesn't, fixed the same day (section 4.2, D6). Phases 1 and 3 landed with the raise to objects 0.8.0 on 2026-11-08 (Jason: "raise"; section 5.2): implemented, unreleased.
 
 ## 0. Summary
 
@@ -466,16 +466,16 @@ What the build settled:
 
 On a tarball of jsonix `0936c2f`, 78 of the 79 match Word and none fails. The one difference is `76t71`, in a `w:hyperlink`, where this package drops the held words and Word keeps them, making the link a field. REQ-316 requires nothing of it. There, the pinned test is the suite's one failure, as it should be.
 
-**Still to do:** phase 1, the floor, when jsonix 3.12.0 and objects are out, which flips that test. Phase 3, the records.
+**The raise (2026-11-08, Jason: "raise").** Objects 0.8.0 brings `@docx4j/jsonix` `^3.12.0`, locked at 3.13.0, so route B is on, and the seven pinned files read. 78 of the 79 sources match Word, none failing, as on `0936c2f`, and `76t71` stays pinned as the known difference. Phase 3's records went with that commit: `CLAUDE.md`, the index and CR-023's line.
 
 ## 6. Phases and size
 
 | Phase | What | Size | Waits on |
 |---|---|---|---|
 | 0 | Check 76: the files, Jason's five rounds and `76t8` of 2026-11-05, `76t26`, the last control, of 2026-11-06, and round 6, through the Word bridge, the same day | Done | |
-| 1 | jsonix-CR-015 (decided and implemented 2026-11-06, unreleased) released; the floor raised, through an objects release (section 5.1) | ½ day there | Its section 8's runs: here done (section 5.1), objects' to come |
-| 2 | The read, section 3.7's pass and the model's `w:` names, `insertOoxml` traced, the tests | 1 day | CR-025 phases 1 and 2; phase 1 |
-| 3 | The records, CR-023's line | ¼ day | |
+| 1 | jsonix-CR-015 released; the floor raised, through objects 0.8.0 (sections 5.1 and 5.2) | Done 2026-11-08 | |
+| 2 | The read, section 3.7's pass and the model's `w:` names, `insertOoxml` traced, the tests | Done 2026-11-06 | |
+| 3 | The records, CR-023's line | Done 2026-11-08 | |
 
 ## 7. Decisions (D1 to D5 taken 2026-11-05, all as recommended; D6 raised by check 76 and taken the same day; D7 raised by check 76 and taken 2026-11-06, as recommended; D8 raised by round 6 and taken the same day, as recommended; D5 changed 2026-11-06; D9 to D11 raised by round 8 and taken the same day, as recommended; D4 and D12 taken the same day, as recommended)
 
@@ -496,8 +496,7 @@ On a tarball of jsonix `0936c2f`, 78 of the 79 match Word and none fails. The on
 
 ## 8. Registry
 
-`core-ts/CR-026`, proposed, depending on `core-ts/CR-025` and on the jsonix CR once written (D2). CR-023's
-line stands. Sent on commit.
+`core-ts/CR-026`, depending on `core-ts/CR-025` and on jsonix-CR-015 (D2), done with the raise to objects 0.8.0. CR-023's line says so.
 
 ## 9. Sources
 

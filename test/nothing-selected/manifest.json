@@ -1,0 +1,1445 @@
+{
+ "probe": "WD REQ-305's rounds: an mc:AlternateContent with Choices, none understood, and no Fallback (CR-029 section 1)",
+ "source": "the share's bridge/portfolio/, each file's first run (-a), copied unedited; understood-list.index.tsv from bridge/staging/",
+ "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs agreeing, November 2026",
+ "rounds": {
+  "ul": [
+   "ul-000-control-w14",
+   "ul-001-control-made-up",
+   "ul-002-wordprocessingml-2006-main",
+   "ul-003-package-2006-relationships",
+   "ul-004-markup-compatibility-2006",
+   "ul-005-officedocument-2006-math",
+   "ul-006-officedocument-2006-bibliography",
+   "ul-007-officedocument-2006-customxml",
+   "ul-008-schemalibrary-2006-main",
+   "ul-009-officedocument-2006-extended-properties",
+   "ul-010-officedocument-2006-docpropsvtypes",
+   "ul-011-package-2006-metadata-core-properties",
+   "ul-012-purl-org-dc-elements-1-1",
+   "ul-013-purl-org-dc-terms",
+   "ul-014-office-2006-coverpageprops",
+   "ul-015-office-2006-xmlpackage",
+   "ul-016-drawingml-2006-main",
+   "ul-017-drawingml-2006-picture",
+   "ul-018-drawingml-2006-wordprocessingdrawing",
+   "ul-019-drawingml-2006-chart",
+   "ul-020-drawingml-2006-chartdrawing",
+   "ul-021-drawingml-2006-diagram",
+   "ul-022-drawingml-2006-compatibility",
+   "ul-023-drawingml-2006-lockedcanvas",
+   "ul-024-drawingml-2006-spreadsheetdrawing",
+   "ul-025-office-drawing-2007-8-2-chart",
+   "ul-026-office-drawing-2008-diagram",
+   "ul-027-office-drawing-2010-main",
+   "ul-028-office-drawing-2010-picture",
+   "ul-029-office-drawing-2010-chartdrawing",
+   "ul-030-office-drawing-2010-diagram",
+   "ul-031-office-drawing-2012-main",
+   "ul-032-office-drawing-2012-chart",
+   "ul-033-office-drawing-2013-main-command",
+   "ul-034-office-drawing-2014-main",
+   "ul-035-office-drawing-2014-chart",
+   "ul-036-office-drawing-2014-chart-ac",
+   "ul-037-office-drawing-2014-chartex",
+   "ul-038-office-drawing-2016-11-main",
+   "ul-039-office-drawing-2016-12-diagram",
+   "ul-040-office-drawing-2016-svg-main",
+   "ul-041-office-drawing-2017-03-chart",
+   "ul-042-office-drawing-2017-decorative",
+   "ul-043-office-drawing-2017-model3d",
+   "ul-044-office-drawing-2018-animation",
+   "ul-045-office-drawing-2018-animation-model3d",
+   "ul-046-office-drawing-2018-hyperlinkcolor",
+   "ul-047-office-thememl-2012-main",
+   "ul-048-schemas-microsoft-com-vml",
+   "ul-049-schemas-microsoft-com-office-office",
+   "ul-050-schemas-microsoft-com-office-word",
+   "ul-051-schemas-microsoft-com-office-excel",
+   "ul-052-schemas-microsoft-com-office-powerpoint",
+   "ul-053-office-word-2006-wordml",
+   "ul-054-office-word-2010-wordprocessingcanvas",
+   "ul-055-office-word-2010-wordprocessingdrawing",
+   "ul-056-office-word-2010-wordprocessinggroup",
+   "ul-057-office-word-2010-wordprocessingshape",
+   "ul-058-office-word-2012-wordml",
+   "ul-059-office-word-2012-wordprocessingdrawing",
+   "ul-060-office-word-2015-wordml-symex",
+   "ul-061-office-word-2016-wordml-cid",
+   "ul-062-office-word-2018-wordml",
+   "ul-063-office-word-2018-wordml-cex",
+   "ul-064-office-word-2026-wordml-cei",
+   "ul-065-office-webextensions-taskpanes-2010-11",
+   "ul-066-ffice-webextensions-webextension-2010-11",
+   "ul-067-office-powerpoint-2010-main",
+   "ul-068-office-powerpoint-2012-main",
+   "ul-069-office-powerpoint-2013-main-command",
+   "ul-070-office-powerpoint-2014-inkaction",
+   "ul-071-office-powerpoint-2015-main",
+   "ul-072-office-powerpoint-2015-09-main",
+   "ul-073-office-powerpoint-2015-10-main",
+   "ul-074-office-powerpoint-2016-6-main",
+   "ul-075-office-powerpoint-2016-sectionzoom",
+   "ul-076-office-powerpoint-2016-slidezoom",
+   "ul-077-office-powerpoint-2016-summaryzoom",
+   "ul-078-office-powerpoint-2017-3-main",
+   "ul-079-office-powerpoint-2017-10-main",
+   "ul-080-office-powerpoint-2018-4-main",
+   "ul-081-presentationml-2006-main",
+   "ul-082-spreadsheetml-2006-main",
+   "ul-083-office-excel-2006-main",
+   "ul-084-office-excel-2008-2-main",
+   "ul-085-office-excel-2010-spreadsheetdrawing",
+   "ul-086-office-spreadsheetml-2009-9-main",
+   "ul-087-office-spreadsheetml-2010-11-main",
+   "ul-088-office-spreadsheetml-2010-11-ac",
+   "ul-089-office-spreadsheetml-2011-1-ac",
+   "ul-090-office-spreadsheetml-2014-11-main",
+   "ul-091-office-spreadsheetml-2014-revision",
+   "ul-092-office-spreadsheetml-2018-calcfeatures",
+   "ul-093-ink-2010-main",
+   "ul-094-w3-org-1998-math-mathml",
+   "ul-095-w3-org-2003-inkml",
+   "ul-096-office-2006-encryption",
+   "ul-097-office-2006-keyencryptor-certificate",
+   "ul-098-office-2006-keyencryptor-password",
+   "ul-099-officedocument-2006-relationships",
+   "ul-100-officedocument-2006-custom-properties",
+   "ul-101-office-drawing-2012-chartstyle",
+   "ul-102-office-drawing-2016-ink",
+   "ul-103-office-drawing-2010-slicer",
+   "ul-104-office-drawing-2012-slicer",
+   "ul-105-office-drawing-2012-timeslicer",
+   "ul-106-office-drawing-2015-9-8-chartex",
+   "ul-107-office-drawing-2015-10-21-chartex",
+   "ul-108-office-drawing-2016-11-diagram",
+   "ul-109-office-word-2020-wordml-sdtdatahash",
+   "ul-110-office-word-2023-wordml-word16du",
+   "ul-111-office-word-2024-wordml-sdtformatlock",
+   "ul-112-office-spreadsheetml-2009-9-ac",
+   "ul-113-office-spreadsheetml-2015-revision2",
+   "ul-114-office-spreadsheetml-2016-revision3",
+   "ul-115-office-spreadsheetml-2016-revision6",
+   "ul-116-office-spreadsheetml-2016-revision9",
+   "ul-117-office-spreadsheetml-2016-revision10",
+   "ul-118-office-spreadsheetml-2017-revision16"
+  ],
+  "uc": [
+   "uc-00-control-w14",
+   "uc-01-unknown-ms",
+   "uc-10-cx4",
+   "uc-11-cx5",
+   "uc-12-cx6",
+   "uc-13-cx7",
+   "uc-14-cx8",
+   "uc-20-c16r2",
+   "uc-21-mo",
+   "uc-22-ax",
+   "uc-23-arto",
+   "uc-24-xsi",
+   "uc-25-dcmitype"
+  ],
+  "c305": [
+   "c305-00-control-w14-block",
+   "c305-10-unknown-urn-block",
+   "c305-11-unknown-urn-run",
+   "c305-12-unknown-ms-block",
+   "c305-20-wpi-block",
+   "c305-21-wpi-run",
+   "c305-22-oel-block",
+   "c305-23-cx3-block",
+   "c305-24-w16sdtfl-block"
+  ],
+  "rw": [
+   "rw-24-mc-root-nothing-selected",
+   "rw-25-body-choice-no-fallback"
+  ],
+  "te": [
+   "te-00-control",
+   "te-01-tc-only",
+   "te-02-tc-only-one-cell",
+   "te-03-tc-no-branch",
+   "te-04-tr-only",
+   "te-05-tbl-only",
+   "te-11-tc-only-saved",
+   "te-12-tc-only-one-cell-saved",
+   "te-13-tc-no-branch-saved",
+   "te-14-tr-only-saved",
+   "te-15-tbl-only-saved"
+  ]
+ },
+ "files": [
+  {
+   "name": "c305-00-control-w14-block.docx",
+   "sha1": "74ebabbc5a9e02b517838de047d242038745bb8b"
+  },
+  {
+   "name": "c305-00-control-w14-block.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "c305-10-unknown-urn-block.docx",
+   "sha1": "f9a0d9c3662fc80e439acada463b34ad8dcfd092"
+  },
+  {
+   "name": "c305-10-unknown-urn-block.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "c305-11-unknown-urn-run.docx",
+   "sha1": "d25555e15a0aba8b5ba554258c3d5cb0dfd9cb3a"
+  },
+  {
+   "name": "c305-11-unknown-urn-run.txt",
+   "sha1": "8d9742a15433eee3fc866630c626d17e4eaf59df"
+  },
+  {
+   "name": "c305-12-unknown-ms-block.docx",
+   "sha1": "09458ab7bf3859b91c0100a781e7d4f40b8d264b"
+  },
+  {
+   "name": "c305-12-unknown-ms-block.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "c305-20-wpi-block.docx",
+   "sha1": "3dfdbc207c35efce4cf6fe03db0e88d9b0ec911d"
+  },
+  {
+   "name": "c305-20-wpi-block.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "c305-21-wpi-run.docx",
+   "sha1": "e8e4a6c8ba0ecafec0901ebfdfcbfc80ec4de138"
+  },
+  {
+   "name": "c305-21-wpi-run.txt",
+   "sha1": "c89df749ebf9dd8a298513e6329b5381a6d51c01"
+  },
+  {
+   "name": "c305-22-oel-block.docx",
+   "sha1": "accbeec76d783461561f5a8e5a87be63c35f4e4e"
+  },
+  {
+   "name": "c305-22-oel-block.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "c305-23-cx3-block.docx",
+   "sha1": "8476bb22f62beb1ca120c8b6461ef8c72f391485"
+  },
+  {
+   "name": "c305-23-cx3-block.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "c305-24-w16sdtfl-block.docx",
+   "sha1": "bc1597d54bb30c1f616680330077c20a9a693586"
+  },
+  {
+   "name": "c305-24-w16sdtfl-block.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "rw-24-mc-root-nothing-selected.docx",
+   "sha1": "37e10c1ddd4666a59ff8cdf54dc4e3260b81cb61"
+  },
+  {
+   "name": "rw-24-mc-root-nothing-selected.txt",
+   "sha1": "ba8ab5a0280b953aa97435ff8946cbcbb2755a27"
+  },
+  {
+   "name": "rw-24-mc-root-nothing-selected.word.docx",
+   "sha1": "8f21f721befd731acd4f1f91ae80e8d76d54bee4"
+  },
+  {
+   "name": "rw-25-body-choice-no-fallback.docx",
+   "sha1": "6fa2dd8b068b472d49db0229dfbf0709857afe69"
+  },
+  {
+   "name": "rw-25-body-choice-no-fallback.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "rw-25-body-choice-no-fallback.word.docx",
+   "sha1": "68ced924364b562f9ad9e477978168ac7d6a8146"
+  },
+  {
+   "name": "te-00-control.docx",
+   "sha1": "3d0376b65c74dff397de361680f50609f1f03a05"
+  },
+  {
+   "name": "te-00-control.txt",
+   "sha1": "305c86103d1886c0af607ed9cd018b3279b81988"
+  },
+  {
+   "name": "te-00-control.word.docx",
+   "sha1": "042d7afd4172fe1355f34a43dcc94ba13a8b3b8b"
+  },
+  {
+   "name": "te-01-tc-only.docx",
+   "sha1": "7703115ec539bc5ad1469b9600f0c96237947c01"
+  },
+  {
+   "name": "te-01-tc-only.txt",
+   "sha1": "55aad970a5a565171c7ec3009631df7c897b6ee0"
+  },
+  {
+   "name": "te-01-tc-only.word.docx",
+   "sha1": "6caac9203300802b786db099f53c0f82668d9ee5"
+  },
+  {
+   "name": "te-02-tc-only-one-cell.docx",
+   "sha1": "aa5c01eb5c2ee3faf5768c808bf07568b35c1e87"
+  },
+  {
+   "name": "te-02-tc-only-one-cell.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "te-02-tc-only-one-cell.word.docx",
+   "sha1": "ea47fa31790f8ee939255d9e94a97702576ad921"
+  },
+  {
+   "name": "te-03-tc-no-branch.docx",
+   "sha1": "d47a3169dfe9bf23d7fdf3022b3d34591b3fc6ba"
+  },
+  {
+   "name": "te-03-tc-no-branch.txt",
+   "sha1": "55aad970a5a565171c7ec3009631df7c897b6ee0"
+  },
+  {
+   "name": "te-03-tc-no-branch.word.docx",
+   "sha1": "41efd3db657ca935d1af7fa6ebf2a5cb5c14774b"
+  },
+  {
+   "name": "te-04-tr-only.docx",
+   "sha1": "96ca2f91181537a778e5d9d78543f7cb76e8740c"
+  },
+  {
+   "name": "te-05-tbl-only.docx",
+   "sha1": "61b417c987e7cc2b32580e924ec4bae3059fe7d5"
+  },
+  {
+   "name": "te-05-tbl-only.txt",
+   "sha1": "61545405e1b0e60bdc54e53feaa97a5db435163c"
+  },
+  {
+   "name": "te-05-tbl-only.word.docx",
+   "sha1": "3859edac26a01aa4cc58ee67a3e7b4c04e5cead3"
+  },
+  {
+   "name": "te-11-tc-only-saved.docx",
+   "sha1": "0c4c5dc76eadba12ebb91c72ca4420931a07e19d"
+  },
+  {
+   "name": "te-11-tc-only-saved.txt",
+   "sha1": "55aad970a5a565171c7ec3009631df7c897b6ee0"
+  },
+  {
+   "name": "te-11-tc-only-saved.word.docx",
+   "sha1": "10808642b29ee177c12a3fe97d33931c35afced0"
+  },
+  {
+   "name": "te-12-tc-only-one-cell-saved.docx",
+   "sha1": "56c4202e2be05e25f85cc68978d3a57cf80eb76f"
+  },
+  {
+   "name": "te-12-tc-only-one-cell-saved.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "te-12-tc-only-one-cell-saved.word.docx",
+   "sha1": "f26537339ae90dc846ca497d0d824c963148f67b"
+  },
+  {
+   "name": "te-13-tc-no-branch-saved.docx",
+   "sha1": "0c4c5dc76eadba12ebb91c72ca4420931a07e19d"
+  },
+  {
+   "name": "te-13-tc-no-branch-saved.txt",
+   "sha1": "55aad970a5a565171c7ec3009631df7c897b6ee0"
+  },
+  {
+   "name": "te-13-tc-no-branch-saved.word.docx",
+   "sha1": "17668846c004b88867afbb5fc821ef3a9caa5de1"
+  },
+  {
+   "name": "te-14-tr-only-saved.docx",
+   "sha1": "d6c9eab0d83a6b43627a3e7340d289085f3105a3"
+  },
+  {
+   "name": "te-15-tbl-only-saved.docx",
+   "sha1": "df9b4f1acedcebd9386a49f252732aa1c71bc9c8"
+  },
+  {
+   "name": "te-15-tbl-only-saved.txt",
+   "sha1": "61545405e1b0e60bdc54e53feaa97a5db435163c"
+  },
+  {
+   "name": "te-15-tbl-only-saved.word.docx",
+   "sha1": "4024553a59dcd5c5b463a81bbbbc7da34effb654"
+  },
+  {
+   "name": "uc-00-control-w14.docx",
+   "sha1": "cce5022c2e19521d764667b8d946a2f074f5ab20"
+  },
+  {
+   "name": "uc-00-control-w14.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-01-unknown-ms.docx",
+   "sha1": "07de1bd4dee9cb6b3666517966584bb680a41410"
+  },
+  {
+   "name": "uc-01-unknown-ms.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "uc-10-cx4.docx",
+   "sha1": "238748365e1999fea70ad36660f0031db56827f0"
+  },
+  {
+   "name": "uc-10-cx4.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-11-cx5.docx",
+   "sha1": "2e1e573de2e0f9d3679c020bf9d0829bc7217eba"
+  },
+  {
+   "name": "uc-11-cx5.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "uc-12-cx6.docx",
+   "sha1": "0b50c39772bf486959cd7f1faab960245a2286d3"
+  },
+  {
+   "name": "uc-12-cx6.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-13-cx7.docx",
+   "sha1": "271c7dc696cedaab4332d3d071d0719642cb3374"
+  },
+  {
+   "name": "uc-13-cx7.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-14-cx8.docx",
+   "sha1": "bf306f31423da062eb25286e8ef568baba32605a"
+  },
+  {
+   "name": "uc-14-cx8.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "uc-20-c16r2.docx",
+   "sha1": "e44346539b6a82ab7385680f546d31bdbaac467d"
+  },
+  {
+   "name": "uc-20-c16r2.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-21-mo.docx",
+   "sha1": "a580a78ffa58fbfb5af2d967e7fb2c50412a71ac"
+  },
+  {
+   "name": "uc-21-mo.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "uc-22-ax.docx",
+   "sha1": "0ca50dd241deb9aad9d15c16e5b9d418c96913a7"
+  },
+  {
+   "name": "uc-22-ax.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-23-arto.docx",
+   "sha1": "86bb531fd8eeed6e85c1255ecba834456aa26b77"
+  },
+  {
+   "name": "uc-23-arto.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "uc-24-xsi.docx",
+   "sha1": "fd902c6552398cbeba50b3f72eb6212c136d72d8"
+  },
+  {
+   "name": "uc-24-xsi.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "uc-25-dcmitype.docx",
+   "sha1": "a6e6852e1c834b7d97ce1b4a77f38e9ca045e011"
+  },
+  {
+   "name": "uc-25-dcmitype.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-000-control-w14.docx",
+   "sha1": "7ac91d935fa8c927c103098f781f863f37425f24"
+  },
+  {
+   "name": "ul-000-control-w14.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-001-control-made-up.docx",
+   "sha1": "b50dd06da32fe9a8d067cfcd00bee440b0e90f3b"
+  },
+  {
+   "name": "ul-001-control-made-up.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-002-wordprocessingml-2006-main.docx",
+   "sha1": "a73ee9ac4c744df7cd224c1117728d7b86cc5abd"
+  },
+  {
+   "name": "ul-002-wordprocessingml-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-003-package-2006-relationships.docx",
+   "sha1": "69a1ed5111f5b4b1eb6a9486b6290b1bfb412fcc"
+  },
+  {
+   "name": "ul-003-package-2006-relationships.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-004-markup-compatibility-2006.docx",
+   "sha1": "d94e873dc2b67688cdef0724abcb2b625cd72678"
+  },
+  {
+   "name": "ul-004-markup-compatibility-2006.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-005-officedocument-2006-math.docx",
+   "sha1": "3cb15035dd35fc30553e1770d68cf9820471cf95"
+  },
+  {
+   "name": "ul-005-officedocument-2006-math.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-006-officedocument-2006-bibliography.docx",
+   "sha1": "8ed853fd3021ce1e93e3e175189ccec69c3a3cb5"
+  },
+  {
+   "name": "ul-006-officedocument-2006-bibliography.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-007-officedocument-2006-customxml.docx",
+   "sha1": "4cad5e0dad70a896d281e977b07a8f0266c20725"
+  },
+  {
+   "name": "ul-007-officedocument-2006-customxml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-008-schemalibrary-2006-main.docx",
+   "sha1": "9d9c7796cebb793014fa108bc7d3b4b4e3f196e7"
+  },
+  {
+   "name": "ul-008-schemalibrary-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-009-officedocument-2006-extended-properties.docx",
+   "sha1": "ab19144a697c380ac54e3b3a3c385f66935480ec"
+  },
+  {
+   "name": "ul-009-officedocument-2006-extended-properties.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-010-officedocument-2006-docpropsvtypes.docx",
+   "sha1": "3fb7e341b9027684f983bc46cfca19989d337998"
+  },
+  {
+   "name": "ul-010-officedocument-2006-docpropsvtypes.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-011-package-2006-metadata-core-properties.docx",
+   "sha1": "1a047b0cc8abbfc716f557eb423fea95a871fe6e"
+  },
+  {
+   "name": "ul-011-package-2006-metadata-core-properties.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-012-purl-org-dc-elements-1-1.docx",
+   "sha1": "ad32fa57511d6b82ccfab1889e507cdb14f6e273"
+  },
+  {
+   "name": "ul-012-purl-org-dc-elements-1-1.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-013-purl-org-dc-terms.docx",
+   "sha1": "5d1005560cfe69c0484404b9fe23178152dc4d1e"
+  },
+  {
+   "name": "ul-013-purl-org-dc-terms.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-014-office-2006-coverpageprops.docx",
+   "sha1": "f57fcb99b6531325414e3693214673220b47d43e"
+  },
+  {
+   "name": "ul-014-office-2006-coverpageprops.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-015-office-2006-xmlpackage.docx",
+   "sha1": "2646ef50fa36e13aee394cc25617fb8d93c8c1d9"
+  },
+  {
+   "name": "ul-015-office-2006-xmlpackage.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-016-drawingml-2006-main.docx",
+   "sha1": "d3eb33cb4415b4045731d4856998bb55c4206de7"
+  },
+  {
+   "name": "ul-016-drawingml-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-017-drawingml-2006-picture.docx",
+   "sha1": "fd89aa65f6d2546d2737f92af3844bba85d047b0"
+  },
+  {
+   "name": "ul-017-drawingml-2006-picture.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-018-drawingml-2006-wordprocessingdrawing.docx",
+   "sha1": "e8dac7183adb5e20bdc55d933f42fe557b29e31a"
+  },
+  {
+   "name": "ul-018-drawingml-2006-wordprocessingdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-019-drawingml-2006-chart.docx",
+   "sha1": "9c5311110e71cd9ac66dce6588be1f803600edeb"
+  },
+  {
+   "name": "ul-019-drawingml-2006-chart.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-020-drawingml-2006-chartdrawing.docx",
+   "sha1": "130ef1052b9f3f375d33959e3fa5ac8ee192a9bd"
+  },
+  {
+   "name": "ul-020-drawingml-2006-chartdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-021-drawingml-2006-diagram.docx",
+   "sha1": "acdb507449020063f914616164b85a4dd1e3f1f3"
+  },
+  {
+   "name": "ul-021-drawingml-2006-diagram.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-022-drawingml-2006-compatibility.docx",
+   "sha1": "0546f7d90fa438f79b2954a7d8c8383c50b91441"
+  },
+  {
+   "name": "ul-022-drawingml-2006-compatibility.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-023-drawingml-2006-lockedcanvas.docx",
+   "sha1": "bc09a02d9f060b5010ce19e9591d40edf5437b91"
+  },
+  {
+   "name": "ul-023-drawingml-2006-lockedcanvas.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-024-drawingml-2006-spreadsheetdrawing.docx",
+   "sha1": "0715b2b92d95b6e05445e16e1a8e51a01b542c07"
+  },
+  {
+   "name": "ul-024-drawingml-2006-spreadsheetdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-025-office-drawing-2007-8-2-chart.docx",
+   "sha1": "a8a00e9a9171e2322dc47f06d7eccca432cce24d"
+  },
+  {
+   "name": "ul-025-office-drawing-2007-8-2-chart.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-026-office-drawing-2008-diagram.docx",
+   "sha1": "28ed17094baf68eef8d72127c0fd6d6d05330240"
+  },
+  {
+   "name": "ul-026-office-drawing-2008-diagram.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-027-office-drawing-2010-main.docx",
+   "sha1": "082ed893548899844ba839f4d3d122391e42f482"
+  },
+  {
+   "name": "ul-027-office-drawing-2010-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-028-office-drawing-2010-picture.docx",
+   "sha1": "0a35da031d383748d042aff51f2937ef5bfccbf3"
+  },
+  {
+   "name": "ul-028-office-drawing-2010-picture.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-029-office-drawing-2010-chartdrawing.docx",
+   "sha1": "b4a5d3f473a5e140ff1c18af26b206fbdc7ad1d5"
+  },
+  {
+   "name": "ul-029-office-drawing-2010-chartdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-030-office-drawing-2010-diagram.docx",
+   "sha1": "a4ea63f825206d06e09e4bbf33c8872609a2cde1"
+  },
+  {
+   "name": "ul-030-office-drawing-2010-diagram.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-031-office-drawing-2012-main.docx",
+   "sha1": "3ab78f55f5849c224808ee10d2b0efcda362e226"
+  },
+  {
+   "name": "ul-031-office-drawing-2012-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-032-office-drawing-2012-chart.docx",
+   "sha1": "e180e6782bbf7ec4926db144a2a2f469999788ec"
+  },
+  {
+   "name": "ul-032-office-drawing-2012-chart.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-033-office-drawing-2013-main-command.docx",
+   "sha1": "7c884e910c964e73d6f03d20ddc450e19036c476"
+  },
+  {
+   "name": "ul-033-office-drawing-2013-main-command.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-034-office-drawing-2014-main.docx",
+   "sha1": "7429f9a014f2fccc7acf2cc14eede1cb5e7244ae"
+  },
+  {
+   "name": "ul-034-office-drawing-2014-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-035-office-drawing-2014-chart.docx",
+   "sha1": "f01eae44b8f59ec3d2712d0051eed31032ef768a"
+  },
+  {
+   "name": "ul-035-office-drawing-2014-chart.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-036-office-drawing-2014-chart-ac.docx",
+   "sha1": "66e7bcbd5dd425f03ab29003d27bef1b0ba14ac6"
+  },
+  {
+   "name": "ul-036-office-drawing-2014-chart-ac.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-037-office-drawing-2014-chartex.docx",
+   "sha1": "07924589b5d45b212f2a5d29135f67bf81adc275"
+  },
+  {
+   "name": "ul-037-office-drawing-2014-chartex.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-038-office-drawing-2016-11-main.docx",
+   "sha1": "f26738eaabdddcba2bdc0bff2dd46b9d77cf9aba"
+  },
+  {
+   "name": "ul-038-office-drawing-2016-11-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-039-office-drawing-2016-12-diagram.docx",
+   "sha1": "0facd0d43b4f1ad2f0197870b1097938abefe431"
+  },
+  {
+   "name": "ul-039-office-drawing-2016-12-diagram.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-040-office-drawing-2016-svg-main.docx",
+   "sha1": "20d8e303a86a1f5e87a5f3e486a70fa60f8314ae"
+  },
+  {
+   "name": "ul-040-office-drawing-2016-svg-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-041-office-drawing-2017-03-chart.docx",
+   "sha1": "37edb39f65178c869c54a8d80a5f430959132340"
+  },
+  {
+   "name": "ul-041-office-drawing-2017-03-chart.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-042-office-drawing-2017-decorative.docx",
+   "sha1": "4f6d06be647f0bb7d5b03eb3108c9f0f43a48686"
+  },
+  {
+   "name": "ul-042-office-drawing-2017-decorative.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-043-office-drawing-2017-model3d.docx",
+   "sha1": "b1ee2d27f2a4608f790f8bf23c48cbcb9ac10561"
+  },
+  {
+   "name": "ul-043-office-drawing-2017-model3d.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-044-office-drawing-2018-animation.docx",
+   "sha1": "bdc318e5da2dd7a725a9783248cf39791fbf59dc"
+  },
+  {
+   "name": "ul-044-office-drawing-2018-animation.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-045-office-drawing-2018-animation-model3d.docx",
+   "sha1": "2bba073d47f18a677fe79ee05324195fdd772d51"
+  },
+  {
+   "name": "ul-045-office-drawing-2018-animation-model3d.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-046-office-drawing-2018-hyperlinkcolor.docx",
+   "sha1": "89c6f0a670d6547251037c5a10f9f26ea6ee852f"
+  },
+  {
+   "name": "ul-046-office-drawing-2018-hyperlinkcolor.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-047-office-thememl-2012-main.docx",
+   "sha1": "813b5adeb687e0e14e701d62cc2afe0eba043aa9"
+  },
+  {
+   "name": "ul-047-office-thememl-2012-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-048-schemas-microsoft-com-vml.docx",
+   "sha1": "a4e7206eff7f8fbdd6b8634bc0913cf00895b33f"
+  },
+  {
+   "name": "ul-048-schemas-microsoft-com-vml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-049-schemas-microsoft-com-office-office.docx",
+   "sha1": "3e231c735af4447f29c966d320a8fd912a585a0a"
+  },
+  {
+   "name": "ul-049-schemas-microsoft-com-office-office.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-050-schemas-microsoft-com-office-word.docx",
+   "sha1": "d087fade3dd5533d36d7d2302e55c6786f661505"
+  },
+  {
+   "name": "ul-050-schemas-microsoft-com-office-word.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-051-schemas-microsoft-com-office-excel.docx",
+   "sha1": "2f99c0242c171d698c2409f14870a67bc75931a7"
+  },
+  {
+   "name": "ul-051-schemas-microsoft-com-office-excel.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-052-schemas-microsoft-com-office-powerpoint.docx",
+   "sha1": "68e15279f2b1501df80cf6f7f7fbc6866b8230e7"
+  },
+  {
+   "name": "ul-052-schemas-microsoft-com-office-powerpoint.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-053-office-word-2006-wordml.docx",
+   "sha1": "02ec29173bfeed864bbbbf8f883e2061e626e189"
+  },
+  {
+   "name": "ul-053-office-word-2006-wordml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-054-office-word-2010-wordprocessingcanvas.docx",
+   "sha1": "468d7e4f5541d5b3773e17d3c4f576b87da827df"
+  },
+  {
+   "name": "ul-054-office-word-2010-wordprocessingcanvas.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-055-office-word-2010-wordprocessingdrawing.docx",
+   "sha1": "27ff5575b762be877651353b2f1f87991383694f"
+  },
+  {
+   "name": "ul-055-office-word-2010-wordprocessingdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-056-office-word-2010-wordprocessinggroup.docx",
+   "sha1": "7989f20133185433cf8e9e8133cf07100ddad71f"
+  },
+  {
+   "name": "ul-056-office-word-2010-wordprocessinggroup.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-057-office-word-2010-wordprocessingshape.docx",
+   "sha1": "fb6fa4307575fb4ea4ff6f573e3ae2bf7a6f69e8"
+  },
+  {
+   "name": "ul-057-office-word-2010-wordprocessingshape.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-058-office-word-2012-wordml.docx",
+   "sha1": "aeecdf7f335599935242be34297ed080d2fa9820"
+  },
+  {
+   "name": "ul-058-office-word-2012-wordml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-059-office-word-2012-wordprocessingdrawing.docx",
+   "sha1": "f571557cc8e788fee1164a3bfbfac1a970d2e1bc"
+  },
+  {
+   "name": "ul-059-office-word-2012-wordprocessingdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-060-office-word-2015-wordml-symex.docx",
+   "sha1": "e6f020779b0719f329b4739f106f686a27d2cb0a"
+  },
+  {
+   "name": "ul-060-office-word-2015-wordml-symex.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-061-office-word-2016-wordml-cid.docx",
+   "sha1": "4443d3dbc92025dab3d7658a1930ee5c2ce83f79"
+  },
+  {
+   "name": "ul-061-office-word-2016-wordml-cid.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-062-office-word-2018-wordml.docx",
+   "sha1": "55a65173121e429eda6898d5c047ae000c58deb2"
+  },
+  {
+   "name": "ul-062-office-word-2018-wordml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-063-office-word-2018-wordml-cex.docx",
+   "sha1": "c624d0c456c0fa1ef144b947628e2772e87a5e71"
+  },
+  {
+   "name": "ul-063-office-word-2018-wordml-cex.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-064-office-word-2026-wordml-cei.docx",
+   "sha1": "2bad7f547745e5ad95c647f98d124c1c668abe57"
+  },
+  {
+   "name": "ul-064-office-word-2026-wordml-cei.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-065-office-webextensions-taskpanes-2010-11.docx",
+   "sha1": "c378f87914bc7c3ca1604387b3929a5de1726554"
+  },
+  {
+   "name": "ul-065-office-webextensions-taskpanes-2010-11.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-066-ffice-webextensions-webextension-2010-11.docx",
+   "sha1": "6fb5f08c30fe845a04da263c6c226533297543bd"
+  },
+  {
+   "name": "ul-066-ffice-webextensions-webextension-2010-11.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-067-office-powerpoint-2010-main.docx",
+   "sha1": "b6b908408834c277fc4fa9a5f0507b3d7900cbab"
+  },
+  {
+   "name": "ul-067-office-powerpoint-2010-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-068-office-powerpoint-2012-main.docx",
+   "sha1": "da9a32c0898e8feae6939d77f3a7a8ce24f6ed26"
+  },
+  {
+   "name": "ul-068-office-powerpoint-2012-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-069-office-powerpoint-2013-main-command.docx",
+   "sha1": "c3c3cbcce36f531a44f5b8acb9a3ce03189f0d0d"
+  },
+  {
+   "name": "ul-069-office-powerpoint-2013-main-command.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-070-office-powerpoint-2014-inkaction.docx",
+   "sha1": "d6999014bc1f00bd7c0bfc39539901ad888d847f"
+  },
+  {
+   "name": "ul-070-office-powerpoint-2014-inkaction.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-071-office-powerpoint-2015-main.docx",
+   "sha1": "c54ef343b237cd08d9ff6f76e09147b4336fbe6a"
+  },
+  {
+   "name": "ul-071-office-powerpoint-2015-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-072-office-powerpoint-2015-09-main.docx",
+   "sha1": "071268fa34282220772da7501b306deb2ed3af4d"
+  },
+  {
+   "name": "ul-072-office-powerpoint-2015-09-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-073-office-powerpoint-2015-10-main.docx",
+   "sha1": "c7c21f5b8e3579e547b4d164ae6ced48cd9876d2"
+  },
+  {
+   "name": "ul-073-office-powerpoint-2015-10-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-074-office-powerpoint-2016-6-main.docx",
+   "sha1": "6b3f6e8bcfd41ff4694540cb57ecce71f5a6794b"
+  },
+  {
+   "name": "ul-074-office-powerpoint-2016-6-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-075-office-powerpoint-2016-sectionzoom.docx",
+   "sha1": "85114607f0a9c7a7bf2f2845bf0e2d6afd850acf"
+  },
+  {
+   "name": "ul-075-office-powerpoint-2016-sectionzoom.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-076-office-powerpoint-2016-slidezoom.docx",
+   "sha1": "deb63c0e0fb6bc8b8fb8e715564b4bbb32fb1442"
+  },
+  {
+   "name": "ul-076-office-powerpoint-2016-slidezoom.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-077-office-powerpoint-2016-summaryzoom.docx",
+   "sha1": "de50605f809de71999cf28f664a0fa7565d04f0b"
+  },
+  {
+   "name": "ul-077-office-powerpoint-2016-summaryzoom.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-078-office-powerpoint-2017-3-main.docx",
+   "sha1": "0a6a602ddcf52e1f9a46c108d1f2ed3e58dfc253"
+  },
+  {
+   "name": "ul-078-office-powerpoint-2017-3-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-079-office-powerpoint-2017-10-main.docx",
+   "sha1": "2e7407673c5f5ccb3d3f67d564da929b0cca7753"
+  },
+  {
+   "name": "ul-079-office-powerpoint-2017-10-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-080-office-powerpoint-2018-4-main.docx",
+   "sha1": "b3e49986dcdf05f9226742c629e41f8e6afe7131"
+  },
+  {
+   "name": "ul-080-office-powerpoint-2018-4-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-081-presentationml-2006-main.docx",
+   "sha1": "1c3e594696be78f3131aa7762ff3b8ba0004a745"
+  },
+  {
+   "name": "ul-081-presentationml-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-082-spreadsheetml-2006-main.docx",
+   "sha1": "84249d28681cc6d8e55a60fe4cfe5f4297d27843"
+  },
+  {
+   "name": "ul-082-spreadsheetml-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-083-office-excel-2006-main.docx",
+   "sha1": "8c2947ccc869760bf5187570ac8161e556513031"
+  },
+  {
+   "name": "ul-083-office-excel-2006-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-084-office-excel-2008-2-main.docx",
+   "sha1": "d073d3c2dbcaff4472b4ef76c196a59467c5f28e"
+  },
+  {
+   "name": "ul-084-office-excel-2008-2-main.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-085-office-excel-2010-spreadsheetdrawing.docx",
+   "sha1": "7a1d3740d77426659115b1655a679752ea33b87c"
+  },
+  {
+   "name": "ul-085-office-excel-2010-spreadsheetdrawing.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-086-office-spreadsheetml-2009-9-main.docx",
+   "sha1": "88a374b8a77a12a06f18f6c84fd444d47f23b311"
+  },
+  {
+   "name": "ul-086-office-spreadsheetml-2009-9-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-087-office-spreadsheetml-2010-11-main.docx",
+   "sha1": "592ae65ecff5371007448ad330c7401e071c52cc"
+  },
+  {
+   "name": "ul-087-office-spreadsheetml-2010-11-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-088-office-spreadsheetml-2010-11-ac.docx",
+   "sha1": "d83fd159dba61c513a500d27b67e975e08200fec"
+  },
+  {
+   "name": "ul-088-office-spreadsheetml-2010-11-ac.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-089-office-spreadsheetml-2011-1-ac.docx",
+   "sha1": "81018ea1418e1fd176741bea1af7c431462d1f44"
+  },
+  {
+   "name": "ul-089-office-spreadsheetml-2011-1-ac.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-090-office-spreadsheetml-2014-11-main.docx",
+   "sha1": "9f75d57d16869d236453dacd878e79295517e3fb"
+  },
+  {
+   "name": "ul-090-office-spreadsheetml-2014-11-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-091-office-spreadsheetml-2014-revision.docx",
+   "sha1": "15c31165e77377591501260e2027b3046c9ca7b1"
+  },
+  {
+   "name": "ul-091-office-spreadsheetml-2014-revision.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-092-office-spreadsheetml-2018-calcfeatures.docx",
+   "sha1": "6a747dbfe69d7984a6ecadd3e19425ad83ffcf8c"
+  },
+  {
+   "name": "ul-092-office-spreadsheetml-2018-calcfeatures.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-093-ink-2010-main.docx",
+   "sha1": "3e6d2004c5157bd91144f39056945ca36be410fd"
+  },
+  {
+   "name": "ul-093-ink-2010-main.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-094-w3-org-1998-math-mathml.docx",
+   "sha1": "d7a87fb87064b477e1417d16dedf155880611118"
+  },
+  {
+   "name": "ul-094-w3-org-1998-math-mathml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-095-w3-org-2003-inkml.docx",
+   "sha1": "ba76dd340bed35d93e049f87a022d88346bb979f"
+  },
+  {
+   "name": "ul-095-w3-org-2003-inkml.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-096-office-2006-encryption.docx",
+   "sha1": "37c47a98196ef9f25f4b09701070206b6ad97e50"
+  },
+  {
+   "name": "ul-096-office-2006-encryption.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-097-office-2006-keyencryptor-certificate.docx",
+   "sha1": "689ff7ba8f9cfc1e15fdafd19df105cc407a2a49"
+  },
+  {
+   "name": "ul-097-office-2006-keyencryptor-certificate.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-098-office-2006-keyencryptor-password.docx",
+   "sha1": "1a0fa82a7d679722fbfd1179abc96429238da5b5"
+  },
+  {
+   "name": "ul-098-office-2006-keyencryptor-password.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-099-officedocument-2006-relationships.docx",
+   "sha1": "6244a7484fefc9706378ca90d51ae649c2ce5c55"
+  },
+  {
+   "name": "ul-099-officedocument-2006-relationships.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-100-officedocument-2006-custom-properties.docx",
+   "sha1": "57925897860fead5ec073e42968d2ded5d288802"
+  },
+  {
+   "name": "ul-100-officedocument-2006-custom-properties.txt",
+   "sha1": "7ada0a2a323a23700b3417ed565628b708229533"
+  },
+  {
+   "name": "ul-101-office-drawing-2012-chartstyle.docx",
+   "sha1": "308f200d7d70e0d972beac02ce12ade6c1d6a81f"
+  },
+  {
+   "name": "ul-101-office-drawing-2012-chartstyle.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-102-office-drawing-2016-ink.docx",
+   "sha1": "d8fd4e3218548bab742d8d3581e07ad3f435c8d1"
+  },
+  {
+   "name": "ul-102-office-drawing-2016-ink.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-103-office-drawing-2010-slicer.docx",
+   "sha1": "68f7b8b0117ea3eef4aea2b6c3c573c8da4eb8e9"
+  },
+  {
+   "name": "ul-103-office-drawing-2010-slicer.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-104-office-drawing-2012-slicer.docx",
+   "sha1": "7c737d867dfe5cf5138d2774b3bfa695d3f23281"
+  },
+  {
+   "name": "ul-104-office-drawing-2012-slicer.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-105-office-drawing-2012-timeslicer.docx",
+   "sha1": "be42df8bd187b0106b48fb3d270ad5c89274d4a2"
+  },
+  {
+   "name": "ul-105-office-drawing-2012-timeslicer.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-106-office-drawing-2015-9-8-chartex.docx",
+   "sha1": "6b681e56c390977821d36e04e0a8fa34e2282366"
+  },
+  {
+   "name": "ul-106-office-drawing-2015-9-8-chartex.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-107-office-drawing-2015-10-21-chartex.docx",
+   "sha1": "b0a156467ca85166541e720e784f1857d6bb0ebc"
+  },
+  {
+   "name": "ul-107-office-drawing-2015-10-21-chartex.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-108-office-drawing-2016-11-diagram.docx",
+   "sha1": "2c5d91cf95d97004343fed45afcbbf892be5422c"
+  },
+  {
+   "name": "ul-108-office-drawing-2016-11-diagram.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-109-office-word-2020-wordml-sdtdatahash.docx",
+   "sha1": "1b9211acb218eb3f07c62e74271ea43bfe9de977"
+  },
+  {
+   "name": "ul-109-office-word-2020-wordml-sdtdatahash.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-110-office-word-2023-wordml-word16du.docx",
+   "sha1": "727071f368584592ed6e45ffc4d15c96edd2a917"
+  },
+  {
+   "name": "ul-110-office-word-2023-wordml-word16du.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-111-office-word-2024-wordml-sdtformatlock.docx",
+   "sha1": "0e49839f7b8abf2cd30bc72bd61f724a774af98c"
+  },
+  {
+   "name": "ul-111-office-word-2024-wordml-sdtformatlock.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-112-office-spreadsheetml-2009-9-ac.docx",
+   "sha1": "df00a87e1ed752696cc45866386f41682e0e2989"
+  },
+  {
+   "name": "ul-112-office-spreadsheetml-2009-9-ac.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-113-office-spreadsheetml-2015-revision2.docx",
+   "sha1": "641417b3166c03aa8fabb273a77dbbf8002782f2"
+  },
+  {
+   "name": "ul-113-office-spreadsheetml-2015-revision2.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-114-office-spreadsheetml-2016-revision3.docx",
+   "sha1": "927fee7e404f9036fc9f3f7f7b5738fa9935e30a"
+  },
+  {
+   "name": "ul-114-office-spreadsheetml-2016-revision3.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-115-office-spreadsheetml-2016-revision6.docx",
+   "sha1": "362254b71f8bee8789c694d312d1f6dc495e27ce"
+  },
+  {
+   "name": "ul-115-office-spreadsheetml-2016-revision6.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-116-office-spreadsheetml-2016-revision9.docx",
+   "sha1": "c49c443748078637ac39a9bdc977ad849d480057"
+  },
+  {
+   "name": "ul-116-office-spreadsheetml-2016-revision9.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-117-office-spreadsheetml-2016-revision10.docx",
+   "sha1": "6e8500e10a0c415b6c2e2c14aaae274b3d94e721"
+  },
+  {
+   "name": "ul-117-office-spreadsheetml-2016-revision10.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "ul-118-office-spreadsheetml-2017-revision16.docx",
+   "sha1": "58b3019121095675ee3ce55b0d593a754e6a00d2"
+  },
+  {
+   "name": "ul-118-office-spreadsheetml-2017-revision16.txt",
+   "sha1": "8d5c728f9d321dfe84da0c426e926f1bb215a3d2"
+  },
+  {
+   "name": "understood-list.index.tsv",
+   "sha1": "4de8f499c26a761433399476a052cbcde5fb49ce"
+  }
+ ]
+}

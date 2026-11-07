@@ -19,7 +19,7 @@
 // Each rule is decided on the tree as read, as the stylesheet's templates are, before anything moves.
 // A clean part pays one walk over its DOM, which allocates nothing (CR-021 section 2: 0.4% of a load).
 import { childElements } from '../../xml/dom.mjs';
-import { READ_UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
+import { UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
 import { skippedElement, type ContentSkippedWarning } from '../skipped.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -276,7 +276,7 @@ function splitText(t: Element, skipped: ContentSkippedWarning[], partName: strin
 function givesItsText(e: Element): boolean {
   const namespace = e.namespaceURI;
   if (namespace === W) return TEXTS.has(e.localName);
-  return !namespace || READ_UNDERSTOOD_NAMESPACES.has(namespace);
+  return !namespace || UNDERSTOOD_NAMESPACES.has(namespace);
 }
 
 function spaceOf(holder: Element): string {

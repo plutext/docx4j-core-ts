@@ -560,6 +560,12 @@ export class TextComment {
 export class TextWarning {
   /** Both branches of an `mc:AlternateContent` hold text, and the texts differ (REQ-307). */
   static readonly MCE_BRANCHES_DIFFER = 'mce.branches_differ';
+  /**
+   * An `mc:AlternateContent` with Choices, none understood, and no Fallback, so it reads as absent (REQ-305): at its address,
+   * or with none where the walk can't meet it (a resolved load took it out, or it is a part's root). The part's name is the
+   * selector, and `detail` the namespaces its Choices require, as one string of URIs, empty if every prefix binds to nothing.
+   */
+  static readonly MCE_NOTHING_SELECTED = 'mce.nothing_selected';
   /** A field with no cached result (REQ-505). */
   static readonly FIELD_NO_RESULT = 'field.no_result';
   /** A data-bound control whose surface differs from its bound value (REQ-509). */
@@ -610,11 +616,15 @@ export class TextWarning {
     /**
      * For `content.not_read`, `part.not_read` and `part.absent`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
      * the chunk's (`/word/afchunk.rtf`), so that a host can read it itself; for `paragraph.drop_cap_joined`, the part the
-     * paragraphs are in (`/word/document.xml`); for `package.multiple_main_parts`, the part read.
+     * paragraphs are in (`/word/document.xml`); for `package.multiple_main_parts`, the part read; for `mce.nothing_selected`,
+     * the part holding the element.
      */
     readonly partName?: string,
-    /** A count the warning carries (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name; for `package.multiple_main_parts`, the relationships. */
-    readonly detail?: number,
+    /**
+     * What the kind says beyond its selector (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name; for
+     * `package.multiple_main_parts`, the relationships; for `mce.nothing_selected`, the namespaces required.
+     */
+    readonly detail?: number | string,
   ) {}
 
   /**
@@ -627,7 +637,7 @@ export class TextWarning {
 
   /** The identity a result keeps each warning once by. */
   get key(): string {
-    return [this.kind, this.address, this.branch, this.contentType, this.partName].map((v) => v ?? '\u0000').join('\u0001');
+    return [this.kind, this.address, this.branch, this.contentType, this.partName, this.detail].map((v) => v ?? '\u0000').join('\u0001');
   }
 
   toJSON(): Record<string, unknown> {

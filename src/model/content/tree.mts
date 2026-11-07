@@ -2,8 +2,7 @@
 // builders (walk, find, linkParents, textOf and the element helpers come from there).
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
-import { isElement, typeNameOf, runItemsOf, mcBranchOf, sdtProperty, type Element } from '@docx4j/generated-objects-ts/builders/wml';
-import { READ_UNDERSTOOD_PREFIXES } from '../../opc/mce/understood.mjs';
+import { isElement, typeNameOf, runItemsOf, mcBranchOf, type McOptions, sdtProperty, type Element } from '@docx4j/generated-objects-ts/builders/wml';
 import { isMath, mathTextOf } from './mathText.mjs';
 import { NotSupportedError } from '../../office-js/errors.mjs';
 
@@ -66,15 +65,14 @@ export const ALTERNATE_CONTENT = 'org_docx4j_mce.AlternateContent';
 
 /**
  * The branch of a kept `mc:AlternateContent` the content API reads (docx4j's `McMode.READ`, CR-010
- * phase 3): the objects package's `mcBranchOf` over `READ_UNDERSTOOD_PREFIXES`, the prefixes load
- * understands and the four Word 365 understands that load leaves alone (CR-010 section 15). So a reader
- * takes the branch the preprocessor would have resolved the element to, unless a Choice requires one of
- * those four: then it takes that Choice, as Word does, where a resolved load takes the next one or the
- * Fallback. A mutator walks every branch instead (docx4j's `McMode.ALL`). Undefined for an element with
- * no branches.
+ * phase 3): the objects package's `mcBranchOf`, the first `mc:Choice` whose `Requires` names only namespaces in the
+ * understood set, by URI, else the `mc:Fallback`, else nothing (WD REQ-302 to REQ-305, CR-029). So a reader takes the
+ * branch the preprocessor resolves the element to. A mutator walks every branch instead (docx4j's `McMode.ALL`). Undefined
+ * where nothing is selected, as for an element with no branches. `options` are `mcBranchOf`'s: the text model passes
+ * `onNothingSelected` for `mce.nothing_selected`.
  */
-export function selectedBranchOf(value: mce.AlternateContent | undefined): Element[] | undefined {
-  return mcBranchOf(value, { understood: READ_UNDERSTOOD_PREFIXES });
+export function selectedBranchOf(value: mce.AlternateContent | undefined, options?: McOptions): Element[] | undefined {
+  return mcBranchOf(value, options);
 }
 
 /** True for a kept `mc:AlternateContent`: its element pair, or its value. */

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { OpcPackage, mceKeep, mcePreprocess, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore, FlatOpcPartStore } from '../dist/index.mjs';
+import { OpcPackage, mceKeep, mcePreprocess, WordprocessingMLPackage, HeaderPart, parseXml, resolveAlternateContent, preprocessAlternateContent, createMcePreprocessor, UNDERSTOOD_NAMESPACES, TRAVERSAL_NAMESPACES, KEPT_HOSTS, MCE_NS, ZipPartStore, FlatOpcPartStore } from '../dist/index.mjs';
 import { fixture, fixturesDir } from './helpers.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -28,11 +28,11 @@ test('resolveAlternateContent: the first understood mc:Choice wins, else the fal
   doc = parseXml(nested);
   assert.equal(resolveAlternateContent(doc), 2);
   assert.equal(doc.getElementsByTagNameNS(W, 't')[0].textContent, 'inner');
-  // no fallback and nothing understood: kept whole since CR-010 phase 1 (ISO removes it)
+  // no fallback and nothing understood: removed, as ISO and Word read it (WD REQ-305, CR-029)
   doc = parseXml(`<w:p xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:x="urn:unknown"><mc:AlternateContent><mc:Choice Requires="x"><w:r/></mc:Choice></mc:AlternateContent></w:p>`);
-  assert.equal(resolveAlternateContent(doc), 0);
-  assert.equal(doc.getElementsByTagNameNS(MCE_NS, 'AlternateContent').length, 1);
-  assert.equal(doc.getElementsByTagNameNS(W, 'r').length, 1);
+  assert.equal(resolveAlternateContent(doc), 1);
+  assert.equal(doc.getElementsByTagNameNS(MCE_NS, 'AlternateContent').length, 0);
+  assert.equal(doc.getElementsByTagNameNS(W, 'r').length, 0);
   assert.ok(UNDERSTOOD_NAMESPACES.has('http://schemas.microsoft.com/office/word/2010/wordprocessingShape'));
 });
 
@@ -131,11 +131,11 @@ test('a re-marshalled document declares the conventional prefixes and the mc:Ign
   assert.ok(rels.startsWith('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship '));
 });
 
-// UNDERSTOOD_NAMESPACES is hand-kept (`src/opc/mce/understood.mts`); this is what announces the
+// TRAVERSAL_NAMESPACES is hand-kept (`src/opc/mce/understood.mts`); this is what announces the
 // next objects regeneration, so that a module added there is weighed here rather than silently
-// left out of the Choice rule. Every module's defaultElementNamespaceURI must be in the set - and
-// the set may hold more, which the file marks and explains.
-test('every namespace the object model has a module for is understood', async () => {
+// left out. Every module's defaultElementNamespaceURI must be in the set - and the set may hold
+// more, which the file marks and explains. Selection doesn't read it (WD REQ-306, CR-029).
+test('every namespace the object model has a module for is in the traversal set', async () => {
   const dir = new URL('../node_modules/@docx4j/generated-objects-ts/modules/', import.meta.url);
   const missing = [];
   for (const file of (await readdir(dir)).sort()) {
@@ -143,9 +143,9 @@ test('every namespace the object model has a module for is understood', async ()
     const source = await readFile(new URL(file, dir), 'utf8');
     // the compiler writes it as a JS string literal, with the slashes escaped
     const ns = /defaultElementNamespaceURI:\s*'((?:[^'\\]|\\.)*)'/.exec(source)?.[1]?.replace(/\\\//g, '/');
-    if (ns && !UNDERSTOOD_NAMESPACES.has(ns)) missing.push(`${file}: ${ns}`);
+    if (ns && !TRAVERSAL_NAMESPACES.has(ns)) missing.push(`${file}: ${ns}`);
   }
-  assert.deepEqual(missing, [], `add these to UNDERSTOOD_NAMESPACES, or record why not:\n${missing.join('\n')}`);
+  assert.deepEqual(missing, [], `add these to TRAVERSAL_NAMESPACES, or record why not:\n${missing.join('\n')}`);
 });
 
 // CR-009 section 8: Office gates a chartex chart's frame with a later chartex namespace than the
@@ -234,17 +234,15 @@ test('KEPT_HOSTS, and keptHosts: an empty set resolves everywhere, as before', (
   assert.equal(doc.documentElement.firstChild.namespaceURI, 'http://schemas.microsoft.com/office/drawing/2007/8/2/chart');
 });
 
-// The text extraction paper's D4 item 4 (decided 2026-10-17): a reader takes the first Choice of an
-// element nothing can be selected from. Load does not promote it - its content is in no namespace
-// the model understands, and a w:r refuses it, so the part would not open - and does not remove it,
-// as ISO would: it keeps it whole, for a reader over kept branches (CR-010 phase 3) to read.
-test('an element nothing can be selected from is kept whole, and a save writes it back', async () => {
+// WD REQ-305 (CR-029): a reader selects nothing from such an element, and the default load keeps it whole all the same, as
+// it keeps every branch: only a reader sees nothing, and a save writes it back.
+test('an element nothing can be selected from is kept whole by the default load, and a save writes it back', async () => {
   const box = '<zz:box><w:txbxContent><w:p><w:r><w:t>Hello box</w:t></w:r></w:p></w:txbxContent></zz:box>';
   const pkg = await WordprocessingMLPackage.createPackage();
   pkg.getMainDocumentPart().setXml(`<w:document xmlns:w="${W}" xmlns:mc="${MCE_NS}" xmlns:zz="urn:example:zz"><w:body><w:p><w:r><w:t>Before </w:t></w:r><w:r><mc:AlternateContent><mc:Choice Requires="zz">${box}</mc:Choice></mc:AlternateContent></w:r><w:r><w:t>after</w:t></w:r></w:p><w:sectPr/></w:body></w:document>`);
   const back = await WordprocessingMLPackage.load(await pkg.save());
   const body = await back.getBody();
-  assert.equal(body.paragraphs[0].text, 'Before after', 'the content API does not read a kept branch yet');
+  assert.equal(body.paragraphs[0].text, 'Before after', 'a reader sees nothing of it');
   body.paragraphs[0].insertText('!', 'End');
   const xml = new TextDecoder().decode(new ZipPartStore(await back.save()).loadSync('word/document.xml'));
   // objects 0.5.0 (its CR-012, 869b725) declares a prefix only the source bound on the mc:Choice whose Requires names

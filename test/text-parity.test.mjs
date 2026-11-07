@@ -236,8 +236,8 @@ function joinedBody(b) {
  * - `charts` and `smartart` (phase 5c, REQ-511), `altchunks` (phase 5e, REQ-513): the blocks docx4j reads at a
  *   `chart:`, `smartart:` or `altchunk:` address, which this package doesn't make, and every
  *   `altchunk.not_expanded` warning;
- * - `req303` (REQ-303 by URI, section 15.3: `Requires` matched by namespace, not prefix): the blocks at and under
- *   these addresses, check 50's rebound prefixes and the probe's case 6, and the warnings there;
+ * - `wpi` (CR-029, WD REQ-306): the blocks at these addresses, where a Choice requires `wpi` over a Fallback's picture. Word
+ *   understands the namespace, as this package now does, and 17.3.5's golden reads the Fallback, until docx4j's next release;
  * - `nestedFields` (phase 5a, REQ-506; docx4j CR-067 D4, in 17.3.5): the blocks at these addresses, where a nested
  *   field's stored result, which Word writes as `w:instrText` after its `separate`, is the nested field's result and an
  *   operand of the outer instruction in docx4j's block model, and part of the outer instruction here (the text agrees).
@@ -246,11 +246,9 @@ function joinedBody(b) {
  * entries are removed.
  */
 const PROBE = { math: true, charts: true, smartart: true };
-const PROBE_CASE_6 = ['body/13'];
 const NESTED_FIELDS = ['body/61', 'body/113', 'body/114', 'body/115', 'body/116', 'body/117', 'body/122', 'body/126', 'body/127'];
 const PENDING = {
   'fixtures/charts/waterfall.json': { charts: true },
-  'fixtures/check50/50-declarations.json': { req303: ['body/4', 'body/6', 'body/8'] },
   // the nested fields of docx4j CR-067's expression probe: F54, I29 to I33, S04, S08 and S09
   'fixtures/fields/expr-probe-r1.json': { nestedFields: NESTED_FIELDS },
   'fixtures/fields/expr-probe-r1-word365.json': { nestedFields: NESTED_FIELDS },
@@ -264,20 +262,21 @@ const PENDING = {
   'fixtures/revisions/python/artefact8/8-word-rejected.json': { math: true },
   'text-extraction/revisions/core-ts/check57/57-fields-equations-word365.json': { math: true },
   'text-extraction/revisions/core-ts/check57/57-fields-equations-word365-rejected.json': { math: true },
-  // the probe in its eight copies: phase 5's cases, and case 6 where the copy keeps the rebound prefix
-  'text-extraction/suite/extraction-probe.json': { ...PROBE, req303: PROBE_CASE_6 },
+  // the probe in its eight copies: phase 5's cases
+  'text-extraction/suite/extraction-probe.json': PROBE,
   'text-extraction/suite/extraction-probe.word-resave.json': PROBE,
-  'text-extraction/suite/phase0/extraction-probe.json': { ...PROBE, altchunks: true, req303: PROBE_CASE_6 },
-  'text-extraction/suite/phase0/evidence/checked-52/extraction-probe.json': { ...PROBE, altchunks: true, req303: PROBE_CASE_6 },
+  'text-extraction/suite/phase0/extraction-probe.json': { ...PROBE, altchunks: true },
+  'text-extraction/suite/phase0/evidence/checked-52/extraction-probe.json': { ...PROBE, altchunks: true },
   'text-extraction/suite/phase0/evidence/extraction-probe-r2-word-save.json': PROBE,
   'text-extraction/suite/phase0/evidence/extraction-probe-r3-word-save.json': PROBE,
-  'text-extraction/suite/phase0/evidence/extraction-probe-v1-rejected.json': { ...PROBE, altchunks: true, req303: PROBE_CASE_6 },
+  'text-extraction/suite/phase0/evidence/extraction-probe-v1-rejected.json': { ...PROBE, altchunks: true },
   'text-extraction/suite/phase0/evidence/extraction-probe-v1-word-repaired.json': PROBE,
+  'text-extraction/suite/phase0/extraction-probe-inspect.json': { wpi: ['body/41'] },
 };
 
 /** The flags that set blocks aside by their address's last segment, and the flags that set them aside by address. */
 const MARKERS = { charts: '/chart:', smartart: '/smartart:', altchunks: '/altchunk:' };
-const AT = ['latexOnly', 'req303', 'nestedFields'];
+const AT = ['latexOnly', 'wpi', 'nestedFields'];
 
 /** Every block, its cells' blocks and its comments' blocks, in order. */
 function allBlocks(body) {

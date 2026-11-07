@@ -12,6 +12,7 @@
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as mce from '@docx4j/generated-objects-ts/modules/org_docx4j_mce';
 import type { Part } from '../../parts/Part.mjs';
+import type { PartWarning } from '../../opc/mce/preprocessor.mjs';
 import { AlternativeFormatInputPart } from '../../parts/BinaryPart.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import type { Emulator, NumberingResult } from '../listnumbering/Emulator.mjs';
@@ -299,7 +300,9 @@ class Story {
   noteId: string | undefined;
   private numberingState: NumberingState | undefined;
 
-  constructor(private readonly x: Extractor, readonly kind: TextStory, readonly prefix: string, readonly part: Part | undefined) {}
+  constructor(private readonly x: Extractor, readonly kind: TextStory, readonly prefix: string, readonly part: Part | undefined) {
+    if (part) x.storyParts.add(part);
+  }
 
   /** The resolver the walk reads styles with, for `officeSpans`' hidden rule. */
   get resolver(): PropertyResolver | undefined {
@@ -354,6 +357,8 @@ export class Extractor {
   readonly resolver: PropertyResolver | undefined;
   readonly warnings: TextWarning[] = [];
   private readonly warned = new Set<string>();
+  /** The parts this reading took a story from, for what the walk can't meet (`nothingSelectedUnmet`). */
+  readonly storyParts = new Set<Part>();
   /** What every address this extraction makes starts with. */
   root = '';
   /** The run properties a paragraph style and character style give, by their ids. */
@@ -390,7 +395,11 @@ export class Extractor {
     const metadata = this.metadata();
     const main = this.trees.main;
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;
-    if (!main || !body) return new TextResult(out, comments, this.warnings, metadata, this.options);
+    if (!main || !body) {
+      if (main) this.storyParts.add(main.part as unknown as Part);
+      this.nothingSelectedUnmet();
+      return new TextResult(out, comments, this.warnings, metadata, this.options);
+    }
 
     // the main story, each text box after its anchor; sections recorded as they end
     const story = new Story(this, 'MAIN', `${this.root}body`, main.part);
@@ -417,6 +426,7 @@ export class Extractor {
     // comments, rendered at their references (REQ-504)
     if (this.commentsIncluded()) this.comments(comments);
 
+    this.nothingSelectedUnmet();
     return new TextResult(out, comments, this.warnings, metadata, this.options);
   }
 
@@ -456,6 +466,7 @@ export class Extractor {
     if (kind === 'MAIN' && prefix === 'body') this.context.mainRead = true;
     const metadata: Record<string, unknown> = {};
     if (this.trees.pkg !== undefined) metadata[TextResult.FIELDS_UPDATE_ON_OPEN] = this.fieldsUpdateOnOpen();
+    this.nothingSelectedUnmet();
     return new TextResult(out, new Map(), this.warnings, metadata, this.options);
   }
 
@@ -463,6 +474,7 @@ export class Extractor {
   extractNotes(type: NoteType): TextResult {
     const out: TextBlock[] = [];
     this.notes(type, out);
+    this.nothingSelectedUnmet();
     return new TextResult(out, new Map(), this.warnings, { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() }, this.options);
   }
 
@@ -470,6 +482,7 @@ export class Extractor {
   extractComments(): TextResult {
     const comments = new Map<string, TextComment>();
     this.comments(comments);
+    this.nothingSelectedUnmet();
     return new TextResult([], comments, this.warnings, { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() }, this.options);
   }
 
@@ -572,7 +585,7 @@ export class Extractor {
       this.bookmark(item);
     } else if (tn === AC) {
       const ac = v as mce.AlternateContent;
-      this.compareBranches(ac, address);
+      this.compareBranches(ac, address, story);
       this.blocks(selectedBranchOf(ac), address, story, sink, state);
     } else if (revisionHolder(item) !== undefined) {
       this.blocks(runItemsOfValue(v), address, story, sink, this.holderState(item, state));
@@ -1022,7 +1035,7 @@ export class Extractor {
       } else if (typeOf(v) === AC) {
         // a row-level mc:AlternateContent: its selected branch's rows, addressed from the element (CR-013)
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, address);
+        this.compareBranches(ac, address, story);
         this.rows(selectedBranchOf(ac), address, story, table, state);
       } else {
         const inner = blockItems(v);
@@ -1062,7 +1075,7 @@ export class Extractor {
       } else if (typeOf(v) === AC) {
         // a cell-level mc:AlternateContent: its selected branch's cells, addressed from the element (CR-013)
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, address);
+        this.compareBranches(ac, address, story);
         this.cells(selectedBranchOf(ac), address, story, row, state);
       } else {
         const inner = blockItems(v);
@@ -1086,7 +1099,7 @@ export class Extractor {
         this.run(v as wml.R, para, state);
       } else if (tn === AC) {
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, para.block.address);
+        this.compareBranches(ac, para.block.address, para.story);
         this.runs(selectedBranchOf(ac), para, state);
       } else if (isSdt(v) && this.unwraps(item)) {
         this.runs(sdtContentOf(v), para, state);
@@ -1296,7 +1309,7 @@ export class Extractor {
       }
       case 'AlternateContent': {
         const ac = v as mce.AlternateContent;
-        this.compareBranches(ac, para.block.address);
+        this.compareBranches(ac, para.block.address, para.story);
         for (const o of selectedBranchOf(ac) ?? []) this.runItem(o, r, hidden, para, state);
         return;
       }
@@ -1479,7 +1492,7 @@ export class Extractor {
             return false;
           case AC: {
             const ac = value as unknown as mce.AlternateContent;
-            this.compareBranches(ac, para.block.address);
+            this.compareBranches(ac, para.block.address, para.story);
             for (const o of selectedBranchOf(ac) ?? []) walk(unwrap(o), 1, visitor);
             return false;
           }
@@ -1600,11 +1613,11 @@ export class Extractor {
    * differ after REQ-1201's normalisation. A branch's text is every `w:t`, `m:t` and `a:t` in it, whatever
    * the view and hidden or not, as docx4j reads it: a comparison made at load knows no view, and a branch
    * that differs only in hidden or deleted text is one an agent should hear of (Jason, 2026-10-21, for WD
-   * 0.29; CR-012 section 15.6).
+   * 0.29; CR-012 section 15.6). `mce.nothing_selected` (REQ-305): where the element has Choices and nothing is selected.
    */
-  private compareBranches(ac: mce.AlternateContent, address: string): void {
+  private compareBranches(ac: mce.AlternateContent, address: string, story: Story): void {
     if (!this.options.warnings || this.fieldsOnly) return;
-    const selected = selectedBranchOf(ac);
+    const selected = selectedBranchOf(ac, { onNothingSelected: ({ namespaces }) => this.nothingSelected(address, story.part, namespaces) });
     if (selected === undefined) return;
     const mine = branchText(selected);
     if (mine === '') return;
@@ -1618,6 +1631,24 @@ export class Extractor {
         const branch = chosen ? `mc:Choice Requires="${chosen.requires}"` : 'mc:Fallback';
         this.warn(new TextWarning(TextWarning.MCE_BRANCHES_DIFFER, address, branch));
         return;
+      }
+    }
+  }
+
+  /** `mce.nothing_selected`, its selector the part and its `detail` the namespaces (REQ-801). */
+  private nothingSelected(address: string | undefined, part: Part | undefined, namespaces: readonly string[]): void {
+    this.warn(new TextWarning(TextWarning.MCE_NOTHING_SELECTED, address, undefined, undefined, part?.partName.name, namespaces.join(' ')));
+  }
+
+  /**
+   * `mce.nothing_selected` for what the walk can't meet (CR-029 section 3.5), from the warnings the load's pass recorded on
+   * each part this reading took: an element a resolving load took out, and one at a part's root. Neither has an address.
+   */
+  private nothingSelectedUnmet(): void {
+    if (!this.options.warnings || this.fieldsOnly) return;
+    for (const part of this.storyParts) {
+      for (const w of (part as { warnings?: readonly PartWarning[] }).warnings ?? []) {
+        if (w.code === 'mce.nothing_selected' && (w.removed || w.root)) this.nothingSelected(undefined, part, w.namespaces);
       }
     }
   }

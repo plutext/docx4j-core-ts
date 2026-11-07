@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  WordprocessingMLPackage, UNDERSTOOD_NAMESPACES, READ_ONLY_UNDERSTOOD_NAMESPACES,
+  WordprocessingMLPackage, UNDERSTOOD_NAMESPACES, TRAVERSAL_NAMESPACES,
 } from '../dist/index.mjs';
 import {
   table, normalize, count, verify, verifyGolden, verifyWordSave, imageDestinations, run, INSPECTION_TABLE, INSPECTION_STATUS,
@@ -279,10 +279,10 @@ test('the suite with no engine: every row pending, with its phase', async () => 
 test('the suite with the text model (CR-012 phases 2 and 3): every row it claims passes, the others pend for a statement it does not claim', async () => {
   const result = await run(phase0, ENGINE);
   // run() throws at the first row that fails; these are the counts at docx4j 17.3.5's suite (CR-012 section 24.2: the
-  // 12 altchunk.not_expanded rows re-keyed by part name, section 22.2 (a), among the 786)
+  // 12 altchunk.not_expanded rows re-keyed by part name, section 22.2 (a), and CR-029's nine REQ-303 rows among the 795)
   assert.equal(result.passed + result.pending, 1772);
-  assert.equal(result.passed, 786, 'a row moved: recount (CR-012 sections 15, 16 and 24)');
-  assert.equal(result.pending, 986);
+  assert.equal(result.passed, 795, 'a row moved: recount (CR-012 sections 15, 16 and 24; CR-029)');
+  assert.equal(result.pending, 977);
   const claimed = new Set(IMPLEMENTED);
   // an inspection's rows of the other environment pend by count, with no statement missing
   const byStatement = result.report.slice(1).filter((l) => l.includes('\tPENDING\t') && !/\tPENDING\t\d+ rows? of /.test(l));
@@ -293,7 +293,7 @@ test('the suite with the text model (CR-012 phases 2 and 3): every row it claims
   assert.equal(result.report.length - 1 - result.passed - byStatement.length, 3, 'three fixtures\' reader-present rows, by count');
   // what pends, by what it waits for: phase 5's statements, the inspector, and REQ-303 and REQ-1203
   const waits = (statement) => byStatement.filter((l) => l.split('; ')[1].split(', ').includes(statement)).length;
-  assert.equal(waits('REQ-303'), 9, 'case 6: the URI decides; this package matches by prefix (REQ-303\'s permitted route)');
+  assert.equal(waits('REQ-303'), 0, 'case 6: the URI decides (CR-029)');
   assert.equal(waits('REQ-1203'), 12, 'the whole-document goldens hold phase 5\'s content');
   for (const statement of ['REQ-506', 'REQ-511', 'REQ-512', 'REQ-513', 'REQ-604', 'REQ-901']) assert.ok(waits(statement) > 0, statement);
   assert.equal(waits('REQ-703'), 0, 'Markdown (phase 3)');
@@ -344,14 +344,14 @@ test('the dpp suite\'s two goldens (REQ-1203, not claimed until phase 5): exact'
   }
 });
 
-test('the whole-document goldens (REQ-1203, not claimed until phase 5): exact but for phase 5\'s content and case 6', async () => {
+test('the whole-document goldens (REQ-1203, not claimed until phase 5): exact but for phase 5\'s content', async () => {
   // docx4j's ExtractionGoldens writes the text with its trailing line ends trimmed to one
   const asWritten = (text) => `${text.replace(/\n+$/, '')}\n`;
-  // the lines phase 5 adds (5b LaTeX, 5c the chart and SmartArt, 5e the chunks) and case 6's (REQ-303 by prefix)
-  const PENDING = /MCE6_|MTH32|CHT34_|SMA35_|ALT4[3-7]_|^\[chart: /;
+  // the lines phase 5 adds (5b LaTeX, 5c the chart and SmartArt, 5e the chunks)
+  const PENDING = /MTH32|CHT34_|SMA35_|ALT4[3-7]_|^\[chart: /;
   const without = (text) => text.split('\n').filter((line) => !PENDING.test(line)).join('\n');
   // in Markdown, each block a paragraph apart, its underscores escaped
-  const PENDING_MD = /MCE6\\_|MTH32|CHT34\\_|SMA35\\_|ALT4[3-7]\\_/;
+  const PENDING_MD = /MTH32|CHT34\\_|SMA35\\_|ALT4[3-7]\\_/;
   const withoutMd = (text) => text.split('\n\n').filter((block) => !PENDING_MD.test(block)).join('\n\n');
   let exact = 0;
   for (const row of table(join(phase0, 'goldens.tsv'))) {
@@ -400,23 +400,31 @@ test('the agreement runner reports where the walk and the resolved copy part', a
   ]);
 });
 
-// ---------------------------------------------------------------- REQ-306, the understood set
+// ---------------------------------------------------------------- REQ-306, the two sets
 
-test('the readers\' understood set is 111 of docx4j\'s published 118, and the other 7 are named', () => {
+// The suite's copy is 17.3.5's, whose `understood-namespaces.txt` is the 118 docx4j has since named `traversal-namespaces.txt`
+// (its 824565363). The recopy at docx4j's next release brings both files. Word's measurements are the understood set's oracle.
+test('REQ-306: the traversal set is docx4j\'s published 118, and the understood set the 114 Word was measured to understand', () => {
   const published = readFileSync(join(base, 'understood-namespaces.txt'), 'utf8').split('\n').filter((l) => l !== '');
   assert.equal(published.length, 118);
-  // load's set is the list's first 107, in its order
-  assert.deepEqual([...UNDERSTOOD_NAMESPACES], published.slice(0, 107));
-  // the readers add lines 109 to 112, which Word 365 understands (CR-010 section 15)
-  assert.deepEqual([...READ_ONLY_UNDERSTOOD_NAMESPACES].sort(), published.slice(108, 112).sort());
-  // the difference: no mc:Choice in the corpus requires any of these (CR-012 section 13)
-  assert.deepEqual([published[107], ...published.slice(112)], [
-    'http://schemas.microsoft.com/office/drawing/2016/11/diagram',
-    'http://schemas.microsoft.com/office/spreadsheetml/2015/revision2',
-    'http://schemas.microsoft.com/office/spreadsheetml/2016/revision3',
-    'http://schemas.microsoft.com/office/spreadsheetml/2016/revision6',
-    'http://schemas.microsoft.com/office/spreadsheetml/2016/revision9',
-    'http://schemas.microsoft.com/office/spreadsheetml/2016/revision10',
-    'http://schemas.microsoft.com/office/spreadsheetml/2017/revision16',
+  assert.deepEqual([...TRAVERSAL_NAMESPACES], published);
+  assert.equal(UNDERSTOOD_NAMESPACES.size, 114);
+  // the 13 of the 118 Word was measured not to understand, by round ul-*
+  assert.deepEqual(published.filter((uri) => !UNDERSTOOD_NAMESPACES.has(uri)), [
+    'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties',
+    'http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes',
+    'http://schemas.openxmlformats.org/package/2006/metadata/core-properties',
+    'http://purl.org/dc/elements/1.1/',
+    'http://purl.org/dc/terms/',
+    'http://schemas.microsoft.com/office/2006/coverPageProps',
+    'urn:schemas-microsoft-com:office:excel',
+    'urn:schemas-microsoft-com:office:powerpoint',
+    'http://schemas.microsoft.com/office/excel/2008/2/main',
+    'http://schemas.microsoft.com/office/2006/encryption',
+    'http://schemas.microsoft.com/office/2006/keyEncryptor/certificate',
+    'http://schemas.microsoft.com/office/2006/keyEncryptor/password',
+    'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties',
   ]);
+  // what the understood set adds, by round uc-*: nine URIs, six of them the round's
+  assert.equal([...UNDERSTOOD_NAMESPACES].filter((uri) => !published.includes(uri)).length, 9);
 });

@@ -1,17 +1,20 @@
-// What "understanding" an mc:Choice means here: the namespaces whose content survives a load and
-// a save. Word takes the first mc:Choice whose Requires prefixes it all understands (ECMA-376
-// Part 3, 10.2.1), and so does this preprocessor.
+// The two sets WD REQ-306 has an extractor publish (CR-029).
 //
-// It is the defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts
-// (0.3.0), which `mce.test.mjs` asserts so that the next regeneration announces an addition, plus
-// three groups of hand-kept entries, each marked below: namespaces no module *defaults* to but which
-// the model binds anyway (attributes, or elements a module of another namespace declares), the
-// slicer namespaces of CR-004 phase B, whose content the model does not bind at all but carries
-// through as DOM, and the chartex namespaces Office gates a chart's frame with, which nothing in the
-// Choice uses (CR-009 section 8).
-import { NAMESPACE_PREFIXES } from '@docx4j/generated-objects-ts';
+// `UNDERSTOOD_NAMESPACES` decides every markup compatibility question in a word-processing package: which `mc:Choice`
+// a reader takes (REQ-302), whether an element selects nothing (REQ-305), and which namespace Word doesn't know
+// (`repairBreaksOutsideRuns`, `readThroughUnknownElements`). It is what Word 365 was measured to understand, docx4j's
+// published `understood-namespaces.txt` (114 URIs at `824565363`), and it comes from the objects package, whose
+// `mcBranchOf` reads it. It is silent on spreadsheets and presentations, where a namespace not measured counts as not understood.
+//
+// `TRAVERSAL_NAMESPACES` is what this package's readers can traverse, docx4j's `traversal-namespaces.txt`, and it decides
+// nothing about selection. Its first 107 are the namespaces whose content survives a load and a save: the
+// defaultElementNamespaceURI of every generated module of @docx4j/generated-objects-ts, which `mce.test.mjs` asserts so
+// that the next regeneration announces an addition, plus the hand-kept groups marked below. The last 11 are docx4j's.
+import { UNDERSTOOD_NAMESPACES } from '@docx4j/generated-objects-ts/builders/wml';
 
-export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
+export { UNDERSTOOD_NAMESPACES };
+
+export const TRAVERSAL_NAMESPACES: ReadonlySet<string> = new Set([
   'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
   'http://schemas.openxmlformats.org/package/2006/relationships',
   'http://schemas.openxmlformats.org/markup-compatibility/2006',
@@ -125,7 +128,7 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   // holds the one unbound element, and that wildcard is lax (docx4j 8e8f6ea83), so it loads as DOM
   // and re-marshals unchanged. Taking the Choice therefore keeps the slicer or timeline; leaving
   // it would take the Fallback, an "Excel 2010 or higher" placeholder box, and lose the slicer for
-  // good. A Choice is only worth taking when everything in it round-trips (docx4j CR-021 8.9).
+  // good.
   'http://schemas.microsoft.com/office/drawing/2010/slicer',
   'http://schemas.microsoft.com/office/drawing/2012/slicer',
   'http://schemas.microsoft.com/office/drawing/2012/timeslicer',
@@ -140,50 +143,17 @@ export const UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
   // here: no file seen gates a Choice with one.
   'http://schemas.microsoft.com/office/drawing/2015/9/8/chartex',
   'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
+
+  // The 11 docx4j's JAXB contexts bind and no generated module here does, in its published order.
+  'http://schemas.microsoft.com/office/drawing/2016/11/diagram',
+  'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',
+  'http://schemas.microsoft.com/office/word/2023/wordml/word16du',
+  'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock',
+  'http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac',
+  'http://schemas.microsoft.com/office/spreadsheetml/2015/revision2',
+  'http://schemas.microsoft.com/office/spreadsheetml/2016/revision3',
+  'http://schemas.microsoft.com/office/spreadsheetml/2016/revision6',
+  'http://schemas.microsoft.com/office/spreadsheetml/2016/revision9',
+  'http://schemas.microsoft.com/office/spreadsheetml/2016/revision10',
+  'http://schemas.microsoft.com/office/spreadsheetml/2017/revision16',
 ]);
-
-const prefixesOf = (namespaces: Iterable<string>): string[] =>
-  [...namespaces].map((uri) => NAMESPACE_PREFIXES[uri]).filter((prefix): prefix is string => prefix !== undefined && prefix !== '');
-
-/**
- * The conventional prefixes of `UNDERSTOOD_NAMESPACES` (`NAMESPACE_PREFIXES`), the object model's namespaces
- * expressed as prefixes (CR-010 section 11.5): the unmarshalled model does not keep the declarations in
- * force at the element, so the objects package's `mcBranchOf` compares prefixes, and its default set,
- * every prefix `NAMESPACE_PREFIXES` knows, is wider than what load understands. The readers match
- * against `READ_UNDERSTOOD_PREFIXES`, this and four more. An understood namespace with no conventional
- * prefix has no entry.
- */
-export const UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set(prefixesOf(UNDERSTOOD_NAMESPACES));
-
-/**
- * The namespaces a reader of a kept mc:AlternateContent counts as understood beyond `UNDERSTOOD_NAMESPACES`
- * (CR-010 section 15): Word 365 takes a Choice requiring any of them (measured 2026-10-20), and docx4j's
- * published understood list (`understood-namespaces.txt`) has all four, among the 11 its JAXB contexts
- * bind and no generated module here does. The name is CR-010's, when only the readers counted them;
- * since CR-013 (D3) resolving does too (`READ_UNDERSTOOD_NAMESPACES`). Resolving turns the Choice it takes
- * into typed content, which no module types here, but what Word writes in these namespaces survives a
- * re-marshal: in every file seen it is attributes only (`w16du:dateUtc`, `w16sdtdh:storeItemChecksum`,
- * `x14ac:dyDescent` and `x14ac:knownFonts`; `w16sdtfl` is only declared), measured 2026-10-21.
- */
-export const READ_ONLY_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([
-  'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',     // w16sdtdh
-  'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock',   // w16sdtfl
-  'http://schemas.microsoft.com/office/word/2023/wordml/word16du',        // w16du
-  'http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac',          // x14ac
-]);
-
-/**
- * What a reader of a kept mc:AlternateContent matches `mc:Choice/@Requires` against (`selectedBranchOf`,
- * docx4j's `McMode.READ`): `UNDERSTOOD_PREFIXES` and the conventional prefixes of
- * `READ_ONLY_UNDERSTOOD_NAMESPACES`. A Choice requiring only these is taken by the gate alone, as REQ-302
- * of the text extraction specification reads, whatever its content (CR-010 section 15).
- */
-export const READ_UNDERSTOOD_PREFIXES: ReadonlySet<string> = new Set([...UNDERSTOOD_PREFIXES, ...prefixesOf(READ_ONLY_UNDERSTOOD_NAMESPACES)]);
-
-/**
- * What load selects by, as namespaces: `UNDERSTOOD_NAMESPACES` and `READ_ONLY_UNDERSTOOD_NAMESPACES`, the
- * readers' set (`READ_UNDERSTOOD_PREFIXES`) by URI. Resolving (`mcePreprocess: true`) takes the Choice it
- * names, and the default load's `mce.branches_differ` reports it as the selected branch, so a resolved load
- * takes the branch the readers of a kept load take, as Word 365 does (CR-013 D3).
- */
-export const READ_UNDERSTOOD_NAMESPACES: ReadonlySet<string> = new Set([...UNDERSTOOD_NAMESPACES, ...READ_ONLY_UNDERSTOOD_NAMESPACES]);

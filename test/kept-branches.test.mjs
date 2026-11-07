@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   WordprocessingMLPackage, ZipPartStore, TableContextTracker, NAMESPACE_PREFIXES, UNDERSTOOD_NAMESPACES,
-  UNDERSTOOD_PREFIXES, READ_ONLY_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_PREFIXES, selectedBranchOf, deepCopy,
+  selectedBranchOf, deepCopy,
 } from '../dist/index.mjs';
 import { mcBranchOf } from '@docx4j/generated-objects-ts/builders/wml';
 import { fixture } from './helpers.mjs';
@@ -56,20 +56,15 @@ async function load(name, kept) {
 // understands (measured 2026-10-20) and docx4j's published understood list has.
 const READ_ONLY = { w16sdtdh: 'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash', w16sdtfl: 'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock', w16du: 'http://schemas.microsoft.com/office/word/2023/wordml/word16du', x14ac: 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac' };
 
-test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; selectedBranchOf reads that branch, or a Choice requiring one of the four read-only namespaces', () => {
-  const byUri = new Map([...UNDERSTOOD_NAMESPACES].filter((uri) => NAMESPACE_PREFIXES[uri]).map((uri) => [uri, NAMESPACE_PREFIXES[uri]]));
-  assert.deepEqual([...UNDERSTOOD_PREFIXES].sort(), [...new Set(byUri.values())].sort());
-  for (const prefix of ['w', 'wps', 'wp14', 'w14', 'cx1', 'cx2', 'a14']) assert.ok(UNDERSTOOD_PREFIXES.has(prefix), prefix);
-  // the read-only four: conventional, in no module, understood by the readers and, since CR-013 (D3), by a resolving load
-  assert.deepEqual([...READ_ONLY_UNDERSTOOD_NAMESPACES].sort(), Object.values(READ_ONLY).sort());
+test('the understood set: selectedBranchOf reads a Choice requiring only what Word was measured to understand, by namespace', () => {
+  for (const prefix of ['w', 'wps', 'wp14', 'w14', 'cx1', 'cx2', 'a14']) assert.ok([...UNDERSTOOD_NAMESPACES].some((uri) => NAMESPACE_PREFIXES[uri] === prefix), prefix);
+  // CR-010 section 15's four: conventional, in no module, and Word understands them
   for (const [prefix, uri] of Object.entries(READ_ONLY)) {
     assert.equal(NAMESPACE_PREFIXES[uri], prefix, `${prefix} is conventional`);
-    assert.ok(!UNDERSTOOD_NAMESPACES.has(uri) && !UNDERSTOOD_PREFIXES.has(prefix), `${prefix} is in no module`);
+    assert.ok(UNDERSTOOD_NAMESPACES.has(uri), prefix);
   }
-  assert.deepEqual([...READ_UNDERSTOOD_PREFIXES].sort(), [...UNDERSTOOD_PREFIXES, ...Object.keys(READ_ONLY)].sort());
-  assert.deepEqual([...READ_UNDERSTOOD_NAMESPACES].sort(), [...UNDERSTOOD_NAMESPACES, ...Object.values(READ_ONLY)].sort());
-  // a conventional prefix neither understands (CR-010 section 11.5)
-  assert.ok(Object.values(NAMESPACE_PREFIXES).includes('cx3') && !READ_UNDERSTOOD_PREFIXES.has('cx3'));
+  // a conventional prefix Word doesn't understand (the understood-choice round)
+  assert.ok(Object.values(NAMESPACE_PREFIXES).includes('cx5') && ![...UNDERSTOOD_NAMESPACES].some((uri) => NAMESPACE_PREFIXES[uri] === 'cx5'));
   const choiceItems = [];
   const fallbackItems = [];
   const element = (requires) => ({
@@ -82,9 +77,9 @@ test('UNDERSTOOD_PREFIXES: what load understands, by conventional prefix; select
     assert.equal(selectedBranchOf(element(prefix)), choiceItems, `${prefix}: the Choice, as Word takes it`);
     assert.equal(selectedBranchOf(element(`wps ${prefix}`)), choiceItems);
   }
-  assert.equal(selectedBranchOf(element('cx3')), fallbackItems, 'not understood: the Fallback');
-  assert.equal(mcBranchOf(element('cx3')), choiceItems, "mcBranchOf's own default would take the Choice");
-  assert.equal(selectedBranchOf(element('wps cx3')), fallbackItems);
+  assert.equal(selectedBranchOf(element('cx5')), fallbackItems, 'not understood: the Fallback');
+  assert.equal(mcBranchOf(element('cx5')), fallbackItems, 'selectedBranchOf is mcBranchOf');
+  assert.equal(selectedBranchOf(element('wps cx5')), fallbackItems);
   // the ten Choices of Jason's probe (w14 to wp14), with each of the four put first: the editor's
   // mc-branches.docx cases 7, 9 and 10, and x14ac
   const tenChoices = (first) => {
@@ -187,13 +182,12 @@ test('a picture in the selected branch is listed once, from that branch; deletin
     assert.equal(pictures[0].holder?.value.TYPE_NAME, kept ? AC : undefined);
   }
   // with the Choice's prefix not understood, load takes the Fallback, and a kept load reads it too
-  const fallback = await pictureInBranch('cx3');
+  const fallback = await pictureInBranch('cx5');
   for (const kept of [false, true]) {
     const pictures = (await (await WordprocessingMLPackage.load(fallback, kept ? KEPT : RESOLVED)).getBody()).inlinePictures;
     assert.deepEqual(pictures.map((p) => p.altTextDescription), ['the Fallback'], kept ? 'kept' : 'resolved');
   }
-  // a Choice requiring one of the four read-only namespaces (CR-010 section 15): a kept load reads the
-  // Choice, as Word does, and since CR-013 (D3) so does a resolved load, which until then took the Fallback
+  // a Choice requiring one of CR-010 section 15's four: both loads read the Choice, as Word does
   for (const prefix of Object.keys(READ_ONLY)) {
     const readOnly = await pictureInBranch(prefix);
     for (const kept of [false, true]) {

@@ -1,31 +1,32 @@
 // Markup compatibility preprocessing (ECMA-376 Part 3; docx4j mc-preprocessor.xslt). Runs over a
 // part's DOM before it is unmarshalled. Since CR-010 phase 4 load keeps every mc:AlternateContent,
 // as docx4j does since its CR-021, and the default pass (`mceKeep`) changes nothing: it reports what
-// resolving would, the `mce.branches_differ` warning below, so a reader learns where the branch the
-// content API reads says something other than one it doesn't.
+// resolving would, the `mce.branches_differ` and `mce.nothing_selected` warnings below, so a reader learns
+// where the branch the content API reads says something other than one it doesn't, and where there is none.
 //
 // Resolving (`mcePreprocess: true` on load, the pass `mcePreprocess`) replaces each element by the
-// content of the first mc:Choice whose Requires prefixes all name namespaces in
-// `READ_UNDERSTOOD_NAMESPACES` (the object model's, and the four Word 365 understands that no module
-// binds: CR-013 D3), else by its mc:Fallback content. This is what Word does on open. It runs only for
-// parts that are unmarshalled, so untouched parts keep every branch.
+// content of the first mc:Choice whose Requires prefixes all name namespaces in `UNDERSTOOD_NAMESPACES`,
+// what Word 365 was measured to understand, else by its mc:Fallback content, else, in a word-processing
+// part, by nothing (WD REQ-305, CR-029). This is what Word does on open. It runs only for parts that are
+// unmarshalled, so untouched parts keep every branch. A `w:tc` a removal leaves with no block gets an empty
+// `w:p`, since Word repairs a cell with none (the `tc-empty` round).
 //
-// Two kinds are left whole even so (CR-010 phase 1), so a save writes them back with every branch:
+// Three kinds are left whole even so, so a save writes them back with every branch:
 // - those under a host in `KEPT_HOSTS`, where the model binds the element and nothing in this
 //   package reads the branches' content (a chart part's c14:style, a workbook's x15ac:absPath,
 //   which promoting lost outright);
-// - those nothing can be selected from (Choices only, none understood). ISO removes them. Promoting
-//   the first Choice, the reading rule (the text extraction paper's D4 item 4), would put content
-//   in no understood namespace where its host may refuse it, and does: a w:r holding one then
-//   fails to unmarshal. Kept, the model types the element where its host accepts one and drops it
-//   where it does not, as it drops any unexpected element, so keeping never loses more than
-//   removing did.
+// - those nothing can be selected from in any other part (Choices only, none understood): the understood
+//   set was measured in a word-processing package, so a Choice in a slide or a sheet could otherwise go
+//   for a namespace nobody asked Word about (CR-029 D3);
+// - one nothing can be selected from at a part's root, whose removal would leave a part with no root. CR-028
+//   reads the root.
 import type { XmlPart } from '../../parts/XmlPart.mjs';
-import { READ_UNDERSTOOD_NAMESPACES } from './understood.mjs';
+import { UNDERSTOOD_NAMESPACES } from './understood.mjs';
 import type { BrOutsideRunWarning } from '../repair/breaks.mjs';
 import type { ContentSkippedWarning } from '../skipped.mjs';
 
 export const MCE_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
+const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
 /**
  * The hosts whose mc:AlternateContent is kept whole on load, as `{namespace}localName`
@@ -37,7 +38,7 @@ export const KEPT_HOSTS: ReadonlySet<string> = new Set([
 ]);
 
 export interface McePreprocessOptions {
-  /** Namespaces counted as understood; defaults to `READ_UNDERSTOOD_NAMESPACES` (CR-013 D3). */
+  /** Namespaces counted as understood; defaults to `UNDERSTOOD_NAMESPACES`, the 114 Word 365 was measured to understand (WD REQ-306). */
   understood?: ReadonlySet<string>;
   /** Hosts, as `{namespace}localName`, whose mc:AlternateContent is left whole; defaults to `KEPT_HOSTS`. */
   keptHosts?: ReadonlySet<string>;
@@ -46,6 +47,12 @@ export interface McePreprocessOptions {
    * warnings, from the same elements, and no change to the DOM. Defaults to true.
    */
   resolve?: boolean;
+  /**
+   * Whether this is a word-processing part, where an element nothing can be selected from is reported and removed (WD
+   * REQ-305); in any other it is left whole and said nothing of (CR-029 D3). Defaults to true; the preprocessors read it
+   * from the part's content type.
+   */
+  wordProcessing?: boolean;
 }
 
 /**
@@ -63,6 +70,24 @@ export interface McBranchesDifferWarning {
   column?: number;
   selected: string;
   branches: { branch: string; text: string }[];
+  message: string;
+}
+
+/**
+ * `mce.nothing_selected` (WD REQ-305, CR-029): an mc:AlternateContent with Choices, none understood, and no Fallback, so
+ * that the element and all it holds are absent, as ISO and Word read it. `namespaces` gives what its Choices require, each
+ * once, in order, a prefix nothing binds having none. `removed` says a resolving load took it out; `root` that it is a part's
+ * root, which is left whole. A reader's walk meets neither, so the text model carries such a warning with no address.
+ */
+export interface McNothingSelectedWarning {
+  code: 'mce.nothing_selected';
+  partName: string | undefined;
+  /** Where the element starts in the part, where the DOM records it (xmldom does; a browser's DOMParser does not). */
+  line?: number;
+  column?: number;
+  namespaces: string[];
+  removed: boolean;
+  root: boolean;
   message: string;
 }
 
@@ -165,7 +190,7 @@ export interface MisplacedContentWarning {
 }
 
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | ContentSkippedWarning;
+export type PartWarning = McBranchesDifferWarning | McNothingSelectedWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | ContentSkippedWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a
@@ -182,24 +207,29 @@ export interface MceResult {
  * warnings are what resolving would report. Returns them.
  */
 export function mceKeep(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
-  return preprocessAlternateContent(doc, { resolve: false, partName: part?.partName.name }).warnings;
+  return preprocessAlternateContent(doc, { resolve: false, partName: part?.partName.name, wordProcessing: isWordProcessing(part) }).warnings;
 }
 
-/** The resolving preprocessor (`mcePreprocess: true`), over `READ_UNDERSTOOD_NAMESPACES`. Returns the part's warnings. */
+/** The resolving preprocessor (`mcePreprocess: true`), over `UNDERSTOOD_NAMESPACES`. Returns the part's warnings. */
 export function mcePreprocess(doc: Document, part?: XmlPart<unknown>): PartWarning[] {
-  return preprocessAlternateContent(doc, { partName: part?.partName.name }).warnings;
+  return preprocessAlternateContent(doc, { partName: part?.partName.name, wordProcessing: isWordProcessing(part) }).warnings;
 }
 
 /** A preprocessor over a namespace set (or kept hosts) of your own. */
 export function createMcePreprocessor(options: McePreprocessOptions): (doc: Document, part?: XmlPart<unknown>) => PartWarning[] {
-  return (doc, part) => preprocessAlternateContent(doc, { ...options, partName: part?.partName.name }).warnings;
+  return (doc, part) => preprocessAlternateContent(doc, { wordProcessing: isWordProcessing(part), ...options, partName: part?.partName.name }).warnings;
+}
+
+/** Whether a part is WordprocessingML's, by its content type (the transitional and macro-enabled forms); a bare node is taken as one. */
+function isWordProcessing(part: XmlPart<unknown> | undefined): boolean {
+  return part === undefined || /wordprocessingml|vnd\.ms-word/.test(part.contentType);
 }
 
 /**
- * Resolves every mc:AlternateContent under a node, outermost first, but those `KEPT_HOSTS` and the
- * nothing-selectable rule keep (see the file comment). Returns the number resolved.
+ * Resolves every mc:AlternateContent under a node, outermost first, but those the file comment keeps. Returns the number
+ * resolved, one nothing was selected from among them.
  */
-export function resolveAlternateContent(root: Node, understood: ReadonlySet<string> = READ_UNDERSTOOD_NAMESPACES): number {
+export function resolveAlternateContent(root: Node, understood: ReadonlySet<string> = UNDERSTOOD_NAMESPACES): number {
   return preprocessAlternateContent(root, { understood }).resolved;
 }
 
@@ -209,9 +239,10 @@ export function resolveAlternateContent(root: Node, understood: ReadonlySet<stri
  * and leaves the DOM as it was.
  */
 export function preprocessAlternateContent(root: Node, options: McePreprocessOptions & { partName?: string } = {}): MceResult {
-  const understood = options.understood ?? READ_UNDERSTOOD_NAMESPACES;
+  const understood = options.understood ?? UNDERSTOOD_NAMESPACES;
   const keptHosts = options.keptHosts ?? KEPT_HOSTS;
   const resolve = options.resolve ?? true;
+  const wordProcessing = options.wordProcessing ?? true;
   const result: MceResult = { resolved: 0, kept: 0, warnings: [] };
   const visit = (node: Node): void => {
     const hostKept = node.nodeType === 1 && keptHosts.has(`{${(node as Element).namespaceURI ?? ''}}${(node as Element).localName}`);
@@ -219,6 +250,7 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
     // which is visited in its turn (it may hold, or be, another mc:AlternateContent).
     const queue: Node[] = [];
     for (let c = node.firstChild; c; c = c.nextSibling) queue.push(c);
+    let removed = false;
     for (let i = 0; i < queue.length; i++) {
       if (queue[i].nodeType !== 1) continue;
       const el = queue[i] as Element;
@@ -226,10 +258,12 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
       const { choices, fallback } = branchesOf(el);
       const chosen = choices.find((c) => choiceUnderstood(c, understood));
       const branch = chosen ?? fallback;
-      if (hostKept || (branch === undefined && choices.length > 0)) { result.kept++; continue; }
-      const warning = branchesDiffer(el, choices, fallback, branch, understood, options.partName);
+      const nothing = branch === undefined && choices.length > 0;
+      if (hostKept || (nothing && !wordProcessing)) { result.kept++; continue; }
+      const atRoot = el.parentNode?.nodeType === 9;
+      const warning = nothing ? nothingSelected(el, choices, resolve && !atRoot, atRoot, options.partName) : branchesDiffer(el, choices, fallback, branch, understood, options.partName);
       if (warning) result.warnings.push(warning);
-      if (!resolve) {
+      if (!resolve || (nothing && atRoot)) {
         result.kept++;
         if (branch) visit(branch);
         continue;
@@ -238,12 +272,28 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
       if (branch) for (let c = branch.firstChild; c; c = c.nextSibling) moved.push(c);
       for (const n of moved) node.insertBefore(n, el);
       node.removeChild(el);
+      removed = true;
       queue.splice(i + 1, 0, ...moved);
       result.resolved++;
     }
+    if (removed) keepACellsParagraph(node);
   };
   visit(root);
   return result;
+}
+
+/**
+ * A `w:tc` left with no block gets an empty `w:p` (CR-029 D4): Word repairs a cell with none (`te-01` to `te-03`), and opens this
+ * silently. Word's repair also writes `w:spacing` on its paragraph, which this leaves out, as docx4j-python's does.
+ */
+function keepACellsParagraph(node: Node): void {
+  if (node.nodeType !== 1) return;
+  const cell = node as Element;
+  if (cell.namespaceURI !== W || cell.localName !== 'tc') return;
+  for (let c = cell.firstChild; c; c = c.nextSibling) {
+    if (c.nodeType === 1 && (c as Element).localName !== 'tcPr') return;
+  }
+  cell.appendChild(cell.ownerDocument.createElementNS(W, cell.prefix ? `${cell.prefix}:p` : 'p'));
 }
 
 function isAlternateContent(el: Element): boolean {
@@ -282,8 +332,7 @@ const TEXT_NAMESPACES: ReadonlySet<string> = new Set([
 
 /**
  * The text a branch holds: its w:t, a:t and m:t, whitespace collapsed. A nested
- * mc:AlternateContent contributes the branch the same rule selects, or its first Choice when
- * nothing is selectable (the reading rule).
+ * mc:AlternateContent contributes the branch the same rule selects, and nothing where it selects nothing.
  */
 function textOfBranch(node: Node, understood: ReadonlySet<string>): string {
   const out: string[] = [];
@@ -293,7 +342,7 @@ function textOfBranch(node: Node, understood: ReadonlySet<string>): string {
       const el = c as Element;
       if (isAlternateContent(el)) {
         const { choices, fallback } = branchesOf(el);
-        const branch = choices.find((x) => choiceUnderstood(x, understood)) ?? fallback ?? choices[0];
+        const branch = choices.find((x) => choiceUnderstood(x, understood)) ?? fallback;
         if (branch) walk(branch);
       } else if (el.localName === 't' && TEXT_NAMESPACES.has(el.namespaceURI ?? '')) out.push(el.textContent ?? '');
       else walk(el);
@@ -305,6 +354,28 @@ function textOfBranch(node: Node, understood: ReadonlySet<string>): string {
 
 function branchName(branch: Element): string {
   return branch.localName === 'Choice' ? `Choice(${(branch.getAttribute('Requires') ?? '').trim()})` : 'Fallback';
+}
+
+/** `mce.nothing_selected`'s record: the namespaces the Choices require, each once, in order (the objects package's `NothingSelected`). */
+function nothingSelected(ac: Element, choices: Element[], removed: boolean, root: boolean, partName: string | undefined): McNothingSelectedWarning {
+  const namespaces = new Set<string>();
+  for (const choice of choices) {
+    for (const prefix of (choice.getAttribute('Requires') ?? '').trim().split(/\s+/)) {
+      const ns = prefix === '' ? null : choice.lookupNamespaceURI(prefix);
+      if (ns) namespaces.add(ns);
+    }
+  }
+  const located = ac as Element & { lineNumber?: number; columnNumber?: number };
+  const where = typeof located.lineNumber === 'number' ? ` (line ${located.lineNumber}, column ${located.columnNumber})` : '';
+  return {
+    code: 'mce.nothing_selected',
+    partName,
+    ...(typeof located.lineNumber === 'number' ? { line: located.lineNumber, column: located.columnNumber } : {}),
+    namespaces: [...namespaces],
+    removed,
+    root,
+    message: `${partName ?? 'a part'}${where}: mc:AlternateContent selects nothing: no Choice is understood (${[...namespaces].join(', ') || 'no namespace bound'}) and it has no Fallback, so it reads as absent (REQ-305)`,
+  };
 }
 
 function branchesDiffer(ac: Element, choices: Element[], fallback: Element | undefined, selected: Element | undefined,

@@ -68,7 +68,7 @@ them, docx4j CR-058: a `w:storeItemID` naming no part bound to the part its XPat
 reader and the bind, which writes the part's ID back as Word's save does; `XmlMapping.isMapped` as Office JS reports it; a bound
 date's `am/pm` and the document's default language; held to Word 365's saves and checks 73 and 73b). So is CR-021 (a `w:br` outside a
 `w:r` read as Word reads it, docx4j CR-073's three rules as a DOM pass ahead of the package's hook, `br.outside_run` on the part; held
-to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-024 (a package holding two entries of one name, or more than one officeDocument relationship, refused, WD REQ-206; `duplicateEntries: 'first'` as Word reads each, phase 2 in its section 9). So is CR-027 (`w:numId 0` clearing every inherited left, hanging and first-line indent, docx4j `9e3100351`). So is CR-025 (what a read drops reported as `part.skipped`, a part read and not changed copied, a save that would lose such content refused unless `pkg.checkLossOnSave` is off), and CR-002 section 66 (a `w14:paraId` on every paragraph and row the API adds). So is CR-012
+to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read and saved as Word saves them). So is CR-024 (a package holding two entries of one name, or more than one officeDocument relationship, refused, WD REQ-206; `duplicateEntries: 'first'` as Word reads each, phase 2 in its section 9). CR-029 (an `mc:AlternateContent` that selects nothing, WD REQ-305 and REQ-306: `Requires` by URI over the 114 Word 365 understands, `mce.nothing_selected`, `mcePreprocess: true` removing such an element) is implemented, unreleased, on objects 0.8.0. So is CR-026 (an element the model has no place for no longer failing its part, WD REQ-308 to REQ-316, docx4j CR-076; held to Word 365's check 76, eleven rounds). So is CR-027 (`w:numId 0` clearing every inherited left, hanging and first-line indent, docx4j `9e3100351`). So is CR-025 (what a read drops reported as `part.skipped`, a part read and not changed copied, a save that would lose such content refused unless `pkg.checkLossOnSave` is off), and CR-002 section 66 (a `w14:paraId` on every paragraph and row the API adds). So is CR-012
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
 `<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75, its `comments` the one setting since WD 0.91, section 29, `include: comments` a deprecated spelling; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept), and section 23.7 (REQ-702's date form, docx4j's `RevisionDates`: a revision's or comment's date as the author's local time with the offset `dateUtc` gives, its stored `Z` never written),
@@ -123,7 +123,8 @@ for behaviour. Layout and `exports` subpaths:
 ```
 src/xml/dom.mts   parse/serialize over Jsonix.DOM (typed since @docx4j/jsonix 3.2.1), text and base64 helpers
 src/opc/          PartName, ContentTypes, ContentTypeManager, PartStore/PartSink + Memory/Zip/FlatOpc, Load, Save, mce/, exceptions, skipped.mts (`part.skipped`, CR-025);
-                  repair/breaks.mts: a w:br outside a w:r put in a run before unmarshalling, as Word reads it (CR-021)
+                  repair/breaks.mts: a w:br outside a w:r put in a run before unmarshalling, as Word reads it (CR-021);
+                  repair/unknownElements.mts: an unknown w: element in a content host read through, ahead of that pass, by the schema's names in wmlNames.generated.mts (CR-026)
 src/parts/        Part, BinaryPart (+ImagePart, ...), XmlPart<T>, DefaultXmlPart (+CustomXmlDataStoragePart), RelationshipsPart,
                   Parts, Namespaces, PartRegistry; wml/ dml/ pml/ sml/ docProps/ customXml/ typed parts
 src/packages/     OpcPackage, WordprocessingMLPackage (createPackage, default styles and theme, body, outline, paragraphAt, getPropertyResolver/getNumberingEmulator/refresh), PresentationMLPackage, SpreadsheetMLPackage, registry
@@ -211,9 +212,15 @@ Key mechanics:
   are the same walk on request, changing nothing (an untouched part read privately). On load each one is the same warning
   on the part (`line` and `column` in place of `path`; a string in a run, which the runtime drops, has `text`, and is the only
   notice of it). The builders (`p`, `r`, `tbl`, ...) refuse first. The facade's walk keys on the container's `TYPE_NAME`:
-  `createPackage`'s document, body and `sectPr` carry theirs; a container built by hand without one escapes the walk (a
-  known objects gap, asserted in `misplaced-content.test.mjs`). The gate: 806 corpus files save under the check unrefused.
+  `createPackage`'s document, body and `sectPr` carry theirs; since objects 0.8.0 a container built by hand without one is
+  walked too. The gate: 806 corpus files save under the check unrefused.
 - **What a read drops is reported, and a save doesn't lose it unasked** (CR-025, the repair policy's P7). `XmlPart.unmarshal` passes the runtime's three `onUnexpected*` callbacks, and each item is a `ContentSkippedWarning` (`part.skipped`, `src/opc/skipped.mts`) on the part and on `pkg.warnings`: `kind`, `name`, `parentName`, `parentClass`, `path`, `ignorable`, `line`, `column`. The callbacks stay at that one call, since a drop is sometimes the mechanism (`recordPPrChange`'s deep copy), and CR-021's pass reports what it removes with all it holds. A string CR-016 reports as misplaced isn't reported twice. On save, before anything is written, `Saver.settleLosses` walks the parts the save reaches: one holding skipped content that `isUnchangedSinceRead` finds unchanged (its source read again and the two marshalled alike) is copied byte for byte, with no normalising or checks, and one that changed throws `SaveLossException` (`save.content_lost`, `losses` naming every part), unless `pkg.checkLossOnSave` is false, when it's written without those items and each goes on `lastSave.lost`. `setContents` clears the part's warnings, so it's never refused, and is how a caller mends a file. `clone()` goes through a save, so it's refused too. A single-valued child given twice keeps the last with no callback, so neither the report nor the gate sees it (section 2.6).
+- **An element the model has no place for doesn't fail its part** (CR-026, docx4j CR-076, WD REQ-308 to REQ-316, check 76). Where it used to fail
+  the part, in 20 of the 32 hosts tried, the runtime skips it and reports it, `part.skipped` through `onUnexpectedElement` (route B, jsonix-CR-015). An unknown `w:`
+  element in one of the twenty hosts measured is read through first, as Word reads it: `readThroughUnknownElements`, a DOM pass in `XmlPart.preprocess` ahead of
+  CR-021's, takes its tags and keeps what it holds, a run in one in a `w:pPr` going to the head of the paragraph and a `w:p` in one, last in a `w:p` with a run before it,
+  ending that paragraph. `insertOoxml` refuses a fragment holding such an element, on both routes (D12). 78 of check 76's 79 saved sources read with Word's text;
+  `76t71`, in a `w:hyperlink`, is the known difference.
 - **A `w:br` outside a `w:r` is read as Word 365 reads it** (CR-021, docx4j CR-073's rules from its `mc-preprocessor.xslt`).
   `repairBreaksOutsideRuns` runs in `XmlPart.preprocess` on every parse, ahead of the package's hook (and before it on
   `insertOoxml`'s fragment route): a break in a run container gets a run of its own, with the mark's run properties while no
@@ -248,16 +255,17 @@ Key mechanics:
   parts are indexed by the `ds:itemID` of their properties part (read from the DOM, so that
   part stays untouched).
 - **`mc:AlternateContent` is kept on load** with every branch, as docx4j keeps it, since CR-010
-  phase 4 (`mcePreprocess` defaults to false). Readers take `selectedBranchOf`'s branch (`mcBranchOf`
-  over `READ_UNDERSTOOD_PREFIXES`: the first `mc:Choice` whose `Requires` prefixes are all in
-  `UNDERSTOOD_NAMESPACES` or in `READ_ONLY_UNDERSTOOD_NAMESPACES`, the four Word 365 understands that
-  no module binds, CR-010 section 15; else `mc:Fallback`), mutators every branch, a run's element is one object
-  segment, and a save writes every branch. The default pass (`mceKeep`) changes nothing and reports
-  `mce.branches_differ` on `XmlPart.warnings` where the branches' text differs (`OpcPackage.warnings`
-  gathers them). `mcePreprocess: true` resolves on the DOM before unmarshalling instead, as Word does
-  on open, by the same set (`READ_UNDERSTOOD_NAMESPACES`, CR-013 D3: what Word writes in the four is
-  attributes, which survive a re-marshal), but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the SpreadsheetML workbook) and
-  where nothing can be selected (CR-010 phase 1). Since objects 0.4.0 a kept branch's `w:drawing` and
+  phase 4 (`mcePreprocess` defaults to false). Readers take `selectedBranchOf`'s branch (the objects package's
+  `mcBranchOf`: the first `mc:Choice` whose `Requires` prefixes all resolve, by URI, to `UNDERSTOOD_NAMESPACES`, the 114
+  Word 365 was measured to understand, WD REQ-306; else `mc:Fallback`; else nothing, REQ-305, CR-029), mutators every
+  branch, a run's element is one object segment, and a save writes every branch. The default pass (`mceKeep`) changes nothing and reports
+  `mce.branches_differ` on `XmlPart.warnings` where the branches' text differs, and `mce.nothing_selected`
+  where an element in a word-processing part selects nothing (`OpcPackage.warnings` gathers them; the text model
+  raises its own at the element's address, and carries a record with no address for what its walk can't meet, an
+  element a resolving load took out or one at a root). `mcePreprocess: true` resolves on the DOM before unmarshalling
+  instead, as Word does on open, by the same set: it removes an element that selects nothing, a `w:tc` left with no block
+  getting an empty `w:p`, which Word opens silently where it repairs a cell with none, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the
+  SpreadsheetML workbook), at a part's root (CR-028's), and in a part that isn't word-processing (CR-029 D3). Since objects 0.4.0 a kept branch's `w:drawing` and
   `w:pict` are typed (objects CR-009, CR-010 phase 2); the `xdr:` and `p:` drawing content, a
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
   when resolved. A code path that walks the tree itself has to choose: `selectedBranchOf` to read,
@@ -269,7 +277,7 @@ Key mechanics:
   listing pairs each other branch's changes with the selected branch's as twins, resolved with them (`Listing`,
   `pairTwins`; resolve-all lists every branch's on their own, CR-013 phase 3). Kept, a Word text box's VML Fallback is unmarshalled, so jsonix decodes its
   `o:gfxdata`, which needs `@docx4j/jsonix` 3.4.2 under strict mode; objects 0.4.1's range brings
-  it (CR-010 section 14.4). The floor is objects 0.7.0, over `@docx4j/jsonix` 3.11.0, whose marshal declares the
+  it (CR-010 section 14.4). The floor is objects 0.8.0, over `@docx4j/jsonix` 3.12.0, whose marshal declares the
   prefixes a kept `mc:Choice`'s `Requires` names (0.4.2, CR-010 section 14.8), from the source where
   only the source bound them (its CR-011, section 14.9), on the `mc:Choice` itself, as Word does (0.5.0, its CR-012);
   which reads and writes run properties as Word 365 does (0.5.0, its CR-013; CR-015); and which reads a highlight in
@@ -278,13 +286,16 @@ Key mechanics:
   (its CR-016, `onOutOfRange`, each report naming its table entry since 0.7.0; CR-017 P2 and P3); and which reports a child its
   container never admits on read and on save (0.7.0, its CR-017, `onMisplaced`; CR-016 here), types a kept branch's `w:sdt` at its
   host's level (0.7.0, its CR-018), and keeps `w:legacy` out of its integer table (0.7.0, its CR-016 addendum: 49 entries).
-  `UNDERSTOOD_NAMESPACES` is a hand-kept copy of the generated modules' namespaces,
-  plus the slicer namespaces nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2`
-  (this package's CR-009, section 8). Taking a Choice (`mcePreprocess: true`) **converts DOM into
-  typed content**, so it can expose a binding gap the unresolved form hid: content the model binds
-  only partly loses the unbound part on a re-marshal, where leaving the Choice alone would have kept
-  all of it (measured, CR-004 section 7). The test when adding a namespace is therefore whether
-  everything in the Choice round-trips, not whether the model can read it.
+  Since 0.8.0 it selects a branch by namespace over Word's set (its CR-021; CR-029 here), keeps `w:stylePaneFormatFilter`'s attributes on a save (its CR-019),
+  refuses on a marshal a character XML 1.0 excludes (its CR-020), and walks a container built by hand without its `TYPE_NAME`; and `@docx4j/jsonix` 3.12.0 skips
+  and reports an unknown element where it used to fail the part (its CR-015; CR-026 here).
+  WD REQ-306's two sets are on `./opc`: `UNDERSTOOD_NAMESPACES` is the objects package's, docx4j's published 114, and decides
+  every markup compatibility question; `TRAVERSAL_NAMESPACES`, docx4j's 118, is what a reader here can traverse and decides
+  nothing about selection. Its first 107 are a hand-kept copy of the generated modules' namespaces, plus the slicer namespaces
+  nothing binds (CR-004 section 6) and the chartex `cx1` and `cx2` (this package's CR-009, section 8). Taking a Choice
+  (`mcePreprocess: true`) **converts DOM into typed content**, so it can expose a binding gap the unresolved form hid: content
+  the model binds only partly loses the unbound part on a re-marshal, where leaving the Choice alone would have kept
+  all of it (measured, CR-004 section 7). The set follows what Word understands, so such a gap goes to the objects package (CR-029 D6).
 - **Namespace prefixes** are the facade's job (objects CR-001: `NAMESPACE_PREFIXES` default,
   `mc:Ignorable` declarations kept, a kept `mc:Choice`'s `Requires` prefixes declared since 0.4.2,
   and since 0.4.3 a prefix only the source bound declared from the source,
@@ -368,7 +379,8 @@ suite copied unedited by `scripts/copy-text-extraction-suite.mjs` at the commit 
 the 17.3.5 release since section 24; the engine since phase 2 is `test/text-extraction/adapter.mjs`, and a claimed row that fails,
 or a count that moves, fails the test; `phase0/` and docx4j CR-069's `dpp/`, whose Word text saves `verifyWordSave` reads by encoding),
 `content-skipped.test.mjs` CR-025's: each host and attribute's `part.skipped` held to the source, a part read and not changed copied, over every fixture with skipped content injected, the gate, `checkLossOnSave`, `clone()`, CR-021's pass and the real file,
-`unknown-elements.test.mjs` CR-026's: every check 76 source Word saved held to Word's text, section 3.7's pass by shape (D7 to D11), the hosts by parent, a fragment refused (D12), and the files waiting on the runtime pinned as they stand,
+`unknown-elements.test.mjs` CR-026's: every check 76 source Word saved held to Word's text, section 3.7's pass by shape (D7 to D11), the hosts by parent, a fragment refused (D12), and `76t71`, which Word reads differently, pinned as a known difference,
+`nothing-selected.test.mjs` CR-029's: Word's rounds (`test/nothing-selected/`, copied unedited with a SHA-1 manifest, outside `fixtures/`): the 142 files read as Word's text by both load routes and `mce.nothing_selected` exactly where Word shows neither branch, `rw-24` at a root, the `tc-empty` round, each level's warning and its `detail`, the pass's removal and where it keeps the element, the default load keeping it, and `wpi`'s resolved round trip,
 `para-ids.test.mjs` CR-002 section 66's: every route that adds a paragraph or a row, on Word's own save, leaving each with a `w14:paraId`, as Word needs to keep a file's ids (check 79),
 `numid-zero-indent.test.mjs` CR-027's: docx4j's `NumIdZeroIndentTest` mirrored, `w:numId 0` through `getEffectivePPr` and `Paragraph`, no golden having the shape,
 `text-options-comments.test.mjs` CR-012 section 29's: one setting for comments (WD 0.91, python's CR-035), held as options and as text, the old `include: comments` spelling and the refusal of a call contradicting itself,
@@ -450,7 +462,7 @@ Word's repairs), and each file's fate here (a `target.misplaced` warning at the 
 the bare breaks 72e and 72j, since CR-021, `br.outside_run`, nothing misplaced, and the save Word's save's structure), and Word 365's run (its saves and screenshots in `test/check72/`, with a SHA-1 manifest): 11 files don't open (no repair offered), 7 are repaired silently, the child moved to the nearest place it fits, a string in a run dropped (section 7.1),
 `misplaced-content.test.mjs` CR-016 phase 2's: section 2's five direct edits refused at save with the part, the path and docx4j's fix, nothing written; the opt-out writing as held
 onto `pkg.lastSave.misplaced`; `checkContent()` on check 72's files leaving the part untouched and the untouched save unrefused; D7's warning fields per file; the gate over every
-fixture and `mc-fun` file; the facade's `TYPE_NAME` gap asserted as it stands,
+fixture and `mc-fun` file; the facade's walk reaching a container built without its `TYPE_NAME`, since objects 0.8.0,
 `integer-attributes.test.mjs` CR-017's and CR-002 section 65.3's: docx4j CR-065's and CR-066's probes and Word 365's saves (`test/integer-attributes/`, copied
 unedited from the share with a SHA-1 manifest, outside `fixtures/`): rounds 5 and 6's 660 integer cases, a `value.out_of_range` warning on load and on
 `pkg.lastSave` exactly where Word's save changed the value, its rule or its attribute (432, the objects package's own count), `wordReads` what Word wrote,

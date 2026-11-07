@@ -1,6 +1,6 @@
 # CR-029: An `mc:AlternateContent` that selects nothing, read as Word reads it (WD REQ-305 and REQ-306)
 
-**Status:** Proposed 2026-11-07, at Jason's "draft CR-029", on his rulings in the WD: "REQ-305 itself changes for all three engines", "selecting nothing should raise a warning" and "two sets". Measured here the same day (section 2), Word's `te-*` saves read here. Nothing built. D1 to D8 are for Jason. docx4j built its side at `06628f550` and `af26a5f78`, and docx4j-python as its CR-040, complete. The objects package's CR-021 (`a7c4ac8`, pushed, unreleased) does the selecting, and phase 1 here can't land ahead of its release.
+**Status:** Proposed 2026-11-07, at Jason's "draft CR-029", on his rulings in the WD: "REQ-305 itself changes for all three engines", "selecting nothing should raise a warning" and "two sets". Measured here the same day (section 2), Word's `te-*` saves read here. D1 to D8 decided the same day, all as recommended (Jason: "CR-029's decisions: D1 to D8 as recommended. Please implement"). Implemented 2026-11-07 against the objects release candidate (section 11), and committed with the raise to objects 0.8.0 on 2026-11-08 (Jason: "raise"), unreleased. docx4j built its side at `06628f550` and `af26a5f78`, and docx4j-python as its CR-040, complete. The objects package's CR-021 (`a7c4ac8`, released in 0.8.0) does the selecting.
 
 ## 0. Summary
 
@@ -125,7 +125,7 @@ The default load is unchanged: the element stays in the tree with every branch, 
 
 ### 3.4 A cell left with no block (D4)
 
-Where the removal leaves a `w:tc` with no block, the pass writes an empty `w:p`, as python's `_keep_a_paragraph` does. Word repairs such a cell whether or not a removal made it, and python's save of that form opens silently where the source prompts (its section 8.2a, CR-039 section 9.7). A `w:tr` with no cell is left: Word refused the source too. An empty `w:tbl` is left: Word drops it silently.
+Where the removal leaves a `w:tc` with no block, the pass writes an empty `w:p`, as python's `_keep_a_paragraph` does. Word's repair writes a paragraph there too, with `w:spacing` on it (`w:after="0" w:line="240" w:lineRule="auto"`), which this leaves out. Word repairs such a cell whether or not a removal made it, and python's save of that form opens silently where the source prompts (its section 8.2a, CR-039 section 9.7). A `w:tr` with no cell is left: Word refused the source too. An empty `w:tbl` is left: Word drops it silently.
 
 A kept load writes what it read, so it saves the shape Word repairs, as the source is.
 
@@ -137,7 +137,7 @@ A kept load writes what it read, so it saves the shape Word repairs, as the sour
 - **`detail`** the namespaces, one string of URIs separated by spaces, empty if every prefix binds to nothing, as REQ-801 has it. `TextWarning.detail` widens from `number` to `number | string`.
 - **Address** where one exists. One per element, as `mce.branches_differ` is. `TextWarning.key` gains `detail`, so two at one address requiring different namespaces are two.
 
-**On the part.** `preprocessAlternateContent` already stands at the element, so it records `McNothingSelectedWarning` (`code`, `partName`, `line`, `column`, `namespaces`, `message`) on `XmlPart.warnings`, and so on `pkg.warnings`, on a kept load and a resolved one alike, beside `McBranchesDifferWarning`. A nested element in a branch not taken isn't visited, as now.
+**On the part.** `preprocessAlternateContent` already stands at the element, so it records `McNothingSelectedWarning` (`code`, `partName`, `line`, `column`, `namespaces`, `removed`, `root`, `message`) on `XmlPart.warnings`, and so on `pkg.warnings`, on a kept load and a resolved one alike, beside `McBranchesDifferWarning`. A nested element in a branch not taken isn't visited, as now.
 
 **Where the walk can't meet it.** On a resolved load the element has gone, and at a root the walk never starts. The Extractor carries such a part's record into `TextResult.warnings` with no address, as docx4j's sweep does for a container left empty and REQ-801 has for a root. So `rw-24` says what it read, ahead of CR-028.
 
@@ -154,7 +154,7 @@ A kept load writes what it read, so it saves the shape Word repairs, as the sour
 - **`mc:Ignorable`.** REQ-306 has the set decide it too. Here it only fills `part.skipped`'s `ignorable`, which reads the attribute and asks no set.
 - **Spreadsheets and presentations.** Neither the set nor REQ-305's measurements reach them. Selection through `mcePreprocess` uses the one set there, as objects' D5, and no fixture's selection moves.
 
-## 5. Decisions
+## 5. Decisions (taken 2026-11-07, all as recommended)
 
 | # | Question | Recommendation |
 |---|---|---|
@@ -212,3 +212,36 @@ Also: `mce.test.mjs:241` (kept whole) changes in phase 2, `text-extraction.test.
 - docx4j-python's CR-040, sections 3, 7, 8.2, 8.2a and 8.4.
 - The share's `bridge/portfolio/`: `ul-*`, `uc-*`, `c305-*`, `rw-24`, `rw-25`, `te-*`, Word's saves and text read here.
 - CR-010 section 15, CR-013 D3, CR-028 section 5's D4.
+
+## 11. Implemented (2026-11-07)
+
+Jason, 2026-11-07: "CR-029's decisions: D1 to D8 as recommended. Please implement". Built as section 3 proposes, phases 1 and 2 and these records, in the working tree, against objects packed at `b4373c8` and jsonix 3.13.0 through `npm install --no-save`. `package.json` and the lockfile are untouched. It can't be committed ahead of objects 0.8.0, since `main` would fail typecheck, so it lands in the raise's one commit.
+
+- **The sets** (`understood.mts`, D5): `UNDERSTOOD_NAMESPACES` is the objects package's, `TRAVERSAL_NAMESPACES` docx4j's 118, and the other four names are gone.
+- **Selection** (`tree.mts`): `selectedBranchOf` is `mcBranchOf`, and takes its options, so the text model passes `onNothingSelected`.
+- **The pass** (`preprocessor.mts`): `wordProcessing`, from the part's content type, or true for a bare node. It records `McNothingSelectedWarning` and removes such an element, but for a root, a `KEPT_HOSTS` host and another part. `keepACellsParagraph` runs after any removal from a `w:tc`, so `te-03`'s element with no branches gets its paragraph too. `textOfBranch` lost `choices[0]`.
+- **The text model** (`Extractor.mts`): `compareBranches` at its six sites, and `nothingSelectedUnmet` over the parts the reading took, for records marked `removed` or `root`. A part that wasn't read says nothing. `TextWarning.detail` is `number | string`, and `key` holds it.
+- **`breaks.mts` and `unknownElements.mts`** read the understood set. No test moved for it.
+
+**The raise's other pins,** which this work flipped so the suite could run:
+- CR-026's seven files read through (`WAITS_ON_THE_RUNTIME` gone), `76t71` pinned as a known difference, as CR-026 D10 expected.
+- CR-025 section 1's two tests: objects' CR-019 keeps `NumberingImplicitNumId.docx`'s 15 attributes, so no fixture reports any, and all 16 of `w:stylePaneFormatFilter`'s survive a change.
+- CR-016's gap: the facade's walk reaches a container with no `TYPE_NAME`, so the test asserts the refusal.
+
+**Tests.** `test/nothing-selected.test.mjs`, ten tests, over `test/nothing-selected/`: section 7's Word files, 318 of them, 1.5 MB. The suite's rows went from 786 to 795, the nine REQ-303 rows of case 6, which the adapter now claims. `PENDING` lost its five `req303` entries and gained `wpi` on `extraction-probe-inspect`'s `body/41`. Seventeen deliberate breaks of the build were each caught, on a green baseline: the removal off and at a root, every part, a kept host not first, the cell's paragraph off and fooled by a `w:tcPr`, `textOfBranch`'s old rule, the record off, `removed` and `root` false, the macro-enabled type, the walk's warning off, the sweep off, taking everything and ignoring `warnings: false`, the main part left out of the sweep at the early exit, and `key` without `detail`.
+
+**D8's Word check** (`cr029-word-check`, Word 16.0.20326.20232 through the bridge, 55 files twice, 2026-11-07). This package's `mcePreprocess: true` saves of the 24 files that select nothing, those of the 16 new namespaces and the rounds' controls, `rw-24`, `te-00` to `te-05`, and three with a paragraph added through `Body`.
+- **54 open silently, with no dialog,** and the two runs agree on all 55. `te-04` is refused, as Word refuses its source.
+- **Words:** each save's text is Word's reading of its source, and the three edited files hold the new paragraph once.
+- **Markup,** read where Word saved the source too (`rw-*`, `te-*`): `rw-24`, `rw-25` and `te-05` are the same, leaving rsids and the section aside. Four differ, for two reasons:
+  - `te-01` to `te-03`: Word's repair of the source writes `w:spacing` on the cell's paragraph, and Word's save of this package's plain `w:p` has none. The word "repair" was too loose in this CR's first draft: the cell gets a paragraph, not Word's exact paragraph.
+  - `te-00`, the control: Word writes `w:tblLook` as `0000` from the source and `04A0` from this package's save. CR-029 isn't the cause, since the file holds no such element and this build marshals it byte for byte as the build before it does. The two differ in the root's unused declarations and in `_rels/.rels`. What Word reacts to isn't established.
+
+**Left as it stands.**
+- `Body.text` on a kept load of `te-01` is `BEFORE\tRIGHT\r\nAFTER`, the cell holding no paragraph to break before, where a resolved load gives `BEFORE\r\tRIGHT\r\nAFTER`. Word repairs such a file, and its reading of the cell is the resolved one.
+- `te-04`'s row with no cell, as section 4 says. A save of it is refused, as its source is.
+- A `w:sdt` in a cell whose content a removal empties gets no paragraph, and nothing measures it.
+
+**The raise (2026-11-08, Jason: "raise").** Objects 0.8.0 is out (tag `0.8.0`, `d62959e`, which is `9a2a945` and its version line), with `@docx4j/jsonix` locked at 3.13.0. The published tarball differs from the pack tested before its release only in that line. Typecheck passes, and 1,917 of 1,917 on Node 18.20.8, 20.20.2 and 22.23.4, the first run of this CR on 18 and 20. All 1,224 files read for the comparison save the same on the published tarball as on that pack. `CLAUDE.md`'s floor sentence and CR-026 phase 3's records go with this commit. The editor was told first, and has nothing to hold: its callers handle `undefined`, and `alternate-content.test.mts:134` to `:136` move when it installs 0.7.0.
+
+The cell paragraph stays the plain `w:p` D4 decided. Word's repair writes `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on it (`te-01` to `te-03`, sources with no styles part, against the after 160, line 278 Word gives them), and whether to copy that is with Jason.

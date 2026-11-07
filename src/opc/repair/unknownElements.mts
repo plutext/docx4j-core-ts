@@ -4,7 +4,7 @@
 // in one, last in a w:p with a run before it, ends that paragraph. Everything else is left for the runtime to skip and report.
 import { childElements } from '../../xml/dom.mjs';
 import { skippedElement, skippedText, type ContentSkippedWarning } from '../skipped.mjs';
-import { READ_UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
+import { UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
 import { WML_ELEMENT_NAMES } from './wmlNames.generated.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -183,7 +183,7 @@ export function unknownElementsIn(doc: Document): Element[] {
   const out: Element[] = [];
   const visit = (e: Element): void => {
     for (const c of childElements(e)) {
-      const foreign = e.namespaceURI === W && c.namespaceURI !== null && c.namespaceURI !== W && c.namespaceURI !== MC && !READ_UNDERSTOOD_NAMESPACES.has(c.namespaceURI);
+      const foreign = e.namespaceURI === W && c.namespaceURI !== null && c.namespaceURI !== W && c.namespaceURI !== MC && !UNDERSTOOD_NAMESPACES.has(c.namespaceURI);
       if (isUnknown(c) || foreign) out.push(c);
       else visit(c);
     }
