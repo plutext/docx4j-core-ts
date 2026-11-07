@@ -2,7 +2,9 @@
 // read from the first entry of each name under LoadOptions.duplicateEntries: 'first', as Word 365 reads it after its
 // repair (check 75, three rounds; Word's saves in test/check75/ with a SHA-1 manifest). docx4j-python's CR-032 has the
 // same cases. Each zip is built here by storedZip, since fflate's writers refuse a repeated name; the first copy holds
-// FIRST and the second SECOND.
+// FIRST and the second SECOND. Section 9's are at the end: more than one officeDocument relationship, REQ-206's statement of
+// WD 0.100, refused, and read from the last relationship's target under the same switch (docx4j's package-wiring probes
+// and Word 365's first-open saves of them in test/package-wiring/, with a SHA-1 manifest; python's CR-032 section 11).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -13,8 +15,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync, strToU8, strFromU8 } from 'fflate';
 import {
-  WordprocessingMLPackage, OpcPackage, MemoryPartStore, ZipPartStore, DuplicateEntryException, InvalidFormatException,
-  Docx4JException, Texts, PlainText, TextOptions, TextOptionError, TEXT_OPTION_NAMES,
+  WordprocessingMLPackage, SpreadsheetMLPackage, OpcPackage, MemoryPartStore, ZipPartStore, DuplicateEntryException, MultipleMainPartsException,
+  InvalidFormatException, Docx4JException, Texts, PlainText, TextOptions, TextOptionError, TEXT_OPTION_NAMES,
 } from '../dist/index.mjs';
 import { DirectoryPartStore } from '../dist/node/index.mjs';
 import { storedZip } from './helpers.mjs';
@@ -31,7 +33,7 @@ const types = (overrides = '') => `${XML}<Types xmlns="http://schemas.openxmlfor
   + '<Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/>'
   + `<Override PartName="/word/document.xml" ContentType="${MAIN}"/>${overrides}</Types>`;
 const rels = (...relationships) => `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
-  + relationships.map(([id, type, target]) => `<Relationship Id="${id}" Type="${R}/${type}" Target="${target}"/>`).join('') + '</Relationships>';
+  + relationships.map(([id, type, target, mode]) => `<Relationship Id="${id}" Type="${type.includes('://') ? type : `${R}/${type}`}" Target="${target}"${mode ? ` TargetMode="${mode}"` : ''}/>`).join('') + '</Relationships>';
 const packageRels = (target = 'word/document.xml') => rels(['rId1', 'officeDocument', target]);
 const documentXml = (text, sectPr = '') => `${XML}<w:document xmlns:w="${W}" xmlns:r="${R}"><w:body><w:p><w:r><w:t>${text}</w:t></w:r></w:p>${sectPr}</w:body></w:document>`;
 const zip = (...entries) => storedZip(entries.map(([name, value]) => [name, typeof value === 'string' ? strToU8(value) : value]));
@@ -216,5 +218,182 @@ test("CR-024: Word check 75's files and Word 365's saves (test/check75, SHA-1 ma
   for (const name of ['75b-nonascii-single', '75c-nonascii-pair', '75f-encoded-single', '75g-encoded-pair', '75k-fflate-encoded-single']) {
     const saved = unzipSync(readFileSync(join(dir, `${name}-word365.docx`)));
     assert.ok(!Object.keys(saved).some((n) => /header/i.test(n)), name);
+  }
+});
+
+// --- section 9: more than one officeDocument relationship -----------------------------------------------------------
+
+const STRICT = 'http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument';
+const PRESENTATION = 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml';
+const override = (name, type = MAIN) => `<Override PartName="/${name}" ContentType="${type}"/>`;
+const stem = (name) => name.split('/').pop().split('.')[0].toUpperCase();
+const officeDocuments = (targets) => targets.map((target, i) => [`rId${i + 1}`, 'officeDocument', target]);
+/** A package with an officeDocument relationship to each of `targets`, in that order, each part holding its own name's stem as its words. */
+const mains = (targets, { relationships = officeDocuments(targets), overrides = '', rest = [] } = {}) => zip(
+  ['[Content_Types].xml', types(targets.filter((t) => t !== 'word/document.xml').map((t) => override(t)).join('') + overrides)],
+  ['_rels/.rels', rels(...relationships)],
+  ...[...new Set(targets)].map((t) => [t, documentXml(stem(t))]),
+  ...rest,
+);
+const TWO = ['word/document.xml', 'word/other.xml'];
+const refusedNaming = (targets) => (e) => {
+  assert.ok(e instanceof MultipleMainPartsException && e instanceof InvalidFormatException);
+  assert.equal(e.code, 'package.multiple_main_parts');
+  assert.deepEqual(e.targets, targets);
+  return true;
+};
+
+test('CR-024 section 9: two officeDocument relationships are refused, naming the targets, in their order', async () => {
+  await assert.rejects(WordprocessingMLPackage.load(mains(TWO)), (e) => {
+    refusedNaming(['/word/document.xml', '/word/other.xml'])(e);
+    assert.equal(e.message, "2 officeDocument relationships in this package: /word/document.xml, /word/other.xml (REQ-206). Load with { duplicateEntries: 'first' } to read the last");
+    return true;
+  });
+  await assert.rejects(WordprocessingMLPackage.load(mains([...TWO].reverse()), { duplicateEntries: 'refuse' }), refusedNaming(['/word/other.xml', '/word/document.xml']));
+  // what the statement counts: a transitional and a strict one are two, and so are two naming one target
+  const relationships = [['rId1', 'officeDocument', TWO[0]], ['rId2', STRICT, TWO[1]]];
+  await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships })), refusedNaming(['/word/document.xml', '/word/other.xml']));
+  const same = mains(['word/document.xml', 'word/document.xml']);
+  await assert.rejects(WordprocessingMLPackage.load(same), refusedNaming(['/word/document.xml', '/word/document.xml']));
+  // an external target is named as written, and not made a part name
+  const external = [['rId1', 'officeDocument', 'http://example.com/a?b=1', 'External'], ['rId2', 'officeDocument', TWO[0]]];
+  await assert.rejects(WordprocessingMLPackage.load(mains([TWO[0]], { relationships: external })), refusedNaming(['http://example.com/a?b=1', '/word/document.xml']));
+  // every package type, the rule being the load's (measured on Word alone)
+  const sheet = unzipSync(await (await SpreadsheetMLPackage.createPackage()).save());
+  const workbook = strFromU8(sheet['_rels/.rels']).match(/Target="([^"]+)"[^>]*officeDocument|officeDocument"[^>]*Target="([^"]+)"/).slice(1).find(Boolean);
+  const twice = strFromU8(sheet['_rels/.rels']).replace('</Relationships>', `<Relationship Id="rIdTwice" Type="${R}/officeDocument" Target="${workbook}"/></Relationships>`);
+  await assert.rejects(OpcPackage.load(storedZip(Object.entries({ ...sheet, '_rels/.rels': strToU8(twice) }))), MultipleMainPartsException);
+});
+
+test("CR-024 section 9: under duplicateEntries: 'first' the last relationship's target is read, whatever the entries or the Overrides", async () => {
+  assert.equal(await text(await WordprocessingMLPackage.load(mains(TWO), first)), 'OTHER');
+  assert.equal(await text(await WordprocessingMLPackage.load(mains([...TWO].reverse()), first)), 'DOCUMENT');
+  // the relationships' order decides, not the entries'
+  const reordered = zip(['[Content_Types].xml', types(override('word/other.xml'))], ['_rels/.rels', rels(...officeDocuments(TWO))],
+    ['word/other.xml', documentXml('OTHER')], ['word/document.xml', documentXml('DOCUMENT')]);
+  assert.equal(await text(await WordprocessingMLPackage.load(reordered, first)), 'OTHER');
+  // three: the order decides and they're counted, the part named as the record has it
+  const three = await WordprocessingMLPackage.load(mains(['word/document.xml', 'word/zeta.xml', 'word/beta.xml']), first);
+  assert.equal(await text(three), 'BETA');
+  assert.deepEqual(three.warnings, [{
+    code: 'package.multiple_main_parts', partName: '/word/beta.xml', count: 3,
+    message: "3 officeDocument relationships in this package (REQ-206); the last's target read, /word/beta.xml",
+  }]);
+  assert.equal(three.multipleMainParts, three.warnings[0]);
+  // a strict one counts under the switch too
+  const strict = await WordprocessingMLPackage.load(mains(TWO, { relationships: [['rId1', STRICT, TWO[0]], ['rId2', 'officeDocument', TWO[1]]] }), first);
+  assert.equal(await text(strict), 'OTHER');
+  assert.equal(strict.multipleMainParts.count, 2);
+  // an external one goes like any other
+  const external = [['rId1', 'officeDocument', 'http://example.com/a?b=1', 'External'], ['rId2', 'officeDocument', TWO[0]]];
+  const kept = await WordprocessingMLPackage.load(mains([TWO[0]], { relationships: external }), first);
+  assert.equal(await text(kept), 'DOCUMENT');
+  assert.equal(kept.multipleMainParts.partName, '/word/document.xml');
+});
+
+test('CR-024 section 9: every route to the main part agrees, the part read chooses the package\'s class, and the other part is not loaded', async () => {
+  const pkg = await OpcPackage.load(mains(TWO), first);
+  assert.equal(pkg.getMainDocumentPart().partName.name, '/word/other.xml');
+  assert.equal(pkg.getMainPart(), pkg.getMainDocumentPart());
+  assert.equal(pkg.getPart('/word/document.xml'), undefined);
+  assert.equal(pkg.relationshipsPart.getRelationshipsByType(`${R}/officeDocument`).length, 1);
+  // the class comes from the part read: the first relationship's part is a presentation's
+  const mixed = zip(['[Content_Types].xml', types(override('ppt/presentation.xml', PRESENTATION))],
+    ['_rels/.rels', rels(['rId1', 'officeDocument', 'ppt/presentation.xml'], ['rId2', 'officeDocument', 'word/document.xml'])],
+    ['ppt/presentation.xml', `${XML}<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>`],
+    ['word/document.xml', documentXml('WORDS')]);
+  const read = await OpcPackage.load(mixed, first);
+  assert.ok(read instanceof WordprocessingMLPackage);
+  assert.equal(await text(read), 'WORDS');
+});
+
+test('CR-024 section 9: a save holds one main part, and what only the other reached goes with it; the save reloads with nothing said', async () => {
+  const otherRels = rels(['rId1', 'header', 'header9.xml']);
+  const header = `${XML}<w:hdr xmlns:w="${W}"><w:p><w:r><w:t>HEADER</w:t></w:r></w:p></w:hdr>`;
+  const bytes = mains([...TWO].reverse(), { rest: [['word/_rels/other.xml.rels', otherRels], ['word/header9.xml', header]] });
+  const pkg = await WordprocessingMLPackage.load(bytes, first);
+  const saved = await pkg.save();
+  const entries = unzipSync(saved);
+  assert.deepEqual(Object.keys(entries).sort(), ['[Content_Types].xml', '_rels/.rels', 'word/document.xml']);
+  assert.equal(strFromU8(entries['_rels/.rels']).match(/officeDocument"/g).length, 1);
+  assert.ok(!strFromU8(entries['[Content_Types].xml']).includes('/word/other.xml'));
+  const again = await WordprocessingMLPackage.load(saved);
+  assert.deepEqual(again.warnings, []);
+  assert.equal(await text(again), 'DOCUMENT');
+  // clone() goes through a save, so the copy holds the one main part and has nothing to say
+  const copy = await pkg.clone();
+  assert.equal(await text(copy), 'DOCUMENT');
+  assert.equal(copy.multipleMainParts, undefined);
+  // two relationships to one target: the part stays, and keeps its type
+  const same = await WordprocessingMLPackage.load(mains(['word/document.xml', 'word/document.xml']), first);
+  assert.equal(same.multipleMainParts.count, 2);
+  assert.match(strFromU8(unzipSync(await same.save())['[Content_Types].xml']), /\/word\/document\.xml/);
+  // a dropped target the kept part still reaches by a relationship of its own: it stays, and keeps its type
+  const reached = mains(TWO, { rest: [['word/_rels/other.xml.rels', rels(['rId1', 'subDocument', 'document.xml'])]] });
+  const held = await WordprocessingMLPackage.load(reached, first);
+  assert.equal(held.getPart('/word/document.xml').contentType, MAIN);
+  assert.match(strFromU8(unzipSync(await held.save())['[Content_Types].xml']), /\/word\/document\.xml/);
+});
+
+test('CR-024 section 9: the text model raises package.multiple_main_parts once, and a duplicate entry comes first; one relationship says nothing', async () => {
+  const r = await Texts.of(await WordprocessingMLPackage.load(mains(TWO), first));
+  assert.deepEqual(r.warnings.map((w) => w.toJSON()), [{ kind: 'package.multiple_main_parts', address: undefined, selector: '/word/other.xml', detail: 2 }]);
+  // both at once: the entries are refused first, nothing having been read, and under the switch each is said, the entries first
+  const both = mains(TWO, { rest: [['word/other.xml', documentXml('SECOND')]] });
+  await assert.rejects(WordprocessingMLPackage.load(both), DuplicateEntryException);
+  const pkg = await WordprocessingMLPackage.load(both, first);
+  assert.deepEqual(pkg.warnings.map((w) => w.code), ['package.duplicate_entry', 'package.multiple_main_parts']);
+  assert.deepEqual((await Texts.of(pkg)).warnings.map((w) => w.kind), ['package.duplicate_entry', 'package.multiple_main_parts']);
+  assert.equal(await text(pkg), 'OTHER');
+  // no case: one relationship, and another relationship type beside it, which the statement doesn't count
+  const one = await WordprocessingMLPackage.load(mains([TWO[0]]));
+  assert.deepEqual(one.warnings, []);
+  assert.equal(one.multipleMainParts, undefined);
+  const graphicFrame = [['rId1', 'officeDocument', TWO[0]], ['rId2', 'http://schemas.microsoft.com/office/2006/relationships/graphicFrameDoc', 'word/other.xml']];
+  const beside = zip(['[Content_Types].xml', types(override('word/other.xml', 'application/xml'))], ['_rels/.rels', rels(...graphicFrame)],
+    ['word/document.xml', documentXml('DOCUMENT')], ['word/other.xml', '<other/>']);
+  assert.equal(await text(await WordprocessingMLPackage.load(beside)), 'DOCUMENT');
+});
+
+test('CR-024 section 9: flat OPC is refused and read as a zip is, and a fragment to insertOoxml is refused', async () => {
+  const part = (name, ct, xml) => `<pkg:part pkg:name="${name}" pkg:contentType="${ct}"><pkg:xmlData>${xml.replace(XML, '')}</pkg:xmlData></pkg:part>`;
+  const flat = '<?xml version="1.0" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">'
+    + part('/_rels/.rels', 'application/vnd.openxmlformats-package.relationships+xml', rels(...officeDocuments(TWO)))
+    + part('/word/document.xml', MAIN, documentXml('DOCUMENT')) + part('/word/other.xml', MAIN, documentXml('OTHER')) + '</pkg:package>';
+  await assert.rejects(WordprocessingMLPackage.load(flat), refusedNaming(['/word/document.xml', '/word/other.xml']));
+  assert.equal(await text(await WordprocessingMLPackage.load(flat, first)), 'OTHER');
+  const host = await WordprocessingMLPackage.createPackage();
+  await assert.rejects((await host.getBody()).insertOoxml(flat, 'End'), MultipleMainPartsException);
+});
+
+test("CR-024 section 9: docx4j's package-wiring probes read as Word 365's first-open saves (test/package-wiring, SHA-1 manifest)", async () => {
+  const dir = join(here, 'package-wiring');
+  const manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
+  for (const f of manifest.files) assert.equal(createHash('sha1').update(readFileSync(join(dir, f.name))).digest('hex'), f.sha1, f.name);
+  const load = (name, options) => WordprocessingMLPackage.load(readFileSync(join(dir, name)), options);
+  const cases = {
+    'two-main-rels-document-first.docx': ['/word/document.xml', '/word/other.xml', 'MAIN_OTHER_XML'],
+    'two-main-rels-other-first.docx': ['/word/other.xml', '/word/document.xml', 'MAIN_DOCUMENT_XML'],
+    'two-main-rels-zip-other-first.docx': ['/word/document.xml', '/word/other.xml', 'MAIN_OTHER_XML'],
+    'two-main-rels-types-other-first.docx': ['/word/document.xml', '/word/other.xml', 'MAIN_OTHER_XML'],
+    'two-main-rels-names-swapped.docx': ['/word/zeta.xml', '/word/alpha.xml', 'MAIN_ALPHA_XML'],
+  };
+  for (const [name, [firstTarget, lastTarget, words]] of Object.entries(cases)) {
+    await assert.rejects(load(name), refusedNaming([firstTarget, lastTarget]), name);
+    const pkg = await load(name, first);
+    assert.equal(await text(pkg), words, name);
+    assert.equal(await text(await load(manifest.saves[name])), words, `${name}: Word's save`);
+    assert.deepEqual(pkg.warnings.map((w) => [w.code, w.partName, w.count]), [['package.multiple_main_parts', lastTarget, 2]], name);
+    const entries = Object.keys(unzipSync(await pkg.save()));
+    assert.deepEqual(entries.filter((n) => n.startsWith('word/')), [lastTarget.substring(1)], name);
+  }
+  // a part no relationship names is no case, its Override last or not: the related part read, by either option, as Word reads it silently
+  for (const [name, words] of [['one-main-rel-other-override-last.docx', 'MAIN_DOCUMENT_XML'], ['one-main-rel-document-override-last.docx', 'MAIN_OTHER_XML']]) {
+    for (const options of [undefined, first]) {
+      const pkg = await load(name, options);
+      assert.equal(await text(pkg), words, name);
+      assert.deepEqual(pkg.warnings, [], name);
+    }
+    assert.equal(await text(await load(manifest.saves[name])), words, `${name}: Word's save`);
   }
 });

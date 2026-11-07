@@ -5,7 +5,7 @@ ruling "refuse the package, with an optional config option to read the first cop
 details ruled as recommended in 0.77, portfolio `b0d333d`, from this session's suggestions). Measured here the same day
 (section 1). D1 to D7 decided 2026-11-04, all as recommended, subject to Word check 75 on a non-ASCII case pair, which left
 the key as proposed (section 5). Implemented 2026-11-04 (section 8), unreleased (D7: with 0.7.0). docx4j-python's sibling is its CR-032 (proposed at
-`778b3bf`, done at `3a884a5`), whose names this CR follows where the two packages' shapes allow; docx4j has not built it.
+`778b3bf`, done at `3a884a5`), whose names this CR follows where the two packages' shapes allow; docx4j built it as its CR-075 (phase 1 at `27d94d04b`). Phase 2, more than one officeDocument relationship, WD 0.100's REQ-206 statement, implemented 2026-11-07 (Jason: "build CR-024 phase 2"; section 9), unreleased, with 0.7.0 as D7 has it.
 
 ## 0. Summary
 
@@ -119,11 +119,12 @@ default. The text model already reads one that will not load as `content.not_rea
 ### 2.7 Not here
 
 - **Several main parts.** A package whose package relationships hold two officeDocument relationships, where ECMA-376
-  wants one, is a neighbouring case. The WD's NOTE has Word, through a repair, read the target whose `main+xml` Override
-  is last in `[Content_Types].xml`, and recommends a statement (refuse, and under the same switch read that target, with
-  `package.multiple_main_parts`) still open with Jason. Here `getMainDocumentPart()` and the readers take the last
-  relationship's target, and `getMainPart()` and the package-type check take the first: a defect either way (measured
-  2026-11-04, recorded under REQ-206's NOTE). If Jason rules the statement, it fits this CR's option as a phase 2.
+  wants one, is a neighbouring case, left to a phase 2. Here `getMainDocumentPart()` and the readers took the last
+  relationship's target, and `getMainPart()` and the package-type check the first: a defect either way (measured
+  2026-11-04, recorded under REQ-206's NOTE). The NOTE then had Word, through a repair, read the target whose `main+xml`
+  Override is last. **That reading was a coincidence of opening order** (the `open-order` round, WD 0.100): Word's choice
+  alternates with each repaired open in a session, and a fresh Word reads the last relationship's target. Jason ruled the
+  statement on 2026-11-07, and section 9 builds it.
 - **The decoy first, under `'first'`.** With `Word/Document.xml` first and `word/document.xml` second, `'first'` reads
   the decoy's bytes for the part the relationship names, where an exact-name reading takes the real one. The default
   refuses both orders. Word's reading of that order is unmeasured: the identifier's `extraction-probe-dupcase` has the
@@ -140,6 +141,12 @@ default. The text model already reads one that will not load as `content.not_rea
   drop a part. A relationship whose target differs from its entry only in case now finds its part.
 - **Added:** `LoadOptions.duplicateEntries: 'first'`; `DuplicateEntryWarning` (`package.duplicate_entry`) on
   `pkg.warnings` and in `TextResult.warnings`; `TextWarning.detail`; `PartStore.duplicates()`.
+- **Changed (phase 2):** a package with more than one officeDocument relationship is refused with
+  `MultipleMainPartsException` naming the targets. Previously it loaded silently, `getMainDocumentPart()` and `getMainPart()`
+  answering with different parts, and a save kept both.
+- **Added (phase 2):** under `duplicateEntries: 'first'`, such a package reads the last relationship's target and a save
+  writes one main part; `MultipleMainPartsWarning` (`package.multiple_main_parts`) on `pkg.warnings`, as
+  `pkg.multipleMainParts`, and in `TextResult.warnings`.
 
 ## 3. Tests and oracles
 
@@ -216,8 +223,8 @@ repaired.
 
 ## 6. Registry
 
-`core-ts/CR-024`, proposed, no dependency on another repository; docx4j-python's CR-032 is its sibling, and the WD's
-`package.multiple_main_parts`, if ruled, a later phase.
+`core-ts/CR-024`, no dependency on another repository; docx4j-python's CR-032 is its sibling, and docx4j's CR-075. The WD's
+`package.multiple_main_parts`, ruled 2026-11-07, is phase 2 (section 9).
 
 ## 7. Sources
 
@@ -227,6 +234,8 @@ repaired.
 - The docx-tool-identifier's `extraction-probe-dupmain` (81 configurations) and `extraction-probe-dupcase`, through the
   portfolio.
 - Measured here: section 1's seven zips, built by a scratch writer, not committed.
+- Phase 2: the WD's REQ-206 statement and NOTE (0.100, portfolio `9034ad0`); docx4j `54d037c63` (`Load3.oneMainPart`,
+  `PackageWiringTest`) and its `package-wiring` family at `27d94d04b`; docx4j-python `d734634` (its CR-032 section 11).
 
 ## 8. Implemented (2026-11-04)
 
@@ -274,3 +283,79 @@ it, its files unchanged):
 
 `misplaced-content.test.mjs`'s gate leaves out check 75's built files, as it leaves out check 72's. npm run typecheck passes,
 and npm test passes 1,795 of 1,795.
+
+## 9. Phase 2: more than one officeDocument relationship (implemented 2026-11-07)
+
+Jason, 2026-11-07: "build CR-024 phase 2". The statement is REQ-206's, ruled the same day in the docx4j session ("yes") and
+written into WD 0.100 (portfolio `9034ad0`): a package whose package relationships hold more than one officeDocument
+relationship is refused, naming the targets, as a duplicated entry is and for the same reason. Under the same switch an
+implementation reads the last relationship's target, as a fresh Word does, and raises `package.multiple_main_parts` once,
+the selector that part's name and `detail` the number of relationships. An unreferenced part is no case: an orphan, never
+read, dropped on save.
+
+### 9.1 What landed
+
+- **The refusal.** `MultipleMainPartsException`, an `InvalidFormatException`, with `code` and `targets`, python's. `targets`
+  gives each as a part name in the relationships' order, an external target as written, since `PartName.resolve` would make
+  a part name of a URL.
+- **The switch.** `oneMainPart` in `Load.mts` runs once the package relationships are read, before the package's class is
+  chosen. Under `'first'` the other relationships go there, so the class, the walk, `getMainPart()` and
+  `getMainDocumentPart()` all find one main part. Section 2.7's split needed nothing else.
+- **The record.** `MultipleMainPartsWarning` (`code`, `partName`, `count`, `message`, python's fields) on
+  `pkg.multipleMainParts`, and on `pkg.warnings` after any `DuplicateEntryWarning`, `PackageWarning` widened again.
+- **The text model.** `TextWarning.PACKAGE_MULTIPLE_MAIN_PARTS`, after the entries' warnings: no address, the part read the
+  selector, the relationships `detail`.
+- **The save** is unchanged. A relationships part is always marshalled, so it writes the one relationship, and the other
+  part was never loaded, so it isn't written. `clone()` goes through a save, so the copy holds one main part and says nothing.
+
+### 9.2 What the build settled beyond the statement
+
+- **The switch's name reads oddly.** `duplicateEntries: 'first'` reads the **last** relationship. It's the WD's one switch and
+  its value, as in python, so the name stays, and the option's doc and the refusal's message say which.
+- **What counts.** A transitional and a strict relationship are two, and two naming one target are two, as python's and
+  docx4j's count. An external one counts. `graphicFrameDoc` and the diagram layout type, which `MAIN_PART_RELATIONSHIPS` holds,
+  don't, as they aren't officeDocument relationships. That's docx4j's `isMainPart`. Python counts all four types, so the
+  two differ on a package holding an officeDocument relationship beside one of those, and no file measures that.
+- **An Override goes after the walk, and only for a part not loaded.** A dropped target that a second relationship names, or
+  the kept part reaches by a relationship of its own, stays and keeps its type. Python removes the Override before its walk,
+  so it agrees on the first of those and not the second.
+- **Both faults at once.** The entries are refused first, nothing having been read. Under the switch each is recorded, the
+  entries first.
+- **Every package type.** The rule is the load's, so it refuses a pptx or an xlsx too, as docx4j's does. Word alone was measured.
+- **`insertOoxml`.** A flat OPC fragment is refused through its own load, and the message names an option its caller can't
+  pass, as the duplicate entry's already does.
+
+### 9.3 Left as it stands
+
+- **A part only the dropped main part reached.** It isn't loaded or saved, but its Override stays in `[Content_Types].xml`, as
+  an orphan's does here today (python's section 11.2 has the same for an orphan). Word's reading of such a save isn't
+  measured.
+- **A last target the package doesn't hold.** Under the switch the load refuses it, `cannot find part`, as it refuses one
+  relationship naming an absent part, even where an earlier relationship's part is there. An absent earlier target goes with
+  its relationship, and the last is read. No file section 9.4 rests on has either shape, so Word's reading of them isn't measured.
+
+### 9.4 Tests and oracles
+
+`test/duplicate-entries.test.mjs`, seven tests after section 3's, zips built in the test as before:
+- the refusal, its message and order, a strict and a transitional pair, two to one target, an external target, an xlsx;
+- under the switch, the order deciding over entries and Overrides, three relationships, the record;
+- every route agreeing, the class coming from the part read, the other part not loaded;
+- the save, what only the other part reached, the reload saying nothing, `clone()`, and the two cases where an Override stays;
+- the text model once, both faults at once, one relationship saying nothing, `graphicFrameDoc` not counted;
+- flat OPC and `insertOoxml`;
+- docx4j's `package-wiring` probes.
+
+**The oracle** is Word's saves in `test/package-wiring/` (seven probes and Word's save of each, copied unedited from docx4j
+`27d94d04b`, with a SHA-1 manifest). The five `two-main-rels` saves are each a first open in a Word session. Refused here by
+default, each reads under the switch as Word's save does, whatever the zip order, the Overrides or the names. The two
+`one-main-rel` files read the related part with nothing said, by either option. A later repaired open in the same session
+alternates, so those saves are what a fresh Word reads, which is the WD's statement.
+
+**The corpus.** Of 1,880 packages, this repository's `test/` tree and docx4j's test resources, the only ones holding two
+officeDocument relationships are docx4j's five probes, so none of the others that load today is refused.
+
+Nine deliberate breaks of the build were each caught by these tests: the first relationship kept, the Override left, the
+Override always dropped, strict not counted, all four types counted, an external target resolved, the relationships kept, the
+record missing from `pkg.warnings`, and the text model silent.
+
+npm run typecheck passes, and npm test passes 1,906 of 1,906 on Node 22.

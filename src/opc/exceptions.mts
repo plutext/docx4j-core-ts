@@ -52,6 +52,39 @@ export interface DuplicateEntryWarning {
 }
 
 /**
+ * A package whose package relationships hold more than one officeDocument relationship (WD REQ-206's statement, WD 0.100;
+ * CR-024 section 9), refused when it is loaded, as a duplicated entry is and for the same reason: Word reads such a file
+ * only through a repair, and which target it reads then alternates with each repaired open in a Word session. A
+ * transitional and a strict relationship are two, and so are two naming one target. `targets` gives each as a part name
+ * (`/word/document.xml`), in the relationships' order, an external target as written. `LoadOptions.duplicateEntries:
+ * 'first'` reads the last relationship's target instead, as a fresh Word does.
+ */
+export class MultipleMainPartsException extends InvalidFormatException {
+  /** The finding's code, the WD's, shared with docx4j and docx4j-python. */
+  readonly code = 'package.multiple_main_parts';
+
+  constructor(readonly targets: readonly string[]) {
+    super(`${targets.length} officeDocument relationships in this package: ${targets.join(', ')} (REQ-206). `
+      + "Load with { duplicateEntries: 'first' } to read the last");
+    this.name = 'MultipleMainPartsException';
+  }
+}
+
+/**
+ * Under `LoadOptions.duplicateEntries: 'first'`, a package with more than one officeDocument relationship (WD REQ-206's
+ * statement; CR-024 section 9): the last relationship's target is read, as a fresh Word reads it, the other relationships
+ * go at the load, and a save writes the one main part. On `pkg.warnings`, after any `DuplicateEntryWarning` and ahead of
+ * the parts' warnings. The fields are docx4j-python's: `partName`, the part read (`/word/document.xml`), and `count`, the
+ * relationships there were.
+ */
+export interface MultipleMainPartsWarning {
+  code: 'package.multiple_main_parts';
+  partName: string;
+  count: number;
+  message: string;
+}
+
+/**
  * docx4j CyclicStylesException: a style's `w:basedOn` chain comes back to a style it already
  * holds, or goes deeper than docx4j's limit of 32. Thrown only when
  * `throwOnCyclicStyles(true)` is set (docx4j's

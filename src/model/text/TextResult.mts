@@ -586,6 +586,11 @@ export class TextWarning {
    * (REQ-206, CR-024): no address, the entry as its first copy spells it the selector, the number of entries `detail`.
    */
   static readonly PACKAGE_DUPLICATE_ENTRY = 'package.duplicate_entry';
+  /**
+   * A package with more than one officeDocument relationship, the last's target read under `duplicateEntries: 'first'`
+   * (REQ-206's statement, CR-024 section 9): once a package, no address, that part's name the selector, the number of relationships `detail`.
+   */
+  static readonly PACKAGE_MULTIPLE_MAIN_PARTS = 'package.multiple_main_parts';
   /** An image the `ImageDescriber` failed to describe (REQ-514). */
   static readonly IMAGE_NOT_DESCRIBED = 'image.not_described';
   /**
@@ -605,10 +610,10 @@ export class TextWarning {
     /**
      * For `content.not_read`, `part.not_read` and `part.absent`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
      * the chunk's (`/word/afchunk.rtf`), so that a host can read it itself; for `paragraph.drop_cap_joined`, the part the
-     * paragraphs are in (`/word/document.xml`).
+     * paragraphs are in (`/word/document.xml`); for `package.multiple_main_parts`, the part read.
      */
     readonly partName?: string,
-    /** A count the warning carries (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name. */
+    /** A count the warning carries (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name; for `package.multiple_main_parts`, the relationships. */
     readonly detail?: number,
   ) {}
 

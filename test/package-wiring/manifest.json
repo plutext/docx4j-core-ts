@@ -1,0 +1,73 @@
+{
+  "probe": "docx4j CR-075's package-wiring probes: two officeDocument relationships, and a main part no relationship names (CR-024 section 9)",
+  "source": "docx4j-core-tests/src/test/resources/package-wiring/ at docx4j 27d94d04b (CR-075 phase 0), copied unedited",
+  "word": "Word 16.0.20326.20232, 7 November 2026, through the bridge, each file twice, the two runs agreeing; each two-main-rels save a first open in a Word session",
+  "saves": {
+    "one-main-rel-document-override-last.docx": "one-main-rel-document-override-last-word365.docx",
+    "one-main-rel-other-override-last.docx": "one-main-rel-other-override-last-word365.docx",
+    "two-main-rels-document-first.docx": "two-main-rels-document-first-word365.docx",
+    "two-main-rels-names-swapped.docx": "two-main-rels-names-swapped-word365.docx",
+    "two-main-rels-other-first.docx": "two-main-rels-other-first-word365.docx",
+    "two-main-rels-types-other-first.docx": "two-main-rels-types-other-first-word365.docx",
+    "two-main-rels-zip-other-first.docx": "two-main-rels-zip-other-first-word365.docx"
+  },
+  "licence": "Apache-2.0",
+  "files": [
+    {
+      "name": "one-main-rel-document-override-last-word365.docx",
+      "sha1": "93342c32f693f23263cb869ced78812165224c10"
+    },
+    {
+      "name": "one-main-rel-document-override-last.docx",
+      "sha1": "c5feeca1d5e5d93052b75be195b9b7471c767665"
+    },
+    {
+      "name": "one-main-rel-other-override-last-word365.docx",
+      "sha1": "63df6b9e5384b6df94b048439b86b90a19f7a408"
+    },
+    {
+      "name": "one-main-rel-other-override-last.docx",
+      "sha1": "d02e2685392ff4b83b4eb5222050083c9279f4c4"
+    },
+    {
+      "name": "two-main-rels-document-first-word365.docx",
+      "sha1": "9c3c3fb4b33317f37f98702c6efd38f98fb1581a"
+    },
+    {
+      "name": "two-main-rels-document-first.docx",
+      "sha1": "b0ad356ce94c32f1d3f86df14ff0226ccfd7db25"
+    },
+    {
+      "name": "two-main-rels-names-swapped-word365.docx",
+      "sha1": "76ac64754fa470c6014c5b8999be69049c03d03a"
+    },
+    {
+      "name": "two-main-rels-names-swapped.docx",
+      "sha1": "4be9256e008061bf6600d9a334944ba384955da4"
+    },
+    {
+      "name": "two-main-rels-other-first-word365.docx",
+      "sha1": "02057c5276d87199e8bf25639697e8078c948d9a"
+    },
+    {
+      "name": "two-main-rels-other-first.docx",
+      "sha1": "fd5a252a18eb5595b19468c0f169ecbccbd396ee"
+    },
+    {
+      "name": "two-main-rels-types-other-first-word365.docx",
+      "sha1": "df2efa04f2cc87a7e1024f1321866919a099ee4d"
+    },
+    {
+      "name": "two-main-rels-types-other-first.docx",
+      "sha1": "a5b4726410d888db03171f96874a906b5fca2d2b"
+    },
+    {
+      "name": "two-main-rels-zip-other-first-word365.docx",
+      "sha1": "9642d0a27dc00a6371736452eb0a7a713e6e6ec8"
+    },
+    {
+      "name": "two-main-rels-zip-other-first.docx",
+      "sha1": "14f7863e3f4c69f0bbb8c04210284c6c03e99ffb"
+    }
+  ]
+}

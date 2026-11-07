@@ -37,6 +37,8 @@ export interface TextPackage {
   xpathEngine: XPathEngine;
   /** The names the container held twice, read from the first under `duplicateEntries: 'first'` (CR-024). */
   readonly duplicateEntries?: readonly { readonly entry: string; readonly count: number }[];
+  /** More than one officeDocument relationship, the last's target read under `duplicateEntries: 'first'` (CR-024 section 9). */
+  readonly multipleMainParts?: { readonly partName: string; readonly count: number } | undefined;
 }
 
 /** As much of a `MainDocumentPart` as a reading uses. */

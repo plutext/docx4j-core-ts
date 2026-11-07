@@ -384,6 +384,9 @@ export class Extractor {
     for (const d of this.trees.pkg?.duplicateEntries ?? []) {
       this.warn(new TextWarning(TextWarning.PACKAGE_DUPLICATE_ENTRY, undefined, undefined, undefined, d.entry, d.count));
     }
+    // more than one officeDocument relationship, the last's target read (REQ-206's statement, CR-024 section 9)
+    const mainParts = this.trees.pkg?.multipleMainParts;
+    if (mainParts) this.warn(new TextWarning(TextWarning.PACKAGE_MULTIPLE_MAIN_PARTS, undefined, undefined, undefined, mainParts.partName, mainParts.count));
     const metadata = this.metadata();
     const main = this.trees.main;
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;

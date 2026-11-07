@@ -47,7 +47,8 @@ export type TextDropCaps = 'join' | 'asis';
 export type TextSmallCaps = 'asis' | 'upper';
 /**
  * `duplicate_entries` (REQ-206, WD 0.74): a package whose container holds two entries of one name refused (`refuse`), or
- * read from the first of each (`first`). The load's option (`LoadOptions.duplicateEntries`, CR-024): a reading of a package
+ * read from the first of each (`first`); and, by the same switch since WD 0.100, a package with more than one
+ * officeDocument relationship refused, or read from the last's target. The load's option (`LoadOptions.duplicateEntries`, CR-024): a reading of a package
  * already loaded doesn't decide again, and the load's setting holds.
  */
 export type TextDuplicateEntries = 'refuse' | 'first';

@@ -11,5 +11,5 @@ export { mceKeep, mcePreprocess, createMcePreprocessor, resolveAlternateContent,
 export { repairBreaksOutsideRuns, type BrOutsideRunWarning } from './repair/breaks.mjs';
 export type { ContentSkippedWarning } from './skipped.mjs';
 export { UNDERSTOOD_NAMESPACES, UNDERSTOOD_PREFIXES, READ_ONLY_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_NAMESPACES, READ_UNDERSTOOD_PREFIXES } from './mce/understood.mjs';
-export { Docx4JException, InvalidFormatException, PartUnrecognisedException, PartUnmarshalException, MisplacedContentException, SaveLossException, type ContentLoss, DuplicateEntryException, type DuplicateEntryWarning, CyclicStylesException, PropertyResolverNotCreatedException } from './exceptions.mjs';
+export { Docx4JException, InvalidFormatException, PartUnrecognisedException, PartUnmarshalException, MisplacedContentException, SaveLossException, type ContentLoss, DuplicateEntryException, type DuplicateEntryWarning, MultipleMainPartsException, type MultipleMainPartsWarning, CyclicStylesException, PropertyResolverNotCreatedException } from './exceptions.mjs';
 export { parseXml, serializeXml, serializeXmlPart, createDocument, encodeText, decodeXmlText, stripXmlDeclaration, base64Encode, base64Decode, childElements, XML_DECLARATION } from '../xml/dom.mjs';

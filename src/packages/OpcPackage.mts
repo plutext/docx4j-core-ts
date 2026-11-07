@@ -6,7 +6,7 @@ import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
 import { savePackage, type SaveReport } from '../opc/Save.mjs';
-import { Docx4JException, type DuplicateEntryWarning } from '../opc/exceptions.mjs';
+import { Docx4JException, type DuplicateEntryWarning, type MultipleMainPartsWarning } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
 import { Parts } from '../parts/Parts.mjs';
@@ -19,7 +19,7 @@ import { mceKeep, mcePreprocess, type PartWarning, type MisplacedContentWarning 
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
 /** A warning on `pkg.warnings`: the load's (a duplicated entry, CR-024) or a part's. */
-export type PackageWarning = DuplicateEntryWarning | PartWarning;
+export type PackageWarning = DuplicateEntryWarning | MultipleMainPartsWarning | PartWarning;
 
 /** Anything `OpcPackage.load` accepts: zip bytes, a flat OPC string, or a container. */
 export type PackageSource = Uint8Array | ArrayBuffer | string | PartStore;
@@ -44,6 +44,11 @@ export class OpcPackage implements RelationshipSource {
    * `LoadOptions.duplicateEntries: 'first'` (WD REQ-206, CR-024); empty for a package loaded without one, or made here.
    */
   duplicateEntries: readonly DuplicateEntryWarning[] = [];
+  /**
+   * Where the package relationships held more than one officeDocument relationship, read from the last under
+   * `LoadOptions.duplicateEntries: 'first'` (WD REQ-206's statement, CR-024 section 9); undefined for a package with one, or made here.
+   */
+  multipleMainParts: MultipleMainPartsWarning | undefined;
   loadOptions: LoadOptions = {};
   docPropsCorePart: DocPropsCorePart | undefined;
   docPropsExtendedPart: DocPropsExtendedPart | undefined;
@@ -171,12 +176,14 @@ export class OpcPackage implements RelationshipSource {
 
   /**
    * The warnings of every part parsed so far (each XML part's `warnings`, CR-010 phase 1), after the
-   * load's own: a name the container holds twice, read under `duplicateEntries: 'first'` (CR-024). A part
+   * load's own: a name the container holds twice, and more than one officeDocument relationship, read under
+   * `duplicateEntries: 'first'` (CR-024). A part
    * is parsed when something reads it, so a reader that wants a whole package's warnings reads its
    * parts first; `unmarshalAll()` does, at the cost of re-marshalling every part on save.
    */
   get warnings(): PackageWarning[] {
     const out: PackageWarning[] = [...this.duplicateEntries];
+    if (this.multipleMainParts) out.push(this.multipleMainParts);
     for (const part of this.parts) if (part instanceof XmlPart) out.push(...part.warnings);
     return out;
   }

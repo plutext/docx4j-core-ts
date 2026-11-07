@@ -2,7 +2,7 @@ import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx
 import type { PartStore } from './PartStore.mjs';
 import { PartName, CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypeManager } from './ContentTypeManager.mjs';
-import { Docx4JException, DuplicateEntryException, InvalidFormatException, type DuplicateEntryWarning } from './exceptions.mjs';
+import { Docx4JException, DuplicateEntryException, InvalidFormatException, MultipleMainPartsException, type DuplicateEntryWarning, type MultipleMainPartsWarning } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import { XmlPart, type DomPreprocessor } from '../parts/XmlPart.mjs';
@@ -32,6 +32,11 @@ export interface LoadOptions {
    * CR-024): `'refuse'`, the default, throws `DuplicateEntryException` naming each before anything is read; `'first'` reads
    * the first entry of each name in the container's order (a zip's central directory), as Word reads it after its repair,
    * ignores the rest, and records a `DuplicateEntryWarning` per name on `pkg.warnings`. A save then writes only the copy read.
+   *
+   * The same switch decides a package with more than one officeDocument relationship (REQ-206's statement, WD 0.100; CR-024
+   * section 9): `'refuse'` throws `MultipleMainPartsException` naming the targets, and `'first'` reads the **last**
+   * relationship's target, as a fresh Word does, records one `MultipleMainPartsWarning`, and drops the other relationships,
+   * so a save writes one main part. The value says `first` because it's the WD's one switch for both.
    */
   duplicateEntries?: 'refuse' | 'first';
 }
@@ -43,6 +48,9 @@ const MAIN_PART_RELATIONSHIPS = [
   Namespaces.DRAWINGML_DIAGRAM_LAYOUT,
   Namespaces.DOCUMENT_STRICT,
 ];
+
+/** What REQ-206's statement counts (docx4j PackageRelsUtil.isMainPart): a transitional and a strict relationship are two. */
+const OFFICE_DOCUMENT_RELATIONSHIPS: readonly string[] = [Namespaces.DOCUMENT, Namespaces.DOCUMENT_STRICT];
 
 /**
  * Loads a package from a container (docx4j io3.Load3): content types, then the package
@@ -63,6 +71,7 @@ export async function loadPackage<P extends OpcPackage>(
   if (!store.has('_rels/.rels')) throw new InvalidFormatException('_rels/.rels appears to be missing from this package');
   packageRels.setBytes(await store.load('_rels/.rels'));
   await packageRels.getContents();
+  const mainParts = oneMainPart(packageRels, options.duplicateEntries);
 
   const mainRel = packageRels.list.find((r) => MAIN_PART_RELATIONSHIPS.includes(r.type));
   if (!mainRel) throw new InvalidFormatException('No relationship of type officeDocument');
@@ -72,13 +81,42 @@ export async function loadPackage<P extends OpcPackage>(
   pkg.sourcePartStore = store;
   pkg.relationshipsPart = packageRels;
   pkg.duplicateEntries = duplicateEntries;
+  pkg.multipleMainParts = mainParts?.warning;
   packageRels.sourceP = pkg;
   packageRels.package = pkg;
 
   const loader = new Loader(pkg, store, registry, options.preprocessor);
   await loader.addPartsFromRelationships(pkg, packageRels);
   await loader.registerCustomXmlDataStorageParts();
+  // after the walk, so a target the kept part reaches by a relationship of its own, or a second relationship names, keeps its type
+  for (const name of mainParts?.dropped ?? []) if (!pkg.getPart(name)) ctm.removeOverrideContentType(name);
   return pkg;
+}
+
+/**
+ * More than one officeDocument relationship (WD REQ-206's statement; CR-024 section 9): refused under `'refuse'`, naming the
+ * targets. Under `'first'` the last stands and the others go here, before anything is read, so that the package's class, the
+ * walk, `getMainPart()` and `getMainDocumentPart()` all find one main part, and a save writes one. `dropped` is the part
+ * names they gave, whose Overrides `loadPackage` settles after the walk.
+ */
+function oneMainPart(rels: RelationshipsPart, mode: LoadOptions['duplicateEntries']): { warning: MultipleMainPartsWarning; dropped: PartName[] } | undefined {
+  const mains = rels.list.filter((r) => OFFICE_DOCUMENT_RELATIONSHIPS.includes(r.type));
+  if (mains.length < 2) return undefined;
+  // `PartName.resolve` would make a part name of a URL
+  const named = (r: Relationship) => (isExternal(r) ? r.target : PartName.resolve(PartName.ROOT, r.target).name);
+  if (mode !== 'first') throw new MultipleMainPartsException(mains.map(named));
+  const others = mains.slice(0, -1);
+  for (const r of others) rels.removeRelationship(r);
+  const partName = named(mains[mains.length - 1]!);
+  return {
+    warning: {
+      code: 'package.multiple_main_parts',
+      partName,
+      count: mains.length,
+      message: `${mains.length} officeDocument relationships in this package (REQ-206); the last's target read, ${partName}`,
+    },
+    dropped: others.filter((r) => !isExternal(r)).map((r) => PartName.resolve(PartName.ROOT, r.target)),
+  };
 }
 
 /**
