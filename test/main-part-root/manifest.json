@@ -1,0 +1,518 @@
+{
+ "probe": "WD REQ-318 to REQ-320: a main document part whose root isn't w:document (CR-028 D10 and D11)",
+ "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs agreeing, November 2026",
+ "stems": {
+  "or-10-hdr": {
+   "root": "w:hdr",
+   "word": "silent",
+   "saved": true
+  },
+  "or-11-ftr": {
+   "root": "w:ftr",
+   "word": "silent",
+   "saved": true
+  },
+  "or-12-footnotes": {
+   "root": "w:footnotes",
+   "word": "refused",
+   "saved": false
+  },
+  "or-13-endnotes": {
+   "root": "w:endnotes",
+   "word": "refused",
+   "saved": false
+  },
+  "or-14-comments": {
+   "root": "w:comments",
+   "word": "repaired",
+   "saved": false
+  },
+  "or-15-footnotes-bare": {
+   "root": "w:footnotes",
+   "word": "refused",
+   "saved": false
+  },
+  "or-30-styles": {
+   "root": "w:styles",
+   "word": "silent",
+   "saved": true
+  },
+  "or-31-madeup": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "or-32-body": {
+   "root": "w:body",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-01-madeup-p": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-03-foo-document": {
+   "root": "w:foo",
+   "word": "refused",
+   "saved": false
+  },
+  "mr-10-two-p": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-11-p-sectpr": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-12-tbl": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-13-sdt": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-14-run": {
+   "root": "w:madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "mr-15-body": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-16-empty": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-17-nested": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-18-p-properties": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-20-other-namespace-p": {
+   "root": "z:madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "mr-21-no-namespace-p": {
+   "root": "madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "mr-22-ignorable-p": {
+   "root": "z:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-30-sdtcontent-p": {
+   "root": "w:sdtContent",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-31-tc-p": {
+   "root": "w:tc",
+   "word": "refused",
+   "saved": false
+  },
+  "mr-32-p-root": {
+   "root": "w:p",
+   "word": "silent",
+   "saved": true
+  },
+  "mr-50-madeup-p-styles": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "mu-10-madeup-one-document": {
+   "root": "w:madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "mu-11-madeup-two-documents": {
+   "root": "w:madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "mu-12-foo-holding-p": {
+   "root": "w:foo",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-10-foo-two-documents": {
+   "root": "foo",
+   "word": "refused",
+   "saved": false
+  },
+  "rw-11-zfoo-two-documents": {
+   "root": "z:foo",
+   "word": "refused",
+   "saved": false
+  },
+  "rw-12-wfoo-two-documents": {
+   "root": "w:foo",
+   "word": "refused",
+   "saved": false
+  },
+  "rw-13-foo-one-document": {
+   "root": "foo",
+   "word": "refused",
+   "saved": false
+  },
+  "rq-00-control": {
+   "root": "w:document",
+   "word": "silent",
+   "saved": true
+  },
+  "rq-10-madeup-ac": {
+   "root": "w:madeUp",
+   "word": "silent",
+   "saved": true
+  },
+  "rq-11-madeup-sdt-runs": {
+   "root": "w:madeUp",
+   "word": "refused",
+   "saved": false
+  },
+  "rq-20-sdtcontent-empty": {
+   "root": "w:sdtContent",
+   "word": "silent",
+   "saved": true
+  },
+  "rq-21-sdtcontent-rows": {
+   "root": "w:sdtContent",
+   "word": "refused",
+   "saved": false
+  },
+  "rq-22-sdtcontent-row-sdt": {
+   "root": "w:sdtContent",
+   "word": "refused",
+   "saved": false
+  }
+ },
+ "files": [
+  {
+   "name": "or-10-hdr.docx",
+   "sha1": "2ba46542bfac91531f2acbfc3323794a041680a2",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-10-hdr.docx"
+  },
+  {
+   "name": "or-10-hdr-word365.docx",
+   "sha1": "62da07d1dc85ea45baa24c2e6a2e858117d8dc90",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-10-hdr-word365.docx"
+  },
+  {
+   "name": "or-11-ftr.docx",
+   "sha1": "692c828054eb89437adbabf1540ee05df6c46a3d",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-11-ftr.docx"
+  },
+  {
+   "name": "or-11-ftr-word365.docx",
+   "sha1": "2a7b4d6c118512b506bead67f5dac7dbb9a6de2c",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-11-ftr-word365.docx"
+  },
+  {
+   "name": "or-12-footnotes.docx",
+   "sha1": "7cf1138e20eae20e405a4e8342fb7f3f632a6864",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-12-footnotes.docx"
+  },
+  {
+   "name": "or-13-endnotes.docx",
+   "sha1": "8e65f34b0467ba05b7ff080b862a48cd7c793581",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-13-endnotes.docx"
+  },
+  {
+   "name": "or-14-comments.docx",
+   "sha1": "fe93cdae40117b75ef87822192f12b427d880b19",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-14-comments.docx"
+  },
+  {
+   "name": "or-15-footnotes-bare.docx",
+   "sha1": "004757a26000e7dd82c8e9e296e70f5946d741b7",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-15-footnotes-bare.docx"
+  },
+  {
+   "name": "or-30-styles.docx",
+   "sha1": "a4d6e91f6b667a15e7de169bbd1ccdf6b0a5f0e7",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-30-styles.docx"
+  },
+  {
+   "name": "or-30-styles-word365.docx",
+   "sha1": "76caa1386eeae4cb55a0f70cdef7eb5457623606",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-30-styles-word365.docx"
+  },
+  {
+   "name": "or-31-madeup.docx",
+   "sha1": "6b098a99960e8b361076ed4a8374205955c91c1b",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-31-madeup.docx"
+  },
+  {
+   "name": "or-31-madeup-word365.docx",
+   "sha1": "56990d22201e99d782a89ca4cbfa26fdf844ec80",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-31-madeup-word365.docx"
+  },
+  {
+   "name": "or-32-body.docx",
+   "sha1": "83714608c3f33c6e06bfc6ff3aa7d6c38ea4b4c7",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-32-body.docx"
+  },
+  {
+   "name": "or-32-body-word365.docx",
+   "sha1": "3d7d6741c22b0efc3e28c09818bd72d6ecdab0cd",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/or-32-body-word365.docx"
+  },
+  {
+   "name": "mr-01-madeup-p.docx",
+   "sha1": "6b098a99960e8b361076ed4a8374205955c91c1b",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-01-madeup-p.docx"
+  },
+  {
+   "name": "mr-01-madeup-p-word365.docx",
+   "sha1": "c9ea9277bdfe4cba23734c914807a035a3db5070",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-01-madeup-p-word365.docx"
+  },
+  {
+   "name": "mr-03-foo-document.docx",
+   "sha1": "933842e1bad9c2cf53164511e1dad771a119b6b3",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-03-foo-document.docx"
+  },
+  {
+   "name": "mr-10-two-p.docx",
+   "sha1": "fb27751d6310729dae32927c7ca53b2f43735866",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-10-two-p.docx"
+  },
+  {
+   "name": "mr-10-two-p-word365.docx",
+   "sha1": "74119d1f0962778e31549e83abf2571f45b83911",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-10-two-p-word365.docx"
+  },
+  {
+   "name": "mr-11-p-sectpr.docx",
+   "sha1": "b2b4d1833416a0dca0d7ce164f6550fe23a15660",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-11-p-sectpr.docx"
+  },
+  {
+   "name": "mr-11-p-sectpr-word365.docx",
+   "sha1": "b3fd267f4c434e78efb86c1d4590afed279861f7",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-11-p-sectpr-word365.docx"
+  },
+  {
+   "name": "mr-12-tbl.docx",
+   "sha1": "a80049538857cb4726a02552a601bfab51bb33e5",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-12-tbl.docx"
+  },
+  {
+   "name": "mr-12-tbl-word365.docx",
+   "sha1": "875aad1d20544385b5dfe163c9bcd737e03d39a4",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-12-tbl-word365.docx"
+  },
+  {
+   "name": "mr-13-sdt.docx",
+   "sha1": "e9060daf157fed81929d699341076447e22458ca",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-13-sdt.docx"
+  },
+  {
+   "name": "mr-13-sdt-word365.docx",
+   "sha1": "6a1bd26dfd6502b37107d30a80f58b4d55ba6401",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-13-sdt-word365.docx"
+  },
+  {
+   "name": "mr-14-run.docx",
+   "sha1": "d76f16d09ca98449ac0fa35b01e352cab6679df0",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-14-run.docx"
+  },
+  {
+   "name": "mr-15-body.docx",
+   "sha1": "bb00413420b633d83aff4c844f0a54880cfd2efa",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-15-body.docx"
+  },
+  {
+   "name": "mr-15-body-word365.docx",
+   "sha1": "eac4a7b3afe3c176eed27e4d290fb6176b0c1e6b",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-15-body-word365.docx"
+  },
+  {
+   "name": "mr-16-empty.docx",
+   "sha1": "659b46c5edb4bc2ec9b8e506ff1b026483b326a0",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-16-empty.docx"
+  },
+  {
+   "name": "mr-16-empty-word365.docx",
+   "sha1": "adb44034782cf7dbc9fd58de9c43c5fbb15b4525",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-16-empty-word365.docx"
+  },
+  {
+   "name": "mr-17-nested.docx",
+   "sha1": "1b2e93e3b0c27f93c73ceef5842f43663c347b81",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-17-nested.docx"
+  },
+  {
+   "name": "mr-17-nested-word365.docx",
+   "sha1": "438a884774313629212f0a9b1bbcbb595ba7e6a3",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-17-nested-word365.docx"
+  },
+  {
+   "name": "mr-18-p-properties.docx",
+   "sha1": "1269ca14ccb47c9bfb2ff4df83badcd4ff669a32",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-18-p-properties.docx"
+  },
+  {
+   "name": "mr-18-p-properties-word365.docx",
+   "sha1": "403cf4bc50dc83270783588499a095753637f2cd",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-18-p-properties-word365.docx"
+  },
+  {
+   "name": "mr-20-other-namespace-p.docx",
+   "sha1": "8573241bfe024e34b976d7c3bf632a5df10c5a5e",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-20-other-namespace-p.docx"
+  },
+  {
+   "name": "mr-21-no-namespace-p.docx",
+   "sha1": "8b1792192d41b8ea3e015950424dc14bb908a31a",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-21-no-namespace-p.docx"
+  },
+  {
+   "name": "mr-22-ignorable-p.docx",
+   "sha1": "cdb9b6dcab2d8adf60c0e8b9abc93861a1b698ce",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-22-ignorable-p.docx"
+  },
+  {
+   "name": "mr-22-ignorable-p-word365.docx",
+   "sha1": "f9993ef678863a86c187f0aab647f3a7dbb7c2c2",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-22-ignorable-p-word365.docx"
+  },
+  {
+   "name": "mr-30-sdtcontent-p.docx",
+   "sha1": "e4ea210c4a135a702f41aab6058a5314540ba63a",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-30-sdtcontent-p.docx"
+  },
+  {
+   "name": "mr-30-sdtcontent-p-word365.docx",
+   "sha1": "5e47164e1bd7607aa50f05a6db3a0e77280475c5",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-30-sdtcontent-p-word365.docx"
+  },
+  {
+   "name": "mr-31-tc-p.docx",
+   "sha1": "02941a40ddbb58c402e3b2ab2f6f4e662c9ae0cb",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-31-tc-p.docx"
+  },
+  {
+   "name": "mr-32-p-root.docx",
+   "sha1": "227f43f8f5d9690cafbd36a7d821195b1ebe3fbb",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-32-p-root.docx"
+  },
+  {
+   "name": "mr-32-p-root-word365.docx",
+   "sha1": "734e60847f8239c33b8b0584caa179a6a51300af",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-32-p-root-word365.docx"
+  },
+  {
+   "name": "mr-50-madeup-p-styles.docx",
+   "sha1": "896dafcac2691828bfe97a1dc695bd64cc50e191",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-50-madeup-p-styles.docx"
+  },
+  {
+   "name": "mr-50-madeup-p-styles-word365.docx",
+   "sha1": "1af2dbf1418ca2e2644fd9372c4a781358753711",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mr-50-madeup-p-styles-word365.docx"
+  },
+  {
+   "name": "mu-10-madeup-one-document.docx",
+   "sha1": "d386990eae97694e532fd5f8fbfb2d82b9fe10cb",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mu-10-madeup-one-document.docx"
+  },
+  {
+   "name": "mu-11-madeup-two-documents.docx",
+   "sha1": "8ee8baee86e9aece2a24cc994dcaa0213c261616",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mu-11-madeup-two-documents.docx"
+  },
+  {
+   "name": "mu-12-foo-holding-p.docx",
+   "sha1": "8683f2102f93ac87dbb572ad83d4eced939e66b2",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mu-12-foo-holding-p.docx"
+  },
+  {
+   "name": "mu-12-foo-holding-p-word365.docx",
+   "sha1": "22ef3310c6b1edf02ea21e6550edc084a17014de",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/mu-12-foo-holding-p-word365.docx"
+  },
+  {
+   "name": "rw-10-foo-two-documents.docx",
+   "sha1": "50e52651b74f948d25ec9812b1b247be12867ad1",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-10-foo-two-documents.docx"
+  },
+  {
+   "name": "rw-11-zfoo-two-documents.docx",
+   "sha1": "d76c2ae165d3e8b422a7fa7d5692c93ff03ad630",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-11-zfoo-two-documents.docx"
+  },
+  {
+   "name": "rw-12-wfoo-two-documents.docx",
+   "sha1": "f8ba11f64270a22a98a6c61c2261193c79443639",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-12-wfoo-two-documents.docx"
+  },
+  {
+   "name": "rw-13-foo-one-document.docx",
+   "sha1": "441b27a59f72323e6fa4118381c7c990cd87558c",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-13-foo-one-document.docx"
+  },
+  {
+   "name": "rq-00-control.docx",
+   "sha1": "3931f43fdf9a2664ada554e139d6de702fe9020c",
+   "source": "bridge/staging/cr079-root-questions/rq-00-control-a/rq-00-control.docx"
+  },
+  {
+   "name": "rq-00-control-word365.docx",
+   "sha1": "3b69e9f27fcdca5f592c18bbe136665a76eca5c1",
+   "source": "bridge/portfolio/rq-00-control-a/rq-00-control.word.docx"
+  },
+  {
+   "name": "rq-10-madeup-ac.docx",
+   "sha1": "13d9819d81dbcc5a28e3e9ba79574390ca332de5",
+   "source": "bridge/staging/cr079-root-questions/rq-10-madeup-ac-a/rq-10-madeup-ac.docx"
+  },
+  {
+   "name": "rq-10-madeup-ac-word365.docx",
+   "sha1": "447c97cf633e4f1d366d8855b50811474ef498e0",
+   "source": "bridge/portfolio/rq-10-madeup-ac-a/rq-10-madeup-ac.word.docx"
+  },
+  {
+   "name": "rq-11-madeup-sdt-runs.docx",
+   "sha1": "b898b043a8861f99a3663a29d4638bb9052b7554",
+   "source": "bridge/staging/cr079-root-questions/rq-11-madeup-sdt-runs-a/rq-11-madeup-sdt-runs.docx"
+  },
+  {
+   "name": "rq-20-sdtcontent-empty.docx",
+   "sha1": "15b169beda3c53b55da122259ebf14eb3de75a15",
+   "source": "bridge/staging/cr079-root-questions/rq-20-sdtcontent-empty-a/rq-20-sdtcontent-empty.docx"
+  },
+  {
+   "name": "rq-20-sdtcontent-empty-word365.docx",
+   "sha1": "ccbc35a4d05aef79820c9e127d967414a052e30e",
+   "source": "bridge/portfolio/rq-20-sdtcontent-empty-a/rq-20-sdtcontent-empty.word.docx"
+  },
+  {
+   "name": "rq-21-sdtcontent-rows.docx",
+   "sha1": "fa5bb1471ab43e1250f9841606ebf252d8989fdf",
+   "source": "bridge/staging/cr079-root-questions/rq-21-sdtcontent-rows-a/rq-21-sdtcontent-rows.docx"
+  },
+  {
+   "name": "rq-22-sdtcontent-row-sdt.docx",
+   "sha1": "5d9d3d566d15d50dbccc9148275f016dfe6dd488",
+   "source": "bridge/staging/cr079-root-questions/rq-22-sdtcontent-row-sdt-a/rq-22-sdtcontent-row-sdt.docx"
+  }
+ ]
+}

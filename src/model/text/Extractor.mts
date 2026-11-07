@@ -357,7 +357,7 @@ export class Extractor {
   readonly resolver: PropertyResolver | undefined;
   readonly warnings: TextWarning[] = [];
   private readonly warned = new Set<string>();
-  /** The parts this reading took a story from, for what the walk can't meet (`nothingSelectedUnmet`). */
+  /** The parts this reading took a story from, for what the walk can't meet (`partWarningsUnmet`). */
   readonly storyParts = new Set<Part>();
   /** What every address this extraction makes starts with. */
   root = '';
@@ -397,7 +397,7 @@ export class Extractor {
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;
     if (!main || !body) {
       if (main) this.storyParts.add(main.part as unknown as Part);
-      this.nothingSelectedUnmet();
+      this.partWarningsUnmet();
       return new TextResult(out, comments, this.warnings, metadata, this.options);
     }
 
@@ -426,7 +426,7 @@ export class Extractor {
     // comments, rendered at their references (REQ-504)
     if (this.commentsIncluded()) this.comments(comments);
 
-    this.nothingSelectedUnmet();
+    this.partWarningsUnmet();
     return new TextResult(out, comments, this.warnings, metadata, this.options);
   }
 
@@ -466,7 +466,7 @@ export class Extractor {
     if (kind === 'MAIN' && prefix === 'body') this.context.mainRead = true;
     const metadata: Record<string, unknown> = {};
     if (this.trees.pkg !== undefined) metadata[TextResult.FIELDS_UPDATE_ON_OPEN] = this.fieldsUpdateOnOpen();
-    this.nothingSelectedUnmet();
+    this.partWarningsUnmet();
     return new TextResult(out, new Map(), this.warnings, metadata, this.options);
   }
 
@@ -474,7 +474,7 @@ export class Extractor {
   extractNotes(type: NoteType): TextResult {
     const out: TextBlock[] = [];
     this.notes(type, out);
-    this.nothingSelectedUnmet();
+    this.partWarningsUnmet();
     return new TextResult(out, new Map(), this.warnings, { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() }, this.options);
   }
 
@@ -482,7 +482,7 @@ export class Extractor {
   extractComments(): TextResult {
     const comments = new Map<string, TextComment>();
     this.comments(comments);
-    this.nothingSelectedUnmet();
+    this.partWarningsUnmet();
     return new TextResult([], comments, this.warnings, { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() }, this.options);
   }
 
@@ -1641,14 +1641,21 @@ export class Extractor {
   }
 
   /**
-   * `mce.nothing_selected` for what the walk can't meet (CR-029 section 3.5), from the warnings the load's pass recorded on
-   * each part this reading took: an element a resolving load took out, and one at a part's root. Neither has an address.
+   * What the walk can't meet, from the warnings the load's passes recorded on each part this reading took, none with an address:
+   * `mce.nothing_selected` for an element a resolving load took out or one at a part's root (CR-029 section 3.5);
+   * `mce.undeclared_prefix` (REQ-323, CR-030), on a story part or the styles, numbering or settings part the reading consults;
+   * and `part.unexpected_root` (REQ-320, CR-028 D11).
    */
-  private nothingSelectedUnmet(): void {
+  private partWarningsUnmet(): void {
     if (!this.options.warnings || this.fieldsOnly) return;
-    for (const part of this.storyParts) {
+    const main = this.trees.main?.part;
+    const consulted = [main?.styleDefinitionsPart, main?.numberingDefinitionsPart, main?.documentSettingsPart];
+    for (const part of [...this.storyParts, ...consulted]) {
+      if (!part) continue;
       for (const w of (part as { warnings?: readonly PartWarning[] }).warnings ?? []) {
-        if (w.code === 'mce.nothing_selected' && (w.removed || w.root)) this.nothingSelected(undefined, part, w.namespaces);
+        if (w.code === 'mce.nothing_selected' && (w.removed || w.root)) this.nothingSelected(undefined, part as Part, w.namespaces);
+        else if (w.code === 'mce.undeclared_prefix') this.warn(new TextWarning(TextWarning.MCE_UNDECLARED_PREFIX, undefined, undefined, undefined, part.partName.name, w.prefixes.join(' ')));
+        else if (w.code === 'part.unexpected_root') this.warn(new TextWarning(TextWarning.PART_UNEXPECTED_ROOT, undefined, undefined, undefined, w.partName, w.root));
       }
     }
   }

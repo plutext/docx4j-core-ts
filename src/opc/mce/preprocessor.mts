@@ -23,6 +23,7 @@
 import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { UNDERSTOOD_NAMESPACES } from './understood.mjs';
 import type { BrOutsideRunWarning } from '../repair/breaks.mjs';
+import type { UnexpectedRootWarning } from '../repair/mainRoot.mjs';
 import type { ContentSkippedWarning } from '../skipped.mjs';
 
 export const MCE_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
@@ -88,6 +89,21 @@ export interface McNothingSelectedWarning {
   namespaces: string[];
   removed: boolean;
   root: boolean;
+  message: string;
+}
+
+/**
+ * `mce.undeclared_prefix` (WD REQ-323, CR-030): an `mc:Ignorable` listing a prefix with no namespace declaration in scope on the
+ * element carrying it. Such a prefix names no namespace, so it is read as though the list didn't hold it: nothing it seems to
+ * name is ignorable. Word repairs such a file and loses nothing (the `undeclared-ignorable` round). One warning a part, with
+ * every such prefix once, in document order. A declaration on a descendant doesn't put a prefix in scope. A save that writes
+ * the part anew holds none: the objects facade drops a prefix it doesn't know and declares one it does, and a part copied from
+ * its source keeps it as written.
+ */
+export interface McUndeclaredPrefixWarning {
+  code: 'mce.undeclared_prefix';
+  partName: string | undefined;
+  prefixes: string[];
   message: string;
 }
 
@@ -190,7 +206,7 @@ export interface MisplacedContentWarning {
 }
 
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | McNothingSelectedWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | ContentSkippedWarning;
+export type PartWarning = McBranchesDifferWarning | McNothingSelectedWarning | McUndeclaredPrefixWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | UnexpectedRootWarning | ContentSkippedWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a
@@ -244,7 +260,12 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
   const resolve = options.resolve ?? true;
   const wordProcessing = options.wordProcessing ?? true;
   const result: MceResult = { resolved: 0, kept: 0, warnings: [] };
+  const undeclared = new Set<string>();
+  // a list read where its element stood in the source: resolving moves a branch's content out of the mc:Choice that may declare
+  // its prefixes, as Excel's drawings declare a14 there and list it on an a:srgbClr inside
+  const asRead = new Map<Element, string[]>();
   const visit = (node: Node): void => {
+    if (node.nodeType === 1) for (const p of asRead.get(node as Element) ?? undeclaredIgnorable(node as Element)) undeclared.add(p);
     const hostKept = node.nodeType === 1 && keptHosts.has(`{${(node as Element).namespaceURI ?? ''}}${(node as Element).localName}`);
     // A work list, not the live child list: resolving replaces a child with the branch's content,
     // which is visited in its turn (it may hold, or be, another mc:AlternateContent).
@@ -269,6 +290,7 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
         continue;
       }
       const moved: Node[] = [];
+      if (branch) readInPlace(branch, asRead);
       if (branch) for (let c = branch.firstChild; c; c = c.nextSibling) moved.push(c);
       for (const n of moved) node.insertBefore(n, el);
       node.removeChild(el);
@@ -279,7 +301,36 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
     if (removed) keepACellsParagraph(node);
   };
   visit(root);
+  if (undeclared.size > 0) result.warnings.push(undeclaredPrefix([...undeclared], options.partName));
   return result;
+}
+
+/** The prefixes an element's `mc:Ignorable` lists that have no declaration in scope on it, where it stands now (WD REQ-323). */
+function undeclaredIgnorable(el: Element): string[] {
+  const listed = el.getAttributeNS(MCE_NS, 'Ignorable');
+  if (!listed) return [];
+  return listed.trim().split(/\s+/).filter((prefix) => prefix !== '' && !el.lookupNamespaceURI(prefix));
+}
+
+/**
+ * Before a branch's content is moved out, each list in it read where it stands, unless an outer branch's move already read it
+ * there. A list in a nested branch not taken is read too, and never visited, so never said.
+ */
+function readInPlace(branch: Element, into: Map<Element, string[]>): void {
+  const all = branch.getElementsByTagName('*');
+  for (let i = 0; i < all.length; i++) {
+    const el = all.item(i)!;
+    if (!into.has(el) && el.hasAttributeNS(MCE_NS, 'Ignorable')) into.set(el, undeclaredIgnorable(el));
+  }
+}
+
+function undeclaredPrefix(prefixes: string[], partName: string | undefined): McUndeclaredPrefixWarning {
+  return {
+    code: 'mce.undeclared_prefix',
+    partName,
+    prefixes,
+    message: `${partName ?? 'a part'}: mc:Ignorable lists ${prefixes.join(' ')}, which no declaration in scope binds, so it names nothing and is read as though the list didn't hold it (WD REQ-323)`,
+  };
 }
 
 /**

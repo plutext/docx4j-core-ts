@@ -566,6 +566,16 @@ export class TextWarning {
    * selector, and `detail` the namespaces its Choices require, as one string of URIs, empty if every prefix binds to nothing.
    */
   static readonly MCE_NOTHING_SELECTED = 'mce.nothing_selected';
+  /**
+   * An `mc:Ignorable` listing a prefix no declaration in scope binds, read as though the list didn't hold it (REQ-323, CR-030):
+   * once a part the reading took, no address, the part's name the selector and `detail` the prefixes, separated by spaces.
+   */
+  static readonly MCE_UNDECLARED_PREFIX = 'mce.undeclared_prefix';
+  /**
+   * A main document part whose root Word opens showing nothing of, read as an empty document (REQ-320, CR-028 D11): once, no
+   * address, the part's name the selector and `detail` the root's qualified name.
+   */
+  static readonly PART_UNEXPECTED_ROOT = 'part.unexpected_root';
   /** A field with no cached result (REQ-505). */
   static readonly FIELD_NO_RESULT = 'field.no_result';
   /** A data-bound control whose surface differs from its bound value (REQ-509). */

@@ -13,6 +13,8 @@ import { DefaultXmlPart } from '../DefaultXmlPart.mjs';
 import { ThemePart } from '../dml/index.mjs';
 import { Body } from '../../model/content/Body.mjs';
 import { Docx4JException } from '../../opc/exceptions.mjs';
+import { readMainPartRoot, type UnexpectedRootWarning } from '../../opc/repair/mainRoot.mjs';
+import type { PartWarning } from '../../opc/mce/preprocessor.mjs';
 import type { PropertyResolver } from '../../model/properties/PropertyResolver.mjs';
 import type { AbstractListDefinition, ListDefinition } from '../../model/listnumbering/definitions.mjs';
 import { NumberingDefinitions } from '../../model/listnumbering/definitions.mjs';
@@ -130,9 +132,28 @@ export class MainDocumentPart extends DocumentPart<wml.Document> {
     return super.setPartShortcut(part, relationshipType);
   }
 
-  /** The Office JS-shaped view of `w:body`; the part must be unmarshalled (`getBody()` does that). */
+  /**
+   * The root's qualified name where it is one Word opens showing nothing of (WD REQ-320, CR-028 D11), read as an empty
+   * document; undefined for a `w:document`, a root read as one, or contents a caller set.
+   */
+  get unexpectedRoot(): string | undefined {
+    return this.warnings.find((w): w is UnexpectedRootWarning => w.code === 'part.unexpected_root')?.root;
+  }
+
+  protected override readRoot(doc: Document): readonly PartWarning[] {
+    return readMainPartRoot(doc, this.partName.name);
+  }
+
+  /**
+   * The Office JS-shaped view of `w:body`; the part must be unmarshalled (`getBody()` does that). Refused where the root is one
+   * Word shows nothing of (CR-028 D10): it reads as an empty document, and a write there would go nowhere a save keeps.
+   */
   get body(): Body {
     const doc = this.contents;
+    const unexpected = this.unexpectedRoot;
+    if (unexpected !== undefined) {
+      throw new Docx4JException(`${this.partName}: its root is ${unexpected}, which Word opens showing nothing of (WD REQ-320), so it has no body to read or write`);
+    }
     doc.body ??= { TYPE_NAME: 'org_docx4j_wml.Body' };
     return bodyOf(this, doc.body, 'body');
   }

@@ -41,7 +41,9 @@ function pathOf(element: Node): string {
 
 /**
  * Whether `mc:Ignorable` lists the namespace, there or on an ancestor, each prefix read where the attribute stands. A prefix
- * that no longer resolves counts by its name: `mcePreprocess` takes a branch out of the `mc:Choice` declaring it.
+ * that no longer resolves counts by its name, since `mcePreprocess` takes a branch out of the `mc:Choice` declaring it, but not
+ * where the item's own prefix still resolves to it: then it was declared only below the list, which doesn't put it in scope
+ * there, and the list names nothing (WD REQ-323, `ui-05`).
  */
 function isIgnorable(namespace: string | null | undefined, prefix: string | null | undefined, from: Element): boolean {
   if (!namespace) return false;
@@ -51,7 +53,7 @@ function isIgnorable(namespace: string | null | undefined, prefix: string | null
     if (!listed) continue;
     for (const candidate of listed.trim().split(/\s+/)) {
       const uri = element.lookupNamespaceURI(candidate);
-      if (uri === namespace || (!uri && candidate === prefix)) return true;
+      if (uri === namespace || (!uri && candidate === prefix && from.lookupNamespaceURI(prefix) !== namespace)) return true;
     }
   }
   return false;

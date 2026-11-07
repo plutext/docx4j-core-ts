@@ -1,0 +1,185 @@
+{
+ "probe": "WD REQ-323: a prefix in mc:Ignorable with no declaration in scope (CR-030)",
+ "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs agreeing, 8 November 2026",
+ "stems": {
+  "ui-00-control": {
+   "word": "silent",
+   "saved": true
+  },
+  "ui-01-main-unknown": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-02-main-known": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-03-main-several": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-04-main-lower-known": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-05-main-lower-unknown": {
+   "word": "refused",
+   "saved": false
+  },
+  "ui-06-main-declared-unknown": {
+   "word": "silent",
+   "saved": true
+  },
+  "ui-07-main-leading-space": {
+   "word": "silent",
+   "saved": true
+  },
+  "ui-10-header": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-11-footnotes": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-12-styles": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-13-settings": {
+   "word": "repaired",
+   "saved": true
+  },
+  "ui-14-all-parts-known": {
+   "word": "repaired",
+   "saved": true
+  }
+ },
+ "files": [
+  {
+   "name": "ui-00-control.docx",
+   "sha1": "0735eb8c19e8a53d3e9d5add058b8b310d691885",
+   "source": "bridge/staging/undeclared-ignorable/ui-00-control-a/ui-00-control.docx"
+  },
+  {
+   "name": "ui-00-control-word365.docx",
+   "sha1": "44e1531227a51ba10e792c4743f9bafbe4da0857",
+   "source": "bridge/portfolio/ui-00-control-a/ui-00-control.word.docx"
+  },
+  {
+   "name": "ui-01-main-unknown.docx",
+   "sha1": "db795aa9b4db32b6dff9fe8973ee965a30da6dda",
+   "source": "bridge/staging/undeclared-ignorable/ui-01-main-unknown-a/ui-01-main-unknown.docx"
+  },
+  {
+   "name": "ui-01-main-unknown-word365.docx",
+   "sha1": "90a490c851599dd054ae9136f7fc86afa574993f",
+   "source": "bridge/portfolio/ui-01-main-unknown-a/ui-01-main-unknown.word.docx"
+  },
+  {
+   "name": "ui-02-main-known.docx",
+   "sha1": "896f350552b9e77b9c1d76083a36da1ab1e7ae79",
+   "source": "bridge/staging/undeclared-ignorable/ui-02-main-known-a/ui-02-main-known.docx"
+  },
+  {
+   "name": "ui-02-main-known-word365.docx",
+   "sha1": "ec377941b8c761f4870c2ddd7a22cc0fec939fcb",
+   "source": "bridge/portfolio/ui-02-main-known-a/ui-02-main-known.word.docx"
+  },
+  {
+   "name": "ui-03-main-several.docx",
+   "sha1": "eaa546519f6ee3ab3e9e3b060c64226440c64ce7",
+   "source": "bridge/staging/undeclared-ignorable/ui-03-main-several-a/ui-03-main-several.docx"
+  },
+  {
+   "name": "ui-03-main-several-word365.docx",
+   "sha1": "484fd2c95df2a490c03567cbb4aa20ca2c3e9f42",
+   "source": "bridge/portfolio/ui-03-main-several-a/ui-03-main-several.word.docx"
+  },
+  {
+   "name": "ui-04-main-lower-known.docx",
+   "sha1": "6a24e43d143b7f8fa2d46b537d50c0b560f1be2c",
+   "source": "bridge/staging/undeclared-ignorable/ui-04-main-lower-known-a/ui-04-main-lower-known.docx"
+  },
+  {
+   "name": "ui-04-main-lower-known-word365.docx",
+   "sha1": "fa1fede84f39cd85dcc4fef987bebd9a738f0cf0",
+   "source": "bridge/portfolio/ui-04-main-lower-known-a/ui-04-main-lower-known.word.docx"
+  },
+  {
+   "name": "ui-05-main-lower-unknown.docx",
+   "sha1": "812e37ad4d4d2c45c59efaa2a902df68bb77e89f",
+   "source": "bridge/staging/undeclared-ignorable/ui-05-main-lower-unknown-a/ui-05-main-lower-unknown.docx"
+  },
+  {
+   "name": "ui-06-main-declared-unknown.docx",
+   "sha1": "2e33aebdbf3f43162e0f3eca1c106665ce44cc03",
+   "source": "bridge/staging/undeclared-ignorable/ui-06-main-declared-unknown-a/ui-06-main-declared-unknown.docx"
+  },
+  {
+   "name": "ui-06-main-declared-unknown-word365.docx",
+   "sha1": "e20e7acffea74215469ff34e217a0e1fef187335",
+   "source": "bridge/portfolio/ui-06-main-declared-unknown-a/ui-06-main-declared-unknown.word.docx"
+  },
+  {
+   "name": "ui-07-main-leading-space.docx",
+   "sha1": "927abe6d8710558d12fa0b31becadfd2a407781e",
+   "source": "bridge/staging/undeclared-ignorable/ui-07-main-leading-space-a/ui-07-main-leading-space.docx"
+  },
+  {
+   "name": "ui-07-main-leading-space-word365.docx",
+   "sha1": "7cae0fa57128d571ff3a565149b92b23814c01fe",
+   "source": "bridge/portfolio/ui-07-main-leading-space-a/ui-07-main-leading-space.word.docx"
+  },
+  {
+   "name": "ui-10-header.docx",
+   "sha1": "af531cab3f2326d2800eace038edcdb790ab45f0",
+   "source": "bridge/staging/undeclared-ignorable/ui-10-header-a/ui-10-header.docx"
+  },
+  {
+   "name": "ui-10-header-word365.docx",
+   "sha1": "3a3280b446c6df14c923779181d323921b85ac2a",
+   "source": "bridge/portfolio/ui-10-header-a/ui-10-header.word.docx"
+  },
+  {
+   "name": "ui-11-footnotes.docx",
+   "sha1": "7ae4d5f9d73e902d8053a12e950dad79f189eb94",
+   "source": "bridge/staging/undeclared-ignorable/ui-11-footnotes-a/ui-11-footnotes.docx"
+  },
+  {
+   "name": "ui-11-footnotes-word365.docx",
+   "sha1": "cab46ea5ecad0db6da465f0adb3712ebec3e832a",
+   "source": "bridge/portfolio/ui-11-footnotes-a/ui-11-footnotes.word.docx"
+  },
+  {
+   "name": "ui-12-styles.docx",
+   "sha1": "6e65592c4ad82a19ba26e1a77157517dfe9e4fff",
+   "source": "bridge/staging/undeclared-ignorable/ui-12-styles-a/ui-12-styles.docx"
+  },
+  {
+   "name": "ui-12-styles-word365.docx",
+   "sha1": "d9fec4a62896e5c6757bacc539ad50b778a4149f",
+   "source": "bridge/portfolio/ui-12-styles-a/ui-12-styles.word.docx"
+  },
+  {
+   "name": "ui-13-settings.docx",
+   "sha1": "366d58bf88090afea405e08c8d28716d20ad1c3d",
+   "source": "bridge/staging/undeclared-ignorable/ui-13-settings-a/ui-13-settings.docx"
+  },
+  {
+   "name": "ui-13-settings-word365.docx",
+   "sha1": "553ec2a26d7a48af06264f2828598936bd99e7e9",
+   "source": "bridge/portfolio/ui-13-settings-a/ui-13-settings.word.docx"
+  },
+  {
+   "name": "ui-14-all-parts-known.docx",
+   "sha1": "01c5a00f73a65ee95c1b8efa012914767be3d3fb",
+   "source": "bridge/staging/undeclared-ignorable/ui-14-all-parts-known-a/ui-14-all-parts-known.docx"
+  },
+  {
+   "name": "ui-14-all-parts-known-word365.docx",
+   "sha1": "10dd485b4f91480196e70fb15e170111baec7b16",
+   "source": "bridge/portfolio/ui-14-all-parts-known-a/ui-14-all-parts-known.word.docx"
+  }
+ ]
+}

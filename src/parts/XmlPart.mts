@@ -281,12 +281,21 @@ export class XmlPart<T = unknown> extends Part {
     this.parseWarnings = this.preprocessed(doc);
   }
 
+  /**
+   * Reads the part's root before anything else meets the DOM; nothing by default. A main document part reads a root other than
+   * `w:document` here (WD REQ-318 to REQ-320, CR-028), throwing for one Word refuses.
+   */
+  protected readRoot(_doc: Document): readonly PartWarning[] {
+    return [];
+  }
+
   private preprocessed(doc: Document): readonly PartWarning[] {
+    const rooted = this.readRoot(doc);
     // ahead of CR-021's, which then gives a w:br the element held a run, as Word does (`76t42`)
     const read = readThroughUnknownElements(doc, this.partName.name);
     const repaired = repairBreaksOutsideRuns(doc, this.partName.name);
     const warnings = this.preprocessor?.(doc, this as XmlPart<unknown>);
-    return [...read, ...repaired, ...(warnings ?? [])];
+    return [...rooted, ...read, ...repaired, ...(warnings ?? [])];
   }
 
   /** Replaces the contents (docx4j setJaxbElement / setContents). The root name defaults to the part's. */
