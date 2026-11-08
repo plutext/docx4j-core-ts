@@ -146,13 +146,18 @@ export class MainDocumentPart extends DocumentPart<wml.Document> {
 
   /**
    * The Office JS-shaped view of `w:body`; the part must be unmarshalled (`getBody()` does that). Refused where the root is one
-   * Word shows nothing of (CR-028 D10): it reads as an empty document, and a write there would go nowhere a save keeps.
+   * Word shows nothing of, or `mc:AlternateContent` (CR-028 D10): either reads as no document here, and a write there would go
+   * nowhere a save keeps.
    */
   get body(): Body {
     const doc = this.contents;
     const unexpected = this.unexpectedRoot;
     if (unexpected !== undefined) {
       throw new Docx4JException(`${this.partName}: its root is ${unexpected}, which Word opens showing nothing of (WD REQ-320), so it has no body to read or write`);
+    }
+    if ((doc as { TYPE_NAME?: string }).TYPE_NAME === 'org_docx4j_mce.AlternateContent') {
+      // the branch isn't read as the document yet (WD REQ-317), so a body added here would go nowhere a save writes (CR-028 D10)
+      throw new Docx4JException(`${this.partName}: its root is mc:AlternateContent, whose branch this package doesn't yet read as the document (WD REQ-317), so it has no body to read or write`);
     }
     doc.body ??= { TYPE_NAME: 'org_docx4j_wml.Body' };
     return bodyOf(this, doc.body, 'body');

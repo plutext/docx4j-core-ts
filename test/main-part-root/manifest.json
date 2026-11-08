@@ -1,5 +1,5 @@
 {
- "probe": "WD REQ-318 to REQ-320: a main document part whose root isn't w:document (CR-028 D10 and D11)",
+ "probe": "WD REQ-318 to REQ-320: a main document part whose root isn't w:document (CR-028 D10 and D11); and mc:AlternateContent as a part's root, left whole (D10)",
  "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs agreeing, November 2026",
  "stems": {
   "or-10-hdr": {
@@ -201,6 +201,102 @@
    "root": "w:sdtContent",
    "word": "refused",
    "saved": false
+  },
+  "rw-20-mc-root-choice": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-21-mc-root-fallback": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-22-mc-root-fallback-only": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "repaired",
+   "saved": true
+  },
+  "rw-23-mc-root-two-documents": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-24-mc-root-nothing-selected": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-26-mc-root-two-in-fallback": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "rw-27-mc-root-two-in-choice-sizes": {
+   "root": "mc:AlternateContent",
+   "part": "/word/document.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-10-hdr-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/header1.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-11-ftr-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/footer1.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-12-footnotes-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/footnotes.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-13-endnotes-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/endnotes.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-14-comments-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/comments.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-15-styles-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/styles.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-16-numbering-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/numbering.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-17-settings-root": {
+   "root": "mc:AlternateContent",
+   "part": "/word/settings.xml",
+   "word": "silent",
+   "saved": true
+  },
+  "c79-18-hdr-root-unknown-choice": {
+   "root": "mc:AlternateContent",
+   "part": "/word/header1.xml",
+   "word": "silent",
+   "saved": true
   }
  },
  "files": [
@@ -513,6 +609,166 @@
    "name": "rq-22-sdtcontent-row-sdt.docx",
    "sha1": "5d9d3d566d15d50dbccc9148275f016dfe6dd488",
    "source": "bridge/staging/cr079-root-questions/rq-22-sdtcontent-row-sdt-a/rq-22-sdtcontent-row-sdt.docx"
+  },
+  {
+   "name": "rw-20-mc-root-choice.docx",
+   "sha1": "7e2d68364fa4aab7961d8e5d9abe83be47dd3208",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-20-mc-root-choice.docx"
+  },
+  {
+   "name": "rw-20-mc-root-choice-word365.docx",
+   "sha1": "5f34700f416ca5bf708c9e46a65e4a769f03d879",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-20-mc-root-choice-word365.docx"
+  },
+  {
+   "name": "rw-21-mc-root-fallback.docx",
+   "sha1": "564e38a6994a954e85d170effb5a9976dc03cd3b",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-21-mc-root-fallback.docx"
+  },
+  {
+   "name": "rw-21-mc-root-fallback-word365.docx",
+   "sha1": "a2d5e2ae5643e3a5685573c4bd3dcc706f9b27af",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-21-mc-root-fallback-word365.docx"
+  },
+  {
+   "name": "rw-22-mc-root-fallback-only.docx",
+   "sha1": "4760f0c2c43ec59e799d890cfa50814ccbf4a7eb",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-22-mc-root-fallback-only.docx"
+  },
+  {
+   "name": "rw-22-mc-root-fallback-only-word365.docx",
+   "sha1": "fde980e38c1298c9e93521384cacad747f82b921",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-22-mc-root-fallback-only-word365.docx"
+  },
+  {
+   "name": "rw-23-mc-root-two-documents.docx",
+   "sha1": "5ec9180ef1ae955877a6b5d5c0d639e9de83f4be",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-23-mc-root-two-documents.docx"
+  },
+  {
+   "name": "rw-23-mc-root-two-documents-word365.docx",
+   "sha1": "88ec53e487b526258d99fc571f28c5339e994b8e",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-23-mc-root-two-documents-word365.docx"
+  },
+  {
+   "name": "rw-24-mc-root-nothing-selected.docx",
+   "sha1": "37e10c1ddd4666a59ff8cdf54dc4e3260b81cb61",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-24-mc-root-nothing-selected.docx"
+  },
+  {
+   "name": "rw-24-mc-root-nothing-selected-word365.docx",
+   "sha1": "8f21f721befd731acd4f1f91ae80e8d76d54bee4",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-24-mc-root-nothing-selected-word365.docx"
+  },
+  {
+   "name": "rw-26-mc-root-two-in-fallback.docx",
+   "sha1": "527dd5e23a47835a13b11d2781090f22f660bd4f",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-26-mc-root-two-in-fallback.docx"
+  },
+  {
+   "name": "rw-26-mc-root-two-in-fallback-word365.docx",
+   "sha1": "2f5a50c803083d82e24dd904d9139c85004d9b7e",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-26-mc-root-two-in-fallback-word365.docx"
+  },
+  {
+   "name": "rw-27-mc-root-two-in-choice-sizes.docx",
+   "sha1": "a020325083a9e4e128729f6200e5e168d8f559df",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-27-mc-root-two-in-choice-sizes.docx"
+  },
+  {
+   "name": "rw-27-mc-root-two-in-choice-sizes-word365.docx",
+   "sha1": "3ab3d568545ead9c5287ad11f6560310eb42aee9",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/rw-27-mc-root-two-in-choice-sizes-word365.docx"
+  },
+  {
+   "name": "c79-10-hdr-root.docx",
+   "sha1": "60defc2c7a377cebbc1539fbf8d3988b8940eb3f",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-10-hdr-root.docx"
+  },
+  {
+   "name": "c79-10-hdr-root-word365.docx",
+   "sha1": "aaddae381fb131b0b0a83760ba2cac59281aaf79",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-10-hdr-root-word365.docx"
+  },
+  {
+   "name": "c79-11-ftr-root.docx",
+   "sha1": "932c1d3dbcbe75c470a9c1ed35725be23ffb8fba",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-11-ftr-root.docx"
+  },
+  {
+   "name": "c79-11-ftr-root-word365.docx",
+   "sha1": "ddbc1b9944fd6de5dd3ff562e4cb733328c8a883",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-11-ftr-root-word365.docx"
+  },
+  {
+   "name": "c79-12-footnotes-root.docx",
+   "sha1": "181beaf4e83849015f063ad43062697f5df20ed8",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-12-footnotes-root.docx"
+  },
+  {
+   "name": "c79-12-footnotes-root-word365.docx",
+   "sha1": "80c37eb81a90822de478be58c64800ef77a96e45",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-12-footnotes-root-word365.docx"
+  },
+  {
+   "name": "c79-13-endnotes-root.docx",
+   "sha1": "4bd7494700d038061af83fe225f495d57fc5cb48",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-13-endnotes-root.docx"
+  },
+  {
+   "name": "c79-13-endnotes-root-word365.docx",
+   "sha1": "598ba149de9a19d64e25c37846f6fd2f472589a0",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-13-endnotes-root-word365.docx"
+  },
+  {
+   "name": "c79-14-comments-root.docx",
+   "sha1": "b8ca19af891e3698ab0fd4fb4e3fb474319e18fc",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-14-comments-root.docx"
+  },
+  {
+   "name": "c79-14-comments-root-word365.docx",
+   "sha1": "9b7741d53ca4cb36a3dff892021b06176ac865ef",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-14-comments-root-word365.docx"
+  },
+  {
+   "name": "c79-15-styles-root.docx",
+   "sha1": "f9aa6d94f4428248c4341cfd01b0e1ebabefb827",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-15-styles-root.docx"
+  },
+  {
+   "name": "c79-15-styles-root-word365.docx",
+   "sha1": "d7270a70eacb36eaf81ac1bee7fd94162692389c",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-15-styles-root-word365.docx"
+  },
+  {
+   "name": "c79-16-numbering-root.docx",
+   "sha1": "8b523ea229b375239e8f934a1c10eaa64f1a39fc",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-16-numbering-root.docx"
+  },
+  {
+   "name": "c79-16-numbering-root-word365.docx",
+   "sha1": "5888ba77bffe98e077ab66af02bcc7f2767dd7a0",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-16-numbering-root-word365.docx"
+  },
+  {
+   "name": "c79-17-settings-root.docx",
+   "sha1": "1ebd714b066301b972dd4a742b70893783bdab6f",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-17-settings-root.docx"
+  },
+  {
+   "name": "c79-17-settings-root-word365.docx",
+   "sha1": "5b74365ddf37c31bbaf0e9ce689095bd427da35e",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-17-settings-root-word365.docx"
+  },
+  {
+   "name": "c79-18-hdr-root-unknown-choice.docx",
+   "sha1": "07cefd18a33c956d747e941bac76536b5147598a",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-18-hdr-root-unknown-choice.docx"
+  },
+  {
+   "name": "c79-18-hdr-root-unknown-choice-word365.docx",
+   "sha1": "dd88e49b7c10e5da2d898de163a573f1fb47499c",
+   "source": "docx4j 4b26e7422 docx4j-core-tests/src/test/resources/mc-root/c79-18-hdr-root-unknown-choice-word365.docx"
   }
  ]
 }

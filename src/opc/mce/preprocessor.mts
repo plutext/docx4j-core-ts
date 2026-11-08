@@ -284,7 +284,9 @@ export function preprocessAlternateContent(root: Node, options: McePreprocessOpt
       const atRoot = el.parentNode?.nodeType === 9;
       const warning = nothing ? nothingSelected(el, choices, resolve && !atRoot, atRoot, options.partName) : branchesDiffer(el, choices, fallback, branch, understood, options.partName);
       if (warning) result.warnings.push(warning);
-      if (!resolve || (nothing && atRoot)) {
+      // a part's root is left whole, as a resolving load can't put a branch's content where the root stood beside it, and
+      // reading the branch as the part is WD REQ-317's, not built (CR-028 D10)
+      if (!resolve || atRoot) {
         result.kept++;
         if (branch) visit(branch);
         continue;

@@ -10,6 +10,9 @@ agreeing. `manifest.json` gives each file's root and what Word did: `silent`, `r
 - `rq-*`: the `cr079-root-questions` round, built by docx4j (its `CR-079-notes/build_rq.py`), from the share's
   `bridge/staging/` and Word's saves from `bridge/portfolio/`, the `-a` run of each.
 
-What a root here reads as is `test/main-part-root.test.mjs`'s table. `mc:AlternateContent` as the root is REQ-317's, not this
-set's. `or-14-comments` was offered a repair, and Word then kept the comment; REQ-320 gives no text, so that file is held to the
+- `rw-20` to `rw-27` and `c79-10` to `c79-18`, also docx4j's at `4b26e7422`: `mc:AlternateContent` as the root of the main part, and
+  of a header, footer, notes, comments, styles, numbering or settings part. Its reading is REQ-317's and isn't built; these are held
+  to D10, the write through `Body` refused and a resolving load leaving the root whole.
+
+What a root here reads as is `test/main-part-root.test.mjs`'s table. `or-14-comments` was offered a repair, and Word then kept the comment; REQ-320 gives no text, so that file is held to the
 statement and not to Word's save.

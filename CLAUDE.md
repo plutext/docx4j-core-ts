@@ -229,8 +229,8 @@ Key mechanics:
   `w:endnotes`, `w:tc`, `w:txbxContent`, an unknown root holding a `w:document` or a run, ...) throws `PartUnmarshalException`
   at the read; any other (`w:hdr`, `w:styles`, a root in a namespace its `mc:Ignorable` names, ...) reads as an empty document with
   `part.unexpected_root` on the part and in the text model, the root a `part.skipped` so a save copies the part as written,
-  `MainDocumentPart.unexpectedRoot` naming it and `body` refusing it. A `w:document` and an `mc:AlternateContent` root (REQ-317,
-  CR-028's rest) are left alone.
+  `MainDocumentPart.unexpectedRoot` naming it and `body` refusing it. A `w:document` passes untouched. An `mc:AlternateContent` root (REQ-317,
+  CR-028's rest) is left whole, by a resolving load too, and `body` refuses it, since its branch isn't read as the document and a write would go nowhere.
 - **A `w:br` outside a `w:r` is read as Word 365 reads it** (CR-021, docx4j CR-073's rules from its `mc-preprocessor.xslt`).
   `repairBreaksOutsideRuns` runs in `XmlPart.preprocess` on every parse, ahead of the package's hook (and before it on
   `insertOoxml`'s fragment route): a break in a run container gets a run of its own, with the mark's run properties while no
@@ -276,7 +276,7 @@ Key mechanics:
   element a resolving load took out or one at a root). `mcePreprocess: true` resolves on the DOM before unmarshalling
   instead, as Word does on open, by the same set: it removes an element that selects nothing, a `w:tc` left with no block
   getting the paragraph Word's repair gives one, single-spaced with no space after (CR-029 D9), which Word opens silently, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the
-  SpreadsheetML workbook), at a part's root (CR-028's), and in a part that isn't word-processing (CR-029 D3). Since objects 0.4.0 a kept branch's `w:drawing` and
+  SpreadsheetML workbook) and in a part that isn't word-processing (CR-029 D3), and leaves any `mc:AlternateContent` that is a part's root whole (CR-028 D10). Since objects 0.4.0 a kept branch's `w:drawing` and
   `w:pict` are typed (objects CR-009, CR-010 phase 2); the `xdr:` and `p:` drawing content, a
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only
   when resolved. A code path that walks the tree itself has to choose: `selectedBranchOf` to read,

@@ -34,6 +34,11 @@ const REFUSED = ['or-12-footnotes', 'or-13-endnotes', 'or-15-footnotes-bare', 'm
   'rw-11-zfoo-two-documents', 'rw-12-wfoo-two-documents', 'rw-13-foo-one-document', 'rq-11-madeup-sdt-runs', 'rq-21-sdtcontent-rows',
   'rq-22-sdtcontent-row-sdt'];
 const EMPTY = { 'or-10-hdr': 'w:hdr', 'or-11-ftr': 'w:ftr', 'or-14-comments': 'w:comments', 'or-30-styles': 'w:styles', 'mr-22-ignorable-p': 'z:madeUp' };
+// mc:AlternateContent as a part's root: REQ-317's, whose reading isn't built, and left whole (D10)
+const MC_ROOT = ['rw-20-mc-root-choice', 'rw-21-mc-root-fallback', 'rw-22-mc-root-fallback-only', 'rw-23-mc-root-two-documents',
+  'rw-24-mc-root-nothing-selected', 'rw-26-mc-root-two-in-fallback', 'rw-27-mc-root-two-in-choice-sizes'];
+const MC_ROOT_OTHER = ['c79-10-hdr-root', 'c79-11-ftr-root', 'c79-12-footnotes-root', 'c79-13-endnotes-root', 'c79-14-comments-root',
+  'c79-15-styles-root', 'c79-16-numbering-root', 'c79-17-settings-root', 'c79-18-hdr-root-unknown-choice'];
 
 const bytesOf = (name) => new Uint8Array(readFileSync(join(dir, name)));
 const norm = (text) => text.replace(/\s+/g, ' ').trim();
@@ -57,7 +62,7 @@ const run = (text) => `<w:r><w:t>${text}</w:t></w:r>`;
 test('CR-028 D11: the files are as the manifest has them, and the table names every one', () => {
   for (const f of manifest.files) assert.equal(createHash('sha1').update(bytesOf(f.name)).digest('hex'), f.sha1, f.name);
   const stems = Object.keys(manifest.stems).filter((s) => s !== 'rq-00-control').sort();
-  assert.deepEqual([...READ, ...REFUSED, ...Object.keys(EMPTY)].sort(), stems);
+  assert.deepEqual([...READ, ...REFUSED, ...Object.keys(EMPTY), ...MC_ROOT, ...MC_ROOT_OTHER].sort(), stems);
   // the statement follows Word: each refused root is one Word refused, and each other one Word opened
   for (const s of REFUSED) assert.equal(manifest.stems[s].word, 'refused', s);
   for (const s of [...READ, ...Object.keys(EMPTY)]) assert.notEqual(manifest.stems[s].word, 'refused', s);
@@ -206,4 +211,29 @@ test('CR-028 D11: mc:AlternateContent as the root is REQ-317\'s, and left as it 
   const before = doc.documentElement;
   assert.deepEqual(readMainPartRoot(doc, '/word/document.xml'), []);
   assert.equal(doc.documentElement, before);
+});
+
+test('CR-028 D10: mc:AlternateContent as the main part\'s root loads by both routes, a write through Body refused, a save keeping every word', async () => {
+  const words = (xml) => [...xml.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).sort();
+  for (const stem of MC_ROOT) {
+    const source = bytesOf(`${stem}.docx`);
+    for (const options of ROUTES) {
+      const pkg = await load(source, options);
+      // REQ-317 reads the branch as the document; that isn't built, so nothing reads, and nothing can be written to go nowhere
+      assert.equal((await textOf(pkg)).text, '', `${stem} ${JSON.stringify(options)}`);
+      assert.throws(() => pkg.body, (e) => e instanceof Docx4JException && /REQ-317/.test(e.message), stem);
+      assert.deepEqual(words(mainXml(await pkg.save())), words(mainXml(source)), `${stem}: every word kept`);
+    }
+    // what REQ-317 would read: Word shows the branch's words in all but rw-24, where nothing is selected
+    assert.equal((await textOf(await load(bytesOf(`${stem}-word365.docx`)))).text === '', stem === 'rw-24-mc-root-nothing-selected', stem);
+  }
+});
+
+test('CR-028 D10: a resolving load leaves mc:AlternateContent at another part\'s root whole, and reads as the kept load does', async () => {
+  for (const stem of MC_ROOT_OTHER) {
+    const kept = await textOf(await load(bytesOf(`${stem}.docx`)));
+    const resolved = await textOf(await load(bytesOf(`${stem}.docx`), { mcePreprocess: true }));
+    assert.equal(resolved.text, kept.text, stem);
+    assert.notEqual(kept.text, '', stem);
+  }
 });
