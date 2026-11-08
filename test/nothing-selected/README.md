@@ -9,5 +9,6 @@ runs agreeing. `<name>.txt` is Word's text save and `<name>.word.docx` Word's sa
 - `c305-*`: block and run level, namespaces Word knows and doesn't.
 - `rw-24`, `rw-25`: an unknown namespace at the root and in a body.
 - `te-*`: what a removal leaves. `te-00` is the control. `te-01` to `te-05` hold the element, and `te-11` to `te-15` are docx4j-python's `word`-mode saves of them with it taken out. A `w:tc` left with no block is repaired, a `w:tr` left with no cell refused (no save), and a `w:tbl` left with no row dropped silently.
+- `cp-*`: the `cell-paragraph` round (CR-029 section 12, D9): what Word's repair writes in a `w:tc` with no block, under no styles part, single and wide document defaults, a wide Normal style and a table style with spacing of its own, and two cells opened silently for the height. These hold no `mc:AlternateContent`.
 
-Every file is Choice-only, in a main document part, on one Word build.
+Every other file is Choice-only, in a main document part, on one Word build.

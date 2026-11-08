@@ -334,8 +334,10 @@ function undeclaredPrefix(prefixes: string[], partName: string | undefined): McU
 }
 
 /**
- * A `w:tc` left with no block gets an empty `w:p` (CR-029 D4): Word repairs a cell with none (`te-01` to `te-03`), and opens this
- * silently. Word's repair also writes `w:spacing` on its paragraph, which this leaves out, as docx4j-python's does.
+ * A `w:tc` left with no block gets the paragraph Word's repair gives a cell with none (CR-029 D4 and D9): single-spaced with no
+ * space after, `w:spacing w:after="0" w:line="240" w:lineRule="auto"`, whatever the document's defaults, its Normal style or a
+ * table style say (the `cell-paragraph` round). Word writes no spacing where the paragraph already reads so (`cp-02`); there the
+ * element changes nothing drawn. Word repairs such a cell on open (`te-01` to `te-03`), and opens this silently.
  */
 function keepACellsParagraph(node: Node): void {
   if (node.nodeType !== 1) return;
@@ -344,7 +346,15 @@ function keepACellsParagraph(node: Node): void {
   for (let c = cell.firstChild; c; c = c.nextSibling) {
     if (c.nodeType === 1 && (c as Element).localName !== 'tcPr') return;
   }
-  cell.appendChild(cell.ownerDocument.createElementNS(W, cell.prefix ? `${cell.prefix}:p` : 'p'));
+  const doc = cell.ownerDocument;
+  const name = (local: string): string => (cell.prefix ? `${cell.prefix}:${local}` : local);
+  const spacing = doc.createElementNS(W, name('spacing'));
+  for (const [attribute, value] of [['after', '0'], ['line', '240'], ['lineRule', 'auto']] as const) spacing.setAttributeNS(W, name(attribute), value);
+  const pPr = doc.createElementNS(W, name('pPr'));
+  pPr.appendChild(spacing);
+  const p = doc.createElementNS(W, name('p'));
+  p.appendChild(pPr);
+  cell.appendChild(p);
 }
 
 function isAlternateContent(el: Element): boolean {

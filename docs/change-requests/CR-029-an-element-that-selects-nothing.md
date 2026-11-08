@@ -1,6 +1,6 @@
 # CR-029: An `mc:AlternateContent` that selects nothing, read as Word reads it (WD REQ-305 and REQ-306)
 
-**Status:** Proposed 2026-11-07, at Jason's "draft CR-029", on his rulings in the WD: "REQ-305 itself changes for all three engines", "selecting nothing should raise a warning" and "two sets". Measured here the same day (section 2), Word's `te-*` saves read here. D1 to D8 decided the same day, all as recommended (Jason: "CR-029's decisions: D1 to D8 as recommended. Please implement"). Implemented 2026-11-07 against the objects release candidate (section 11), and committed with the raise to objects 0.8.0 on 2026-11-08 (Jason: "raise"), unreleased. docx4j built its side at `06628f550` and `af26a5f78`, and docx4j-python as its CR-040, complete. The objects package's CR-021 (`a7c4ac8`, released in 0.8.0) does the selecting.
+**Status:** Proposed 2026-11-07, at Jason's "draft CR-029", on his rulings in the WD: "REQ-305 itself changes for all three engines", "selecting nothing should raise a warning" and "two sets". Measured here the same day (section 2), Word's `te-*` saves read here. D1 to D8 decided the same day, all as recommended (Jason: "CR-029's decisions: D1 to D8 as recommended. Please implement"). Implemented 2026-11-07 against the objects release candidate (section 11), and committed with the raise to objects 0.8.0 on 2026-11-08 (Jason: "raise"), unreleased. docx4j built its side at `06628f550` and `af26a5f78`, and docx4j-python as its CR-040, complete. The objects package's CR-021 (`a7c4ac8`, released in 0.8.0) does the selecting. D9, raised 2026-11-08 by the `cell-paragraph` round (section 12), decided the same day (Jason: "D9: always write Word's spacing on the cell paragraph") and built, uncommitted.
 
 ## 0. Summary
 
@@ -125,7 +125,7 @@ The default load is unchanged: the element stays in the tree with every branch, 
 
 ### 3.4 A cell left with no block (D4)
 
-Where the removal leaves a `w:tc` with no block, the pass writes an empty `w:p`, as python's `_keep_a_paragraph` does. Word's repair writes a paragraph there too, with `w:spacing` on it (`w:after="0" w:line="240" w:lineRule="auto"`), which this leaves out. Word repairs such a cell whether or not a removal made it, and python's save of that form opens silently where the source prompts (its section 8.2a, CR-039 section 9.7). A `w:tr` with no cell is left: Word refused the source too. An empty `w:tbl` is left: Word drops it silently.
+Where the removal leaves a `w:tc` with no block, the pass writes the paragraph Word's repair writes there: `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on it, whatever the document's defaults say (D9, section 12). D4 first wrote a plain `w:p`, as python's `_keep_a_paragraph` does. Word repairs such a cell whether or not a removal made it, and python's save of that form opens silently where the source prompts (its section 8.2a, CR-039 section 9.7). A `w:tr` with no cell is left: Word refused the source too. An empty `w:tbl` is left: Word drops it silently.
 
 A kept load writes what it read, so it saves the shape Word repairs, as the source is.
 
@@ -166,6 +166,7 @@ A kept load writes what it read, so it saves the shape Word repairs, as the sour
 | D6 | If a resolved round trip of a new namespace loses content (section 3.2)? | Report it, and leave the set as the WD has it: REQ-306 requires the namespace, and `mcePreprocess` is an opt-in. A binding gap goes to the objects package. The alternative is holding that namespace back from the pass alone, which breaks REQ-306 |
 | D7 | Does the warning reach `pkg.warnings` and a resolved load? | Yes to both. docx4j raises it in both modes and REQ-305's MUST has no exception. Python's `mce_preprocess` stays silent (its Q3), but only because it has no record, and this pass has one. The alternative is the text model's kept reading alone |
 | D8 | A Word check of resolved saves, as python's section 8.4? | Yes, in phase 3, through the bridge, on Jason's word: this package's `mcePreprocess: true` saves of the round's files, each held to Word's reading of its source. It's the only check that such a save opens silently |
+| D9 | Raised by D8's check and the `cell-paragraph` round (section 12): should the paragraph D4 puts in an emptied cell carry Word's spacing? | **Decided** (Jason, 2026-11-08: "D9: always write Word's spacing on the cell paragraph"), and built. `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on it, always. Word's repair writes exactly that wherever the paragraph would otherwise read differently, and the cell then renders as Word's. Without it the cell grows by the document's spacing, 32.6pt in `cp-11`. Where the defaults already read so (`cp-02`) Word writes none, and the extra element there changes nothing drawn. docx4j-python should move with this package. |
 
 ## 6. Phases and size
 
@@ -244,4 +245,27 @@ Jason, 2026-11-07: "CR-029's decisions: D1 to D8 as recommended. Please implemen
 
 **The raise (2026-11-08, Jason: "raise").** Objects 0.8.0 is out (tag `0.8.0`, `d62959e`, which is `9a2a945` and its version line), with `@docx4j/jsonix` locked at 3.13.0. The published tarball differs from the pack tested before its release only in that line. Typecheck passes, and 1,917 of 1,917 on Node 18.20.8, 20.20.2 and 22.23.4, the first run of this CR on 18 and 20. All 1,224 files read for the comparison save the same on the published tarball as on that pack. `CLAUDE.md`'s floor sentence and CR-026 phase 3's records go with this commit. The editor was told first, and has nothing to hold: its callers handle `undefined`, and `alternate-content.test.mts:134` to `:136` move when it installs 0.7.0.
 
-The cell paragraph stays the plain `w:p` D4 decided. Word's repair writes `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on it (`te-01` to `te-03`, sources with no styles part, against the after 160, line 278 Word gives them), and whether to copy that is with Jason.
+The cell paragraph went in as the plain `w:p` D4 decided. Word's repair writes `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on it, and the `cell-paragraph` round (section 12) showed that spacing fixed, so D9 writes it.
+
+## 12. The `cell-paragraph` round (2026-11-08)
+
+Jason, 2026-11-08: "Cell paragraph: let's do the small Word round". D8's check found that Word's repair of a `w:tc` with no block (`te-01` to `te-03`) puts `w:spacing w:after="0" w:line="240" w:lineRule="auto"` on the paragraph it adds, where D4's is a plain `w:p`. Those sources had no styles part, so the question was whether that spacing is fixed or taken from the document. Eight files, each a one-cell table between BEFORE and AFTER, each opened twice through the bridge (Word 16.0.20326.20232, bridge `4dcb436`), the two runs alike in every file. The portfolio's two controls ran silently too. Word's saves and PDFs are in the share's `bridge/portfolio/cp-*`. AFTER's top is read from each PDF in points (`pdftotext -bbox`).
+
+| File | Holds | Word | The paragraph Word's save holds in the cell | AFTER |
+|---|---|---|---|---|
+| `cp-00` | The cell holding words; no styles part | Silent | As written | 121.98 |
+| `cp-01` | An empty cell; no styles part | Repaired | `w:spacing w:after="0" w:line="240" w:lineRule="auto"` | 111.66 |
+| `cp-02` | The same; document defaults after 0, line 240 | Repaired | A plain `w:p` | 97.70 |
+| `cp-03` | The same; defaults after 400, line 480 | Repaired | `w:spacing w:after="0" w:line="240" w:lineRule="auto"` | 130.37 |
+| `cp-04` | The same; no default spacing, Normal after 300, line 360 | Repaired | The same spacing | 119.09 |
+| `cp-05` | `cp-03`'s defaults, and a table style of after 120, line 300 | Repaired | The same spacing | 131.57 |
+| `cp-11` | `cp-03`'s defaults; the cell holding a plain `w:p`, as D4 writes | Silent | As written | 163.01 |
+| `cp-12` | `cp-03`'s defaults; the cell holding `cp-03`'s spaced `w:p` | Silent | As written | 130.37 |
+
+- **The spacing is fixed, not taken from the document.** Word writes after 0, line 240 (single) whatever the defaults, the Normal style or the table style say. It writes nothing where the paragraph already reads so (`cp-02`), so the rule is that the paragraph reads single-spaced with no space after.
+- **It shows.** With wide defaults, D4's plain `w:p` makes the row 32.6pt taller than Word's repair (`cp-11` against `cp-03`). Word's spaced paragraph, opened silently, stands exactly where Word's repair does (`cp-12`). `cp-05`'s extra 1.2pt is its table style's borders.
+- **Not measured:** `w:before` and `w:contextualSpacing` in the defaults, and a plain `w:p` in a package with no styles part on its own (`te-01`'s row takes its height from the other cell, and Word's `te-*` jobs saved no PDF). By the same rule a plain `w:p` there would take Word's defaults, after 160 and line 278, and stand as `cp-00`'s cell of words does, about 10pt below `cp-01`. That is inferred.
+
+So D9 asked whether to write that spacing. Always writing it renders as Word in every case measured, and differs from Word's markup only where the defaults already read so (`cp-02`). Matching that too would need the effective spacing in a DOM pass that runs before the styles part is read.
+
+**Built (2026-11-08, D9).** `keepACellsParagraph` writes the spacing. `test/nothing-selected/` holds the round's sources and Word's saves (`cp-*`, its `-a` run, with the manifest's SHA-1s). `nothing-selected.test.mjs` holds Word's repaired paragraph to that spacing in every repaired file but `cp-02`, and the paragraph the pass writes in `te-01` to `te-03` to Word's save of each.

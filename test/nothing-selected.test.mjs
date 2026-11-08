@@ -51,7 +51,7 @@ const docx = (inner, { ns = 'xmlns:z="urn:docx4j:z"', extra = [], rels = '', typ
 
 test("CR-029: the rounds are as the manifest has them", () => {
   for (const f of manifest.files) assert.equal(createHash('sha1').update(bytesOf(f.name)).digest('hex'), f.sha1, f.name);
-  assert.deepEqual(Object.fromEntries(Object.entries(manifest.rounds).map(([k, v]) => [k, v.length])), { ul: 119, uc: 13, c305: 9, rw: 2, te: 11 });
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.rounds).map(([k, v]) => [k, v.length])), { ul: 119, uc: 13, c305: 9, rw: 2, te: 11, cp: 8 });
 });
 
 test("CR-029: Word's 142 files read as Word's text by both loads, and the warning stands exactly where Word shows neither branch", async () => {
@@ -94,6 +94,21 @@ test('CR-029: at a root (rw-24) the element stays, reads empty as Word shows it,
   }
 });
 
+// each cell's first paragraph's w:pPr, as written; '' for a paragraph with none
+const cellPPr = (xml) => [...xml.matchAll(/<w:tc\b[^>]*>(.*?)<\/w:tc>/gs)]
+  .map((m) => (m[1].match(/<w:p(?:\s[^>]*?)?(?:\/>|>.*?<\/w:p>)/s)?.[0] ?? '').match(/<w:pPr>.*?<\/w:pPr>/s)?.[0] ?? '');
+
+test('CR-029 D9: Word\'s repair gives an empty cell the same single-spaced paragraph whatever the document says, and the pass writes it', async () => {
+  const SPACED = '<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>';
+  // the cell-paragraph round: no styles part, wide defaults, a wide Normal style, a table style of its own; none where the defaults already read so
+  const repaired = { 'cp-01-empty-no-styles': SPACED, 'cp-02-empty-defaults-single': '', 'cp-03-empty-defaults-wide': SPACED,
+    'cp-04-empty-normal-wide': SPACED, 'cp-05-empty-table-style': SPACED };
+  for (const [stem, pPr] of Object.entries(repaired)) assert.deepEqual(cellPPr(documentOf(bytesOf(`${stem}.word.docx`))), [pPr], stem);
+  // what the pass writes, read back as the save writes it, is that paragraph
+  const { pkg } = await read(bytesOf('te-01-tc-only.docx'), RESOLVED);
+  assert.equal(cellPPr(documentOf(await pkg.save()))[0], SPACED);
+});
+
 test('CR-029: what a removal leaves (the tc-empty round): a cell gets a paragraph, as in Word\'s repaired save; a row and a table are left', async () => {
   for (const stem of ['te-01-tc-only', 'te-02-tc-only-one-cell', 'te-03-tc-no-branch']) {
     const { pkg } = await read(bytesOf(`${stem}.docx`), RESOLVED);
@@ -103,6 +118,8 @@ test('CR-029: what a removal leaves (the tc-empty round): a cell gets a paragrap
     const cells = (s) => [...s.matchAll(/<w:tc\b[^>]*>(.*?)<\/w:tc>/gs)].map((m) => /<w:p\b/.test(m[1]));
     assert.deepEqual(cells(xml), cells(word), `${stem}: a paragraph in every cell, as Word's save has`);
     assert.ok(cells(xml).every(Boolean));
+    // and the paragraph Word's repair gives it, single-spaced with no space after (D9)
+    assert.deepEqual(cellPPr(xml), cellPPr(word), `${stem}: the cell's paragraph properties, as Word's save has them`);
   }
   // an element with no branch at all: no Choice, so no warning (REQ-305 names Choices), and its cell is kept too
   assert.deepEqual(nothing((await read(bytesOf('te-03-tc-no-branch.docx'), RESOLVED)).result), []);

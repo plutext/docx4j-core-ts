@@ -275,7 +275,7 @@ Key mechanics:
   raises its own at the element's address, and carries a record with no address for what its walk can't meet, an
   element a resolving load took out or one at a root). `mcePreprocess: true` resolves on the DOM before unmarshalling
   instead, as Word does on open, by the same set: it removes an element that selects nothing, a `w:tc` left with no block
-  getting an empty `w:p`, which Word opens silently where it repairs a cell with none, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the
+  getting the paragraph Word's repair gives one, single-spaced with no space after (CR-029 D9), which Word opens silently, but keeps the element under `KEPT_HOSTS` (`c:chartSpace`, the
   SpreadsheetML workbook), at a part's root (CR-028's), and in a part that isn't word-processing (CR-029 D3). Since objects 0.4.0 a kept branch's `w:drawing` and
   `w:pict` are typed (objects CR-009, CR-010 phase 2); the `xdr:` and `p:` drawing content, a
   worksheet's `x:controls` and `c:style` inside one stay DOM, so `worksheet.controls` is typed only

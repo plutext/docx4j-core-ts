@@ -1,6 +1,6 @@
 {
  "probe": "WD REQ-305's rounds: an mc:AlternateContent with Choices, none understood, and no Fallback (CR-029 section 1)",
- "source": "the share's bridge/portfolio/, each file's first run (-a), copied unedited; understood-list.index.tsv from bridge/staging/",
+ "source": "the share's bridge/portfolio/, each file's first run (-a), copied unedited; understood-list.index.tsv from bridge/staging/; the cp-* round's sources and saves likewise, from its -a run",
  "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs agreeing, November 2026",
  "rounds": {
   "ul": [
@@ -166,6 +166,16 @@
    "te-13-tc-no-branch-saved",
    "te-14-tr-only-saved",
    "te-15-tbl-only-saved"
+  ],
+  "cp": [
+   "cp-00-control-words",
+   "cp-01-empty-no-styles",
+   "cp-02-empty-defaults-single",
+   "cp-03-empty-defaults-wide",
+   "cp-04-empty-normal-wide",
+   "cp-05-empty-table-style",
+   "cp-11-plain-p-defaults-wide",
+   "cp-12-spaced-p-defaults-wide"
   ]
  },
  "files": [
@@ -1440,6 +1450,102 @@
   {
    "name": "understood-list.index.tsv",
    "sha1": "4de8f499c26a761433399476a052cbcde5fb49ce"
+  },
+  {
+   "name": "cp-00-control-words.docx",
+   "sha1": "6f1914c652f954db3f3cc32a803b1a09d4eff2da"
+  },
+  {
+   "name": "cp-00-control-words.txt",
+   "sha1": "d7c2672448802a964d324e3c34915856001b1f6d"
+  },
+  {
+   "name": "cp-00-control-words.word.docx",
+   "sha1": "696f7b4a60de3088ab58782328d65c65ad84a980"
+  },
+  {
+   "name": "cp-01-empty-no-styles.docx",
+   "sha1": "268c5b2759d718a807e7c1b1f56981f357196b5c"
+  },
+  {
+   "name": "cp-01-empty-no-styles.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-01-empty-no-styles.word.docx",
+   "sha1": "fa9999d484decc1cbdbcb51309d407e85b2e66c4"
+  },
+  {
+   "name": "cp-02-empty-defaults-single.docx",
+   "sha1": "2c0287017a13994ea3059d44a0c46b86fc4d69ff"
+  },
+  {
+   "name": "cp-02-empty-defaults-single.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-02-empty-defaults-single.word.docx",
+   "sha1": "9aedd5f9e8e163920aed78a5e7d8a4a74d0f2605"
+  },
+  {
+   "name": "cp-03-empty-defaults-wide.docx",
+   "sha1": "f6cae48899fbb05d90ba4e7a2ef794e1bf241172"
+  },
+  {
+   "name": "cp-03-empty-defaults-wide.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-03-empty-defaults-wide.word.docx",
+   "sha1": "19522a081b04d541c0e2e91acfe3f9548fd9bf3f"
+  },
+  {
+   "name": "cp-04-empty-normal-wide.docx",
+   "sha1": "069599e2a0aef00c00e481b431b5852d4a327222"
+  },
+  {
+   "name": "cp-04-empty-normal-wide.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-04-empty-normal-wide.word.docx",
+   "sha1": "4d6410bfa0ca4593200f8dfc777aa6ef1b7df01c"
+  },
+  {
+   "name": "cp-05-empty-table-style.docx",
+   "sha1": "00de11c9e610541621373e15f5923f74f5c733e6"
+  },
+  {
+   "name": "cp-05-empty-table-style.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-05-empty-table-style.word.docx",
+   "sha1": "caebaa24041a036b8032ae0ee0a599c54a99b20e"
+  },
+  {
+   "name": "cp-11-plain-p-defaults-wide.docx",
+   "sha1": "ed94d3d99eb0f7bc6cd31da3472f710ff96569e1"
+  },
+  {
+   "name": "cp-11-plain-p-defaults-wide.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-11-plain-p-defaults-wide.word.docx",
+   "sha1": "b29dc256fddefb3698d2c9ad79d150d36254f9c3"
+  },
+  {
+   "name": "cp-12-spaced-p-defaults-wide.docx",
+   "sha1": "9dc21d3aff0c679d2551a9e945160833af8fb4c0"
+  },
+  {
+   "name": "cp-12-spaced-p-defaults-wide.txt",
+   "sha1": "45df635260e3ff0ba573824bebd2fc776f745e8a"
+  },
+  {
+   "name": "cp-12-spaced-p-defaults-wide.word.docx",
+   "sha1": "4a01eee6498a47ab31924033914b877a8ab40365"
   }
  ]
 }
