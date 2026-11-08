@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
 recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
-shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Implemented 2026-11-06, phases 1 to 3 (sections 2.8 to 2.10), unreleased. CR-026 depends on this CR.
+shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Implemented 2026-11-06, phases 1 to 3 (sections 2.8 to 2.10), unreleased. CR-026 depends on this CR. Section 8, a follow-up proposed 2026-11-08 (Jason: "rn-06/rn-07: CR-025 follow-up"): a relationships part in a wrong namespace, which loses parts past this CR's report and gate. D10 to D13 for Jason, nothing built.
 
 ## 0. Summary
 
@@ -255,6 +255,7 @@ the new types. The oracle for the fields is python's `SkippedNode` output on the
 | 1 | 2.1: the report | ½ day |
 | 2 | 2.2 and 2.3: the unchanged test, the gate, `checkLossOnSave` | 1 day |
 | 3 | The records: CHANGELOG, CLAUDE.md's key mechanics, `test/README.md`, the index | ¼ day |
+| 4 | Section 8, proposed: a relationships part in a wrong namespace refused | ¼ day |
 
 No dependency on another repository. Phase 1 is additive and could ship alone.
 
@@ -287,3 +288,60 @@ P4 are the portfolio's. Done follows phase 3's commit.
 - Portfolio: `repair_policy_across_ports.md` (R1, R4, P4, P7), `broken_producer_repairs_across_ports.md` section 2 row 3,
   `benchmarking.md`.
 - `test/README.md` check 36; CR-016; CR-023 section 1.
+
+## 8. Follow-up: a relationships part in a wrong namespace (proposed 2026-11-08)
+
+Jason, 2026-11-08: "rn-06/rn-07: CR-025 follow-up". Nothing is built, and D10 to D13 are his.
+
+### 8.1 Measured
+
+The portfolio's `rels-namespace` round (`rn-*`, 10 files, each opened twice, the runs equal, Word 16.0.20326.20232; docx4j's probes, in its `package-wiring/`), each file read here on 2026-11-08, on CR-029's working tree over `e202c4c`:
+
+| File | In a wrong namespace | Word | Here |
+|---|---|---|---|
+| `rn-00`, `rn-01` | Nothing: the controls | Silent | Reads, and a save keeps every entry |
+| `rn-02`, `rn-03` | A part's root and its children | Repaired, every `Relationship` read | Refused, `PartUnmarshalException` |
+| `rn-04` | The same, in no namespace | The same | The same |
+| `rn-05` | Its root alone | The same | The same |
+| `rn-06` | Every `Relationship`, under a right root | The same | **Loads, `pkg.warnings` empty, and a save goes from 6 entries to 3** |
+| `rn-07` | One `Relationship` | The same | **Loads, `pkg.warnings` empty, and a save goes from 6 entries to 5** |
+| `rn-09` | `_rels/.rels` | The same | Refused, `PartUnmarshalException` |
+
+`rn-08`, with no relationships part at all, is an orphan's case and not this section's: Word loses the header, the style and the note there too.
+
+In `rn-06` and `rn-07` the read is wrong as well as the save. `pkg.parts` holds 1 and 2 of the control's 3, since what the lost relationships name was never loaded.
+
+This is a loss of this CR's kind that neither its report nor its gate sees. Each `x:Relationship` is a `part.skipped` on the relationships part, but `pkg.warnings` gathers `pkg.parts`, which holds no relationships part, and `settleLosses` visits parts and never one of these. Widening the report and the gate wouldn't mend it. Copying the relationships part unchanged would keep a relationship to a part the walk never reached, so the save would name a part it doesn't hold. The fix belongs in the read.
+
+The corpus: 2,141 packages, 5,770 relationships parts, 21,581 relationships (this repository's `test/` and docx4j's test resources). Outside the `rn-*` probes none holds a wrong namespace. None holds a child other than `Relationship`, or an attribute other than `Id`, `Type`, `Target` and `TargetMode`.
+
+Elsewhere:
+
+- **The WD**, its NOTE of 7 November: the repair tier. A default refusal fits, and under a repair switch the reading is all the relationships by local name, not none and not a prefix. A wrong local name is unmeasured. WD 0.102 (`4c81f10`, REQ-207) names that switch: the reading is `repair: word`'s, beside REQ-206's first copy and the last of several main parts.
+- **docx4j** (`598fe9212`, CR-075; Jason in its session: "Wrong-namespace relationships: build the fix as recommended"): refused, naming the part. Under `RepairMode.WORD` every `Relationship` is read by its local name, recorded as `package.relationships_namespace`, selector the part, `detail` how many, and a save writes the right namespace with nothing lost.
+- **docx4j-python** (`6ed4b9a`, CR-031): refused, on the root or a child. Its CR-031 says a repair switch would read them all; that isn't built.
+
+### 8.2 Proposal
+
+The check runs at the load, ahead of unmarshalling, at the two places a relationships part is read from a store: `loadPackage` and the walk. A part is in a wrong namespace if its root's local name is `Relationships` and the root, or any child whose local name is `Relationship`, has another namespace or none.
+
+- **By default it's refused.** `RelationshipsNamespaceException`, an `InvalidFormatException`, with `code` `package.relationships_namespace` and `partName`, the message naming the part. It replaces `PartUnmarshalException` for `rn-02` to `rn-05` and `rn-09`, and is new for `rn-06` and `rn-07`.
+- **Under `repair: 'word'`, once this package has it (D11),** every `Relationship` is read by its local name, and the walk goes on as for any part. `RelationshipsNamespaceWarning` (`code`, `partName`, `count`, the relationships read, `message`) goes on `pkg.relationshipsNamespaces` and on `pkg.warnings`, after any `MultipleMainPartsWarning` and ahead of the parts' warnings. The text model raises `TextWarning.PACKAGE_RELATIONSHIPS_NAMESPACE`, selector the part, `detail` the count. A save writes the right namespace with nothing lost, so the gate has nothing to refuse.
+- **Left as they are:** a root with another local name, which fails as today, and a child with another local name, a `part.skipped` on the relationships part (D12). Word is unmeasured on both. A part that isn't well formed is refused as today.
+
+The CHANGELOG line, for the release's notes:
+
+- Changed: a relationships part in a wrong namespace, on its root or any `Relationship`, is refused at the load, naming it (`RelationshipsNamespaceException`). One holding a `Relationship` in a wrong namespace used to load, and a save lost what it named.
+
+### 8.3 Tests and oracles
+
+docx4j's `rn-*` files and Word's saves copied unedited into `test/package-wiring/` with their SHA-1s, at `598fe9212`. Each form refused, naming the part, `_rels/.rels` and flat OPC too, the controls silent, and the mutants. With the reading (D11), each read as its control: the parts, the text, the warning and its count, and a save holding every entry with every relationship in the right namespace.
+
+### 8.4 Decisions
+
+| | Question | Recommendation |
+|---|---|---|
+| D10 | Refuse by default, or read such a part without the switch? | Refuse, as docx4j and python do, and as the WD's NOTE says fits: Word reads it only through a repair. A package like `rn-06` that loads today stops loading, and the corpus holds none |
+| D11 | Which switch? This section first said `duplicateEntries: 'first'`, but WD 0.102 (REQ-207) puts the reading under `repair: word`, a load option this package doesn't have | Build the refusal here, which is what stops the loss, and leave the reading to a CR of its own for `repair`, now CR-031 (REQ-207, REQ-208, `repaired`, `package.external_main_part` at `all`), whose D5 builds the two together. Until then such a file is refused with no way past it. Reading it under `duplicateEntries: 'first'` meanwhile would ship a spelling the WD doesn't give it, which would have to move |
+| D12 | A relationships part's other `part.skipped`, a child of another local name or an unmapped attribute: report it? | Report it on `pkg.warnings`, which closes the gap section 8.1 found, and leave it out of the gate. It names no part, docx4j and python ignore it, and a relationships part is always re-marshalled, so a gate would refuse every save of such a package. The corpus holds none |
+| D13 | Which release? | 0.7.0. It needs nothing from another repository, and it mends a silent loss of parts |

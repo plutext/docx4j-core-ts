@@ -263,7 +263,7 @@ The flat OPC route reads through `getContents`, so it takes the root pass and se
 
 | | Question | Recommendation |
 |---|---|---|
-| D1 | When? | **Decided** (Jason, 2026-11-06): after 0.7.0, and it may be deferred indefinitely |
+| D1 | When? | **Decided** (Jason, 2026-11-06): after 0.7.0, and it may be deferred indefinitely. D10 and D11 went on main ahead of it at `b2a3c04`, and so go in 0.7.0 (Jason, 2026-11-08: "the commit on main is ok, in spite of CR-028's D1; just make a note there"; section 11) |
 | D2 | Which route for section 3.2? (a) A DOM pass here, with its own list of what is single-valued. (b) Find the pairs and report, reading as today: the gate then refuses a changed part, but the read stays short of Word's. (c) The objects package's CR-022, reading through jsonix 3.13.0's callback, with only section 3.1's root pass here | (c). This was (a) until section 1.5 made the rule general: the runtime knows what is single-valued, and one route serves every caller of the facade. It waits on the objects release holding CR-022 with its D6. CR-022's D5 asks the same question from its side. (a) needs no release, and is the fallback if CR-022 doesn't come |
 | D3 | A branch not taken, at a save? docx4j's D4 writes an ordinary `w:document` and the branch goes, as Word's save does | Through CR-025's gate: a part unchanged is copied with its root, one changed is refused unless `pkg.checkLossOnSave` is false, when it is written as Word's save writes it. Keeping every branch, as CR-010 does in a body, would mean every reader starting inside a branch |
 | D4 | Nothing selected at the root (`rw-24`)? Word shows an empty document, and so does WD 0.97's REQ-317 | As Word, an empty document, each branch reported, as docx4j's D2, with `mce.nothing_selected` as WD 0.98's REQ-305 has it at a root. Whether it gets Word's default `w:sectPr` waits on phase 0. The body's case is section 4's |
@@ -328,7 +328,7 @@ About a day and a half with phase 0 by D2's (a), and less here by (c), which nee
 
 ## 11. Another root in the main part, built (2026-11-08)
 
-Jason, 2026-11-08: "REQ-318 to REQ-320 and REQ-323 as recommended". That is D11 as recommended, with D10's refusal of a write on the roots REQ-320 names, built ahead of the rest of this CR, which D1 still puts after 0.7.0. The statement is WD 0.103's (portfolio `eceabd6`), which adds to WD 0.97's from docx4j's `cr079-root-questions` round (`rq-*`): a run-level `w:sdt` in an unknown root, `w:sdtContent` holding a `w:tr` or a row-level `w:sdt`, and `w:txbxContent`, refused; a block `w:sdt`, and `mc:AlternateContent` in an unknown root, read. REQ-323 is CR-030.
+Jason, 2026-11-08: "REQ-318 to REQ-320 and REQ-323 as recommended". That is D11 as recommended, with D10's refusal of a write on the roots REQ-320 names, built ahead of the rest of this CR, which D1 still puts after 0.7.0. They go in 0.7.0, at Jason's word on D1. The statement is WD 0.103's (portfolio `eceabd6`), which adds to WD 0.97's from docx4j's `cr079-root-questions` round (`rq-*`): a run-level `w:sdt` in an unknown root, `w:sdtContent` holding a `w:tr` or a row-level `w:sdt`, and `w:txbxContent`, refused; a block `w:sdt`, and `mc:AlternateContent` in an unknown root, read. REQ-323 is CR-030.
 
 ### 11.1 What landed
 
