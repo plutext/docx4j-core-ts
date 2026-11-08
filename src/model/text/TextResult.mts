@@ -598,15 +598,25 @@ export class TextWarning {
    */
   static readonly PART_ABSENT = 'part.absent';
   /**
-   * A name the package's container holds more than one entry of, read from the first under `duplicateEntries: 'first'`
+   * A name the package's container holds more than one entry of, read from the first under `repair: 'word'`
    * (REQ-206, CR-024): no address, the entry as its first copy spells it the selector, the number of entries `detail`.
    */
   static readonly PACKAGE_DUPLICATE_ENTRY = 'package.duplicate_entry';
   /**
-   * A package with more than one officeDocument relationship, the last's target read under `duplicateEntries: 'first'`
+   * A package with more than one officeDocument relationship, the last's target read under `repair: 'word'`
    * (REQ-206's statement, CR-024 section 9): once a package, no address, that part's name the selector, the number of relationships `detail`.
    */
   static readonly PACKAGE_MULTIPLE_MAIN_PARTS = 'package.multiple_main_parts';
+  /**
+   * An `External` officeDocument relationship beside an internal one, dropped under `repair: 'all'`, a repair of this package's
+   * own (REQ-206's NOTE, CR-031): once a package, no address, the part read the selector, the first URL as written `detail`.
+   */
+  static readonly PACKAGE_EXTERNAL_MAIN_PART = 'package.external_main_part';
+  /**
+   * A relationships part in a wrong namespace, read by local name under `repair: 'word'` (REQ-801's NOTE, CR-031 section 2.3):
+   * once a part, no address, the relationships part's name the selector, the relationships read `detail`.
+   */
+  static readonly PACKAGE_RELATIONSHIPS_NAMESPACE = 'package.relationships_namespace';
   /** An image the `ImageDescriber` failed to describe (REQ-514). */
   static readonly IMAGE_NOT_DESCRIBED = 'image.not_described';
   /**
@@ -626,13 +636,15 @@ export class TextWarning {
     /**
      * For `content.not_read`, `part.not_read` and `part.absent`, the part's name; for `image.not_described`, the image part's; for `altchunk.not_expanded`,
      * the chunk's (`/word/afchunk.rtf`), so that a host can read it itself; for `paragraph.drop_cap_joined`, the part the
-     * paragraphs are in (`/word/document.xml`); for `package.multiple_main_parts`, the part read; for `mce.nothing_selected`,
+     * paragraphs are in (`/word/document.xml`); for `package.multiple_main_parts` and `package.external_main_part`, the part
+     * read; for `package.relationships_namespace`, the relationships part; for `mce.nothing_selected`,
      * the part holding the element.
      */
     readonly partName?: string,
     /**
      * What the kind says beyond its selector (REQ-801's `detail`): for `package.duplicate_entry`, the entries of the name; for
-     * `package.multiple_main_parts`, the relationships; for `mce.nothing_selected`, the namespaces required.
+     * `package.multiple_main_parts`, the relationships; for `package.external_main_part`, the first URL as written; for
+     * `package.relationships_namespace`, the relationships read; for `mce.nothing_selected`, the namespaces required.
      */
     readonly detail?: number | string,
   ) {}
@@ -668,6 +680,11 @@ export class TextWarning {
 export class TextResult {
   /** The metadata's key for the settings' `w:updateFields` (REQ-506, REQ-801): a boolean. */
   static readonly FIELDS_UPDATE_ON_OPEN = 'fields_update_on_open';
+  /**
+   * The metadata's key for what the load repaired (REQ-207, REQ-801; CR-031): `none`, `word` where only Word's repairs were
+   * followed, `own` where a repair of this package's own was made. docx4j `TextResult.REPAIRED`.
+   */
+  static readonly REPAIRED = 'repaired';
   /** The metadata's key for the core properties (REQ-515): each property's element name to its value. */
   static readonly CORE = 'core';
   /** The metadata's key for the application properties (REQ-515), the statistics left out. */
@@ -683,7 +700,7 @@ export class TextResult {
     /** The warnings raised (REQ-801), never with the document's text (REQ-802). */
     readonly warnings: readonly TextWarning[],
     /**
-     * The result's metadata (REQ-801, REQ-515), whatever the options: `fields_update_on_open`, and the
+     * The result's metadata (REQ-801, REQ-515), whatever the options: `fields_update_on_open`, `repaired` (REQ-207), and the
      * document properties under `core`, `app` and `custom`, each a record, present when the package has
      * that part. Property values are document text, in the text stream only under `metadata: true`.
      */

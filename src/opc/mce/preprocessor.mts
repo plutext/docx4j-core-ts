@@ -25,6 +25,7 @@ import { UNDERSTOOD_NAMESPACES } from './understood.mjs';
 import type { BrOutsideRunWarning } from '../repair/breaks.mjs';
 import type { UnexpectedRootWarning } from '../repair/mainRoot.mjs';
 import type { ContentSkippedWarning } from '../skipped.mjs';
+import type { RelationshipsNamespaceWarning } from '../exceptions.mjs';
 
 export const MCE_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -206,7 +207,7 @@ export interface MisplacedContentWarning {
 }
 
 /** A warning load records on a part. */
-export type PartWarning = McBranchesDifferWarning | McNothingSelectedWarning | McUndeclaredPrefixWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | UnexpectedRootWarning | ContentSkippedWarning;
+export type PartWarning = McBranchesDifferWarning | McNothingSelectedWarning | McUndeclaredPrefixWarning | ValueKeptWarning | ValueOutOfRangeWarning | MisplacedContentWarning | BrOutsideRunWarning | UnexpectedRootWarning | ContentSkippedWarning | RelationshipsNamespaceWarning;
 
 /**
  * What one pass over a DOM did. `kept` counts the elements it met and left whole; it doesn't enter a

@@ -392,6 +392,13 @@ export class Extractor {
     // more than one officeDocument relationship, the last's target read (REQ-206's statement, CR-024 section 9)
     const mainParts = this.trees.pkg?.multipleMainParts;
     if (mainParts) this.warn(new TextWarning(TextWarning.PACKAGE_MULTIPLE_MAIN_PARTS, undefined, undefined, undefined, mainParts.partName, mainParts.count));
+    // an External main relationship dropped, this package's own repair (REQ-206's NOTE, CR-031), and a relationships part read
+    // by local name (CR-031 section 2.3): the load's, so every reading says so
+    const external = this.trees.pkg?.externalMainPart;
+    if (external) this.warn(new TextWarning(TextWarning.PACKAGE_EXTERNAL_MAIN_PART, undefined, undefined, undefined, external.partName, external.urls[0]));
+    for (const r of this.trees.pkg?.relationshipsNamespaces ?? []) {
+      this.warn(new TextWarning(TextWarning.PACKAGE_RELATIONSHIPS_NAMESPACE, undefined, undefined, undefined, r.partName, r.count));
+    }
     const metadata = this.metadata();
     const main = this.trees.main;
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;
@@ -430,9 +437,12 @@ export class Extractor {
     return new TextResult(out, comments, this.warnings, metadata, this.options);
   }
 
-  /** The result's metadata: `fields_update_on_open` and the document properties (REQ-801, REQ-515). */
+  /** The result's metadata: `fields_update_on_open`, `repaired` and the document properties (REQ-801, REQ-207, REQ-515). */
   private metadata(): Record<string, unknown> {
-    const metadata: Record<string, unknown> = { [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen() };
+    const metadata: Record<string, unknown> = {
+      [TextResult.FIELDS_UPDATE_ON_OPEN]: this.fieldsUpdateOnOpen(),
+      [TextResult.REPAIRED]: this.trees.pkg?.repaired ?? 'none',
+    };
     Object.assign(metadata, this.trees.properties ?? {});
     // a properties part read for the metadata written (REQ-515), where it could not be read (WD 0.76)
     if (this.options.metadata) for (const role of ['core', 'app', 'custom'] as const) this.consult(role);

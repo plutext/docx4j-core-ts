@@ -1,6 +1,6 @@
 # CR-031: The `repair` option: how a load treats a file Word reads only through a repair, or won't open (WD REQ-207 and REQ-208)
 
-**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"); being built.
+**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"), and implemented the same day (section 8), D7's Word round silent; unreleased.
 
 ## 0. Summary
 
@@ -145,3 +145,38 @@ No dependency on another repository.
 - docx4j-python `e05291b`, `30eab21`: `LoadOptions(repair=)`, `ExternalMainPartException`; its CR-032.
 - The share's `bridge/portfolio/x-ext-*`.
 - CR-024 sections 9 and 9.2, CR-025 sections 2.4 and 8.
+
+## 8. As built (2026-11-09)
+
+Jason, 2026-11-09: "CR-031 decisions as now recommended. make the commits, then implement please". All three phases, on `c662e1d`.
+
+### 8.1 What landed
+
+- **The option.** `LoadOptions.repair` (`RepairMode`, `REPAIR_MODES` on `./opc`), `'refuse'` by default; any other value is refused, naming REQ-207. `LoadOptions.duplicateEntries` is gone (D1): `word` and `all` give CR-024's two readings, the first entry of each name and the last officeDocument relationship's target, with their warnings as before. `DuplicateEntryException`'s and `MultipleMainPartsException`'s messages name `{ repair: 'word' }`.
+- **`External` (D3, D4).** `externalMainPart` in `Load.mts` runs before CR-024's last-relationship rule, as docx4j's `oneMainPart` does, so at `refuse` a package holding two internal relationships and an `External` one is refused for the `External` one. Beside an internal one it throws `ExternalMainPartException` at `refuse` and `word`, `code` `package.external_main_part`, with python's fields, `urls` and `targets` (section 2.2 said `url`; python, which built first, has the plural). At `all` every `External` officeDocument relationship goes before anything is read: `pkg.externalMainPart` and `pkg.warnings` carry an `ExternalMainPartWarning` (`partName`, the part read, the last internal target; `urls`), and the text model `package.external_main_part`, selector the part, `detail` the first URL. Alone it's refused at every value, an `InvalidFormatException` naming the URL and REQ-321, where it loaded as a bare package.
+- **A relationships part in a wrong namespace (D5).** `RelationshipsPart.readsByLocalName`, which the load sets under `word` and `all` on the package's relationships part and each part's before they are read. `readRoot` then rebuilds the root and every `Relationship` in the relationships namespace under its local name, with its attributes and without its namespace declarations, and returns one `RelationshipsNamespaceWarning` (`partName`, `namespace` the first wrong one, `count` the relationships read, docx4j's `detail`). It's on the part's warnings, so on `pkg.warnings` (CR-025 D12's route), and `pkg.relationshipsNamespaces` lists them. The text model raises `package.relationships_namespace`, selector the part, `detail` the count. A save writes the right namespace, every part kept.
+- **`repaired` (section 2.4).** `pkg.repaired` and the text model's `metadata.repaired` (`TextResult.REPAIRED`): `own` where an `External` relationship was dropped, else `word` where a duplicated entry, several main relationships or a relationships part read by local name was recorded, else `none`. It's read from what the load recorded, as docx4j's `LoadFinding.repaired`.
+- **The saves (D6).** `repair` doesn't touch `checkLossOnSave` at any value.
+- **The text model.** `TextOptions.repair` by the WD's name, in `duplicate_entries`'s place in `TEXT_OPTION_NAMES` (the WD's table has the two side by side). `duplicate_entries` is refused at any value, `TextOptionError` with reason `not_implemented` and REQ-206, its message naming `repair: 'word'`. The suite's adapter passes `repair` to the load.
+- **The documentation.** README.md's "Repairs", the table of what each value does, as REQ-207 requires; CLAUDE.md; CR-024 section 10.
+
+### 8.2 Tests and oracles
+
+- `test/repair-option.test.mjs`, over `test/repair/`: the share's four `x-ext-*` files copied unedited with a SHA-1 manifest that records Word 365's eight opens, each a repair offered and then refused. Each file is refused at the default, `refuse` and `word`, naming the URL and the part, and read at `all` with the warning, `repaired: own`, the text model's warning and metadata, and a save holding no `External` relationship that loads at the default with nothing said. `repaired` is `none` at every value where nothing was repaired; `checkLossOnSave` stays on at every value; the text model takes `repair`.
+- `test/duplicate-entries.test.mjs`: CR-024's cases under `repair: 'word'`, the load's option refusing a value outside its three, `duplicate_entries` refused on `Texts.of`. Its `External` test, which held CR-024 section 9.2's silent reading, now holds D3 and D4: either order, beside one part and beside two, at each value, and alone at each value.
+- `test/relationships-namespace.test.mjs`: under `word` and `all`, each of docx4j's seven refused `rn-*` files reads as its control does, which is how Word's save of it reads. The warning has the part, the namespace and the count of `Relationship` elements in the source, once. `repaired` is `word`, in the text model too. The save keeps every entry of the source and writes no wrong namespace, and it loads at the default with nothing said. Flat OPC, and the controls, under `word`.
+- `test/text-parity.test.mjs`: the goldens, cut from docx4j 17.3.5, have no `repaired`, which came with 17.3.6. Where a golden lacks it, ours is held to `none` and left out of the comparison, so a recut from 17.3.6 compares it with no change here.
+- `test/repair-option.test.mjs` also holds D7's round (8.3): the parts of each save sent are what `repair: 'all'` writes now, Word opened each with no message in both runs, its text is the reading here, and its save loads at the default with nothing said.
+
+### 8.3 D7: Word's check of the saves `all` writes (2026-11-09)
+
+This package's `repair: 'all'` save of each of the four `x-ext` files, staged as `bridge/staging/core-ts-repair-all` and opened twice each through the bridge on 2026-11-09, 09:20 to 09:22, bridge `4dcb436`, Word 16.0.20326.20232. The portfolio checked the round's hashes and wiring before it ran, and added its control (`ctra-control-a`, `-b`), with any dialog stopping the run. All ten jobs opened with no message, no hang and no Disabled Items entry. Word's text of every save is `DOCUMENT`, which is this package's reading of the source under `all` and of the save at the default. So each save `all` writes opens in Word with no prompt, as docx4j's and python's did in `repair-all-saves`. The saves, Word's saves and Word's text are in `test/repair/` with the manifest.
+
+
+### 8.4 Measured
+
+Across 2,611 packages (this repository's `test/` and docx4j's test resources), compared with the build of `c662e1d` at the default, by a resolving load, and with the old `duplicateEntries: 'first'` against `repair: 'word'`, 26 of the 7,833 loads changed, and only these. The four `x-ext` files are refused at the default, by a resolving load and at `word`, where each read; and under `word` the 14 `rn-*` files (this repository's seven and docx4j's) read by local name with the warning and their control's text, where `'first'` refused them. Nothing in the corpus holds an `External` officeDocument relationship alone.
+
+Seventeen mutants of the build each failed a test: the `External` refusal loosened to `refuse` alone, `External` alone not refused, the two checks' order swapped, the `External` relationships kept at `all`, `readsByLocalName` unset on the package's or a part's relationships part, a `Relationship` left in its namespace, the count taking only the wrong ones, `word` alone following Word, the option's value unchecked, `repaired` never `own` or never `word` for a relationships part, `repaired` always `none` in the metadata, each text-model warning dropped, and `duplicate_entries` unrefused. Three first written didn't build under TypeScript's narrowing and were rewritten.
+
+`npm run typecheck` passes, and `npm test` passes 1,963 of 1,963 on Node 18, 20 and 22; the 1,224 saves compared with the raise's build are the same byte for byte.

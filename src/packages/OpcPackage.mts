@@ -6,7 +6,7 @@ import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
 import { savePackage, type SaveReport } from '../opc/Save.mjs';
-import { Docx4JException, type DuplicateEntryWarning, type MultipleMainPartsWarning } from '../opc/exceptions.mjs';
+import { Docx4JException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning, type RelationshipsNamespaceWarning } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
 import { Parts } from '../parts/Parts.mjs';
@@ -18,8 +18,14 @@ import { assertTimeZone, runtimeTimeZone } from '../model/dateZone.mjs';
 import { mceKeep, mcePreprocess, type PartWarning, type MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
 import { createPackageForContentType, registerGenericPackageClass } from './registry.mjs';
 
-/** A warning on `pkg.warnings`: the load's (a duplicated entry, CR-024) or a part's. */
-export type PackageWarning = DuplicateEntryWarning | MultipleMainPartsWarning | PartWarning;
+/** A warning on `pkg.warnings`: the load's (a duplicated entry, CR-024; an `External` main relationship, CR-031) or a part's. */
+export type PackageWarning = DuplicateEntryWarning | MultipleMainPartsWarning | ExternalMainPartWarning | PartWarning;
+
+/**
+ * What a load repaired (WD REQ-207's `repaired`, CR-031): `'own'` where a repair of this package's own was made, `'word'` where
+ * only Word's were followed, else `'none'`.
+ */
+export type Repaired = 'none' | 'word' | 'own';
 
 /** Anything `OpcPackage.load` accepts: zip bytes, a flat OPC string, or a container. */
 export type PackageSource = Uint8Array | ArrayBuffer | string | PartStore;
@@ -41,14 +47,19 @@ export class OpcPackage implements RelationshipSource {
   /** The options this package was loaded with. */
   /**
    * The names the container held more than one entry of, each read from its first entry under
-   * `LoadOptions.duplicateEntries: 'first'` (WD REQ-206, CR-024); empty for a package loaded without one, or made here.
+   * `LoadOptions.repair: 'word'` (WD REQ-206, CR-024); empty for a package loaded without one, or made here.
    */
   duplicateEntries: readonly DuplicateEntryWarning[] = [];
   /**
    * Where the package relationships held more than one officeDocument relationship, read from the last under
-   * `LoadOptions.duplicateEntries: 'first'` (WD REQ-206's statement, CR-024 section 9); undefined for a package with one, or made here.
+   * `LoadOptions.repair: 'word'` (WD REQ-206's statement, CR-024 section 9); undefined for a package with one, or made here.
    */
   multipleMainParts: MultipleMainPartsWarning | undefined;
+  /**
+   * Where the package relationships held an `External` officeDocument relationship beside an internal one, dropped under
+   * `LoadOptions.repair: 'all'` (WD REQ-206's NOTE, CR-031 section 2.2); undefined otherwise.
+   */
+  externalMainPart: ExternalMainPartWarning | undefined;
   loadOptions: LoadOptions = {};
   docPropsCorePart: DocPropsCorePart | undefined;
   docPropsExtendedPart: DocPropsExtendedPart | undefined;
@@ -178,18 +189,42 @@ export class OpcPackage implements RelationshipSource {
   /**
    * The warnings of every part parsed so far (each XML part's `warnings`, CR-010 phase 1), after the
    * load's own: a name the container holds twice, and more than one officeDocument relationship, read under
-   * `duplicateEntries: 'first'` (CR-024). A part
+   * `repair: 'word'` (CR-024), and an `External` main relationship dropped under `repair: 'all'` (CR-031). A part
    * is parsed when something reads it, so a reader that wants a whole package's warnings reads its
    * parts first; `unmarshalAll()` does, at the cost of re-marshalling every part on save.
    */
   get warnings(): PackageWarning[] {
     const out: PackageWarning[] = [...this.duplicateEntries];
     if (this.multipleMainParts) out.push(this.multipleMainParts);
+    if (this.externalMainPart) out.push(this.externalMainPart);
     for (const part of this.parts) if (part instanceof XmlPart) out.push(...part.warnings);
     // a relationships part's own, what its read dropped: a child of another local name, an attribute the model doesn't map
     // (CR-025 section 8, D12); after the parts', and outside the save's gate, since none names a part
     for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) if (rels) out.push(...rels.warnings);
     return out;
+  }
+
+  /**
+   * Each relationships part a load under `repair: 'word'` read by local name, being in a wrong namespace (CR-031 section
+   * 2.3): the package's and its parts', in that order.
+   */
+  get relationshipsNamespaces(): RelationshipsNamespaceWarning[] {
+    const out: RelationshipsNamespaceWarning[] = [];
+    for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) {
+      for (const w of rels?.warnings ?? []) if (w.code === 'package.relationships_namespace') out.push(w);
+    }
+    return out;
+  }
+
+  /**
+   * What the load repaired (WD REQ-207's `repaired`, CR-031 section 2.4), read from what it recorded, so it reports what the
+   * load did whatever the option: `'own'` for a repair of this package's own (an `External` main relationship dropped),
+   * `'word'` where only Word's were followed (a duplicated entry, several main relationships, a relationships part read by
+   * local name), else `'none'`.
+   */
+  get repaired(): Repaired {
+    if (this.externalMainPart) return 'own';
+    return this.duplicateEntries.length > 0 || this.multipleMainParts || this.relationshipsNamespaces.length > 0 ? 'word' : 'none';
   }
 
   /**

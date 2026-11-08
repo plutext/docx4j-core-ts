@@ -370,3 +370,7 @@ Override always dropped, strict not counted, all four types counted, the relatio
 over a part, and one alone refused.
 
 npm run typecheck passes, and npm test passes 1,907 of 1,907 on Node 22.
+
+## 10. The switch folded into `repair` (CR-031, 2026-11-09)
+
+CR-031 D1 (Jason, 2026-11-09: "CR-031 decisions as now recommended") removed `LoadOptions.duplicateEntries` and the text model's `duplicate_entries` before either was released: `repair: 'word'`, WD REQ-207's option, gives both of this CR's readings, the first entry of each name and the last officeDocument relationship's target, with the same warnings, and `repair: 'all'` too. The refusals and their messages name `{ repair: 'word' }`, and `Texts.of` refuses `duplicate_entries` with a message naming it. Section 9.2's `External` relationship, not counted and read past here, is now CR-031's: refused beside an internal one at `refuse` and `word`, dropped at `all`, and refused alone at every value (REQ-321). `test/duplicate-entries.test.mjs` holds both.

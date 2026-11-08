@@ -1,7 +1,8 @@
 // CR-025 section 8: a relationships part in another namespace, or in none, on its root or on any Relationship, is refused when it
 // is read (D10), where its children in a wrong namespace loaded and a save lost the parts they named with nothing said. What else
 // such a part's read drops is on pkg.warnings (D12). The rels-namespace round is in test/rels-namespace/, docx4j's copy, with a
-// SHA-1 manifest; Word's saves of it show Word reading every relationship by its local name after its repair.
+// SHA-1 manifest; Word's saves of it show Word reading every relationship by its local name after its repair, which
+// LoadOptions.repair: 'word' does (CR-031 section 2.3).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -36,8 +37,8 @@ const REFUSED = {
 const CONTROL_OF = { 'rn-03-rich-wrong': 'rn-01-control-rich' };
 
 const bytesOf = (name) => new Uint8Array(readFileSync(join(dir, name)));
-const load = async (bytes) => {
-  const pkg = await OpcPackage.load(bytes);
+const load = async (bytes, options) => {
+  const pkg = await OpcPackage.load(bytes, options);
   await pkg.unmarshalAll();
   return pkg;
 };
@@ -113,4 +114,51 @@ test('CR-025 D12: the package relationships part\'s own is on pkg.warnings too',
   entries['_rels/.rels'] = strToU8(`${XML}<Relationships xmlns="${PR}"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/><Other/></Relationships>`);
   const pkg = await load(storedZip(Object.entries(entries)));
   assert.deepEqual(pkg.warnings.filter((w) => w.code === 'part.skipped').map((w) => [w.partName, w.name]), [['/_rels/.rels', 'Other']]);
+});
+
+// how many Relationship elements a relationships part holds, in any namespace or none
+const relationshipsIn = (xml) => (xml.match(/<(?:[\w.-]+:)?Relationship[\s/>]/g) ?? []).length;
+const zipName = (partName) => partName.slice(1);
+
+test('CR-031 section 2.3: under repair word or all each form reads as Word\'s repair reads it, every relationship by local name, said once, and a save writes the right namespace', async () => {
+  for (const [stem, [partName, namespace]] of Object.entries(REFUSED)) {
+    const source = bytesOf(`${stem}.docx`);
+    const count = relationshipsIn(strFromU8(unzipSync(source)[zipName(partName)]));
+    const control = await textOf(await load(bytesOf(`${CONTROL_OF[stem] ?? 'rn-00-control-plain'}.docx`)));
+    for (const repair of ['word', 'all']) {
+      const pkg = await load(source, { repair });
+      assert.equal(await textOf(pkg), control, `${stem} ${repair}: the control's text, as Word's save of it reads`);
+      assert.deepEqual(pkg.relationshipsNamespaces.map((w) => [w.code, w.partName, w.namespace, w.count]),
+        [['package.relationships_namespace', partName, namespace, count]], `${stem} ${repair}`);
+      assert.equal(pkg.warnings.filter((w) => w.code === 'package.relationships_namespace').length, 1, stem);
+      assert.equal(pkg.repaired, 'word', stem);
+      const result = await Texts.of(pkg);
+      assert.deepEqual(result.warnings.filter((w) => w.kind === 'package.relationships_namespace').map((w) => [w.selector, w.detail]), [[partName, count]], stem);
+      assert.equal(result.metadata.repaired, 'word', stem);
+      // the save loses nothing and writes the right namespace, so it loads with nothing said
+      const saved = await pkg.save();
+      assert.deepEqual(Object.keys(unzipSync(saved)).sort(), Object.keys(unzipSync(source)).sort(), `${stem}: every part kept`);
+      const rels = strFromU8(unzipSync(saved)[zipName(partName)]);
+      assert.equal(relationshipsIn(rels), count, stem);
+      assert.doesNotMatch(rels, new RegExp(WRONG.replace(/[.:]/g, '\\$&')), stem);
+      const again = await load(saved);
+      assert.deepEqual(again.relationshipsNamespaces, [], stem);
+      assert.equal(again.repaired, 'none', stem);
+      assert.equal(await textOf(again), control, `${stem}: read back`);
+    }
+  }
+});
+
+test('CR-031 section 2.3: the controls and a flat OPC package under repair word', async () => {
+  for (const stem of ['rn-00-control-plain', 'rn-01-control-rich']) {
+    const pkg = await load(bytesOf(`${stem}.docx`), { repair: 'word' });
+    assert.deepEqual(pkg.relationshipsNamespaces, [], stem);
+    assert.equal(pkg.repaired, 'none', stem);
+  }
+  const flat = await (await OpcPackage.load(bytesOf('rn-01-control-rich.docx'))).saveFlatOpc();
+  const i = flat.indexOf('<Relationship ', flat.indexOf('pkg:name="/word/_rels/document.xml.rels"'));
+  const moved = `${flat.slice(0, i)}<x:Relationship xmlns:x="${WRONG}" ${flat.slice(i + '<Relationship '.length)}`;
+  const pkg = await OpcPackage.load(moved, { repair: 'word' });
+  assert.deepEqual(pkg.relationshipsNamespaces.map((w) => [w.partName, w.namespace]), [['/word/_rels/document.xml.rels', WRONG]]);
+  assert.equal(await textOf(await (async () => { await pkg.unmarshalAll(); return pkg; })()), await textOf(await load(bytesOf('rn-01-control-rich.docx'))));
 });

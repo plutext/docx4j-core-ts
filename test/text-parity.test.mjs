@@ -397,7 +397,14 @@ for (const name of goldens) {
     for (const flag of Object.keys(pending)) {
       assert.ok(needed.has(flag), `${name}: PENDING's ${flag} sets aside nothing that differs now; if its phase has landed, remove the entry`);
     }
-    assert.deepStrictEqual(JSON.parse(JSON.stringify(metadata)), golden.metadata, `${name}: the metadata`);
+    // `repaired` (REQ-207, CR-031) came with docx4j 17.3.6; a golden cut from 17.3.5 lacks it. Every fixture loads at the default,
+    // so nothing is repaired: until the goldens are recut from 17.3.6, which carries it, ours is held to `none` and left out
+    const ours = JSON.parse(JSON.stringify(metadata));
+    if (!('repaired' in golden.metadata)) {
+      assert.equal(ours.repaired, 'none', `${name}: repaired`);
+      delete ours.repaired;
+    }
+    assert.deepStrictEqual(ours, golden.metadata, `${name}: the metadata`);
   });
 }
 

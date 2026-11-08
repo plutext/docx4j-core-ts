@@ -57,6 +57,31 @@ intermediate form and a builder from it, CR-005 section 8; the HTML parser is yo
 container; nothing else in the package imports a `node:` builtin, so a browser or add-in bundle
 never sees one).
 
+### Repairs
+
+Some packages Word opens only after its repair prompt, and some it won't open at all. `LoadOptions.repair`
+(WD REQ-207, [CR-031](docs/change-requests/CR-031-the-repair-option.md)) says how a load treats them:
+
+```ts
+const pkg = await WordprocessingMLPackage.load(bytes, { repair: 'word' });
+pkg.repaired;                                       // 'none', 'word' or 'own'; a text result's metadata.repaired says the same
+```
+
+| The package | `refuse`, the default | `word` | `all` |
+|---|---|---|---|
+| Two zip entries of one name (OPC part names, without case) | `DuplicateEntryException` | The first of each read, as Word does: `package.duplicate_entry` | As `word` |
+| More than one `officeDocument` relationship | `MultipleMainPartsException` | The last one's target read, as a fresh Word does: `package.multiple_main_parts` | As `word` |
+| A relationships part in another namespace, or in none | `RelationshipsNamespaceException` | Every relationship read by its local name, as Word does: `package.relationships_namespace` | As `word` |
+| An `External` `officeDocument` relationship beside an internal one | `ExternalMainPartException` | Refused: Word refuses it even through its repair | This package's own repair: the internal part read, every `External` main relationship dropped, its URL never fetched: `package.external_main_part` |
+| An `External` `officeDocument` relationship alone | Refused: no main document part (REQ-321) | Refused | Refused |
+
+Each warning is on `pkg.warnings` and, in the text model, a warning of the same code. A save then writes the
+repaired package: one entry of each name, one main relationship, the right namespace, no `External` main
+relationship. `repair` doesn't open the save's own gate: a save that would lose what a read skipped still needs
+`pkg.checkLossOnSave = false` ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)). The other shapes
+Word repairs, such as an undeclared `mc:Ignorable` prefix or an element the model has no place for, read the same at
+every value (CR-031 section 2.1.1).
+
 ### Guides
 
 | | |

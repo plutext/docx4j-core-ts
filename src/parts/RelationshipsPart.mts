@@ -44,21 +44,46 @@ export class RelationshipsPart extends XmlPart<Relationships> {
   }
 
   /**
+   * Set by the load under `LoadOptions.repair` `'word'` or `'all'` (CR-031 section 2.3): a part in a wrong namespace is read
+   * as Word's repair reads it, not refused.
+   */
+  readsByLocalName = false;
+
+  /**
    * Refuses a part in another namespace, or in none, on its root or on any `Relationship` (CR-025 section 8, D10), before the
-   * runtime drops what it can't bind. A root or a child with another local name is left to the runtime, as before: Word is
-   * unmeasured on both, and a child is then a `part.skipped` on this part, which `pkg.warnings` gathers (D12).
+   * runtime drops what it can't bind. Under `readsByLocalName` (`repair: 'word'`, CR-031 section 2.3) the root and every
+   * `Relationship` are read by their local names instead, as Word's repair reads them, so the runtime binds them all and a
+   * save writes the right namespace, with one `package.relationships_namespace` warning. A root or a child with another
+   * local name is left to the runtime, as before: Word is unmeasured on both, and a child is then a `part.skipped` on this
+   * part, which `pkg.warnings` gathers (D12).
    */
   protected override readRoot(doc: Document): readonly PartWarning[] {
     const root = doc.documentElement;
     if (!root || root.localName !== 'Relationships') return [];
-    if (root.namespaceURI !== Namespaces.RELATIONSHIPS) throw new RelationshipsNamespaceException(this.partName.name, root.namespaceURI ?? null);
-    for (let c = root.firstChild; c; c = c.nextSibling) {
-      const child = c as Element;
-      if (c.nodeType === 1 && child.localName === 'Relationship' && child.namespaceURI !== Namespaces.RELATIONSHIPS) {
-        throw new RelationshipsNamespaceException(this.partName.name, child.namespaceURI ?? null);
-      }
+    const isRelationship = (c: Node): c is Element => c.nodeType === 1 && (c as Element).localName === 'Relationship';
+    let wrong: string | null | undefined = root.namespaceURI !== Namespaces.RELATIONSHIPS ? root.namespaceURI ?? null : undefined;
+    for (let c = root.firstChild; c && wrong === undefined; c = c.nextSibling) {
+      if (isRelationship(c) && c.namespaceURI !== Namespaces.RELATIONSHIPS) wrong = c.namespaceURI ?? null;
     }
-    return [];
+    if (wrong === undefined) return [];
+    if (!this.readsByLocalName) throw new RelationshipsNamespaceException(this.partName.name, wrong);
+    const fixed = inRelationshipsNamespace(doc, root);
+    let count = 0;
+    while (root.firstChild) {
+      const c = root.firstChild;
+      root.removeChild(c);
+      if (isRelationship(c)) count++;
+      fixed.appendChild(isRelationship(c) && c.namespaceURI !== Namespaces.RELATIONSHIPS ? inRelationshipsNamespace(doc, c) : c);
+    }
+    doc.replaceChild(fixed, root);
+    return [{
+      code: 'package.relationships_namespace',
+      partName: this.partName.name,
+      namespace: wrong,
+      count,
+      message: `${this.partName.name}: a relationships part in ${wrong === null ? 'no namespace' : `another namespace, ${wrong}`}, `
+        + `read as Word's repair reads it, its ${count} relationship${count === 1 ? '' : 's'} by local name (REQ-207)`,
+    }];
   }
 
   /** The name of the part these relationships belong to; '/' for the package. */
@@ -246,6 +271,21 @@ export class RelationshipsPart extends XmlPart<Relationships> {
       if (!pkg.getPart(candidate)) return candidate;
     }
   }
+}
+
+/**
+ * `el` again, in the relationships namespace under its local name, with its attributes but not its namespace declarations,
+ * and with what it holds moved across (CR-031 section 2.3).
+ */
+function inRelationshipsNamespace(doc: Document, el: Element): Element {
+  const out = doc.createElementNS(Namespaces.RELATIONSHIPS, el.localName ?? el.nodeName);
+  for (let i = 0; i < el.attributes.length; i++) {
+    const a = el.attributes.item(i)!;
+    if (a.name === 'xmlns' || a.name.startsWith('xmlns:')) continue;
+    out.setAttributeNS(a.namespaceURI, a.name, a.value);
+  }
+  if (el.localName === 'Relationship') while (el.firstChild) out.appendChild(el.firstChild);
+  return out;
 }
 
 export function isExternal(rel: Relationship): boolean {

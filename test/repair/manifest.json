@@ -1,0 +1,196 @@
+{
+  "source": "the share's bridge/portfolio/x-ext-*-a (each job b holds the same bytes), copied unedited 2026-11-09 (CR-031 section 3)",
+  "files": [
+    {
+      "name": "x-ext-first-source.docx",
+      "sha1": "d48ae5da0ad9f79de32e051c522030667a69daee"
+    },
+    {
+      "name": "x-ext-last-source.docx",
+      "sha1": "699f95a280be3de4abbb4a413c345b0db12cbf69"
+    },
+    {
+      "name": "x-ext-first-saved.docx",
+      "sha1": "db1c8433351e697779973d328c2fed4722fd50fa"
+    },
+    {
+      "name": "x-ext-last-saved.docx",
+      "sha1": "a536e2db67fe46f61d43811cc37f99389a989aed"
+    },
+    {
+      "name": "ctra-x-ext-first-source.docx",
+      "sha1": "2739f4731ff3113aa72e82b33c0f0442b877cae6"
+    },
+    {
+      "name": "ctra-x-ext-first-source-word365.docx",
+      "sha1": "09b4550c81bef26a6e431bcc01d1e6cedbe83666"
+    },
+    {
+      "name": "ctra-x-ext-first-source-word365.txt",
+      "sha1": "17feafc73335919e3dbae0127dc8f023d195cc1b"
+    },
+    {
+      "name": "ctra-x-ext-last-source.docx",
+      "sha1": "2739f4731ff3113aa72e82b33c0f0442b877cae6"
+    },
+    {
+      "name": "ctra-x-ext-last-source-word365.docx",
+      "sha1": "86ed6236b18d1b3caa53d71721fc911842eb1be6"
+    },
+    {
+      "name": "ctra-x-ext-last-source-word365.txt",
+      "sha1": "17feafc73335919e3dbae0127dc8f023d195cc1b"
+    },
+    {
+      "name": "ctra-x-ext-first-saved.docx",
+      "sha1": "793d3b704c0dcb20fd1d8b86a88b3b8e8d65dbeb"
+    },
+    {
+      "name": "ctra-x-ext-first-saved-word365.docx",
+      "sha1": "99bc60c0aa382c01223c7ac91c9eb76cfb04f8a7"
+    },
+    {
+      "name": "ctra-x-ext-first-saved-word365.txt",
+      "sha1": "17feafc73335919e3dbae0127dc8f023d195cc1b"
+    },
+    {
+      "name": "ctra-x-ext-last-saved.docx",
+      "sha1": "793d3b704c0dcb20fd1d8b86a88b3b8e8d65dbeb"
+    },
+    {
+      "name": "ctra-x-ext-last-saved-word365.docx",
+      "sha1": "a4eaec8bddc960dc0e2225b6f49d43b9de787393"
+    },
+    {
+      "name": "ctra-x-ext-last-saved-word365.txt",
+      "sha1": "17feafc73335919e3dbae0127dc8f023d195cc1b"
+    }
+  ],
+  "word365": {
+    "x-ext-first-source": {
+      "a": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      },
+      "b": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      }
+    },
+    "x-ext-last-source": {
+      "a": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      },
+      "b": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      }
+    },
+    "x-ext-first-saved": {
+      "a": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      },
+      "b": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      }
+    },
+    "x-ext-last-saved": {
+      "a": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      },
+      "b": {
+        "opened": "refused",
+        "dialogs": [
+          "repair",
+          "error"
+        ],
+        "word": "16.0.20326.20232"
+      }
+    }
+  },
+  "d7": {
+    "source": "CR-031 D7's round, the share's bridge/staging/core-ts-repair-all: ctra-<stem>.docx is this package's repair: 'all' save of each x-ext file, opened twice (bridge/portfolio/ctra-<stem>-a and -b, 2026-11-09, bridge 4dcb436, with the control); ctra-<stem>-word365.docx and .txt are Word's save and text from the -a run, the -b run's text the same",
+    "word365": {
+      "x-ext-first-source": {
+        "a": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        },
+        "b": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        }
+      },
+      "x-ext-last-source": {
+        "a": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        },
+        "b": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        }
+      },
+      "x-ext-first-saved": {
+        "a": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        },
+        "b": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        }
+      },
+      "x-ext-last-saved": {
+        "a": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        },
+        "b": {
+          "opened": "silent",
+          "dialogs": [],
+          "word": "16.0.20326.20232"
+        }
+      }
+    }
+  }
+}

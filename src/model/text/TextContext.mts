@@ -35,10 +35,16 @@ export interface TextPackage {
   readonly docPropsCustomPart?: XmlPart<custom.Properties>;
   readonly customXmlDataStorageParts: ReadonlyMap<string, { parseDocument(): Promise<Document>; readonly partName: { readonly name: string } }>;
   xpathEngine: XPathEngine;
-  /** The names the container held twice, read from the first under `duplicateEntries: 'first'` (CR-024). */
+  /** The names the container held twice, read from the first under `repair: 'word'` (CR-024). */
   readonly duplicateEntries?: readonly { readonly entry: string; readonly count: number }[];
-  /** More than one officeDocument relationship, the last's target read under `duplicateEntries: 'first'` (CR-024 section 9). */
+  /** More than one officeDocument relationship, the last's target read under `repair: 'word'` (CR-024 section 9). */
   readonly multipleMainParts?: { readonly partName: string; readonly count: number } | undefined;
+  /** An `External` officeDocument relationship beside an internal one, dropped under `repair: 'all'` (CR-031). */
+  readonly externalMainPart?: { readonly partName: string; readonly urls: readonly string[] } | undefined;
+  /** The relationships parts read by local name under `repair: 'word'` (CR-031 section 2.3). */
+  readonly relationshipsNamespaces?: readonly { readonly partName: string; readonly count: number }[];
+  /** What the load repaired (REQ-207's `repaired`, CR-031). */
+  readonly repaired?: 'none' | 'word' | 'own';
 }
 
 /** As much of a `MainDocumentPart` as a reading uses. */

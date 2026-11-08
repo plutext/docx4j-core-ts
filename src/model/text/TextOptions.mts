@@ -46,12 +46,13 @@ export type TextDropCaps = 'join' | 'asis';
  */
 export type TextSmallCaps = 'asis' | 'upper';
 /**
- * `duplicate_entries` (REQ-206, WD 0.74): a package whose container holds two entries of one name refused (`refuse`), or
- * read from the first of each (`first`); and, by the same switch since WD 0.100, a package with more than one
- * officeDocument relationship refused, or read from the last's target. The load's option (`LoadOptions.duplicateEntries`, CR-024): a reading of a package
- * already loaded doesn't decide again, and the load's setting holds.
+ * `repair` (REQ-207, WD 0.102): how a package Word reads only through a repair, or won't open, is loaded: every refusal kept
+ * (`refuse`), Word's repair followed where the WD states one (`word`), or that and this package's own (`all`). The load's
+ * option (`LoadOptions.repair`, CR-031): a reading of a package already loaded doesn't decide again, and the load's setting
+ * holds. `duplicate_entries`, which REQ-206 says an implementation MAY offer, isn't offered here: `word` reads its `first`
+ * (CR-031 D1).
  */
-export type TextDuplicateEntries = 'refuse' | 'first';
+export type TextRepair = 'refuse' | 'word' | 'all';
 /**
  * `profile` (REQ-1002, WD 0.41): a preset of option values applied before the caller's own, so that an option the caller
  * sets by name, before or after the profile, overrides it. `word-text` is Word's Save As plain text as the options reach
@@ -100,7 +101,7 @@ export interface TextOptionsInit {
   page_markers?: Bool;
   layout?: TextLayout;
   warnings?: Bool;
-  duplicate_entries?: TextDuplicateEntries;
+  repair?: TextRepair;
   /** A preset applied before the other options, whichever came first (REQ-1002); `word-text` or `word_text`, in any case. */
   profile?: TextProfile | string | null;
   /** The describer images take their text from (REQ-514); `AltTextDescriber` by default. */
@@ -124,7 +125,7 @@ export const TEXT_OPTION_NAMES: readonly string[] = Object.freeze([
   'view', 'include', 'text_boxes', 'notes', 'note_references', 'comments', 'hidden', 'field_codes',
   'fields', 'toc', 'drop_caps', 'placeholders', 'bindings', 'list_labels', 'charts', 'smartart', 'embedded', 'altchunks',
   'alt_text', 'metadata', 'symbols', 'small_caps', 'default_language', 'math', 'tables', 'markup_detail', 'page_markers', 'layout',
-  'warnings', 'duplicate_entries', 'profile',
+  'warnings', 'repair', 'profile',
 ]);
 
 /**
@@ -220,10 +221,10 @@ export class TextOptions {
   layout: TextLayout = 'none';
   warnings = true;
   /**
-   * `duplicate_entries` (REQ-206): the load's option, accepted here by the WD's name (REQ-1001) and passed by a caller that
-   * loads, as the suite's adapter does, to `LoadOptions.duplicateEntries`; a reading of a loaded package doesn't use it.
+   * `repair` (REQ-207): the load's option, accepted here by the WD's name (REQ-1001) and passed by a caller that loads, as the
+   * suite's adapter does, to `LoadOptions.repair`; a reading of a loaded package doesn't use it.
    */
-  duplicateEntries: TextDuplicateEntries = 'refuse';
+  repair: TextRepair = 'refuse';
   /** The describer images take their text from (REQ-514). */
   imageDescriber: ImageDescriber = AltTextDescriber.INSTANCE;
   /** The profile applied (REQ-1002), or undefined. */
@@ -310,7 +311,11 @@ export class TextOptions {
       case 'page_markers': this.pageMarkers = bool(n, value, 'REQ-708'); break;
       case 'layout': this.layout = choice(n, value, ['none', 'indent'], 'REQ-709'); break;
       case 'warnings': this.warnings = bool(n, value, 'REQ-801'); break;
-      case 'duplicate_entries': this.duplicateEntries = choice(n, value, ['refuse', 'first'], 'REQ-206'); break;
+      case 'repair': this.repair = choice(n, value, ['refuse', 'word', 'all'], 'REQ-207'); break;
+      case 'duplicate_entries':
+        // REQ-206's MAY, not offered (CR-031 D1): one switch, whose word reads the first copy
+        throw new TextOptionError("duplicate_entries isn't offered here: load with repair: 'word', which reads the first entry of each name "
+          + '(WD REQ-206, REQ-207)', 'duplicate_entries', 'REQ-206', 'not_implemented');
       default:
         throw new TextOptionError(`Unknown text option '${String(name)}'; the options are ${TEXT_OPTION_NAMES.join(', ')} (WD REQ-1001)`,
           String(name), 'REQ-1001', 'unknown');
@@ -377,7 +382,7 @@ export class TextOptions {
       bindings: this.bindings, list_labels: this.listLabels, charts: this.charts, smartart: this.smartart,
       embedded: this.embedded, altchunks: this.altchunks, alt_text: this.altText, metadata: this.metadata,
       symbols: this.symbols, small_caps: this.smallCaps, default_language: this.defaultLanguage, math: this.math, tables: this.tables, markup_detail: this.markupDetail,
-      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, duplicate_entries: this.duplicateEntries,
+      page_markers: this.pageMarkers, layout: this.layout, warnings: this.warnings, repair: this.repair,
       profile: this.profileName ?? null,
     };
   }

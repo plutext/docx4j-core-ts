@@ -1,5 +1,5 @@
 // CR-024: a package holding two entries of one name is refused (WD REQ-206), OPC part names compared without case, and
-// read from the first entry of each name under LoadOptions.duplicateEntries: 'first', as Word 365 reads it after its
+// read from the first entry of each name under LoadOptions.repair: 'word' (CR-031 D1, which folded duplicateEntries into it), as Word 365 reads it after its
 // repair (check 75, three rounds; Word's saves in test/check75/ with a SHA-1 manifest). docx4j-python's CR-032 has the
 // same cases. Each zip is built here by storedZip, since fflate's writers refuse a repeated name; the first copy holds
 // FIRST and the second SECOND. Section 9's are at the end: more than one officeDocument relationship, REQ-206's statement of
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { unzipSync, strToU8, strFromU8 } from 'fflate';
 import {
   WordprocessingMLPackage, SpreadsheetMLPackage, OpcPackage, MemoryPartStore, ZipPartStore, DuplicateEntryException, MultipleMainPartsException,
-  InvalidFormatException, Docx4JException, Texts, PlainText, TextOptions, TextOptionError, TEXT_OPTION_NAMES,
+  ExternalMainPartException, InvalidFormatException, Docx4JException, Texts, PlainText, TextOptions, TextOptionError, TEXT_OPTION_NAMES,
 } from '../dist/index.mjs';
 import { DirectoryPartStore } from '../dist/node/index.mjs';
 import { storedZip } from './helpers.mjs';
@@ -41,7 +41,7 @@ const zip = (...entries) => storedZip(entries.map(([name, value]) => [name, type
 const docx = (main, ...rest) => zip(['[Content_Types].xml', types()], ['_rels/.rels', packageRels()], ['word/document.xml', documentXml(main)], ...rest);
 
 const text = async (pkg, options) => PlainText.of(await Texts.of(pkg, options)).trim();
-const first = { duplicateEntries: 'first' };
+const first = { repair: 'word' };
 
 test('CR-024: the main part twice is refused, naming it, before anything is read', async () => {
   const bytes = docx('FIRST', ['word/document.xml', documentXml('SECOND')]);
@@ -49,11 +49,11 @@ test('CR-024: the main part twice is refused, naming it, before anything is read
     assert.ok(e instanceof DuplicateEntryException && e instanceof InvalidFormatException);
     assert.equal(e.code, 'package.duplicate_entry');
     assert.deepEqual(e.entries, { 'word/document.xml': 2 });
-    assert.equal(e.message, "Duplicate entry word/document.xml in this package: 2 entries (REQ-206). Load with { duplicateEntries: 'first' } to read the first");
+    assert.equal(e.message, "Duplicate entry word/document.xml in this package: 2 entries (REQ-206). Load with { repair: 'word' } to read the first, as Word does (REQ-207)");
     return true;
   });
   // 'refuse' is the default, by name too
-  await assert.rejects(WordprocessingMLPackage.load(bytes, { duplicateEntries: 'refuse' }), DuplicateEntryException);
+  await assert.rejects(WordprocessingMLPackage.load(bytes, { repair: 'refuse' }), DuplicateEntryException);
   // the store keeps the first, lists each name once and counts the rest
   const store = new ZipPartStore(bytes);
   assert.deepEqual([...store.partNames()], ['[Content_Types].xml', '_rels/.rels', 'word/document.xml']);
@@ -61,7 +61,7 @@ test('CR-024: the main part twice is refused, naming it, before anything is read
   assert.match(strFromU8(await store.load('word/document.xml')), /FIRST/);
 });
 
-test("CR-024: under duplicateEntries: 'first' the first copy is read, one warning a name, and a save writes only that copy", async () => {
+test("CR-024: under repair: 'word' the first copy is read, one warning a name, and a save writes only that copy", async () => {
   const pkg = await WordprocessingMLPackage.load(docx('FIRST', ['word/document.xml', documentXml('SECOND')]), first);
   assert.equal(await text(pkg), 'FIRST');
   assert.deepEqual(pkg.duplicateEntries.map(({ code, entry, count }) => ({ code, entry, count })),
@@ -174,7 +174,7 @@ test('CR-024: the flat OPC, directory and memory stores refuse a duplicate and r
   }
 });
 
-test('CR-024: the text model carries package.duplicate_entry, its detail the count; duplicate_entries is the WD\'s option name', async () => {
+test('CR-024: the text model carries package.duplicate_entry, its detail the count; repair is the load\'s option, duplicate_entries not offered (CR-031 D1)', async () => {
   const pkg = await WordprocessingMLPackage.load(docx('FIRST', ['word/document.xml', documentXml('SECOND')]), first);
   const r = await Texts.of(pkg);
   const w = r.warnings.find((x) => x.kind === 'package.duplicate_entry');
@@ -184,15 +184,23 @@ test('CR-024: the text model carries package.duplicate_entry, its detail the cou
   assert.equal(r.warnings.filter((x) => x.kind === 'package.duplicate_entry').length, 1);
   // a warning with no count leaves detail out of its JSON
   assert.ok(!('detail' in (await Texts.of(await WordprocessingMLPackage.load(docx('PLAIN'))).then((x) => x.warnings[0]?.toJSON() ?? {}))));
-  // the option by name: its default, its values, its place before profile, and a value outside them refused
-  assert.equal(new TextOptions().duplicateEntries, 'refuse');
-  assert.equal(TextOptions.of({ duplicate_entries: 'FIRST' }).duplicateEntries, 'first');
-  assert.equal(new TextOptions().toMap().duplicate_entries, 'refuse');
-  assert.equal(TEXT_OPTION_NAMES.indexOf('warnings') + 1, TEXT_OPTION_NAMES.indexOf('duplicate_entries'));
+  // repair by name: its default, its values, its place before profile, and a value outside them refused
+  assert.equal(new TextOptions().repair, 'refuse');
+  assert.equal(TextOptions.of({ repair: 'WORD' }).repair, 'word');
+  assert.equal(TextOptions.of({ repair: 'all' }).repair, 'all');
+  assert.equal(new TextOptions().toMap().repair, 'refuse');
+  assert.equal(TEXT_OPTION_NAMES.indexOf('warnings') + 1, TEXT_OPTION_NAMES.indexOf('repair'));
   assert.equal(TEXT_OPTION_NAMES.at(-1), 'profile');
-  assert.throws(() => TextOptions.of({ duplicate_entries: 'last' }), (e) => e instanceof TextOptionError && e.statement === 'REQ-206');
-  // the load's option refuses a value outside its two
-  await assert.rejects(WordprocessingMLPackage.load(docx('FIRST'), { duplicateEntries: 'last' }), (e) => e instanceof Docx4JException && /REQ-206/.test(e.message));
+  assert.throws(() => TextOptions.of({ repair: 'first' }), (e) => e instanceof TextOptionError && e.statement === 'REQ-207' && e.reason === 'invalid');
+  // duplicate_entries, REQ-206's MAY, isn't offered: refused at any value, naming repair: 'word'
+  for (const value of ['first', 'refuse']) {
+    assert.throws(() => TextOptions.of({ duplicate_entries: value }), (e) => e instanceof TextOptionError && e.statement === 'REQ-206'
+      && e.reason === 'not_implemented' && /repair: 'word'/.test(e.message));
+  }
+  // the load's option refuses a value outside its three
+  for (const repair of ['first', 'WORD', 'none', true]) {
+    await assert.rejects(WordprocessingMLPackage.load(docx('FIRST'), { repair }), (e) => e instanceof Docx4JException && /REQ-207/.test(e.message), String(repair));
+  }
 });
 
 test("CR-024: Word check 75's files and Word 365's saves (test/check75, SHA-1 manifest)", async () => {
@@ -246,10 +254,10 @@ const refusedNaming = (targets) => (e) => {
 test('CR-024 section 9: two officeDocument relationships are refused, naming the targets, in their order', async () => {
   await assert.rejects(WordprocessingMLPackage.load(mains(TWO)), (e) => {
     refusedNaming(['/word/document.xml', '/word/other.xml'])(e);
-    assert.equal(e.message, "2 officeDocument relationships in this package: /word/document.xml, /word/other.xml (REQ-206). Load with { duplicateEntries: 'first' } to read the last");
+    assert.equal(e.message, "2 officeDocument relationships in this package: /word/document.xml, /word/other.xml (REQ-206). Load with { repair: 'word' } to read the last, as a fresh Word does (REQ-207)");
     return true;
   });
-  await assert.rejects(WordprocessingMLPackage.load(mains([...TWO].reverse()), { duplicateEntries: 'refuse' }), refusedNaming(['/word/other.xml', '/word/document.xml']));
+  await assert.rejects(WordprocessingMLPackage.load(mains([...TWO].reverse()), { repair: 'refuse' }), refusedNaming(['/word/other.xml', '/word/document.xml']));
   // what the statement counts: a transitional and a strict one are two, and so are two naming one target
   const relationships = [['rId1', 'officeDocument', TWO[0]], ['rId2', STRICT, TWO[1]]];
   await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships })), refusedNaming(['/word/document.xml', '/word/other.xml']));
@@ -262,7 +270,7 @@ test('CR-024 section 9: two officeDocument relationships are refused, naming the
   await assert.rejects(OpcPackage.load(storedZip(Object.entries({ ...sheet, '_rels/.rels': strToU8(twice) }))), MultipleMainPartsException);
 });
 
-test("CR-024 section 9: under duplicateEntries: 'first' the last relationship's target is read, whatever the entries or the Overrides", async () => {
+test("CR-024 section 9: under repair: 'word' the last relationship's target is read, whatever the entries or the Overrides", async () => {
   assert.equal(await text(await WordprocessingMLPackage.load(mains(TWO), first)), 'OTHER');
   assert.equal(await text(await WordprocessingMLPackage.load(mains([...TWO].reverse()), first)), 'DOCUMENT');
   // the relationships' order decides, not the entries'
@@ -283,32 +291,51 @@ test("CR-024 section 9: under duplicateEntries: 'first' the last relationship's 
   assert.equal(strict.multipleMainParts.count, 2);
 });
 
-test('CR-024 section 9: an External officeDocument relationship isn\'t counted, since it names no part (Jason: "stop counting External relationships")', async () => {
+test('CR-031 D3 and D4: an External officeDocument relationship beside a part refused at refuse and word, read past at all; alone, refused at every value', async () => {
   const external = (id) => [id, 'officeDocument', 'http://example.com/a?b=1', 'External'];
   const part = (id, target = TWO[0]) => [id, 'officeDocument', target];
-  // beside one part, either way round: nothing refused or said, every route finds the part, and a save keeps the relationship
+  // beside one part, either way round: refused at refuse and word, naming the URL and the part (python's fields)
   for (const relationships of [[part('rId1'), external('rId2')], [external('rId1'), part('rId2')]]) {
-    for (const options of [undefined, first]) {
-      const pkg = await OpcPackage.load(mains([TWO[0]], { relationships }), options);
-      assert.ok(pkg instanceof WordprocessingMLPackage);
-      assert.equal(pkg.getMainPart(), pkg.getMainDocumentPart());
-      assert.equal(await text(pkg), 'DOCUMENT');
-      assert.deepEqual(pkg.warnings, []);
-      assert.match(strFromU8(unzipSync(await pkg.save())['_rels/.rels']), /TargetMode="External"/);
+    for (const repair of [undefined, 'refuse', 'word']) {
+      await assert.rejects(OpcPackage.load(mains([TWO[0]], { relationships }), { repair }), (e) => e instanceof ExternalMainPartException
+        && e instanceof InvalidFormatException && e.code === 'package.external_main_part' && e.urls.join() === 'http://example.com/a?b=1'
+        && e.targets.join() === '/word/document.xml' && /repair: 'all'/.test(e.message), String(repair));
     }
+    // at all the part is read, the External relationship dropped and said, and a save writes none
+    const pkg = await OpcPackage.load(mains([TWO[0]], { relationships }), { repair: 'all' });
+    assert.ok(pkg instanceof WordprocessingMLPackage);
+    assert.equal(pkg.getMainPart(), pkg.getMainDocumentPart());
+    assert.equal(await text(pkg), 'DOCUMENT');
+    assert.deepEqual(pkg.warnings.map((w) => [w.code, w.partName, w.urls]), [['package.external_main_part', '/word/document.xml', ['http://example.com/a?b=1']]]);
+    assert.equal(pkg.externalMainPart, pkg.warnings[0]);
+    assert.equal(pkg.repaired, 'own');
+    const result = await Texts.of(pkg);
+    assert.deepEqual(result.warnings.filter((w) => w.kind === 'package.external_main_part').map((w) => w.toJSON()),
+      [{ kind: 'package.external_main_part', address: undefined, selector: '/word/document.xml', detail: 'http://example.com/a?b=1' }]);
+    assert.equal(result.metadata.repaired, 'own');
+    const saved = unzipSync(await pkg.save());
+    assert.doesNotMatch(strFromU8(saved['_rels/.rels']), /External/);
+    const again = await OpcPackage.load(storedZip(Object.entries(saved)));
+    assert.deepEqual(again.warnings, []);
+    assert.equal(again.repaired, 'none');
   }
-  // beside two parts it isn't named or counted, and the last of the two is read wherever it stands
+  // beside two parts: refused for the External one first, as docx4j has it; at all both repairs, Word's last-relationship first
   const three = [part('rId1'), part('rId2', TWO[1]), external('rId3')];
-  await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships: three })), refusedNaming(['/word/document.xml', '/word/other.xml']));
-  const pkg = await WordprocessingMLPackage.load(mains(TWO, { relationships: three }), first);
+  for (const repair of [undefined, 'word']) {
+    await assert.rejects(WordprocessingMLPackage.load(mains(TWO, { relationships: three }), { repair }),
+      (e) => e instanceof ExternalMainPartException && e.targets.join() === '/word/document.xml,/word/other.xml', String(repair));
+  }
+  const pkg = await WordprocessingMLPackage.load(mains(TWO, { relationships: three }), { repair: 'all' });
   assert.equal(await text(pkg), 'OTHER');
   assert.equal(pkg.multipleMainParts.count, 2);
-  // only External ones are no case, and read as they did: no main part, nothing refused
+  assert.deepEqual(pkg.warnings.map((w) => [w.code, w.partName]), [['package.multiple_main_parts', '/word/other.xml'], ['package.external_main_part', '/word/other.xml']]);
+  // alone it names no main part: refused at every value (REQ-321), naming the URL, where it loaded as a bare package
   const plain = (id) => [id, 'officeDocument', 'http://example.com/a.docx', 'External'];
   for (const relationships of [[plain('rId1')], [plain('rId1'), plain('rId2')]]) {
-    const none = await OpcPackage.load(mains([], { relationships }));
-    assert.equal(none.getMainPart(), undefined);
-    assert.deepEqual(none.warnings, []);
+    for (const repair of [undefined, 'word', 'all']) {
+      await assert.rejects(OpcPackage.load(mains([], { relationships }), { repair }), (e) => e instanceof InvalidFormatException
+        && !(e instanceof ExternalMainPartException) && /REQ-321/.test(e.message) && e.message.includes('http://example.com/a.docx'), String(repair));
+    }
   }
 });
 
