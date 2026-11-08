@@ -1,0 +1,87 @@
+{
+ "probe": "the rels-namespace round: a relationships part in another namespace, on its root, its children, both, or one child, and in _rels/.rels (CR-025 section 8)",
+ "source": "docx4j-core-tests/src/test/resources/package-wiring/ at docx4j 598fe9212, the rn-* files, copied unedited",
+ "word": "Word 16.0.20326.20232, through the bridge, each file twice, the runs equal, 7 November 2026; each rn-*-word365.docx is Word's save",
+ "files": [
+  {
+   "name": "rn-00-control-plain-word365.docx",
+   "sha1": "4bffad38abcbca6c8400dd66a502fa4205dfa676"
+  },
+  {
+   "name": "rn-00-control-plain.docx",
+   "sha1": "04d8ae1ca12debe8669a0117f8e2ac889284e54c"
+  },
+  {
+   "name": "rn-01-control-rich-word365.docx",
+   "sha1": "4d40b005dc21f20edd470c2e4b739bbba233d035"
+  },
+  {
+   "name": "rn-01-control-rich.docx",
+   "sha1": "ab28d08884c1fae5b5cf2eb30a9d9ecccd5e09ee"
+  },
+  {
+   "name": "rn-02-plain-wrong-word365.docx",
+   "sha1": "cc58a260af8286077c3528a587d4ec84811da5dc"
+  },
+  {
+   "name": "rn-02-plain-wrong.docx",
+   "sha1": "884bd23e86b8bde2d48323c75e0c0f97f53f9503"
+  },
+  {
+   "name": "rn-03-rich-wrong-word365.docx",
+   "sha1": "7ca46f859612af69d8b2e17036ff263cc5727509"
+  },
+  {
+   "name": "rn-03-rich-wrong.docx",
+   "sha1": "5de8ce0e0fcaea833746cc6835ac134ab3246b27"
+  },
+  {
+   "name": "rn-04-plain-no-namespace-word365.docx",
+   "sha1": "bf5c52866d3cbfa5ca9682475bd450ac5cc431b3"
+  },
+  {
+   "name": "rn-04-plain-no-namespace.docx",
+   "sha1": "fcc844f4eeb1bf480cd29921cdc266bcefedb207"
+  },
+  {
+   "name": "rn-05-plain-root-wrong-word365.docx",
+   "sha1": "124adc208dc9a45cc4e30e33230c304e770bbb8e"
+  },
+  {
+   "name": "rn-05-plain-root-wrong.docx",
+   "sha1": "55c820834f093b29739ee28f030eb96f214543ed"
+  },
+  {
+   "name": "rn-06-plain-children-wrong-word365.docx",
+   "sha1": "8cffe0e2ef4f9db021db0c73757d579ecb654d4e"
+  },
+  {
+   "name": "rn-06-plain-children-wrong.docx",
+   "sha1": "be3f89aec1c915a9f97632c963b6bbb1efda4e9f"
+  },
+  {
+   "name": "rn-07-plain-one-wrong-word365.docx",
+   "sha1": "0274dcaa8e9657e544ebf197d7b5202424130eaf"
+  },
+  {
+   "name": "rn-07-plain-one-wrong.docx",
+   "sha1": "bf4e307e9a79087568a6d6a3fb7225ae08a3efd3"
+  },
+  {
+   "name": "rn-08-rich-no-part-word365.docx",
+   "sha1": "5cd0187d010ab390d338b3e5bdfa3fc68f3326e9"
+  },
+  {
+   "name": "rn-08-rich-no-part.docx",
+   "sha1": "874ba680e7bd5f43f37994482e3f66007d66bdc2"
+  },
+  {
+   "name": "rn-09-package-rels-wrong-word365.docx",
+   "sha1": "d0e957eeade086dd3f4c48cd7affe1fbffc065ab"
+  },
+  {
+   "name": "rn-09-package-rels-wrong.docx",
+   "sha1": "08d62da6f92c02ec87feb1d3610f8d525caa5d19"
+  }
+ ]
+}

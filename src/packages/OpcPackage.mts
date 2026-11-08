@@ -186,6 +186,9 @@ export class OpcPackage implements RelationshipSource {
     const out: PackageWarning[] = [...this.duplicateEntries];
     if (this.multipleMainParts) out.push(this.multipleMainParts);
     for (const part of this.parts) if (part instanceof XmlPart) out.push(...part.warnings);
+    // a relationships part's own, what its read dropped: a child of another local name, an attribute the model doesn't map
+    // (CR-025 section 8, D12); after the parts', and outside the save's gate, since none names a part
+    for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) if (rels) out.push(...rels.warnings);
     return out;
   }
 

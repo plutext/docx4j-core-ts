@@ -19,6 +19,24 @@ export class InvalidFormatException extends Docx4JException {
 }
 
 /**
+ * A relationships part in another namespace, or in none, on its root or on any `Relationship` (CR-025 section 8, D10): refused when
+ * it is read, which is at the load, since the walk reads every relationships part it meets. Word reads such a part only through a
+ * repair, which reads every `Relationship` by its local name (the `rels-namespace` round), where the runtime here drops each one
+ * in a wrong namespace and with it the part it names, so a save would lose those parts with nothing said. `namespace` is the
+ * namespace found, `null` for none. The code is docx4j's and the WD's; reading such a part is `repair: 'word'`'s (CR-031).
+ */
+export class RelationshipsNamespaceException extends InvalidFormatException {
+  /** The finding's code, the WD's, shared with docx4j and docx4j-python. */
+  readonly code = 'package.relationships_namespace';
+
+  constructor(readonly partName: string, readonly namespace: string | null) {
+    super(`${partName}: a relationships part in ${namespace === null ? 'no namespace' : `another namespace, ${namespace}`}, which Word reads `
+      + 'only through a repair; refused, since its relationships would be lost with the parts they name');
+    this.name = 'RelationshipsNamespaceException';
+  }
+}
+
+/**
  * A package whose container holds two entries of one name, OPC part names compared without case (WD REQ-206; CR-024),
  * refused when it is loaded, before anything is read. Word reads such a file only after a repair, and the readers that
  * don't refuse read different copies. `entries` gives each duplicated name, as its first entry spells it, with the

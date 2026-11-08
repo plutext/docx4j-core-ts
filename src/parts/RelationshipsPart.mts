@@ -4,7 +4,8 @@ import { Part, setRelationshipsPartFactory, type RelationshipSource } from './Pa
 import { PartName } from '../opc/PartName.mjs';
 import { ContentTypes } from '../opc/ContentTypes.mjs';
 import { Namespaces } from './Namespaces.mjs';
-import { InvalidFormatException } from '../opc/exceptions.mjs';
+import { InvalidFormatException, RelationshipsNamespaceException } from '../opc/exceptions.mjs';
+import type { PartWarning } from '../opc/mce/preprocessor.mjs';
 
 /** What `addPart` does when a part of the same name is already in the package (docx4j AddPartBehaviour). */
 export type AddPartBehaviour = 'OVERWRITE_IF_NAME_EXISTS' | 'REUSE_EXISTING' | 'RENAME_IF_NAME_EXISTS';
@@ -40,6 +41,24 @@ export class RelationshipsPart extends XmlPart<Relationships> {
     const rp = new RelationshipsPart(source);
     rp.setContents({ relationship: [] });
     return rp;
+  }
+
+  /**
+   * Refuses a part in another namespace, or in none, on its root or on any `Relationship` (CR-025 section 8, D10), before the
+   * runtime drops what it can't bind. A root or a child with another local name is left to the runtime, as before: Word is
+   * unmeasured on both, and a child is then a `part.skipped` on this part, which `pkg.warnings` gathers (D12).
+   */
+  protected override readRoot(doc: Document): readonly PartWarning[] {
+    const root = doc.documentElement;
+    if (!root || root.localName !== 'Relationships') return [];
+    if (root.namespaceURI !== Namespaces.RELATIONSHIPS) throw new RelationshipsNamespaceException(this.partName.name, root.namespaceURI ?? null);
+    for (let c = root.firstChild; c; c = c.nextSibling) {
+      const child = c as Element;
+      if (c.nodeType === 1 && child.localName === 'Relationship' && child.namespaceURI !== Namespaces.RELATIONSHIPS) {
+        throw new RelationshipsNamespaceException(this.partName.name, child.namespaceURI ?? null);
+      }
+    }
+    return [];
   }
 
   /** The name of the part these relationships belong to; '/' for the package. */
