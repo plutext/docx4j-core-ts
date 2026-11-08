@@ -16,7 +16,7 @@ The round, 13 files, each opened twice, the runs agreeing, Word 16.0.20326.20232
 | Every file, a save untouched | Each part as written, the prefix kept |
 | A save after `unmarshalAll` | An unknown prefix (`zz9`) dropped from the list; a known one (`w14`, `w15`, `wp14`) kept and declared, from the objects package's prefix table. Both meet REQ-323's save rule as WD 0.103 words it, by its outcome |
 | `ui-05` (Word refuses: the element declares the prefix for itself) | Read, the element a `part.skipped` with `ignorable: true` |
-| `ui-06` (silent: the prefix declared on the root) | Word's text; a save of the read tree refused by CR-025's gate for the element dropped |
+| `ui-06` (silent: the prefix declared on the root) | Word's text; a save of the read tree refused by CR-025's gate for the element dropped. That refusal was a fault in CR-025's copy step after the raise, fixed 2026-11-09 (CR-025 section 9): read and not changed, the part is now copied |
 
 So the gap was the warning, and `ui-05`'s flag. `isIgnorable` counted a prefix that didn't resolve where the list stands by its name, for a branch `mcePreprocess` takes out of the `mc:Choice` declaring it, and so also counted one declared on the element itself.
 

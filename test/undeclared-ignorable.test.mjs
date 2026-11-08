@@ -91,15 +91,26 @@ test('CR-030: a part copied from its source keeps the prefix, and a part written
     const untouched = unzipSync(await (await OpcPackage.load(source)).save());
     for (const p of PARTS) assert.equal(strFromU8(untouched[p]), strFromU8(from[p]), `${stem} ${p}: copied`);
     const pkg = await load(source);
-    let saved;
-    try {
-      saved = unzipSync(await pkg.save());
-    } catch (e) {
-      // ui-05 and ui-06 hold an element the read dropped, so a save of the read tree is CR-025's to refuse
-      assert.ok(e instanceof SaveLossException && ['ui-05-main-lower-unknown', 'ui-06-main-declared-unknown'].includes(stem), stem);
-      continue;
+    const saved = unzipSync(await pkg.save());
+    // ui-05 and ui-06 hold an element the read dropped, so their main part, read and not changed, is copied (CR-025 section 2.2)
+    const skipped = new Set(pkg.warnings.filter((w) => w.code === 'part.skipped').map((w) => w.partName));
+    assert.deepEqual([...skipped], ['ui-05-main-lower-unknown', 'ui-06-main-declared-unknown'].includes(stem) ? ['/word/document.xml'] : [], stem);
+    for (const p of PARTS) {
+      if (skipped.has(`/${p}`)) assert.equal(strFromU8(saved[p]), strFromU8(from[p]), `${stem} ${p}: copied`);
+      else assert.deepEqual(undeclaredOn(rootOf(strFromU8(saved[p]))), [], `${stem} ${p}: written anew`);
     }
-    for (const p of PARTS) assert.deepEqual(undeclaredOn(rootOf(strFromU8(saved[p]))), [], `${stem} ${p}: written anew`);
+  }
+});
+
+test('CR-030: ui-05 and ui-06 changed: a save is CR-025\'s to refuse, and with the check off the part is written anew with no undeclared prefix', async () => {
+  for (const stem of ['ui-05-main-lower-unknown', 'ui-06-main-declared-unknown']) {
+    const pkg = await load(bytesOf(`${stem}.docx`));
+    pkg.getMainDocumentPart().body.insertParagraph('EDIT', 'End');
+    await assert.rejects(pkg.save(), (e) => e instanceof SaveLossException && e.losses[0].partName === '/word/document.xml', stem);
+    pkg.checkLossOnSave = false;
+    const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
+    assert.match(saved, /EDIT/, stem);
+    assert.deepEqual(undeclaredOn(rootOf(saved)), [], stem);
   }
 });
 

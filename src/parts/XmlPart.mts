@@ -341,7 +341,13 @@ export class XmlPart<T = unknown> extends Part {
     try {
       const doc = this.parse(bytes);
       this.preprocessed(doc);
-      const source = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {});
+      // read with the read's callbacks, their reports discarded: without onUnexpectedElement the runtime refuses an unknown
+      // element in the hosts route B skips it in (CR-026), and the part would count as changed
+      const ignore = (): void => {};
+      const source = await unmarshalNode<Jsonix.TypedNamedValue<T>>(doc, {
+        onWordReading: ignore, onOutOfRange: ignore, onMisplaced: ignore,
+        onUnexpectedElement: ignore, onUnexpectedAttribute: ignore, onUnexpectedText: ignore,
+      });
       return serializeXml(await marshalNode(source as Jsonix.TypedNamedValue, marshal))
         === serializeXml(await marshalNode(this.element as Jsonix.TypedNamedValue, marshal));
     } catch {

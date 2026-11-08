@@ -222,6 +222,35 @@ test('CR-025 section 2.2: a part read and not changed is copied byte for byte, w
   assert.deepEqual(pkg.lastSave.normalised, [], 'copied, so no marshal to report on');
 });
 
+// Route B's hosts (CR-026): the runtime skips an unknown element in these only through onUnexpectedElement, and refuses it without,
+// so the copy's second read has to pass the callbacks too, or the part counts as changed and its untouched save is refused.
+const ROUTE_B = {
+  'w:body': '<ext:opaque/><w:p/>',
+  'w:p': '<w:p><ext:opaque/><w:r><w:t>a</w:t></w:r></w:p>',
+  'w:r': '<w:p><w:r><ext:opaque/><w:t>a</w:t></w:r></w:p>',
+  'w:hyperlink': '<w:p><w:hyperlink w:anchor="x"><ext:opaque/><w:r><w:t>a</w:t></w:r></w:hyperlink></w:p>',
+  'w:tbl': '<w:tbl><ext:opaque/><w:tblGrid><w:gridCol w:w="100"/></w:tblGrid><w:tr><w:tc><w:p/></w:tc></w:tr></w:tbl><w:p/>',
+  'w:tr': '<w:tbl><w:tblGrid><w:gridCol w:w="100"/></w:tblGrid><w:tr><ext:opaque/><w:tc><w:p/></w:tc></w:tr></w:tbl><w:p/>',
+  'w:tc': '<w:tbl><w:tblGrid><w:gridCol w:w="100"/></w:tblGrid><w:tr><w:tc><ext:opaque/><w:p/></w:tc></w:tr></w:tbl><w:p/>',
+  'w:sdtContent': '<w:sdt><w:sdtContent><ext:opaque/><w:p/></w:sdtContent></w:sdt>',
+};
+
+test('CR-025 section 2.2 in route B\'s hosts: a part read and not changed is copied, ignorable or not, and changed it\'s refused', async () => {
+  for (const ignorable of [true, false]) {
+    for (const [host, blocks] of Object.entries(ROUTE_B)) {
+      const xml = ignorable ? inBody(blocks) : inBody(blocks).replace(' mc:Ignorable="ext"', '');
+      const bytes = await (await loaded({ 'word/document.xml': xml })).save();
+      const pkg = await WordprocessingMLPackage.load(bytes);
+      await pkg.unmarshalAll();
+      assert.deepEqual(skippedIn(pkg.getMainDocumentPart()).map((w) => [w.name, w.parentName, w.ignorable]), [['ext:opaque', host, ignorable]], host);
+      assert.ok(bytesEqual(bytesOfDocument(await pkg.save()), bytesOfDocument(bytes)), `${host} ignorable ${ignorable}: copied`);
+      await pkg.getBody();
+      pkg.body.paragraphs[0].insertText(' more', 'End');
+      await assert.rejects(pkg.save(), SaveLossException, `${host} ignorable ${ignorable}: changed`);
+    }
+  }
+});
+
 test('CR-025 section 2.3: a part changed is refused, nothing written, with python\'s message and this package\'s way out', async () => {
   const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
   await pkg.getBody();
