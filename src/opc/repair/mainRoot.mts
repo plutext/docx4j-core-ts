@@ -3,7 +3,7 @@
 // the DOM ahead of CR-026's and of the runtime, so a root it reads reaches them as a w:document holding a w:body.
 // mc:AlternateContent as the root is REQ-317's, and left as it is.
 import { PartUnmarshalException } from '../exceptions.mjs';
-import { skippedElement, type ContentSkippedWarning } from '../skipped.mjs';
+import { skippedElement, UNMEASURED, type ContentSkippedWarning } from '../skipped.mjs';
 import { UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
 import { WML_ELEMENT_NAMES } from './wmlNames.generated.mjs';
 
@@ -86,7 +86,7 @@ function bodyFrom(root: Element, partName: string): { body: Element; skipped: Co
   const held = children.find((c) => isW(c, 'body'));
   if (held) {
     // that body is the body, its w:sectPr read (mr-15); what stands beside it nothing measures, so it goes and is said to
-    const skipped = children.filter((c) => c !== held).map((c) => skippedElement(c, partName));
+    const skipped = children.filter((c) => c !== held).map((c) => skippedElement(c, partName, undefined, UNMEASURED));
     return { body: held, skipped };
   }
   if (children.length > 0 && !children.some(readsAsBody)) return undefined;

@@ -3,7 +3,7 @@
 **Status:** Proposed 2026-11-05, at Jason's "we'd better draft those CRs please", after the portfolio session's question on the
 repair policy's P7. Measured here the same day (section 1). D1 to D8 decided 2026-11-05, all as recommended (Jason: "CR-025 decisions as
 recommended"; section 5), D1's code agreed with python the same day (its CR-033 Q9, `f96f463`); D2 is P7 for this package. D4, which waited for Word check 76 (run 2026-11-05), decided the same day as recommended (Jason: "CR-025 D4 as recommended"): what a read drops stays dropped. D9, raised afterwards, decided the same day as recommended (Jason: "CR-025 D9 as recommended"): CR-021's pass reports what it removes. Its wording decided 2026-11-06, python's narrower reading (Jason: "CR-025 D9's wording: take python's narrower version"): what goes with its content. Docs only, nothing implemented. Its sibling is docx4j-python's CR-033 (phase B, proposed), whose names this CR follows where the two packages'
-shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Implemented 2026-11-06, phases 1 to 3 (sections 2.8 to 2.10), unreleased. CR-026 depends on this CR. Section 8, a follow-up proposed 2026-11-08 (Jason: "rn-06/rn-07: CR-025 follow-up"): a relationships part in a wrong namespace, which loses parts past this CR's report and gate. D10 to D13 decided 2026-11-08 as recommended (Jason: "yes, build it as recommended"), built (section 8.5) and committed at his "commit section 8".
+shapes allow. D7 changed 2026-11-06 at Jason's word: this CR goes in 0.7.0. Implemented 2026-11-06, phases 1 to 3 (sections 2.8 to 2.10), unreleased. CR-026 depends on this CR. Section 8, a follow-up proposed 2026-11-08 (Jason: "rn-06/rn-07: CR-025 follow-up"): a relationships part in a wrong namespace, which loses parts past this CR's report and gate. D10 to D13 decided 2026-11-08 as recommended (Jason: "yes, build it as recommended"), built (section 8.5) and committed at his "commit section 8". Section 9, a fault in the copy step after objects 0.8.0, fixed 2026-11-09 (`c65032e`). Section 10, a follow-up proposed 2026-11-09 (Jason: "commit, then read python's CR-033 then draft the CR-025 follow-up"): what Word's own save drops written without it and listed, not refused, as python's CR-033 now has it. D14 to D19 decided the same day as recommended (Jason: "section 10.6 decisions as recommended. please implement"), and implemented (section 10.7), unreleased.
 
 ## 0. Summary
 
@@ -359,3 +359,103 @@ docx4j's `rn-*` files and Word's saves copied unedited into `test/rels-namespace
 Found while probing python's CR-033 question for Jason, the engines' views on which `repair` value opens the gate. Since the raise to objects 0.8.0 at `0b4be29`, section 2.2's copy step failed for an unknown element in route B's hosts (CR-026). `isUnchangedSinceRead` read the source a second time with no options. Without `onUnexpectedElement`, the runtime refuses an unknown element in the twenty hosts where route B skips it, `w:body`, `w:p`, `w:r`, `w:tc` and the rest, and the check counts what it can't compare as changed. So a part read and not changed that held such an element was refused on save (`save.content_lost`), where 2.2 copies it byte for byte. An attribute, and an element in section 1's twelve hosts, were unaffected, since the runtime drops those with or without the callback. So the tests passed: they inject only those two shapes. CR-030's `ui-05` and `ui-06` show the fault on real files, and its tests had recorded the refusal as the gate's work.
 
 The second read now passes the read's six callbacks, their reports discarded, so it reads as the first read did. Unchanged, such a part is copied; changed, it's refused, as section 2.3 has it. `test/content-skipped.test.mjs` adds route B's hosts (`w:body`, `w:p`, `w:r`, `w:hyperlink`, `w:tbl`, `w:tr`, `w:tc`, `w:sdtContent`), ignorable and not: each read and not changed is copied, and changed is refused. `test/undeclared-ignorable.test.mjs` holds `ui-05` and `ui-06`'s main part to its source on an untouched save, and a changed one to the gate. Both tests fail with the fix taken out. Nothing was pushed or released with the fault.
+
+## 10. Follow-up: what Word's own save drops is written without it, not refused (proposed 2026-11-09)
+
+Jason, 2026-11-09: "commit, then read python's CR-033 then draft the CR-025 follow-up". D14 to D19 decided the same day as recommended ("section 10.6 decisions as recommended. please implement"), and built (section 10.7).
+
+### 10.1 Why
+
+This CR's gate (D2, the repair policy's P7) refuses a save of any changed part that holds an item the read skipped, unless `pkg.checkLossOnSave` is off. Section 2.3 already said the gate asks more than Word does: where Word 365 opens such a file, its own save drops the same content with no message (check 76).
+
+python's CR-033 has since been decided (`62a9a6e`, Jason in python's session, 2026-11-09), after the question of which `repair` value opens the gate went to the three engines and the portfolio:
+
+| | Portfolio | docx4j | core-ts |
+|---|---|---|---|
+| What Word's own save drops with no message | Not gated | Not gated | Under `word` |
+| A foreign element not ignorable (Word won't open the file) | Gated | Gated | Gated |
+| A repeat Word hasn't measured | Gated until measured | Gated until measured | Gated until measured |
+
+Jason chose not to gate tier 1 for python (CR-033's option C), with this package's three refinements: (a) the class is per measured shape, not the `ignorable` flag; (b) a shape nobody has measured counts as lost; (c) an unmeasured repeat is gated. In python, what Word's own save also drops is written without it and listed on `last_save.dropped`, never refused. What Word's save keeps, or what has no Word reading, is refused (`save.content_lost`) unless `check_loss_on_save` is off. python took this package's switch for that, `checkLossOnSave`, and `repair` opens the gate at no value, as CR-031 D6 has it here.
+
+So the engines now differ on tier 1. python writes a changed part holding an unmodelled ignorable extension, as Word's save does. This package refuses it, and the only way past is `checkLossOnSave = false`, which also lets through what Word keeps or won't open. This section brings the gate here into line with python's.
+
+### 10.2 Measured (2026-11-09, `ef1adfb`)
+
+Every `part.skipped` item across 2,385 word-processing packages (this repository's `test/` and docx4j's test resources), each loaded under `repair: 'word'` and unmarshalled: 114 packages hold 127 items, and every one is a probe (check 76, `main-part-root/`, `mc-root/`, `undeclared-ignorable/`, `repeated/nd-*`). No other document in the corpus holds one. Sorted by 10.3's table:
+
+| Class | Items | What |
+|---|---|---|
+| Dropped | 74 | An unknown `w:` element's tags, read through by CR-026's pass or dropped by route B where check 76 measured Word reading past it (rounds 1 to 11) |
+| Dropped | 11 | An element in a namespace Word doesn't understand, ignorable where it stands (`76a` to `76d`, `76k`, `76l`, `76m`, `76n`, `76w`, `ui-06`) |
+| Dropped | 8 | Text held directly by an unknown `w:` element (WD REQ-314: absent in Word's reading) |
+| Dropped | 3 | An attribute in a namespace Word doesn't understand, ignorable or not (`76h`, `76i`), and an unknown `w:` attribute (`76j`) |
+| Dropped | 4 | A `w:sectPr` Word's reading takes no effect from: in an unknown root (`mr-11`), in a `w:pPr` beside a run read through (`76t50`, CR-026 D10); a `w:tab` in a `w:t` (`76z`) |
+| Lost | 9 | An element in a namespace Word doesn't understand, not ignorable: Word won't open the file (`76e`, `76o` to `76s`, `76v`), and `ui-05`, whose prefix is declared only below the list |
+| Lost | 4 | A run held by an unknown `w:` element in a `w:rPr`, a block `w:sdtPr`, a `w:trPr`, a `w:tcPr` or a `w:tblPr`: Word won't open the file (`76t28`, `76t46` to `76t49`) |
+| Lost | 4 | A `w:document` inside a `w:document` (`nd-10` to `nd-12`): Word won't open the file (CR-028 section 1.3) |
+| Lost | 10 | What an unexpected root held (REQ-320; `or-*`, `mr-22`). Moot: such a part is copied as written, `body` refuses its writes, and `setContents` clears the warnings, so no changed part holds one |
+
+So 100 of the 127 items are tier 1 by a measured Word file, and 87 of the 114 packages hold nothing else. Under this section, once the part holding the items is changed, a save of any of those 87 writes, its items on `lastSave.dropped`, where today every one is refused. The other 27 are refused as now. Untouched, all 114 are copied as they are today. Nothing in an understood namespace that the model lacks (python's 1b) turns up here, as python found on Word's 373 saves (its CR-033 section 3.5).
+
+### 10.3 Proposal
+
+- **The class, on each item.** `ContentSkippedWarning` gains `onSave: 'dropped' | 'lost'` and `measured`, the Word file or statement that decides it (`'76i'`, `'REQ-314'`), absent for a lost item nobody measured. It gains `namespace` too, the item's namespace URI, which the class needs and the report lacks today. The runtime's items are classed where `skippedElement` and `skippedAttribute` make them, by kind, namespace, `UNDERSTOOD_NAMESPACES` and `ignorable`. The passes' items carry the class their pass gives them: CR-021's, CR-026's and CR-028's, each naming its Word file beside the call, as python's `breaks.skipped_node` does.
+
+| The item | Word | Class |
+|---|---|---|
+| An element or attribute in a namespace outside `UNDERSTOOD_NAMESPACES`, ignorable where it stands | No message; its save drops it (`76a` to `76d`, `76h`, `76k`, `76l`, `ui-06`) | Dropped |
+| An attribute in such a namespace, not ignorable | The same (`76i`) | Dropped |
+| A `w:` attribute the model doesn't hold | The same (`76j`) | Dropped |
+| An unknown `w:` element's tags, read through (CR-026 D7 to D11) or dropped by route B in a host check 76 measured | Word's own reading, its save the same (rounds 1 to 11; REQ-308 to REQ-313) | Dropped |
+| What CR-021's pass takes from a `w:t`: an element and what it holds (`76m`, `76n`, `76u`, `76w`, `76z`) | Gone in Word's save | Dropped |
+| Text held directly by an unknown `w:` element (REQ-314), or a string in a run (`72m`) | Absent in Word's reading; Word's save drops it | Dropped |
+| A `w:sectPr` in an unknown root (`mr-11`) or beside a run read through in a `w:pPr` (`76t50`) | No effect in Word's reading | Dropped |
+| An element in a namespace outside the understood set, not ignorable, or in no namespace | Word won't open the file (`76e`, `76o` to `76s`, `76v`, `76x`, `76y`): tier 3 | Lost |
+| A run held by an unknown `w:` element in a `w:rPr`, a block `w:sdtPr`, a `w:trPr`, a `w:tcPr` or a `w:tblPr` | Word won't open the file (`76t28`, `76t46` to `76t49`) | Lost |
+| An element or attribute in an understood namespace the model doesn't hold (python's 1b) | Its save keeps it | Lost |
+| What an unexpected root held (REQ-320) | No reading to copy | Lost (and moot, 10.2) |
+| Anything else: a known element out of place, an item under an `mc:Ignorable` below the root | Unmeasured | Lost (refinement (b)) |
+
+- **The save.** `Saver.settleLosses` keeps its order: a part read and not changed is copied byte for byte (D3, now with every item in it), and a changed part's items are split. Dropped items are written without, each on a new `lastSave.dropped`, and never refuse. Lost items refuse the save as now (`SaveLossException`, `save.content_lost`), its `losses` and message counting only them. With `checkLossOnSave` off they're written without, each on `lastSave.lost`. A part holding both is refused for its lost items alone, and with the check off its items go to the two lists by class.
+- **Unchanged:** the report itself (every item still a `part.skipped` on the part and on `pkg.warnings`), the copy step, the switch and its name, `repair` (which opens the gate at no value, CR-031 D6), and the text model.
+
+### 10.4 Not here
+
+- **A repeat Word hasn't measured** (refinement (c)). This package keeps the last copy of a single-valued child given twice and reports nothing (section 2.6), so the gate can't see it at all. python keeps the first and gates it as lost; docx4j keeps the last. Reporting it is CR-028's repeated containers (its D2 and D6, REQ-322), after 0.7.0. Until then this package says nothing about such a loss, at every setting.
+- **python's `last_save.introduced`** (its P6 walk on every save). That is CR-016's ground here, whose save gate already refuses what the session misplaced.
+- **A Word check.** Nothing is written that Word hasn't written: each dropped class is Word's own save's.
+
+### 10.5 Tests and oracles
+
+- One probe per row of 10.3's table, with its Word file: check 76's sources (`test/fixtures/check76/`'s build and docx4j's `unknown-elements/` copy), `ui-05` and `ui-06`, `mr-11` and `nd-*`. Dropped: an edited save writes, `lastSave.dropped` names each item, and the save reloads with nothing skipped; where Word's save exists (`test/check76/`), the two read the same. Lost: refused, the message counting only those; with the check off, written, `lastSave.lost` naming them.
+- A part holding both classes, at each setting of the check.
+- `content-skipped.test.mjs`'s gate tests, which inject an ignorable `ext:opaque` and so become dropped, held to the new rule, and a not-ignorable one beside them kept refused. The route-B hosts test (section 9) the same, ignorable and not.
+- Every field of the class on every item the corpus scan meets (10.2), held to a table, so that a pass that forgets its class fails.
+- The copy step unchanged: a part read and not changed is copied byte for byte, whatever its items' classes.
+
+### 10.6 Decisions
+
+| | Question | Recommendation |
+|---|---|---|
+| D14 | Write a changed part without what Word's own save drops, listed and never refused? It reverses D2 for tier 1 | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). Yes, as python's CR-033 now does at Jason's word, and as the portfolio and docx4j recommended. Word's save makes the same drop with no prompt, so refusing it refuses a save Word makes without asking, and the only way past, `checkLossOnSave`, also lets through what Word keeps |
+| D15 | A class per measured shape, with an unmeasured one lost? | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). Yes: this package's own refinements, which python took (its Q12). A new measurement then moves one row |
+| D16 | The fields: `onSave`, `measured` and `namespace` on each `part.skipped`? | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). Yes, on the item, so a caller reading `pkg.warnings` sees what a save would do with each before saving. The code and the other fields don't change |
+| D17 | The record's name? | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). `lastSave.dropped`, python's, beside `lastSave.lost` |
+| D18 | Which release? | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). 0.7.0. The gate first ships in 0.7.0, and shipping it stricter than the design both engines now hold means a later release turning refused saves into written ones. That's no break, but the engines would disagree in between. About half a day |
+| D19 | The portfolio's P7? | **Decided** 2026-11-09 as recommended (Jason: "section 10.6 decisions as recommended"). Ask the portfolio to record the amendment for this package as for python: the gate covers what Word's save keeps or has no reading for, not what it drops |
+
+### 10.7 As built (2026-11-09)
+
+Jason, 2026-11-09: "section 10.6 decisions as recommended. please implement". On `ef1adfb`.
+
+- **The class (D15, D16).** `ContentSkippedWarning` has `namespace`, `onSave` and `measured` (`src/opc/skipped.mts`). `skippedElement`, `skippedAttribute` and `skippedText` class each item by its shape, as the table in 10.3 has it, with the Word file named in the code beside each rule: an element by its namespace, the understood set, `ignorable`, and for an unknown `w:` element its host and whether it holds a run; an attribute by its namespace; text by what holds it. A pass that knows better gives the class itself, through `skippedElement`'s fourth argument. CR-026's read-through pass gives its tags `dropped` (`REQ-308`), a run it moves to a paragraph's head `76t27` and the `w:sectPr` beside it `76t50`. CR-028's unknown root gives what stands beside a held `w:body` `UNMEASURED`. So an unknown `w:` element the pass leaves whole in a content host, a shape Word refuses (`76t53` to `76t59`) or nobody measured, is lost.
+- **One departure from 10.3.** The table read as if an unknown `w:` element in a content host were dropped wherever it stands. The build found that `76t53`, `76t54`, `76t55`, `76t57` and `76t59`, which Word refuses, hold such an element, left whole by the pass because Word refuses the shape. So the class of one in a content host comes from the pass, which reads through only what Word reads through, and not from its host.
+- **The hosts** the pass reads through moved to `src/opc/repair/hosts.mts`, so that the report can name them without importing the pass, which imports the report.
+- **The save (D14, D17).** `Saver.settleLosses`: a changed part's dropped items go to `lastSave.dropped` and never refuse. Its lost items refuse as before, `losses` counting those alone, or under `checkLossOnSave` off go to `lastSave.lost`. `SaveLossException`'s message says it counts what Word's own save keeps or isn't measured on (`onSave lost`).
+- **An ignorable element in a host check 76 didn't measure** is dropped, `measured: 'mc:Ignorable'`: Word ignores ignorable content it doesn't understand wherever it stands (ISO/IEC 29500-3), and python's row is the same. A not-ignorable one there is lost with no file.
+- **Measured.** Every check 76 file Word opened with no message holds no lost item, but `76t71`, where Word keeps words this package drops (CR-026's known difference). Every one Word refused that holds an item holds a lost one. Across the corpus, 115 packages hold skipped content. An edit and a save of each: 73 go from refused to written, their items on `lastSave.dropped`; 24 are refused as before; 13 have no body to edit (REQ-320's roots); 5 hold the item in a part the edit doesn't touch, which is copied, as before. Untouched, every one is copied as before.
+- **Tests.** `test/save-classes.test.mjs`: check 76's 98 files held to Word's verdicts, the refusals listed held to the bridge's own results for rounds 6 to 11, each row of 10.3's table in memory with its `measured`, text in an unknown element, a nested `w:document`, a part holding both classes at each setting of the check, and the copy. The gate's tests in `content-skipped.test.mjs`, `unknown-elements.test.mjs`, `main-part-root.test.mjs` and `undeclared-ignorable.test.mjs` hold the new rule: an ignorable element or one read through written and listed, a not-ignorable one refused.
+- **Mutants.** Fifteen, each failing a test: the save's dropped list left empty, every item treated as lost, an ignorable foreign element not dropped, a `w:` attribute or a not-ignorable foreign one lost, a run in a property host not refused, an unknown `w:` element left whole in a content host dropped, text in one lost, a nested `w:document` dropped, `mr-11`'s `w:sectPr` lost, an understood namespace's item not lost, a property in a `w:pPr` lost, and each of the read-through pass's three classes lost. Two first written didn't build under TypeScript's narrowing and were rewritten.
+
+`npm run typecheck` passes, and `npm test` passes 1,971 of 1,971 on Node 18, 20 and 22; the 1,224 saves compared with the raise's build are the same byte for byte.

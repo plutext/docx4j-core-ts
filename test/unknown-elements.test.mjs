@@ -159,7 +159,7 @@ test('D11, REQ-316: a held w:p ends its host: the host takes its properties, els
   assert.equal(skippedIn(deep.main).length, 2);
 });
 
-test('CR-025 section 2.2: a file read through, read and not changed, is copied with its tags; changed, its save is refused', async () => {
+test('CR-025 sections 2.2 and 10: a file read through, read and not changed, is copied with its tags; changed, written without them and listed, as Word\'s save', async () => {
   const bytes = await (await documentOf(`<w:p><w:madeUp>${run('a')}</w:madeUp></w:p>`)).save();
   const reader = await WordprocessingMLPackage.load(bytes);
   await reader.getBody();
@@ -167,9 +167,9 @@ test('CR-025 section 2.2: a file read through, read and not changed, is copied w
   const writer = await WordprocessingMLPackage.load(bytes);
   await writer.getBody();
   writer.body.paragraphs[0].insertText(' more', 'End');
-  await assert.rejects(writer.save(), SaveLossException);
-  writer.checkLossOnSave = false;
   assert.doesNotMatch(strFromU8(unzipSync(await writer.save())['word/document.xml']), /w:madeUp/);
+  assert.deepEqual(writer.lastSave.dropped.map((w) => [w.name, w.onSave, w.measured]), [['w:madeUp', 'dropped', 'REQ-308']]);
+  assert.deepEqual(writer.lastSave.lost, []);
 });
 
 test('D12: insertOoxml refuses a caller\'s own fragment holding an unknown element, wherever it stands, and takes a clean one', async () => {

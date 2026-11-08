@@ -31,12 +31,16 @@ export interface ValueNormalised {
  * What the last save of a package did beyond writing it: each value it normalised (CR-015 D8), each integer
  * attribute value it wrote that Word 365 reads differently, written as held (CR-017 P3, E3), with
  * `checkContentOnSave` off, each child it wrote where its container never admits one (CR-016 D2), each with its path,
- * and, with `checkLossOnSave` off, each item the read dropped that a changed part was written without (CR-025 D8).
+ * each item the read dropped that a changed part was written without as Word's own save writes it (CR-025 section 10), and,
+ * with `checkLossOnSave` off, each it was written without that Word's save keeps or nobody has measured (CR-025 D8).
  */
 export interface SaveReport {
   normalised: ValueNormalised[];
   outOfRange: ValueOutOfRangeWarning[];
   misplaced: MisplacedContentWarning[];
+  /** Items a changed part was written without, Word's own save dropping them too (`onSave: 'dropped'`, CR-025 D14): never refused. */
+  dropped: ContentSkippedWarning[];
+  /** Items a changed part was written without under `checkLossOnSave` off (`onSave: 'lost'`). */
   lost: ContentSkippedWarning[];
 }
 
@@ -83,7 +87,7 @@ export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promis
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
-  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, lost: saver.lost };
+  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, dropped: saver.dropped, lost: saver.lost };
   return result;
 }
 
@@ -92,6 +96,7 @@ class Saver {
   readonly normalised: ValueNormalised[] = [];
   readonly outOfRange: ValueOutOfRangeWarning[] = [];
   readonly misplaced: MisplacedContentWarning[] = [];
+  readonly dropped: ContentSkippedWarning[] = [];
   readonly lost: ContentSkippedWarning[] = [];
   /** Parts holding skipped content, read and not changed: written from their source (CR-025 section 2.2). */
   private readonly copied = new Set<string>();
@@ -99,8 +104,9 @@ class Saver {
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
 
   /**
-   * CR-025 sections 2.2 and 2.3, over the parts this save reaches: one holding what its read dropped is copied if it hasn't
-   * changed, and if it has, the save is refused for all of them at once, or, with `checkLossOnSave` off, says what went.
+   * CR-025 sections 2.2, 2.3 and 10, over the parts this save reaches: one holding what its read dropped is copied if it hasn't
+   * changed. If it has, what Word's own save drops too is written without and listed (`dropped`), and for the rest the save is
+   * refused for all such parts at once, or, with `checkLossOnSave` off, says what went (`lost`).
    */
   async settleLosses(): Promise<void> {
     const losses: ContentLoss[] = [];
@@ -115,8 +121,12 @@ class Saver {
           const skipped = part.skippedByRead;
           if (skipped.length > 0) {
             if (await part.isUnchangedSinceRead()) this.copied.add(part.partName.key);
-            else if (this.pkg.checkLossOnSave) losses.push({ partName: part.partName.name, kind: 'skipped', count: skipped.length });
-            else this.lost.push(...skipped);
+            else {
+              this.dropped.push(...skipped.filter((w) => w.onSave === 'dropped'));
+              const lost = skipped.filter((w) => w.onSave === 'lost');
+              if (lost.length > 0 && this.pkg.checkLossOnSave) losses.push({ partName: part.partName.name, kind: 'skipped', count: lost.length });
+              else this.lost.push(...lost);
+            }
           }
         }
         const rrp = part.relationshipsPart;

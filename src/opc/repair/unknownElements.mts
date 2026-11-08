@@ -3,41 +3,9 @@
 // content host loses its tags and keeps what it holds. A run in one in a paragraph's w:pPr goes to the head of the paragraph. A w:p
 // in one, last in a w:p with a run before it, ends that paragraph. Everything else is left for the runtime to skip and report.
 import { childElements } from '../../xml/dom.mjs';
-import { skippedElement, skippedText, type ContentSkippedWarning } from '../skipped.mjs';
+import { dropped, skippedElement, skippedText, type ContentSkippedWarning } from '../skipped.mjs';
 import { UNDERSTOOD_NAMESPACES } from '../mce/understood.mjs';
-import { WML_ELEMENT_NAMES } from './wmlNames.generated.mjs';
-
-const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-const M = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
-const MC = 'http://schemas.openxmlformats.org/markup-compatibility/2006';
-
-/** The twenty hosts check 76 measured. */
-const HOSTS: ReadonlySet<string> = new Set(['p', 'body', 'tc', 'r', 'tbl', 'tr', 'sdtContent', 'hyperlink', 'ins', 'del', 'moveFrom', 'moveTo',
-  'hdr', 'ftr', 'comment', 'fldSimple', 'smartTag', 'customXml', 'footnote', 'endnote']);
-
-/** The same names under parents that make them something else, none measured: no host there (WD REQ-308's NOTE). */
-const NOT_A_HOST_UNDER: Readonly<Record<string, readonly (readonly [string, string])[]>> = {
-  ins: [[W, 'numPr'], [W, 'rPr'], [W, 'trPr'], [M, 'r'], [M, 'ctrlPr']],
-  del: [[W, 'rPr'], [W, 'trPr'], [M, 'r'], [M, 'ctrlPr']],
-  moveFrom: [[W, 'rPr']],
-  moveTo: [[W, 'rPr']],
-  footnote: [[W, 'footnotePr']],
-  endnote: [[W, 'endnotePr']],
-};
-
-const isW = (e: Element, local: string): boolean => e.namespaceURI === W && e.localName === local;
-const isUnknown = (e: Element): boolean => e.namespaceURI === W && !WML_ELEMENT_NAMES.has(e.localName);
-const isBranch = (e: Element): boolean => e.namespaceURI === MC && (e.localName === 'Choice' || e.localName === 'Fallback' || e.localName === 'AlternateContent');
-
-/** The content host `parent` is, through a kept branch (`76t44`, `76t45`); undefined for anything else, another namespace's element above all (`76k`). */
-function hostOf(parent: Element): Element | undefined {
-  let host: Element = parent;
-  while (isBranch(host)) host = host.parentNode as Element;
-  if (host.namespaceURI !== W || !HOSTS.has(host.localName)) return undefined;
-  const above = host.parentNode as Element | null;
-  const excluded = NOT_A_HOST_UNDER[host.localName]?.some(([ns, local]) => above?.namespaceURI === ns && above.localName === local);
-  return excluded ? undefined : host;
-}
+import { W, MC, isUnknown, isW, hostOf } from './hosts.mjs';
 
 function outermostUnknown(root: Element): Element[] {
   const found: Element[] = [];
@@ -56,8 +24,11 @@ function heldElements(e: Element): Element[] {
   return childElements(e).flatMap((c) => (isUnknown(c) ? heldElements(c) : [c]));
 }
 
+/** What the pass takes is Word's own reading, and Word's save holds the same: written without it, never refused (CR-025 section 10). */
+const READ_THROUGH = dropped('REQ-308');
+
 function reportAll(e: Element, skipped: ContentSkippedWarning[], partName: string | undefined): void {
-  skipped.push(skippedElement(e, partName));
+  skipped.push(skippedElement(e, partName, undefined, READ_THROUGH));
   for (const c of childElements(e)) if (isUnknown(c)) reportAll(c, skipped, partName);
 }
 
@@ -128,7 +99,7 @@ function runsToHead(e: Element, at: { paragraph: Element; sectPr: Element | unde
   if (runs.length === 0) return;
   const { paragraph, sectPr } = at;
   const stays = childElements(e).some((c) => !isW(c, 'r'));
-  if (!stays) skipped.push(skippedElement(e, partName));
+  if (!stays) skipped.push(skippedElement(e, partName, undefined, dropped('76t27')));
   if (!heads.has(paragraph)) {
     const pPr = childElements(paragraph).find((c) => isW(c, 'pPr'));
     heads.set(paragraph, pPr ? pPr.nextSibling : paragraph.firstChild);
@@ -137,7 +108,7 @@ function runsToHead(e: Element, at: { paragraph: Element; sectPr: Element | unde
   for (const r of runs) paragraph.insertBefore(r, head);
   if (!stays) (e.parentNode as Node).removeChild(e);
   if (sectPr) {
-    skipped.push(skippedElement(sectPr, partName));
+    skipped.push(skippedElement(sectPr, partName, undefined, dropped('76t50')));
     (sectPr.parentNode as Node).removeChild(sectPr);
   }
 }

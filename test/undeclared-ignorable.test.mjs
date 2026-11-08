@@ -102,12 +102,14 @@ test('CR-030: a part copied from its source keeps the prefix, and a part written
   }
 });
 
-test('CR-030: ui-05 and ui-06 changed: a save is CR-025\'s to refuse, and with the check off the part is written anew with no undeclared prefix', async () => {
+test('CR-030: ui-05 and ui-06 changed: ui-05 (Word refuses it) CR-025\'s gate refuses, ui-06\'s ignorable element Word\'s save drops too; either way written anew with no undeclared prefix', async () => {
   for (const stem of ['ui-05-main-lower-unknown', 'ui-06-main-declared-unknown']) {
     const pkg = await load(bytesOf(`${stem}.docx`));
     pkg.getMainDocumentPart().body.insertParagraph('EDIT', 'End');
-    await assert.rejects(pkg.save(), (e) => e instanceof SaveLossException && e.losses[0].partName === '/word/document.xml', stem);
-    pkg.checkLossOnSave = false;
+    if (stem.startsWith('ui-05')) {
+      await assert.rejects(pkg.save(), (e) => e instanceof SaveLossException && e.losses[0].partName === '/word/document.xml', stem);
+      pkg.checkLossOnSave = false;
+    }
     const saved = strFromU8(unzipSync(await pkg.save())['word/document.xml']);
     assert.match(saved, /EDIT/, stem);
     assert.deepEqual(undeclaredOn(rootOf(saved)), [], stem);

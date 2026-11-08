@@ -264,7 +264,7 @@ export class MisplacedContentException extends Docx4JException {
 export interface ContentLoss {
   partName: string;
   kind: 'skipped';
-  /** The items its read dropped: `part.skipped`, one each. */
+  /** The items its read dropped that Word's own save doesn't drop too: `part.skipped` with `onSave: 'lost'`, one each (CR-025 section 10). */
   count: number;
 }
 
@@ -276,7 +276,7 @@ export class SaveLossException extends Docx4JException {
   readonly code = 'save.content_lost';
 
   constructor(readonly losses: readonly ContentLoss[]) {
-    super(`Saving would lose content: ${losses.map((l) => `${l.partName} holds ${l.count} item${l.count === 1 ? '' : 's'} the load skipped (part.skipped)`).join(', ')}. `
+    super(`Saving would lose content Word's own save keeps or isn't measured on: ${losses.map((l) => `${l.partName} holds ${l.count} item${l.count === 1 ? '' : 's'} the load skipped (part.skipped, onSave lost)`).join(', ')}. `
       + `Set pkg.checkLossOnSave = false to write ${losses.length === 1 ? 'the part without it' : 'the parts without them'}.`);
     this.name = 'SaveLossException';
   }

@@ -206,9 +206,13 @@ test('CR-025 section 1: no fixture reports any, the objects package\'s CR-019 ha
   assert.deepEqual([...found.keys()], []);
 });
 
-// Phase 2. The element is one the read drops today, in a host that reads: w:pPr.
+// Phase 2. The element is one the read drops today, in a host that reads: w:pPr. Ignorable, it's one Word's own save drops too
+// (onSave dropped, section 10); in a namespace not ignorable, Word won't open the file (76p), so a save of the changed part is refused.
 const DROPPED = '<w:p><w:pPr><ext:opaque/></w:pPr><w:r><w:t>a</w:t></w:r></w:p>';
 const bytesOfDocument = (zipped) => unzipSync(zipped)['word/document.xml'];
+const notIgnorable = (xml) => xml.replace(' mc:Ignorable="ext"', '');
+/** A package whose main part holds `blocks` in a namespace that isn't ignorable: each item lost (CR-025 section 10). */
+const lostOf = (blocks) => loaded({ 'word/document.xml': notIgnorable(inBody(blocks)) });
 
 test('CR-025 section 2.2: a part read and not changed is copied byte for byte, what the read dropped still in it', async () => {
   const bytes = await (await documentOf(DROPPED)).save();
@@ -235,7 +239,7 @@ const ROUTE_B = {
   'w:sdtContent': '<w:sdt><w:sdtContent><ext:opaque/><w:p/></w:sdtContent></w:sdt>',
 };
 
-test('CR-025 section 2.2 in route B\'s hosts: a part read and not changed is copied, ignorable or not, and changed it\'s refused', async () => {
+test('CR-025 section 2.2 in route B\'s hosts: a part read and not changed is copied, ignorable or not; changed, ignorable is written and listed, not ignorable refused', async () => {
   for (const ignorable of [true, false]) {
     for (const [host, blocks] of Object.entries(ROUTE_B)) {
       const xml = ignorable ? inBody(blocks) : inBody(blocks).replace(' mc:Ignorable="ext"', '');
@@ -246,13 +250,20 @@ test('CR-025 section 2.2 in route B\'s hosts: a part read and not changed is cop
       assert.ok(bytesEqual(bytesOfDocument(await pkg.save()), bytesOfDocument(bytes)), `${host} ignorable ${ignorable}: copied`);
       await pkg.getBody();
       pkg.body.paragraphs[0].insertText(' more', 'End');
-      await assert.rejects(pkg.save(), SaveLossException, `${host} ignorable ${ignorable}: changed`);
+      if (ignorable) {
+        // Word's own save drops an ignorable element it doesn't understand, wherever it stands (76a to 76d, section 10)
+        assert.doesNotMatch(new TextDecoder().decode(bytesOfDocument(await pkg.save())), /ext:opaque/, host);
+        assert.deepEqual(pkg.lastSave.dropped.map((w) => w.name), ['ext:opaque'], host);
+        assert.deepEqual(pkg.lastSave.lost, [], host);
+      } else {
+        await assert.rejects(pkg.save(), SaveLossException, `${host} not ignorable: changed`);
+      }
     }
   }
 });
 
 test('CR-025 section 2.3: a part changed is refused, nothing written, with python\'s message and this package\'s way out', async () => {
-  const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+  const pkg = await WordprocessingMLPackage.load(await (await lostOf(DROPPED)).save());
   await pkg.getBody();
   pkg.body.paragraphs[0].insertText(' more', 'End');
   const puts = [];
@@ -261,7 +272,7 @@ test('CR-025 section 2.3: a part changed is refused, nothing written, with pytho
     assert.ok(e instanceof SaveLossException);
     assert.equal(e.code, 'save.content_lost');
     assert.deepEqual(e.losses, [{ partName: '/word/document.xml', kind: 'skipped', count: 1 }]);
-    assert.equal(e.message, 'Saving would lose content: /word/document.xml holds 1 item the load skipped (part.skipped). Set pkg.checkLossOnSave = false to write the part without it.');
+    assert.equal(e.message, 'Saving would lose content Word\'s own save keeps or isn\'t measured on: /word/document.xml holds 1 item the load skipped (part.skipped, onSave lost). Set pkg.checkLossOnSave = false to write the part without it.');
     return true;
   });
   assert.deepEqual(puts, [], 'nothing written, whatever the sink: a directory sink writes as it goes');
@@ -269,8 +280,8 @@ test('CR-025 section 2.3: a part changed is refused, nothing written, with pytho
 
 test('CR-025 section 2.3: every part that would lose content is listed at once', async () => {
   const pkg = await loaded({
-    'word/document.xml': inBody(DROPPED),
-    'word/settings.xml': `<w:settings ${roots}><ext:one/><ext:two/></w:settings>`,
+    'word/document.xml': notIgnorable(inBody(DROPPED)),
+    'word/settings.xml': notIgnorable(`<w:settings ${roots}><ext:one/><ext:two/></w:settings>`),
   });
   await pkg.getBody();
   const settings = partOf(pkg, '/word/settings.xml');
@@ -289,7 +300,7 @@ test('CR-025 section 2.3: every part that would lose content is listed at once',
 
 test('CR-025 section 2.4: with checkLossOnSave off the part is written without the items, each on lastSave.lost, through every route', async () => {
   const changed = async () => {
-    const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+    const pkg = await WordprocessingMLPackage.load(await (await lostOf(DROPPED)).save());
     await pkg.getBody();
     pkg.body.paragraphs[0].insertText(' more', 'End');
     pkg.checkLossOnSave = false;
@@ -307,7 +318,7 @@ test('CR-025 section 2.4: with checkLossOnSave off the part is written without t
 });
 
 test('CR-025 section 2.4: clone() carries the setting, and a changed part refuses a clone as it does a save', async () => {
-  const pkg = await WordprocessingMLPackage.load(await (await documentOf(DROPPED)).save());
+  const pkg = await WordprocessingMLPackage.load(await (await lostOf(DROPPED)).save());
   await pkg.getBody();
   pkg.body.paragraphs[0].insertText(' more', 'End');
   await assert.rejects(pkg.clone(), SaveLossException);
@@ -343,15 +354,21 @@ test('CR-025 section 2.2: a part given bytes is held to those bytes, not to its 
   assert.match(new TextDecoder().decode(bytesOfDocument(await pkg.save())), /ext:opaque/);
 });
 
-test('CR-025 D9: what CR-021\'s pass takes counts: read and not changed the part is copied, changed it\'s refused', async () => {
-  const bytes = await (await documentOf('<w:p><w:r><w:t>a<ext:opaque>lost</ext:opaque>b</w:t></w:r></w:p>')).save();
+test('CR-025 D9: what CR-021\'s pass takes counts: read and not changed the part is copied; changed, ignorable it\'s written and listed (76n), not it\'s refused (76v)', async () => {
+  const blocks = '<w:p><w:r><w:t>a<ext:opaque>lost</ext:opaque>b</w:t></w:r></w:p>';
+  const bytes = await (await documentOf(blocks)).save();
   const read = await WordprocessingMLPackage.load(bytes);
   await read.getMainDocumentPart().getContents();
   assert.ok(bytesEqual(bytesOfDocument(await read.save()), bytesOfDocument(bytes)));
   const changed = await WordprocessingMLPackage.load(bytes);
   await changed.getBody();
   changed.body.paragraphs[0].insertText(' more', 'End');
-  await assert.rejects(changed.save(), SaveLossException);
+  assert.doesNotMatch(new TextDecoder().decode(bytesOfDocument(await changed.save())), /ext:opaque|lost/);
+  assert.deepEqual(changed.lastSave.dropped.map((w) => [w.name, w.measured]), [['ext:opaque', '76m']]);
+  const kept = await WordprocessingMLPackage.load(await (await lostOf(blocks)).save());
+  await kept.getBody();
+  kept.body.paragraphs[0].insertText(' more', 'End');
+  await assert.rejects(kept.save(), SaveLossException);
 });
 
 test('CR-025 section 1: the real file: nothing is lost from its style pane filter, read or changed, since the objects package\'s CR-019', async () => {

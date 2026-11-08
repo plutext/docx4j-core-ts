@@ -87,12 +87,11 @@ test('CR-028 D11: REQ-319, a root read is written as a w:document, and a write t
     const pkg = await load(bytesOf(`${stem}.docx`));
     const skipped = pkg.getMainDocumentPart().skippedByRead;
     pkg.body.insertParagraph('ADDED', 'End');
-    if (skipped.length > 0) {
-      // what the read dropped (a w:sectPr standing in the root, an unknown element read through) is CR-025's to guard
-      await assert.rejects(pkg.save(), SaveLossException, stem);
-      pkg.checkLossOnSave = false;
-    }
+    // what the read dropped here, a w:sectPr standing in the root (mr-11) or an unknown element read through (mr-17), is Word's
+    // reading, so the save writes it without and lists it, never refused (CR-025 section 10)
     const saved = await pkg.save();
+    assert.deepEqual(pkg.lastSave.dropped.map((w) => w.name), skipped.map((w) => w.name), stem);
+    assert.ok(skipped.every((w) => w.onSave === 'dropped'), stem);
     assert.match(mainXml(saved), /^<\?xml[^>]*\?>\s*<w:document[\s>]/, stem);
     assert.match((await textOf(await load(saved))).text, /ADDED$/, stem);
   }

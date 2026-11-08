@@ -77,8 +77,10 @@ pkg.repaired;                                       // 'none', 'word' or 'own'; 
 
 Each warning is on `pkg.warnings` and, in the text model, a warning of the same code. A save then writes the
 repaired package: one entry of each name, one main relationship, the right namespace, no `External` main
-relationship. `repair` doesn't open the save's own gate: a save that would lose what a read skipped still needs
-`pkg.checkLossOnSave = false` ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)). The other shapes
+relationship. `repair` doesn't open the save's own gate ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)):
+a changed part is written without what Word's own save drops too, such as an ignorable element Word doesn't understand,
+each listed on `pkg.lastSave.dropped`; one that would lose anything else Word keeps, or won't open, needs
+`pkg.checkLossOnSave = false`, each item then on `pkg.lastSave.lost`. Each `part.skipped` warning says which (`onSave`). The other shapes
 Word repairs, such as an undeclared `mc:Ignorable` prefix or an element the model has no place for, read the same at
 every value (CR-031 section 2.1.1).
 
