@@ -187,7 +187,7 @@ Phase 1 waits on the objects release, and the editor is told before it (section 
 
 **Tests that move with phase 1,** eight in the trial, each stopping at its first failed assertion, so editing them may show more:
 - `text-parity.test.mjs`: five `PENDING` `req303` entries go, since the URI now decides.
-- The `extraction-probe-inspect` golden: 17.3.5 reads its `wpi` ink's Fallback and this package now reads the Choice, as Word does. docx4j re-baselines it, so a `PENDING` entry holds it until the goldens are recut.
+- The `extraction-probe-inspect` golden: 17.3.5 reads its `wpi` ink's Fallback and this package now reads the Choice, as Word does. docx4j re-baselines it, so a `PENDING` entry holds it until the goldens are recut. (Recut from the 17.3.6 release on 2026-11-10, which reads the Choice; the entry went, CR-001 section 27.)
 - `kept-branches.test.mjs:59` and `:179` use `cx3` as not understood, and take a namespace like `cx5`.
 
 Also: `mce.test.mjs:241` (kept whole) changes in phase 2, `text-extraction.test.mjs:405` holds the two sets, and the adapter claims REQ-303, its nine `waits` rows going. `create.test.mjs:263`, Excel's `x15ac:absPath`, stays kept.

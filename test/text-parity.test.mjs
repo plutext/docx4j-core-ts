@@ -236,8 +236,6 @@ function joinedBody(b) {
  * - `charts` and `smartart` (phase 5c, REQ-511), `altchunks` (phase 5e, REQ-513): the blocks docx4j reads at a
  *   `chart:`, `smartart:` or `altchunk:` address, which this package doesn't make, and every
  *   `altchunk.not_expanded` warning;
- * - `wpi` (CR-029, WD REQ-306): the blocks at these addresses, where a Choice requires `wpi` over a Fallback's picture. Word
- *   understands the namespace, as this package now does, and 17.3.5's golden reads the Fallback, until docx4j's next release;
  * - `nestedFields` (phase 5a, REQ-506; docx4j CR-067 D4, in 17.3.5): the blocks at these addresses, where a nested
  *   field's stored result, which Word writes as `w:instrText` after its `separate`, is the nested field's result and an
  *   operand of the outer instruction in docx4j's block model, and part of the outer instruction here (the text agrees).
@@ -271,12 +269,11 @@ const PENDING = {
   'text-extraction/suite/phase0/evidence/extraction-probe-r3-word-save.json': PROBE,
   'text-extraction/suite/phase0/evidence/extraction-probe-v1-rejected.json': { ...PROBE, altchunks: true },
   'text-extraction/suite/phase0/evidence/extraction-probe-v1-word-repaired.json': PROBE,
-  'text-extraction/suite/phase0/extraction-probe-inspect.json': { wpi: ['body/41'] },
 };
 
 /** The flags that set blocks aside by their address's last segment, and the flags that set them aside by address. */
 const MARKERS = { charts: '/chart:', smartart: '/smartart:', altchunks: '/altchunk:' };
-const AT = ['latexOnly', 'wpi', 'nestedFields'];
+const AT = ['latexOnly', 'nestedFields'];
 
 /** Every block, its cells' blocks and its comments' blocks, in order. */
 function allBlocks(body) {
@@ -397,14 +394,7 @@ for (const name of goldens) {
     for (const flag of Object.keys(pending)) {
       assert.ok(needed.has(flag), `${name}: PENDING's ${flag} sets aside nothing that differs now; if its phase has landed, remove the entry`);
     }
-    // `repaired` (REQ-207, CR-031) came with docx4j 17.3.6; a golden cut from 17.3.5 lacks it. Every fixture loads at the default,
-    // so nothing is repaired: until the goldens are recut from 17.3.6, which carries it, ours is held to `none` and left out
-    const ours = JSON.parse(JSON.stringify(metadata));
-    if (!('repaired' in golden.metadata)) {
-      assert.equal(ours.repaired, 'none', `${name}: repaired`);
-      delete ours.repaired;
-    }
-    assert.deepStrictEqual(ours, golden.metadata, `${name}: the metadata`);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(metadata)), golden.metadata, `${name}: the metadata`);
   });
 }
 

@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "2",
-    "docx4jCommit": "64fae4cd0b433eff7f923cfe1ed9b7b6fa3bef0d",
-    "docx4jVersion": "docx4j-core-17.3.5.jar",
-    "docx4jCoreJarSha256": "c196579b75735e62",
-    "date": "2026-11-03T08:48:09Z",
+    "docx4jCommit": "4afcf4be84a029a4eacb432e2ae3bb7a45d8bf7a",
+    "docx4jVersion": "docx4j-core-17.3.6.jar",
+    "docx4jCoreJarSha256": "712f549dcbf57df8",
+    "date": "2026-11-09T20:31:48Z",
     "fixture": "fixtures/revisions/review/review-for-word-word15-rejected.docx",
     "fixtureBytes": 20170,
     "timeZone": "UTC",
@@ -12,6 +12,7 @@
   },
   "metadata": {
     "fields_update_on_open": false,
+    "repaired": "none",
     "core": {
       "revision": "2",
       "lastModifiedBy": "Author A",

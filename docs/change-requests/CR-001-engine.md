@@ -2692,3 +2692,75 @@ the lead sentence. No field changed.
 these parts". That would mean opening a document whose styles or numbering part can't be read, by
 repairing the part rather than refusing it. Nothing is proposed. A repair would start from what the
 error now carries: the part, the element or attribute, and the value refused.
+
+## 27. docx4j 17.3.6, the parity branch moved to `VERSION_17_3_7`, and every golden cut from the release (2026-11-10)
+
+docx4j released 17.3.6 on 2026-11-08 (Maven Central; tag `docx4j-17.3.6` at `4afcf4be8`) and moved
+development to `VERSION_17_3_7` (`<revision>` `17.3.7-SNAPSHOT`); `VERSION_17_3_6` is frozen at the
+release. `.github/workflows/parity.yml` now checks out `VERSION_17_3_7`, and `test/java/pom.xml`'s
+default is the 17.3.6 release, as section 20 set the pattern (Jason: "commit the release record and push
+both commits, then start the 17.3.6 move", 2026-11-10).
+
+**The weekly run found the drift first and could not report it.** Run 42644153075 (2026-11-09), against
+`VERSION_17_3_6` by then at the release, found the 338 text goldens different and nothing else, and its
+last step failed: "Argument list too long". The pull request's body went to `create-pull-request` as an
+input, which is an environment variable of the action's process, and 338 golden names with 115 of
+docx4j's commit subjects, some over a thousand characters, went past the 128 KB one may hold. The step
+now writes the body to a file the action reads (`body-path`). Each name is a line of its own, read through
+a variable, since `x.json(missing)` in a word list is a syntax error. Each subject is cut at 150
+characters by git, which counts characters, not bytes. That run's body would be about 37 KB, inside
+GitHub's 65,536.
+
+**What moved.** The four harnesses were run against the release jars from Central (a scratch Maven
+repository; `docx4j-core-17.3.6.jar`, SHA-256 `712f549dcbf57df8…`) and compared as the workflow does,
+header fields ignored:
+
+- The 62 property goldens, the 62 XPath goldens and the 96 revisions goldens: no answer moved.
+- The 338 text goldens: each one's metadata gains `repaired`, `none` in each (REQ-207, docx4j CR-075),
+  which this package has written since CR-031. Its test held ours to `none` while a golden lacked it;
+  the hold is gone, and the metadata is compared whole.
+- One text answer moved. In `suite/phase0/extraction-probe-inspect`, `body/41` holds an
+  `mc:AlternateContent` whose Choice requires `wpi` over a Fallback's picture of the ink. 17.3.6 reads the
+  Choice (docx4j `824565363`: the understood set is now the 114 namespaces Word was measured to
+  understand), as this package has since CR-029 over objects 0.8.0. The test's `PENDING` entry for it
+  (`wpi`) went.
+
+Every golden was taken from the release, so all 558 record `4afcf4be8` and one jar. Parity, XPath
+parity, revisions parity and text parity are zero differences on all of them; the text test's
+`PENDING` now names 20 documents, all phase 5's.
+
+A hand-run reads every `.docx` under the fixtures directories, the git-ignored ones built by the check
+tests too. Four of check 75's are refused by 17.3.6, whose `RepairMode` refuses two entries of one name
+by default. None is committed, so CI never meets them and no golden is made for them.
+
+**docx4j's commits since 17.3.5.** Of the 115 between the two tags, 37 touch `docx4j-core/src/main`.
+Each was read:
+
+| docx4j | what | here |
+|---|---|---|
+| `27d94d04b`, `54d037c63`, `598fe9212`, `6025529d9`, `880d7a3bb` (CR-075) | `RepairMode` (refuse, `WORD`, `ALL`): two entries of one name, more than one officeDocument relationship, a relationships part in a wrong namespace, an `External` main part | ported before: CR-024, CR-025 section 8, CR-031 |
+| `fb1ed291b` | `AnonymizeCli --repair` | no counterpart: there is no command line here |
+| `e2d51d1e2` (CR-075 phases 2 and 4) | a custom XML store that isn't well formed reads as absent; a relationships part that isn't well formed keeps each whole `Relationship` before the break, and a save that would lose what the rest named is refused | the store: ported before, CR-012 section 28. **The relationships part: not ported.** Here it refuses the load: a `document.xml.rels` cut off after its first `Relationship` gives `PartUnmarshalException: … Malformed XML`, tried 2026-11-10. Open, for a CR of its own |
+| `4b26e7422`, `e8340add0` (CR-079) | a main part's root read, refused or read as empty, as Word does; an `mc:Ignorable` prefix with no declaration warned of | ported before: CR-028 D10 and D11, CR-030. An `mc:AlternateContent` root's reading (REQ-317) is CR-028's rest |
+| `23f95e451` (CR-079 D9) | a `w:sdtContent` root read alike under MOXy and the Reference Implementation | no counterpart: a difference between JAXB implementations. `readMainPartRoot` decides by what the root holds, and `test/main-part-root/`'s `rq-20` to `rq-22` are held to Word |
+| `af50deffe`, `8c23c444f` (CR-079) | a child given more than once merges as Word merges it: a second `w:body` or `w:sdtContent` joins the first; `w:rPr` or `w:numPr` twice in a `w:pPr`; `w:pgSz`, `w:pgMar` or `w:cols` twice | **not ported**: CR-028's rest (repeated containers), proposed. No fixture holds the shape, so no golden moved |
+| `dc079f33e`, `be49f2dc5`, `86a203f16` (CR-076) | an element Word doesn't know read as Word reads it, a `w:p` in one, an unknown element in `w:sdtPr` | ported before: CR-026 |
+| `95c6b42d3` (CR-073) | a `w:br` outside a `w:r` | ported before: CR-021 |
+| `06628f550`, `af26a5f78`, `824565363` | an `mc:AlternateContent` that selects nothing; `WORD` mode taking it out; the two published namespace sets | ported before: CR-029, on objects 0.8.0. The one text answer that moved |
+| `57ff8b2dc` (CR-077) | a save gives a `w14:paraId` to every paragraph and row | decided differently: CR-002 section 66 gives one to each paragraph and row the API adds, at creation, and a save doesn't rewrite |
+| `9e3100351` | `w:numId` 0 clears every inherited indent (with PDF work) | ported before: CR-027 |
+| `87c421731`, `7af22e9dd`, `3ad164bdf` | `profile: word-text` writes list labels; `default_language`; `part.not_read` | ported before: CR-012 sections 24.8 and 28 |
+| `4fdd80063`, `4b066a369` | a main part that can't be read named by the text model; a `SET` as `w:fldSimple` shows nothing, and a `LISTNUM` in a header keeps its stored result under `fields: update` | ported before: CR-012 sections 25 and 26. `fields: update` is phase 5a, not implemented here |
+| `6e6483a0f` (CR-067 section 16) | a property field with no value under `fields: update` | phase 5a, not implemented here |
+| `82109e4ad` (REQ-204) | a text reading of a package with no styles part no longer adds one | nothing to port: a read here never adds one. Only `pkg.styles.ensure`, a write, does (`ensureStyleDefinitionsPart`) |
+| `bcd4db4a0` | `AltChunkHtml.metaUtf8`'s expression (GHSA-g8x8-9hfx-fjjv) | no counterpart: an HTML `altChunk` isn't converted here |
+| `95d32663a`, `cd99ce39c` | JAXB 4's error count; Java 25's XML element-depth limit | no counterpart: the Java runtime |
+| `9691c7369`, `b267f24ce`, `760f28c63`, `7f8f47543`, `c4082e6b7`, `69bcc29b7` | PDF output and metafiles | not ported: PDF |
+
+Two are open after this: a relationships part that isn't well formed (`e2d51d1e2`), and CR-028's
+repeated containers (`af50deffe`, `8c23c444f`).
+
+The text extraction suite changed between the tags too: 134 files, 2,936 lines added, among them a probe
+(`extraction-probe-opaque.docx`), HTML-reader tables and the understood namespaces file. It is still the
+copy made at the 17.3.5 release (CR-012 section 24.6, D1). Copying it again is a step of its own, since
+new rows can claim what the adapter doesn't do yet.

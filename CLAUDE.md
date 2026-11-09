@@ -72,7 +72,7 @@ to Word 365's saves of docx4j's thirteen probes; check 72's 72e and 72j now read
 section 24 (docx4j CR-069, released in 17.3.5: `w:caps` in capitals by the run's language through `CaseMapping`'s generated
 Unicode 15.0 table, the block model's `caps`, `smallCaps`, `verticalAlignment` and `language`, a drop cap joined to its word,
 `<sup>` and `<sub>` in Markdown, `strike` taking `w:dstrike`; the options `small_caps`, `drop_caps` and section 23.1's `profile`, its `word-text` writing list labels since WD 0.75, its `comments` the one setting since WD 0.91, section 29, `include: comments` a deprecated spelling; section 24.8's `default_language`, WD 0.80's language of last resort for the capitals, `w:themeFontLang` no longer read for them), and section 28 (a styles, numbering, settings or properties part, or a custom XML store, that cannot be read read as absent, with `part.not_read` where the reading needs it, through `PropertyResolver.create`'s `onUnreadable`; Word's default list, with `part.absent`, where the numbering part is absent or unreadable; the content API's refusal kept), and section 23.7 (REQ-702's date form, docx4j's `RevisionDates`: a revision's or comment's date as the author's local time with the offset `dateUtc` gives, its stored `Z` never written),
-with the suite copied at the 17.3.5 release (its `dpp/` rows, Word's 22 text saves among them) and the text goldens recut from it. The editor's release requests are
+with the suite copied at the 17.3.5 release (its `dpp/` rows, Word's 22 text saves among them) and the text goldens recut from it (from 17.3.6 since CR-001 section 27). The editor's release requests are
 CR-002 sections 22 to 30, reviewed in section 31. Each CR's last sections record decisions and
 departures.
 
@@ -525,11 +525,11 @@ project's `XPathHarness` (`-Dexec.mainClass=org.docx4j.parity.XPathHarness`) and
 `org.docx4j.model.revisions` (its CR-043) lists of each of the 96 fixtures with revision markup, at
 any depth, and what each resolve-all leaves, with and without a filter, tracked changes and (harness
 version 2, CR-002 section 54) comments (`RevisionsHarness`, in UTC; a golden's path mirrors its
-fixture's; recorded from docx4j `VERSION_17_3_5` at `5163c2986`), compared by
+fixture's; recorded from the docx4j 17.3.6 release, `4afcf4be8`), compared by
 `test/revisions-parity.test.mjs`. `test/golden/text/` is CR-012 phase 6's: what docx4j's `org.docx4j.model.text`
 (`Texts.of`, `PlainText.of`) answers for each of the 338 committed documents under `test/fixtures/` and `test/text-extraction/`,
 in four readings (the three views, and every story and optional item included), as the block model and the plain text
-(`TextHarness` version 2, cut from the 17.3.5 release, CR-012 section 24.7; `-Dfixtures=../fixtures,../text-extraction`; a golden's
+(`TextHarness` version 2, cut from the 17.3.6 release, CR-001 section 27, from 17.3.5 before, CR-012 section 24.7; `-Dfixtures=../fixtures,../text-extraction`; a golden's
 path is the directory's name and the document's), compared by `test/text-parity.test.mjs` with the runs joined by docx4j's rule
 (CR-012 section 15.5), its `PENDING` table setting aside what phase 5 and REQ-303 govern, each required to still differ;
 REQ-702's date form, masked until CR-012 section 23.7, now agrees with nothing masked.
@@ -579,11 +579,12 @@ REQ-702's date form, masked until CR-012 section 23.7, now agrees with nothing m
   `856afc5da`), to `VERSION_17_3_4` on 2026-10-17 when 17.3.3 was released (tag `docx4j-17.3.3`,
   `c95b55be6`; 17.3.3 ships CR-043, the tracked-changes API this package's CR-011 follows), to
   `VERSION_17_3_5` on 2026-10-22 when 17.3.4 was released (tag `docx4j-17.3.4`, `8f455ebab`; 17.3.4 ships
-  CR-046, the text model this package's CR-012 follows), and to `VERSION_17_3_6` on 2026-11-01 when 17.3.5
-  was released (tag `docx4j-17.3.5`, `64fae4cd0`). The parity workflow checks out `VERSION_17_3_6` (since 2026-11-02),
-  and `test/java/pom.xml` resolves the 17.3.5 release for a hand-run (the workflow reads docx4j's
-  `<revision>` instead), since CR-012's section 24 (the text goldens are cut from it; 17.3.5 holds
-  `82c64bf14`'s `anchorLock`, so it reproduces the property goldens too). The classes being
+  CR-046, the text model this package's CR-012 follows), to `VERSION_17_3_6` on 2026-11-01 when 17.3.5
+  was released (tag `docx4j-17.3.5`, `64fae4cd0`), and to `VERSION_17_3_7` on 2026-11-08 when 17.3.6 was
+  released (tag `docx4j-17.3.6`, `4afcf4be8`; 17.3.6 ships `RepairMode`, docx4j CR-075, which this package's
+  CR-031 follows). The parity workflow checks out `VERSION_17_3_7` (since 2026-11-10), and
+  `test/java/pom.xml` resolves the 17.3.6 release for a hand-run (the workflow reads docx4j's
+  `<revision>` instead), the release every golden is cut from (CR-001 section 27). The classes being
   ported are under `docx4j-core/src/main/java/org/docx4j/`: `openpackaging/` (`io3/` for
   Load3/Save and `io3/stores/` for `PartStore`, `parts/relationships/` for `RelationshipsPart`
   and `Namespaces`, `contenttype/`, `packages/`), `model/PropertyResolver.java`,
@@ -595,11 +596,13 @@ REQ-702's date form, masked until CR-012 section 23.7, now agrees with nothing m
   (`VERSION_17_3_1`, CR-030 D11), then `856afc5da`, the 17.3.2 release from Maven Central (CR-001
   section 22), then `2e381ef26` (`VERSION_17_3_3`, CR-034's colour merge, CR-008 section 6), then
   `c95b55be6`, the 17.3.3 release from Maven Central (CR-011 phase 0: no answer moved), then
-  `8f455ebab`, the 17.3.4 release (CR-012 phase 6: no answer moved), and now record `5163c2986`
+  `8f455ebab`, the 17.3.4 release (CR-012 phase 6: no answer moved), then `5163c2986`
   (`VERSION_17_3_5`, pushed; CR-015 section 11: docx4j `82c64bf14` reads `w:framePr`'s `anchorLock` as
-  stated, which moved eight answers, ported; CR-060 and CR-061 moved none), harness version 4, which needs
-  docx4j 17.3.1's table context; the project does not compile against anything before 17.3.4, whose
-  `org.docx4j.model.text` `TextHarness` calls. Build docx4j from the commit you mean to record before regenerating them
+  stated, which moved eight answers, ported; CR-060 and CR-061 moved none), and now record `4afcf4be8`,
+  the 17.3.6 release, every golden alike (CR-001 section 27: no property, XPath or revisions answer moved;
+  the text goldens gained `repaired`, and one ink Choice now read as this package already read it),
+  harness version 4, which needs docx4j 17.3.1's table context; the project does not compile against
+  anything before 17.3.5, whose CR-069 run members `TextHarness` version 2 calls. Build docx4j from the commit you mean to record before regenerating them
   by hand (or resolve a release from Central), and never modify that checkout.
 
 ## Portfolio task registry

@@ -282,10 +282,25 @@ as Word reads them, colours written plainly on save), which moved no answer: no 
 whose reading they change. Header fields aside, nothing else moved, no XPath hit, nothing listed or
 resolved, and no text block.
 
+## docx4j 17.3.6 (2026-11-10)
+
+All 62 goldens, the 62 under `xpath/`, the 96 under `revisions/` and the 338 under `text/` were
+regenerated from the docx4j 17.3.6 release on Maven Central (`docx4j-core-17.3.6.jar`, SHA-256
+`712f549dcbf57df8…`, tag `docx4j-17.3.6` at `4afcf4be84a029a4eacb432e2ae3bb7a45d8bf7a`, a descendant of
+`5163c2986` and of the 17.3.5 release, `64fae4cd0`, which `text/` recorded until now), harness versions
+4, 1, 2 and 2, with a scratch Maven repository. Header fields aside, no property answer moved, no XPath
+hit, and nothing listed, resolved or left of the comments. Every text golden's metadata gains
+`repaired` (REQ-207, docx4j CR-075, this package's CR-031), `none` in each, since every fixture loads at
+the default. One text answer moved: `suite/phase0/extraction-probe-inspect`'s `body/41`, an
+`mc:AlternateContent` whose Choice requires `wpi` over a Fallback's picture of the ink, now reads the
+Choice, as Word does and as this package has since CR-029, so its `PENDING` entry went. The weekly
+workflow had found the same 338 on 2026-11-09 and failed to open its pull request (CR-001 section 27).
+
 ## `text/`: the text model (CR-012 phase 6)
 
 One JSON file per WordprocessingML document under `test/fixtures/` and `test/text-extraction/`, at
-any depth: 282 of them, at the directory's name and then the document's path
+any depth: 338 of them (282 when phase 6 recorded them, and the counts of readings, blocks and runs below
+are phase 6's), at the directory's name and then the document's path
 (`fixtures/parity/numbering-stories.json`, `text-extraction/suite/phase0/extraction-probe.json`).
 Each records what docx4j's `org.docx4j.model.text` answers (its CR-046): the result's `metadata`, and
 four `readings`, `accepted`, `original`, `markup` (with `markup_detail: author_date`) and
@@ -300,12 +315,12 @@ What the test sets aside, on both sides:
 - **Run boundaries** (CR-012 section 15.5): a block's runs are compared joined by docx4j's rule
   (`Extractor.addText`), since this package keeps runs apart where `Paragraph.text` holds text the
   model leaves out between them. The text is the same; only the boundaries differ.
-- **Phase 5 and REQ-303**, in 20 documents the test's `PENDING` names: an equation's text (5b, LaTeX
-  in docx4j, its `m:t` text here), the chart and SmartArt blocks (5c) and an `altChunk`'s content
-  (5e) that docx4j reads and this package doesn't yet, and the blocks of check 50 and the probe's
-  case 6, whose `mc:Choice` docx4j selects by namespace (REQ-303 by URI). These are the 20 documents
-  CR-012 section 16.5's Markdown sweep found. Each flag must still set aside something that differs,
-  so a phase arriving fails the test until its entries are removed.
+- **Phase 5**, in 20 documents the test's `PENDING` names: an equation's text (5b, LaTeX in docx4j,
+  its `m:t` text here), the chart and SmartArt blocks (5c) and an `altChunk`'s content (5e) that
+  docx4j reads and this package doesn't yet, and a nested field's stored result (5a), which docx4j's
+  block model reads as the nested field's result and this package as part of the outer instruction.
+  Each flag must still set aside something that differs, so a phase arriving fails the test until its
+  entries are removed.
 
 Everything else is compared exactly: every other block, run, field, numbering, table row and cell,
 comment and warning, the plain text of every reading in which nothing set aside differs, and the
@@ -313,9 +328,9 @@ metadata.
 
 | | |
 |---|---|
-| docx4j | `VERSION_17_3_5` at `5163c2986` (the 17.3.4 release, `8f455ebab`, when first recorded) |
-| harness version | 1 |
-| fixtures | the 252 `.docx`, `.docm` and `.dotx` committed under `test/fixtures/` and the 30 under `test/text-extraction/` |
+| docx4j | the 17.3.6 release, `4afcf4be8` (the 17.3.5 release, `64fae4cd0`, before it, from harness version 2; `VERSION_17_3_5` at `5163c2986` and the 17.3.4 release, `8f455ebab`, at version 1) |
+| harness version | 2 |
+| fixtures | the 254 `.docx`, `.docm` and `.dotx` committed under `test/fixtures/` and the 84 under `test/text-extraction/` (252 and 30 at phase 6) |
 
 ## `revisions/`: every story's tracked changes, and what each resolve-all leaves (CR-011)
 
@@ -333,6 +348,6 @@ wall-clock time on both sides.
 
 | | |
 |---|---|
-| docx4j | `VERSION_17_3_5` at `5163c2986` (the 17.3.4 release, `8f455ebab`, before it; `VERSION_17_3_4` at `a8bc6cda9` when harness version 2 was first recorded, the 17.3.3 release at harness version 1) |
+| docx4j | the 17.3.6 release, `4afcf4be8` (`VERSION_17_3_5` at `5163c2986` before it, the 17.3.4 release, `8f455ebab`, before that; `VERSION_17_3_4` at `a8bc6cda9` when harness version 2 was first recorded, the 17.3.3 release at harness version 1) |
 | harness version | 2 |
 | fixtures | the 96 `.docx` under `test/fixtures/`, at any depth, matching `REVISION_MARKUP` (`WordprocessingMLPackage.mts`) in a part under `word/`: 1,784 changes listed |

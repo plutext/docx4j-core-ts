@@ -19,22 +19,22 @@ fixtures or docx4j change, and weekly by
 
 ## Build docx4j
 
-The harness resolves `org.docx4j:docx4j-core:17.3.5` (`pom.xml`'s `docx4j.version`, the latest
-release, on Maven Central since 2026-11-01; overridable with `-Ddocx4j.version=...`; **harness
+The harness resolves `org.docx4j:docx4j-core:17.3.6` (`pom.xml`'s `docx4j.version`, the latest
+release, on Maven Central since 2026-11-08, which every committed golden is cut from; overridable with `-Ddocx4j.version=...`; **harness
 version 4 needs docx4j CR-030's table context, which 17.3.1 is the first release to have,
 `RevisionsHarness` docx4j CR-043's `org.docx4j.model.revisions`, first released in 17.3.3, and
 `TextHarness` docx4j CR-046's `org.docx4j.model.text`, first released in 17.3.4, and since its version 2
 CR-069's run members, first released in 17.3.5**, so the project does not compile against anything
 earlier) and the JAXB implementation and four font jars
 from your local Maven repository, so build them first from the docx4j checkout you want to measure.
-**docx4j's answers move on its development branch, `VERSION_17_3_6`** (`<revision>`
-`17.3.6-SNAPSHOT`, since 17.3.5 was released on 2026-11-01 from `VERSION_17_3_5`, commit
-`64fae4cd0`, tag `docx4j-17.3.5`; the release branches are frozen at their releases:
-`VERSION_17_3_5` at 17.3.5, `VERSION_17_3_4` at 17.3.4, `VERSION_17_3_3` at 17.3.3, `VERSION_17_3_2` at 17.3.2,
+**docx4j's answers move on its development branch, `VERSION_17_3_7`** (`<revision>`
+`17.3.7-SNAPSHOT`, since 17.3.6 was released on 2026-11-08 from `VERSION_17_3_6`, commit
+`4afcf4be8`, tag `docx4j-17.3.6`; the release branches are frozen at their releases:
+`VERSION_17_3_6` at 17.3.6, `VERSION_17_3_5` at 17.3.5, `VERSION_17_3_4` at 17.3.4, `VERSION_17_3_3` at 17.3.3, `VERSION_17_3_2` at 17.3.2,
 `VERSION_17_3_1` at 17.3.1, `VERSION_17_3_0` at 17.3.0, `VERSION_17_2_1` at 17.2.1, and before them
 development was on `VERSION_17_2_0`, itself the renamed `VERSION_17_1_1`).
-So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_6` and pass
-`-Ddocx4j.version=17.3.6-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
+So to measure the head: build the sibling `../docx4j` on `VERSION_17_3_7` and pass
+`-Ddocx4j.version=17.3.7-SNAPSHOT`, which is what the workflow does after reading `<revision>` from
 its pom. A released version number is a trap a SNAPSHOT was not: if nothing was installed locally,
 Maven takes Central's release and the harness measures that, not the head; the workflow builds
 first, and so must you:
@@ -286,7 +286,7 @@ About eight seconds for 96 fixtures; the same rules as above for which docx4j it
 
 A fourth main class, the oracle for the text model (CR-012 phase 6, its D8 c): docx4j's
 `org.docx4j.model.text` (its CR-046), `Texts.of` and `PlainText.of`; the committed goldens are cut from
-the 17.3.5 release (CR-012 section 24.7), and since version 2 a run carries `caps`, `smallCaps`,
+the 17.3.6 release (CR-001 section 27; from 17.3.5 before, CR-012 section 24.7), and since version 2 a run carries `caps`, `smallCaps`,
 `verticalAlignment` and `language` (docx4j CR-069). For every `.docx`, `.docm` and
 `.dotx` under each of the fixtures directories, at any depth, it records the result's metadata
 once and four readings (`TextHarness.READINGS`), each its options in the specification's names and

@@ -1,10 +1,10 @@
 {
   "header": {
     "harnessVersion": "1",
-    "docx4jCommit": "5163c29862ed6c6b5f6a707fc30c98e009e3c05d",
-    "docx4jVersion": "docx4j-core-17.3.5-SNAPSHOT.jar",
-    "docx4jCoreJarSha256": "3ccd10ffa0c17ebe",
-    "date": "2026-10-24T02:22:52Z",
+    "docx4jCommit": "4afcf4be84a029a4eacb432e2ae3bb7a45d8bf7a",
+    "docx4jVersion": "docx4j-core-17.3.6.jar",
+    "docx4jCoreJarSha256": "712f549dcbf57df8",
+    "date": "2026-11-09T20:31:32Z",
     "fixture": "fonts-georgia.docx",
     "fixtureBytes": 7003,
     "part": "/word/document.xml",

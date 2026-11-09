@@ -1,5 +1,5 @@
 # CR-001 Phase B step 1, option C: the goldens under test/golden/ are docx4j's answers,
-# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_6, runs
+# and docx4j moves.  Once a week this rebuilds docx4j at the head of VERSION_17_3_7, runs
 # the harness (test/java/) over the same fixtures, and opens a pull request when any
 # golden differs, with the docx4j commits since the hash the goldens record in its body.
 #
@@ -28,14 +28,15 @@ jobs:
       # VERSION_17_3_1 on 2026-10-02 when 17.3.0 was released, to VERSION_17_3_2 on
       # 2026-10-07 when 17.3.1 was released, to VERSION_17_3_3 on 2026-10-09 when 17.3.2
       # was released, to VERSION_17_3_4 on 2026-10-17 when 17.3.3 was released, to
-      # VERSION_17_3_5 on 2026-10-22 when 17.3.4 was released, and to VERSION_17_3_6 on
-      # 2026-11-01 when 17.3.5 was released (the release branches are frozen at their
-      # releases).  Rename here when docx4j moves again.
-      - name: Check out docx4j (VERSION_17_3_6)
+      # VERSION_17_3_5 on 2026-10-22 when 17.3.4 was released, to VERSION_17_3_6 on
+      # 2026-11-01 when 17.3.5 was released, and to VERSION_17_3_7 on 2026-11-08 when 17.3.6
+      # was released (the release branches are frozen at their releases).  Rename here when
+      # docx4j moves again.
+      - name: Check out docx4j (VERSION_17_3_7)
         uses: actions/checkout@v4
         with:
           repository: plutext/docx4j
-          ref: VERSION_17_3_6
+          ref: VERSION_17_3_7
           path: .docx4j
           fetch-depth: 0     # the pull request body lists the commits since the recorded hash
 
@@ -48,7 +49,7 @@ jobs:
       - name: The commit the goldens were made from, docx4j's head, and its version
         id: commits
         # docx4j's <revision> is what its build installs and what the harness must resolve
-        # (17.3.5-SNAPSHOT on the branch before, 17.3.6-SNAPSHOT on this one); read it from the checkout so
+        # (17.3.6-SNAPSHOT on the branch before, 17.3.7-SNAPSHOT on this one); read it from the checkout so
         # the branch name above is the only thing to change when docx4j moves on.
         run: |
           old=$(node -e "const g=require('./test/golden/invoice.json'); process.stdout.write(g.header.docx4jCommit)")
@@ -195,23 +196,29 @@ jobs:
 
       - name: The docx4j commits since the goldens were made
         if: steps.compare.outputs.changed == 'true'
-        id: log
+        # Written to a file the next step reads (body-path): passed as an input, the body is an environment
+        # variable of the action's process, and on 2026-11-09 338 golden names and 115 of docx4j's long commit
+        # subjects went past the 128 KB a single one may hold ("Argument list too long"), so the drift went
+        # unreported.  Each commit's subject is cut at 150 characters (git's own truncation, which counts characters,
+        # not bytes), which keeps the body inside GitHub's 65,536 too.
         run: |
           {
-            echo "body<<PARITY_EOF"
-            echo "docx4j's answers changed for:${{ steps.compare.outputs.files }}"
+            echo "docx4j's answers changed for:"
             echo
-            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_6\` is now at \`${{ steps.commits.outputs.new }}\`."
+            files="${{ steps.compare.outputs.files }}"   # a variable: a name such as x.json(missing) is no word list
+            for f in $files; do echo "- \`$f\`"; done
+            echo
+            echo "Goldens were made from \`${{ steps.commits.outputs.old }}\`; \`VERSION_17_3_7\` is now at \`${{ steps.commits.outputs.new }}\`."
             echo
             echo "docx4j commits in between:"
             echo
             echo '```'
-            git -C .docx4j log --oneline ${{ steps.commits.outputs.old }}..${{ steps.commits.outputs.new }} || echo "(the recorded commit is not an ancestor of the head; history was rewritten or the branch moved)"
+            git -C .docx4j log --format='%h %<(150,trunc)%s' ${{ steps.commits.outputs.old }}..${{ steps.commits.outputs.new }} || echo "(the recorded commit is not an ancestor of the head; history was rewritten or the branch moved)"
             echo '```'
             echo
             echo "Read the diff before merging: a change here is a change in what \`@docx4j/core-ts\` must reproduce (CR-001 section 14). If it is a docx4j fix, the port follows; if it is a regression there, raise it in docx4j rather than encoding it."
-            echo "PARITY_EOF"
-          } >> "$GITHUB_OUTPUT"
+          } > "${{ runner.temp }}/parity-body.md"
+          wc -c "${{ runner.temp }}/parity-body.md"
 
       - name: Open a pull request
         if: steps.compare.outputs.changed == 'true'
@@ -221,6 +228,6 @@ jobs:
           base: main
           add-paths: test/golden
           commit-message: "CR-001 Phase B: refresh the parity goldens against docx4j ${{ steps.commits.outputs.new }}"
-          title: "Parity goldens differ from docx4j VERSION_17_3_6"
-          body: ${{ steps.log.outputs.body }}
+          title: "Parity goldens differ from docx4j VERSION_17_3_7"
+          body-path: ${{ runner.temp }}/parity-body.md
           delete-branch: true
