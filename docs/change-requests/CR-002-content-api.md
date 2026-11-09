@@ -2792,6 +2792,23 @@ release). The editor was asked before the release (nothing further wanted; the r
 requirement and that `pkg.normaliseOnSave` can be switched off, as it asked) and ran its suites against `10cfe9b`
 first: no finding, every difference one its install checklist predicts (its ED-008 section 8.8).
 
+**0.7.0 was released on 2026-11-09** (tag `0.7.0` at `d4b7c8f`, published by `push-to-npm.yml` from the GitHub
+release, run 42541068398, with SLSA provenance). The tarball's shasum, `cbd1ea31`, is the one a `npm pack --dry-run`
+of the version commit gave after a clean `npm ci`, typecheck and 1,972 of 1,972 tests, 348 files. A clean consumer
+install from npm, which brought `@docx4j/generated-objects-ts` 0.8.0 and `@docx4j/jsonix` 3.13.0, was smoke-tested:
+the content API and the Word shim, a save and reload at each value of `repair`, `Texts.of` and Markdown, the five
+lists on `lastSave`, and the editor's exports, by the package's name. It carries sections 60.9 and 64 to 66 (the
+writers' rule for Office JS's characters exported; three search fixes; the measurement setters within Word's storage,
+checks 71 and 71b; a `w14:paraId` on every paragraph and row the API adds, check 80), CR-012 sections 23.7 and 24 to
+29, CR-014 section 15, CR-016 to CR-018, CR-020, CR-021, CR-024, CR-025 with sections 8 to 10, CR-026, CR-027,
+CR-028's D10 and D11, and CR-029 to CR-031, over `@docx4j/generated-objects-ts` ^0.8.0 and `@docx4j/jsonix` ^3.12.0
+(Jason: "commit then do the release steps"). It is a minor version: loads and saves that worked in 0.6.0 now refuse,
+each with its switch, as the release notes set out first. The editor was asked before the release ("is there anything
+else we should do before we prepare to release? ask the editor") and ran its suites against `bb653ea`. Nothing
+blocked it: every difference is one its install fixes (its ED-008 section 8.8, item 18). It asked for two sets of
+exports: UPSTREAM-24's, which `8929de1` had already made, and UPSTREAM-25's, made for this release at `120dcbf`
+(section 60.9). CI passed on `bb653ea` and on the version commit.
+
 **0.5.0 was released on 2026-10-19** (tag `0.5.0` at `05e1370`, published by `push-to-npm.yml`
 from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag, and a
 clean consumer install smoke-tested with the jsonix factory compiled strict) with sections 43 to 52
