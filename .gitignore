@@ -54,3 +54,8 @@ node_modules
 /test/fixtures/check71b/*.docx
 /test/fixtures/check72/*.docx
 /test/fixtures/check75/*.docx
+
+# Claude Code's personal and runtime state, ignored by name (never .claude/ as a whole, so a new skill or command is still seen)
+/.claude/settings.local.json
+/.claude/worktrees/
+/.claude/scheduled_tasks.lock
