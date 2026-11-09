@@ -5,7 +5,7 @@
 // npm test after the build.
 import {
   Part, unwrap, wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
-  DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
+  DEFAULT_ENTRIES, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry, dropExcluded, officeItems, type Element,
 } from '@docx4j/core-ts';
 import { PartName, MisplacedContentException, SaveLossException, type ValueOutOfRangeWarning, type MisplacedContentWarning, type ContentSkippedWarning } from '@docx4j/core-ts/opc';
 import { defaultPartRegistry } from '@docx4j/core-ts/parts';
@@ -46,6 +46,12 @@ export async function consume(): Promise<string> {
 export function findAcrossMarks(pieces: readonly MarkedSegments[], query: string): MarkedMatch[] {
   const parts: string[] | undefined = paragraphMarkPieces(query);
   return parts ? [] : wildcardMatchesAcross(pieces, query, { matchWildcards: true });
+}
+
+/** CR-002 section 60.9: the writers' rule for Office JS's characters over a caller's own text, as the editor's layer applies it. */
+export function writtenAs(text: string): Element[] {
+  const kept: string = dropExcluded(text);
+  return officeItems(kept);
 }
 
 /** CR-002 section 63.28: a caller's own control given its kind's default entry, as the editor's placeholders are. */

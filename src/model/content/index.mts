@@ -25,6 +25,8 @@ export {
   type SearchOptions, searchPattern, findAll, matchesOf, expandReplacement, officeMatches, type OfficeMatch, type SearchSegment,
   wildcardMatchesAcross, paragraphMarkPieces, type MarkedSegments, type MarkedMatch,
 } from './search.mjs';
+// the writers' rule for Office JS's characters, for a caller's own text (CR-002 section 60.9; the editor's UPSTREAM-25)
+export { dropExcluded, officeItems } from './officeText.mjs';
 export { segmentsOf, runsOf, runItemsOf, selectedBranchOf, isAlternateContent, childrenOf, rowsOf, cellsOf, BLOCK_LEVEL_TYPES, SDT_TYPES, runOf, paragraphOf, textOfView, revisionKindOf, officeItemText, hiddenRunsOf, type TextSegment, type Located, type TextView, type TextViewOptions, type SegmentOptions, type HiddenRuns, type AlternateLocation, type RevisionKind, type RevisionHolder } from './tree.mjs';
 export { mathTextOf, mathLetter } from './mathText.mjs';
 export { textBoxesOf, type AnchoredBox } from './textBoxes.mjs';

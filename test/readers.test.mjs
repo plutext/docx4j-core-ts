@@ -568,6 +568,25 @@ test("the matchers across marks are exported, for a caller's own segments (the e
   assert.deepEqual(wildcardMatchesAcross(own, 'Q?Z', {}).map((m) => m.match[0]), ['Q\rZ']);
 });
 
+test("the writers' rule for Office JS's characters is exported, for a caller's own text (the editor's UPSTREAM-25, 2026-11-09; CR-002 section 60.9)", async () => {
+  const root = await import('../dist/index.mjs');
+  const model = await import('../dist/model/index.mjs');
+  for (const name of ['dropExcluded', 'officeItems']) {
+    assert.equal(typeof root[name], 'function', name);
+    assert.equal(model[name], root[name], name);
+  }
+  // E3: the characters XML 1.0 excludes go, U+0002 (a note reference, which no text makes) among them; tab and the breaks stay
+  assert.equal(root.dropExcluded('a\u0001b\uFFFEc\u0002d\te\u000Bf'), 'abcd\te\u000Bf');
+  // D1: each character a writer writes as an element, as that element, the rest as w:t
+  assert.deepEqual(root.officeItems('a\tb\u000Bc\u001Ed\u000Ce').map((e) => e.name.localPart), ['t', 'tab', 't', 'br', 't', 'noBreakHyphen', 't', 'br', 't']);
+  // held to the writer: insertText writes what officeItems gives, the excluded characters dropped
+  const pkg = await WordprocessingMLPackage.createPackage();
+  const body = await pkg.getBody();
+  const paragraph = body.insertParagraph('', 'End');
+  paragraph.insertText('x\u0001\ty', 'End');
+  assert.equal(paragraph.text, root.dropExcluded('x\u0001\ty'));
+});
+
 test("CR-002 section 64: a moved-from mark reads as nothing in Word's default view, as its runs do, and a moved-to mark is no mark in the original view (the editor's finding)", async () => {
   const pkg = await WordprocessingMLPackage.load(await fixture('revisions/revisions-word15.docx'));
   const body = await pkg.getBody();

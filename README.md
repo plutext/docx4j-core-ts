@@ -84,6 +84,39 @@ each listed on `pkg.lastSave.dropped`; one that would lose anything else Word ke
 Word repairs, such as an undeclared `mc:Ignorable` prefix or an element the model has no place for, read the same at
 every value (CR-031 section 2.1.1).
 
+### Saving
+
+A save copies every part nothing changed byte for byte, and re-marshals only what was read. Before it writes
+anything, it checks what it would write. It refuses a file Word would refuse or repair, and a save that would lose
+content Word keeps. Each check has a switch on the package, and each records what it let through on `pkg.lastSave`:
+
+| A save that would | Throws | To write it anyway | Recorded on `pkg.lastSave` |
+|---|---|---|---|
+| Write a child its container never admits: a run straight in the body, a table in a paragraph, a string in a run ([CR-016](docs/change-requests/CR-016-misplaced-content-refused.md)) | `MisplacedContentException` (`target.misplaced`, each child with its part, path and the fix) | `pkg.checkContentOnSave = false` | `misplaced` |
+| Lose what the read skipped, where Word's save keeps it or Word won't open the file ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)) | `SaveLossException` (`save.content_lost`, each part) | `pkg.checkLossOnSave = false` | `lost` |
+| Lose what the read skipped, where Word's own save drops it too | Nothing: written without it | | `dropped` |
+
+```ts
+import { SaveLossException } from '@docx4j/core-ts';
+
+try {
+  await pkg.save();
+} catch (e) {
+  if (!(e instanceof SaveLossException)) throw e;
+  pkg.checkLossOnSave = false;                      // accept the loss: e.losses names each part
+  await pkg.save();
+  pkg.lastSave.lost;                                // what went, each a part.skipped warning
+}
+```
+
+Only a part that was read is checked, so a package loaded and saved untouched is never refused. What a load found
+is on `pkg.warnings` before any save: content the read skipped (`part.skipped`, its `onSave` saying which row it
+falls in), misplaced children, and integer values past what Word stores (`value.out_of_range`, which a save writes
+as held and lists on `lastSave.outOfRange`). `part.checkContent()` and `pkg.checkContent()` run the first check on
+request, changing nothing. Two more switches change what a save writes: `pkg.normaliseOnSave` (run properties in
+Word's normal form, on by default) and `pkg.writeTimesOnSave` (the core properties' times, off by default).
+`pkg.dateTimeZone` is the time zone every revision's and comment's date is written and read in.
+
 ### Guides
 
 | | |

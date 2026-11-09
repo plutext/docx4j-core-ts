@@ -5653,6 +5653,14 @@ too, and the same as a split inside the text.
     writes): every file saves and loads again, and every range reads what was written. The refusals are F4 (136), E1's
     unsplittable places (114) and a kept branch's read-only paragraphs (58).
 
+
+### 60.9 `dropExcluded` and `officeItems` exported, for the editor (2026-11-09)
+
+**Asked by** the editor (its UPSTREAM-25, ED-008 section 8.8, install item 18). The editor applies the writers' rule for the characters XML 1.0 excludes to text that reaches its own layer without going through a writer here, and carried a copy of the two functions, held to these by test. Jason, 2026-11-09: "UPSTREAM-25: export dropExcluded and officeItems in 0.7.0".
+
+**Exported** from `model/content/index.mts`, and so from `.` and `./model`, unchanged, as CR-014 section 15 exported the matchers: `dropExcluded(text)`, the text without the characters XML 1.0 excludes (E3), and `officeItems(text)`, a run's items for a text, each character a writer writes as an element given as that element and the rest as `w:t` (D1). Neither takes a line feed's meaning, which is the writer's (E1, E2, F3).
+
+**Tests.** `readers.test.mjs` checks that both entry points export them, each on a text holding every kind, and `dropExcluded` against `insertText`. `test/nodenext/consumer.mts` uses both by the package's name.
 ## 61. A bound block control of plain text holds one paragraph (proposed and decided 2026-10-23)
 
 *From docx4j-python's Word check of its CR-013 phase A (its section 10.10, `88601a6`), sent at Jason's request on
