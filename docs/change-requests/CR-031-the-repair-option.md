@@ -1,6 +1,6 @@
 # CR-031: The `repair` option: how a load treats a file Word reads only through a repair, or won't open (WD REQ-207 and REQ-208)
 
-**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"), and implemented the same day (section 8), D7's Word round silent; unreleased.
+**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"), and implemented the same day (section 8), D7's Word round silent; released in 0.7.0 (2026-11-09).
 
 ## 0. Summary
 
