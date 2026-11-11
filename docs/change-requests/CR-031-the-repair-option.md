@@ -1,6 +1,6 @@
 # CR-031: The `repair` option: how a load treats a file Word reads only through a repair, or won't open (WD REQ-207 and REQ-208)
 
-**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"), and implemented the same day (section 8), D7's Word round silent; released in 0.7.0 (2026-11-09).
+**Status:** Proposed 2026-11-08, at Jason's "draft the repair cr". Measured here the same day on `b2a3c04` (section 1). D9, the default, added 2026-11-09 with the engines' views (section 2.1.2), and D1, D2 and D6's recommendations revised the same day: `duplicateEntries` folded into `repair`, which leaves `checkLossOnSave` alone. D1 to D9 decided 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended. make the commits, then implement please"), and implemented the same day (section 8), D7's Word round silent; released in 0.7.0 (2026-11-09). D9 settled 2026-11-12 on the portfolio's count of real producers' files (section 9): `refuse` stays the default (Jason: "make 'refuse' the settled default and close D9").
 
 ## 0. Summary
 
@@ -131,7 +131,7 @@ No dependency on another repository.
 | D6 | Does `word` or `all` turn `checkLossOnSave` off? | **Decided** 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended"). **Recommendation revised** 2026-11-09, with D1: no. `repair` decides what a load reads, and a save that would lose what the read skipped still needs its own yes, `checkLossOnSave`, as CR-025 D8 made it. The engines' answers on the default agree that a save's consent shouldn't follow the load option (section 2.1.2: the portfolio's point 4, docx4j's (b)). With D1, `word` also carries the duplicate-entry reading, so a caller who wanted only that would otherwise lose the gate too. This departs from CR-025 section 2.4's record. Was: yes, by starting it false, as docx4j's gate gives way under `WORD` |
 | D7 | A Word check of the saves `all` writes? | **Decided** 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended"). Yes, eight files, one round, as docx4j's and python's had. It's the only evidence that a repaired save opens |
 | D8 | Which release? | **Decided** 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended"). 0.7.0, so the three engines agree on `External` when it ships. Otherwise core-ts 0.7.0 reads a file the other two refuse |
-| D9 | The default: `refuse`, as WD 0.103 has it, or `word` (Jason's question, 2026-11-09; section 2.1.2)? | **Decided** 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended"). `refuse` in 0.7.0, and decide on the portfolio's count of real producers' files. If `word` then, at the load only, with a save that makes a repair permanent needing its own yes, as docx4j's (b), and a gate added for the save of `word`'s two readings (D1) |
+| D9 | The default: `refuse`, as WD 0.103 has it, or `word` (Jason's question, 2026-11-09; section 2.1.2)? | **Decided** 2026-11-09 as recommended (Jason: "CR-031 decisions as now recommended"). `refuse` in 0.7.0, and decide on the portfolio's count of real producers' files. If `word` then, at the load only, with a save that makes a repair permanent needing its own yes, as docx4j's (b), and a gate added for the save of `word`'s two readings (D1). **Settled** 2026-11-12 on that count (section 9): `refuse` is the default, no longer provisional (Jason: "make 'refuse' the settled default and close D9") |
 
 ## 6. Registry
 
@@ -180,3 +180,25 @@ Across 2,611 packages (this repository's `test/` and docx4j's test resources), c
 Seventeen mutants of the build each failed a test: the `External` refusal loosened to `refuse` alone, `External` alone not refused, the two checks' order swapped, the `External` relationships kept at `all`, `readsByLocalName` unset on the package's or a part's relationships part, a `Relationship` left in its namespace, the count taking only the wrong ones, `word` alone following Word, the option's value unchecked, `repaired` never `own` or never `word` for a relationships part, `repaired` always `none` in the metadata, each text-model warning dropped, and `duplicate_entries` unrefused. Three first written didn't build under TypeScript's narrowing and were rewritten.
 
 `npm run typecheck` passes, and `npm test` passes 1,963 of 1,963 on Node 18, 20 and 22; the 1,224 saves compared with the raise's build are the same byte for byte.
+
+## 9. The portfolio's count (2026-11-12), for D9
+
+D9 kept `refuse` and left the default to the portfolio's count of real producers' files. The count is back, from the same
+query as docx4j CR-075's D10. It ran over 3,242,806 kept documents of the portfolio's crawl corpus, and gives counts only
+(`~/fidelity-cc/owed/2026-11-12/docs-cr075-d10.json`, written 2026-11-11T20:40Z, rows by SHA-256; outside git). Each figure
+is documents, then occurrences:
+
+| Shape | Count |
+|---|---|
+| Two zip entries of one name: exact, by ASCII case or by percent-encoding as OPC part names (REQ-206) | 0. The catalogue's own duplicate-name column agrees: 0 over all 3,722,083 |
+| More than one `officeDocument` relationship | 4, each with two internal ones |
+| `External` `officeDocument` beside an internal one; `External` alone | 0; 0 |
+| A relationships part in a wrong namespace | 5 documents, 8 parts. 3 documents (6 parts) in `http://schemas.microsoft.com/package/2005/06/relationships`, the Office 2007 beta namespace; 2 documents (2 parts) in `https://schemas.openxmlformats.org/package/2006/relationships` |
+
+So the shapes a `word` default would open are absent or rare: none of the first, and 9 documents in 3.24 million for the
+other two. That is the outcome the portfolio's condition named for keeping `refuse` (section 2.1.2). Under `refuse`, nine
+documents in the corpus are refused at the load, each naming the shape and `repair: 'word'`, which reads it as Word's repair
+does. Both namespaces are read by local name under `word` (section 2.3), since that reading takes any namespace.
+
+**Decided** 2026-11-12 (Jason: "make 'refuse' the settled default and close D9"): `refuse` is the settled default, and D9 is
+closed. Nothing in the code changes, and nothing changes for the WD, docx4j or python's question.
